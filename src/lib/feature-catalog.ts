@@ -222,7 +222,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-admin-state",
     title: "Admin roadmap, work log, journeys, and for-Mark surfaces",
     group: "Admin and operations",
-    status: "pending",
+    status: "live",
     issue: 8,
     summary:
       "D1-backed admin surfaces for roadmap status, work logs, user journeys, blockers, owner notes, and durable project memory.",
@@ -233,7 +233,10 @@ export const featureCatalog: FeatureRecord[] = [
       "User journeys tied to feature IDs and validation evidence.",
       "For-Mark attention items for non-blocking decisions and risks.",
     ],
-    evidence: ["Tracked by issue #8."],
+    evidence: [
+      "Issue #8 owns the D1 admin surface slice.",
+      "Admin source-data routes and D1 append scripts are included with the issue #8 implementation.",
+    ],
     agentContract:
       "Agents should write durable project state through approved scripts or APIs, never by inventing hidden chat-only status.",
   },

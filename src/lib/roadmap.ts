@@ -117,13 +117,16 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-admin-surfaces",
     title: "D1-backed admin roadmap, work log, journeys, and for-Mark surfaces",
-    status: "next",
+    status: "shipped",
     issue: 8,
     featureId: featureIdFor(8),
     group: "Admin and operations",
     summary: "Owner and agent coordination surfaces backed by D1 instead of static scaffold copy.",
-    publicEvidence: ["Tracked by issue #8.", "Current admin routes exist as scaffolded pages."],
-    nextMilestone: "Create durable records for roadmap state, work logs, user journeys, and Mark attention items.",
+    publicEvidence: [
+      "Issue #8 owns this D1 admin surface slice.",
+      "Admin source-data routes, D1 migrations, and append scripts are included in the issue #8 implementation.",
+    ],
+    nextMilestone: "Protect private admin workflows with Better Auth in #9 while keeping public-safe agent reads available.",
   },
   {
     id: "roadmap-better-auth",

@@ -2,43 +2,52 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Database, GitBranch } from "lucide-react";
 
-import { roadmapCounts, roadmapItems, roadmapUpdatedAt } from "@/lib/roadmap";
+import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
   title: "Admin roadmap",
-  description: "Owner-facing Bumpgrade roadmap surface backed by the current public-safe roadmap records.",
+  description: "Owner-facing Bumpgrade roadmap surface backed by D1 admin records.",
 };
 
-const counts = roadmapCounts();
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function AdminRoadmapPage() {
+function sourceLabel(source: string) {
+  if (source === "d1") return "D1 source";
+  if (source === "mixed") return "D1 plus fixture";
+  return "Fixture fallback";
+}
+
+export default async function AdminRoadmapPage() {
+  const data = await getAdminSurfaceData();
+  const counts = adminRoadmapCounts(data.roadmapItems);
+
   return (
     <main className="roadmap-page admin-roadmap-page">
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin roadmap</p>
-          <h1>Roadmap command center for Mark and future agents.</h1>
+          <h1>Roadmap command center backed by D1.</h1>
           <p className="lede">
-            Until the D1-backed admin surface ships in issue #8, this page mirrors the public-safe roadmap records
-            used by /roadmap and /roadmap/source-data. It keeps active work, blockers, issue links, and next
-            milestones visible without exposing private notes.
+            This page reads the durable admin roadmap records that future agents should update when feature
+            state changes. The content remains public-safe until Better Auth protection ships in issue #9.
           </p>
           <div className="hero-actions">
-            <Link href="/roadmap" className="primary-action">
-              Public roadmap
-              <ArrowRight aria-hidden="true" />
-            </Link>
-            <Link href="/roadmap/source-data" className="secondary-action">
-              Roadmap JSON
+            <Link href="/admin/source-data" className="primary-action">
+              Admin JSON
               <Database aria-hidden="true" />
+            </Link>
+            <Link href="https://github.com/markitics/bumpgrade/issues/8" className="secondary-action">
+              Track issue #8
+              <ArrowRight aria-hidden="true" />
             </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Admin roadmap status summary">
           <GitBranch aria-hidden="true" />
-          <p>Admin source</p>
-          <strong>Static bridge</strong>
-          <span>Updated {roadmapUpdatedAt}. D1-backed editing, owner fields, PR evidence, and work-log links are tracked by issue #8.</span>
+          <p>{sourceLabel(data.source)}</p>
+          <strong>{data.roadmapItems.length} records</strong>
+          <span>{data.loadError ?? "D1 admin records loaded. Scripts can append work-log and For Mark rows without a git change."}</span>
         </aside>
       </section>
 
@@ -46,9 +55,9 @@ export default function AdminRoadmapPage() {
         <div className="roadmap-lane-strip" aria-label="Admin roadmap lane counts">
           {counts.map((lane) => (
             <div key={lane.status}>
-              <span>{lane.label}</span>
+              <span>{lane.status}</span>
               <strong>{lane.count}</strong>
-              <p>{lane.description}</p>
+              <p>Roadmap records currently marked {lane.status}.</p>
             </div>
           ))}
         </div>
@@ -60,24 +69,30 @@ export default function AdminRoadmapPage() {
             <p className="eyebrow">Current records</p>
             <h2>Issue-backed roadmap state</h2>
           </div>
-          <Link href="https://github.com/markitics/bumpgrade/issues/8" className="text-link compact-link">
-            Track D1 admin work
+          <Link href="/roadmap" className="text-link compact-link">
+            Public roadmap
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="roadmap-grid admin-record-grid">
-          {roadmapItems.map((item) => (
-            <article key={item.id} className={`roadmap-card ${item.status}`}>
+          {data.roadmapItems.map((item) => (
+            <article key={item.id} className={`roadmap-card ${item.status === "live" ? "shipped" : item.status}`}>
               <div className="roadmap-card-top">
-                <span className={`status-badge ${item.status}`}>{item.status}</span>
-                <Link href={`https://github.com/markitics/bumpgrade/issues/${item.issue}`}>Issue #{item.issue}</Link>
+                <span className={`status-badge ${item.status === "live" ? "shipped" : item.status}`}>{item.status}</span>
+                {item.issueNumber ? <Link href={`https://github.com/markitics/bumpgrade/issues/${item.issueNumber}`}>Issue #{item.issueNumber}</Link> : null}
               </div>
               <h3>{item.title}</h3>
               <p>{item.summary}</p>
               <div className="roadmap-detail">
                 <strong>Group</strong>
-                <span>{item.group}</span>
+                <span>{item.groupName}</span>
               </div>
+              {item.featureId ? (
+                <div className="roadmap-detail">
+                  <strong>Feature ID</strong>
+                  <span>{item.featureId}</span>
+                </div>
+              ) : null}
               <div className="roadmap-detail">
                 <strong>Next milestone</strong>
                 <span>{item.nextMilestone}</span>
