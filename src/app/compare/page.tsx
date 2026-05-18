@@ -6,30 +6,61 @@ import {
   comparisonHubRows,
   comparisonPrinciples,
   comparisonRetrievedAt,
+  comparisonSeoTargets,
   competitors,
 } from "@/lib/comparison-data";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Compare Bumpgrade Alternatives",
+  title: "ClickFunnels Alternatives and Competitors for Indiepreneurs",
   description:
-    "Compare Bumpgrade's planned Cloudflare-first publisher growth OS with ClickFunnels, Kit, Shopify, SamCart, Kajabi, Podia, Systeme.io, Kartra, and ThriveCart.",
+    "Compare ClickFunnels alternatives and competitors for indiepreneurs, including Bumpgrade's planned Cloudflare-first funnel, checkout, email, commerce, and agent-ready platform.",
   alternates: {
     canonical: `${site.url}/compare`,
+  },
+  openGraph: {
+    title: "ClickFunnels alternatives and indiepreneur platform comparisons",
+    description:
+      "A source-grounded comparison hub for ClickFunnels, Kit, Shopify, SamCart, Kajabi, Podia, Systeme.io, Kartra, ThriveCart, and Bumpgrade roadmap targets.",
+    url: `${site.url}/compare`,
+    type: "website",
   },
 };
 
 export default function ComparePage() {
+  const pageJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "ClickFunnels alternatives and competitors for indiepreneurs",
+    url: `${site.url}/compare`,
+    description: metadata.description,
+    dateModified: comparisonRetrievedAt,
+    about: comparisonSeoTargets.map((target) => target.primaryKeyword),
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: competitors.map((competitor, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: `${competitor.name} alternative`,
+        url: `${site.url}/compare/${competitor.slug}`,
+      })),
+    },
+  };
+
   return (
     <main className="compare-page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd).replaceAll("<", "\\u003c") }}
+      />
       <section className="compare-hero">
         <div>
-          <p className="eyebrow">Bumpgrade comparisons</p>
-          <h1>Compare Bumpgrade against indiepreneur platforms.</h1>
+          <p className="eyebrow">ClickFunnels alternatives</p>
+          <h1>Compare ClickFunnels competitors and indiepreneur platforms.</h1>
           <p className="lede">
             Bumpgrade is being built toward ClickFunnels, SamCart, Kit, Shopify, and knowledge-commerce parity,
-            but with one extra constraint: every public claim needs a source, every planned feature needs a
-            roadmap trail, and future agents need stable contracts instead of hidden dashboard scraping.
+            but with one extra constraint for every comparison: public claims need sources, planned features need
+            roadmap trails, and future agents need stable contracts instead of hidden dashboard scraping.
           </p>
           <div className="hero-actions">
             <Link href="/features" className="primary-action">
@@ -48,6 +79,33 @@ export default function ComparePage() {
           <strong>{competitors.length} alternatives</strong>
           <span>Official source pages rechecked {comparisonRetrievedAt}. Bumpgrade capabilities are marked as planned until shipped.</span>
         </aside>
+      </section>
+
+      <section className="content-band">
+        <div className="compare-section-heading">
+          <div>
+            <p className="eyebrow">Search intent</p>
+            <h2>SEO targets stay visible and source-linked.</h2>
+          </div>
+          <Link href="/compare/clickfunnels-alternative" className="text-link compact-link">
+            ClickFunnels page
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="seo-target-grid">
+          {comparisonSeoTargets.map((target) => (
+            <article key={target.id} className="seo-target-card">
+              <span>{target.primaryKeyword}</span>
+              <h3>{target.intent}</h3>
+              <p>{target.caveat}</p>
+              <ul>
+                {target.supportingKeywords.map((keyword) => (
+                  <li key={keyword}>{keyword}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="content-band alternate">

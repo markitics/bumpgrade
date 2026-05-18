@@ -4,6 +4,7 @@ import {
   comparisonHubRows,
   comparisonPrinciples,
   comparisonRetrievedAt,
+  comparisonSeoTargets,
   competitorSources,
   competitors,
 } from "@/lib/comparison-data";
@@ -18,6 +19,7 @@ export function GET() {
     status: "public-draft",
     caveat:
       "Bumpgrade capability statements are planned roadmap targets unless a linked issue or PR says the feature has shipped.",
+    seoTargets: comparisonSeoTargets,
     sources: competitorSources,
     hubRows: comparisonHubRows,
     principles: comparisonPrinciples,
