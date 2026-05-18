@@ -10,7 +10,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - iOS implementation issue: #67. The first iOS slice now has an Expo
   TypeScript entrypoint, generated source-data fixture, SwiftUI simulator smoke
   target, and `/mobile-admin/ios/source-data`.
-- Android implementation issue: #68.
+- Android implementation issue: #68. The first Android slice now has a native
+  activity, generated fixture asset, emulator smoke target, and
+  `/mobile-admin/android/source-data`.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -36,6 +38,11 @@ SwiftUI smoke target reads the same JSON from the iOS bundle so Codex can build,
 install, launch, and screenshot a real simulator surface without claiming full
 mobile parity.
 
+The #68 Android slice uses the same generated fixture. The native Android
+activity reads `android/src/main/assets/mobile-admin-contract.json` so Codex can
+build, install, launch, and screenshot a real emulator surface without claiming
+Play Store distribution or full mobile parity.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -54,6 +61,8 @@ mobile parity.
 - Future `/api/mobile-admin/actions`: confirmed writes for mobile admin actions.
 - `/mobile-admin/ios/source-data`: iOS scaffold status, fixture path,
   simulator target, smoke command, and screenshot path.
+- `/mobile-admin/android/source-data`: Android scaffold status, fixture asset,
+  emulator target, smoke command, and screenshot path.
 
 ## iOS Slice Commands
 
@@ -66,6 +75,18 @@ npm run mobile:ios:smoke
 
 The smoke command targets the `iPhone 17` simulator by default and writes
 `docs/pr-screenshots/issue-67-ios-mobile-admin-simulator.png`.
+
+## Android Slice Commands
+
+From the repo root:
+
+```bash
+npm run mobile:android:validate
+npm run mobile:android:smoke
+```
+
+The smoke command targets the `MusicWebs_API_36` AVD by default and writes
+`docs/pr-screenshots/issue-68-android-mobile-admin-emulator.png`.
 
 ## Write Boundary
 

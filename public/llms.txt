@@ -18,6 +18,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Stripe webhook endpoint: https://bumpgrade.com/api/stripe/webhook
 - Mobile admin source data: https://bumpgrade.com/mobile-admin/source-data
 - iOS mobile admin source data: https://bumpgrade.com/mobile-admin/ios/source-data
+- Android mobile admin source data: https://bumpgrade.com/mobile-admin/android/source-data
 - Login and signup: https://bumpgrade.com/login
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
@@ -90,8 +91,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   idempotency, audit correlation, stale-state checks, and webhook evidence.
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
   `/mobile-admin/source-data`. The iOS scaffold is documented in
-  `/mobile-admin/ios/source-data`, but App Store distribution, private mobile
-  auth, push notifications, Android support, and mobile writes are not live yet.
+  `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
+  `/mobile-admin/android/source-data`, but App Store/Play Store distribution,
+  private mobile auth, push notifications, and mobile writes are not live yet.
 - Secrets, bearer tokens, storage keys, private database ids, private user data,
   and provider credentials must not be passed as prompt-visible tool input.
 

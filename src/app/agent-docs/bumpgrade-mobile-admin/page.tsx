@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Database, KeyRound, MonitorSmartphone, ShieldCheck, Smartphone } from "lucide-react";
 
+import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
 import { mobileAdminContract } from "@/lib/mobile-admin";
 import { site } from "@/lib/site";
@@ -24,7 +25,8 @@ export default function MobileAdminAgentDocPage() {
           <h1>Mobile admin starts with one contract for iOS and Android.</h1>
           <p className="lede">
             Bumpgrade will build native publisher/admin apps from the same feature, roadmap, commerce, admin, and
-            agent contracts used by the web app. This page defines the shared scope before #67 and #68 add app targets.
+            agent contracts used by the web app. This page defines the shared scope and the first platform smoke
+            paths for #67 and #68.
           </p>
           <Link href="/mobile-admin/source-data" className="text-link">
             Mobile admin source data
@@ -133,6 +135,36 @@ export default function MobileAdminAgentDocPage() {
             <ShieldCheck aria-hidden="true" />
             <h3>Smoke</h3>
             <p>{iosMobileAdminSourceData.smokeCommand} builds, launches, and screenshots the simulator target.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Android slice</p>
+            <h2>The first emulator path is source-data backed.</h2>
+          </div>
+          <Link href={androidMobileAdminSourceData.sourceDataRoute} className="text-link compact-link">
+            Android source data
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <Smartphone aria-hidden="true" />
+            <h3>Scaffold</h3>
+            <p>{androidMobileAdminSourceData.nativeProjectPath} contains the native Android smoke target.</p>
+          </div>
+          <div>
+            <Database aria-hidden="true" />
+            <h3>Fixture</h3>
+            <p>{androidMobileAdminSourceData.androidAssetPath} is generated from /mobile-admin/source-data before the Android app renders.</p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Smoke</h3>
+            <p>{androidMobileAdminSourceData.smokeCommand} builds, launches, and screenshots the emulator target.</p>
           </div>
         </div>
       </section>

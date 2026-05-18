@@ -195,6 +195,17 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: ["Read iOS scaffold status", "Find simulator smoke command", "Find screenshot evidence"],
     writeBoundary: "The iOS slice is read-only until the shared confirmed-write API and mobile auth boundary exist.",
   },
+  {
+    id: "read-android-mobile-admin",
+    title: "Android mobile admin source data",
+    route: "/mobile-admin/android/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/mobile-admin-android.ts and apps/mobile-admin",
+    stableIds: ["platformIssue", "fixturePath", "smokeCommand", "nativePackage", "defaultAvd"],
+    safeForAgents: ["Read Android scaffold status", "Find emulator smoke command", "Find screenshot evidence"],
+    writeBoundary: "The Android slice is read-only until the shared confirmed-write API and mobile auth boundary exist.",
+  },
 ];
 
 export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
@@ -254,6 +265,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     stableIds: ["platformIssue", "fixturePath", "simulatorBundleId"],
     volatileClaims:
       "The iOS simulator smoke target is not App Store distribution, push notification support, private mobile auth, or confirmed-write capability.",
+  },
+  {
+    id: "evidence-android-mobile-admin",
+    route: "/mobile-admin/android/source-data",
+    resolves: "Android scaffold path, generated fixture asset, native package, emulator target, validation command, smoke command, and screenshot evidence.",
+    stableIds: ["platformIssue", "fixturePath", "nativePackage", "defaultAvd"],
+    volatileClaims:
+      "The Android emulator smoke target is not Play Store distribution, push notification support, private mobile auth, or confirmed-write capability.",
   },
 ];
 
