@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "rm -rf .next && next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc --noEmit --pretty false",
+    "typecheck": "next typegen && tsc --noEmit --pretty false",
     "test:browser": "npm run db:migrate:local && playwright test",
     "verify": "npm run lint && npm run typecheck && npm run build && npm run test:browser",
     "cf:build": "rm -rf .next .open-next && opennextjs-cloudflare build",
