@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
 import { seededFunnels } from "@/lib/funnels";
@@ -17,6 +18,7 @@ const sourceDataRoutes = [
   "/compare/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/audience/source-data",
   "/funnels/source-data",
   "/offers/source-data",
   "/products/source-data",
@@ -32,12 +34,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const funnelRoutes = seededFunnels.map((funnel) => funnel.previewRoute);
   const offerRoutes = checkoutOfferStacks.map((stack) => stack.previewRoute);
   const productRoutes = productAccessCatalogs.map((catalog) => catalog.previewRoute);
-  return ["", ...scaffoldRoutes, ...sourceDataRoutes, ...comparisonRoutes, ...funnelRoutes, ...offerRoutes, ...productRoutes].map(
-    (path) => ({
+  const audienceRoutes = audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute);
+  return [
+    "",
+    ...scaffoldRoutes,
+    ...sourceDataRoutes,
+    ...comparisonRoutes,
+    ...funnelRoutes,
+    ...offerRoutes,
+    ...productRoutes,
+    ...audienceRoutes,
+  ].map((path) => ({
       url: `${site.url}${path}`,
       lastModified,
       changeFrequency: path === "" ? "weekly" : "daily",
       priority: path === "" ? 1 : path.startsWith("/admin") ? 0.2 : 0.7,
-    }),
-  );
+    }));
 }

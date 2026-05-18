@@ -26,6 +26,8 @@ then open the relevant shelf for the task.
   and downsell source-data contract from issue #81.
 - `features/product-access.md`: read-only product, asset, access-rule, and
   entitlement source-data contract from issue #83.
+- `features/audience-automation.md`: read-only opt-in, lead magnet, tag,
+  sequence, broadcast, and automation source-data contract from issue #85.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
