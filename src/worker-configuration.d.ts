@@ -10,6 +10,7 @@ declare namespace Cloudflare {
     BETTER_AUTH_URL?: string;
     BETTER_AUTH_SECRET?: string;
     BUMPGRADE_OWNER_EMAILS?: string;
+    BUMPGRADE_ENFORCE_EMAIL_VERIFICATION?: string;
     EMAIL_FORWARD_TO?: string;
     STRIPE_ACTIVE_MODE?: string;
     STRIPE_API_VERSION?: string;

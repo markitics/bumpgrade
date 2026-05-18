@@ -69,6 +69,27 @@ export const verification = sqliteTable(
   }),
 );
 
+export const accountVerificationEmails = sqliteTable(
+  "account_verification_emails",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    email: text("email").notNull(),
+    subject: text("subject").notNull(),
+    status: text("status").notNull().default("sent"),
+    provider: text("provider").notNull(),
+    source: text("source").notNull(),
+    error: text("error"),
+    sentAt: integer("sent_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    emailSentIdx: index("account_verification_emails_email_sent_idx").on(table.email, table.sentAt),
+    statusSentIdx: index("account_verification_emails_status_sent_idx").on(table.status, table.sentAt),
+  }),
+);
+
 export const commerceProducts = sqliteTable(
   "commerce_products",
   {
