@@ -44,17 +44,18 @@ Checked on 2026-05-18:
 
 ## Secret And Mode Plan
 
-`/Users/mark/Documents/code/laurelharned/.env.local` was inspected without
-printing values. The reusable Stripe entries found were:
+`/Users/mark/Documents/code/2026/bumpgrade/.env.local` was inspected without
+printing values. The installed Bumpgrade Stripe entries are:
 
 | Source key | Safe classification | Bumpgrade Cloudflare secret |
 | --- | --- | --- |
 | `STRIPE_SECRET_KEY_LIVE` | live restricted key | `STRIPE_SECRET_KEY_LIVE` |
-| `STRIPE_PUBLIC_KEY_LIVE` | live publishable key | `STRIPE_PUBLISHABLE_KEY_LIVE` |
-| `STRIPE_SECRET_KEY_SANDBOX` | test secret key name found, but the copied value is not a usable sandbox secret as of the 2026-05-18 production smoke | `STRIPE_SECRET_KEY_SANDBOX` |
-| `STRIPE_PUBLIC_KEY_SANDBOX` | test publishable key | `STRIPE_PUBLISHABLE_KEY_SANDBOX` |
+| `STRIPE_PUBLIC_KEY_LIVE` | live publishable key | `STRIPE_PUBLIC_KEY_LIVE` |
+| `STRIPE_SECRET_KEY_SANDBOX` | test secret key | `STRIPE_SECRET_KEY_SANDBOX` |
+| `STRIPE_PUBLIC_KEY_SANDBOX` | test publishable key | `STRIPE_PUBLIC_KEY_SANDBOX` |
+| `STRIPE_WEBHOOK_SECRET_SANDBOX` | test endpoint signing secret for `https://bumpgrade.com/api/stripe/webhook` | `STRIPE_WEBHOOK_SECRET_SANDBOX` |
 
-Those four Bumpgrade secrets were uploaded to Cloudflare on 2026-05-18 without
+Those Bumpgrade secrets were uploaded to Cloudflare on 2026-05-18 without
 printing values. The Worker var `STRIPE_ACTIVE_MODE` defaults to `sandbox`.
 Production live checkout must not be enabled until a later issue deliberately
 switches the mode and has webhook evidence.

@@ -194,10 +194,18 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.roadmapItems.length).toBeGreaterThan(0);
     expect(payload.workLogEntries.length).toBeGreaterThan(0);
     expect(payload.userJourneys.length).toBeGreaterThan(0);
-    expect(payload.attentionItems).toEqual(
+    expect(payload.attentionItems).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: "mark-attention-2026-05-18-blocked-valid-stripe-sandbox-secret",
+          state: "open",
+        }),
+      ]),
+    );
+    expect(payload.attentionItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "mark-attention-2026-05-18-rkmoriarty-auth-alignment",
           state: "open",
         }),
       ]),

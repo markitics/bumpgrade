@@ -35,8 +35,8 @@ function uniqueEmails(emails: string[]) {
 export function getOwnerEmails() {
   return uniqueEmails([
     ...DEFAULT_OWNER_EMAILS,
-    ...parseEmailList(getRuntimeEnvValue("BUMPGRADE_OWNER_EMAILS")),
     ...parseEmailList(getRuntimeEnvValue("PLATFORM_OWNER_EMAILS")),
+    ...parseEmailList(getRuntimeEnvValue("BUMPGRADE_OWNER_EMAILS")),
     ...parseEmailList(getRuntimeEnvValue("OWNER_EMAILS")),
   ]);
 }

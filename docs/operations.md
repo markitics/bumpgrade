@@ -125,7 +125,7 @@ Required production configuration:
 - `BETTER_AUTH_SECRET`: Cloudflare secret, not a checked-in variable.
 - `BETTER_AUTH_URL`: `https://bumpgrade.com`.
 - `PUBLIC_SITE_URL`: `https://bumpgrade.com`.
-- `BUMPGRADE_OWNER_EMAILS`: comma-separated owner allowlist; starts with
+- `PLATFORM_OWNER_EMAILS`: comma-separated owner allowlist; starts with
   `m@rkmoriarty.com`.
 
 Production owner admin access requires the signed-in owner email to be verified.
@@ -147,19 +147,20 @@ payment path is enabled.
 Cloudflare secrets installed on 2026-05-18:
 
 - `STRIPE_SECRET_KEY_LIVE`
-- `STRIPE_PUBLISHABLE_KEY_LIVE`
+- `STRIPE_PUBLIC_KEY_LIVE`
 - `STRIPE_SECRET_KEY_SANDBOX`
-- `STRIPE_PUBLISHABLE_KEY_SANDBOX`
+- `STRIPE_PUBLIC_KEY_SANDBOX`
+- `STRIPE_WEBHOOK_SECRET_SANDBOX`
 
-The first production smoke for issue #34 showed the copied sandbox secret value
-is not a usable Stripe test secret yet. The checkout API therefore remains in
-safe preview mode until a valid `STRIPE_SECRET_KEY_SANDBOX` is stored as the
-Worker secret. Runtime code must prefer Cloudflare `env` bindings over
-build-time `process.env` so a local placeholder cannot override production.
+The issue #46 unblock installed the renamed sandbox and public key names from
+the ignored Bumpgrade `.env.local` file, then created a Bumpgrade-specific
+Stripe test webhook endpoint for `https://bumpgrade.com/api/stripe/webhook`.
+Runtime code must prefer Cloudflare `env` bindings over build-time `process.env`
+so a local placeholder cannot override production.
 
 Checked source, without printing values:
 
-- `/Users/mark/Documents/code/laurelharned/.env.local`
+- `/Users/mark/Documents/code/2026/bumpgrade/.env.local`
 
 Worker vars:
 
@@ -167,10 +168,10 @@ Worker vars:
 - `STRIPE_API_VERSION`: `2026-04-22.dahlia`
 
 `/api/stripe/webhook` exists for Bumpgrade. Stripe webhook signing secrets are
-endpoint-specific and must not be copied from LaurelHarned. Set
-`STRIPE_WEBHOOK_SECRET_SANDBOX` only after creating the Bumpgrade sandbox webhook
-endpoint. The webhook route intentionally returns `503` when the relevant
-endpoint secret is not configured.
+endpoint-specific and must not be copied from LaurelHarned. The Bumpgrade
+sandbox endpoint id is documented in issue #46 rather than as a public runtime
+contract, and the signing secret must remain only in ignored local files and
+Cloudflare secrets.
 
 See `docs/features/payments.md` for the D1 commerce tables, first checkout
 route, webhook events, and billing-safe agent rules.
