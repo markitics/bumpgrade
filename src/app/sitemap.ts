@@ -12,6 +12,7 @@ const sourceDataRoutes = [
   "/admin/user-journeys/source-data",
   "/admin/for-mark/source-data",
   "/compare/source-data",
+  "/commerce/source-data",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -20,10 +20,11 @@ export default function AgentSurfacePage() {
         "Feature source data is available at `/features/source-data` with feature IDs, statuses, issue links, and agent-contract notes.",
         "Roadmap source data is available at `/roadmap/source-data` with public-safe status lanes, blockers, and issue evidence.",
         "Human admin pages require Better Auth owner sessions; public-safe admin source data remains available at `/admin/source-data` and per-surface source-data routes.",
+        "Stripe commerce starts in sandbox mode with D1 product, price, checkout-intent, webhook, subscription, and audit records defined before payment routes.",
         "Feature, roadmap, comparison, work-log, and journey read contracts.",
         "Comparison source data is available at `/compare/source-data` with source IDs, retrieval dates, and roadmap caveats.",
         "Source evidence IDs and URLs for public claims.",
-        "Confirmed-write rules for billing, public publishing, and admin changes.",
+        "Confirmed-write rules for billing, public publishing, and admin changes, including idempotency and stale-state checks.",
         "Future MCP resource and tool index.",
       ]}
     />

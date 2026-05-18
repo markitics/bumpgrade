@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { competitors } from "../src/lib/comparison-data";
+import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 
@@ -19,6 +20,7 @@ const routes = [
   { path: "/admin/user-journeys", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Public agent surface" },
+  { path: "/agent-docs/bumpgrade-commerce-contract", heading: "Stripe commerce is architecture-live" },
 ];
 
 const compareRoutes = competitors.map((competitor) => ({
@@ -85,6 +87,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "blocked", issue: 10 }),
+        expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
     );
   });
@@ -104,6 +107,31 @@ test.describe("Bumpgrade scaffold", () => {
           id: "mark-attention-2026-05-18-codex-email-blocked",
           state: "open",
         }),
+      ]),
+    );
+    expect(payload.userJourneys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "journey-publisher-plans-first-checkout",
+          featureId: "feature-stripe-commerce",
+        }),
+      ]),
+    );
+  });
+
+  test("commerce source data exposes stable payment architecture records", async ({ request }) => {
+    const response = await request.get("/commerce/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-commerce-source-data");
+    expect(payload.contract).toEqual(expect.objectContaining({ issue: 11, firstCheckoutIssue: 34 }));
+    expect(payload.tables).toHaveLength(commerceTables.length);
+    expect(payload.tables).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ table: "commerce_products" }),
+        expect.objectContaining({ table: "checkout_intents" }),
+        expect.objectContaining({ table: "stripe_webhook_events" }),
+        expect.objectContaining({ table: "payment_audit_events" }),
       ]),
     );
   });

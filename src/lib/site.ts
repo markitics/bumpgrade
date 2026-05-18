@@ -151,6 +151,7 @@ export const scaffoldRoutes = [
   "/admin/user-journeys",
   "/admin/for-mark",
   "/agent-docs/bumpgrade-agent-surface",
+  "/agent-docs/bumpgrade-commerce-contract",
 ];
 
 export const loginNavItem: NavItem = {
