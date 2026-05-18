@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit --pretty false",
-    "test:browser": "npm run db:migrate:local && playwright test",
+    "test:browser": "npm run db:migrate:local && npm run cf:build && playwright test",
     "test:runtime-secrets": "node scripts/check-runtime-secret-precedence.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test:runtime-secrets && npm run build && npm run test:browser",
     "cf:build": "rm -rf .next .open-next && npm exec opennextjs-cloudflare build",

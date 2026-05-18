@@ -35,6 +35,11 @@ Before retrying a failed build, check that another agent is not already running
 a build or preview in this same checkout. Remove `.next/lock` only after
 confirming no active Next/OpenNext process still owns it.
 
+The browser test script prebuilds the OpenNext bundle before Playwright starts
+its managed Worker preview. Keep `playwright.config.ts` pointed at
+`preview:worker`, not `preview`, so the test runner does not rebuild while it
+is also driving browser traffic.
+
 ## Codex Email
 
 Issue #10 configures Bumpgrade project email for shipped PR notices and Mark
