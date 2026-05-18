@@ -99,7 +99,7 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Issue #7 owns this feature slice.",
-      "Deployment evidence is recorded on the linked PR before the feature is treated as launched on main.",
+      "PR #27 carries the source, screenshots, validation, and deploy evidence for this issue.",
     ],
     agentContract:
       "Agents may cite public roadmap status from `/roadmap/source-data`, but must not expose private admin notes or treat planned items as live functionality.",

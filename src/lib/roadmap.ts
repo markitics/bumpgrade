@@ -95,7 +95,7 @@ export const roadmapItems: RoadmapItem[] = [
     summary: "Public roadmap lanes connected to the feature catalog, GitHub issues, public-safe blockers, and deploy evidence.",
     publicEvidence: [
       "Issue #7 owns this feature slice.",
-      "Deployment evidence is recorded on the linked PR before the feature is treated as launched on main.",
+      "PR #27 carries the source, screenshots, validation, and deploy evidence for this issue.",
     ],
     nextMilestone: "Replace shared static records with D1-backed admin state in #8.",
   },
