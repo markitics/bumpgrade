@@ -1,0 +1,74 @@
+#!/usr/bin/env node
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import ts from "typescript";
+
+const appRoot = path.resolve(import.meta.dirname, "..");
+const repoRoot = path.resolve(appRoot, "../..");
+const androidHome = process.env.ANDROID_HOME || path.join(process.env.HOME ?? "", "Library/Android/sdk");
+const buildTools = process.env.ANDROID_BUILD_TOOLS || path.join(androidHome, "build-tools/36.0.0");
+const defaultAvd = process.env.ANDROID_AVD_NAME || "MusicWebs_API_36";
+
+function assert(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+function loadCurrentContract() {
+  const source = readFileSync(path.join(repoRoot, "src/lib/mobile-admin.ts"), "utf8");
+  const transpiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+    },
+  }).outputText;
+  const moduleValue = { exports: {} };
+  new Function("exports", "module", transpiled)(moduleValue.exports, moduleValue);
+  return moduleValue.exports.mobileAdminContract;
+}
+
+function commandSucceeds(command, args) {
+  return spawnSync(command, args, { encoding: "utf8" }).status === 0;
+}
+
+const fixturePath = path.join(appRoot, "fixtures/mobile-admin-contract.json");
+const androidAssetPath = path.join(appRoot, "android/src/main/assets/mobile-admin-contract.json");
+const manifestPath = path.join(appRoot, "android/AndroidManifest.xml");
+const activityPath = path.join(appRoot, "android/src/main/java/com/bumpgrade/mobileadmin/MainActivity.java");
+const smokeScriptPath = path.join(appRoot, "scripts/run-android-smoke.sh");
+
+assert(existsSync(fixturePath), "Missing mobile admin fixture.");
+assert(existsSync(androidAssetPath), "Missing Android bundled fixture asset.");
+assert(existsSync(manifestPath), "Missing Android manifest.");
+assert(existsSync(activityPath), "Missing Android MainActivity.");
+assert(existsSync(smokeScriptPath), "Missing Android smoke script.");
+
+const fixtureText = readFileSync(fixturePath, "utf8");
+const fixture = JSON.parse(fixtureText);
+const currentContract = loadCurrentContract();
+
+assert(JSON.stringify(fixture) === JSON.stringify(currentContract), "Fixture is stale. Run npm --prefix apps/mobile-admin run fixture:sync.");
+assert(readFileSync(androidAssetPath, "utf8") === fixtureText, "Android asset fixture is stale. Run npm --prefix apps/mobile-admin run fixture:sync.");
+assert(fixture.childIssues.some((slice) => slice.platform === "android" && slice.issue === 68), "Fixture does not include Android issue #68.");
+assert(
+  fixture.childIssues.find((slice) => slice.platform === "android")?.sourceDataRoute === "/mobile-admin/android/source-data",
+  "Android slice source-data route is missing.",
+);
+
+const activitySource = readFileSync(activityPath, "utf8");
+assert(activitySource.includes("mobile-admin-contract.json"), "Android activity does not read the generated fixture asset.");
+assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity title is missing.");
+
+for (const tool of ["aapt2", "d8", "zipalign", "apksigner"]) {
+  assert(existsSync(path.join(buildTools, tool)), `Missing Android build tool: ${tool}.`);
+}
+assert(existsSync(path.join(androidHome, "platforms/android-36/android.jar")), "Missing Android API 36 platform jar.");
+assert(commandSucceeds(path.join(androidHome, "platform-tools/adb"), ["version"]), "adb is not available.");
+const emulatorList = spawnSync(path.join(androidHome, "emulator/emulator"), ["-list-avds"], { encoding: "utf8" });
+assert(emulatorList.status === 0, "Android emulator is not available.");
+assert(emulatorList.stdout.split(/\s+/).includes(defaultAvd), `Default AVD ${defaultAvd} is not installed.`);
+
+console.log("Android mobile admin scaffold validated.");
+console.log(`Default AVD: ${defaultAvd}`);

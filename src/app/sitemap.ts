@@ -16,6 +16,7 @@ const sourceDataRoutes = [
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
   "/mobile-admin/ios/source-data",
+  "/mobile-admin/android/source-data",
   "/api/commerce/checkout",
 ];
 

@@ -8,7 +8,9 @@
     "start": "expo start",
     "ios": "expo start --ios",
     "ios:smoke": "bash ./scripts/run-ios-smoke.sh",
+    "android:smoke": "bash ./scripts/run-android-smoke.sh",
     "validate:ios": "node ./scripts/validate-ios-scaffold.mjs",
+    "validate:android": "node ./scripts/validate-android-scaffold.mjs",
     "fixture:sync": "node ./scripts/sync-mobile-fixture.mjs"
   },
   "dependencies": {
