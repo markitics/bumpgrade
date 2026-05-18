@@ -1,0 +1,30 @@
+{
+  "hidden-value": {
+    "rating": "maybe",
+    "updatedAt": "2026-05-18T07:23:46.702Z"
+  },
+  "bump-upgrade": {
+    "rating": "maybe",
+    "updatedAt": "2026-05-18T07:23:47.227Z"
+  },
+  "add-on": {
+    "rating": "maybe",
+    "updatedAt": "2026-05-18T07:33:56.367Z"
+  },
+  "boost": {
+    "rating": "yes",
+    "updatedAt": "2026-05-18T07:33:58.014Z"
+  },
+  "bump": {
+    "rating": "yes",
+    "updatedAt": "2026-05-18T07:33:58.697Z"
+  },
+  "plus": {
+    "rating": "yes",
+    "updatedAt": "2026-05-18T07:34:01.640Z"
+  },
+  "bundle": {
+    "rating": "no",
+    "updatedAt": "2026-05-18T07:34:49.652Z"
+  }
+}
