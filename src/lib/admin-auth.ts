@@ -51,7 +51,8 @@ export function getRoleForEmail(email: string | null | undefined): Exclude<Admin
 }
 
 function canUseUnverifiedAdminEmail(role: Exclude<AdminRole, "automation">) {
-  return role === "owner" && getAppEnv() !== "production";
+  const enforceEmailVerification = getRuntimeEnvValue("BUMPGRADE_ENFORCE_EMAIL_VERIFICATION") === "true";
+  return role === "owner" && getAppEnv() !== "production" && !enforceEmailVerification;
 }
 
 export async function getSessionAdminState(headers: Headers): Promise<SessionAdminState> {

@@ -503,6 +503,75 @@ h3 {
   margin-top: 14px;
 }
 
+.verification-card {
+  margin-top: 22px;
+  max-width: 720px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.verification-card-label {
+  margin: 0;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.verification-card-copy,
+.verification-message {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.verification-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.verification-meta div {
+  min-height: 84px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7faf8;
+}
+
+.verification-meta dt {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.verification-meta dd {
+  margin: 8px 0 0;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.verification-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.verification-actions button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.verification-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .check-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1526,6 +1595,7 @@ h3 {
   .pillar-grid,
   .admin-grid,
   .check-grid,
+  .verification-meta,
   .status-list,
   .evidence-grid,
   .alternative-grid,
