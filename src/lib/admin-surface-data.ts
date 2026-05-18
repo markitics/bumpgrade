@@ -306,26 +306,26 @@ const fallbackUserJourneys: AdminUserJourney[] = [
 
 const fallbackAttentionItems: MarkAttentionItem[] = [
   {
-    id: "mark-attention-2026-05-18-codex-email-blocked",
+    id: "mark-attention-2026-05-18-blocked-valid-stripe-sandbox-secret",
     category: "blocked",
     state: "open",
     urgency: "high",
-    title: "Configure codex@bumpgrade.com sending and reply monitoring",
-    summary: "Shipped-feature emails cannot honestly be sent from codex@bumpgrade.com until Cloudflare Email Routing/sending is configured.",
-    details: "Issue #10 records the Cloudflare Email REST attempt and missing MX, SPF, and DKIM setup.",
-    requiredAction: "Configure Cloudflare email DNS/authentication and reply routing for codex@bumpgrade.com when ready.",
-    responseInstructions: "Comment on issue #10 or reply once the project email path is configured. No action is needed to keep #8 moving.",
+    title: "Valid Stripe sandbox key needed for live checkout smoke",
+    summary: "The first sandbox checkout path is live, but it remains in safe preview mode until a valid Bumpgrade sandbox secret and webhook endpoint are configured.",
+    details: "Issue #46 tracks provisioning a usable Stripe sandbox secret and endpoint-specific webhook signing secret for Bumpgrade.",
+    requiredAction: "Store a valid STRIPE_SECRET_KEY_SANDBOX and STRIPE_WEBHOOK_SECRET_SANDBOX in Cloudflare when ready.",
+    responseInstructions: "Comment on issue #46 or update /admin/for-mark after the valid sandbox credentials are configured.",
     sessionName: "bumpgrade-bootstrap",
     sessionEmail: "codex@bumpgrade.com",
     sourceAgent: "Codex",
     sourceKind: "codex",
     links: [
-      { label: "Issue #10", url: "https://github.com/markitics/bumpgrade/issues/10", kind: "issue" },
+      { label: "Issue #46", url: "https://github.com/markitics/bumpgrade/issues/46", kind: "issue" },
       { label: "/admin/for-mark", url: "https://bumpgrade.com/admin/for-mark", kind: "roadmap" },
     ],
-    metadata: { blocksShippedEmail: true },
-    lastActivityAt: "2026-05-18T09:45:51.000Z",
-    createdAt: "2026-05-18T09:45:51.000Z",
+    metadata: { blocksLiveCheckoutSmoke: true },
+    lastActivityAt: "2026-05-18T12:23:32.000Z",
+    createdAt: "2026-05-18T12:23:32.000Z",
   },
 ];
 

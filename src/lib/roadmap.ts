@@ -102,7 +102,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-codex-email",
     title: "Codex project email and reply monitor",
-    status: "active",
+    status: "shipped",
     issue: 10,
     featureId: featureIdFor(10),
     group: "Operations",
@@ -111,9 +111,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #10 owns the Codex project email workflow.",
       "Cloudflare Email Routing for bumpgrade.com is enabled and reported ready after MX, SPF, and DKIM records were installed.",
       "D1/R2 contracts store outbound notice results, inbound reply metadata, and raw MIME storage keys.",
+      "A real delayed PR #40 notice was delivered from codex@bumpgrade.com and recorded in D1.",
+      "Cloudflare routes codex@bumpgrade.com to Worker bumpgrade for inbound capture and forwarding.",
     ],
-    nextMilestone: "Retry a real shipped PR notice after DNS/authentication propagation and verify an inbound reply lands in D1/R2.",
-    markAttention: "The first REST probe before DNS readiness permanently bounced; shipped notices must record provider status exactly.",
+    nextMilestone: "Poll trusted replies before unrelated large work and add per-session routing only after plus-address support is proven.",
+    markAttention: "Self-addressed inbound smoke through Cloudflare Email Sending returns email.sending.error.email.sending_disabled because the inbound alias is not a verified send destination; verify D1/R2 capture on the next real reply.",
   },
   {
     id: "roadmap-admin-surfaces",
