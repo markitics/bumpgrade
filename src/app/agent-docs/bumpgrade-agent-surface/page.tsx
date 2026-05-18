@@ -18,6 +18,7 @@ export default function AgentSurfacePage() {
       icon={Bot}
       bullets={[
         "Feature, roadmap, comparison, work-log, and journey read contracts.",
+        "Comparison source data is available at `/compare/source-data` with source IDs, retrieval dates, and roadmap caveats.",
         "Source evidence IDs and URLs for public claims.",
         "Confirmed-write rules for billing, public publishing, and admin changes.",
         "Future MCP resource and tool index.",

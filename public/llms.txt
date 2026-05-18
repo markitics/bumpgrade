@@ -11,6 +11,16 @@ GitHub repo: https://github.com/markitics/bumpgrade
 
 - Public features: https://bumpgrade.com/features
 - Public comparisons: https://bumpgrade.com/compare
+- Comparison source data: https://bumpgrade.com/compare/source-data
+- ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
+- Kit alternative: https://bumpgrade.com/compare/kit-alternative
+- Shopify alternative: https://bumpgrade.com/compare/shopify-alternative
+- SamCart alternative: https://bumpgrade.com/compare/samcart-alternative
+- Kajabi alternative: https://bumpgrade.com/compare/kajabi-alternative
+- Podia alternative: https://bumpgrade.com/compare/podia-alternative
+- Systeme.io alternative: https://bumpgrade.com/compare/systeme-io-alternative
+- Kartra alternative: https://bumpgrade.com/compare/kartra-alternative
+- ThriveCart alternative: https://bumpgrade.com/compare/thrivecart-alternative
 - Admin roadmap: https://bumpgrade.com/admin/roadmap
 - Admin work log: https://bumpgrade.com/admin/work-log
 - Admin user journeys: https://bumpgrade.com/admin/user-journeys
@@ -32,6 +42,9 @@ Add public agent docs here as they ship:
   shipped-feature, or quote facts.
 - Source-grounded answers should cite stable source ids, source URLs, issue/PR
   evidence, and work-log entries when available.
+- Comparison pages are source-linked snapshots. Refresh source URLs before using
+  dated pricing, packaging, or feature-availability claims in a user-facing
+  answer.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
