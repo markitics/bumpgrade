@@ -1,5 +1,28 @@
 # Decision Log
 
+## 2026-05-18: Use Webpack For Production Next Builds
+
+Issue: #51
+
+Decision: Bumpgrade production builds use `next build --webpack` before
+OpenNext packages the Cloudflare Worker.
+
+Why:
+
+- Local Next 16 default production builds repeatedly failed with transient
+  missing `.next` files during OpenNext validation.
+- The same checkout completed `cf:build` and the browser suite under the
+  Webpack builder.
+- A stable deploy path matters more than testing Turbopack production behavior
+  while the rest of the app is still being sliced into issue-sized work.
+
+Consequences:
+
+- Revisit the default builder only after a focused compatibility issue proves
+  `npm run cf:build`, Worker preview, and browser tests are stable.
+- Broad validation should use Node 22 until the Cloudflare/OpenNext runtime
+  baseline changes intentionally.
+
 ## 2026-05-18: Use Stripe Checkout Sessions First
 
 Issue: #11
