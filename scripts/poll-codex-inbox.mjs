@@ -19,9 +19,9 @@ function parseArgs(argv) {
 }
 
 function sql(args) {
-  const trustedClause = args.trustedOnly ? "AND trusted_sender = 1" : "";
+  const trustedClause = args.trustedOnly ? "AND trusted_sender = 1 AND status = 'unread'" : "";
   const bodyColumn = args.showBody ? "substr(text_body, 1, 2000) AS body_prefix," : "";
-  return `SELECT id, mailbox, from_email, from_name, trusted_sender, subject, status,
+  return `SELECT id, mailbox, from_email, from_name, trusted_sender, sender_verification_status, subject, status,
   datetime(received_at, 'unixepoch') AS received_at_utc, snippet, ${bodyColumn} raw_storage_key
 FROM codex_inbound_messages
 WHERE received_at >= unixepoch() - ${Math.max(1, Math.floor(args.minutes)) * 60}

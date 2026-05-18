@@ -114,8 +114,9 @@ export const roadmapItems: RoadmapItem[] = [
       "A real delayed PR #40 notice was delivered from codex@bumpgrade.com and recorded in D1.",
       "Cloudflare routes codex@bumpgrade.com to Worker bumpgrade for inbound capture and forwarding.",
     ],
-    nextMilestone: "Poll trusted replies before unrelated large work and add per-session routing only after plus-address support is proven.",
-    markAttention: "Self-addressed inbound smoke through Cloudflare Email Sending returns email.sending.error.email.sending_disabled because the inbound alias is not a verified send destination; verify D1/R2 capture on the next real reply.",
+    nextMilestone: "Harden inbound Codex mail so only explicitly allowlisted and authenticated senders can steer Codex.",
+    markAttention:
+      "Mark asked that only m@rkmoriarty.com, mark@awesound.com, and markmoriarty@stripe.com can steer Codex, and that messages must pass sender authentication rather than trusting From text.",
   },
   {
     id: "roadmap-admin-surfaces",

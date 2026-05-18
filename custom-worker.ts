@@ -4,15 +4,15 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore The generated Worker exists after `opennextjs-cloudflare build`.
 import nextWorker from "./.open-next/worker.js";
+import {
+  evaluateCodexSenderTrust,
+  UNTRUSTED_CODEX_SENDER_REPLY,
+} from "./src/lib/codex-mail-trust";
 
 const defaultForwardTo = "m@rkmoriarty.com";
 const maxInboundTextLength = 20_000;
-const trustedSenderEmails = new Set([
-  "m@rkmoriarty.com",
-  "markeffect@gmail.com",
-  "markmoriarty@stripe.com",
-  "mark@awesound.com",
-]);
+const codexSenderEmail = "codex@bumpgrade.com";
+const codexSenderName = "Bumpgrade Codex";
 
 function headerValue(headers: Headers, name: string) {
   return headers.get(name) ?? headers.get(name.toLowerCase()) ?? null;
@@ -46,12 +46,46 @@ function sqlTimestamp(date: Date) {
   return Math.floor(date.getTime() / 1000);
 }
 
+function replySubject(subject: string | null) {
+  if (!subject) return "Re: Bumpgrade Codex";
+  return /^re:/i.test(subject) ? subject : `Re: ${subject}`;
+}
+
+async function sendUntrustedSenderReply(
+  message: ForwardableEmailMessage,
+  env: Cloudflare.Env,
+  toEmail: string | null,
+  subject: string | null,
+) {
+  if (!toEmail || !env.EMAIL) {
+    return { repliedAt: null, error: env.EMAIL ? "Missing reply recipient." : "EMAIL binding unavailable." };
+  }
+
+  try {
+    await env.EMAIL.send({
+      from: { name: codexSenderName, email: codexSenderEmail },
+      to: toEmail,
+      subject: replySubject(subject),
+      headers: {
+        ...(headerValue(message.headers, "message-id") ? { "In-Reply-To": headerValue(message.headers, "message-id") ?? "" } : {}),
+        ...(headerValue(message.headers, "references") ? { References: headerValue(message.headers, "references") ?? "" } : {}),
+      },
+      text: UNTRUSTED_CODEX_SENDER_REPLY,
+    });
+    return { repliedAt: new Date(), error: null };
+  } catch (error) {
+    return { repliedAt: null, error: error instanceof Error ? error.message : "Untrusted sender reply failed." };
+  }
+}
+
 async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: Cloudflare.Env) {
   const id = `codex-inbound-${crypto.randomUUID()}`;
   const receivedAt = new Date();
   const forwardTo = env.EMAIL_FORWARD_TO?.trim() || defaultForwardTo;
   let forwardedAt: Date | null = null;
   let forwardError: string | null = null;
+  let autoRepliedAt: Date | null = null;
+  let autoReplyError: string | null = null;
 
   if (forwardTo) {
     try {
@@ -82,22 +116,38 @@ async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: C
   const fromHeader = headerValue(message.headers, "from") ?? message.from;
   const fromEmail = extractEmailAddress(fromHeader);
   const subject = headerValue(message.headers, "subject");
-  const trustedSender = fromEmail ? trustedSenderEmails.has(fromEmail) : false;
+  const trustEvaluation = evaluateCodexSenderTrust(fromEmail, message.headers);
+
+  if (trustEvaluation.status === "untrusted_sender") {
+    const replyResult = await sendUntrustedSenderReply(message, env, fromEmail, subject);
+    autoRepliedAt = replyResult.repliedAt;
+    autoReplyError = replyResult.error;
+  }
+
+  const status =
+    trustEvaluation.status === "trusted_authenticated"
+      ? "unread"
+      : trustEvaluation.status === "trusted_unverified"
+        ? "held_unverified"
+        : autoReplyError
+          ? "untrusted_reply_failed"
+          : "rejected_untrusted";
 
   try {
     await env.DB.prepare(
       `INSERT INTO codex_inbound_messages (
         id, mailbox, from_email, from_name, trusted_sender, subject, snippet, text_body,
         raw_storage_key, raw_size, message_id, in_reply_to, references_header, status,
+        sender_verification_status, sender_authentication_json, auto_replied_at, auto_reply_error,
         received_at, forwarded_at, forward_error, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unread', ?, ?, ?, unixepoch(), unixepoch())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch(), unixepoch())`,
     )
       .bind(
         id,
         message.to.toLowerCase(),
         fromEmail,
         extractSenderName(fromHeader),
-        trustedSender ? 1 : 0,
+        trustEvaluation.trustedSender ? 1 : 0,
         subject,
         rawSnippet(raw),
         raw.slice(0, maxInboundTextLength) || null,
@@ -106,6 +156,11 @@ async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: C
         headerValue(message.headers, "message-id"),
         headerValue(message.headers, "in-reply-to"),
         headerValue(message.headers, "references"),
+        status,
+        trustEvaluation.status,
+        JSON.stringify(trustEvaluation.evidence),
+        autoRepliedAt ? sqlTimestamp(autoRepliedAt) : null,
+        autoReplyError,
         sqlTimestamp(receivedAt),
         forwardedAt ? sqlTimestamp(forwardedAt) : null,
         forwardError,
