@@ -216,3 +216,65 @@ export const paymentAuditEvents = sqliteTable(
     ),
   }),
 );
+
+export const codexOutboundMessages = sqliteTable(
+  "codex_outbound_messages",
+  {
+    id: text("id").primaryKey(),
+    messageKind: text("message_kind").notNull(),
+    status: text("status").notNull().default("draft"),
+    provider: text("provider").notNull().default("cloudflare-rest"),
+    fromEmail: text("from_email").notNull(),
+    fromName: text("from_name"),
+    toEmailsJson: text("to_emails_json").notNull(),
+    subject: text("subject").notNull(),
+    textBody: text("text_body").notNull(),
+    htmlBody: text("html_body"),
+    prNumber: integer("pr_number"),
+    githubUrl: text("github_url"),
+    workerVersion: text("worker_version"),
+    cloudflareResultJson: text("cloudflare_result_json"),
+    error: text("error"),
+    sentAt: integer("sent_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    statusCreatedIdx: index("codex_outbound_messages_status_created_idx").on(table.status, table.createdAt),
+    prIdx: index("codex_outbound_messages_pr_idx").on(table.prNumber),
+  }),
+);
+
+export const codexInboundMessages = sqliteTable(
+  "codex_inbound_messages",
+  {
+    id: text("id").primaryKey(),
+    mailbox: text("mailbox").notNull(),
+    fromEmail: text("from_email"),
+    fromName: text("from_name"),
+    trustedSender: integer("trusted_sender", { mode: "boolean" }).notNull().default(false),
+    subject: text("subject"),
+    snippet: text("snippet"),
+    textBody: text("text_body"),
+    rawStorageKey: text("raw_storage_key"),
+    rawSize: integer("raw_size"),
+    messageId: text("message_id"),
+    inReplyTo: text("in_reply_to"),
+    referencesHeader: text("references_header"),
+    status: text("status").notNull().default("unread"),
+    receivedAt: integer("received_at", { mode: "timestamp" }).notNull(),
+    forwardedAt: integer("forwarded_at", { mode: "timestamp" }),
+    forwardError: text("forward_error"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    mailboxReceivedIdx: index("codex_inbound_messages_mailbox_received_idx").on(table.mailbox, table.receivedAt),
+    trustedStatusIdx: index("codex_inbound_messages_trusted_status_idx").on(
+      table.trustedSender,
+      table.status,
+      table.receivedAt,
+    ),
+    messageIdUnique: uniqueIndex("codex_inbound_messages_message_id_unique").on(table.messageId),
+  }),
+);

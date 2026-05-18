@@ -37,6 +37,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
 - Mark attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
 - Mark attention source data: https://bumpgrade.com/admin/for-mark/source-data
+- Codex project email workflow: tracked by issue #10, stored in D1 tables
+  `codex_outbound_messages` and `codex_inbound_messages`, with raw inbound MIME
+  stored in private R2 bucket `bumpgrade-mail`.
 
 ## Agent Docs
 
@@ -64,6 +67,10 @@ Add public agent docs here as they ship:
 - Human admin pages are protected by Better Auth owner sessions. Public-safe
   `/admin/*/source-data` routes remain readable for agents and must not contain
   private notes, secrets, raw provider ids, or private user data.
+- Codex project email sends shipped notices from `codex@bumpgrade.com` and
+  polls trusted replies from `m@rkmoriarty.com`, `markeffect@gmail.com`,
+  `markmoriarty@stripe.com`, and `mark@awesound.com`. Private inbox bodies, raw
+  MIME, and attachments must not be pasted into GitHub or public source-data.
 - Stripe commerce architecture is documented in `docs/features/payments.md`.
   Bumpgrade defaults to sandbox mode; `/api/commerce/checkout` can create sandbox
   Checkout Sessions from D1 prices, but live billing remains disabled. Agents

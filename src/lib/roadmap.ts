@@ -102,17 +102,18 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-codex-email",
     title: "Codex project email and reply monitor",
-    status: "blocked",
+    status: "active",
     issue: 10,
     featureId: featureIdFor(10),
     group: "Operations",
     summary: "Outbound shipped-feature notices and inbound reply monitoring from `codex@bumpgrade.com`.",
     publicEvidence: [
-      "Issue #10 records the failed Cloudflare Email REST send attempt.",
-      "Cloudflare API reported Email Routing as unconfigured with missing MX, SPF, and DKIM records.",
+      "Issue #10 owns the Codex project email workflow.",
+      "Cloudflare Email Routing for bumpgrade.com is enabled and reported ready after MX, SPF, and DKIM records were installed.",
+      "D1/R2 contracts store outbound notice results, inbound reply metadata, and raw MIME storage keys.",
     ],
-    nextMilestone: "Configure Cloudflare email DNS/authentication, add sender/routing contracts, then retry a real notice.",
-    markAttention: "Shipped emails cannot honestly be sent from `codex@bumpgrade.com` until #10 is configured.",
+    nextMilestone: "Retry a real shipped PR notice after DNS/authentication propagation and verify an inbound reply lands in D1/R2.",
+    markAttention: "The first REST probe before DNS readiness permanently bounced; shipped notices must record provider status exactly.",
   },
   {
     id: "roadmap-admin-surfaces",

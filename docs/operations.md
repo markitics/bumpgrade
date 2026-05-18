@@ -11,6 +11,54 @@ check before changing Bumpgrade infrastructure.
 - D1 database name: `bumpgrade-prod`.
 - R2 OpenNext cache binding: `NEXT_INC_CACHE_R2_BUCKET`.
 - R2 bucket name: `bumpgrade-opennext-cache`.
+- R2 Codex mail binding: `MAIL`.
+- R2 Codex mail bucket name: `bumpgrade-mail`.
+
+## Codex Email
+
+Issue #10 configures Bumpgrade project email for shipped PR notices and Mark
+reply monitoring.
+
+- Default sender: `Codex <codex@bumpgrade.com>`.
+- Default shipped-notice recipient: `m@rkmoriarty.com`.
+- Cloudflare Email Routing status checked on May 18, 2026: `ready`.
+- Cloudflare Email Routing destination for Mark is verified as
+  `m@rkmoriarty.com`.
+- Cloudflare Email Routing rule `Codex Worker inbox` routes
+  `codex@bumpgrade.com` to Worker `bumpgrade`
+  (`1a4cd26c1a33455b93a2a81865c390bd`).
+- R2 raw-message bucket: `bumpgrade-mail`.
+- Worker binding for raw mail: `MAIL`.
+- Worker send binding: `EMAIL`, restricted to sender
+  `codex@bumpgrade.com`.
+- Forward copy destination: `EMAIL_FORWARD_TO`, currently
+  `m@rkmoriarty.com`.
+
+The Worker `email()` handler stores inbound Codex mail metadata in
+`codex_inbound_messages`, stores raw MIME in R2 under
+`codex/email/inbound/`, and forwards a copy to Mark when forwarding succeeds.
+
+Outbound shipped notices use Cloudflare Email Service REST:
+
+```bash
+npm run pr:email -- --pr <number> --version "<worker-version>"
+```
+
+Recent trusted replies can be checked with:
+
+```bash
+npm run codex:poll-inbox -- --minutes 70 --limit 20
+```
+
+The first REST probe from `codex@bumpgrade.com` before DNS readiness returned a
+`permanent_bounces` result for `m@rkmoriarty.com`. Retry shipped notices after
+DNS/authentication propagation before declaring #10 fully done.
+
+Use `--show-body` only when private message text is needed to act on Mark's
+reply. Do not paste private inbox bodies, raw MIME, attachments, tokens, or
+other private user data into GitHub, docs, PR bodies, screenshots, or public
+source-data routes. See `docs/agent/codex-mail-workflow.md` for the full
+workflow.
 
 ## Better Auth
 
@@ -33,8 +81,6 @@ Required production configuration:
   `m@rkmoriarty.com`.
 
 Production owner admin access requires the signed-in owner email to be verified.
-Project email sending/routing is tracked in issue #10, so keep that blocker
-visible until confirmation mail can be sent from the Bumpgrade email stack.
 
 ## Local Auth
 
