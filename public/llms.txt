@@ -43,11 +43,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
 
 ## Agent Docs
 
-Add public agent docs here as they ship:
-
+- https://bumpgrade.com/agent-docs
+- https://bumpgrade.com/agent-docs/source-data
 - https://bumpgrade.com/agent-docs/bumpgrade-agent-surface
 - https://bumpgrade.com/agent-docs/bumpgrade-commerce-contract
 - https://bumpgrade.com/agent-docs/bumpgrade-source-evidence
+- https://bumpgrade.com/agent-docs/bumpgrade-admin-surfaces
 - https://bumpgrade.com/agent-docs/bumpgrade-mcp
 
 ## Current Agent Contract
@@ -58,6 +59,8 @@ Add public agent docs here as they ship:
   shipped-feature, or quote facts.
 - Source-grounded answers should cite stable source ids, source URLs, issue/PR
   evidence, and work-log entries when available.
+- `/agent-docs/source-data` is the current public-safe agent manifest. It lists
+  docs, read contracts, evidence routes, MCP plans, and write-safety boundaries.
 - Comparison pages are source-linked snapshots. Refresh source URLs before using
   dated pricing, packaging, or feature-availability claims in a user-facing
   answer.

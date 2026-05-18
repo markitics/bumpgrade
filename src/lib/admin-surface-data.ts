@@ -251,6 +251,42 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-agent-reads-bumpgrade-manifest",
+    title: "Agent reads Bumpgrade manifest before acting",
+    featureId: "feature-agent-ready-contracts",
+    featureStatus: "live",
+    issueNumbers: [12],
+    primaryUser: "Codex, ChatGPT, Claude, or another capable agent",
+    userGoal: "Understand what Bumpgrade can read, cite, and safely propose without scraping private admin UI or inventing state.",
+    sourceEvidence: [
+      "https://bumpgrade.com/agent-docs",
+      "https://bumpgrade.com/agent-docs/source-data",
+      "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
+      "https://github.com/markitics/bumpgrade/issues/12",
+    ],
+    happyPath: [
+      "Open /agent-docs or fetch /agent-docs/source-data.",
+      "Choose the relevant read contract for feature, roadmap, comparison, commerce, admin, or agent docs.",
+      "Cite stable IDs, issue or PR evidence, source URLs, and retrieved dates.",
+      "Use MCP roadmap entries only as planned tooling until the MCP server exists.",
+      "Require confirmed-write safeguards before any public, billing-impacting, admin, or creator-speech write.",
+    ],
+    edgeCases: [
+      "Human admin pages require Better Auth owner sessions and should not be scraped as a bypass.",
+      "The manifest is public-safe discovery metadata, not permission to write.",
+      "Volatile competitor pricing, packaging, and feature availability need current source refreshes.",
+      "Live billing remains disabled until a separate rollout proves webhook evidence.",
+    ],
+    agentAccess:
+      "Agents can read /agent-docs/source-data, /features/source-data, /roadmap/source-data, /compare/source-data, /commerce/source-data, and /admin/source-data; writes need approved scripts now and confirmed APIs later.",
+    validation: [
+      "Playwright covers /agent-docs pages and /agent-docs/source-data.",
+      "The manifest exposes stable read contract IDs, evidence route IDs, MCP plan IDs, and write-safety rules.",
+    ],
+    sortOrder: 38,
+    updatedAt: null,
+  },
+  {
     id: "journey-owner-opens-protected-admin",
     title: "Owner opens protected admin surfaces",
     featureId: "feature-better-auth",

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
+import { agentManifest } from "../src/lib/agent-manifest";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
@@ -13,7 +14,7 @@ const routes = [
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
-  { path: "/developers-and-agents", heading: "Agent-readable contracts" },
+  { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing surface" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
@@ -23,8 +24,12 @@ const routes = [
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
-  { path: "/agent-docs/bumpgrade-agent-surface", heading: "Public agent surface" },
+  { path: "/agent-docs", heading: "Bumpgrade is readable by agents" },
+  { path: "/agent-docs/bumpgrade-agent-surface", heading: "Agents get public contracts" },
   { path: "/agent-docs/bumpgrade-commerce-contract", heading: "Stripe commerce has a sandbox checkout path" },
+  { path: "/agent-docs/bumpgrade-source-evidence", heading: "Public claims must resolve to source data" },
+  { path: "/agent-docs/bumpgrade-admin-surfaces", heading: "Admin pages are owner-gated" },
+  { path: "/agent-docs/bumpgrade-mcp", heading: "MCP should wrap the same contracts" },
 ];
 
 const compareRoutes = competitors.map((competitor) => ({
@@ -140,6 +145,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
+    expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBeTruthy();
@@ -223,6 +230,35 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "checkout_intents" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
         expect.objectContaining({ table: "payment_audit_events" }),
+      ]),
+    );
+  });
+
+  test("agent docs source data exposes stable read contracts and MCP roadmap", async ({ request }) => {
+    const response = await request.get("/agent-docs/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-agent-manifest");
+    expect(payload.docs).toHaveLength(agentManifest.docs.length);
+    expect(payload.readContracts).toHaveLength(agentManifest.readContracts.length);
+    expect(payload.sourceEvidenceRoutes).toHaveLength(agentManifest.sourceEvidenceRoutes.length);
+    expect(payload.mcpPlan).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "mcp-resource-features", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
+      ]),
+    );
+    expect(payload.readContracts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
+      ]),
+    );
+    expect(payload.writeSafetyRules).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("Require confirmation, idempotency, stale-state checks"),
+        expect.stringContaining("Do not invent pricing"),
       ]),
     );
   });
