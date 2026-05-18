@@ -14,6 +14,32 @@ check before changing Bumpgrade infrastructure.
 - R2 Codex mail binding: `MAIL`.
 - R2 Codex mail bucket name: `bumpgrade-mail`.
 
+## Production Build
+
+Production builds intentionally run `next build --webpack` before OpenNext
+packaging. On May 18, 2026, the default Next 16 Turbopack production build
+repeatedly produced transient `.next` missing-file errors during local
+OpenNext validation, including missing build manifests, required server files,
+and page bundles. The Webpack builder produced the same app output without that
+ENOENT churn.
+
+Use Node 22 for broad local validation unless the project explicitly upgrades
+the runtime:
+
+```bash
+fnm exec --using 22.22.3 npm run cf:build
+fnm exec --using 22.22.3 npm run test:browser
+```
+
+Before retrying a failed build, check that another agent is not already running
+a build or preview in this same checkout. Remove `.next/lock` only after
+confirming no active Next/OpenNext process still owns it.
+
+The browser test script prebuilds the OpenNext bundle before Playwright starts
+its managed Worker preview. Keep `playwright.config.ts` pointed at
+`preview:worker`, not `preview`, so the test runner does not rebuild while it
+is also driving browser traffic.
+
 ## Codex Email
 
 Issue #10 configures Bumpgrade project email for shipped PR notices and Mark
