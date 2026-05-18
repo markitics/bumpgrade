@@ -132,6 +132,12 @@ Billing-impacting writes also require exact amount/currency confirmation, a
 checkout idempotency key, a current product/price stale-state check, and webhook
 evidence before access or fulfillment is marked complete.
 
+Current commerce boundary: issue #34 exposes a sandbox checkout write path at
+`POST /api/commerce/checkout`. Agents must provide exact confirmation text when
+`agentClientId` is present, and the route writes an audit-correlated
+`checkout_intents` record before Stripe is called. Live billing remains disabled
+until a later explicit rollout issue.
+
 ## Browser-Agent UX
 
 Browser agents still matter. Human pages should be easy for browser agents to

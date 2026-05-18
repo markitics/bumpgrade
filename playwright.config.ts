@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   webServer: {
     command:
-      "APP_ENV=test PUBLIC_SITE_URL=http://localhost:3100 BETTER_AUTH_URL=http://localhost:3100 BETTER_AUTH_SECRET=playwright-local-better-auth-secret BUMPGRADE_OWNER_EMAILS=m@rkmoriarty.com npm run dev -- --port 3100",
+      "APP_ENV=test PUBLIC_SITE_URL=http://localhost:3100 BETTER_AUTH_URL=http://localhost:3100 BETTER_AUTH_SECRET=playwright-local-better-auth-secret BUMPGRADE_OWNER_EMAILS=m@rkmoriarty.com STRIPE_SECRET_KEY_SANDBOX=sk_test_incomplete npm run dev -- --port 3100",
     url: "http://localhost:3100",
     reuseExistingServer: true,
     timeout: 30_000,

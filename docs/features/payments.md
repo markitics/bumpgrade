@@ -1,13 +1,32 @@
 # Stripe Payments And Checkout Architecture
 
-Issue: #11
-Next implementation issue: #34
+Architecture issue: #11
+Sandbox checkout issue: #34
 Last reviewed: 2026-05-18
 
 Bumpgrade will use Stripe Checkout Sessions first, backed by Cloudflare Workers
 and D1. This keeps Bumpgrade out of raw card-data handling, gives publishers a
 hosted payment surface early, and leaves room for embedded Checkout or Payment
 Element work after the product model is stable.
+
+## Current Shipped State
+
+Issue #34 adds the first sandbox-only checkout path:
+
+- `POST /api/commerce/checkout` reads an active D1 `commerce_prices` row, writes a
+  `checkout_intents` row before calling Stripe, and creates a Stripe Checkout
+  Session when sandbox secrets are available.
+- `APP_ENV=test`, missing-secret, and explicit `previewOnly` requests return a
+  safe preview response and do not call Stripe.
+- `POST /api/stripe/webhook` verifies Stripe signatures with the async Web
+  Crypto provider, dedupes `stripe_webhook_events`, updates checkout/subscription
+  state, and writes redacted `payment_audit_events`.
+- A seeded sandbox smoke product/price exists:
+  `price-bumpgrade-sandbox-launch-pass-usd`.
+
+This is not live billing parity. `STRIPE_ACTIVE_MODE` remains `sandbox`, live
+mode is rejected by the checkout route, and no customer-facing checkout button is
+published outside the smoke path.
 
 ## Source Checks
 
@@ -75,10 +94,11 @@ commerce tables:
 - `payment_audit_events`: public-safe payment state changes and agent/action
   audit records.
 
-The first checkout route in #34 should write a checkout intent before calling
-Stripe, then update it with the Stripe Checkout Session id. Webhooks should
-update status through upserts keyed by Stripe ids and record the Stripe event id
-before returning success.
+The first checkout route in #34 writes a checkout intent before calling Stripe,
+then updates it after Stripe returns a Checkout Session. When sandbox secrets are
+missing or incomplete, the route returns a redacted preview instead of guessing
+or falling back to live mode. Webhooks update status through idempotent event
+storage before returning success.
 
 ## Webhook Contract
 
@@ -88,8 +108,7 @@ The Bumpgrade webhook endpoint should be:
 https://bumpgrade.com/api/stripe/webhook
 ```
 
-Only create the Stripe webhook endpoint after that route exists. When creating
-it, ask for these events first:
+When creating the Stripe webhook endpoint, ask for these events first:
 
 - `checkout.session.completed`
 - `checkout.session.async_payment_succeeded`
@@ -102,7 +121,8 @@ it, ask for these events first:
 Use Stripe's async Web Crypto verification path on Cloudflare Workers. Store the
 endpoint signing secret as `STRIPE_WEBHOOK_SECRET_SANDBOX` or
 `STRIPE_WEBHOOK_SECRET_LIVE` without printing it. Do not reuse LaurelHarned's
-webhook secret; webhook signing secrets are endpoint-specific.
+webhook secret; webhook signing secrets are endpoint-specific. The route returns
+`503` until the relevant endpoint secret is configured.
 
 ## Agent And Admin Safety
 

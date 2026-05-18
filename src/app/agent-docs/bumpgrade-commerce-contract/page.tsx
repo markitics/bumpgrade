@@ -10,6 +10,7 @@ import {
   stripeCommerceContract,
   stripeNodeVersion,
 } from "@/lib/commerce";
+import { checkoutConfirmationText, checkoutRoutes, sandboxCheckoutOffer } from "@/lib/sandbox-checkout";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function CommerceContractPage() {
       <section className="route-hero">
         <div>
           <p className="eyebrow">Agent docs</p>
-          <h1>Stripe commerce is architecture-live, checkout is not live yet.</h1>
+          <h1>Stripe commerce has a sandbox checkout path; live billing is not enabled.</h1>
           <p className="lede">{stripeCommerceContract.summary}</p>
           <Link href="/commerce/source-data" className="text-link">
             Commerce source data
@@ -37,7 +38,7 @@ export default function CommerceContractPage() {
         <div className="route-status-panel">
           <ReceiptText aria-hidden="true" />
           <p>Status</p>
-          <strong>Architecture live</strong>
+          <strong>Sandbox path live</strong>
           <span>Issue #11 defines the contract. Issue #{stripeCommerceContract.firstCheckoutIssue} owns the first sandbox checkout path.</span>
         </div>
       </section>
@@ -85,6 +86,51 @@ export default function CommerceContractPage() {
               <p>{decision.summary}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Sandbox checkout</p>
+            <h2>First Checkout Session path is API-first and redacted.</h2>
+          </div>
+          <Link href={checkoutRoutes.start} className="text-link compact-link">
+            Checkout contract
+            <ReceiptText aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-grid">
+          <article className="feature-card">
+            <div className="feature-card-top">
+              <span className="status-badge live">Sandbox</span>
+              <span>{sandboxCheckoutOffer.priceId}</span>
+            </div>
+            <h3>{sandboxCheckoutOffer.name}</h3>
+            <p>{sandboxCheckoutOffer.summary}</p>
+          </article>
+          <article className="feature-card">
+            <div className="feature-card-top">
+              <span className="status-badge pending">Confirmed write</span>
+              <span>Issue #{sandboxCheckoutOffer.issue}</span>
+            </div>
+            <h3>Checkout creation requires exact confirmation</h3>
+            <p>
+              POST {checkoutRoutes.start} with confirmation text <strong>{checkoutConfirmationText}</strong>. Without
+              a valid sandbox secret, the endpoint returns a safe preview instead of calling Stripe.
+            </p>
+          </article>
+          <article className="feature-card">
+            <div className="feature-card-top">
+              <span className="status-badge live">Webhook</span>
+              <span>{checkoutRoutes.webhook}</span>
+            </div>
+            <h3>Webhook events are stored idempotently</h3>
+            <p>
+              The webhook route verifies raw Stripe signatures when configured, stores redacted event evidence, and
+              updates matching checkout intents before fulfillment is trusted.
+            </p>
+          </article>
         </div>
       </section>
 
