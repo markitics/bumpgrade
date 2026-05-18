@@ -7,6 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import type { AppDb } from "@/db/client";
 import { getOptionalDb } from "@/db/client";
 import * as schema from "@/db/schema";
+import { sendAccountVerificationEmailOrThrow } from "@/lib/account-verification-email";
 
 const localAuthMemoryDb: MemoryDB = {};
 
@@ -31,7 +32,7 @@ export function getAppEnv() {
   return getRuntimeEnvValue("APP_ENV") ?? process.env.NODE_ENV ?? "development";
 }
 
-function getBetterAuthSecret() {
+export function getBetterAuthSecret() {
   const secret = getRuntimeEnvValue("BETTER_AUTH_SECRET");
   if (secret) return secret;
 
@@ -82,6 +83,13 @@ export function createAuth(db: AppDb | null = getOptionalDb()) {
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      async sendVerificationEmail({ user, url }) {
+        await sendAccountVerificationEmailOrThrow({ user, url, source: "better-auth" });
+      },
     },
     plugins: [nextCookies()],
   });
