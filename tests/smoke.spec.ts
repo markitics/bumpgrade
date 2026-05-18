@@ -89,7 +89,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
-        expect.objectContaining({ id: "roadmap-codex-email", status: "active", issue: 10 }),
+        expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
     );
@@ -107,7 +107,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.attentionItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "mark-attention-2026-05-18-codex-email-blocked",
+          id: "mark-attention-2026-05-18-blocked-valid-stripe-sandbox-secret",
           state: "open",
         }),
       ]),

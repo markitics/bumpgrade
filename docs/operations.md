@@ -51,8 +51,12 @@ npm run codex:poll-inbox -- --minutes 70 --limit 20
 ```
 
 The first REST probe from `codex@bumpgrade.com` before DNS readiness returned a
-`permanent_bounces` result for `m@rkmoriarty.com`. Retry shipped notices after
-DNS/authentication propagation before declaring #10 fully done.
+`permanent_bounces` result for `m@rkmoriarty.com`. A later real PR #40 shipped
+notice returned `delivered` and is stored in D1. A self-addressed inbound smoke
+through Cloudflare Email Sending returned
+`email.sending.error.email.sending_disabled` because `codex@bumpgrade.com` is
+an inbound alias, not a verified send destination. Use the next real reply to
+prove raw D1/R2 capture end to end.
 
 Use `--show-body` only when private message text is needed to act on Mark's
 reply. Do not paste private inbox bodies, raw MIME, attachments, tokens, or

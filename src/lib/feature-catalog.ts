@@ -300,6 +300,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Tracked by issue #10.",
       "Cloudflare Email Routing for bumpgrade.com reports ready after required DNS records were installed.",
       "`codex_outbound_messages` and `codex_inbound_messages` persist notice and reply evidence.",
+      "A delayed PR #40 notice returned delivered from codex@bumpgrade.com to m@rkmoriarty.com.",
+      "Cloudflare routes codex@bumpgrade.com to Worker bumpgrade for inbound processing.",
       "Per-session plus addressing is deferred because Cloudflare reports subaddressing disabled for bumpgrade.com.",
     ],
     agentContract:

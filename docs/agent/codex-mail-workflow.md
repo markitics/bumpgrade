@@ -36,6 +36,18 @@ The script uses Cloudflare Email Service REST, sends from
 If the provider returns `permanent_bounces`, do not claim the email was
 delivered. Record the exact status on the PR or issue and keep moving.
 
+Known evidence from issue #10:
+
+- A delayed PR #40 notice sent from `codex@bumpgrade.com` to
+  `m@rkmoriarty.com` returned `delivered` and is recorded in
+  `codex_outbound_messages`.
+- A self-addressed smoke from `codex@bumpgrade.com` to `codex@bumpgrade.com`
+  returned Cloudflare error `email.sending.error.email.sending_disabled`
+  because the inbound alias is not a verified destination for Email Sending.
+  The failed attempt is recorded as
+  `codex-outbound-pr-49-1779108678616`. Verify D1/R2 inbound capture on the
+  next real reply instead of describing the self-smoke as delivered.
+
 ## Inbound
 
 Cloudflare Email Routing invokes the Worker `email(message, env)` handler in
