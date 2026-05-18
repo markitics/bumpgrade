@@ -52,6 +52,7 @@ export type Competitor = {
   alternativePosition: string;
   sourceId: string;
   sourceUrl: string;
+  sourceIds?: string[];
   metaTitle?: string;
   metaDescription?: string;
   seoKeywords?: string[];
@@ -75,6 +76,17 @@ export const competitorSources: CompetitorSource[] = [
     notes: [
       "Positions ClickFunnels around funnels, store, CRM, email marketing, online courses, checkout, A/B testing, automations, analytics, payments, affiliate center, and related apps.",
       "Used only for current capability framing, not for pricing or customer claims.",
+    ],
+  },
+  {
+    id: "source-clickfunnels-pricing",
+    label: "ClickFunnels pricing and plan table",
+    url: "https://www.clickfunnels.com/pricing",
+    retrievedAt: comparisonRetrievedAt,
+    confidence: "high",
+    notes: [
+      "Official plan table lists ClickFunnels surface areas including funnels, email contacts, courses/community, stores, site pages, landing pages, Webhooks/API Access, CRM pipelines, analytics, payments, affiliate center, A/B testing, API & Webhooks, and Smart Checkout.",
+      "Used for feature-surface evidence only; Bumpgrade should not cite current plan prices without a fresh pricing-specific source refresh.",
     ],
   },
   {
@@ -190,7 +202,7 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     supportingKeywords: ["ClickFunnels alternatives", "ClickFunnels competitor", "sites like ClickFunnels"],
     intent:
       "A buyer already knows ClickFunnels and wants a source-grounded alternative path for funnels, checkout, email, courses, CRM, and agent-readable operations.",
-    evidenceSourceIds: ["source-clickfunnels-home"],
+    evidenceSourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
     caveat: "Bumpgrade must describe parity targets as planned until the linked roadmap issues ship.",
   },
   {
@@ -200,7 +212,7 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     supportingKeywords: ["funnel builder competitors", "sales funnel platform comparison", "ClickFunnels vs alternatives"],
     intent:
       "A buyer is comparing the funnel-builder category and needs the main competitor capabilities mapped to Bumpgrade roadmap slices.",
-    evidenceSourceIds: ["source-clickfunnels-home", "source-shopify-compare"],
+    evidenceSourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing", "source-shopify-compare"],
     caveat: "The page can cite official ClickFunnels capabilities and Bumpgrade roadmap state, not unsupported performance or pricing claims.",
   },
   {
@@ -210,7 +222,13 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     supportingKeywords: ["creator commerce platform comparison", "funnel checkout email platform", "publisher growth OS"],
     intent:
       "A founder wants one comparison hub for funnel, checkout, email, course, community, affiliate, analytics, and agent-ready platform decisions.",
-    evidenceSourceIds: ["source-shopify-compare", "source-clickfunnels-home", "source-samcart-checkout", "source-kit-home"],
+    evidenceSourceIds: [
+      "source-shopify-compare",
+      "source-clickfunnels-home",
+      "source-clickfunnels-pricing",
+      "source-samcart-checkout",
+      "source-kit-home",
+    ],
     caveat: "The hub should help choose a product direction while keeping Bumpgrade's not-yet-shipped features labeled as roadmap work.",
   },
 ];
@@ -257,6 +275,7 @@ export const competitors: Competitor[] = [
       "Bumpgrade should be the ClickFunnels competitor for publishers who want those same funnel and revenue surfaces to become inspectable by agents, backed by Cloudflare primitives, and explicit about what is live versus planned.",
     sourceId: "source-clickfunnels-home",
     sourceUrl: "https://www.clickfunnels.com/",
+    sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
     metaTitle: "ClickFunnels Alternative and Competitors for Indiepreneurs",
     metaDescription:
       "A source-grounded ClickFunnels alternative and competitors page for indiepreneurs comparing funnels, checkout, email, courses, CRM, analytics, affiliates, and agent-ready operations.",
@@ -699,6 +718,13 @@ export function getCompetitorBySlug(slug: string) {
 
 export function getSourceById(sourceId: string) {
   return competitorSources.find((source) => source.id === sourceId);
+}
+
+export function getSourcesByIds(sourceIds: string[]) {
+  return sourceIds.flatMap((sourceId) => {
+    const source = getSourceById(sourceId);
+    return source ? [source] : [];
+  });
 }
 
 export const comparisonRoutes = competitors.map((competitor) => `/compare/${competitor.slug}`);

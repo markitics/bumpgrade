@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileSearch, ShieldCheck } from "lucide-react";
 
-import { comparisonRetrievedAt, competitors, getCompetitorBySlug, getSourceById } from "@/lib/comparison-data";
+import { comparisonRetrievedAt, competitors, getCompetitorBySlug, getSourcesByIds } from "@/lib/comparison-data";
 import { site } from "@/lib/site";
 
 type CompareAlternativePageProps = {
@@ -51,7 +51,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
     notFound();
   }
 
-  const source = getSourceById(competitor.sourceId);
+  const sources = getSourcesByIds(competitor.sourceIds ?? [competitor.sourceId]);
   const pageUrl = `${site.url}/compare/${competitor.slug}`;
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -66,7 +66,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
       name: site.name,
       url: site.url,
     },
-    citation: competitor.sourceUrl,
+    citation: sources.length ? sources.map((source) => source.url) : competitor.sourceUrl,
   };
   const faqJsonLd = competitor.faqs?.length
     ? {
@@ -198,11 +198,15 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
             <p className="eyebrow">Sourced notes</p>
             <h2>What the official source supports</h2>
           </div>
-          {source ? (
-            <a href={source.url} className="text-link compact-link">
-              {source.id}
-              <ExternalLink aria-hidden="true" />
-            </a>
+          {sources.length ? (
+            <div className="source-link-list" aria-label={`${competitor.name} source evidence`}>
+              {sources.map((source) => (
+                <a key={source.id} href={source.url} className="text-link compact-link">
+                  {source.id}
+                  <ExternalLink aria-hidden="true" />
+                </a>
+              ))}
+            </div>
           ) : null}
         </div>
         <div className="evidence-grid">

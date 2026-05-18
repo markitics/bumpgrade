@@ -91,13 +91,13 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/compare");
     await expect(page).toHaveTitle(/ClickFunnels Alternatives and Competitors/i);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /ClickFunnels alternatives and competitors/i);
-    await expect(page.getByText("ClickFunnels competitors")).toBeVisible();
+    await expect(page.locator(".seo-target-card > span").filter({ hasText: /^ClickFunnels competitors$/ })).toBeVisible();
 
     await page.goto("/compare/clickfunnels-alternative");
     await expect(page).toHaveTitle(/ClickFunnels Alternative and Competitors for Indiepreneurs/i);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /ClickFunnels alternative and competitors page/i);
     await expect(page.getByRole("heading", { name: /ClickFunnels alternative and competitors map/i })).toBeVisible();
-    await expect(page.getByText("ClickFunnels competitors")).toBeVisible();
+    await expect(page.locator(".keyword-list li").filter({ hasText: /^ClickFunnels competitors$/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: /How Bumpgrade maps the ClickFunnels competitors category/i })).toBeVisible();
 
     const response = await request.get("/compare/source-data");
@@ -115,6 +115,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "seo-clickfunnels-competitors",
           primaryKeyword: "ClickFunnels competitors",
           route: "/compare/clickfunnels-alternative",
+          evidenceSourceIds: expect.arrayContaining(["source-clickfunnels-home", "source-clickfunnels-pricing"]),
         }),
       ]),
     );
@@ -122,6 +123,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "competitor-clickfunnels",
+          sourceIds: expect.arrayContaining(["source-clickfunnels-home", "source-clickfunnels-pricing"]),
           seoKeywords: expect.arrayContaining(["ClickFunnels alternative", "ClickFunnels competitors"]),
           deepDive: expect.objectContaining({
             title: "How Bumpgrade maps the ClickFunnels competitors category",
