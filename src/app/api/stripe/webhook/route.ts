@@ -23,13 +23,13 @@ async function getRuntime(): Promise<WebhookRuntime> {
 
 function webhookSecretFromEnv(env: Cloudflare.Env) {
   if (stripeModeFromEnv(env) === "live") {
-    return process.env.STRIPE_WEBHOOK_SECRET_LIVE ?? env.STRIPE_WEBHOOK_SECRET_LIVE;
+    return env.STRIPE_WEBHOOK_SECRET_LIVE ?? process.env.STRIPE_WEBHOOK_SECRET_LIVE;
   }
-  return process.env.STRIPE_WEBHOOK_SECRET_SANDBOX ?? env.STRIPE_WEBHOOK_SECRET_SANDBOX;
+  return env.STRIPE_WEBHOOK_SECRET_SANDBOX ?? process.env.STRIPE_WEBHOOK_SECRET_SANDBOX;
 }
 
 function appEnvFromRuntime(env: Cloudflare.Env) {
-  return process.env.APP_ENV ?? env.APP_ENV ?? process.env.NODE_ENV ?? "development";
+  return env.APP_ENV ?? process.env.APP_ENV ?? process.env.NODE_ENV ?? "development";
 }
 
 function checkoutIntentIdFromEvent(event: Stripe.Event) {
