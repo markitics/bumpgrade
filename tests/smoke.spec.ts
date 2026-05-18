@@ -14,7 +14,7 @@ const routes = [
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
-  { path: "/developers-and-agents", heading: "Agent-readable contracts" },
+  { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing surface" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
