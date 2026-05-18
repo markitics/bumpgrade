@@ -12,13 +12,16 @@ export function stripeModeFromEnv(env: StripeEnv): StripeMode {
 }
 
 export function stripeSecretKeyFromEnv(env: StripeEnv, mode = stripeModeFromEnv(env)) {
-  return mode === "live" ? env.STRIPE_SECRET_KEY_LIVE : env.STRIPE_SECRET_KEY_SANDBOX;
+  if (mode === "live") return process.env.STRIPE_SECRET_KEY_LIVE ?? env.STRIPE_SECRET_KEY_LIVE;
+  return process.env.STRIPE_SECRET_KEY_SANDBOX ?? env.STRIPE_SECRET_KEY_SANDBOX;
 }
 
 export function createStripeClient(secretKey: string) {
   return new Stripe(secretKey, {
     apiVersion: stripeApiVersion,
     httpClient: Stripe.createFetchHttpClient(),
+    maxNetworkRetries: 1,
+    timeout: 15_000,
     appInfo: {
       name: "Bumpgrade",
       url: "https://bumpgrade.com",
