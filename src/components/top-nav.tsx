@@ -4,12 +4,16 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { authClient } from "@/lib/auth-client";
 import { loginNavItem, site, topNavItems } from "@/lib/site";
 
 export function TopNav() {
+  const session = authClient.useSession();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const mobileNavRef = useRef<HTMLDivElement>(null);
   const mobileNavPanelId = "mobile-nav-panel";
+  const showLoginNavItem = !session.isPending && !session.data?.user;
+  const mobileNavItems = showLoginNavItem ? [...topNavItems, loginNavItem] : topNavItems;
 
   useEffect(() => {
     if (!mobileNavOpen) return undefined;
@@ -55,9 +59,11 @@ export function TopNav() {
         ))}
       </nav>
 
-      <Link href={loginNavItem.href} className="nav-cta">
-        {loginNavItem.label}
-      </Link>
+      {showLoginNavItem ? (
+        <Link href={loginNavItem.href} className="nav-cta">
+          {loginNavItem.label}
+        </Link>
+      ) : null}
 
       <div className="mobile-nav" ref={mobileNavRef}>
         <button
@@ -71,7 +77,7 @@ export function TopNav() {
           <Menu aria-hidden="true" />
         </button>
         <div className="mobile-nav-panel" id={mobileNavPanelId} hidden={!mobileNavOpen}>
-          {[...topNavItems, loginNavItem].map((item) => (
+          {mobileNavItems.map((item) => (
             <Link key={item.href} href={item.href} onClick={() => setMobileNavOpen(false)}>
               <item.icon aria-hidden="true" />
               <span>{item.label}</span>
