@@ -56,12 +56,12 @@ export const stripeCommerceContract = {
       visibility: "server-only",
     },
     {
-      name: "STRIPE_PUBLISHABLE_KEY_SANDBOX",
+      name: "STRIPE_PUBLIC_KEY_SANDBOX",
       storage: "Cloudflare Worker secret and ignored local .env.local",
       visibility: "safe to expose only through an intentional public config route",
     },
     {
-      name: "STRIPE_PUBLISHABLE_KEY_LIVE",
+      name: "STRIPE_PUBLIC_KEY_LIVE",
       storage: "Cloudflare Worker secret and ignored local .env.local",
       visibility: "safe to expose only through an intentional public config route",
     },
