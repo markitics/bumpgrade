@@ -510,7 +510,7 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links resolve to stable draft attribution rules/i })).toBeVisible();
-    await expect(page.getByText("LAUNCHCIRCLE")).toBeVisible();
+    await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
   });
 
