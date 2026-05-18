@@ -24,6 +24,9 @@ reply monitoring.
 - Cloudflare Email Routing status checked on May 18, 2026: `ready`.
 - Cloudflare Email Routing destination for Mark is verified as
   `m@rkmoriarty.com`.
+- Cloudflare Email Routing rule `Codex Worker inbox` routes
+  `codex@bumpgrade.com` to Worker `bumpgrade`
+  (`1a4cd26c1a33455b93a2a81865c390bd`).
 - R2 raw-message bucket: `bumpgrade-mail`.
 - Worker binding for raw mail: `MAIL`.
 - Worker send binding: `EMAIL`, restricted to sender

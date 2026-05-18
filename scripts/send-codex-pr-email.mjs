@@ -59,7 +59,7 @@ function getPr(number) {
 
 function bodySummaries(body) {
   const lines = String(body ?? "").split("\n");
-  const start = lines.findIndex((line) => /^what'?s done|^##\s+what'?s done/i.test(line.trim()));
+  const start = lines.findIndex((line) => /^(##\s+)?what'?s done/i.test(line.trim()));
   if (start === -1) return [];
 
   const bullets = [];
@@ -228,3 +228,4 @@ writeD1(insertSql({ id, args, pr, email, payload, status, error }));
 
 console.log(`Codex PR email ${status} for PR #${pr.number} to ${args.to} from ${args.from}.`);
 if (error) console.log(`Provider error: ${error}`);
+if (status === "failed" || status === "bounced") process.exitCode = 2;

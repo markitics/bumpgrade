@@ -65,6 +65,10 @@ GitHub.
 As of May 18, 2026, Cloudflare Email Routing for `bumpgrade.com` is enabled and
 reports `ready` after installing the required MX, SPF, and DKIM records.
 
+Routing rules:
+
+- `Codex Worker inbox` routes `codex@bumpgrade.com` to Worker `bumpgrade`.
+
 R2:
 
 - `bumpgrade-mail`: raw inbound Codex MIME.
