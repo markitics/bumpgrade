@@ -167,13 +167,18 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-agent-contracts",
     title: "Agent-ready docs, manifests, APIs, and MCP",
-    status: "next",
+    status: "shipped",
     issue: 12,
     featureId: featureIdFor(12),
     group: "Developers and agents",
-    summary: "Public agent docs, source evidence, manifests, server-side APIs, and future MCP resources.",
-    publicEvidence: ["Tracked by issue #12.", "`llms.txt`, `/features/source-data`, and `/compare/source-data` are live inputs."],
-    nextMilestone: "Publish the next agent-readable manifest and map read contracts to admin data.",
+    summary:
+      "Public agent docs, source evidence, `/agent-docs/source-data` manifest, server-side read contracts, and future MCP resources.",
+    publicEvidence: [
+      "Tracked by issue #12.",
+      "`llms.txt`, `/features/source-data`, `/compare/source-data`, `/commerce/source-data`, and `/agent-docs/source-data` are live inputs.",
+      "The MCP roadmap is documented on `/agent-docs/bumpgrade-mcp` and stays read-only until confirmed-write APIs exist.",
+    ],
+    nextMilestone: "Implement the first MCP resource server on top of the documented read contracts.",
   },
   {
     id: "roadmap-mobile-admin",

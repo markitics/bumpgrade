@@ -244,18 +244,22 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-agent-ready-contracts",
     title: "Agent-ready docs, manifests, APIs, and MCP",
     group: "Developers and agents",
-    status: "pending",
+    status: "live",
     issue: 12,
     summary:
-      "Public docs, manifests, APIs, source evidence resolution, and MCP resources/tools for repeated agent workflows.",
+      "Public agent docs, `/agent-docs/source-data` manifest, source evidence resolution, read contracts, and MCP roadmap for repeated agent workflows.",
     audience: "Codex, ChatGPT, Claude, and other agents helping operate Bumpgrade or customer workspaces.",
     expectedCapabilities: [
       "Public `/agent-docs` pages and `llms.txt` discovery.",
-      "Server-side manifests for feature, roadmap, work-log, and comparison reads.",
-      "MCP resources for repeated reads and safe proposed writes.",
+      "Server-side manifest for feature, roadmap, comparison, commerce, admin, and agent-read contracts.",
+      "MCP resource and tool roadmap for repeated reads and safe proposed writes.",
       "Confirmed-write contracts for public, destructive, billing, and creator-speech actions.",
     ],
-    evidence: ["Tracked by issue #12.", "Comparison JSON shipped in issue #5."],
+    evidence: [
+      "Tracked by issue #12.",
+      "`/agent-docs/source-data` exposes public-safe docs, read contracts, source evidence routes, MCP plan, and write-safety boundaries.",
+      "Comparison JSON shipped in issue #5 and commerce source data shipped in issues #11 and #34.",
+    ],
     agentContract:
       "Agents must prefer documented APIs/manifests/MCP over browser automation when a server-side contract exists.",
   },

@@ -90,6 +90,11 @@ Current auth boundary: human admin pages use Better Auth owner sessions.
 Agent-readable source-data routes stay public-safe and unauthenticated until a
 confirmed-write or delegated-agent auth model exists.
 
+Current manifest boundary: `/agent-docs/source-data` is the public-safe agent
+manifest. It lists agent-doc pages, stable read contracts, source-evidence
+routes, the MCP roadmap, and write-safety rules. It is discovery metadata, not
+permission to write.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
@@ -109,6 +114,11 @@ Useful first MCP resources/tools:
   evidence.
 - Create proposed admin updates that require explicit confirmation before
   writing.
+
+Current MCP boundary: no MCP server is live yet. Issue #12 defines the first
+resources/tools on top of `/features/source-data`, `/roadmap/source-data`,
+`/compare/source-data`, `/commerce/source-data`, `/admin/source-data`, and
+`/agent-docs/source-data`.
 
 ## Write Safety
 

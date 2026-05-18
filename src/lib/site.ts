@@ -53,7 +53,7 @@ export const topNavItems: NavItem[] = [
     href: "/developers-and-agents",
     description: "APIs, MCP, manifests, webhooks, and safe confirmed-write contracts.",
     icon: Bot,
-    status: "planned",
+    status: "live",
   },
   {
     label: "Resources",
@@ -152,8 +152,12 @@ export const scaffoldRoutes = [
   "/admin/work-log",
   "/admin/user-journeys",
   "/admin/for-mark",
+  "/agent-docs",
   "/agent-docs/bumpgrade-agent-surface",
   "/agent-docs/bumpgrade-commerce-contract",
+  "/agent-docs/bumpgrade-source-evidence",
+  "/agent-docs/bumpgrade-admin-surfaces",
+  "/agent-docs/bumpgrade-mcp",
 ];
 
 export const loginNavItem: NavItem = {
