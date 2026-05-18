@@ -100,6 +100,11 @@ audience segments, resource records, pricing principles, and planned pricing
 tracks. Pricing tracks are positioning hypotheses, not published plan names,
 amounts, limits, trials, or live billing availability.
 
+Current funnel boundary: `/funnels/source-data` is the public-safe read contract
+for the first seeded draft funnel and `/funnels/indie-launch-sandbox` is the
+read-only preview. This proves ordered funnel and page-block semantics, not a
+live builder, publishing system, checkout integration, or agent write API.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,

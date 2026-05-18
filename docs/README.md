@@ -20,6 +20,8 @@ then open the relevant shelf for the task.
 - `operations.md`: production facts, secrets, migrations, and auth notes.
 - `features/content-surfaces.md`: users, resources, pricing, and
   `/content/source-data` content contracts from issue #20.
+- `features/funnels.md`: read-only funnel source-data and preview contract from
+  issue #79, plus the write boundary for future builder slices.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

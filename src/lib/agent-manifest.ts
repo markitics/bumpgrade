@@ -185,6 +185,17 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
   },
   {
+    id: "read-funnel-contract",
+    title: "Funnel source data",
+    route: "/funnels/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/funnels.ts",
+    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "agentActionId"],
+    safeForAgents: ["Read seeded draft funnel", "Inspect ordered steps", "Inspect page blocks and write boundaries"],
+    writeBoundary: "Funnel writes, publishing, checkout linking, and agent edits require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -270,6 +281,13 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     volatileClaims: "Pricing tracks are positioning hypotheses; plan names, amounts, limits, trials, and live billing are not claimed.",
   },
   {
+    id: "evidence-funnels",
+    route: "/funnels/source-data",
+    resolves: "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, and confirmed-write boundary.",
+    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId"],
+    volatileClaims: "The funnel contract is read-only preview evidence; it is not a live builder, publishing system, or checkout integration.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -334,6 +352,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/content/source-data",
     purpose: "Expose personas, resource records, pricing caveats, and content-surface issue evidence.",
     safetyBoundary: "Read-only; public resource and pricing claims still require source evidence or shipped product proof.",
+  },
+  {
+    id: "mcp-resource-funnels",
+    resourceOrTool: "resource bumpgrade://funnels",
+    status: "ready-contract",
+    backedBy: "/funnels/source-data",
+    purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, and write-safety boundaries.",
+    safetyBoundary: "Read-only; create, update, publish, checkout-link, and agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

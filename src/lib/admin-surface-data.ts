@@ -347,6 +347,40 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-seeded-funnel",
+    title: "Publisher previews a seeded draft funnel",
+    featureId: "feature-funnel-builder",
+    featureStatus: "pending",
+    issueNumbers: [14, 79],
+    primaryUser: "Publisher or agent planning the first funnel",
+    userGoal: "Inspect an ordered opt-in, sales, and thank-you funnel before visual editing and publishing writes exist.",
+    sourceEvidence: [
+      "https://bumpgrade.com/funnels/source-data",
+      "https://bumpgrade.com/funnels/indie-launch-sandbox",
+      "https://github.com/markitics/bumpgrade/issues/14",
+      "https://github.com/markitics/bumpgrade/issues/79",
+    ],
+    happyPath: [
+      "Fetch /funnels/source-data.",
+      "Find the seeded draft funnel, revision ID, ordered step IDs, block IDs, preview route, and write boundary.",
+      "Open /funnels/indie-launch-sandbox to inspect semantic preview sections.",
+      "Use the write boundary to avoid claiming create, edit, publish, checkout-link, or agent-write capability.",
+    ],
+    edgeCases: [
+      "The seeded funnel is read-only and not an authenticated builder UI.",
+      "Publishing, checkout linking, deletion, and agent edits require future confirmed-write APIs.",
+      "Generated copy remains draft until a publisher confirms it.",
+    ],
+    agentAccess:
+      "Agents can read /funnels/source-data and the preview route. Funnel writes require actor identity, confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes in a later API.",
+    validation: [
+      "Playwright covers /funnels/source-data, /funnels/indie-launch-sandbox, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #79 records the first funnel source-data contract and preview scaffold.",
+    ],
+    sortOrder: 46,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-checks-mobile-admin",
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",

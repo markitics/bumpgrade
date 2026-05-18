@@ -15,6 +15,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Resources: https://bumpgrade.com/resources
 - Pricing direction: https://bumpgrade.com/pricing
 - Content surface source data: https://bumpgrade.com/content/source-data
+- Funnel source data: https://bumpgrade.com/funnels/source-data
+- Seeded funnel preview: https://bumpgrade.com/funnels/indie-launch-sandbox
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Commerce source data: https://bumpgrade.com/commerce/source-data
@@ -80,6 +82,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Treat pricing tracks as positioning
   hypotheses, not published plan names, amounts, trials, limits, or live billing
   availability.
+- `/funnels/source-data` exposes the first read-only funnel/page-builder
+  contract and seeded draft preview. Treat it as preview/source-data evidence,
+  not a live visual builder, publishing system, checkout integration, or
+  confirmed-write agent API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.

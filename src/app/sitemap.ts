@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { comparisonRoutes } from "@/lib/comparison-data";
+import { seededFunnels } from "@/lib/funnels";
 import { scaffoldRoutes, site } from "@/lib/site";
 
 const sourceDataRoutes = [
@@ -14,6 +15,7 @@ const sourceDataRoutes = [
   "/compare/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/funnels/source-data",
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
   "/mobile-admin/ios/source-data",
@@ -23,7 +25,8 @@ const sourceDataRoutes = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-05-18T00:00:00.000Z");
-  return ["", ...scaffoldRoutes, ...sourceDataRoutes, ...comparisonRoutes].map((path) => ({
+  const funnelRoutes = seededFunnels.map((funnel) => funnel.previewRoute);
+  return ["", ...scaffoldRoutes, ...sourceDataRoutes, ...comparisonRoutes, ...funnelRoutes].map((path) => ({
     url: `${site.url}${path}`,
     lastModified,
     changeFrequency: path === "" ? "weekly" : "daily",

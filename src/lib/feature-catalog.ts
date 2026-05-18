@@ -114,12 +114,16 @@ export const featureCatalog: FeatureRecord[] = [
       "Multi-step funnels, opt-in pages, sales pages, templates, publishing, and page state that agents can inspect safely.",
     audience: "Creators, coaches, agencies, and small publishers launching offers.",
     expectedCapabilities: [
+      "Read-only seeded draft funnel source data and preview route from issue #79.",
       "Funnel steps for opt-in, sales, checkout, upsell, downsell, thank-you, and nurture paths.",
       "Reusable blocks, templates, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
       "Agent-safe draft proposals before public page changes.",
     ],
-    evidence: ["Tracked by issue #14."],
+    evidence: [
+      "Tracked by issue #14.",
+      "Issue #79 adds `/funnels/source-data` and `/funnels/indie-launch-sandbox` as the first read-only contract and preview scaffold.",
+    ],
     agentContract:
       "Future agent writes must create drafts first and require confirmation before publishing public funnel pages.",
   },

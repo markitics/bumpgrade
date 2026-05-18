@@ -6,6 +6,7 @@ import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
+import { funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
@@ -21,6 +22,7 @@ const routes = [
   { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing direction" },
+  { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -151,6 +153,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/funnels/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/funnels/indie-launch-sandbox");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -207,6 +211,45 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.caveat).toContain("does not turn planned product features");
+  });
+
+  test("funnel source data exposes a seeded three-step draft funnel", async ({ request, page }) => {
+    const response = await request.get("/funnels/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: funnelSourceData.id,
+        status: "read-contract-ready",
+        issue: 79,
+        parentIssue: 14,
+      }),
+    );
+    expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/funnels/indie-launch-sandbox"]));
+    expect(payload.funnels).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: seededFunnel.id,
+          slug: seededFunnel.slug,
+          status: "draft",
+          revisionId: seededFunnel.revisionId,
+          steps: expect.arrayContaining([
+            expect.objectContaining({ id: "funnel-step-indie-launch-opt-in", order: 1, kind: "opt_in" }),
+            expect.objectContaining({ id: "funnel-step-indie-launch-sales", order: 2, kind: "sales" }),
+            expect.objectContaining({ id: "funnel-step-indie-launch-thank-you", order: 3, kind: "thank_you" }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Issue #79 is read-only");
+    expect(payload.caveat).toContain("not a live visual builder");
+
+    await page.goto("/funnels/indie-launch-sandbox");
+    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Three-step launch funnel scaffold/i })).toBeVisible();
+    await expect(page.locator("#warm-list-opt-in")).toContainText("Warm list opt-in");
+    await expect(page.locator("#offer-sales-page")).toContainText("Offer sales page");
+    await expect(page.locator("#thank-you-delivery")).toContainText("Thank-you and delivery");
   });
 
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
@@ -348,6 +391,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-funnel-contract", route: "/funnels/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),
