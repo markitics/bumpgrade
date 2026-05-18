@@ -28,6 +28,12 @@ If the item is important but not blocking:
 3. Keep moving on independent useful work.
 4. Check for replies before starting unrelated large work.
 
+Current D1 append script:
+
+```bash
+npm run for-mark:add -- --file /tmp/mark-attention.json
+```
+
 ## Good Attention Item Shape
 
 ```text

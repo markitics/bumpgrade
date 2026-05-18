@@ -65,6 +65,25 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("admin source data exposes durable admin surface records", async ({ request }) => {
+    const response = await request.get("/admin/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-admin-source-data");
+    expect(["d1", "fixture", "mixed"]).toContain(payload.source);
+    expect(payload.roadmapItems.length).toBeGreaterThan(0);
+    expect(payload.workLogEntries.length).toBeGreaterThan(0);
+    expect(payload.userJourneys.length).toBeGreaterThan(0);
+    expect(payload.attentionItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "mark-attention-2026-05-18-codex-email-blocked",
+          state: "open",
+        }),
+      ]),
+    );
+  });
+
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Desktop nav is hidden on the mobile project.");
     await page.goto("/");

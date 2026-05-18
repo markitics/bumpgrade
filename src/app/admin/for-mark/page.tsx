@@ -2,42 +2,46 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Mail, ShieldAlert } from "lucide-react";
 
-import { roadmapItems } from "@/lib/roadmap";
+import { getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
   title: "For Mark",
-  description: "Bumpgrade owner attention items that should not block ongoing agent work.",
+  description: "Bumpgrade owner attention items stored in D1 admin records.",
 };
 
-const attentionItems = roadmapItems.filter((item) => item.markAttention);
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function ForMarkPage() {
+export default async function ForMarkPage() {
+  const data = await getAdminSurfaceData();
+  const openItems = data.attentionItems.filter((item) => item.state === "open" || item.state === "read");
+
   return (
     <main className="roadmap-page admin-roadmap-page">
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">For Mark</p>
-          <h1>Non-blocking attention items live here.</h1>
+          <h1>Non-blocking attention items live in D1.</h1>
           <p className="lede">
             Agents should keep moving when a decision or blocker does not need to stop the current issue slice.
-            This bridge page records the current public-safe item until the D1-backed For Mark surface ships.
+            This page surfaces public-safe D1 records for Mark until Better Auth gates the private version.
           </p>
           <div className="hero-actions">
             <Link href="/admin/roadmap" className="primary-action">
               Admin roadmap
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/8" className="secondary-action">
-              Track D1 surface
+            <Link href="/admin/source-data" className="secondary-action">
+              Admin JSON
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="For Mark status summary">
           <Mail aria-hidden="true" />
-          <p>Attention queue</p>
-          <strong>{attentionItems.length} open</strong>
-          <span>Email escalation through codex@bumpgrade.com is tracked by issue #10 and should be enabled before relying on inbox replies.</span>
+          <p>{data.source === "fixture" ? "Fixture fallback" : "D1 attention queue"}</p>
+          <strong>{openItems.length} open</strong>
+          <span>{data.loadError ?? "Use npm run for-mark:add to add public-safe attention items without blocking feature work."}</span>
         </aside>
       </section>
 
@@ -49,19 +53,34 @@ export default function ForMarkPage() {
           </div>
         </div>
         <div className="roadmap-grid admin-record-grid">
-          {attentionItems.length > 0 ? (
-            attentionItems.map((item) => (
+          {openItems.length > 0 ? (
+            openItems.map((item) => (
               <article key={item.id} className="roadmap-card blocked">
                 <div className="roadmap-card-top">
-                  <span className="status-badge blocked">Needs Mark</span>
-                  <Link href={`https://github.com/markitics/bumpgrade/issues/${item.issue}`}>Issue #{item.issue}</Link>
+                  <span className="status-badge blocked">{item.category}</span>
+                  <span className="admin-pill">{item.urgency}</span>
                 </div>
                 <ShieldAlert aria-hidden="true" />
                 <h3>{item.title}</h3>
-                <p>{item.markAttention}</p>
-                <div className="roadmap-detail">
-                  <strong>Non-blocking next step</strong>
-                  <span>{item.nextMilestone}</span>
+                <p>{item.summary}</p>
+                {item.requiredAction ? (
+                  <div className="roadmap-detail">
+                    <strong>Action</strong>
+                    <span>{item.requiredAction}</span>
+                  </div>
+                ) : null}
+                {item.responseInstructions ? (
+                  <div className="roadmap-detail">
+                    <strong>Response</strong>
+                    <span>{item.responseInstructions}</span>
+                  </div>
+                ) : null}
+                <div className="admin-link-list">
+                  {item.links.map((link) => (
+                    <Link key={`${item.id}-${link.url}`} href={link.url}>
+                      {link.label ?? link.url}
+                    </Link>
+                  ))}
                 </div>
               </article>
             ))
@@ -71,7 +90,7 @@ export default function ForMarkPage() {
                 <span className="status-badge shipped">Clear</span>
               </div>
               <h3>No public-safe attention items are open.</h3>
-              <p>The D1-backed issue #8 surface will add read, ok, and resolved state for future items.</p>
+              <p>Resolved D1 records stay available to future admin tooling without cluttering the active queue.</p>
             </article>
           )}
         </div>

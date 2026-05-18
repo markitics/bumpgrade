@@ -19,6 +19,7 @@ export default function AgentSurfacePage() {
       bullets={[
         "Feature source data is available at `/features/source-data` with feature IDs, statuses, issue links, and agent-contract notes.",
         "Roadmap source data is available at `/roadmap/source-data` with public-safe status lanes, blockers, and issue evidence.",
+        "Admin source data is available at `/admin/source-data` and per-surface source-data routes, using D1 when available and fixture fallback in local/dev.",
         "Feature, roadmap, comparison, work-log, and journey read contracts.",
         "Comparison source data is available at `/compare/source-data` with source IDs, retrieval dates, and roadmap caveats.",
         "Source evidence IDs and URLs for public claims.",

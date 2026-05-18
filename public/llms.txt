@@ -25,9 +25,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Kartra alternative: https://bumpgrade.com/compare/kartra-alternative
 - ThriveCart alternative: https://bumpgrade.com/compare/thrivecart-alternative
 - Admin roadmap: https://bumpgrade.com/admin/roadmap
+- Admin source data: https://bumpgrade.com/admin/source-data
+- Admin roadmap source data: https://bumpgrade.com/admin/roadmap/source-data
 - Admin work log: https://bumpgrade.com/admin/work-log
+- Admin work-log source data: https://bumpgrade.com/admin/work-log/source-data
 - Admin user journeys: https://bumpgrade.com/admin/user-journeys
+- Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
 - Mark attention: https://bumpgrade.com/admin/for-mark
+- Mark attention source data: https://bumpgrade.com/admin/for-mark/source-data
 
 ## Agent Docs
 
@@ -61,6 +66,7 @@ Keep this section synchronized with `/admin/roadmap`.
 - Feature and roadmap status read access.
 - Work-log read access.
 - User-journey read access.
+- Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
 - Competitor research and comparison-claim read access.
 - Funnel, offer, checkout, product, and pricing-plan read access.
 - Source evidence resolution by stable source id.
