@@ -18,6 +18,8 @@ then open the relevant shelf for the task.
 - `agent/work-log.md`: how to record substantive agent work.
 - `agent/user-journeys.md`: how journeys tie back to features and roadmap items.
 - `operations.md`: production facts, secrets, migrations, and auth notes.
+- `features/content-surfaces.md`: users, resources, pricing, and
+  `/content/source-data` content contracts from issue #20.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

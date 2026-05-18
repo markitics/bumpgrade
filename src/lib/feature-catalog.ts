@@ -370,20 +370,25 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-resources-use-cases-pricing",
     title: "Use cases, resources, pricing, and blog surfaces",
     group: "Marketing surfaces",
-    status: "pending",
+    status: "live",
     issue: 20,
     summary:
-      "Public use-case pages, developer/agent pages, resource hub, pricing direction, blog posts, migration guides, and launch playbooks.",
+      "Public use-case page, developer/agent page, resource and blog hub, pricing direction, and content source-data contract for search and agent discovery.",
     audience: "Prospects, search traffic, agents, and future customers evaluating Bumpgrade.",
     expectedCapabilities: [
       "Use cases for creators, coaches, course sellers, agencies, and publishers.",
       "Developer and agent pages backed by real contracts.",
-      "Resources hub with comparison, migration, launch, and product notes.",
+      "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
       "Pricing page that avoids invented plan details until packaging is set.",
+      "Agent-readable `/content/source-data` records for personas, resources, and pricing caveats.",
     ],
-    evidence: ["Tracked by issue #20."],
+    evidence: [
+      "Tracked by issue #20.",
+      "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
+      "`/content/source-data` exposes stable audience, resource, and pricing-direction records.",
+    ],
     agentContract:
-      "Agents may draft resource copy, but public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records and draft resource copy, but public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 

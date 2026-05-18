@@ -311,6 +311,42 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-prospect-evaluates-content-surfaces",
+    title: "Prospect evaluates Bumpgrade content surfaces",
+    featureId: "feature-resources-use-cases-pricing",
+    featureStatus: "live",
+    issueNumbers: [20],
+    primaryUser: "Creator, coach, publisher, agency, or agent evaluating Bumpgrade",
+    userGoal: "Understand who Bumpgrade is for, what resources exist, and what pricing can safely claim before live billing ships.",
+    sourceEvidence: [
+      "https://bumpgrade.com/users",
+      "https://bumpgrade.com/developers-and-agents",
+      "https://bumpgrade.com/resources",
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/content/source-data",
+      "https://github.com/markitics/bumpgrade/issues/20",
+    ],
+    happyPath: [
+      "Open /users to find the relevant audience segment and linked feature IDs.",
+      "Open /resources to find live comparison, commerce, and agent contract resources.",
+      "Open /pricing to read direction and explicit not-yet-claimed billing caveats.",
+      "Fetch /content/source-data to cite stable IDs, issue numbers, evidence routes, and agent boundaries.",
+    ],
+    edgeCases: [
+      "Pricing tracks are positioning hypotheses, not published plans or live billing availability.",
+      "Migration guides and launch playbooks are planned until the related funnel, checkout, automation, and analytics issues ship.",
+      "Agents must not treat content copy as permission to perform public, billing-impacting, or creator-speech writes.",
+    ],
+    agentAccess:
+      "Agents can read /content/source-data for audience, resource, and pricing-direction records. Public copy changes still need source evidence, issue links, or shipped-product proof.",
+    validation: [
+      "Playwright covers /users, /resources, /pricing, /content/source-data, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #20 updates public route metadata and source-data contracts.",
+    ],
+    sortOrder: 44,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-checks-mobile-admin",
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",
