@@ -35,7 +35,7 @@ export default async function AdminRoadmapPage() {
           <h1>Roadmap command center backed by D1.</h1>
           <p className="lede">
             This page reads the durable admin roadmap records that future agents should update when feature
-            state changes. The content remains public-safe until Better Auth protection ships in issue #9.
+            state changes. Better Auth now gates this human admin view while source-data routes stay public-safe.
           </p>
           <div className="hero-actions">
             <Link href="/admin/source-data" className="primary-action">

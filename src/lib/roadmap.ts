@@ -131,13 +131,16 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-better-auth",
     title: "Publisher and admin authentication",
-    status: "next",
+    status: "shipped",
     issue: 9,
     featureId: featureIdFor(9),
     group: "Accounts",
-    summary: "Better Auth accounts, sessions, protected routes, and role-aware access for future publisher/admin work.",
-    publicEvidence: ["Tracked by issue #9.", "Login route exists as a public scaffold."],
-    nextMilestone: "Wire Better Auth to Cloudflare-compatible storage and protect admin surfaces.",
+    summary: "Better Auth email/password accounts, D1-backed sessions, API routes, login/signup UI, and owner-gated admin pages.",
+    publicEvidence: [
+      "Issue #9 owns the Better Auth foundation slice.",
+      "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation.",
+    ],
+    nextMilestone: "Enable verified production owner access after Cloudflare project email in #10 can send confirmation mail, then broaden publisher account surfaces.",
   },
   {
     id: "roadmap-stripe-commerce",

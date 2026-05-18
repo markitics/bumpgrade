@@ -35,6 +35,11 @@ user-journey, and Mark-attention records. The pages read D1 when available and
 fall back to public-safe code fixtures during local development or before a
 fresh database has migrations applied.
 
+Issue #9 added Better Auth as the human admin gate. Browser-rendered admin pages
+require an allowlisted owner session. Public-safe `/admin/*/source-data` routes
+remain readable by agents and must not contain private notes, secrets, raw
+provider identifiers, or private user data.
+
 Recommended status values:
 
 - `idea`: useful concept, not committed.

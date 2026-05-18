@@ -83,6 +83,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
+        expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "blocked", issue: 10 }),
       ]),
     );

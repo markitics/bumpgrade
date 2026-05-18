@@ -29,7 +29,7 @@ export default async function ForMarkPage() {
           <h1>Non-blocking attention items live in D1.</h1>
           <p className="lede">
             Agents should keep moving when a decision or blocker does not need to stop the current issue slice.
-            This page surfaces public-safe D1 records for Mark until Better Auth gates the private version.
+            Better Auth now gates this human admin view while source-data routes stay public-safe for agents.
           </p>
           <div className="hero-actions">
             <Link href="/admin/roadmap" className="primary-action">

@@ -250,6 +250,22 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     sortOrder: 20,
     updatedAt: null,
   },
+  {
+    id: "journey-owner-opens-protected-admin",
+    title: "Owner opens protected admin surfaces",
+    featureId: "feature-better-auth",
+    featureStatus: "live",
+    issueNumbers: [9, 10],
+    primaryUser: "Mark as Bumpgrade owner",
+    userGoal: "Sign in with a Bumpgrade owner account before viewing private admin roadmap, work-log, user-journey, or for-Mark pages.",
+    sourceEvidence: ["https://bumpgrade.com/login", "https://bumpgrade.com/admin/roadmap", "https://github.com/markitics/bumpgrade/issues/9"],
+    happyPath: ["Open /login.", "Create or sign in to a Bumpgrade account.", "Open an admin route.", "If the owner email is verified and allowlisted, view the private admin page; otherwise see a specific gate reason."],
+    edgeCases: ["Production owner verification depends on email sending/routing in #10.", "Agent-readable source-data routes stay public-safe and should not carry private notes or secrets."],
+    agentAccess: "Agents can read public-safe source-data routes, but browser admin pages require a Better Auth owner session and must not be scraped as a bypass.",
+    validation: ["Playwright covers signed-out admin gates and owner sign-in access.", "D1 migration creates Better Auth storage tables."],
+    sortOrder: 35,
+    updatedAt: null,
+  },
 ];
 
 const fallbackAttentionItems: MarkAttentionItem[] = [

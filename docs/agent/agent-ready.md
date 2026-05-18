@@ -81,6 +81,10 @@ Public agent docs should answer:
 - What requires Mark/admin credentials?
 - What must not be automated through browser UI?
 
+Current auth boundary: human admin pages use Better Auth owner sessions.
+Agent-readable source-data routes stay public-safe and unauthenticated until a
+confirmed-write or delegated-agent auth model exists.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,

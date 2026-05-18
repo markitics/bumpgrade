@@ -263,18 +263,21 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-better-auth",
     title: "Publisher and admin authentication",
     group: "Accounts",
-    status: "pending",
+    status: "live",
     issue: 9,
     summary:
       "Better Auth-powered publisher and admin login with Cloudflare D1 storage, protected admin routes, and session-safe workflows.",
     audience: "Publishers, admins, and agents needing permission-aware access.",
     expectedCapabilities: [
-      "Magic link or email-based auth flow.",
+      "Email/password auth flow.",
       "D1-backed auth tables.",
       "Protected admin and publisher routes.",
       "Role and permission model for future agent actions.",
     ],
-    evidence: ["Tracked by issue #9."],
+    evidence: [
+      "Issue #9 owns the Better Auth foundation slice.",
+      "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
+    ],
     agentContract:
       "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface.",
   },
