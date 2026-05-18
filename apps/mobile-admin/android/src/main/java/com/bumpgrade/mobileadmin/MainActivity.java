@@ -1,0 +1,199 @@
+package com.bumpgrade.mobileadmin;
+
+import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Bundle;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class MainActivity extends Activity {
+  private static final int COLOR_BG = Color.rgb(245, 247, 242);
+  private static final int COLOR_TEXT = Color.rgb(12, 18, 15);
+  private static final int COLOR_BODY = Color.rgb(79, 91, 83);
+  private static final int COLOR_GREEN = Color.rgb(37, 69, 50);
+  private static final int COLOR_GOLD = Color.rgb(117, 96, 22);
+  private static final int COLOR_BORDER = Color.rgb(217, 222, 214);
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    try {
+      JSONObject contract = new JSONObject(readAsset("mobile-admin-contract.json"));
+      JSONObject androidSlice = findPlatformSlice(contract.getJSONArray("childIssues"), "android");
+      JSONArray jobs = contract.getJSONArray("jobs");
+
+      ScrollView scrollView = new ScrollView(this);
+      scrollView.setBackgroundColor(COLOR_BG);
+
+      LinearLayout content = new LinearLayout(this);
+      content.setOrientation(LinearLayout.VERTICAL);
+      content.setPadding(dp(20), dp(28), dp(20), dp(44));
+      scrollView.addView(content, new ViewGroup.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT
+      ));
+
+      content.addView(badge(androidSlice.optString("status", "android scaffold")));
+      content.addView(title("Bumpgrade mobile admin"));
+      content.addView(body(
+        "The first Android screen reads the checked-in fixture generated from /mobile-admin/source-data and keeps issue #"
+          + androidSlice.optInt("issue", 68)
+          + " read-only."
+      ));
+
+      LinearLayout sourcePanel = panel();
+      sourcePanel.addView(kicker("Source contract"));
+      sourcePanel.addView(panelTitle(contract.getString("id")));
+      sourcePanel.addView(body("Parent issue #" + contract.getInt("parentIssue") + ". Feature " + contract.getString("featureId") + "."));
+      sourcePanel.addView(meta(androidSlice.optString("sourceDataRoute", "/mobile-admin/android/source-data")));
+      content.addView(sourcePanel);
+
+      content.addView(sectionLabel("Phone jobs"));
+      for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {
+        JSONObject job = jobs.getJSONObject(index);
+        LinearLayout card = panel();
+        card.addView(badge(job.getString("firstScreen")));
+        card.addView(cardTitle(job.getString("title")));
+        card.addView(body(job.getString("goal")));
+        card.addView(meta("User: " + job.getString("primaryUser")));
+        card.addView(meta("Routes: " + joinStrings(job.getJSONArray("sourceRoutes"))));
+        card.addView(meta("Boundary: " + job.getString("writeBoundary")));
+        content.addView(card);
+      }
+
+      setContentView(scrollView);
+    } catch (Exception error) {
+      TextView fallback = body("Bumpgrade mobile admin failed to read fixture: " + error.getMessage());
+      fallback.setPadding(dp(20), dp(40), dp(20), dp(20));
+      setContentView(fallback);
+    }
+  }
+
+  private String readAsset(String name) throws Exception {
+    try (InputStream input = getAssets().open(name); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+      byte[] buffer = new byte[4096];
+      int read;
+      while ((read = input.read(buffer)) != -1) {
+        output.write(buffer, 0, read);
+      }
+      return output.toString(StandardCharsets.UTF_8.name());
+    }
+  }
+
+  private JSONObject findPlatformSlice(JSONArray slices, String platform) throws Exception {
+    for (int index = 0; index < slices.length(); index += 1) {
+      JSONObject slice = slices.getJSONObject(index);
+      if (platform.equals(slice.getString("platform"))) {
+        return slice;
+      }
+    }
+    throw new IllegalStateException("Missing platform slice: " + platform);
+  }
+
+  private String joinStrings(JSONArray values) throws Exception {
+    StringBuilder builder = new StringBuilder();
+    for (int index = 0; index < values.length(); index += 1) {
+      if (index > 0) builder.append(", ");
+      builder.append(values.getString(index));
+    }
+    return builder.toString();
+  }
+
+  private LinearLayout panel() {
+    LinearLayout view = new LinearLayout(this);
+    view.setOrientation(LinearLayout.VERTICAL);
+    view.setPadding(dp(18), dp(18), dp(18), dp(18));
+    GradientDrawable background = new GradientDrawable();
+    background.setColor(Color.WHITE);
+    background.setStroke(dp(1), COLOR_BORDER);
+    background.setCornerRadius(dp(8));
+    view.setBackground(background);
+
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+      ViewGroup.LayoutParams.MATCH_PARENT,
+      ViewGroup.LayoutParams.WRAP_CONTENT
+    );
+    params.setMargins(0, dp(16), 0, 0);
+    view.setLayoutParams(params);
+    return view;
+  }
+
+  private TextView badge(String text) {
+    TextView view = text(text.toUpperCase(), 12, COLOR_GREEN, Typeface.BOLD);
+    view.setPadding(dp(10), dp(6), dp(10), dp(6));
+    GradientDrawable background = new GradientDrawable();
+    background.setColor(Color.rgb(233, 240, 229));
+    background.setCornerRadius(dp(999));
+    view.setBackground(background);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+      ViewGroup.LayoutParams.WRAP_CONTENT,
+      ViewGroup.LayoutParams.WRAP_CONTENT
+    );
+    params.setMargins(0, dp(8), 0, dp(12));
+    view.setLayoutParams(params);
+    return view;
+  }
+
+  private TextView title(String value) {
+    TextView view = text(value, 38, COLOR_TEXT, Typeface.BOLD);
+    view.setLineSpacing(dp(2), 1.0f);
+    return view;
+  }
+
+  private TextView panelTitle(String value) {
+    return text(value, 20, COLOR_TEXT, Typeface.BOLD);
+  }
+
+  private TextView cardTitle(String value) {
+    return text(value, 24, COLOR_TEXT, Typeface.BOLD);
+  }
+
+  private TextView body(String value) {
+    TextView view = text(value, 17, COLOR_BODY, Typeface.NORMAL);
+    view.setLineSpacing(dp(4), 1.0f);
+    return view;
+  }
+
+  private TextView meta(String value) {
+    return text(value, 13, Color.rgb(93, 104, 70), Typeface.BOLD);
+  }
+
+  private TextView kicker(String value) {
+    return text(value.toUpperCase(), 12, COLOR_GOLD, Typeface.BOLD);
+  }
+
+  private TextView sectionLabel(String value) {
+    TextView view = text(value.toUpperCase(), 14, COLOR_GOLD, Typeface.BOLD);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+      ViewGroup.LayoutParams.WRAP_CONTENT,
+      ViewGroup.LayoutParams.WRAP_CONTENT
+    );
+    params.setMargins(0, dp(28), 0, 0);
+    view.setLayoutParams(params);
+    return view;
+  }
+
+  private TextView text(String value, int sp, int color, int style) {
+    TextView view = new TextView(this);
+    view.setText(value);
+    view.setTextSize(sp);
+    view.setTextColor(color);
+    view.setTypeface(Typeface.DEFAULT, style);
+    view.setIncludeFontPadding(true);
+    return view;
+  }
+
+  private int dp(int value) {
+    return Math.round(value * getResources().getDisplayMetrics().density);
+  }
+}

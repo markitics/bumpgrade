@@ -6,6 +6,7 @@ import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
+import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -273,6 +274,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),
       ]),
     );
     expect(payload.writeSafetyRules).toEqual(
@@ -303,6 +305,15 @@ test.describe("Bumpgrade scaffold", () => {
         sourceDataRoute: "/mobile-admin/ios/source-data",
         fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
         smokeCommand: "npm run mobile:ios:smoke",
+      }),
+    );
+    const androidSlice = payload.childIssues.find((slice: { platform: string }) => slice.platform === "android");
+    expect(androidSlice).toEqual(
+      expect.objectContaining({
+        status: "emulator-smoke-ready",
+        sourceDataRoute: "/mobile-admin/android/source-data",
+        fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+        smokeCommand: "npm run mobile:android:smoke",
       }),
     );
     expect(payload.apiDependencies).toEqual(
@@ -341,6 +352,37 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "ios-read-mobile-contract-fixture",
+          route: "/mobile-admin/source-data",
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Read-only");
+  });
+
+  test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
+    const response = await request.get("/mobile-admin/android/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: androidMobileAdminSourceData.id,
+        platform: "android",
+        issue: 68,
+        status: "emulator-smoke-ready",
+        sourceContractRoute: "/mobile-admin/source-data",
+        sourceDataRoute: "/mobile-admin/android/source-data",
+        fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+        androidAssetPath: "apps/mobile-admin/android/src/main/assets/mobile-admin-contract.json",
+        nativePackage: "com.bumpgrade.mobileadmin",
+        defaultAvd: "MusicWebs_API_36",
+        smokeCommand: "npm run mobile:android:smoke",
+        screenshotPath: "/pr-screenshots/issue-68-android-mobile-admin-emulator.png",
+      }),
+    );
+    expect(payload.reads).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "android-read-mobile-contract-fixture",
           route: "/mobile-admin/source-data",
         }),
       ]),

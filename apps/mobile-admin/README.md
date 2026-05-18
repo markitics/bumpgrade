@@ -10,6 +10,7 @@ Current scope:
 - Android child issue: #68.
 - Shared contract route: `/mobile-admin/source-data`.
 - iOS source-data route: `/mobile-admin/ios/source-data`.
+- Android source-data route: `/mobile-admin/android/source-data`.
 - Source doc: `docs/features/mobile-admin.md`.
 
 The selected starting direction is Expo React Native with TypeScript, sharing
@@ -23,6 +24,14 @@ Issue #67 adds the first iOS slice:
   web contract in `src/lib/mobile-admin.ts`.
 - `ios/BumpgradeMobileAdmin.xcodeproj`: simulator smoke target that renders the
   same fixture with SwiftUI for a real iOS screenshot path.
+
+Issue #68 adds the first Android slice:
+
+- `android/AndroidManifest.xml`: native Android smoke target metadata.
+- `android/src/main/java/com/bumpgrade/mobileadmin/MainActivity.java`: native
+  read-only first screen that renders the same generated fixture.
+- `android/src/main/assets/mobile-admin-contract.json`: bundled fixture asset
+  kept in sync by `scripts/sync-mobile-fixture.mjs`.
 
 This is not App Store distribution, push notifications, private mobile auth, or
 mobile write support yet. Do not replace the app with a broad WebView shortcut.
@@ -43,6 +52,8 @@ From the repo root:
 ```bash
 npm run mobile:ios:validate
 npm run mobile:ios:smoke
+npm run mobile:android:validate
+npm run mobile:android:smoke
 ```
 
 `mobile:ios:validate` checks that the fixture matches `src/lib/mobile-admin.ts`,
@@ -53,3 +64,14 @@ launches it on the `iPhone 17` simulator by default, and writes a screenshot to
 `docs/pr-screenshots/issue-67-ios-mobile-admin-simulator.png`.
 
 Use `IOS_SIMULATOR_NAME="iPhone 17 Pro"` to target another installed simulator.
+
+`mobile:android:validate` checks that the fixture matches
+`src/lib/mobile-admin.ts`, that the Android source-data route is declared, and
+that API 36 build tools plus the default AVD are available.
+
+`mobile:android:smoke` syncs the fixture, builds a signed debug APK without
+Gradle, installs and launches it on the `MusicWebs_API_36` emulator by default,
+and writes a screenshot to
+`docs/pr-screenshots/issue-68-android-mobile-admin-emulator.png`.
+
+Use `ANDROID_AVD_NAME="Another_AVD"` to target another installed emulator.

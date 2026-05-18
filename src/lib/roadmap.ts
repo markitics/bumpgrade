@@ -188,15 +188,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(13),
     group: "Mobile",
     summary:
-      "Shared mobile-admin contract plus the first iOS Expo/SwiftUI simulator scaffold for independently shippable mobile app slices.",
+      "Shared mobile-admin contract plus first iOS simulator and Android emulator scaffolds for independently shippable mobile app slices.",
     publicEvidence: [
       "Tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
       "`/mobile-admin/source-data` exposes the shared mobile contract and no-installable-app caveat.",
       "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, and screenshot path.",
+      "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
-    nextMilestone: "Use the iOS smoke evidence from #67, then build the Android slice in #68 on the same shared contract.",
+    nextMilestone: "Use the iOS and Android smoke evidence to add mobile auth, live source-data reads, and confirmed-write UX in follow-up slices.",
   },
   {
     id: "roadmap-funnels",

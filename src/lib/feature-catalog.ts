@@ -361,6 +361,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Android app slice tracked by issue #68.",
       "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
       "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
+      "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
       "Mobile apps must reuse web/admin contracts and need the same confirmed-write and audit rules as web admin actions.",

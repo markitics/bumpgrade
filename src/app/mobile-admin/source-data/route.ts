@@ -8,6 +8,6 @@ export function GET() {
   return NextResponse.json({
     ...mobileAdminContract,
     caveat:
-      "This is the shared mobile admin contract and scaffold plan. It does not mean an iOS or Android app is installable yet; those app slices are tracked separately by issues #67 and #68.",
+      "This is the shared mobile admin contract and scaffold plan. The iOS and Android first slices now have simulator/emulator smoke evidence, but App Store/Play Store distribution, private mobile auth, push notifications, and mobile writes are not live yet.",
   });
 }

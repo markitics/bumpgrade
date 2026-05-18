@@ -24,7 +24,7 @@ export type MobilePlatformSlice = {
   title: string;
   firstMilestone: string;
   validation: string[];
-  status?: "planned" | "scaffolded" | "simulator-smoke-ready";
+  status?: "planned" | "scaffolded" | "simulator-smoke-ready" | "emulator-smoke-ready";
   appPath?: string;
   sourceDataRoute?: string;
   fixturePath?: string;
@@ -81,11 +81,17 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 68,
       title: "Build first Android publisher admin app slice",
       firstMilestone:
-        "Create the Android target/emulator path and render the mobile admin digest from the shared contract or a checked-in fixture generated from it.",
+        "Render the mobile admin digest from the generated source-data fixture in a native Android activity and emulator smoke target.",
       validation: [
-        "Run the documented Android app command or record the exact Android SDK/emulator blocker.",
-        "Capture a real Android emulator/device screenshot before claiming the app works.",
+        "Run npm run mobile:android:validate to prove the fixture matches the shared contract and Android API 36 tooling is available.",
+        "Run npm run mobile:android:smoke to build, install, launch, and screenshot the Android emulator target.",
       ],
+      status: "emulator-smoke-ready",
+      appPath: "apps/mobile-admin",
+      sourceDataRoute: "/mobile-admin/android/source-data",
+      fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      smokeCommand: "npm run mobile:android:smoke",
+      screenshotPath: "/pr-screenshots/issue-68-android-mobile-admin-emulator.png",
     },
   ],
   jobs: [
