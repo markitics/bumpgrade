@@ -11,6 +11,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 
 - Public features: https://bumpgrade.com/features
 - Feature source data: https://bumpgrade.com/features/source-data
+- Public roadmap: https://bumpgrade.com/roadmap
+- Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative

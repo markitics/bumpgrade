@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 
 import { competitors } from "../src/lib/comparison-data";
 import { featureCatalog } from "../src/lib/feature-catalog";
+import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 
 const routes = [
   { path: "/", heading: "Funnels, checkout, commerce, and agents" },
   { path: "/features", heading: "Aspirational feature catalog" },
   { path: "/compare", heading: "Compare Bumpgrade against indiepreneur platforms" },
-  { path: "/roadmap", heading: "Public roadmap" },
+  { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Agent-readable contracts" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
@@ -46,6 +47,22 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.features).toHaveLength(featureCatalog.length);
     expect(payload.features[0]).toEqual(expect.objectContaining({ id: expect.any(String), status: expect.any(String) }));
+  });
+
+  test("roadmap source data exposes stable roadmap records", async ({ request }) => {
+    const response = await request.get("/roadmap/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-roadmap-source-data");
+    expect(payload.items).toHaveLength(roadmapItems.length);
+    expect(payload.lanes).toHaveLength(roadmapLanes.length);
+    expect(payload.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
+        expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
+        expect.objectContaining({ id: "roadmap-codex-email", status: "blocked", issue: 10 }),
+      ]),
+    );
   });
 
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {
