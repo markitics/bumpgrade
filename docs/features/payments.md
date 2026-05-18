@@ -51,7 +51,7 @@ printing values. The reusable Stripe entries found were:
 | --- | --- | --- |
 | `STRIPE_SECRET_KEY_LIVE` | live restricted key | `STRIPE_SECRET_KEY_LIVE` |
 | `STRIPE_PUBLIC_KEY_LIVE` | live publishable key | `STRIPE_PUBLISHABLE_KEY_LIVE` |
-| `STRIPE_SECRET_KEY_SANDBOX` | test secret key | `STRIPE_SECRET_KEY_SANDBOX` |
+| `STRIPE_SECRET_KEY_SANDBOX` | test secret key name found, but the copied value is not a usable sandbox secret as of the 2026-05-18 production smoke | `STRIPE_SECRET_KEY_SANDBOX` |
 | `STRIPE_PUBLIC_KEY_SANDBOX` | test publishable key | `STRIPE_PUBLISHABLE_KEY_SANDBOX` |
 
 Those four Bumpgrade secrets were uploaded to Cloudflare on 2026-05-18 without
@@ -60,7 +60,9 @@ Production live checkout must not be enabled until a later issue deliberately
 switches the mode and has webhook evidence.
 
 Do not commit Stripe values to git. Local development should use `.env.local`.
-Cloudflare production should use Worker secrets.
+Cloudflare production should use Worker secrets. In Worker runtime code,
+Cloudflare `env` bindings are authoritative and `process.env` is only a local
+fallback so a build-time placeholder cannot mask a valid production secret.
 
 ## First Payment Surface
 

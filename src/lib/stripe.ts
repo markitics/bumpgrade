@@ -12,8 +12,8 @@ export function stripeModeFromEnv(env: StripeEnv): StripeMode {
 }
 
 export function stripeSecretKeyFromEnv(env: StripeEnv, mode = stripeModeFromEnv(env)) {
-  if (mode === "live") return process.env.STRIPE_SECRET_KEY_LIVE ?? env.STRIPE_SECRET_KEY_LIVE;
-  return process.env.STRIPE_SECRET_KEY_SANDBOX ?? env.STRIPE_SECRET_KEY_SANDBOX;
+  if (mode === "live") return env.STRIPE_SECRET_KEY_LIVE ?? process.env.STRIPE_SECRET_KEY_LIVE;
+  return env.STRIPE_SECRET_KEY_SANDBOX ?? process.env.STRIPE_SECRET_KEY_SANDBOX;
 }
 
 export function createStripeClient(secretKey: string) {

@@ -57,6 +57,12 @@ Cloudflare secrets installed on 2026-05-18:
 - `STRIPE_SECRET_KEY_SANDBOX`
 - `STRIPE_PUBLISHABLE_KEY_SANDBOX`
 
+The first production smoke for issue #34 showed the copied sandbox secret value
+is not a usable Stripe test secret yet. The checkout API therefore remains in
+safe preview mode until a valid `STRIPE_SECRET_KEY_SANDBOX` is stored as the
+Worker secret. Runtime code must prefer Cloudflare `env` bindings over
+build-time `process.env` so a local placeholder cannot override production.
+
 Checked source, without printing values:
 
 - `/Users/mark/Documents/code/laurelharned/.env.local`
