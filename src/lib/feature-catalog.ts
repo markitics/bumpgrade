@@ -345,17 +345,24 @@ export const featureCatalog: FeatureRecord[] = [
     status: "pending",
     issue: 13,
     summary:
-      "Native publisher/admin app scaffolds for monitoring launches, offers, customers, work logs, and agent handoffs on mobile.",
+      "Shared mobile-admin contract and planned native iOS/Android app slices for monitoring launches, offers, work logs, and agent handoffs on mobile.",
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
+      "Shared `/mobile-admin/source-data` contract for iOS and Android.",
+      "Independently shippable iOS issue #67 and Android issue #68.",
       "Roadmap and notification-aware mobile admin flows.",
       "Offer, checkout, product, and customer summaries.",
       "Agent handoff and approval queues.",
       "Platform-specific smoke testing before claims of parity.",
     ],
-    evidence: ["Tracked by issue #13."],
+    evidence: [
+      "Tracked by issue #13.",
+      "iOS app slice tracked by issue #67.",
+      "Android app slice tracked by issue #68.",
+      "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
+    ],
     agentContract:
-      "Mobile admin actions need the same confirmed-write and audit rules as web admin actions.",
+      "Mobile apps must reuse web/admin contracts and need the same confirmed-write and audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",

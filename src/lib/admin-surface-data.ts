@@ -303,6 +303,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-checks-mobile-admin",
+    title: "Publisher checks mobile admin status",
+    featureId: "feature-mobile-admin",
+    featureStatus: "pending",
+    issueNumbers: [13, 67, 68],
+    primaryUser: "Publisher away from desktop",
+    userGoal: "Open the future Bumpgrade mobile app to check roadmap, work-log, for-Mark attention, and commerce health without separate mobile-only semantics.",
+    sourceEvidence: [
+      "https://bumpgrade.com/mobile-admin/source-data",
+      "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
+      "https://github.com/markitics/bumpgrade/issues/13",
+      "https://github.com/markitics/bumpgrade/issues/67",
+      "https://github.com/markitics/bumpgrade/issues/68",
+    ],
+    happyPath: [
+      "Open the future mobile admin app.",
+      "Read the mobile admin digest sourced from /admin/source-data, /features/source-data, /roadmap/source-data, and /commerce/source-data.",
+      "Review work-log entries, for-Mark attention, and checkout health.",
+      "Follow iOS issue #67 or Android issue #68 for platform-specific implementation evidence.",
+    ],
+    edgeCases: [
+      "No installable app is claimed until #67 and #68 add real simulator or device smoke evidence.",
+      "Private admin state requires Better Auth owner or publisher sessions.",
+      "Mobile writes stay disabled until confirmed-write APIs exist.",
+    ],
+    agentAccess:
+      "Agents can read /mobile-admin/source-data to understand app scope and dependencies; they must not claim mobile app parity until platform child issues ship.",
+    validation: [
+      "Issue #13 defines the shared contract and splits iOS and Android child issues.",
+      "Playwright covers /agent-docs/bumpgrade-mobile-admin and /mobile-admin/source-data.",
+    ],
+    sortOrder: 42,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

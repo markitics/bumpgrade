@@ -183,13 +183,19 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-mobile-admin",
     title: "Publisher admin apps for iOS and Android",
-    status: "planned",
+    status: "next",
     issue: 13,
     featureId: featureIdFor(13),
     group: "Mobile",
-    summary: "Mobile admin scaffolds for launch monitoring, approvals, work logs, and agent handoffs.",
-    publicEvidence: ["Tracked by issue #13."],
-    nextMilestone: "Design mobile contracts after web auth/admin data surfaces exist.",
+    summary:
+      "Shared mobile-admin contract, jobs-to-be-done, API dependencies, and child issues for independently shippable iOS and Android app slices.",
+    publicEvidence: [
+      "Tracked by issue #13.",
+      "iOS app slice tracked by issue #67.",
+      "Android app slice tracked by issue #68.",
+      "`/mobile-admin/source-data` exposes the shared mobile contract and no-installable-app caveat.",
+    ],
+    nextMilestone: "Build the first iOS slice in #67 and Android slice in #68 on top of the shared mobile-admin contract.",
   },
   {
     id: "roadmap-funnels",
