@@ -161,12 +161,16 @@ export const featureCatalog: FeatureRecord[] = [
       "Digital products, course structures, download delivery, membership access, fulfillment state, and recurring subscriptions.",
     audience: "Knowledge sellers, newsletter publishers, and digital-product businesses.",
     expectedCapabilities: [
+      "Read-only product/access source data and preview route from issue #83.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
       "Public-safe product metadata for agent and SEO surfaces.",
     ],
-    evidence: ["Tracked by issue #16."],
+    evidence: [
+      "Tracked by issue #16.",
+      "Issue #83 adds `/products/source-data` and `/products/indie-launch-library` as the first read-only product/access contract and preview scaffold.",
+    ],
     agentContract:
       "Agents may read public product metadata; private customer access and billing data must stay behind authenticated contracts.",
   },

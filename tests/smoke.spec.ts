@@ -11,6 +11,7 @@ import { funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
+import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
@@ -25,6 +26,7 @@ const routes = [
   { path: "/pricing", heading: "Pricing direction" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
+  { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -159,6 +161,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/indie-launch-sandbox");
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/indie-launch-stack");
+    expect(sitemapXml).toContain("https://bumpgrade.com/products/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/products/indie-launch-library");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -307,6 +311,55 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Launch review downsell")).toBeVisible();
   });
 
+  test("product access source data exposes seeded products, assets, and entitlement templates", async ({ request, page }) => {
+    const response = await request.get("/products/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: productAccessSourceData.id,
+        status: "read-contract-ready",
+        issue: 83,
+        parentIssue: 16,
+      }),
+    );
+    expect(payload.routes).toEqual(expect.arrayContaining(["/products/source-data", "/products/indie-launch-library"]));
+    expect(payload.catalogs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: productAccessCatalog.id,
+          slug: productAccessCatalog.slug,
+          revisionId: productAccessCatalog.revisionId,
+          products: expect.arrayContaining([
+            expect.objectContaining({ id: "product-launch-checklist-download", kind: "digital_download" }),
+            expect.objectContaining({ id: "product-launch-course-lite", kind: "course" }),
+            expect.objectContaining({ id: "product-launch-membership", kind: "membership" }),
+            expect.objectContaining({ id: "product-launch-coaching-session", kind: "coaching_service" }),
+            expect.objectContaining({ id: "product-launch-webinar-seat", kind: "event_webinar" }),
+            expect.objectContaining({ id: "product-launch-bundle", kind: "bundle" }),
+          ]),
+          accessRules: expect.arrayContaining([
+            expect.objectContaining({ id: "access-rule-download-after-paid-webhook" }),
+            expect.objectContaining({ id: "access-rule-membership-active-subscription" }),
+          ]),
+          entitlementTemplates: expect.arrayContaining([
+            expect.objectContaining({ id: "entitlement-template-launch-download" }),
+            expect.objectContaining({ id: "entitlement-template-launch-bundle" }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Issue #83 is read-only");
+    expect(payload.caveat).toContain("does not expose private R2 keys");
+
+    await page.goto("/products/indie-launch-library");
+    await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Downloads, courses, memberships, services, events, and bundles/i })).toBeVisible();
+    await expect(page.getByText("Launch checklist download")).toBeVisible();
+    await expect(page.getByText("Launch course lite")).toBeVisible();
+    await expect(page.getByText("Launch membership")).toBeVisible();
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -438,6 +491,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "mcp-resource-features", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-checkout-offers", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -449,6 +503,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-funnel-contract", route: "/funnels/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),

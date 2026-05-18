@@ -24,6 +24,8 @@ then open the relevant shelf for the task.
   issue #79, plus the write boundary for future builder slices.
 - `features/checkout-offers.md`: read-only checkout offer, order bump, upsell,
   and downsell source-data contract from issue #81.
+- `features/product-access.md`: read-only product, asset, access-rule, and
+  entitlement source-data contract from issue #83.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

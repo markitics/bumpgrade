@@ -37,6 +37,16 @@ Issue #81 adds the first read-only checkout-offer contract:
 - Order bump mutation, one-click upsell charging, fulfillment, and live billing
   still require future confirmed-write APIs.
 
+Issue #83 adds the first read-only product/access contract:
+
+- `/products/source-data` exposes seeded products, assets, access rules, and
+  entitlement templates for downloads, courses, memberships, services, events,
+  and bundles.
+- `/products/indie-launch-library` previews those records for humans and browser
+  agents.
+- Private R2 keys, signed URLs, customer entitlement rows, and fulfillment writes
+  still require future confirmed-write APIs.
+
 ## Source Checks
 
 Checked on 2026-05-18:

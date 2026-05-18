@@ -234,13 +234,18 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-products-access",
     title: "Products, downloads, courses, memberships, and subscriptions",
-    status: "planned",
+    status: "active",
     issue: 16,
     featureId: featureIdFor(16),
     group: "Products and access",
-    summary: "Digital product records, protected content, access rules, fulfillment state, and subscriptions.",
-    publicEvidence: ["Tracked by issue #16."],
-    nextMilestone: "Model product/access records around checkout and auth primitives.",
+    summary:
+      "Digital product records, read-only access contract, protected content, access rules, fulfillment state, and subscriptions.",
+    publicEvidence: [
+      "Tracked by issue #16.",
+      "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
+    ],
+    nextMilestone:
+      "Build authenticated entitlement writes from trusted checkout or subscription evidence without exposing private asset data.",
   },
   {
     id: "roadmap-email-automation",
