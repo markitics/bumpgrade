@@ -1,34 +1,37 @@
-# Cheeky Pint agent guide
+# Bumpgrade agent guide
 
 This file is for AI agents and people inspecting how to work with
-cheekypint.com. Keep it accurate as public features, admin surfaces, and agent
+bumpgrade.com. Keep it accurate as public features, admin surfaces, and agent
 capabilities change.
 
-Canonical site: https://cheekypint.com
-GitHub repo: https://github.com/markitics/cheekypint
+Canonical site: https://bumpgrade.com
+GitHub repo: https://github.com/markitics/bumpgrade
 
 ## Start Here
 
-- Public features: https://cheekypint.com/features
-- Admin roadmap: https://cheekypint.com/admin/roadmap
-- Admin work log: https://cheekypint.com/admin/work-log
-- Admin user journeys: https://cheekypint.com/admin/user-journeys
+- Public features: https://bumpgrade.com/features
+- Public comparisons: https://bumpgrade.com/compare
+- Admin roadmap: https://bumpgrade.com/admin/roadmap
+- Admin work log: https://bumpgrade.com/admin/work-log
+- Admin user journeys: https://bumpgrade.com/admin/user-journeys
+- Mark attention: https://bumpgrade.com/admin/for-mark
 
 ## Agent Docs
 
 Add public agent docs here as they ship:
 
-- https://cheekypint.com/agent-docs/cheekypint-agent-surface
-- https://cheekypint.com/agent-docs/cheekypint-source-material
-- https://cheekypint.com/agent-docs/cheekypint-mcp
+- https://bumpgrade.com/agent-docs/bumpgrade-agent-surface
+- https://bumpgrade.com/agent-docs/bumpgrade-source-evidence
+- https://bumpgrade.com/agent-docs/bumpgrade-mcp
 
 ## Current Agent Contract
 
 - Agents should prefer documented APIs, manifests, MCP resources, and public
   agent docs over browser automation.
-- Agents must not invent episode, clip, transcript, speaker, or quote facts.
-- Source-grounded answers should cite stable source ids, transcript ids, clip ids,
-  and timestamps when available.
+- Agents must not invent pricing, customer, competitor, integration, roadmap,
+  shipped-feature, or quote facts.
+- Source-grounded answers should cite stable source ids, source URLs, issue/PR
+  evidence, and work-log entries when available.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -42,14 +45,14 @@ Keep this section synchronized with `/admin/roadmap`.
 - Feature and roadmap status read access.
 - Work-log read access.
 - User-journey read access.
-- Source material search across episodes, clips, transcripts, speakers, and
-  topics.
-- Quote/clip evidence resolution by timestamp and stable source id.
+- Competitor research and comparison-claim read access.
+- Funnel, offer, checkout, product, and pricing-plan read access.
+- Source evidence resolution by stable source id.
 - MCP resources and tools for repeated agent workflows.
 
 ## Not Ready Unless Documented Elsewhere
 
 - Do not automate private admin UI when a server-side API or MCP tool exists.
-- Do not publish, delete, edit source material, or change public feature status
+- Do not publish, delete, edit source evidence, or change public feature status
   unless a documented confirmed-write contract exists.
 - Do not treat pending roadmap ideas as live product features.

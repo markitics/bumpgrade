@@ -1,12 +1,13 @@
-# Agent-Ready Cheeky Pint
+# Agent-Ready Bumpgrade
 
-Cheeky Pint should be understandable and operable by agents from the beginning.
+Bumpgrade should be understandable and operable by agents from the beginning.
 Agent readiness is a product surface beside the human web app and admin UI.
 
 The practical goal: Mark should be able to ask Claude Code, ChatGPT, or Codex
-something like "pull in some clips from Cheeky Pint where John talks about ..."
-and the agent should know where to find source material, how to cite it, what it
-is allowed to do, and how to avoid inventing facts.
+something like "compare Bumpgrade to ClickFunnels for a course creator" or
+"draft an upsell funnel for this offer" and the agent should know where to find
+source evidence, how to cite it, what it is allowed to do, and how to avoid
+inventing facts.
 
 ## Default Architecture
 
@@ -23,33 +24,42 @@ Build in this order:
 Do not create separate semantics for each client. Web, admin, MCP, ChatGPT, and
 Claude workflows should all describe the same underlying product contract.
 
-## Source Material And Clips
+## Source Evidence And Commerce Objects
 
-If Cheeky Pint has episodes, clips, transcripts, speakers, guests, topics, or
-source media, make them first-class data.
+If Bumpgrade has feature records, competitor research, offers, funnels, checkout
+flows, products, subscriptions, customers, testimonials, blog claims, or agent
+actions, make them first-class data.
 
 Recommended stable concepts:
 
-- `episodeId`: stable id for an episode or source recording.
-- `clipId`: stable id for a clip or excerpt.
-- `speakerId`: stable id for a speaker or recurring person.
-- `transcriptId`: stable id for transcript source.
-- `sourceUrl`: canonical media or page URL.
-- `startTime` and `endTime`: timestamp boundaries for clips.
-- `topicTags`: human-curated or reviewed topic labels.
-- `rightsStatus`: whether the source can be quoted, embedded, clipped, or only
-  referenced.
-- `provenance`: where the material came from and who/what generated it.
+- `featureId`: stable id for a public or admin feature.
+- `roadmapItemId`: stable id for planned, active, blocked, or shipped work.
+- `competitorId`: stable id for a competitor or alternative page.
+- `sourceId`: stable id for a cited source, page, doc, or screenshot.
+- `sourceUrl`: canonical URL for evidence.
+- `claimId`: stable id for a specific product, pricing, SEO, or comparison
+  claim.
+- `funnelId`: stable id for a funnel.
+- `offerId`: stable id for an offer, bump, upsell, or bundle.
+- `checkoutId`: stable id for a checkout experience.
+- `productId`: stable id for a digital product, membership, service, or event.
+- `subscriptionPlanId`: stable id for pricing/billing plans.
+- `automationId`: stable id for workflows, emails, reminders, and agent tasks.
+- `agentActionId`: stable id for agent-proposed or agent-executed writes.
+- `provenance`: where the fact or object came from and who/what generated it.
 
 Rules:
 
-- Do not invent quotes, clips, speaker names, dates, or episode facts.
-- Agent answers about source material must cite stable IDs and timestamps when
+- Do not invent pricing, quotes, customers, endorsements, integrations,
+  competitor capabilities, roadmap status, or shipped product behavior.
+- Agent answers about public claims must cite stable IDs and source URLs when
   available.
-- Generated transcript text should be marked as generated until reviewed.
-- If transcript confidence is low, say so and avoid exact quotes.
-- Keep private notes, unpublished media, and restricted sources out of public
-  agent docs.
+- Competitive research should record retrieval date, source URL, and confidence
+  level when facts may change.
+- Generated marketing copy should be marked as generated or draft until reviewed
+  where it could be mistaken for a sourced claim.
+- Keep private notes, unpublished revenue data, raw customer data, provider IDs,
+  secrets, and restricted sources out of public agent docs.
 
 ## Public Discovery
 
@@ -58,13 +68,13 @@ Keep `public/llms.txt` accurate. It should link to:
 - public feature overview;
 - public or admin-safe roadmap summary;
 - agent docs;
-- source/clip docs when public;
+- source evidence docs when public;
 - MCP endpoint or setup docs when available;
 - clear safety boundaries.
 
 Public agent docs should answer:
 
-- What is Cheeky Pint?
+- What is Bumpgrade?
 - What can agents read today?
 - What can agents do today?
 - What is planned but not executable?
@@ -81,10 +91,12 @@ Useful first MCP resources/tools:
 - Read feature and roadmap status.
 - Read work-log entries.
 - Read user journeys.
-- Search public episodes/clips/transcripts by speaker, topic, keyword, and time.
-- Resolve a source quote to episode/clip/timestamp evidence.
-- Draft a feature or journey update from validated source material.
-- Create a proposed admin update that requires explicit confirmation before
+- Search public competitor research by product, feature, persona, and source.
+- Resolve a public claim to source URLs, issue/PR evidence, or work-log entries.
+- Read feature, roadmap, work-log, user-journey, and pricing status.
+- Draft a feature, journey, comparison, or funnel update from validated source
+  evidence.
+- Create proposed admin updates that require explicit confirmation before
   writing.
 
 ## Write Safety

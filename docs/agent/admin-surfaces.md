@@ -1,6 +1,6 @@
 # Admin And Public Surfaces
 
-Cheeky Pint should make product state visible to Mark and future agents. These
+Bumpgrade should make product state visible to Mark and future agents. These
 routes are not optional housekeeping; they are how parallel work stays coherent.
 
 ## Public `/features`
@@ -72,7 +72,7 @@ Every main feature should have at least one journey. Each journey should include
 - linked feature(s);
 - primary user or role;
 - user goal;
-- source material involved, if any;
+- source evidence involved, if any;
 - happy path;
 - edge/error states;
 - validation evidence;

@@ -1,12 +1,31 @@
-We're going to create a clickfunnels clone, entirely using Codex.
+# Bumpgrade
 
-Phase 1 is defining a detailed list of features, how it all fits together.
+Bumpgrade is planned as a Cloudflare-first funnel, checkout, commerce, and
+agent-ready platform for indiepreneurs and small publishers. The initial target
+is feature parity with ClickFunnels, SamCart, Kit, Shopify-style comparison
+surfaces, and adjacent creator-commerce platforms, followed by agent-native
+workflows on top.
 
-Phase 2 is proposing a plan for how we might build it.
+## Current Phase
 
-Codex will look at GStack and GSD 
-https://github.com/gsd-build/get-shit-don://github.com/gsd-build/get-shit-done and https://github.com/garrytan/gstack (as inspiration for the steps from idea to building)
+Phase 1 is project setup, competitor research, issue decomposition, and public
+marketing/admin surface scaffolding. No production functionality should be
+claimed as live until it is implemented, deployed, and verified.
 
-When you think you're ready to start coding, report back with a plan Build entirely on cloudflare, like the 'laurelharned / fanful' project on 
-inspiration for how we'll use cloudflare:: https://github.com/markitics/laurelharned
-Target inspiration site; http://clickfunnels.com/ - we want feature parity and then we'll add more features on top
+## Build Direction
+
+- Infrastructure: Cloudflare Workers/Pages, D1, R2, KV, Queues/Cron, Email
+  Routing/Sending, Turnstile, and Better Auth where useful.
+- Public surfaces: `/features`, `/compare`, competitor alternative pages,
+  `/roadmap`, resources, pricing, and agent-readable docs.
+- Admin surfaces: `/admin/roadmap`, `/admin/work-log`,
+  `/admin/user-journeys`, and `/admin/for-mark`.
+- Agent contract: public `llms.txt`, `/agent-docs/...`, stable server-side
+  manifests/APIs, and MCP tools as workflows become important.
+
+## Agent Workflow
+
+Start with [AGENTS.md](./AGENTS.md), then read
+[docs/working-agreements.md](./docs/working-agreements.md). Use GitHub issues,
+feature branches, small commits, PR screenshots, squash merges, and work-log
+entries as the durable source of truth.
