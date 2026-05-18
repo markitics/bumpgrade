@@ -37,4 +37,3 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
   return NextResponse.redirect(stripeCheckoutUrl, 303);
 }
-
