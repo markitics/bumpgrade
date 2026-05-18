@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 
+import { EmailVerificationActions } from "@/components/email-verification-actions";
 import type { SessionAdminState } from "@/lib/admin-auth";
 
 type AdminLockedProps = {
@@ -24,15 +25,29 @@ function denialCopy(reason: SessionAdminState["denialReason"]) {
   return "Sign in with an allowlisted Bumpgrade owner account to open this admin surface.";
 }
 
+function denialTitle(reason: SessionAdminState["denialReason"]) {
+  if (reason === "email_unverified") return "Email not yet verified.";
+  return "Owner access is required.";
+}
+
+function denialLabel(reason: SessionAdminState["denialReason"]) {
+  if (reason === "not_allowlisted") return "Not on owner allowlist";
+  if (reason === "email_unverified") return "Email not yet verified";
+  if (reason === "session_unavailable") return "Session unavailable";
+  if (reason === "signed_out") return "Signed out";
+  return "Owner session accepted";
+}
+
 export function AdminLocked({ state, surface }: AdminLockedProps) {
   const callbackURL = `/login?callbackURL=${encodeURIComponent(surface)}`;
+  const shouldShowVerificationActions = state.denialReason === "email_unverified" && Boolean(state.userEmail);
 
   return (
     <main className="route-page admin-lock-page">
       <section className="route-hero">
         <div>
           <p className="eyebrow">Protected admin</p>
-          <h1>Owner access is required.</h1>
+          <h1>{denialTitle(state.denialReason)}</h1>
           <p className="lede">{denialCopy(state.denialReason)}</p>
           <div className="hero-actions">
             <Link href={callbackURL} className="primary-action">
@@ -44,12 +59,15 @@ export function AdminLocked({ state, surface }: AdminLockedProps) {
               <ShieldCheck aria-hidden="true" />
             </Link>
           </div>
+          {shouldShowVerificationActions ? (
+            <EmailVerificationActions email={state.userEmail ?? ""} callbackPath={surface} />
+          ) : null}
         </div>
         <aside className="route-status-panel">
           <ShieldCheck aria-hidden="true" />
           <p>Session state</p>
           <strong>{state.userEmail ?? "Signed out"}</strong>
-          <span>{state.denialReason ?? "Owner session accepted."}</span>
+          <span>{denialLabel(state.denialReason)}</span>
         </aside>
       </section>
     </main>
