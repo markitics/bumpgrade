@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Mail, ShieldAlert } from "lucide-react";
 
+import { AdminLocked } from "@/components/admin-auth-gate";
+import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
@@ -13,6 +15,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ForMarkPage() {
+  const adminState = await getCurrentAdminState();
+  if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/for-mark" />;
+
   const data = await getAdminSurfaceData();
   const openItems = data.attentionItems.filter((item) => item.state === "open" || item.state === "read");
 

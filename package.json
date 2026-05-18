@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit --pretty false",
-    "test:browser": "playwright test",
+    "test:browser": "npm run db:migrate:local && playwright test",
     "verify": "npm run lint && npm run typecheck && npm run build && npm run test:browser",
     "cf:build": "rm -rf .next .open-next && opennextjs-cloudflare build",
     "preview:worker": "wrangler dev",
@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.19.10",
+    "better-auth": "^1.6.11",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.14.0",
     "next": "^16.2.6",
     "react": "19.2.4",

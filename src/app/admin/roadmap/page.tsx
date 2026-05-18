@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Database, GitBranch } from "lucide-react";
 
+import { AdminLocked } from "@/components/admin-auth-gate";
+import { getCurrentAdminState } from "@/lib/admin-auth";
 import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
@@ -19,6 +21,9 @@ function sourceLabel(source: string) {
 }
 
 export default async function AdminRoadmapPage() {
+  const adminState = await getCurrentAdminState();
+  if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/roadmap" />;
+
   const data = await getAdminSurfaceData();
   const counts = adminRoadmapCounts(data.roadmapItems);
 

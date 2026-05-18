@@ -6,6 +6,8 @@ declare namespace Cloudflare {
     APP_ENV?: string;
     PUBLIC_SITE_URL?: string;
     BETTER_AUTH_URL?: string;
+    BETTER_AUTH_SECRET?: string;
+    BUMPGRADE_OWNER_EMAILS?: string;
     CLOUDFLARE_ACCOUNT_ID?: string;
   }
 }
