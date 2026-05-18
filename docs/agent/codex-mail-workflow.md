@@ -9,9 +9,8 @@ monitoring.
 - Default recipient for shipped notices: `m@rkmoriarty.com`.
 - Trusted inbound task senders:
   - `m@rkmoriarty.com`
-  - `markeffect@gmail.com`
-  - `markmoriarty@stripe.com`
   - `mark@awesound.com`
+  - `markmoriarty@stripe.com`
 
 Per-session plus addressing is not assumed yet. Cloudflare currently reports
 subaddressing disabled for `bumpgrade.com`, so use `codex@bumpgrade.com` until
@@ -60,7 +59,18 @@ The handler:
    `codex/email/inbound/<id>.eml`.
 3. Stores public-safe metadata, a snippet, and a bounded raw body prefix in D1
    table `codex_inbound_messages`.
-4. Marks rows from trusted Mark-controlled senders with `trusted_sender = 1`.
+4. Stores sender authentication evidence from Cloudflare mail headers.
+5. Marks rows with `trusted_sender = 1` only when the sender identity is one of
+   the three addresses above and the authentication evidence aligns.
+6. Sends a safe acknowledgement to unlisted senders without executing or
+   treating their message as actionable.
+
+The first real Mark reply to `codex@bumpgrade.com` proved D1/R2 inbound capture
+and had no attachments. Its headers showed `dmarc=none` for
+`header.from=rkmoriarty.com` and `spf=pass` for
+`smtp.mailfrom=markeffect@gmail.com`. That means strict steering from
+`m@rkmoriarty.com` needs an aligned authenticated sender path before Codex can
+trust it automatically.
 
 Before starting unrelated large work, poll for recent trusted replies:
 
