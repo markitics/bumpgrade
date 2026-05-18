@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { createEmailVerificationToken } from "better-auth/api";
 
 import { competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
@@ -31,10 +32,9 @@ const compareRoutes = competitors.map((competitor) => ({
   heading: competitor.headline,
 }));
 
-async function signInOrCreateOwner(page: Page) {
-  const email = "m@rkmoriarty.com";
-  const password = "BumpgradeLocal123!";
-  const name = "Mark";
+const authSecret = "playwright-local-better-auth-secret";
+
+async function signInOrCreateAccount(page: Page, email: string, password: string, name: string) {
   let response = await page.request.post("/api/auth/sign-in/email", {
     data: { email, password, callbackURL: "/admin/roadmap" },
   });
@@ -52,6 +52,22 @@ async function signInOrCreateOwner(page: Page) {
   }
 
   expect(response.ok(), await response.text()).toBe(true);
+}
+
+async function verifyEmail(page: Page, email: string) {
+  const token = await createEmailVerificationToken(authSecret, email.toLowerCase(), undefined, 3600);
+
+  const response = await page.request.get(`/api/auth/verify-email?token=${encodeURIComponent(token)}&callbackURL=/admin/roadmap`, {
+    maxRedirects: 0,
+  });
+
+  expect([302, 303]).toContain(response.status());
+}
+
+async function signInOrCreateOwner(page: Page) {
+  const email = "m@rkmoriarty.com";
+  await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Mark");
+  await verifyEmail(page, email);
 }
 
 test.describe("Bumpgrade scaffold", () => {
@@ -239,6 +255,25 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/admin/for-mark");
     await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
+  });
+
+  test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    await signInOrCreateAccount(page, "unverified-owner@example.com", "BumpgradeLocal123!", "Unverified Owner");
+
+    await page.goto("/admin/for-mark");
+    await expect(page.getByRole("heading", { name: /Email not yet verified/i })).toBeVisible();
+    await expect(page.getByText("Confirm your Bumpgrade owner email")).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open Gmail/i })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("email_unverified");
+
+    const resendButton = page.locator(".verification-actions button");
+    await expect(resendButton).toBeVisible();
+    const resendText = (await resendButton.textContent()) ?? "";
+    if (/Resend confirmation email/i.test(resendText)) {
+      await resendButton.click();
+    }
+    await expect(resendButton).toContainText(/Resend available in/i);
   });
 
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {
