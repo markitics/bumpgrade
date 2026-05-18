@@ -5,6 +5,7 @@ initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  typedRoutes: false,
 };
 
 export default nextConfig;
