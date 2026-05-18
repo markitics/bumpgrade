@@ -269,13 +269,19 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-marketing-surfaces",
     title: "Users, developers and agents, resources, pricing, and blog surfaces",
-    status: "planned",
+    status: "shipped",
     issue: 20,
     featureId: featureIdFor(20),
     group: "Marketing surfaces",
-    summary: "Use-case pages, developer/agent pages, resource hub, pricing direction, migration guides, and product notes.",
-    publicEvidence: ["Tracked by issue #20.", "Navbar surfaces already exist as scaffolds."],
-    nextMilestone: "Replace scaffold routes with source-aware pages after roadmap/admin records are stable.",
+    summary:
+      "Use-case page, developer/agent page, resource and blog hub, pricing direction, metadata, sitemap entries, and `/content/source-data` contract.",
+    publicEvidence: [
+      "Tracked by issue #20.",
+      "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
+      "`/content/source-data` exposes stable audience, resource, and pricing-direction records for agents.",
+    ],
+    nextMilestone:
+      "Promote planned migration guides, launch playbooks, and blog posts into dedicated pages as funnel, checkout, automation, and analytics slices ship.",
   },
 ];
 

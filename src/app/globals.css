@@ -1059,6 +1059,14 @@ h3 {
   padding: 18px;
 }
 
+.content-surface-card {
+  min-height: 360px;
+}
+
+.compact-content-card {
+  min-height: 240px;
+}
+
 .live-feature-card {
   min-height: 250px;
 }

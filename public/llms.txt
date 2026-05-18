@@ -11,6 +11,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
 
 - Public features: https://bumpgrade.com/features
 - Feature source data: https://bumpgrade.com/features/source-data
+- Users and use cases: https://bumpgrade.com/users
+- Resources: https://bumpgrade.com/resources
+- Pricing direction: https://bumpgrade.com/pricing
+- Content surface source data: https://bumpgrade.com/content/source-data
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Commerce source data: https://bumpgrade.com/commerce/source-data
@@ -72,6 +76,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   alternative", "ClickFunnels competitors", and adjacent indiepreneur platform
   comparison intent. Treat those as routing/search-intent metadata, not proof
   that planned Bumpgrade parity features have shipped.
+- `/content/source-data` exposes audience, resource, and pricing-direction
+  records for public content surfaces. Treat pricing tracks as positioning
+  hypotheses, not published plan names, amounts, trials, limits, or live billing
+  availability.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.

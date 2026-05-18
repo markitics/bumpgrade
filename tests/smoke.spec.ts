@@ -3,6 +3,7 @@ import { createEmailVerificationToken } from "better-auth/api";
 
 import { agentManifest } from "../src/lib/agent-manifest";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
+import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
@@ -19,7 +20,7 @@ const routes = [
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
-  { path: "/pricing", heading: "Pricing surface" },
+  { path: "/pricing", heading: "Pricing direction" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -149,6 +150,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -168,6 +170,43 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.features).toHaveLength(featureCatalog.length);
     expect(payload.features[0]).toEqual(expect.objectContaining({ id: expect.any(String), status: expect.any(String) }));
+  });
+
+  test("content source data exposes use cases, resources, and pricing caveats", async ({ request }) => {
+    const response = await request.get("/content/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe(contentSourceData.id);
+    expect(payload.audienceSegments).toHaveLength(audienceSegments.length);
+    expect(payload.resourceHubItems).toHaveLength(resourceHubItems.length);
+    expect(payload.plannedPricingTracks).toHaveLength(plannedPricingTracks.length);
+    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/pricing", "/content/source-data"]));
+    expect(payload.audienceSegments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "audience-newsletter-publishers",
+          linkedFeatureIds: expect.arrayContaining(["feature-email-automation-crm", "feature-agent-ready-contracts"]),
+        }),
+      ]),
+    );
+    expect(payload.resourceHubItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "resource-comparison-hub",
+          status: "live",
+          evidenceRoutes: expect.arrayContaining(["/compare/source-data"]),
+        }),
+      ]),
+    );
+    expect(payload.plannedPricingTracks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "pricing-track-agent",
+          notYetClaimed: expect.stringContaining("MCP server packaging"),
+        }),
+      ]),
+    );
+    expect(payload.caveat).toContain("does not turn planned product features");
   });
 
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
@@ -308,6 +347,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),

@@ -95,6 +95,11 @@ manifest. It lists agent-doc pages, stable read contracts, source-evidence
 routes, the MCP roadmap, and write-safety rules. It is discovery metadata, not
 permission to write.
 
+Current content boundary: `/content/source-data` is the public-safe mirror for
+audience segments, resource records, pricing principles, and planned pricing
+tracks. Pricing tracks are positioning hypotheses, not published plan names,
+amounts, limits, trials, or live billing availability.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
