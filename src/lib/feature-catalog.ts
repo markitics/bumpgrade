@@ -184,12 +184,17 @@ export const featureCatalog: FeatureRecord[] = [
       "Forms, subscribers, tags, campaigns, automations, lifecycle events, and lightweight contact/opportunity tracking.",
     audience: "Creators and publishers turning audience attention into repeatable launch workflows.",
     expectedCapabilities: [
+      "Read-only audience automation source data and preview route from issue #85.",
       "Signup forms, lead magnets, subscriber tags, and segments.",
       "Campaigns, sequences, broadcasts, and behavior-triggered automations.",
       "CRM-lite contact timelines and opportunity states.",
       "Consent, unsubscribe, and deliverability boundaries.",
     ],
-    evidence: ["Tracked by issue #17.", "Codex project email tracked separately by issue #10."],
+    evidence: [
+      "Tracked by issue #17.",
+      "Issue #85 adds `/audience/source-data` and `/audience/indie-launch-waitlist` as the first read-only audience automation contract and preview scaffold.",
+      "Codex project email tracked separately by issue #10.",
+    ],
     agentContract:
       "Agents must not send or schedule email on behalf of a publisher without confirmation, audience scope, and unsubscribe-safe checks.",
   },

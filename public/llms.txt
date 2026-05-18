@@ -21,6 +21,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded checkout offer preview: https://bumpgrade.com/offers/indie-launch-stack
 - Product access source data: https://bumpgrade.com/products/source-data
 - Seeded product access preview: https://bumpgrade.com/products/indie-launch-library
+- Audience automation source data: https://bumpgrade.com/audience/source-data
+- Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Commerce source data: https://bumpgrade.com/commerce/source-data
@@ -99,6 +101,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Treat it as preview/source-data evidence, not private asset access, signed
   download links, customer entitlements, fulfillment, or a confirmed-write agent
   API.
+- `/audience/source-data` exposes the first read-only audience automation
+  workspace with opt-in form, lead magnet, tags, segments, sequence, broadcast
+  draft, and automation records. Treat it as preview/source-data evidence, not
+  subscriber storage, live email sending, contact import, unsubscribe management,
+  CRM timeline state, or a confirmed-write agent API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -134,7 +141,7 @@ Keep this section synchronized with `/admin/roadmap`.
 - Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
 - Better Auth publisher accounts and owner-gated private admin pages.
 - Competitor research and comparison-claim read access.
-- Funnel, offer, checkout, product, and pricing-plan read access backed by
+- Funnel, offer, checkout, product, audience automation, and pricing-plan read access backed by
   redacted D1 commerce records.
 - Source evidence resolution by stable source id.
 - MCP resources and tools for repeated agent workflows.

@@ -250,13 +250,19 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-email-automation",
     title: "Email marketing, list growth, CRM-lite, and automations",
-    status: "planned",
+    status: "active",
     issue: 17,
     featureId: featureIdFor(17),
     group: "Growth system",
-    summary: "Subscribers, tags, forms, broadcasts, sequences, lifecycle automations, and lightweight CRM state.",
-    publicEvidence: ["Tracked by issue #17."],
-    nextMilestone: "Separate app customer email workflows from Codex project email in #10.",
+    summary:
+      "Subscriber segments, read-only opt-in and automation contract, lead magnets, tags, broadcasts, sequences, consent, and CRM-lite state.",
+    publicEvidence: [
+      "Tracked by issue #17.",
+      "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
+      "Codex project email in issue #10 is separate from publisher/customer email workflows.",
+    ],
+    nextMilestone:
+      "Build confirmed subscriber/consent writes and unsubscribe-safe email delivery without exposing private contact data.",
   },
   {
     id: "roadmap-analytics-testing",

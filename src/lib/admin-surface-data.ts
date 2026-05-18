@@ -493,6 +493,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-audience-automation",
+    title: "Publisher previews audience opt-in automation",
+    featureId: "feature-email-automation-crm",
+    featureStatus: "pending",
+    issueNumbers: [17, 85],
+    primaryUser: "Publisher or agent planning list growth",
+    userGoal: "Inspect opt-in forms, tags, lead magnets, sequences, broadcasts, and automation rules before subscriber writes or email sends exist.",
+    sourceEvidence: [
+      "https://bumpgrade.com/audience/source-data",
+      "https://bumpgrade.com/audience/indie-launch-waitlist",
+      "https://bumpgrade.com/funnels/source-data",
+      "https://github.com/markitics/bumpgrade/issues/17",
+      "https://github.com/markitics/bumpgrade/issues/85",
+    ],
+    happyPath: [
+      "Fetch /audience/source-data.",
+      "Find the seeded audience workspace, revision ID, opt-in form, lead magnet, tag IDs, sequence IDs, automation IDs, and write boundary.",
+      "Open /audience/indie-launch-waitlist to inspect the public preview.",
+      "Use /funnels/source-data and /products/source-data to confirm source and fulfillment dependencies before assuming live automation exists.",
+    ],
+    edgeCases: [
+      "The seeded audience automation workspace is read-only and not a subscriber database.",
+      "Subscriber imports, contact writes, email sends, broadcasts, unsubscribe changes, and CRM notes require future confirmed-write APIs.",
+      "Codex project email in issue #10 is separate from publisher/customer email workflows.",
+    ],
+    agentAccess:
+      "Agents can read /audience/source-data and the preview route. Audience automation writes require actor identity, explicit consent or lawful basis, idempotency, stale-state checks, audit correlation, redaction, suppression-list checks, and sender-domain safety in a later API.",
+    validation: [
+      "Playwright covers /audience/source-data, /audience/indie-launch-waitlist, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #85 records the first audience automation source-data contract and preview scaffold.",
+    ],
+    sortOrder: 50,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

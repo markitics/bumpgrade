@@ -218,6 +218,27 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Product, asset, entitlement, fulfillment, subscription access, and private content writes require future confirmed-write APIs.",
   },
   {
+    id: "read-audience-automation",
+    title: "Audience automation source data",
+    route: "/audience/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/audience-automation.ts",
+    stableIds: [
+      "subscriberSegmentId",
+      "optInFormId",
+      "leadMagnetId",
+      "subscriberTagId",
+      "emailSequenceId",
+      "automationRuleId",
+      "broadcastDraftId",
+      "consentRecordId",
+      "agentActionId",
+    ],
+    safeForAgents: ["Read seeded opt-in form", "Inspect tags and segments", "Inspect sequence and automation boundaries"],
+    writeBoundary: "Subscriber, tag, sequence, broadcast, unsubscribe, and email-send writes require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -326,6 +347,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "The product/access contract is read-only preview evidence; it is not private asset delivery, signed URL access, customer entitlement state, or fulfillment automation.",
   },
   {
+    id: "evidence-audience-automation",
+    route: "/audience/source-data",
+    resolves: "Seeded audience automation workspace, opt-in form, tags, segments, lead magnet, sequence, broadcast draft, and confirmed-write boundary.",
+    stableIds: ["subscriberSegmentId", "optInFormId", "leadMagnetId", "emailSequenceId", "automationRuleId"],
+    volatileClaims:
+      "The audience automation contract is read-only preview evidence; it is not subscriber storage, contact import, live email sending, unsubscribe management, or CRM timeline state.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -414,6 +443,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/products/source-data",
     purpose: "Expose seeded products, assets, access rules, entitlement templates, revision IDs, and fulfillment boundaries.",
     safetyBoundary: "Read-only; private asset access, entitlement writes, subscription access changes, and fulfillment actions require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-audience-automation",
+    resourceOrTool: "resource bumpgrade://audience-automation",
+    status: "ready-contract",
+    backedBy: "/audience/source-data",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, and consent boundaries.",
+    safetyBoundary: "Read-only; subscriber writes, imports, sends, broadcasts, unsubscribe changes, and CRM notes require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

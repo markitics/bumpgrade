@@ -118,6 +118,14 @@ is the read-only preview. This proves access semantics, not private R2 access,
 signed downloads, customer entitlements, protected content, fulfillment writes,
 or agent write capability.
 
+Current audience automation boundary: `/audience/source-data` is the public-safe
+read contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
+email sequences, broadcast drafts, and automation rules.
+`/audience/indie-launch-waitlist` is the read-only preview. This proves
+audience and automation semantics, not subscriber storage, contact import, live
+email sending, unsubscribe management, CRM timeline state, or agent write
+capability.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
