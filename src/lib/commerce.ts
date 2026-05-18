@@ -27,7 +27,7 @@ export const stripeApiVersion = "2026-04-22.dahlia";
 export const stripeCommerceContract = {
   id: "stripe-commerce-architecture-v1",
   issue: 11,
-  firstCheckoutIssue: 33,
+  firstCheckoutIssue: 34,
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:

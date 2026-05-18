@@ -124,7 +124,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();
     expect(payload.id).toBe("bumpgrade-commerce-source-data");
-    expect(payload.contract).toEqual(expect.objectContaining({ issue: 11, firstCheckoutIssue: 33 }));
+    expect(payload.contract).toEqual(expect.objectContaining({ issue: 11, firstCheckoutIssue: 34 }));
     expect(payload.tables).toHaveLength(commerceTables.length);
     expect(payload.tables).toEqual(
       expect.arrayContaining([
