@@ -207,6 +207,17 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Offer, bump, upsell, downsell, fulfillment, and billing writes require future confirmed-write APIs.",
   },
   {
+    id: "read-product-access-catalog",
+    title: "Product access source data",
+    route: "/products/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/product-access.ts",
+    stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "subscriptionPlanId", "fulfillmentId", "agentActionId"],
+    safeForAgents: ["Read seeded product catalog", "Inspect access rules", "Inspect entitlement and fulfillment boundaries"],
+    writeBoundary: "Product, asset, entitlement, fulfillment, subscription access, and private content writes require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -307,6 +318,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "The checkout-offer contract is read-only preview evidence; it is not live billing, one-click upsell charging, fulfillment, or order-bump mutation.",
   },
   {
+    id: "evidence-products-access",
+    route: "/products/source-data",
+    resolves: "Seeded product catalog, assets, access rules, entitlement templates, preview route, revision ID, and confirmed-write boundary.",
+    stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "fulfillmentId"],
+    volatileClaims:
+      "The product/access contract is read-only preview evidence; it is not private asset delivery, signed URL access, customer entitlement state, or fulfillment automation.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -387,6 +406,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/offers/source-data",
     purpose: "Expose seeded checkout offer stack, primary offer, order bump, upsell, downsell, revision IDs, and billing boundaries.",
     safetyBoundary: "Read-only; offer writes, Stripe mutations, fulfillment, and post-purchase charges require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-product-access",
+    resourceOrTool: "resource bumpgrade://product-access",
+    status: "ready-contract",
+    backedBy: "/products/source-data",
+    purpose: "Expose seeded products, assets, access rules, entitlement templates, revision IDs, and fulfillment boundaries.",
+    safetyBoundary: "Read-only; private asset access, entitlement writes, subscription access changes, and fulfillment actions require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

@@ -458,6 +458,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-product-access",
+    title: "Publisher previews product access rules",
+    featureId: "feature-products-access",
+    featureStatus: "pending",
+    issueNumbers: [16, 83],
+    primaryUser: "Publisher or agent planning fulfillment",
+    userGoal: "Inspect products, assets, access rules, and entitlement templates before private fulfillment writes are enabled.",
+    sourceEvidence: [
+      "https://bumpgrade.com/products/source-data",
+      "https://bumpgrade.com/products/indie-launch-library",
+      "https://bumpgrade.com/offers/source-data",
+      "https://github.com/markitics/bumpgrade/issues/16",
+      "https://github.com/markitics/bumpgrade/issues/83",
+    ],
+    happyPath: [
+      "Fetch /products/source-data.",
+      "Find seeded product types, asset IDs, access rules, entitlement templates, revision ID, and write boundary.",
+      "Open /products/indie-launch-library to inspect the public preview.",
+      "Use /offers/source-data and /commerce/source-data to confirm checkout and webhook dependencies before assuming fulfillment exists.",
+    ],
+    edgeCases: [
+      "The seeded product/access catalog is read-only and not a product admin.",
+      "Private R2 keys, signed URLs, protected lessons, customer entitlements, and fulfillment writes require future confirmed-write APIs.",
+      "Subscription access requires trusted billing state before membership entitlements can be granted.",
+    ],
+    agentAccess:
+      "Agents can read /products/source-data and the preview route. Product/access writes require actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and trusted checkout or subscription evidence in a later API.",
+    validation: [
+      "Playwright covers /products/source-data, /products/indie-launch-library, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #83 records the first product/access source-data contract and preview scaffold.",
+    ],
+    sortOrder: 49,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

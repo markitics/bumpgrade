@@ -111,6 +111,13 @@ stack. `/offers/indie-launch-stack` is the read-only preview. This proves
 offer-sequence semantics, not live billing, one-click upsell charging,
 fulfillment, order-bump mutation, or agent write capability.
 
+Current product/access boundary: `/products/source-data` is the public-safe read
+contract for seeded downloads, courses, memberships, services, events, bundles,
+assets, access rules, and entitlement templates. `/products/indie-launch-library`
+is the read-only preview. This proves access semantics, not private R2 access,
+signed downloads, customer entitlements, protected content, fulfillment writes,
+or agent write capability.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
