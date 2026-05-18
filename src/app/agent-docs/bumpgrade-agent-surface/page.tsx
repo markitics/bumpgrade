@@ -17,6 +17,7 @@ export default function AgentSurfacePage() {
       issue="#12"
       icon={Bot}
       bullets={[
+        "Feature source data is available at `/features/source-data` with feature IDs, statuses, issue links, and agent-contract notes.",
         "Feature, roadmap, comparison, work-log, and journey read contracts.",
         "Comparison source data is available at `/compare/source-data` with source IDs, retrieval dates, and roadmap caveats.",
         "Source evidence IDs and URLs for public claims.",

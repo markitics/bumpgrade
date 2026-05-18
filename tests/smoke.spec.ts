@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { competitors } from "../src/lib/comparison-data";
+import { featureCatalog } from "../src/lib/feature-catalog";
 
 const routes = [
   { path: "/", heading: "Funnels, checkout, commerce, and agents" },
@@ -37,6 +38,14 @@ test.describe("Bumpgrade scaffold", () => {
     for (const competitor of competitors) {
       await expect(page.getByRole("link", { name: new RegExp(`${competitor.name} alternative`, "i") })).toBeVisible();
     }
+  });
+
+  test("feature source data exposes stable feature records", async ({ request }) => {
+    const response = await request.get("/features/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.features).toHaveLength(featureCatalog.length);
+    expect(payload.features[0]).toEqual(expect.objectContaining({ id: expect.any(String), status: expect.any(String) }));
   });
 
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {
