@@ -20,6 +20,8 @@ then open the relevant shelf for the task.
 - `operations.md`: production facts, secrets, migrations, and auth notes.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
+- `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
+  source-data dependencies, auth boundaries, and confirmed-write rules.
 - `decision-log.md`: durable technical decisions that future agents should not
   rediscover from chat.
 - `keep-working/README.md`: how to use the repo-tracked `goal-runner` and

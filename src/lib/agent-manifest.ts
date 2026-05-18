@@ -96,6 +96,14 @@ export const agentDocs: AgentDoc[] = [
     status: "live",
     evidence: ["Issue #12", "docs/agent/agent-ready.md"],
   },
+  {
+    id: "doc-mobile-admin",
+    title: "Bumpgrade mobile admin contract",
+    route: "/agent-docs/bumpgrade-mobile-admin",
+    purpose: "Shared iOS and Android publisher/admin app jobs, API dependencies, auth boundaries, and write-safety rules.",
+    status: "live",
+    evidence: ["Issue #13", "Issue #67", "Issue #68", "/mobile-admin/source-data"],
+  },
 ];
 
 export const agentReadContracts: AgentReadContract[] = [
@@ -165,6 +173,17 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: ["Discover read contracts", "Route to source-data APIs", "Understand write boundaries"],
     writeBoundary: "This route is read-only until confirmed-write agent APIs exist.",
   },
+  {
+    id: "read-mobile-admin-contract",
+    title: "Mobile admin contract",
+    route: "/mobile-admin/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/mobile-admin.ts",
+    stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue", "featureId"],
+    safeForAgents: ["Read iOS and Android scope", "Find API dependencies", "Understand mobile write boundaries"],
+    writeBoundary: "Mobile app writes remain read-only until a future confirmed-write API exists.",
+  },
 ];
 
 export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
@@ -210,6 +229,13 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     stableIds: ["agentDocId", "readContractId", "mcpPlanId", "evidenceRouteId"],
     volatileClaims: "The manifest is discovery metadata; it does not grant write permission.",
   },
+  {
+    id: "evidence-mobile-admin",
+    route: "/mobile-admin/source-data",
+    resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
+    stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue"],
+    volatileClaims: "The mobile contract is live, but installable iOS and Android app claims require #67 and #68 smoke evidence.",
+  },
 ];
 
 export const agentMcpPlan: AgentMcpPlan[] = [
@@ -252,6 +278,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/admin/source-data and future confirmed-write APIs",
     purpose: "Create proposed feature, roadmap, journey, or work-log updates for owner review.",
     safetyBoundary: "Requires actor identity, confirmation text, idempotency key, stale-state check, and audit correlation before writing.",
+  },
+  {
+    id: "mcp-resource-mobile-admin",
+    resourceOrTool: "resource bumpgrade://mobile-admin",
+    status: "ready-contract",
+    backedBy: "/mobile-admin/source-data",
+    purpose: "Expose the shared iOS and Android mobile admin plan, jobs, API dependencies, and confirmed-write boundaries.",
+    safetyBoundary: "Read-only; mobile writes require a future confirmed-write action API and authenticated actor.",
   },
 ];
 

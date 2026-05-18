@@ -158,6 +158,7 @@ export const scaffoldRoutes = [
   "/agent-docs/bumpgrade-source-evidence",
   "/agent-docs/bumpgrade-admin-surfaces",
   "/agent-docs/bumpgrade-mcp",
+  "/agent-docs/bumpgrade-mobile-admin",
 ];
 
 export const loginNavItem: NavItem = {

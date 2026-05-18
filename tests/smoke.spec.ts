@@ -5,6 +5,7 @@ import { agentManifest } from "../src/lib/agent-manifest";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
+import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
@@ -30,6 +31,7 @@ const routes = [
   { path: "/agent-docs/bumpgrade-source-evidence", heading: "Public claims must resolve to source data" },
   { path: "/agent-docs/bumpgrade-admin-surfaces", heading: "Admin pages are owner-gated" },
   { path: "/agent-docs/bumpgrade-mcp", heading: "MCP should wrap the same contracts" },
+  { path: "/agent-docs/bumpgrade-mobile-admin", heading: "Mobile admin starts with one contract" },
 ];
 
 const compareRoutes = competitors.map((competitor) => ({
@@ -147,6 +149,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBeTruthy();
@@ -206,6 +209,11 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-stripe-commerce",
           issueNumbers: [11, 34, 15, 16],
         }),
+        expect.objectContaining({
+          id: "journey-publisher-checks-mobile-admin",
+          featureId: "feature-mobile-admin",
+          issueNumbers: [13, 67, 68],
+        }),
       ]),
     );
   });
@@ -253,12 +261,40 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
       ]),
     );
     expect(payload.writeSafetyRules).toEqual(
       expect.arrayContaining([
         expect.stringContaining("Require confirmation, idempotency, stale-state checks"),
         expect.stringContaining("Do not invent pricing"),
+      ]),
+    );
+  });
+
+  test("mobile admin source data splits iOS and Android app slices", async ({ request }) => {
+    const response = await request.get("/mobile-admin/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe(mobileAdminContract.id);
+    expect(payload.parentIssue).toBe(13);
+    expect(payload.status).toBe("contract-ready");
+    expect(payload.childIssues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ platform: "ios", issue: 67 }),
+        expect.objectContaining({ platform: "android", issue: 68 }),
+      ]),
+    );
+    expect(payload.apiDependencies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "mobile-api-admin-source", route: "/admin/source-data" }),
+        expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
+      ]),
+    );
+    expect(payload.confirmedWriteRules).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("first mobile app slices are read-only"),
+        expect.stringContaining("same feature, roadmap, commerce, admin, and agent contracts as web"),
       ]),
     );
   });
