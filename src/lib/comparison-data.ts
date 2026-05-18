@@ -15,6 +15,32 @@ export type ComparisonRow = {
   bumpgradePlan: string;
 };
 
+export type ComparisonSeoTarget = {
+  id: string;
+  route: string;
+  primaryKeyword: string;
+  supportingKeywords: string[];
+  intent: string;
+  evidenceSourceIds: string[];
+  caveat: string;
+};
+
+export type ComparisonFaq = {
+  question: string;
+  answer: string;
+};
+
+export type ComparisonDeepDive = {
+  title: string;
+  paragraphs: string[];
+  checklist: ComparisonRow[];
+  relatedLinks: {
+    label: string;
+    href: string;
+    description: string;
+  }[];
+};
+
 export type Competitor = {
   id: string;
   name: string;
@@ -26,6 +52,12 @@ export type Competitor = {
   alternativePosition: string;
   sourceId: string;
   sourceUrl: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  seoKeywords?: string[];
+  searchIntent?: string;
+  faqs?: ComparisonFaq[];
+  deepDive?: ComparisonDeepDive;
   evidence: string[];
   gapsToAddress: string[];
   rows: ComparisonRow[];
@@ -150,6 +182,39 @@ export const comparisonPrinciples = [
   },
 ];
 
+export const comparisonSeoTargets: ComparisonSeoTarget[] = [
+  {
+    id: "seo-clickfunnels-alternative",
+    route: "/compare/clickfunnels-alternative",
+    primaryKeyword: "ClickFunnels alternative",
+    supportingKeywords: ["ClickFunnels alternatives", "ClickFunnels competitor", "sites like ClickFunnels"],
+    intent:
+      "A buyer already knows ClickFunnels and wants a source-grounded alternative path for funnels, checkout, email, courses, CRM, and agent-readable operations.",
+    evidenceSourceIds: ["source-clickfunnels-home"],
+    caveat: "Bumpgrade must describe parity targets as planned until the linked roadmap issues ship.",
+  },
+  {
+    id: "seo-clickfunnels-competitors",
+    route: "/compare/clickfunnels-alternative",
+    primaryKeyword: "ClickFunnels competitors",
+    supportingKeywords: ["funnel builder competitors", "sales funnel platform comparison", "ClickFunnels vs alternatives"],
+    intent:
+      "A buyer is comparing the funnel-builder category and needs the main competitor capabilities mapped to Bumpgrade roadmap slices.",
+    evidenceSourceIds: ["source-clickfunnels-home", "source-shopify-compare"],
+    caveat: "The page can cite official ClickFunnels capabilities and Bumpgrade roadmap state, not unsupported performance or pricing claims.",
+  },
+  {
+    id: "seo-indiepreneur-platform-compare",
+    route: "/compare",
+    primaryKeyword: "indiepreneur platform comparison",
+    supportingKeywords: ["creator commerce platform comparison", "funnel checkout email platform", "publisher growth OS"],
+    intent:
+      "A founder wants one comparison hub for funnel, checkout, email, course, community, affiliate, analytics, and agent-ready platform decisions.",
+    evidenceSourceIds: ["source-shopify-compare", "source-clickfunnels-home", "source-samcart-checkout", "source-kit-home"],
+    caveat: "The hub should help choose a product direction while keeping Bumpgrade's not-yet-shipped features labeled as roadmap work.",
+  },
+];
+
 export const comparisonHubRows: ComparisonRow[] = [
   {
     area: "Funnels and landing pages",
@@ -185,13 +250,100 @@ export const competitors: Competitor[] = [
     slug: "clickfunnels-alternative",
     category: "Funnels and online business platform",
     bestFor: "Creators who want a funnel-first system with pages, checkout, CRM, courses, email, automations, analytics, and affiliate tooling.",
-    headline: "Bumpgrade vs ClickFunnels: funnel-first ambition, with agent-readable foundations.",
+    headline: "ClickFunnels alternative and competitors map for indiepreneurs.",
     summary:
-      "ClickFunnels is the principal target because it frames the online business as a funnel that connects traffic, sales, upsells, courses, community, email, CRM, analytics, and affiliate growth.",
+      "ClickFunnels is the principal target and the main ClickFunnels alternative page for Bumpgrade because it frames the online business as a funnel that connects traffic, sales, upsells, courses, community, email, CRM, analytics, and affiliate growth.",
     alternativePosition:
-      "Bumpgrade should compete by making those same funnel and revenue surfaces inspectable by agents, backed by Cloudflare primitives, and explicit about what is live versus planned.",
+      "Bumpgrade should be the ClickFunnels competitor for publishers who want those same funnel and revenue surfaces to become inspectable by agents, backed by Cloudflare primitives, and explicit about what is live versus planned.",
     sourceId: "source-clickfunnels-home",
     sourceUrl: "https://www.clickfunnels.com/",
+    metaTitle: "ClickFunnels Alternative and Competitors for Indiepreneurs",
+    metaDescription:
+      "A source-grounded ClickFunnels alternative and competitors page for indiepreneurs comparing funnels, checkout, email, courses, CRM, analytics, affiliates, and agent-ready operations.",
+    seoKeywords: [
+      "ClickFunnels alternative",
+      "ClickFunnels alternatives",
+      "ClickFunnels competitors",
+      "ClickFunnels competitor",
+      "sites like ClickFunnels",
+      "funnel builder alternative",
+    ],
+    searchIntent:
+      "Compare ClickFunnels with a planned Cloudflare-first publisher growth OS that keeps funnel, checkout, email, course, CRM, affiliate, analytics, and agent-readiness claims tied to sources and roadmap evidence.",
+    faqs: [
+      {
+        question: "Is Bumpgrade a ClickFunnels alternative today?",
+        answer:
+          "Bumpgrade is an early Cloudflare-first project, so this page marks ClickFunnels-style funnel, checkout, email, course, CRM, analytics, and affiliate capabilities as roadmap targets unless a linked issue or PR shows they have shipped.",
+      },
+      {
+        question: "What makes this ClickFunnels competitors page different?",
+        answer:
+          "The comparison is built from official source notes, Bumpgrade roadmap issues, public source-data, and explicit caveats so agents and humans can see what is sourced, planned, or already live.",
+      },
+    ],
+    deepDive: {
+      title: "How Bumpgrade maps the ClickFunnels competitors category",
+      paragraphs: [
+        "ClickFunnels is the closest reference point because its public product surface combines funnel pages, checkout, upsells, courses, community, store, email, CRM, analytics, payments, affiliate tooling, API, and webhooks into one online-business platform.",
+        "For Bumpgrade, the SEO page is not just a marketing page. It is a product map: each capability cluster should resolve to a roadmap issue, public source data, and eventually a server-side contract that an agent can inspect without scraping private dashboard state.",
+        "That makes the core search promise narrower and more accountable than a generic ClickFunnels alternative claim. Bumpgrade is aiming at the same indiepreneur outcome, while keeping live-versus-planned status visible until each feature has shipped.",
+      ],
+      checklist: [
+        {
+          area: "Funnel and page builder",
+          incumbent:
+            "ClickFunnels presents funnels, a drag-and-drop editor, landing pages, surveys, countdown funnels, content pages, websites, and FunnelHubs as funnel entry points.",
+          bumpgradePlan: "Bumpgrade's funnel and page builder MVP is tracked in #14 and should expose funnel/page records to future agents.",
+        },
+        {
+          area: "Checkout, bumps, and upsells",
+          incumbent:
+            "ClickFunnels positions Smart Checkout around checkout pages and describes sell or upsell stages with order forms, checkout, one-click upsells, one-time offers, and order bumps.",
+          bumpgradePlan: "Bumpgrade has Stripe commerce architecture in #11 and tracks checkout, order bumps, upsells, downsells, and subscriptions in #15.",
+        },
+        {
+          area: "Email, CRM, and automation",
+          incumbent:
+            "ClickFunnels groups CRM, email marketing, automations, message hub, appointments, opportunities, two-way messaging, SMS, and email inside the broader funnel model.",
+          bumpgradePlan: "Bumpgrade tracks email marketing, list growth, CRM-lite, and automations in #17, with source-linked objects rather than disconnected broadcast state.",
+        },
+        {
+          area: "Courses, memberships, and community",
+          incumbent:
+            "ClickFunnels lists courses, membership areas, community groups, email sequences, and repeat-stage product delivery as part of the funnel lifecycle.",
+          bumpgradePlan: "Bumpgrade tracks products, downloads, courses, memberships, access rules, and subscriptions in #16.",
+        },
+        {
+          area: "Optimization, affiliates, and agent contracts",
+          incumbent:
+            "ClickFunnels lists A/B testing, analytics, discounts, payments, affiliate center, API, and webhooks among the platform surface area.",
+          bumpgradePlan: "Bumpgrade tracks analytics and testing in #18, affiliate/referral management in #19, and agent-readable docs, manifests, APIs, and MCP in #12.",
+        },
+      ],
+      relatedLinks: [
+        {
+          label: "SamCart alternative",
+          href: "/compare/samcart-alternative",
+          description: "Checkout-first comparison for buyers focused on order bumps, upsells, subscriptions, and payment flow.",
+        },
+        {
+          label: "Kit alternative",
+          href: "/compare/kit-alternative",
+          description: "Email-first comparison for buyers focused on newsletters, automations, and creator audience workflows.",
+        },
+        {
+          label: "Bumpgrade roadmap",
+          href: "/roadmap",
+          description: "The public status map that separates shipped Cloudflare foundation work from planned parity features.",
+        },
+        {
+          label: "Developers and agents",
+          href: "/developers-and-agents",
+          description: "The agent-readiness surface for source evidence, APIs, public manifests, and future MCP contracts.",
+        },
+      ],
+    },
     evidence: [
       "Official site lists funnels, ClickFunnels editor, smart checkout, A/B testing, landing pages, courses, community, store, email, automations, analytics, payments, and affiliate center.",
       "The homepage describes the funnel mindset across attract, sell, upsell, ascend, and repeat stages.",

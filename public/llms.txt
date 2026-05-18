@@ -61,6 +61,10 @@ Add public agent docs here as they ship:
 - Comparison pages are source-linked snapshots. Refresh source URLs before using
   dated pricing, packaging, or feature-availability claims in a user-facing
   answer.
+- `/compare/source-data` exposes SEO target records for "ClickFunnels
+  alternative", "ClickFunnels competitors", and adjacent indiepreneur platform
+  comparison intent. Treat those as routing/search-intent metadata, not proof
+  that planned Bumpgrade parity features have shipped.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.

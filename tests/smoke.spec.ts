@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
-import { competitors } from "../src/lib/comparison-data";
+import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
@@ -10,7 +10,7 @@ import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandb
 const routes = [
   { path: "/", heading: "Funnels, checkout, commerce, and agents" },
   { path: "/features", heading: "Aspirational feature catalog" },
-  { path: "/compare", heading: "Compare Bumpgrade against indiepreneur platforms" },
+  { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Agent-readable contracts" },
@@ -83,6 +83,68 @@ test.describe("Bumpgrade scaffold", () => {
     for (const competitor of competitors) {
       await expect(page.getByRole("link", { name: new RegExp(`${competitor.name} alternative`, "i") })).toBeVisible();
     }
+  });
+
+  test("comparison SEO metadata and source data target ClickFunnels queries", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "SEO metadata is checked once on desktop.");
+
+    await page.goto("/compare");
+    await expect(page).toHaveTitle(/ClickFunnels Alternatives and Competitors/i);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /ClickFunnels alternatives and competitors/i);
+    await expect(page.getByText("ClickFunnels competitors")).toBeVisible();
+
+    await page.goto("/compare/clickfunnels-alternative");
+    await expect(page).toHaveTitle(/ClickFunnels Alternative and Competitors for Indiepreneurs/i);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /ClickFunnels alternative and competitors page/i);
+    await expect(page.getByRole("heading", { name: /ClickFunnels alternative and competitors map/i })).toBeVisible();
+    await expect(page.getByText("ClickFunnels competitors")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /How Bumpgrade maps the ClickFunnels competitors category/i })).toBeVisible();
+
+    const response = await request.get("/compare/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.seoTargets).toHaveLength(comparisonSeoTargets.length);
+    expect(payload.seoTargets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "seo-clickfunnels-alternative",
+          primaryKeyword: "ClickFunnels alternative",
+          route: "/compare/clickfunnels-alternative",
+        }),
+        expect.objectContaining({
+          id: "seo-clickfunnels-competitors",
+          primaryKeyword: "ClickFunnels competitors",
+          route: "/compare/clickfunnels-alternative",
+        }),
+      ]),
+    );
+    expect(payload.competitors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "competitor-clickfunnels",
+          seoKeywords: expect.arrayContaining(["ClickFunnels alternative", "ClickFunnels competitors"]),
+          deepDive: expect.objectContaining({
+            title: "How Bumpgrade maps the ClickFunnels competitors category",
+          }),
+        }),
+      ]),
+    );
+  });
+
+  test("sitemap and robots keep comparison routes crawlable", async ({ request }) => {
+    const sitemap = await request.get("/sitemap.xml");
+    expect(sitemap.ok()).toBeTruthy();
+    const sitemapXml = await sitemap.text();
+    expect(sitemapXml).toContain("https://bumpgrade.com/compare");
+    expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
+    expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
+
+    const robots = await request.get("/robots.txt");
+    expect(robots.ok()).toBeTruthy();
+    const robotsTxt = await robots.text();
+    expect(robotsTxt).toContain("Allow: /");
+    expect(robotsTxt).toContain("Disallow: /admin/");
+    expect(robotsTxt).toContain("Sitemap: https://bumpgrade.com/sitemap.xml");
   });
 
   test("feature source data exposes stable feature records", async ({ request }) => {
