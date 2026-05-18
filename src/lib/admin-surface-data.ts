@@ -266,6 +266,42 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     sortOrder: 35,
     updatedAt: null,
   },
+  {
+    id: "journey-publisher-plans-first-checkout",
+    title: "Publisher plans the first paid offer",
+    featureId: "feature-stripe-commerce",
+    featureStatus: "live",
+    issueNumbers: [11, 33, 15, 16],
+    primaryUser: "Publisher preparing to sell a digital offer",
+    userGoal: "Understand what Bumpgrade must know before it can create a Stripe checkout session safely.",
+    sourceEvidence: [
+      "https://bumpgrade.com/features",
+      "https://bumpgrade.com/roadmap",
+      "https://github.com/markitics/bumpgrade/issues/11",
+      "https://github.com/markitics/bumpgrade/issues/34",
+    ],
+    happyPath: [
+      "Create or identify a commerce product record.",
+      "Attach a price record with currency, amount, interval, and optional Stripe Price id.",
+      "Create a checkout intent with an idempotency key and audit correlation id.",
+      "Use sandbox Stripe Checkout first.",
+      "Let the webhook update intent, subscription, and audit state before public fulfillment is trusted.",
+    ],
+    edgeCases: [
+      "Live mode is not the default; live rollout needs an explicit later issue.",
+      "Agent-started checkout requires exact confirmation and an audit record before Stripe is called.",
+      "Webhook payloads must be redacted before model-readable surfaces expose them.",
+      "Raw card data never enters Bumpgrade.",
+    ],
+    agentAccess:
+      "Agents may read the architecture, product, price, checkout-intent, and redacted webhook records once exposed. Agents must not create checkout sessions without confirmed-write rules, idempotency, audit correlation, and stale-state checks.",
+    validation: [
+      "Issue #11 defines the D1 data model and secret plan.",
+      "Issue #34 tracks the first sandbox route and webhook ingestion implementation.",
+    ],
+    sortOrder: 45,
+    updatedAt: null,
+  },
 ];
 
 const fallbackAttentionItems: MarkAttentionItem[] = [

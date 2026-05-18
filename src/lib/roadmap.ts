@@ -145,13 +145,19 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-stripe-commerce",
     title: "Stripe payments and checkout architecture",
-    status: "next",
+    status: "shipped",
     issue: 11,
     featureId: featureIdFor(11),
     group: "Payments",
-    summary: "Stripe product/price mapping, checkout architecture, webhook idempotency, and billing-safe agent rules.",
-    publicEvidence: ["Tracked by issue #11."],
-    nextMilestone: "Copy only required Stripe values into safe secrets and document billing-impacting write boundaries.",
+    summary:
+      "Stripe mode-specific secrets are stored in Cloudflare, Checkout Sessions are the first payment surface, and D1 commerce/audit tables are defined before live payment code.",
+    publicEvidence: [
+      "Issue #11 owns this Stripe architecture slice.",
+      "Cloudflare now stores mode-specific Stripe secret names without repo secret values.",
+      "D1 tables define products, prices, checkout intents, subscriptions, webhook idempotency, and payment audit events.",
+      "Issue #34 owns the first sandbox checkout and webhook implementation.",
+    ],
+    nextMilestone: "Build sandbox-only Checkout Session and webhook ingestion path in #34 before enabling live payments.",
   },
   {
     id: "roadmap-agent-contracts",
@@ -195,7 +201,8 @@ export const roadmapItems: RoadmapItem[] = [
     group: "Checkout and offers",
     summary: "Stripe-backed checkout flows, order bumps, upsells, downsells, subscriptions, coupons, and audit trails.",
     publicEvidence: ["Tracked by issue #15.", "Depends on Stripe architecture in #11."],
-    nextMilestone: "Ship the first safe checkout path with explicit billing audit records.",
+    nextMilestone:
+      "Use the #11 commerce tables and #34 sandbox checkout route before adding order bumps, upsells, or downsells.",
   },
   {
     id: "roadmap-products-access",

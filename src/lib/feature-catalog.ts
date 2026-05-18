@@ -304,20 +304,26 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-stripe-commerce",
     title: "Stripe payments and checkout architecture",
     group: "Payments",
-    status: "pending",
+    status: "live",
     issue: 11,
     summary:
-      "Stripe account configuration, product/price mapping, checkout sessions, webhooks, subscriptions, and billing event safety.",
+      "Stripe SDK, mode-specific secret mapping, Checkout-first architecture, D1 commerce tables, and billing-safe agent rules. No live customer checkout is enabled yet.",
     audience: "Publishers selling products, courses, memberships, coaching, or services.",
     expectedCapabilities: [
-      "Stripe Checkout or PaymentIntent architecture decision.",
-      "Webhook ingestion and event idempotency.",
-      "Subscriptions, trials, upgrades, downgrades, and cancellations.",
+      "Stripe-hosted Checkout Sessions as the first payment surface.",
+      "D1 product, price, checkout-intent, subscription, webhook, and audit records.",
+      "Webhook ingestion and event idempotency before fulfillment is trusted.",
+      "Subscriptions, trials, upgrades, downgrades, and cancellations after the sandbox path works.",
       "Redacted payment metadata for admin and agent reads.",
     ],
-    evidence: ["Tracked by issue #11."],
+    evidence: [
+      "Tracked by issue #11.",
+      "Issue #11 stores mode-specific Stripe values as Cloudflare secrets without repo secret values.",
+      "`/commerce/source-data` exposes the redacted commerce contract.",
+      "Issue #34 owns the first sandbox Checkout Session and webhook ingestion route.",
+    ],
     agentContract:
-      "Agents must never expose raw payment identifiers, secrets, customer private data, or billing-impacting mutations without confirmed-write rules.",
+      "Agents can read public-safe commerce contracts, but checkout, refund, subscription, payout, and billing mutations require confirmed-write rules.",
   },
   {
     id: "feature-mobile-admin",

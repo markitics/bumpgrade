@@ -13,6 +13,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Feature source data: https://bumpgrade.com/features/source-data
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
+- Commerce source data: https://bumpgrade.com/commerce/source-data
 - Login and signup: https://bumpgrade.com/login
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
@@ -40,6 +41,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 Add public agent docs here as they ship:
 
 - https://bumpgrade.com/agent-docs/bumpgrade-agent-surface
+- https://bumpgrade.com/agent-docs/bumpgrade-commerce-contract
 - https://bumpgrade.com/agent-docs/bumpgrade-source-evidence
 - https://bumpgrade.com/agent-docs/bumpgrade-mcp
 
@@ -60,6 +62,10 @@ Add public agent docs here as they ship:
 - Human admin pages are protected by Better Auth owner sessions. Public-safe
   `/admin/*/source-data` routes remain readable for agents and must not contain
   private notes, secrets, raw provider ids, or private user data.
+- Stripe commerce architecture is documented in `docs/features/payments.md`.
+  Bumpgrade defaults to sandbox mode; agents must not start billing-impacting
+  checkout work without explicit confirmation, idempotency, audit correlation,
+  stale-state checks, and webhook evidence.
 - Secrets, bearer tokens, storage keys, private database ids, private user data,
   and provider credentials must not be passed as prompt-visible tool input.
 
@@ -73,7 +79,8 @@ Keep this section synchronized with `/admin/roadmap`.
 - Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
 - Better Auth publisher accounts and owner-gated private admin pages.
 - Competitor research and comparison-claim read access.
-- Funnel, offer, checkout, product, and pricing-plan read access.
+- Funnel, offer, checkout, product, and pricing-plan read access backed by
+  redacted D1 commerce records.
 - Source evidence resolution by stable source id.
 - MCP resources and tools for repeated agent workflows.
 
