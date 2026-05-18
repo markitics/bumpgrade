@@ -101,6 +101,16 @@ Issue #9 added the first Better Auth foundation:
 - Browser-rendered admin pages require an allowlisted Better Auth owner session.
 - Public-safe `/admin/*/source-data` routes remain readable by agents and must
   not contain secrets, private notes, raw provider ids, or private user data.
+- Account verification emails use the Cloudflare `EMAIL` Worker binding through
+  `src/lib/email.ts`.
+- Signed-in resends are handled before Better Auth's generic endpoint so
+  provider failures return to the browser. The route is
+  `POST /api/auth/send-verification-email`.
+- Last successful owner confirmation sends are exposed to the signed-in user at
+  `/api/account/email-verification/status` and stored in D1 table
+  `account_verification_emails`.
+- The owner resend UX uses a 120 second cooldown and links Mark to a Gmail
+  search for `codex@bumpgrade.com` with the confirmation subject.
 
 Required production configuration:
 

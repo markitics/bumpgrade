@@ -272,11 +272,13 @@ export const featureCatalog: FeatureRecord[] = [
       "Email/password auth flow.",
       "D1-backed auth tables.",
       "Protected admin and publisher routes.",
+      "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
       "Role and permission model for future agent actions.",
     ],
     evidence: [
       "Issue #9 owns the Better Auth foundation slice.",
       "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
+      "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
     ],
     agentContract:
       "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface.",
