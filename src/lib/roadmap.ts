@@ -202,13 +202,17 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-funnels",
     title: "Funnel and page builder MVP",
-    status: "planned",
+    status: "active",
     issue: 14,
     featureId: featureIdFor(14),
     group: "Funnels and pages",
-    summary: "Multi-step funnels, reusable blocks, templates, publishing, and safe draft proposals.",
-    publicEvidence: ["Tracked by issue #14."],
-    nextMilestone: "Define funnel/page schema and build the first editable funnel workflow.",
+    summary:
+      "Multi-step funnel model, source-data contract, read-only preview scaffold, reusable blocks, templates, publishing, and safe draft proposals.",
+    publicEvidence: [
+      "Tracked by issue #14.",
+      "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
+    ],
+    nextMilestone: "Build the first authenticated create/edit draft workflow on top of the read-only funnel contract.",
   },
   {
     id: "roadmap-checkout-offers",
