@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+import { competitors } from "../src/lib/comparison-data";
+
 const routes = [
   { path: "/", heading: "Funnels, checkout, commerce, and agents" },
   { path: "/features", heading: "Aspirational feature catalog" },
-  { path: "/compare", heading: "Shopify-style comparison hub" },
+  { path: "/compare", heading: "Compare Bumpgrade against indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Agent-readable contracts" },
@@ -17,13 +19,25 @@ const routes = [
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Public agent surface" },
 ];
 
+const compareRoutes = competitors.map((competitor) => ({
+  path: `/compare/${competitor.slug}`,
+  heading: competitor.headline,
+}));
+
 test.describe("Bumpgrade scaffold", () => {
-  for (const route of routes) {
+  for (const route of [...routes, ...compareRoutes]) {
     test(`renders ${route.path}`, async ({ page }) => {
       await page.goto(route.path);
       await expect(page.getByRole("heading", { name: new RegExp(route.heading, "i") })).toBeVisible();
     });
   }
+
+  test("comparison hub links to every first-wave alternative", async ({ page }) => {
+    await page.goto("/compare");
+    for (const competitor of competitors) {
+      await expect(page.getByRole("link", { name: new RegExp(`${competitor.name} alternative`, "i") })).toBeVisible();
+    }
+  });
 
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Desktop nav is hidden on the mobile project.");

@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 
+import { comparisonRoutes } from "@/lib/comparison-data";
 import { scaffoldRoutes, site } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-05-18T00:00:00.000Z");
-  return ["", ...scaffoldRoutes].map((path) => ({
+  return ["", ...scaffoldRoutes, ...comparisonRoutes, "/compare/source-data"].map((path) => ({
     url: `${site.url}${path}`,
     lastModified,
     changeFrequency: path === "" ? "weekly" : "daily",
