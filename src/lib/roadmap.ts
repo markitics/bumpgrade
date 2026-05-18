@@ -217,14 +217,19 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-checkout-offers",
     title: "Checkout, order bump, upsell, and downsell MVP",
-    status: "planned",
+    status: "active",
     issue: 15,
     featureId: featureIdFor(15),
     group: "Checkout and offers",
-    summary: "Stripe-backed checkout flows, order bumps, upsells, downsells, subscriptions, coupons, and audit trails.",
-    publicEvidence: ["Tracked by issue #15.", "Depends on Stripe architecture in #11."],
+    summary:
+      "Stripe-backed checkout flows, read-only offer-stack contract, order bumps, upsells, downsells, subscriptions, coupons, and audit trails.",
+    publicEvidence: [
+      "Tracked by issue #15.",
+      "Depends on Stripe architecture in #11.",
+      "Issue #81 adds the first `/offers/source-data` contract and `/offers/indie-launch-stack` preview scaffold.",
+    ],
     nextMilestone:
-      "Use the #11 commerce tables and #34 sandbox checkout route before adding order bumps, upsells, or downsells.",
+      "Build the first confirmed sandbox checkout flow that can include an approved order bump while preserving billing audit evidence.",
   },
   {
     id: "roadmap-products-access",

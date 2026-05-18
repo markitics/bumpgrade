@@ -196,6 +196,17 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Funnel writes, publishing, checkout linking, and agent edits require future confirmed-write APIs.",
   },
   {
+    id: "read-checkout-offer-stack",
+    title: "Checkout offer source data",
+    route: "/offers/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/checkout-offers.ts",
+    stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId", "agentActionId"],
+    safeForAgents: ["Read seeded checkout offer stack", "Inspect bump and upsell sequence", "Inspect billing write boundaries"],
+    writeBoundary: "Offer, bump, upsell, downsell, fulfillment, and billing writes require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -288,6 +299,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     volatileClaims: "The funnel contract is read-only preview evidence; it is not a live builder, publishing system, or checkout integration.",
   },
   {
+    id: "evidence-checkout-offers",
+    route: "/offers/source-data",
+    resolves: "Seeded checkout offer stack, primary offer, order bump, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
+    stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId"],
+    volatileClaims:
+      "The checkout-offer contract is read-only preview evidence; it is not live billing, one-click upsell charging, fulfillment, or order-bump mutation.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -360,6 +379,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/funnels/source-data",
     purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, and write-safety boundaries.",
     safetyBoundary: "Read-only; create, update, publish, checkout-link, and agent-edit tools require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-checkout-offers",
+    resourceOrTool: "resource bumpgrade://checkout-offers",
+    status: "ready-contract",
+    backedBy: "/offers/source-data",
+    purpose: "Expose seeded checkout offer stack, primary offer, order bump, upsell, downsell, revision IDs, and billing boundaries.",
+    safetyBoundary: "Read-only; offer writes, Stripe mutations, fulfillment, and post-purchase charges require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

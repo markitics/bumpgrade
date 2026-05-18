@@ -423,6 +423,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-checkout-offer-stack",
+    title: "Publisher previews checkout bump and upsell stack",
+    featureId: "feature-checkout-offers",
+    featureStatus: "pending",
+    issueNumbers: [15, 81],
+    primaryUser: "Publisher or agent planning checkout revenue lifts",
+    userGoal: "Inspect the primary offer, order bump, upsell, and downsell path before billing writes are enabled.",
+    sourceEvidence: [
+      "https://bumpgrade.com/offers/source-data",
+      "https://bumpgrade.com/offers/indie-launch-stack",
+      "https://bumpgrade.com/commerce/source-data",
+      "https://github.com/markitics/bumpgrade/issues/15",
+      "https://github.com/markitics/bumpgrade/issues/81",
+    ],
+    happyPath: [
+      "Fetch /offers/source-data.",
+      "Find the seeded checkout stack, revision ID, primary offer, order bump, upsell, downsell, and write boundary.",
+      "Open /offers/indie-launch-stack to inspect the public preview.",
+      "Use /commerce/source-data to confirm sandbox checkout and webhook rules before assuming a billing path exists.",
+    ],
+    edgeCases: [
+      "The seeded checkout offer stack is read-only and not a live checkout builder.",
+      "Order bump mutation, one-click upsell charging, fulfillment, and live billing require future confirmed-write APIs.",
+      "Raw Stripe identifiers and private buyer data stay server-private.",
+    ],
+    agentAccess:
+      "Agents can read /offers/source-data and the preview route. Checkout-offer writes require actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and webhook evidence in a later API.",
+    validation: [
+      "Playwright covers /offers/source-data, /offers/indie-launch-stack, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #81 records the first checkout-offer source-data contract and preview scaffold.",
+    ],
+    sortOrder: 48,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

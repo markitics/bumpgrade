@@ -5,6 +5,7 @@ import { agentManifest } from "../src/lib/agent-manifest";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { commerceTables } from "../src/lib/commerce";
+import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
@@ -23,6 +24,7 @@ const routes = [
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing direction" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
+  { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -155,6 +157,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/indie-launch-sandbox");
+    expect(sitemapXml).toContain("https://bumpgrade.com/offers/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/offers/indie-launch-stack");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -250,6 +254,57 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("#warm-list-opt-in")).toContainText("Warm list opt-in");
     await expect(page.locator("#offer-sales-page")).toContainText("Offer sales page");
     await expect(page.locator("#thank-you-delivery")).toContainText("Thank-you and delivery");
+  });
+
+  test("checkout offer source data exposes a primary offer, bump, upsell, and downsell", async ({ request, page }) => {
+    const response = await request.get("/offers/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: checkoutOfferSourceData.id,
+        status: "read-contract-ready",
+        issue: 81,
+        parentIssue: 15,
+      }),
+    );
+    expect(payload.routes).toEqual(expect.arrayContaining(["/offers/source-data", "/offers/indie-launch-stack"]));
+    expect(payload.sandboxCheckout).toEqual(
+      expect.objectContaining({
+        endpoint: "/api/commerce/checkout",
+        confirmationRequired: true,
+        rawStripeIdsIncluded: false,
+        liveModeEnabled: false,
+      }),
+    );
+    expect(payload.stacks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: checkoutOfferStack.id,
+          slug: checkoutOfferStack.slug,
+          revisionId: checkoutOfferStack.revisionId,
+          primaryOffer: expect.objectContaining({ id: "offer-primary-sandbox-launch-pass", kind: "primary" }),
+          orderBumps: expect.arrayContaining([
+            expect.objectContaining({ id: "offer-bump-launch-checklist", kind: "order_bump" }),
+          ]),
+          postPurchasePath: expect.objectContaining({
+            offers: expect.arrayContaining([
+              expect.objectContaining({ id: "offer-upsell-launch-accelerator", kind: "upsell" }),
+              expect.objectContaining({ id: "offer-downsell-launch-review", kind: "downsell" }),
+            ]),
+          }),
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Issue #81 is read-only");
+    expect(payload.caveat).toContain("does not enable live billing");
+
+    await page.goto("/offers/indie-launch-stack");
+    await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Primary offer, order bump, upsell, and downsell/i })).toBeVisible();
+    await expect(page.getByText("Launch checklist bump")).toBeVisible();
+    await expect(page.getByText("Launch accelerator upsell")).toBeVisible();
+    await expect(page.getByText("Launch review downsell")).toBeVisible();
   });
 
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
@@ -382,6 +437,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.mcpPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mcp-resource-features", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-checkout-offers", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -392,6 +448,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-funnel-contract", route: "/funnels/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),

@@ -137,12 +137,17 @@ export const featureCatalog: FeatureRecord[] = [
       "Stripe-backed checkout flows with offer ladders, bumps, one-click upsells, downsells, subscriptions, and audit trails.",
     audience: "Sellers who care about average order value, conversion rate, and billing safety.",
     expectedCapabilities: [
+      "Read-only checkout offer source data and preview route from issue #81.",
       "Checkout pages and embeddable checkout entry points.",
       "Order bumps, upsells, downsells, coupons, and subscription offers.",
       "Customer portal and billing-safe state transitions.",
       "Payment and offer change audit logs.",
     ],
-    evidence: ["Tracked by issue #15.", "Stripe architecture tracked by issue #11."],
+    evidence: [
+      "Tracked by issue #15.",
+      "Stripe architecture tracked by issue #11.",
+      "Issue #81 adds `/offers/source-data` and `/offers/indie-launch-stack` as the first read-only checkout-offer contract and preview scaffold.",
+    ],
     agentContract:
       "Billing-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
   },
