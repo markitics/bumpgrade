@@ -19,7 +19,7 @@ check before changing Bumpgrade infrastructure.
 Issue #10 configures Bumpgrade project email for shipped PR notices and Mark
 reply monitoring.
 
-- Default sender: `Codex <codex@bumpgrade.com>`.
+- Default sender: `Bumpgrade Codex <codex@bumpgrade.com>`.
 - Default shipped-notice recipient: `m@rkmoriarty.com`.
 - Cloudflare Email Routing status checked on May 18, 2026: `ready`.
 - Cloudflare Email Routing destination for Mark is verified as

@@ -7,7 +7,7 @@ import path from "node:path";
 const defaultAccountId = "a139381edda59e39115f93920d1569fd";
 const defaultTo = "m@rkmoriarty.com";
 const defaultFrom = "codex@bumpgrade.com";
-const defaultFromName = "Codex";
+const defaultFromName = "Bumpgrade Codex";
 
 function usage() {
   console.log("Usage: npm run codex:email-pr -- --pr <number> [--version <worker-version>] [--dry-run]");
@@ -206,7 +206,7 @@ const email = makeEmail({ pr, version: args.version, summaries: args.summaries }
 const id = `codex-outbound-pr-${pr.number}-${Date.now()}`;
 
 if (args.dryRun) {
-  console.log(JSON.stringify({ id, from: args.from, to: args.to, subject: email.subject }, null, 2));
+  console.log(JSON.stringify({ id, from: args.from, fromName: args.fromName, to: args.to, subject: email.subject }, null, 2));
   process.exit(0);
 }
 
