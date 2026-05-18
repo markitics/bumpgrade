@@ -271,7 +271,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",
     featureStatus: "live",
-    issueNumbers: [11, 33, 15, 16],
+    issueNumbers: [11, 34, 15, 16],
     primaryUser: "Publisher preparing to sell a digital offer",
     userGoal: "Understand what Bumpgrade must know before it can create a Stripe checkout session safely.",
     sourceEvidence: [

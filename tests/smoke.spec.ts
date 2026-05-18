@@ -114,6 +114,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           featureId: "feature-stripe-commerce",
+          issueNumbers: [11, 34, 15, 16],
         }),
       ]),
     );
