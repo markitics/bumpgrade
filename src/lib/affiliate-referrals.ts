@@ -1,0 +1,360 @@
+export type AffiliateProgramStatus = "draft";
+export type AffiliatePartnerStatus = "approved" | "review";
+export type ReferralLinkStatus = "draft" | "review";
+export type AttributionModel = "first_click" | "last_click" | "manual_review";
+export type CommissionKind = "percentage" | "fixed" | "holdback";
+export type CommissionLedgerStatus = "approved_pending_payout" | "review_required" | "reversed";
+export type PayoutBatchStatus = "review_required";
+export type ReviewFlagSeverity = "low" | "medium" | "high";
+
+export type AttributionRule = {
+  id: string;
+  model: AttributionModel;
+  title: string;
+  windowDays: number;
+  priority: number;
+  appliesTo: string[];
+  caveat: string;
+};
+
+export type CommissionRule = {
+  id: string;
+  kind: CommissionKind;
+  title: string;
+  appliesToOfferIds: string[];
+  rateBps?: number;
+  amountCents?: number;
+  holdDays: number;
+  currency: "USD";
+  caveat: string;
+};
+
+export type AffiliatePartner = {
+  id: string;
+  displayName: string;
+  status: AffiliatePartnerStatus;
+  publicProfile: string;
+  approvedProgramIds: string[];
+  referralLinkIds: string[];
+  privateDataExcluded: string[];
+};
+
+export type ReferralLink = {
+  id: string;
+  code: string;
+  status: ReferralLinkStatus;
+  partnerId: string;
+  destinationRoute: string;
+  attributionRuleId: string;
+  linkedOfferIds: string[];
+  utmSource: string;
+  publicUrlPattern: string;
+};
+
+export type CommissionLedgerFixture = {
+  id: string;
+  status: CommissionLedgerStatus;
+  referralLinkId: string;
+  commissionRuleId: string;
+  sourceEventId: string;
+  linkedCheckoutIntentId: string;
+  grossSaleCents: number;
+  commissionCents: number;
+  currency: "USD";
+  reason: string;
+};
+
+export type PayoutBatchFixture = {
+  id: string;
+  status: PayoutBatchStatus;
+  ledgerIds: string[];
+  totalCommissionCents: number;
+  currency: "USD";
+  reviewBeforePayout: string[];
+};
+
+export type ReviewFlag = {
+  id: string;
+  severity: ReviewFlagSeverity;
+  title: string;
+  linkedLedgerIds: string[];
+  reason: string;
+  requiredAction: string;
+};
+
+export type AffiliateAuditEvent = {
+  id: string;
+  actor: "system" | "agent" | "owner";
+  action: string;
+  targetId: string;
+  evidence: string;
+  redaction: string;
+};
+
+export type AffiliateProgram = {
+  id: string;
+  slug: string;
+  title: string;
+  status: AffiliateProgramStatus;
+  issue: number;
+  parentIssue: number;
+  sourceDataRoute: string;
+  previewRoute: string;
+  linkedFunnelRoute: string;
+  linkedOfferRoute: string;
+  linkedAnalyticsRoute: string;
+  revisionId: string;
+  summary: string;
+  attributionRules: AttributionRule[];
+  commissionRules: CommissionRule[];
+  partners: AffiliatePartner[];
+  referralLinks: ReferralLink[];
+  commissionLedger: CommissionLedgerFixture[];
+  payoutBatches: PayoutBatchFixture[];
+  reviewFlags: ReviewFlag[];
+  auditEvents: AffiliateAuditEvent[];
+  writeBoundary: string;
+  validation: string[];
+};
+
+export const affiliateReferralsUpdatedAt = "2026-05-18";
+
+export const affiliateProgram: AffiliateProgram = {
+  id: "affiliate-program-indie-launch-partners",
+  slug: "indie-launch-partners",
+  title: "Indie launch partner program preview",
+  status: "draft",
+  issue: 89,
+  parentIssue: 19,
+  sourceDataRoute: "/affiliates/source-data",
+  previewRoute: "/affiliates/indie-launch-partners",
+  linkedFunnelRoute: "/funnels/indie-launch-sandbox",
+  linkedOfferRoute: "/offers/indie-launch-stack",
+  linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
+  revisionId: "affiliate-program-revision-indie-launch-2026-05-18",
+  summary:
+    "A read-only affiliate and referral scaffold for partner links, attribution windows, commission rules, review flags, payout readiness, and audit-safe agent access before live tracking exists.",
+  attributionRules: [
+    {
+      id: "attribution-rule-first-click-30",
+      model: "first_click",
+      title: "First click, 30-day window",
+      windowDays: 30,
+      priority: 1,
+      appliesTo: ["ref-link-launch-circle-waitlist", "ref-link-template-partner-sales"],
+      caveat: "Preview rule only. Future live use requires consent-safe click capture, bot filtering, and replay-safe attribution writes.",
+    },
+    {
+      id: "attribution-rule-manual-review",
+      model: "manual_review",
+      title: "Manual review for self-referral or refund edge cases",
+      windowDays: 0,
+      priority: 99,
+      appliesTo: ["commission-ledger-refund-reversal", "commission-ledger-self-referral-review"],
+      caveat: "Review flags block payout until an owner confirms the decision and audit note.",
+    },
+  ],
+  commissionRules: [
+    {
+      id: "commission-rule-launch-pass-30",
+      kind: "percentage",
+      title: "Launch pass partner commission",
+      appliesToOfferIds: ["offer-primary-sandbox-launch-pass"],
+      rateBps: 3000,
+      holdDays: 14,
+      currency: "USD",
+      caveat: "Percentage is fixture data, not a live payable promise or published affiliate term.",
+    },
+    {
+      id: "commission-rule-checklist-bump-10",
+      kind: "percentage",
+      title: "Checklist order-bump commission",
+      appliesToOfferIds: ["offer-bump-launch-checklist"],
+      rateBps: 1000,
+      holdDays: 14,
+      currency: "USD",
+      caveat: "Order-bump commission is draft until checkout, refund, and tax behavior are finalized.",
+    },
+    {
+      id: "commission-rule-refund-holdback",
+      kind: "holdback",
+      title: "Refund and dispute holdback",
+      appliesToOfferIds: ["offer-primary-sandbox-launch-pass", "offer-bump-launch-checklist"],
+      amountCents: 0,
+      holdDays: 30,
+      currency: "USD",
+      caveat: "Holdback records are fixture controls only; payout-impacting holds require owner confirmation later.",
+    },
+  ],
+  partners: [
+    {
+      id: "affiliate-partner-launch-circle",
+      displayName: "Launch Circle partner",
+      status: "approved",
+      publicProfile: "Newsletter partner with an aligned creator and indie-launch audience.",
+      approvedProgramIds: ["affiliate-program-indie-launch-partners"],
+      referralLinkIds: ["ref-link-launch-circle-waitlist"],
+      privateDataExcluded: ["email address", "tax form", "bank account", "payout account", "private notes"],
+    },
+    {
+      id: "affiliate-partner-template-studio",
+      displayName: "Template Studio partner",
+      status: "review",
+      publicProfile: "Template seller pending affiliate approval before public links or payout eligibility.",
+      approvedProgramIds: [],
+      referralLinkIds: ["ref-link-template-partner-sales"],
+      privateDataExcluded: ["email address", "W-9/W-8 details", "payment rail", "private fraud notes"],
+    },
+  ],
+  referralLinks: [
+    {
+      id: "ref-link-launch-circle-waitlist",
+      code: "LAUNCHCIRCLE",
+      status: "draft",
+      partnerId: "affiliate-partner-launch-circle",
+      destinationRoute: "/funnels/indie-launch-sandbox",
+      attributionRuleId: "attribution-rule-first-click-30",
+      linkedOfferIds: ["offer-primary-sandbox-launch-pass", "offer-bump-launch-checklist"],
+      utmSource: "affiliate-launch-circle",
+      publicUrlPattern: "https://bumpgrade.com/r/LAUNCHCIRCLE",
+    },
+    {
+      id: "ref-link-template-partner-sales",
+      code: "TEMPLATESTUDIO",
+      status: "review",
+      partnerId: "affiliate-partner-template-studio",
+      destinationRoute: "/offers/indie-launch-stack",
+      attributionRuleId: "attribution-rule-manual-review",
+      linkedOfferIds: ["offer-primary-sandbox-launch-pass"],
+      utmSource: "affiliate-template-studio",
+      publicUrlPattern: "https://bumpgrade.com/r/TEMPLATESTUDIO",
+    },
+  ],
+  commissionLedger: [
+    {
+      id: "commission-ledger-launch-pass-fixture",
+      status: "approved_pending_payout",
+      referralLinkId: "ref-link-launch-circle-waitlist",
+      commissionRuleId: "commission-rule-launch-pass-30",
+      sourceEventId: "event-purchase-completed",
+      linkedCheckoutIntentId: "checkout-intent-fixture-affiliate-launch-pass",
+      grossSaleCents: 9000,
+      commissionCents: 2700,
+      currency: "USD",
+      reason: "Fixture paid checkout attributed to the Launch Circle partner inside the 30-day window.",
+    },
+    {
+      id: "commission-ledger-self-referral-review",
+      status: "review_required",
+      referralLinkId: "ref-link-template-partner-sales",
+      commissionRuleId: "commission-rule-launch-pass-30",
+      sourceEventId: "event-purchase-completed",
+      linkedCheckoutIntentId: "checkout-intent-fixture-self-referral",
+      grossSaleCents: 9000,
+      commissionCents: 2700,
+      currency: "USD",
+      reason: "Fixture self-referral pattern requires owner review before payout eligibility.",
+    },
+    {
+      id: "commission-ledger-refund-reversal",
+      status: "reversed",
+      referralLinkId: "ref-link-launch-circle-waitlist",
+      commissionRuleId: "commission-rule-refund-holdback",
+      sourceEventId: "event-refund-fixture",
+      linkedCheckoutIntentId: "checkout-intent-fixture-refund",
+      grossSaleCents: 9000,
+      commissionCents: 0,
+      currency: "USD",
+      reason: "Fixture refund reversed commission before payout batch creation.",
+    },
+  ],
+  payoutBatches: [
+    {
+      id: "payout-batch-indie-launch-may-preview",
+      status: "review_required",
+      ledgerIds: ["commission-ledger-launch-pass-fixture", "commission-ledger-self-referral-review"],
+      totalCommissionCents: 2700,
+      currency: "USD",
+      reviewBeforePayout: [
+        "Confirm refund window has elapsed.",
+        "Resolve self-referral review flag.",
+        "Confirm partner payout account outside public source data.",
+      ],
+    },
+  ],
+  reviewFlags: [
+    {
+      id: "review-flag-self-referral",
+      severity: "high",
+      title: "Possible self-referral",
+      linkedLedgerIds: ["commission-ledger-self-referral-review"],
+      reason: "Fixture buyer and partner signals would need private, redacted comparison before payout.",
+      requiredAction: "Owner must approve or reject the commission with an audit note before payout.",
+    },
+    {
+      id: "review-flag-refund-window",
+      severity: "medium",
+      title: "Refund window still open",
+      linkedLedgerIds: ["commission-ledger-launch-pass-fixture"],
+      reason: "Approved commission remains pending while the refund/dispute window is still open.",
+      requiredAction: "Hold payout until webhook evidence proves the window has elapsed.",
+    },
+  ],
+  auditEvents: [
+    {
+      id: "affiliate-audit-referral-link-created",
+      actor: "agent",
+      action: "proposed_referral_link",
+      targetId: "ref-link-launch-circle-waitlist",
+      evidence: "Draft source-data fixture created from issue #89.",
+      redaction: "No real partner email, tax, bank, IP, cookie, buyer, or Stripe customer data included.",
+    },
+    {
+      id: "affiliate-audit-commission-reviewed",
+      actor: "system",
+      action: "flagged_commission_for_review",
+      targetId: "commission-ledger-self-referral-review",
+      evidence: "Fixture review rule matched self-referral pattern.",
+      redaction: "Private comparison inputs are not present in public source data.",
+    },
+  ],
+  writeBoundary:
+    "Issue #89 is read-only. Live referral click capture, cookie assignment, buyer attribution, commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, and partner notifications require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, private-data redaction, refund-window checks, and owner review before payout.",
+  validation: [
+    "/affiliates/source-data returns seeded programs, partners, links, attribution rules, commission rules, ledger fixtures, payout batches, and review flags.",
+    "/affiliates/indie-launch-partners renders the affiliate/referral preview.",
+    "/agent-docs/source-data lists the affiliate/referral read contract for future MCP resources.",
+  ],
+};
+
+export const affiliatePrograms = [affiliateProgram];
+
+export function getAffiliateProgramBySlug(slug: string) {
+  return affiliatePrograms.find((program) => program.slug === slug) ?? null;
+}
+
+export const affiliateReferralsSourceData = {
+  id: "bumpgrade-affiliate-referrals-source-data",
+  updatedAt: affiliateReferralsUpdatedAt,
+  status: "read-contract-ready",
+  issue: 89,
+  parentIssue: 19,
+  generatedFrom: "src/lib/affiliate-referrals.ts",
+  routes: ["/affiliates/source-data", ...affiliatePrograms.map((program) => program.previewRoute)],
+  stableIds: [
+    "affiliateProgramId",
+    "affiliatePartnerId",
+    "referralLinkId",
+    "attributionRuleId",
+    "commissionRuleId",
+    "commissionLedgerId",
+    "payoutBatchId",
+    "reviewFlagId",
+    "auditEventId",
+    "agentActionId",
+  ],
+  writeBoundary: affiliateProgram.writeBoundary,
+  programs: affiliatePrograms,
+  caveat:
+    "This contract proves affiliate and referral read/preview semantics only. It does not track live clicks, assign cookies, attribute buyers, create commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, or provide confirmed-write agent APIs.",
+};

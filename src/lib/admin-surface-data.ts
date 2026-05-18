@@ -563,6 +563,43 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-affiliate-referrals",
+    title: "Publisher previews affiliate and referral management",
+    featureId: "feature-affiliates-referrals",
+    featureStatus: "pending",
+    issueNumbers: [19, 89],
+    primaryUser: "Publisher or agent planning partner growth",
+    userGoal:
+      "Inspect affiliate programs, partner records, referral links, attribution windows, commission rules, payout review states, and fraud flags before live tracking or payouts exist.",
+    sourceEvidence: [
+      "https://bumpgrade.com/affiliates/source-data",
+      "https://bumpgrade.com/affiliates/indie-launch-partners",
+      "https://bumpgrade.com/offers/source-data",
+      "https://bumpgrade.com/analytics/source-data",
+      "https://github.com/markitics/bumpgrade/issues/19",
+      "https://github.com/markitics/bumpgrade/issues/89",
+    ],
+    happyPath: [
+      "Fetch /affiliates/source-data.",
+      "Find the seeded affiliate program, revision ID, partner IDs, referral link IDs, attribution rule IDs, commission rule IDs, ledger IDs, payout batch ID, review flags, and write boundary.",
+      "Open /affiliates/indie-launch-partners to inspect the public preview.",
+      "Use /offers/source-data and /analytics/source-data to resolve offer and event dependencies before assuming live affiliate tracking exists.",
+    ],
+    edgeCases: [
+      "The seeded affiliate program uses fixture commissions and does not track live referral clicks.",
+      "Cookie assignment, buyer attribution, payout accounts, tax forms, fraud enforcement, Stripe payouts, and partner notifications require future confirmed-write APIs.",
+      "Agents must not call fixture commission amounts payable or published affiliate terms.",
+    ],
+    agentAccess:
+      "Agents can read /affiliates/source-data and the preview route. Affiliate writes require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, redaction, refund-window checks, payout review, and private payout data boundaries in a later API.",
+    validation: [
+      "Playwright covers /affiliates/source-data, /affiliates/indie-launch-partners, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #89 records the first affiliate/referral source-data contract and preview scaffold.",
+    ],
+    sortOrder: 52,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

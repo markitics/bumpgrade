@@ -283,13 +283,18 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-affiliates-referrals",
     title: "Affiliate and referral management",
-    status: "planned",
+    status: "active",
     issue: 19,
     featureId: featureIdFor(19),
     group: "Growth system",
-    summary: "Partner profiles, referral links, commission rules, attribution, payout review, and fraud checks.",
-    publicEvidence: ["Tracked by issue #19."],
-    nextMilestone: "Build after product, checkout, and analytics records exist.",
+    summary:
+      "Read-only affiliate/referral contract, partner profiles, referral links, commission rules, attribution, payout review, and fraud checks.",
+    publicEvidence: [
+      "Tracked by issue #19.",
+      "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
+    ],
+    nextMilestone:
+      "Build live referral click capture and commission writes after privacy-safe analytics and trusted checkout evidence are connected.",
   },
   {
     id: "roadmap-marketing-surfaces",

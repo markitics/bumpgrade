@@ -259,6 +259,29 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Event ingestion, visitor assignment, contact analytics, experiment traffic, and decision writes require future confirmed-write APIs.",
   },
   {
+    id: "read-affiliate-referrals",
+    title: "Affiliate and referral source data",
+    route: "/affiliates/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/affiliate-referrals.ts",
+    stableIds: [
+      "affiliateProgramId",
+      "affiliatePartnerId",
+      "referralLinkId",
+      "attributionRuleId",
+      "commissionRuleId",
+      "commissionLedgerId",
+      "payoutBatchId",
+      "reviewFlagId",
+      "auditEventId",
+      "agentActionId",
+    ],
+    safeForAgents: ["Read seeded affiliate program", "Inspect referral links and attribution rules", "Inspect commission and payout review boundaries"],
+    writeBoundary:
+      "Referral click capture, cookie assignment, buyer attribution, commission writes, fraud enforcement, payout actions, and partner notifications require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -383,6 +406,15 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "The analytics contract is read-only preview evidence; it is not live event collection, cookie assignment, contact-level analytics, raw event storage, automated decisions, or statistically meaningful proof.",
   },
   {
+    id: "evidence-affiliate-referrals",
+    route: "/affiliates/source-data",
+    resolves:
+      "Seeded affiliate program, partner records, referral links, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+    stableIds: ["affiliateProgramId", "affiliatePartnerId", "referralLinkId", "commissionRuleId", "commissionLedgerId", "payoutBatchId"],
+    volatileClaims:
+      "The affiliate/referral contract is read-only preview evidence; it is not live click tracking, buyer attribution, payable commission state, fraud enforcement, tax collection, or Stripe payout capability.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -487,6 +519,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/analytics/source-data",
     purpose: "Expose seeded event taxonomy, metric formulas, fixture reports, experiment variants, assignment rules, and sample-size caveats.",
     safetyBoundary: "Read-only; event ingestion, cookie assignment, visitor tracking, experiment traffic changes, and automated decisions require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-affiliate-referrals",
+    resourceOrTool: "resource bumpgrade://affiliate-referrals",
+    status: "ready-contract",
+    backedBy: "/affiliates/source-data",
+    purpose: "Expose seeded affiliate programs, partner records, referral links, attribution rules, commission fixtures, payout review, and fraud flags.",
+    safetyBoundary:
+      "Read-only; referral tracking, buyer attribution, commission writes, fraud decisions, tax handling, payout account access, and Stripe payouts require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

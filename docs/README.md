@@ -30,6 +30,9 @@ then open the relevant shelf for the task.
   sequence, broadcast, and automation source-data contract from issue #85.
 - `features/analytics-experiments.md`: read-only event, metric, fixture report,
   variant, and assignment-rule source-data contract from issue #87.
+- `features/affiliate-referrals.md`: read-only affiliate program, referral
+  link, attribution, commission, payout review, and fraud flag source-data
+  contract from issue #89.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
