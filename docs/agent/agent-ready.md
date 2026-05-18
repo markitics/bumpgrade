@@ -42,7 +42,10 @@ Recommended stable concepts:
 - `funnelId`: stable id for a funnel.
 - `offerId`: stable id for an offer, bump, upsell, or bundle.
 - `checkoutId`: stable id for a checkout experience.
+- `checkoutIntentId`: stable id for an idempotent checkout-start request.
 - `productId`: stable id for a digital product, membership, service, or event.
+- `priceId`: stable id for a Bumpgrade price record; Stripe Price ids stay
+  provider metadata.
 - `subscriptionPlanId`: stable id for pricing/billing plans.
 - `automationId`: stable id for workflows, emails, reminders, and agent tasks.
 - `agentActionId`: stable id for agent-proposed or agent-executed writes.
@@ -60,6 +63,8 @@ Rules:
   where it could be mistaken for a sourced claim.
 - Keep private notes, unpublished revenue data, raw customer data, provider IDs,
   secrets, and restricted sources out of public agent docs.
+- Billing and fulfillment answers must distinguish planned architecture,
+  sandbox behavior, and live payment capability.
 
 ## Public Discovery
 
@@ -98,6 +103,8 @@ Useful first MCP resources/tools:
 - Search public competitor research by product, feature, persona, and source.
 - Resolve a public claim to source URLs, issue/PR evidence, or work-log entries.
 - Read feature, roadmap, work-log, user-journey, and pricing status.
+- Read redacted commerce product, price, checkout-intent, webhook, subscription,
+  and audit records once the public-safe contracts exist.
 - Draft a feature, journey, comparison, or funnel update from validated source
   evidence.
 - Create proposed admin updates that require explicit confirmation before
@@ -120,6 +127,10 @@ publishing, or creator-speech write needs:
 
 Never pass secrets, raw provider ids, private database ids, bearer tokens,
 storage keys, or private user data as prompt-visible tool input.
+
+Billing-impacting writes also require exact amount/currency confirmation, a
+checkout idempotency key, a current product/price stale-state check, and webhook
+evidence before access or fulfillment is marked complete.
 
 ## Browser-Agent UX
 

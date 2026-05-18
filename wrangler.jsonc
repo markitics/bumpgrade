@@ -24,6 +24,7 @@
       "/features",
       "/compare",
       "/compare/*",
+      "/commerce/*",
       "/roadmap",
       "/users",
       "/developers-and-agents",
@@ -59,6 +60,8 @@
     "PUBLIC_SITE_URL": "https://bumpgrade.com",
     "BETTER_AUTH_URL": "https://bumpgrade.com",
     "BUMPGRADE_OWNER_EMAILS": "m@rkmoriarty.com",
+    "STRIPE_ACTIVE_MODE": "sandbox",
+    "STRIPE_API_VERSION": "2026-04-22.dahlia",
     "CLOUDFLARE_ACCOUNT_ID": "a139381edda59e39115f93920d1569fd"
   }
 }

@@ -8,6 +8,14 @@ declare namespace Cloudflare {
     BETTER_AUTH_URL?: string;
     BETTER_AUTH_SECRET?: string;
     BUMPGRADE_OWNER_EMAILS?: string;
+    STRIPE_ACTIVE_MODE?: string;
+    STRIPE_API_VERSION?: string;
+    STRIPE_SECRET_KEY_LIVE?: string;
+    STRIPE_PUBLISHABLE_KEY_LIVE?: string;
+    STRIPE_SECRET_KEY_SANDBOX?: string;
+    STRIPE_PUBLISHABLE_KEY_SANDBOX?: string;
+    STRIPE_WEBHOOK_SECRET_SANDBOX?: string;
+    STRIPE_WEBHOOK_SECRET_LIVE?: string;
     CLOUDFLARE_ACCOUNT_ID?: string;
   }
 }

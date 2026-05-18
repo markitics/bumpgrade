@@ -43,3 +43,33 @@ real secrets, session cookies, or raw tokens.
 
 The Playwright web server sets local test auth environment variables inline so
 the Better Auth memory fallback can run under `next dev`.
+
+## Stripe
+
+Issue #11 added the first Stripe architecture and secret plan. Bumpgrade uses
+mode-specific Stripe secret names so sandbox checkout can ship before any live
+payment path is enabled.
+
+Cloudflare secrets installed on 2026-05-18:
+
+- `STRIPE_SECRET_KEY_LIVE`
+- `STRIPE_PUBLISHABLE_KEY_LIVE`
+- `STRIPE_SECRET_KEY_SANDBOX`
+- `STRIPE_PUBLISHABLE_KEY_SANDBOX`
+
+Checked source, without printing values:
+
+- `/Users/mark/Documents/code/laurelharned/.env.local`
+
+Worker vars:
+
+- `STRIPE_ACTIVE_MODE`: `sandbox`
+- `STRIPE_API_VERSION`: `2026-04-22.dahlia`
+
+Webhook secrets are not installed yet. Do not create or set
+`STRIPE_WEBHOOK_SECRET_SANDBOX` or `STRIPE_WEBHOOK_SECRET_LIVE` until
+`/api/stripe/webhook` exists for Bumpgrade. Stripe webhook signing secrets are
+endpoint-specific and must not be copied from LaurelHarned.
+
+See `docs/features/payments.md` for the D1 commerce tables, first checkout
+route plan, webhook events, and billing-safe agent rules.
