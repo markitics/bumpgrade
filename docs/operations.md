@@ -66,10 +66,11 @@ Worker vars:
 - `STRIPE_ACTIVE_MODE`: `sandbox`
 - `STRIPE_API_VERSION`: `2026-04-22.dahlia`
 
-Webhook secrets are not installed yet. Do not create or set
-`STRIPE_WEBHOOK_SECRET_SANDBOX` or `STRIPE_WEBHOOK_SECRET_LIVE` until
 `/api/stripe/webhook` exists for Bumpgrade. Stripe webhook signing secrets are
-endpoint-specific and must not be copied from LaurelHarned.
+endpoint-specific and must not be copied from LaurelHarned. Set
+`STRIPE_WEBHOOK_SECRET_SANDBOX` only after creating the Bumpgrade sandbox webhook
+endpoint. The webhook route intentionally returns `503` when the relevant
+endpoint secret is not configured.
 
 See `docs/features/payments.md` for the D1 commerce tables, first checkout
-route plan, webhook events, and billing-safe agent rules.
+route, webhook events, and billing-safe agent rules.

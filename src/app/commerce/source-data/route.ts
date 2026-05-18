@@ -9,6 +9,7 @@ import {
   stripeCommerceUpdatedAt,
   stripeNodeVersion,
 } from "@/lib/commerce";
+import { checkoutConfirmationText, checkoutRoutes, sandboxCheckoutOffer } from "@/lib/sandbox-checkout";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,15 @@ export function GET() {
     contract: stripeCommerceContract,
     decisions: commerceDecisions,
     tables: commerceTables,
+    sandboxCheckout: {
+      offer: sandboxCheckoutOffer,
+      routes: checkoutRoutes,
+      confirmation: {
+        required: true,
+        text: checkoutConfirmationText,
+      },
+      rawStripeIdsIncluded: false,
+    },
     agentWriteRules: commerceAgentWriteRules,
   });
 }

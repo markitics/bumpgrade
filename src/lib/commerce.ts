@@ -31,12 +31,19 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, and billing-safe agent contract. Real checkout creation is intentionally deferred to the first sandbox checkout issue.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, and a sandbox Checkout Session path. Live payment rollout remains deliberately disabled.",
   notLiveYet: [
-    "No customer-facing checkout button creates a Stripe Checkout Session yet.",
-    "No webhook endpoint mutates production billing state yet.",
+    "No live-mode checkout path is enabled.",
+    "No customer-facing checkout button is published outside the sandbox smoke path yet.",
     "No publisher payout or connected-account onboarding flow exists yet.",
   ],
+  sandboxCheckout: {
+    issue: 34,
+    checkoutEndpoint: "/api/commerce/checkout",
+    webhookEndpoint: "/api/stripe/webhook",
+    createsStripeCheckoutSession: true,
+    liveModeEnabled: false,
+  },
   secretNames: [
     {
       name: "STRIPE_SECRET_KEY_SANDBOX",

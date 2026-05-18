@@ -4,6 +4,7 @@ import { competitors } from "../src/lib/comparison-data";
 import { commerceTables } from "../src/lib/commerce";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
+import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
 const routes = [
   { path: "/", heading: "Funnels, checkout, commerce, and agents" },
@@ -14,13 +15,15 @@ const routes = [
   { path: "/developers-and-agents", heading: "Agent-readable contracts" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing surface" },
+  { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
+  { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Public agent surface" },
-  { path: "/agent-docs/bumpgrade-commerce-contract", heading: "Stripe commerce is architecture-live" },
+  { path: "/agent-docs/bumpgrade-commerce-contract", heading: "Stripe commerce has a sandbox checkout path" },
 ];
 
 const compareRoutes = competitors.map((competitor) => ({
@@ -126,6 +129,13 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.id).toBe("bumpgrade-commerce-source-data");
     expect(payload.contract).toEqual(expect.objectContaining({ issue: 11, firstCheckoutIssue: 34 }));
+    expect(payload.sandboxCheckout).toEqual(
+      expect.objectContaining({
+        offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
+        confirmation: expect.objectContaining({ required: true, text: checkoutConfirmationText }),
+        rawStripeIdsIncluded: false,
+      }),
+    );
     expect(payload.tables).toHaveLength(commerceTables.length);
     expect(payload.tables).toEqual(
       expect.arrayContaining([
@@ -135,6 +145,89 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "payment_audit_events" }),
       ]),
     );
+  });
+
+  test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {
+    const contract = await request.get("/api/commerce/checkout");
+    expect(contract.ok()).toBeTruthy();
+    const contractPayload = await contract.json();
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        id: "bumpgrade-sandbox-checkout-contract",
+        mode: "sandbox",
+        offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId }),
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
+      }),
+    );
+
+    const response = await request.post("/api/commerce/checkout", {
+      data: {
+        confirmationText: checkoutConfirmationText,
+        buyerEmail: "sandbox-buyer@example.com",
+        idempotencyKey: `playwright-${Date.now()}`,
+      },
+    });
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "preview",
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false, checkoutUrlIncluded: false }),
+      }),
+    );
+    expect(["missing_or_incomplete_sandbox_secret", "test_environment"]).toContain(payload.reason);
+    expect(JSON.stringify(payload)).not.toContain("cs_test_");
+  });
+
+  test("stripe webhook stores duplicate-safe redacted test events", async ({ request }) => {
+    const eventId = `evt_bumpgrade_playwright_${Date.now()}`;
+    const event = {
+      id: eventId,
+      object: "event",
+      api_version: "2026-04-22.dahlia",
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_test_redacted_by_route",
+          object: "checkout.session",
+          client_reference_id: "checkout-intent-playwright",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            checkout_intent_id: "checkout-intent-playwright",
+            product_id: sandboxCheckoutOffer.productId,
+            price_id: sandboxCheckoutOffer.priceId,
+            audit_correlation_id: "audit-playwright",
+          },
+        },
+      },
+    };
+
+    const first = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(first.ok()).toBeTruthy();
+    await expect(first.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        received: true,
+        duplicate: false,
+        eventType: "checkout.session.completed",
+        checkoutIntentUpdated: false,
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
+      }),
+    );
+
+    const second = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(second.ok()).toBeTruthy();
+    await expect(second.json()).resolves.toEqual(expect.objectContaining({ ok: true, duplicate: true }));
   });
 
   test("allowlisted owner can sign in and open protected admin surfaces", async ({ page }, testInfo) => {
