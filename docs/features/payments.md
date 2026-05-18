@@ -28,6 +28,15 @@ This is not live billing parity. `STRIPE_ACTIVE_MODE` remains `sandbox`, live
 mode is rejected by the checkout route, and no customer-facing checkout button is
 published outside the smoke path.
 
+Issue #81 adds the first read-only checkout-offer contract:
+
+- `/offers/source-data` exposes a seeded primary offer, order bump, upsell, and
+  downsell stack tied to the sandbox checkout contract.
+- `/offers/indie-launch-stack` previews that sequence for humans and browser
+  agents.
+- Order bump mutation, one-click upsell charging, fulfillment, and live billing
+  still require future confirmed-write APIs.
+
 ## Source Checks
 
 Checked on 2026-05-18:

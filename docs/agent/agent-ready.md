@@ -105,6 +105,12 @@ for the first seeded draft funnel and `/funnels/indie-launch-sandbox` is the
 read-only preview. This proves ordered funnel and page-block semantics, not a
 live builder, publishing system, checkout integration, or agent write API.
 
+Current checkout-offer boundary: `/offers/source-data` is the public-safe read
+contract for the first seeded primary offer, order bump, upsell, and downsell
+stack. `/offers/indie-launch-stack` is the read-only preview. This proves
+offer-sequence semantics, not live billing, one-click upsell charging,
+fulfillment, order-bump mutation, or agent write capability.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
