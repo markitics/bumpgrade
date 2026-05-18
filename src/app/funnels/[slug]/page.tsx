@@ -169,7 +169,9 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <div>
             <Database aria-hidden="true" />
             <h3>Source data first</h3>
-            <p>`/funnels/source-data` exposes funnel, step, block, revision, and write-boundary records.</p>
+            <p>
+              <code>/funnels/source-data</code> exposes funnel, step, block, revision, and write-boundary records.
+            </p>
           </div>
           <div>
             <PanelsTopLeft aria-hidden="true" />
