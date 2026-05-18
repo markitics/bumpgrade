@@ -5,7 +5,7 @@ monitoring.
 
 ## Addresses
 
-- Default sender: `Codex <codex@bumpgrade.com>`.
+- Default sender: `Bumpgrade Codex <codex@bumpgrade.com>`.
 - Default recipient for shipped notices: `m@rkmoriarty.com`.
 - Trusted inbound task senders:
   - `m@rkmoriarty.com`

@@ -171,7 +171,8 @@ identifiers, or private user data into GitHub.
 
 If project email sending is configured:
 
-- Default Codex project mail should come from `Codex <codex@bumpgrade.com>`.
+- Default Codex project mail should come from
+  `Bumpgrade Codex <codex@bumpgrade.com>`.
 - If per-session reply routing is configured later and Mark starts a chat with
   `session name: ...`, use that exact value as the display name and send from
   `Session Name <codex+session+name@bumpgrade.com>`.

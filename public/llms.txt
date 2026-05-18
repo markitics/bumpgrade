@@ -67,8 +67,9 @@ Add public agent docs here as they ship:
 - Human admin pages are protected by Better Auth owner sessions. Public-safe
   `/admin/*/source-data` routes remain readable for agents and must not contain
   private notes, secrets, raw provider ids, or private user data.
-- Codex project email sends shipped notices from `codex@bumpgrade.com` and
-  polls trusted replies from `m@rkmoriarty.com`, `markeffect@gmail.com`,
+- Codex project email sends shipped notices as
+  `Bumpgrade Codex <codex@bumpgrade.com>` and polls trusted replies from
+  `m@rkmoriarty.com`, `markeffect@gmail.com`,
   `markmoriarty@stripe.com`, and `mark@awesound.com`. Private inbox bodies, raw
   MIME, and attachments must not be pasted into GitHub or public source-data.
 - Stripe commerce architecture is documented in `docs/features/payments.md`.
