@@ -134,7 +134,7 @@ a {
   position: relative;
 }
 
-.mobile-nav summary {
+.mobile-nav-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -143,12 +143,9 @@ a {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
+  color: var(--ink);
   cursor: pointer;
-  list-style: none;
-}
-
-.mobile-nav summary::-webkit-details-marker {
-  display: none;
+  font: inherit;
 }
 
 .mobile-nav svg {
@@ -167,6 +164,11 @@ a {
   border-radius: 8px;
   background: var(--panel);
   box-shadow: var(--shadow);
+  z-index: 30;
+}
+
+.mobile-nav-panel[hidden] {
+  display: none;
 }
 
 .mobile-nav-panel a {

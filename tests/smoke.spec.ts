@@ -300,5 +300,13 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(panel.getByRole("link", { name: "Resources", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Pricing", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Log in / sign up", exact: true })).toBeVisible();
+
+    await page.locator("main").click({ position: { x: 16, y: 320 } });
+    await expect(panel).toBeHidden();
+
+    await page.getByLabel("Open navigation").click();
+    await panel.getByRole("link", { name: "Features", exact: true }).click();
+    await expect(page).toHaveURL(/\/features$/);
+    await expect(panel).toBeHidden();
   });
 });
