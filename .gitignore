@@ -19,6 +19,7 @@ node_modules/
 # Build and framework output
 .next/
 .open-next/
+tsconfig.tsbuildinfo
 dist/
 build/
 out/

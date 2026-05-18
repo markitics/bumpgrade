@@ -1,0 +1,63 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bumpgrade",
+  "main": "custom-worker.ts",
+  "workers_dev": true,
+  "preview_urls": true,
+  "compatibility_date": "2026-05-18",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "routes": [
+    {
+      "pattern": "bumpgrade.com/*",
+      "zone_name": "bumpgrade.com"
+    },
+    {
+      "pattern": "www.bumpgrade.com/*",
+      "zone_name": "bumpgrade.com"
+    }
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/",
+      "/features",
+      "/compare",
+      "/compare/*",
+      "/roadmap",
+      "/users",
+      "/developers-and-agents",
+      "/resources",
+      "/pricing",
+      "/login",
+      "/admin/*",
+      "/agent-docs/*",
+      "/robots.txt",
+      "/sitemap.xml"
+    ]
+  },
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "bumpgrade-opennext-cache"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bumpgrade-prod",
+      "database_id": "539bbc0c-c1e4-4e8d-9cfa-2002b67cfe59",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "APP_ENV": "production",
+    "PUBLIC_SITE_URL": "https://bumpgrade.com",
+    "BETTER_AUTH_URL": "https://bumpgrade.com",
+    "CLOUDFLARE_ACCOUNT_ID": "a139381edda59e39115f93920d1569fd"
+  }
+}

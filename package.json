@@ -1,0 +1,39 @@
+{
+  "name": "bumpgrade",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit --pretty false",
+    "verify": "npm run lint && npm run typecheck && npm run build",
+    "cf:build": "opennextjs-cloudflare build",
+    "preview:worker": "wrangler dev",
+    "preview": "npm run cf:build && wrangler dev",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:types": "wrangler types src/worker-configuration.d.ts --include-runtime false",
+    "cf:whoami": "scripts/with-cloudflare-env.sh npx --yes wrangler whoami"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.19.10",
+    "lucide-react": "^1.14.0",
+    "next": "^16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260515.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.2.6",
+    "typescript": "^5",
+    "wrangler": "^4.91.0"
+  }
+}
