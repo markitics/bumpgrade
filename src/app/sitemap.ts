@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { affiliatePrograms } from "@/lib/affiliate-referrals";
 import { analyticsDashboards } from "@/lib/analytics-experiments";
 import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
@@ -19,6 +20,7 @@ const sourceDataRoutes = [
   "/compare/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/affiliates/source-data",
   "/audience/source-data",
   "/analytics/source-data",
   "/funnels/source-data",
@@ -38,6 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const productRoutes = productAccessCatalogs.map((catalog) => catalog.previewRoute);
   const audienceRoutes = audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute);
   const analyticsRoutes = analyticsDashboards.map((dashboard) => dashboard.previewRoute);
+  const affiliateRoutes = affiliatePrograms.map((program) => program.previewRoute);
   return [
     "",
     ...scaffoldRoutes,
@@ -48,6 +51,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...productRoutes,
     ...audienceRoutes,
     ...analyticsRoutes,
+    ...affiliateRoutes,
   ].map((path) => ({
       url: `${site.url}${path}`,
       lastModified,

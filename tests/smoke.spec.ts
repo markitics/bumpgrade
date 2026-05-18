@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
+import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
@@ -31,6 +32,7 @@ const routes = [
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
   { path: "/audience/indie-launch-waitlist", heading: "Indie launch waitlist and nurture preview" },
   { path: "/analytics/indie-launch-dashboard", heading: "Indie launch analytics and experiment preview" },
+  { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program preview" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -171,6 +173,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/indie-launch-dashboard");
+    expect(sitemapXml).toContain("https://bumpgrade.com/affiliates/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/affiliates/indie-launch-partners");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -460,6 +464,56 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("No automated winners")).toBeVisible();
   });
 
+  test("affiliate source data exposes partners, referral links, commissions, and payout review", async ({ request, page }) => {
+    const response = await request.get("/affiliates/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: affiliateReferralsSourceData.id,
+        status: "read-contract-ready",
+        issue: 89,
+        parentIssue: 19,
+      }),
+    );
+    expect(payload.routes).toEqual(expect.arrayContaining(["/affiliates/source-data", "/affiliates/indie-launch-partners"]));
+    expect(payload.programs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: affiliateProgram.id,
+          slug: affiliateProgram.slug,
+          revisionId: affiliateProgram.revisionId,
+          partners: expect.arrayContaining([
+            expect.objectContaining({ id: "affiliate-partner-launch-circle", status: "approved" }),
+            expect.objectContaining({ id: "affiliate-partner-template-studio", status: "review" }),
+          ]),
+          referralLinks: expect.arrayContaining([
+            expect.objectContaining({ id: "ref-link-launch-circle-waitlist", code: "LAUNCHCIRCLE" }),
+          ]),
+          commissionRules: expect.arrayContaining([
+            expect.objectContaining({ id: "commission-rule-launch-pass-30" }),
+            expect.objectContaining({ id: "commission-rule-refund-holdback" }),
+          ]),
+          commissionLedger: expect.arrayContaining([
+            expect.objectContaining({ id: "commission-ledger-launch-pass-fixture", status: "approved_pending_payout" }),
+            expect.objectContaining({ id: "commission-ledger-self-referral-review", status: "review_required" }),
+          ]),
+          payoutBatches: expect.arrayContaining([
+            expect.objectContaining({ id: "payout-batch-indie-launch-may-preview", status: "review_required" }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Issue #89 is read-only");
+    expect(payload.caveat).toContain("does not track live clicks");
+
+    await page.goto("/affiliates/indie-launch-partners");
+    await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Partner links resolve to stable draft attribution rules/i })).toBeVisible();
+    await expect(page.getByText("LAUNCHCIRCLE")).toBeVisible();
+    await expect(page.getByText("Possible self-referral")).toBeVisible();
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -530,6 +584,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
           issueNumbers: [18, 87],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-previews-affiliate-referrals",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 89],
         }),
       ]),
     );
@@ -604,6 +663,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -618,6 +678,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),

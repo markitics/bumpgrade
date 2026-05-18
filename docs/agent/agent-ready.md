@@ -47,6 +47,10 @@ Recommended stable concepts:
 - `priceId`: stable id for a Bumpgrade price record; Stripe Price ids stay
   provider metadata.
 - `subscriptionPlanId`: stable id for pricing/billing plans.
+- `affiliateProgramId`: stable id for affiliate/referral programs.
+- `referralLinkId`: stable id for partner referral links and attribution.
+- `commissionRuleId`: stable id for commission terms.
+- `commissionLedgerId`: stable id for auditable commission fixtures or records.
 - `automationId`: stable id for workflows, emails, reminders, and agent tasks.
 - `agentActionId`: stable id for agent-proposed or agent-executed writes.
 - `provenance`: where the fact or object came from and who/what generated it.
@@ -134,6 +138,14 @@ analytics and experiment semantics, not live event collection, cookie
 assignment, contact-level reporting, raw event storage, automated decisions, or
 statistically meaningful proof.
 
+Current affiliate/referral boundary: `/affiliates/source-data` is the
+public-safe read contract for seeded affiliate programs, partner records,
+referral links, attribution rules, commission rules, ledger fixtures, payout
+review, and fraud flags. `/affiliates/indie-launch-partners` is the read-only
+preview. This proves affiliate and referral semantics, not live click tracking,
+cookie assignment, buyer attribution, payable commission state, tax collection,
+fraud enforcement, Stripe payout capability, or partner notifications.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,
@@ -149,6 +161,8 @@ Useful first MCP resources/tools:
 - Read feature, roadmap, work-log, user-journey, and pricing status.
 - Read redacted commerce product, price, checkout-intent, webhook, subscription,
   and audit records once the public-safe contracts exist.
+- Read redacted affiliate/referral programs, referral links, commission rules,
+  payout review, and fraud flag records once the public-safe contracts exist.
 - Draft a feature, journey, comparison, or funnel update from validated source
   evidence.
 - Create proposed admin updates that require explicit confirmation before
