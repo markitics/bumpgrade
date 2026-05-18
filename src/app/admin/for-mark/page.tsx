@@ -29,7 +29,8 @@ export default async function ForMarkPage() {
           <h1>Non-blocking attention items live in D1.</h1>
           <p className="lede">
             Agents should keep moving when a decision or blocker does not need to stop the current issue slice.
-            Better Auth now gates this human admin view while source-data routes stay public-safe for agents.
+            Better Auth now gates this human admin view while source-data routes stay public-safe for agents. This
+            page is read-only today; use each card&apos;s response channel rather than expecting an in-page action.
           </p>
           <div className="hero-actions">
             <Link href="/admin/roadmap" className="primary-action">
@@ -74,10 +75,23 @@ export default async function ForMarkPage() {
                     <span>{item.requiredAction}</span>
                   </div>
                 ) : null}
-                {item.responseInstructions ? (
-                  <div className="roadmap-detail">
-                    <strong>Response</strong>
-                    <span>{item.responseInstructions}</span>
+                <div className="roadmap-detail">
+                  <strong>Response channel</strong>
+                  <span>{item.responseInstructions}</span>
+                </div>
+                {item.responseChannels?.length ? (
+                  <div className="admin-link-list" aria-label={`Response channels for ${item.title}`}>
+                    {item.responseChannels.map((channel) =>
+                      channel.href ? (
+                        <Link key={`${item.id}-${channel.id}`} href={channel.href} title={channel.instructions}>
+                          {channel.label}
+                        </Link>
+                      ) : (
+                        <span key={`${item.id}-${channel.id}`} className="admin-pill" title={channel.instructions}>
+                          {channel.label}
+                        </span>
+                      ),
+                    )}
                   </div>
                 ) : null}
                 <div className="admin-link-list">

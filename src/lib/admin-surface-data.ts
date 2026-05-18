@@ -77,6 +77,7 @@ export type MarkAttentionItem = {
   details: string | null;
   requiredAction: string | null;
   responseInstructions: string | null;
+  responseChannels?: MarkAttentionResponseChannel[];
   sessionName: string | null;
   sessionEmail: string | null;
   sourceAgent: string;
@@ -85,6 +86,13 @@ export type MarkAttentionItem = {
   metadata: Record<string, unknown>;
   lastActivityAt: string;
   createdAt: string;
+};
+
+export type MarkAttentionResponseChannel = {
+  id: "read_only" | "github_issue" | "project_email" | "codex_desktop";
+  label: string;
+  instructions: string;
+  href: string | null;
 };
 
 export type AdminSurfaceData = {
@@ -407,6 +415,99 @@ const fallbackAttentionItems: MarkAttentionItem[] = [
   },
 ];
 
+function firstIssueLink(item: MarkAttentionItem) {
+  return item.links.find((link) => link.kind === "issue" || /^issue #\d+/i.test(link.label ?? ""));
+}
+
+function firstProjectEmail(item: MarkAttentionItem) {
+  const fromInstructions = item.responseInstructions?.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? null;
+  return fromInstructions ?? item.sessionEmail ?? null;
+}
+
+export function attentionResponseInstruction(item: MarkAttentionItem) {
+  const raw = item.responseInstructions?.trim();
+  const issue = firstIssueLink(item);
+  const email = firstProjectEmail(item);
+
+  if (raw) {
+    if (/^this page is read-only\./i.test(raw)) return raw;
+    if (/^reply with\b/i.test(raw)) {
+      const requestedDetail = raw.replace(/^reply with\s*/i, "");
+      const path = issue
+        ? `Comment on ${issue.label ?? "the linked GitHub issue"}`
+        : email
+          ? `Email ${email}`
+          : "Continue in the active Codex Desktop thread";
+      return `This page is read-only. ${path} with ${requestedDetail}`;
+    }
+    return `This page is read-only. ${raw}`;
+  }
+
+  if (item.state === "resolved" || item.state === "ok") {
+    return "This page is read-only. No response is requested for this resolved item.";
+  }
+
+  if (issue) {
+    return `This page is read-only. Comment on ${issue.label ?? "the linked GitHub issue"} for durable follow-up.`;
+  }
+
+  if (email) {
+    return `This page is read-only. Email ${email} for follow-up.`;
+  }
+
+  return "This page is read-only. Continue in the active Codex Desktop thread only if this item came from the current working session.";
+}
+
+export function attentionResponseChannels(item: MarkAttentionItem): MarkAttentionResponseChannel[] {
+  const issue = firstIssueLink(item);
+  const email = firstProjectEmail(item);
+  const channels: MarkAttentionResponseChannel[] = [
+    {
+      id: "read_only",
+      label: "/admin/for-mark is read-only",
+      instructions: "This page shows attention items and links; it does not accept replies or direct actions yet.",
+      href: null,
+    },
+  ];
+
+  if (issue) {
+    channels.push({
+      id: "github_issue",
+      label: `Comment on ${issue.label ?? "linked issue"}`,
+      instructions: "Use the GitHub issue for durable project-visible comments, decisions, and unblock notes.",
+      href: issue.url,
+    });
+  }
+
+  if (email) {
+    channels.push({
+      id: "project_email",
+      label: `Email ${email}`,
+      instructions: "Use project email only when the card explicitly names an email path.",
+      href: `mailto:${email}`,
+    });
+  }
+
+  if (item.sourceKind === "codex" && item.sessionName) {
+    channels.push({
+      id: "codex_desktop",
+      label: "Active Codex Desktop thread",
+      instructions: "Use the current Codex Desktop thread when this card belongs to the active workstream you are already discussing.",
+      href: null,
+    });
+  }
+
+  return channels;
+}
+
+function attentionWithResponseChannels(item: MarkAttentionItem): MarkAttentionItem {
+  return {
+    ...item,
+    responseInstructions: attentionResponseInstruction(item),
+    responseChannels: attentionResponseChannels(item),
+  };
+}
+
 function roadmapFromRow(row: D1RoadmapRow): AdminRoadmapRecord {
   return {
     id: row.id,
@@ -511,7 +612,7 @@ function fallbackData(loadError: string | null): AdminSurfaceData {
     roadmapItems: fallbackRoadmapItems,
     workLogEntries: fallbackWorkLogEntries,
     userJourneys: fallbackUserJourneys,
-    attentionItems: fallbackAttentionItems,
+    attentionItems: fallbackAttentionItems.map(attentionWithResponseChannels),
   };
 }
 
@@ -550,7 +651,7 @@ export async function getAdminSurfaceData(): Promise<AdminSurfaceData> {
       roadmapItems: roadmapRows.length ? roadmapRows.map(roadmapFromRow) : fallbackRoadmapItems,
       workLogEntries: workRows.length ? workRows.map(workLogFromRow) : fallbackWorkLogEntries,
       userJourneys: journeyRows.length ? journeyRows.map(journeyFromRow) : fallbackUserJourneys,
-      attentionItems: attentionRows.map(attentionFromRow),
+      attentionItems: attentionRows.map(attentionFromRow).map(attentionWithResponseChannels),
     };
   } catch (error) {
     return fallbackData(error instanceof Error ? error.message : "Unable to load D1 admin surface data.");

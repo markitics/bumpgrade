@@ -210,6 +210,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "mark-attention-2026-05-18-rkmoriarty-auth-alignment",
           state: "open",
+          responseInstructions: expect.stringContaining("This page is read-only."),
+          responseChannels: expect.arrayContaining([
+            expect.objectContaining({ id: "read_only" }),
+            expect.objectContaining({ id: "github_issue", label: expect.stringContaining("Issue #61") }),
+            expect.objectContaining({ id: "project_email", label: expect.stringContaining("codex@bumpgrade.com") }),
+          ]),
         }),
       ]),
     );
@@ -226,6 +232,36 @@ test.describe("Bumpgrade scaffold", () => {
           issueNumbers: [13, 67, 68],
         }),
       ]),
+    );
+  });
+
+  test("For Mark source data exposes explicit response channels", async ({ request }) => {
+    const response = await request.get("/admin/for-mark/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-admin-for-mark-source-data");
+    const attentionItem = payload.attentionItems.find(
+      (item: { id: string }) => item.id === "mark-attention-2026-05-18-rkmoriarty-auth-alignment",
+    );
+    expect(attentionItem).toEqual(
+      expect.objectContaining({
+        responseInstructions: expect.stringContaining("This page is read-only."),
+        responseChannels: expect.arrayContaining([
+          expect.objectContaining({
+            id: "read_only",
+            label: "/admin/for-mark is read-only",
+          }),
+          expect.objectContaining({
+            id: "github_issue",
+            label: expect.stringContaining("Issue #61"),
+            href: "https://github.com/markitics/bumpgrade/issues/61",
+          }),
+          expect.objectContaining({
+            id: "project_email",
+            href: "mailto:codex@bumpgrade.com",
+          }),
+        ]),
+      }),
     );
   });
 
