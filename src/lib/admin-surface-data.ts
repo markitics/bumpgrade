@@ -408,19 +408,19 @@ export async function getAdminSurfaceData(): Promise<AdminSurfaceData> {
     ]);
 
     const hasAnyD1Rows = roadmapRows.length + workRows.length + journeyRows.length + attentionRows.length > 0;
+    const hasCoreD1Rows = roadmapRows.length > 0 && workRows.length > 0 && journeyRows.length > 0;
 
     if (!hasAnyD1Rows) {
       return fallbackData("D1 admin tables are reachable but empty, so fixture records are shown.");
     }
 
     return {
-      source:
-        roadmapRows.length && workRows.length && journeyRows.length && attentionRows.length ? "d1" : "mixed",
+      source: hasCoreD1Rows ? "d1" : "mixed",
       loadError: null,
       roadmapItems: roadmapRows.length ? roadmapRows.map(roadmapFromRow) : fallbackRoadmapItems,
       workLogEntries: workRows.length ? workRows.map(workLogFromRow) : fallbackWorkLogEntries,
       userJourneys: journeyRows.length ? journeyRows.map(journeyFromRow) : fallbackUserJourneys,
-      attentionItems: attentionRows.length ? attentionRows.map(attentionFromRow) : fallbackAttentionItems,
+      attentionItems: attentionRows.map(attentionFromRow),
     };
   } catch (error) {
     return fallbackData(error instanceof Error ? error.message : "Unable to load D1 admin surface data.");
