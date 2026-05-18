@@ -1,7 +1,7 @@
 # Working Agreements
 
 This is the durable handoff for how Mark wants Codex, Claude, and other agents
-to work on Cheeky Pint. Read it before substantial project work, especially on a
+to work on Bumpgrade. Read it before substantial project work, especially on a
 fresh computer, after conversation compaction, or when joining work another
 agent started.
 
@@ -57,7 +57,7 @@ Expected feature flow:
 5. Create a feature branch even for small changes, usually
    `codex/<short-description>`.
 6. Use a separate worktree for feature branches when practical, under
-   `/Users/mark/Documents/code/cheekypint-worktrees`.
+   `/Users/mark/Documents/code/2026/bumpgrade-worktrees`.
 7. Make focused milestone commits. The branch history should show the real work,
    not one giant commit plus a long PR summary.
 8. Push the branch to GitHub. Branch work left only on one laptop is fragile.
@@ -80,7 +80,7 @@ change truly was indivisible.
 
 Keep the core visibility routes current:
 
-- `https://cheekypint.com/features`: public feature showcase. Each major feature
+- `https://bumpgrade.com/features`: public feature showcase. Each major feature
   should have a clear status badge: `live` or `pending`. Pending features must
   link to roadmap item(s).
 - `/admin/roadmap`: source-of-truth admin view of main feature ideas, status,
@@ -88,7 +88,7 @@ Keep the core visibility routes current:
 - `/admin/work-log`: durable diary of how agents used their time. It is for Mark
   and future agents, not marketing copy.
 - `/admin/user-journeys`: named journeys tied to main features. Each journey
-  should connect a user goal to feature(s), source material, happy path, edge
+  should connect a user goal to feature(s), source evidence, happy path, edge
   cases, and validation evidence.
 
 When a feature ships or changes status, update the relevant route or create a
@@ -102,10 +102,13 @@ Agent readiness is a first-class product surface.
   over browser automation.
 - Keep `public/llms.txt` and public `/agent-docs/...` accurate as agent
   capabilities change.
-- If the project has episodes, clips, speakers, transcripts, or source media,
-  give them stable IDs and provenance metadata.
-- Do not invent source facts. Agent answers about clips or speakers must cite the
-  transcript, clip, source, timestamp, or issue that supports the claim.
+- Give features, roadmap items, competitors, cited sources, funnels, offers,
+  checkout sessions, products, subscriptions, automations, and agent actions
+  stable IDs and provenance metadata.
+- Do not invent source facts. Agent answers about competitors, pricing,
+  integrations, customer behavior, roadmap state, or product capabilities must
+  cite the source URL, issue, PR, deployment, admin record, or work-log entry
+  that supports the claim.
 - Public or destructive writes need confirmation text, idempotency keys, audit
   correlation, redaction, and stale-state checks.
 - Do not pass secrets or private identifiers as prompt-visible tool input.
@@ -120,7 +123,7 @@ Agent readiness is a first-class product surface.
 - Branch-scoped screenshot links become brittle after branch deletion.
 - Prefer committed screenshots in both `docs/pr-screenshots/` and
   `public/pr-screenshots/` when a durable deployed link is needed.
-- Use deployed `https://cheekypint.com/pr-screenshots/...` URLs after the
+- Use deployed `https://bumpgrade.com/pr-screenshots/...` URLs after the
   screenshot has reached `main` and production.
 - For open PRs before deployment, use GitHub uploaded image attachment URLs that
   load without authentication.

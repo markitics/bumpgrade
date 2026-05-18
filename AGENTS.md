@@ -12,11 +12,13 @@ channel, then keep moving and watch for a reply.
 
 ## Project Constants
 
-- Project: `Cheeky Pint`
-- Domain: `cheekypint.com`
-- GitHub repo: `markitics/cheekypint`
+- Project: `Bumpgrade`
+- Domain: `bumpgrade.com`
+- GitHub repo: `markitics/bumpgrade`
 - Default feature branch prefix: `codex/`
-- Suggested worktree parent: `/Users/mark/Documents/code/cheekypint-worktrees`
+- Suggested worktree parent: `/Users/mark/Documents/code/2026/bumpgrade-worktrees`
+- Target stack: Cloudflare-first, including Workers/Pages, D1, R2, KV,
+  Queues/Cron, Email Routing/Sending, Turnstile, and Better Auth where useful.
 
 ## Must-Follow Rules
 
@@ -44,7 +46,7 @@ channel, then keep moving and watch for a reply.
 Keep these surfaces current whenever features, roadmap state, or agent work
 changes:
 
-- Public `https://cheekypint.com/features`: major features live or planned. Use
+- Public `https://bumpgrade.com/features`: major features live or planned. Use
   a `live` badge when the feature is available in production. Use a `pending`
   badge plus links to roadmap item(s) when it is planned but not live.
 - Admin `/admin/roadmap`: the main identified features, status, issue/PR links,
@@ -60,10 +62,10 @@ yet, create or update a GitHub issue that clearly tracks the missing surface.
 
 ## Agent-Ready Default
 
-Cheeky Pint must be 100 percent agent-ready. A capable agent should be able to
-answer and act on project-specific requests such as "pull in some clips from
-Cheeky Pint where John talks about ..." without scraping hidden UI or guessing
-from vibes.
+Bumpgrade must be 100 percent agent-ready. A capable agent should be able to
+answer and act on project-specific requests such as "show me Bumpgrade's
+ClickFunnels comparison evidence" or "create a draft funnel for this offer"
+without scraping hidden UI or guessing from vibes.
 
 Default architecture:
 
@@ -72,10 +74,11 @@ Default architecture:
 - MCP tools/resources for direct agent access when a workflow becomes important.
 - ChatGPT app or Claude-specific affordances layered on top of the same contracts,
   not separate product semantics.
-- Transcript, clip, speaker, episode, source, and permission metadata with stable
-  IDs if the project uses audio/video clips.
-- Source-grounded answers: cite episode/clip/transcript IDs and timestamps. Do
-  not invent quotes, speakers, or source material.
+- Feature, roadmap, competitor, source, funnel, product, checkout, customer,
+  subscription, automation, and permission metadata with stable IDs.
+- Source-grounded answers: cite feature IDs, roadmap items, competitor source
+  URLs, commit/PR evidence, and timestamped work-log entries. Do not invent
+  claims, pricing, quotes, integrations, customers, or source evidence.
 - Agent writes must use explicit confirmation, idempotency, audit correlation,
   stale-state checks, and redaction for public, destructive, billing-impacting,
   creator-speech, or moderation actions.
@@ -168,12 +171,14 @@ identifiers, or private user data into GitHub.
 
 If project email sending is configured:
 
-- If Mark starts a chat with `session name: ...`, use that exact value as the
-  display name for outbound Codex email.
-- Send from `Session Name <codex+session+name@cheekypint.com>`: preserve
-  capitalization/spaces in the display name, lowercase the local part, and
-  replace spaces with `+`.
+- Default Codex project mail should come from `Codex <codex@bumpgrade.com>`.
+- If per-session reply routing is configured later and Mark starts a chat with
+  `session name: ...`, use that exact value as the display name and send from
+  `Session Name <codex+session+name@bumpgrade.com>`.
+- Preserve capitalization/spaces in the display name; lowercase and `+`-join
+  the plus-address local part.
 - If Mark does not provide a session name before email is needed, create a
   concise context-derived session name first.
-- When a thread emails from a per-session address, periodically check for replies
-  to that same address before starting unrelated large work.
+- When a thread emails from `codex@bumpgrade.com` or a per-session address,
+  periodically check for replies and attachments before starting unrelated large
+  work.

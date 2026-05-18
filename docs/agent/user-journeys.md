@@ -1,7 +1,7 @@
 # User Journeys
 
 `/admin/user-journeys` should connect product features to the actual paths users
-take through Cheeky Pint.
+take through Bumpgrade.
 
 Every main feature should have at least one journey. The journey should be useful
 to humans and agents: clear enough to test, discuss, and update when behavior
@@ -18,8 +18,8 @@ Roadmap issue(s): [links]
 Primary user: [role/persona]
 User goal: [what they want to accomplish]
 
-Source material:
-- [episode/clip/transcript/source ids, if relevant]
+Source evidence:
+- [feature/competitor/source/funnel/offer/checkout ids, if relevant]
 
 Happy path:
 1. [step]
@@ -42,7 +42,8 @@ Validation:
 
 - Tie each journey to one or more main features.
 - Link roadmap issues and PRs.
-- Include source material IDs for clip/transcript/media journeys.
+- Include source evidence IDs for comparison, funnel, checkout, billing, and
+  agent-facing journeys.
 - Record whether the journey is live in production or pending.
 - Update journeys when feature behavior changes.
 - Do not let `/admin/user-journeys` become a stale list of aspirations.

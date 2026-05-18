@@ -29,9 +29,9 @@ Why both:
 
 - `docs/pr-screenshots/` keeps reviewer/source context in docs.
 - `public/pr-screenshots/` gives the deployed app a stable public URL:
-  `https://cheekypint.com/pr-screenshots/<file>.png`.
+  `https://bumpgrade.com/pr-screenshots/<file>.png`.
 
-Use deployed `https://cheekypint.com/pr-screenshots/...` URLs only after the file
+Use deployed `https://bumpgrade.com/pr-screenshots/...` URLs only after the file
 has reached `main` and the deployment containing it is live.
 
 For open PRs before deployment, use a GitHub uploaded image attachment URL that
@@ -42,7 +42,7 @@ returns 200 without repo authentication.
 Use one of:
 
 ```bash
-curl -I "https://cheekypint.com/pr-screenshots/<file>.png"
+curl -I "https://bumpgrade.com/pr-screenshots/<file>.png"
 ```
 
 or open the URL in a browser session that is not relying on private repo file
@@ -52,8 +52,8 @@ Record screenshot evidence in the PR body:
 
 ```md
 Screenshots
-* Public features page: https://cheekypint.com/pr-screenshots/issue-123-features.png
-* Admin roadmap: https://cheekypint.com/pr-screenshots/issue-123-admin-roadmap.png
+* Public features page: https://bumpgrade.com/pr-screenshots/issue-123-features.png
+* Admin roadmap: https://bumpgrade.com/pr-screenshots/issue-123-admin-roadmap.png
 ```
 
 ## PR Body Reminder

@@ -8,7 +8,7 @@ then open the relevant shelf for the task.
 - `../AGENTS.md`: compact agent entrypoint and hard project rules.
 - `working-agreements.md`: durable workflow expectations for Codex, Claude, and
   other agents.
-- `agent/agent-ready.md`: how Cheeky Pint becomes understandable and operable by
+- `agent/agent-ready.md`: how Bumpgrade becomes understandable and operable by
   direct agent clients instead of hidden browser automation.
 - `agent/admin-surfaces.md`: expectations for `/features`, `/admin/roadmap`,
   `/admin/work-log`, and `/admin/user-journeys`.
@@ -26,7 +26,8 @@ then open the relevant shelf for the task.
 - `operations.md`: production facts, runbooks, deployment notes, and environment
   setup.
 - `features/`: one short doc per major feature.
-- `contracts/`: API, MCP, agent, transcript, and media contract fixtures.
+- `contracts/`: API, MCP, agent, feature, competitor, commerce, and admin
+  contract fixtures.
 - `agent-docs/` or `public/agent-docs/`: public model-readable docs.
 - `pr-screenshots/`: durable screenshots linked from PR descriptions.
 

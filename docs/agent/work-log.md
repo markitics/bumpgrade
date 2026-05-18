@@ -45,28 +45,28 @@ Every entry should include:
 
 ```json
 {
-  "title": "Add first Cheeky Pint feature catalog",
+  "title": "Add first Bumpgrade feature catalog",
   "agentName": "Codex",
   "agentKind": "codex",
   "sessionName": "Feature Catalog",
-  "promptFromMark": "Mark asked for a public /features page that shows live and pending Cheeky Pint features with roadmap links.",
+  "promptFromMark": "Mark asked for a public /features page that shows live and pending Bumpgrade features with roadmap links.",
   "githubIssues": [
     {
       "number": 12,
       "title": "Add public feature catalog",
-      "url": "https://github.com/markitics/cheekypint/issues/12"
+      "url": "https://github.com/markitics/bumpgrade/issues/12"
     }
   ],
   "closedPrs": [
     {
       "number": 18,
       "title": "Add feature catalog",
-      "url": "https://github.com/markitics/cheekypint/pull/18"
+      "url": "https://github.com/markitics/bumpgrade/pull/18"
     }
   ],
-  "featuresUpdated": ["https://cheekypint.com/features"],
-  "roadmapUpdated": ["https://cheekypint.com/admin/roadmap"],
-  "userJourneysUpdated": ["https://cheekypint.com/admin/user-journeys"],
+  "featuresUpdated": ["https://bumpgrade.com/features"],
+  "roadmapUpdated": ["https://bumpgrade.com/admin/roadmap"],
+  "userJourneysUpdated": ["https://bumpgrade.com/admin/user-journeys"],
   "documentationUpdated": ["docs/agent/admin-surfaces.md"],
   "validation": [
     "npm run lint",
@@ -77,8 +77,8 @@ Every entry should include:
   "firstPromptAt": "2026-05-17T00:00:00.000Z",
   "doneAt": "2026-05-17T01:00:00.000Z",
   "relevantUrls": [
-    "https://cheekypint.com/features",
-    "https://cheekypint.com/pr-screenshots/issue-12-features.png"
+    "https://bumpgrade.com/features",
+    "https://bumpgrade.com/pr-screenshots/issue-12-features.png"
   ]
 }
 ```
