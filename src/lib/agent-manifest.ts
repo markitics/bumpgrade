@@ -239,6 +239,26 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Subscriber, tag, sequence, broadcast, unsubscribe, and email-send writes require future confirmed-write APIs.",
   },
   {
+    id: "read-analytics-experiments",
+    title: "Analytics and experiments source data",
+    route: "/analytics/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/analytics-experiments.ts",
+    stableIds: [
+      "analyticsEventId",
+      "metricId",
+      "funnelStepMetricId",
+      "experimentId",
+      "variantId",
+      "assignmentRuleId",
+      "reportId",
+      "agentActionId",
+    ],
+    safeForAgents: ["Read seeded event taxonomy", "Inspect metric formulas", "Inspect experiment assignment boundaries"],
+    writeBoundary: "Event ingestion, visitor assignment, contact analytics, experiment traffic, and decision writes require future confirmed-write APIs.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -355,6 +375,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "The audience automation contract is read-only preview evidence; it is not subscriber storage, contact import, live email sending, unsubscribe management, or CRM timeline state.",
   },
   {
+    id: "evidence-analytics-experiments",
+    route: "/analytics/source-data",
+    resolves: "Seeded analytics event taxonomy, metric formulas, fixture funnel-step reports, experiment variants, assignment rule, and confirmed-write boundary.",
+    stableIds: ["analyticsEventId", "metricId", "experimentId", "variantId", "assignmentRuleId"],
+    volatileClaims:
+      "The analytics contract is read-only preview evidence; it is not live event collection, cookie assignment, contact-level analytics, raw event storage, automated decisions, or statistically meaningful proof.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -451,6 +479,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/audience/source-data",
     purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, and consent boundaries.",
     safetyBoundary: "Read-only; subscriber writes, imports, sends, broadcasts, unsubscribe changes, and CRM notes require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-analytics-experiments",
+    resourceOrTool: "resource bumpgrade://analytics-experiments",
+    status: "ready-contract",
+    backedBy: "/analytics/source-data",
+    purpose: "Expose seeded event taxonomy, metric formulas, fixture reports, experiment variants, assignment rules, and sample-size caveats.",
+    safetyBoundary: "Read-only; event ingestion, cookie assignment, visitor tracking, experiment traffic changes, and automated decisions require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

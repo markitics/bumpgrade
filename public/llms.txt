@@ -23,6 +23,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded product access preview: https://bumpgrade.com/products/indie-launch-library
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
+- Analytics and experiments source data: https://bumpgrade.com/analytics/source-data
+- Seeded analytics dashboard preview: https://bumpgrade.com/analytics/indie-launch-dashboard
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Commerce source data: https://bumpgrade.com/commerce/source-data
@@ -106,6 +108,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   draft, and automation records. Treat it as preview/source-data evidence, not
   subscriber storage, live email sending, contact import, unsubscribe management,
   CRM timeline state, or a confirmed-write agent API.
+- `/analytics/source-data` exposes the first read-only analytics and
+  experimentation workspace with event definitions, metric formulas, fixture
+  funnel-step reports, variants, and assignment rules. Treat it as
+  preview/source-data evidence, not live tracking, cookie assignment,
+  contact-level analytics, raw event storage, automated decisions, or
+  statistically meaningful proof.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -141,7 +149,7 @@ Keep this section synchronized with `/admin/roadmap`.
 - Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
 - Better Auth publisher accounts and owner-gated private admin pages.
 - Competitor research and comparison-claim read access.
-- Funnel, offer, checkout, product, audience automation, and pricing-plan read access backed by
+- Funnel, offer, checkout, product, audience automation, analytics, experiments, and pricing-plan read access backed by
   redacted D1 commerce records.
 - Source evidence resolution by stable source id.
 - MCP resources and tools for repeated agent workflows.

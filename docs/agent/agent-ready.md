@@ -126,6 +126,14 @@ audience and automation semantics, not subscriber storage, contact import, live
 email sending, unsubscribe management, CRM timeline state, or agent write
 capability.
 
+Current analytics boundary: `/analytics/source-data` is the public-safe read
+contract for seeded event definitions, metric formulas, fixture funnel-step
+reports, A/B test variants, and deterministic assignment rules.
+`/analytics/indie-launch-dashboard` is the read-only preview. This proves
+analytics and experiment semantics, not live event collection, cookie
+assignment, contact-level reporting, raw event storage, automated decisions, or
+statistically meaningful proof.
+
 ## MCP And Tooling
 
 MCP is the preferred canonical interface for repeated agent work. ChatGPT apps,

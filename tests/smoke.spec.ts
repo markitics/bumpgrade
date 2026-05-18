@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
 import { agentManifest } from "../src/lib/agent-manifest";
+import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
@@ -29,6 +30,7 @@ const routes = [
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
   { path: "/audience/indie-launch-waitlist", heading: "Indie launch waitlist and nurture preview" },
+  { path: "/analytics/indie-launch-dashboard", heading: "Indie launch analytics and experiment preview" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
   { path: "/login", heading: "Publisher login is backed by Better Auth" },
@@ -167,6 +169,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/products/indie-launch-library");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
+    expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/analytics/indie-launch-dashboard");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
@@ -412,6 +416,50 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Indie launch nurture sequence")).toBeVisible();
   });
 
+  test("analytics source data exposes events, metrics, and experiment definitions", async ({ request, page }) => {
+    const response = await request.get("/analytics/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: analyticsExperimentsSourceData.id,
+        status: "read-contract-ready",
+        issue: 87,
+        parentIssue: 18,
+      }),
+    );
+    expect(payload.routes).toEqual(expect.arrayContaining(["/analytics/source-data", "/analytics/indie-launch-dashboard"]));
+    expect(payload.dashboards).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: analyticsDashboard.id,
+          slug: analyticsDashboard.slug,
+          revisionId: analyticsDashboard.revisionId,
+          events: expect.arrayContaining([
+            expect.objectContaining({ id: "event-funnel-page-view", kind: "page_view" }),
+            expect.objectContaining({ id: "event-audience-opt-in-created", kind: "opt_in" }),
+            expect.objectContaining({ id: "event-purchase-completed", kind: "purchase" }),
+          ]),
+          metrics: expect.arrayContaining([
+            expect.objectContaining({ id: "metric-funnel-opt-in-rate" }),
+            expect.objectContaining({ id: "metric-gross-revenue" }),
+          ]),
+          experiments: expect.arrayContaining([
+            expect.objectContaining({ id: "experiment-opt-in-hero-promise" }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.writeBoundary).toContain("Issue #87 is read-only");
+    expect(payload.caveat).toContain("does not collect live events");
+
+    await page.goto("/analytics/indie-launch-dashboard");
+    await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step-level conversion metrics use fixture counts/i })).toBeVisible();
+    await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
+    await expect(page.getByText("No automated winners")).toBeVisible();
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -477,6 +525,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
           issueNumbers: [17, 85],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-previews-analytics-experiments",
+          featureId: "feature-analytics-testing",
+          issueNumbers: [18, 87],
         }),
       ]),
     );
@@ -550,6 +603,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-checkout-offers", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -563,6 +617,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),

@@ -208,12 +208,16 @@ export const featureCatalog: FeatureRecord[] = [
       "Conversion events, funnel analytics, checkout metrics, experiments, UTM tracking, and source-linked reporting.",
     audience: "Operators optimizing launch funnels, checkout offers, and audience acquisition.",
     expectedCapabilities: [
+      "Read-only analytics and experiment source data and preview route from issue #87.",
       "Event capture for page views, opt-ins, checkout starts, purchases, bumps, upsells, refunds, and cancellations.",
       "A/B tests for page and offer variants.",
       "UTM and source attribution.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
-    evidence: ["Tracked by issue #18."],
+    evidence: [
+      "Tracked by issue #18.",
+      "Issue #87 adds `/analytics/source-data` and `/analytics/indie-launch-dashboard` as the first read-only analytics and experiment contract.",
+    ],
     agentContract:
       "Agents may summarize analytics with sample-size caveats and must not call a result statistically meaningful without evidence.",
   },
