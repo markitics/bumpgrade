@@ -1,5 +1,11 @@
 UPDATE admin_roadmap_items
 SET
+  next_milestone = 'Keep private admin pages behind Better Auth while adding confirmed write APIs and richer agent contracts.',
+  updated_at = unixepoch()
+WHERE id = 'roadmap-admin-surfaces';
+
+UPDATE admin_roadmap_items
+SET
   status = 'live',
   summary = 'Better Auth email/password accounts, D1-backed sessions, API routes, login/signup UI, and owner-gated admin pages.',
   public_evidence_json = '["Issue #9 owns the Better Auth foundation slice.", "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation."]',

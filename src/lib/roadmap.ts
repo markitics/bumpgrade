@@ -126,7 +126,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #8 owns this D1 admin surface slice.",
       "Admin source-data routes, D1 migrations, and append scripts are included in the issue #8 implementation.",
     ],
-    nextMilestone: "Protect private admin workflows with Better Auth in #9 while keeping public-safe agent reads available.",
+    nextMilestone: "Keep private admin pages behind Better Auth while adding confirmed write APIs and richer agent contracts.",
   },
   {
     id: "roadmap-better-auth",
