@@ -174,6 +174,17 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "This route is read-only until confirmed-write agent APIs exist.",
   },
   {
+    id: "read-content-surfaces",
+    title: "Content surfaces",
+    route: "/content/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/content-surfaces.ts",
+    stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
+    safeForAgents: ["Read use-case records", "Read resource hub records", "Read pricing caveats"],
+    writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
+  },
+  {
     id: "read-mobile-admin-contract",
     title: "Mobile admin contract",
     route: "/mobile-admin/source-data",
@@ -252,6 +263,13 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     volatileClaims: "The manifest is discovery metadata; it does not grant write permission.",
   },
   {
+    id: "evidence-content-surfaces",
+    route: "/content/source-data",
+    resolves: "Audience segments, resource hub records, pricing principles, planned pricing tracks, issue links, and agent boundaries.",
+    stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
+    volatileClaims: "Pricing tracks are positioning hypotheses; plan names, amounts, limits, trials, and live billing are not claimed.",
+  },
+  {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
     resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
@@ -308,6 +326,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/commerce/source-data",
     purpose: "Expose redacted commerce architecture, sandbox checkout status, and billing write rules.",
     safetyBoundary: "No live billing or destructive action may be performed by this resource.",
+  },
+  {
+    id: "mcp-resource-content",
+    resourceOrTool: "resource bumpgrade://content-surfaces",
+    status: "ready-contract",
+    backedBy: "/content/source-data",
+    purpose: "Expose personas, resource records, pricing caveats, and content-surface issue evidence.",
+    safetyBoundary: "Read-only; public resource and pricing claims still require source evidence or shipped product proof.",
   },
   {
     id: "mcp-tool-propose-update",
