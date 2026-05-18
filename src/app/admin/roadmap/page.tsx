@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Database, GitBranch } from "lucide-react";
 
+import { AdminLocked } from "@/components/admin-auth-gate";
+import { getCurrentAdminState } from "@/lib/admin-auth";
 import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
@@ -19,6 +21,9 @@ function sourceLabel(source: string) {
 }
 
 export default async function AdminRoadmapPage() {
+  const adminState = await getCurrentAdminState();
+  if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/roadmap" />;
+
   const data = await getAdminSurfaceData();
   const counts = adminRoadmapCounts(data.roadmapItems);
 
@@ -30,7 +35,7 @@ export default async function AdminRoadmapPage() {
           <h1>Roadmap command center backed by D1.</h1>
           <p className="lede">
             This page reads the durable admin roadmap records that future agents should update when feature
-            state changes. The content remains public-safe until Better Auth protection ships in issue #9.
+            state changes. Better Auth now gates this human admin view while source-data routes stay public-safe.
           </p>
           <div className="hero-actions">
             <Link href="/admin/source-data" className="primary-action">

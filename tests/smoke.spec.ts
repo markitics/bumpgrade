@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { competitors } from "../src/lib/comparison-data";
 import { featureCatalog } from "../src/lib/feature-catalog";
@@ -13,11 +13,11 @@ const routes = [
   { path: "/developers-and-agents", heading: "Agent-readable contracts" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Pricing surface" },
-  { path: "/login", heading: "Publisher login" },
-  { path: "/admin/roadmap", heading: "Roadmap command center" },
-  { path: "/admin/work-log", heading: "Durable diary" },
-  { path: "/admin/user-journeys", heading: "Journeys connect" },
-  { path: "/admin/for-mark", heading: "Non-blocking attention" },
+  { path: "/login", heading: "Publisher login is backed by Better Auth" },
+  { path: "/admin/roadmap", heading: "Owner access is required" },
+  { path: "/admin/work-log", heading: "Owner access is required" },
+  { path: "/admin/user-journeys", heading: "Owner access is required" },
+  { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Public agent surface" },
 ];
 
@@ -25,6 +25,29 @@ const compareRoutes = competitors.map((competitor) => ({
   path: `/compare/${competitor.slug}`,
   heading: competitor.headline,
 }));
+
+async function signInOrCreateOwner(page: Page) {
+  const email = "m@rkmoriarty.com";
+  const password = "BumpgradeLocal123!";
+  const name = "Mark";
+  let response = await page.request.post("/api/auth/sign-in/email", {
+    data: { email, password, callbackURL: "/admin/roadmap" },
+  });
+
+  if (!response.ok()) {
+    response = await page.request.post("/api/auth/sign-up/email", {
+      data: { email, password, name, callbackURL: "/admin/roadmap" },
+    });
+  }
+
+  if (!response.ok()) {
+    response = await page.request.post("/api/auth/sign-in/email", {
+      data: { email, password, callbackURL: "/admin/roadmap" },
+    });
+  }
+
+  expect(response.ok(), await response.text()).toBe(true);
+}
 
 test.describe("Bumpgrade scaffold", () => {
   for (const route of [...routes, ...compareRoutes]) {
@@ -60,6 +83,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
+        expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "blocked", issue: 10 }),
       ]),
     );
@@ -82,6 +106,17 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("allowlisted owner can sign in and open protected admin surfaces", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    await signInOrCreateOwner(page);
+
+    await page.goto("/admin/roadmap");
+    await expect(page.getByRole("heading", { name: /Roadmap command center/i })).toBeVisible();
+
+    await page.goto("/admin/for-mark");
+    await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
   });
 
   test("desktop navigation exposes required high-level categories", async ({ page }, testInfo) => {

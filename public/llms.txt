@@ -13,6 +13,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Feature source data: https://bumpgrade.com/features/source-data
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
+- Login and signup: https://bumpgrade.com/login
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
@@ -24,14 +25,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Systeme.io alternative: https://bumpgrade.com/compare/systeme-io-alternative
 - Kartra alternative: https://bumpgrade.com/compare/kartra-alternative
 - ThriveCart alternative: https://bumpgrade.com/compare/thrivecart-alternative
-- Admin roadmap: https://bumpgrade.com/admin/roadmap
+- Admin roadmap: https://bumpgrade.com/admin/roadmap (human page requires Better Auth owner session)
 - Admin source data: https://bumpgrade.com/admin/source-data
 - Admin roadmap source data: https://bumpgrade.com/admin/roadmap/source-data
-- Admin work log: https://bumpgrade.com/admin/work-log
+- Admin work log: https://bumpgrade.com/admin/work-log (human page requires Better Auth owner session)
 - Admin work-log source data: https://bumpgrade.com/admin/work-log/source-data
-- Admin user journeys: https://bumpgrade.com/admin/user-journeys
+- Admin user journeys: https://bumpgrade.com/admin/user-journeys (human page requires Better Auth owner session)
 - Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
-- Mark attention: https://bumpgrade.com/admin/for-mark
+- Mark attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
 - Mark attention source data: https://bumpgrade.com/admin/for-mark/source-data
 
 ## Agent Docs
@@ -56,6 +57,9 @@ Add public agent docs here as they ship:
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
+- Human admin pages are protected by Better Auth owner sessions. Public-safe
+  `/admin/*/source-data` routes remain readable for agents and must not contain
+  private notes, secrets, raw provider ids, or private user data.
 - Secrets, bearer tokens, storage keys, private database ids, private user data,
   and provider credentials must not be passed as prompt-visible tool input.
 
@@ -67,6 +71,7 @@ Keep this section synchronized with `/admin/roadmap`.
 - Work-log read access.
 - User-journey read access.
 - Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
+- Better Auth publisher accounts and owner-gated private admin pages.
 - Competitor research and comparison-claim read access.
 - Funnel, offer, checkout, product, and pricing-plan read access.
 - Source evidence resolution by stable source id.
