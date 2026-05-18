@@ -30,6 +30,11 @@ Rules:
 Purpose: show the main feature set, status, owners/agents, issue/PR links, and
 blockers.
 
+Current implementation note: issue #8 added D1 tables for roadmap, work-log,
+user-journey, and Mark-attention records. The pages read D1 when available and
+fall back to public-safe code fixtures during local development or before a
+fresh database has migrations applied.
+
 Recommended status values:
 
 - `idea`: useful concept, not committed.
@@ -50,6 +55,12 @@ Every main roadmap item should link to:
 ## Admin `/admin/work-log`
 
 Purpose: durable diary of how agents used their time.
+
+Append public-safe work-log rows with:
+
+```bash
+npm run work-log:add -- --file /tmp/work-log-entry.json
+```
 
 Use it after:
 
@@ -93,3 +104,13 @@ When any of these change, update the others in the same PR when practical:
 
 If keeping them in sync is too much for the current PR, create a follow-up issue
 before merging.
+
+## Source Data
+
+Agents can read the current public-safe admin records from:
+
+- `/admin/source-data`
+- `/admin/roadmap/source-data`
+- `/admin/work-log/source-data`
+- `/admin/user-journeys/source-data`
+- `/admin/for-mark/source-data`

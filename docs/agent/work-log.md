@@ -22,6 +22,12 @@ After the PR is merged and any required deploy/smoke-test work is complete:
 
 ## Entry Fields
 
+Current script:
+
+```bash
+npm run work-log:add -- --file /tmp/work-log-entry.json
+```
+
 Every entry should include:
 
 - `title`: concise title.
