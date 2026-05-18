@@ -44,9 +44,9 @@ export const topNavItems: NavItem[] = [
   {
     label: "Users",
     href: "/users",
-    description: "Use cases for creators, coaches, course sellers, agencies, and small publishers.",
+    description: "Use cases for creators, coaches, course sellers, agencies, publishers, and indie hackers.",
     icon: Users,
-    status: "planned",
+    status: "live",
   },
   {
     label: "Developers and agents",
@@ -60,14 +60,14 @@ export const topNavItems: NavItem[] = [
     href: "/resources",
     description: "Comparison pages, migration guides, launch playbooks, and product notes.",
     icon: FileText,
-    status: "planned",
+    status: "live",
   },
   {
     label: "Pricing",
     href: "/pricing",
     description: "Pricing direction for publishers, products, payments, and agent workflows.",
     icon: CircleDollarSign,
-    status: "planned",
+    status: "live",
   },
 ];
 
