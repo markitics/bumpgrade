@@ -1,0 +1,260 @@
+import { featureCatalog } from "@/lib/feature-catalog";
+
+export type RoadmapStatus = "shipped" | "active" | "blocked" | "next" | "planned";
+
+export type RoadmapItem = {
+  id: string;
+  title: string;
+  status: RoadmapStatus;
+  issue: number;
+  featureId?: string;
+  group: string;
+  summary: string;
+  publicEvidence: string[];
+  nextMilestone: string;
+  markAttention?: string;
+};
+
+export const roadmapUpdatedAt = "2026-05-18";
+
+export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
+  {
+    status: "shipped",
+    label: "Shipped",
+    description: "Merged, deployed, and safe to describe as live public surface area.",
+  },
+  {
+    status: "active",
+    label: "Active",
+    description: "Currently being implemented or validated in the Codex issue loop.",
+  },
+  {
+    status: "blocked",
+    label: "Blocked",
+    description: "Known unblock condition is public-safe and specific.",
+  },
+  {
+    status: "next",
+    label: "Next",
+    description: "Queued near-term because later work depends on it.",
+  },
+  {
+    status: "planned",
+    label: "Planned",
+    description: "Aspirational parity work with an issue, but not active yet.",
+  },
+];
+
+const featureByIssue = new Map(featureCatalog.map((feature) => [feature.issue, feature]));
+
+function featureIdFor(issue: number) {
+  return featureByIssue.get(issue)?.id;
+}
+
+export const roadmapItems: RoadmapItem[] = [
+  {
+    id: "roadmap-cloudflare-foundation",
+    title: "Cloudflare app foundation",
+    status: "shipped",
+    issue: 4,
+    featureId: featureIdFor(4),
+    group: "Platform",
+    summary: "Next/OpenNext Worker app, D1 binding, R2 cache binding, DNS, core routes, screenshots, and deploy path.",
+    publicEvidence: ["PR #23 merged.", "Cloudflare deployment and live route smoke checks recorded on PR #23."],
+    nextMilestone: "Keep using this as the base for every issue slice.",
+  },
+  {
+    id: "roadmap-comparison-hub",
+    title: "Comparison hub and alternative pages",
+    status: "shipped",
+    issue: 5,
+    featureId: featureIdFor(5),
+    group: "SEO and agent discovery",
+    summary: "Shopify-inspired compare hub, nine alternative pages, source-linked competitor data, and `/compare/source-data`.",
+    publicEvidence: ["PR #25 merged.", "Live edge checks and screenshot URLs recorded on PR #25."],
+    nextMilestone: "Refresh competitor sources when pricing or packaging copy is used in user-facing answers.",
+  },
+  {
+    id: "roadmap-feature-catalog",
+    title: "Public feature catalog",
+    status: "shipped",
+    issue: 6,
+    featureId: featureIdFor(6),
+    group: "SEO and agent discovery",
+    summary: "Aspirational `/features` page with live and pending badges, stable feature IDs, issue links, and `/features/source-data`.",
+    publicEvidence: ["PR #26 merged.", "Live edge checks and feature JSON parse checks recorded on PR #26."],
+    nextMilestone: "Keep feature records current as product slices move from pending to shipped.",
+  },
+  {
+    id: "roadmap-public-roadmap",
+    title: "Public roadmap from main feature set",
+    status: "shipped",
+    issue: 7,
+    featureId: featureIdFor(7),
+    group: "Roadmap",
+    summary: "Public roadmap lanes connected to the feature catalog, GitHub issues, public-safe blockers, and deploy evidence.",
+    publicEvidence: [
+      "Issue #7 owns this feature slice.",
+      "PR #27 carries the source, screenshots, validation, and deploy evidence for this issue.",
+    ],
+    nextMilestone: "Replace shared static records with D1-backed admin state in #8.",
+  },
+  {
+    id: "roadmap-codex-email",
+    title: "Codex project email and reply monitor",
+    status: "blocked",
+    issue: 10,
+    featureId: featureIdFor(10),
+    group: "Operations",
+    summary: "Outbound shipped-feature notices and inbound reply monitoring from `codex@bumpgrade.com`.",
+    publicEvidence: [
+      "Issue #10 records the failed Cloudflare Email REST send attempt.",
+      "Cloudflare API reported Email Routing as unconfigured with missing MX, SPF, and DKIM records.",
+    ],
+    nextMilestone: "Configure Cloudflare email DNS/authentication, add sender/routing contracts, then retry a real notice.",
+    markAttention: "Shipped emails cannot honestly be sent from `codex@bumpgrade.com` until #10 is configured.",
+  },
+  {
+    id: "roadmap-admin-surfaces",
+    title: "D1-backed admin roadmap, work log, journeys, and for-Mark surfaces",
+    status: "next",
+    issue: 8,
+    featureId: featureIdFor(8),
+    group: "Admin and operations",
+    summary: "Owner and agent coordination surfaces backed by D1 instead of static scaffold copy.",
+    publicEvidence: ["Tracked by issue #8.", "Current admin routes exist as scaffolded pages."],
+    nextMilestone: "Create durable records for roadmap state, work logs, user journeys, and Mark attention items.",
+  },
+  {
+    id: "roadmap-better-auth",
+    title: "Publisher and admin authentication",
+    status: "next",
+    issue: 9,
+    featureId: featureIdFor(9),
+    group: "Accounts",
+    summary: "Better Auth accounts, sessions, protected routes, and role-aware access for future publisher/admin work.",
+    publicEvidence: ["Tracked by issue #9.", "Login route exists as a public scaffold."],
+    nextMilestone: "Wire Better Auth to Cloudflare-compatible storage and protect admin surfaces.",
+  },
+  {
+    id: "roadmap-stripe-commerce",
+    title: "Stripe payments and checkout architecture",
+    status: "next",
+    issue: 11,
+    featureId: featureIdFor(11),
+    group: "Payments",
+    summary: "Stripe product/price mapping, checkout architecture, webhook idempotency, and billing-safe agent rules.",
+    publicEvidence: ["Tracked by issue #11."],
+    nextMilestone: "Copy only required Stripe values into safe secrets and document billing-impacting write boundaries.",
+  },
+  {
+    id: "roadmap-agent-contracts",
+    title: "Agent-ready docs, manifests, APIs, and MCP",
+    status: "next",
+    issue: 12,
+    featureId: featureIdFor(12),
+    group: "Developers and agents",
+    summary: "Public agent docs, source evidence, manifests, server-side APIs, and future MCP resources.",
+    publicEvidence: ["Tracked by issue #12.", "`llms.txt`, `/features/source-data`, and `/compare/source-data` are live inputs."],
+    nextMilestone: "Publish the next agent-readable manifest and map read contracts to admin data.",
+  },
+  {
+    id: "roadmap-mobile-admin",
+    title: "Publisher admin apps for iOS and Android",
+    status: "planned",
+    issue: 13,
+    featureId: featureIdFor(13),
+    group: "Mobile",
+    summary: "Mobile admin scaffolds for launch monitoring, approvals, work logs, and agent handoffs.",
+    publicEvidence: ["Tracked by issue #13."],
+    nextMilestone: "Design mobile contracts after web auth/admin data surfaces exist.",
+  },
+  {
+    id: "roadmap-funnels",
+    title: "Funnel and page builder MVP",
+    status: "planned",
+    issue: 14,
+    featureId: featureIdFor(14),
+    group: "Funnels and pages",
+    summary: "Multi-step funnels, reusable blocks, templates, publishing, and safe draft proposals.",
+    publicEvidence: ["Tracked by issue #14."],
+    nextMilestone: "Define funnel/page schema and build the first editable funnel workflow.",
+  },
+  {
+    id: "roadmap-checkout-offers",
+    title: "Checkout, order bump, upsell, and downsell MVP",
+    status: "planned",
+    issue: 15,
+    featureId: featureIdFor(15),
+    group: "Checkout and offers",
+    summary: "Stripe-backed checkout flows, order bumps, upsells, downsells, subscriptions, coupons, and audit trails.",
+    publicEvidence: ["Tracked by issue #15.", "Depends on Stripe architecture in #11."],
+    nextMilestone: "Ship the first safe checkout path with explicit billing audit records.",
+  },
+  {
+    id: "roadmap-products-access",
+    title: "Products, downloads, courses, memberships, and subscriptions",
+    status: "planned",
+    issue: 16,
+    featureId: featureIdFor(16),
+    group: "Products and access",
+    summary: "Digital product records, protected content, access rules, fulfillment state, and subscriptions.",
+    publicEvidence: ["Tracked by issue #16."],
+    nextMilestone: "Model product/access records around checkout and auth primitives.",
+  },
+  {
+    id: "roadmap-email-automation",
+    title: "Email marketing, list growth, CRM-lite, and automations",
+    status: "planned",
+    issue: 17,
+    featureId: featureIdFor(17),
+    group: "Growth system",
+    summary: "Subscribers, tags, forms, broadcasts, sequences, lifecycle automations, and lightweight CRM state.",
+    publicEvidence: ["Tracked by issue #17."],
+    nextMilestone: "Separate app customer email workflows from Codex project email in #10.",
+  },
+  {
+    id: "roadmap-analytics-testing",
+    title: "Analytics, A/B testing, and conversion tracking",
+    status: "planned",
+    issue: 18,
+    featureId: featureIdFor(18),
+    group: "Optimization",
+    summary: "Funnel events, checkout metrics, attribution, experiments, and source-linked reporting.",
+    publicEvidence: ["Tracked by issue #18."],
+    nextMilestone: "Define event taxonomy before feature slices emit production analytics.",
+  },
+  {
+    id: "roadmap-affiliates-referrals",
+    title: "Affiliate and referral management",
+    status: "planned",
+    issue: 19,
+    featureId: featureIdFor(19),
+    group: "Growth system",
+    summary: "Partner profiles, referral links, commission rules, attribution, payout review, and fraud checks.",
+    publicEvidence: ["Tracked by issue #19."],
+    nextMilestone: "Build after product, checkout, and analytics records exist.",
+  },
+  {
+    id: "roadmap-marketing-surfaces",
+    title: "Users, developers and agents, resources, pricing, and blog surfaces",
+    status: "planned",
+    issue: 20,
+    featureId: featureIdFor(20),
+    group: "Marketing surfaces",
+    summary: "Use-case pages, developer/agent pages, resource hub, pricing direction, migration guides, and product notes.",
+    publicEvidence: ["Tracked by issue #20.", "Navbar surfaces already exist as scaffolds."],
+    nextMilestone: "Replace scaffold routes with source-aware pages after roadmap/admin records are stable.",
+  },
+];
+
+export function roadmapItemsByStatus(status: RoadmapStatus) {
+  return roadmapItems.filter((item) => item.status === status);
+}
+
+export function roadmapCounts() {
+  return roadmapLanes.map((lane) => ({
+    ...lane,
+    count: roadmapItemsByStatus(lane.status).length,
+  }));
+}

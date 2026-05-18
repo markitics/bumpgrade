@@ -61,6 +61,50 @@ export const featureCatalog: FeatureRecord[] = [
       "Agents may cite comparison source IDs and URLs, but must refresh sources before making pricing or volatile feature-availability claims.",
   },
   {
+    id: "feature-public-feature-catalog",
+    title: "Public feature catalog and source data",
+    group: "SEO and agent discovery",
+    status: "live",
+    issue: 6,
+    summary:
+      "Public `/features` surface with live and pending badges, stable feature IDs, GitHub issue links, screenshots, and `/features/source-data` JSON.",
+    audience: "Prospects and agents who need to distinguish deployed Bumpgrade surfaces from roadmap targets.",
+    expectedCapabilities: [
+      "Live and pending feature badges.",
+      "Feature records with stable IDs, groups, issues, evidence, and agent-contract notes.",
+      "Agent-readable JSON at `/features/source-data`.",
+      "Sitemap and llms.txt discovery.",
+    ],
+    evidence: [
+      "Issue #6 closed by PR #26.",
+      "Live Cloudflare smoke checks returned HTTP 200 for `/features`, `/features/source-data`, and screenshots.",
+    ],
+    agentContract:
+      "Agents may treat live feature records as deployed and must treat pending records as roadmap targets until their issue evidence changes.",
+  },
+  {
+    id: "feature-public-roadmap",
+    title: "Public roadmap and source data",
+    group: "Roadmap",
+    status: "live",
+    issue: 7,
+    summary:
+      "Public `/roadmap` surface with shipped, blocked, next, and planned lanes tied to feature IDs, GitHub issues, evidence, and `/roadmap/source-data` JSON.",
+    audience: "Prospects, Mark, and agents who need public-safe project status without reading private admin notes.",
+    expectedCapabilities: [
+      "Roadmap lanes derived from tracked feature and issue records.",
+      "Public-safe blocker notes and next milestones.",
+      "Agent-readable JSON at `/roadmap/source-data`.",
+      "Admin roadmap and For Mark placeholders that mirror current public-safe state until D1-backed records ship.",
+    ],
+    evidence: [
+      "Issue #7 owns this feature slice.",
+      "PR #27 carries the source, screenshots, validation, and deploy evidence for this issue.",
+    ],
+    agentContract:
+      "Agents may cite public roadmap status from `/roadmap/source-data`, but must not expose private admin notes or treat planned items as live functionality.",
+  },
+  {
     id: "feature-funnel-builder",
     title: "Funnel and page builder",
     group: "Funnels and pages",
