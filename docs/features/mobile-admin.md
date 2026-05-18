@@ -7,7 +7,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 ## Current State
 
 - Parent planning issue: #13.
-- iOS implementation issue: #67.
+- iOS implementation issue: #67. The first iOS slice now has an Expo
+  TypeScript entrypoint, generated source-data fixture, SwiftUI simulator smoke
+  target, and `/mobile-admin/ios/source-data`.
 - Android implementation issue: #68.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
@@ -28,6 +30,12 @@ screen can be read-only, but it should be structured as a native admin surface
 that can later support notifications, confirmations, screenshots, and device
 smoke tests.
 
+The #67 iOS slice uses a checked-in fixture generated from
+`/mobile-admin/source-data`. The Expo app reads the fixture in `src/App.tsx`; the
+SwiftUI smoke target reads the same JSON from the iOS bundle so Codex can build,
+install, launch, and screenshot a real simulator surface without claiming full
+mobile parity.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -44,6 +52,20 @@ smoke tests.
 - `/api/auth/[...all]`: Better Auth session boundary for future private mobile
   screens.
 - Future `/api/mobile-admin/actions`: confirmed writes for mobile admin actions.
+- `/mobile-admin/ios/source-data`: iOS scaffold status, fixture path,
+  simulator target, smoke command, and screenshot path.
+
+## iOS Slice Commands
+
+From the repo root:
+
+```bash
+npm run mobile:ios:validate
+npm run mobile:ios:smoke
+```
+
+The smoke command targets the `iPhone 17` simulator by default and writes
+`docs/pr-screenshots/issue-67-ios-mobile-admin-simulator.png`.
 
 ## Write Boundary
 

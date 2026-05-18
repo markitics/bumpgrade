@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Database, KeyRound, MonitorSmartphone, ShieldCheck, Smartphone } from "lucide-react";
 
+import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
 import { mobileAdminContract } from "@/lib/mobile-admin";
 import { site } from "@/lib/site";
 
@@ -91,12 +92,48 @@ export default function MobileAdminAgentDocPage() {
               </div>
               <h3>{slice.title}</h3>
               <p>{slice.firstMilestone}</p>
+              {slice.status ? (
+                <div className="feature-detail">
+                  <strong>Status</strong>
+                  <span>{slice.status}</span>
+                </div>
+              ) : null}
               <div className="feature-detail">
                 <strong>Validation</strong>
                 <span>{slice.validation.join(" ")}</span>
               </div>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">iOS slice</p>
+            <h2>The first simulator path is source-data backed.</h2>
+          </div>
+          <Link href={iosMobileAdminSourceData.sourceDataRoute} className="text-link compact-link">
+            iOS source data
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <Smartphone aria-hidden="true" />
+            <h3>Scaffold</h3>
+            <p>{iosMobileAdminSourceData.appPath} contains the Expo entrypoint and iOS smoke target.</p>
+          </div>
+          <div>
+            <Database aria-hidden="true" />
+            <h3>Fixture</h3>
+            <p>{iosMobileAdminSourceData.fixturePath} is generated from /mobile-admin/source-data before the iOS app renders.</p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Smoke</h3>
+            <p>{iosMobileAdminSourceData.smokeCommand} builds, launches, and screenshots the simulator target.</p>
+          </div>
         </div>
       </section>
 

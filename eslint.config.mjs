@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     ".wrangler/**",
+    "apps/mobile-admin/**",
     "next-env.d.ts",
     "src/worker-configuration.d.ts",
   ]),

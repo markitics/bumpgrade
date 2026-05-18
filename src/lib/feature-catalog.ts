@@ -360,6 +360,7 @@ export const featureCatalog: FeatureRecord[] = [
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
       "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
+      "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
     ],
     agentContract:
       "Mobile apps must reuse web/admin contracts and need the same confirmed-write and audit rules as web admin actions.",

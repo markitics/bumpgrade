@@ -184,6 +184,17 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: ["Read iOS and Android scope", "Find API dependencies", "Understand mobile write boundaries"],
     writeBoundary: "Mobile app writes remain read-only until a future confirmed-write API exists.",
   },
+  {
+    id: "read-ios-mobile-admin",
+    title: "iOS mobile admin source data",
+    route: "/mobile-admin/ios/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/mobile-admin-ios.ts and apps/mobile-admin",
+    stableIds: ["platformIssue", "fixturePath", "smokeCommand", "simulatorBundleId"],
+    safeForAgents: ["Read iOS scaffold status", "Find simulator smoke command", "Find screenshot evidence"],
+    writeBoundary: "The iOS slice is read-only until the shared confirmed-write API and mobile auth boundary exist.",
+  },
 ];
 
 export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
@@ -236,6 +247,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue"],
     volatileClaims: "The mobile contract is live, but installable iOS and Android app claims require #67 and #68 smoke evidence.",
   },
+  {
+    id: "evidence-ios-mobile-admin",
+    route: "/mobile-admin/ios/source-data",
+    resolves: "iOS scaffold path, generated fixture, simulator target, validation command, smoke command, and screenshot evidence.",
+    stableIds: ["platformIssue", "fixturePath", "simulatorBundleId"],
+    volatileClaims:
+      "The iOS simulator smoke target is not App Store distribution, push notification support, private mobile auth, or confirmed-write capability.",
+  },
 ];
 
 export const agentMcpPlan: AgentMcpPlan[] = [
@@ -286,6 +305,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/mobile-admin/source-data",
     purpose: "Expose the shared iOS and Android mobile admin plan, jobs, API dependencies, and confirmed-write boundaries.",
     safetyBoundary: "Read-only; mobile writes require a future confirmed-write action API and authenticated actor.",
+  },
+  {
+    id: "mcp-resource-ios-mobile-admin",
+    resourceOrTool: "resource bumpgrade://mobile-admin/ios",
+    status: "ready-contract",
+    backedBy: "/mobile-admin/ios/source-data",
+    purpose: "Expose the first iOS app slice, simulator smoke command, fixture path, and screenshot evidence.",
+    safetyBoundary: "Read-only; native mobile writes and private account data remain unavailable.",
   },
 ];
 

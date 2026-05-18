@@ -312,6 +312,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     userGoal: "Open the future Bumpgrade mobile app to check roadmap, work-log, for-Mark attention, and commerce health without separate mobile-only semantics.",
     sourceEvidence: [
       "https://bumpgrade.com/mobile-admin/source-data",
+      "https://bumpgrade.com/mobile-admin/ios/source-data",
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
       "https://github.com/markitics/bumpgrade/issues/13",
       "https://github.com/markitics/bumpgrade/issues/67",
@@ -319,12 +320,14 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     happyPath: [
       "Open the future mobile admin app.",
-      "Read the mobile admin digest sourced from /admin/source-data, /features/source-data, /roadmap/source-data, and /commerce/source-data.",
+      "For iOS, open the first simulator scaffold and read the digest sourced from the generated /mobile-admin/source-data fixture.",
+      "Later mobile slices should read live /admin/source-data, /features/source-data, /roadmap/source-data, and /commerce/source-data.",
       "Review work-log entries, for-Mark attention, and checkout health.",
       "Follow iOS issue #67 or Android issue #68 for platform-specific implementation evidence.",
     ],
     edgeCases: [
-      "No installable app is claimed until #67 and #68 add real simulator or device smoke evidence.",
+      "The iOS simulator target is not App Store distribution, push notifications, private mobile auth, or confirmed-write support.",
+      "No Android app is claimed until #68 adds real emulator or device smoke evidence.",
       "Private admin state requires Better Auth owner or publisher sessions.",
       "Mobile writes stay disabled until confirmed-write APIs exist.",
     ],
@@ -332,6 +335,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /mobile-admin/source-data to understand app scope and dependencies; they must not claim mobile app parity until platform child issues ship.",
     validation: [
       "Issue #13 defines the shared contract and splits iOS and Android child issues.",
+      "Issue #67 adds an Expo app scaffold, generated fixture, iOS simulator target, validation command, smoke command, and screenshot path.",
       "Playwright covers /agent-docs/bumpgrade-mobile-admin and /mobile-admin/source-data.",
     ],
     sortOrder: 42,
