@@ -17,6 +17,8 @@
     "deploy": "npm run cf:build && scripts/with-cloudflare-env.sh npm exec opennextjs-cloudflare deploy",
     "cf:types": "wrangler types src/worker-configuration.d.ts --include-runtime false",
     "cf:whoami": "scripts/with-cloudflare-env.sh npx --yes wrangler whoami",
+    "mobile:ios:validate": "npm --prefix apps/mobile-admin run validate:ios",
+    "mobile:ios:smoke": "npm --prefix apps/mobile-admin run ios:smoke",
     "pr:email": "npm run codex:email-pr --",
     "codex:email-pr": "scripts/with-cloudflare-env.sh node scripts/send-codex-pr-email.mjs",
     "codex:poll-inbox": "node scripts/poll-codex-inbox.mjs",

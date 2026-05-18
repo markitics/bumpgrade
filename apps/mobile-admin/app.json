@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Bumpgrade Admin",
+    "slug": "bumpgrade-mobile-admin",
+    "scheme": "bumpgrade-admin",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "platforms": ["ios", "android"],
+    "ios": {
+      "bundleIdentifier": "com.bumpgrade.mobileadmin",
+      "supportsTablet": true
+    },
+    "extra": {
+      "sourceContract": "https://bumpgrade.com/mobile-admin/source-data",
+      "iosSourceContract": "https://bumpgrade.com/mobile-admin/ios/source-data"
+    }
+  }
+}

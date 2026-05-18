@@ -1,0 +1,156 @@
+{
+  "id": "bumpgrade-mobile-admin-contract",
+  "updatedAt": "2026-05-18",
+  "parentIssue": 13,
+  "status": "contract-ready",
+  "featureId": "feature-mobile-admin",
+  "stackDecision": "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
+  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. It does not ship a WebView shortcut or claim a native app is installable yet; iOS and Android implementation happen in #67 and #68.",
+  "childIssues": [
+    {
+      "platform": "ios",
+      "issue": 67,
+      "title": "Build first iOS publisher admin app slice",
+      "firstMilestone": "Render the mobile admin digest from the generated source-data fixture in the Expo app scaffold and iOS simulator smoke target.",
+      "validation": [
+        "Run npm run mobile:ios:validate to prove the fixture matches the shared contract and Xcode is available.",
+        "Run npm run mobile:ios:smoke to build, install, launch, and screenshot the iOS simulator target."
+      ],
+      "status": "simulator-smoke-ready",
+      "appPath": "apps/mobile-admin",
+      "sourceDataRoute": "/mobile-admin/ios/source-data",
+      "fixturePath": "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      "smokeCommand": "npm run mobile:ios:smoke",
+      "screenshotPath": "/pr-screenshots/issue-67-ios-mobile-admin-simulator.png"
+    },
+    {
+      "platform": "android",
+      "issue": 68,
+      "title": "Build first Android publisher admin app slice",
+      "firstMilestone": "Create the Android target/emulator path and render the mobile admin digest from the shared contract or a checked-in fixture generated from it.",
+      "validation": [
+        "Run the documented Android app command or record the exact Android SDK/emulator blocker.",
+        "Capture a real Android emulator/device screenshot before claiming the app works."
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "id": "mobile-job-launch-status",
+      "title": "Check launch and platform status away from desktop",
+      "primaryUser": "Publisher or owner monitoring Bumpgrade from a phone",
+      "goal": "See whether funnels, checkout, products, email, analytics, agent work, and blockers are moving without opening the desktop admin app.",
+      "firstScreen": "Mobile admin digest",
+      "sourceRoutes": [
+        "/features/source-data",
+        "/roadmap/source-data",
+        "/admin/source-data"
+      ],
+      "writeBoundary": "Read-only in the first mobile slice."
+    },
+    {
+      "id": "mobile-job-approve-agent-work",
+      "title": "Review agent work and confirm safe follow-up actions",
+      "primaryUser": "Owner receiving Codex, ChatGPT, Claude, or automation proposals",
+      "goal": "Inspect work-log entries, for-Mark items, screenshots, and required confirmations before approving public or billing-impacting work.",
+      "firstScreen": "For-Mark and work-log inbox",
+      "sourceRoutes": [
+        "/admin/work-log/source-data",
+        "/admin/for-mark/source-data",
+        "/agent-docs/source-data"
+      ],
+      "writeBoundary": "Confirmed writes need actor identity, confirmation text, idempotency key, stale-state check, audit correlation, and redaction."
+    },
+    {
+      "id": "mobile-job-check-commerce",
+      "title": "Inspect offer and checkout health",
+      "primaryUser": "Publisher watching sales and fulfillment state",
+      "goal": "Read products, prices, sandbox/live checkout state, webhook evidence, and known Stripe blockers before taking action.",
+      "firstScreen": "Commerce health summary",
+      "sourceRoutes": [
+        "/commerce/source-data",
+        "/api/commerce/checkout"
+      ],
+      "writeBoundary": "No live checkout, refund, subscription, price, or fulfillment mutation from mobile until confirmed-write APIs ship."
+    }
+  ],
+  "apiDependencies": [
+    {
+      "id": "mobile-api-admin-source",
+      "route": "/admin/source-data",
+      "purpose": "Public-safe roadmap, work-log, user-journey, and Mark-attention digest for the first mobile admin screen.",
+      "authBoundary": "public-safe",
+      "stableIds": [
+        "workLogEntryId",
+        "userJourneyId",
+        "markAttentionId",
+        "roadmapItemId"
+      ]
+    },
+    {
+      "id": "mobile-api-feature-catalog",
+      "route": "/features/source-data",
+      "purpose": "Feature status and issue evidence for the mobile dashboard.",
+      "authBoundary": "public-safe",
+      "stableIds": [
+        "featureId",
+        "issue",
+        "status"
+      ]
+    },
+    {
+      "id": "mobile-api-roadmap",
+      "route": "/roadmap/source-data",
+      "purpose": "Public roadmap lanes, blockers, next milestones, and issue links.",
+      "authBoundary": "public-safe",
+      "stableIds": [
+        "roadmapItemId",
+        "featureId",
+        "issue",
+        "status"
+      ]
+    },
+    {
+      "id": "mobile-api-commerce",
+      "route": "/commerce/source-data",
+      "purpose": "Redacted products, prices, checkout-intent, webhook, subscription, and audit architecture.",
+      "authBoundary": "public-safe",
+      "stableIds": [
+        "productId",
+        "priceId",
+        "checkoutIntentId",
+        "auditCorrelationId"
+      ]
+    },
+    {
+      "id": "mobile-api-auth",
+      "route": "/api/auth/[...all]",
+      "purpose": "Better Auth session boundary for future private publisher/admin mobile views.",
+      "authBoundary": "owner-session",
+      "stableIds": [
+        "userId",
+        "sessionId",
+        "role"
+      ]
+    },
+    {
+      "id": "mobile-api-confirmed-writes",
+      "route": "future /api/mobile-admin/actions",
+      "purpose": "Mobile confirmation endpoint for admin, publishing, commerce, and agent-proposal writes.",
+      "authBoundary": "future-confirmed-write",
+      "stableIds": [
+        "agentActionId",
+        "idempotencyKey",
+        "auditCorrelationId",
+        "staleStateToken"
+      ]
+    }
+  ],
+  "confirmedWriteRules": [
+    "The first mobile app slices are read-only until a confirmed-write API exists.",
+    "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
+    "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",
+    "Billing-impacting mobile actions require amount, currency, price/product stale-state checks, idempotency, audit correlation, redaction, and webhook evidence.",
+    "Private admin data requires an authenticated owner or publisher session; public source-data routes must remain safe for anonymous agents."
+  ]
+}

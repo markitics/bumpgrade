@@ -24,6 +24,12 @@ export type MobilePlatformSlice = {
   title: string;
   firstMilestone: string;
   validation: string[];
+  status?: "planned" | "scaffolded" | "simulator-smoke-ready";
+  appPath?: string;
+  sourceDataRoute?: string;
+  fixturePath?: string;
+  smokeCommand?: string;
+  screenshotPath?: string;
 };
 
 export type MobileAdminContract = {
@@ -58,11 +64,17 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 67,
       title: "Build first iOS publisher admin app slice",
       firstMilestone:
-        "Create the iOS target/simulator path and render the mobile admin digest from the shared contract or a checked-in fixture generated from it.",
+        "Render the mobile admin digest from the generated source-data fixture in the Expo app scaffold and iOS simulator smoke target.",
       validation: [
-        "Run the documented iOS app command or record the exact Xcode/simulator blocker.",
-        "Capture a real iOS simulator/device screenshot before claiming the app works.",
+        "Run npm run mobile:ios:validate to prove the fixture matches the shared contract and Xcode is available.",
+        "Run npm run mobile:ios:smoke to build, install, launch, and screenshot the iOS simulator target.",
       ],
+      status: "simulator-smoke-ready",
+      appPath: "apps/mobile-admin",
+      sourceDataRoute: "/mobile-admin/ios/source-data",
+      fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      smokeCommand: "npm run mobile:ios:smoke",
+      screenshotPath: "/pr-screenshots/issue-67-ios-mobile-admin-simulator.png",
     },
     {
       platform: "android",

@@ -1,0 +1,24 @@
+{
+  "name": "@bumpgrade/mobile-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bumpgrade publisher/admin mobile app scaffold for iOS and Android.",
+  "main": "src/App.tsx",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo start --ios",
+    "ios:smoke": "bash ./scripts/run-ios-smoke.sh",
+    "validate:ios": "node ./scripts/validate-ios-scaffold.mjs",
+    "fixture:sync": "node ./scripts/sync-mobile-fixture.mjs"
+  },
+  "dependencies": {
+    "expo": "^55.0.24",
+    "expo-status-bar": "^55.0.6",
+    "react": "19.2.4",
+    "react-native": "0.85.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "typescript": "^5.9.3"
+  }
+}

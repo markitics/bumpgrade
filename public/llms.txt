@@ -17,6 +17,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Sandbox checkout API: https://bumpgrade.com/api/commerce/checkout
 - Stripe webhook endpoint: https://bumpgrade.com/api/stripe/webhook
 - Mobile admin source data: https://bumpgrade.com/mobile-admin/source-data
+- iOS mobile admin source data: https://bumpgrade.com/mobile-admin/ios/source-data
 - Login and signup: https://bumpgrade.com/login
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
@@ -88,8 +89,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   must not start billing-impacting checkout work without exact confirmation,
   idempotency, audit correlation, stale-state checks, and webhook evidence.
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
-  `/mobile-admin/source-data`. The shared contract is live, but installable iOS
-  and Android app claims require issue #67 and #68 simulator or device evidence.
+  `/mobile-admin/source-data`. The iOS scaffold is documented in
+  `/mobile-admin/ios/source-data`, but App Store distribution, private mobile
+  auth, push notifications, Android support, and mobile writes are not live yet.
 - Secrets, bearer tokens, storage keys, private database ids, private user data,
   and provider credentials must not be passed as prompt-visible tool input.
 

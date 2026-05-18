@@ -1,6 +1,6 @@
 # Bumpgrade Mobile Admin Scaffold
 
-This folder reserves the shared mobile admin workspace for the iOS and Android
+This folder is the shared mobile admin workspace for the iOS and Android
 publisher/admin apps.
 
 Current scope:
@@ -9,15 +9,23 @@ Current scope:
 - iOS child issue: #67.
 - Android child issue: #68.
 - Shared contract route: `/mobile-admin/source-data`.
+- iOS source-data route: `/mobile-admin/ios/source-data`.
 - Source doc: `docs/features/mobile-admin.md`.
 
 The selected starting direction is Expo React Native with TypeScript, sharing
 one mobile admin codebase across iOS and Android unless device smoke tests prove
 a platform-specific split is required.
 
-This is not an installable app yet. The first app targets must be added in #67
-and #68 with real simulator/device validation and screenshots. Do not replace
-the app with a broad WebView shortcut.
+Issue #67 adds the first iOS slice:
+
+- `src/App.tsx`: Expo/React Native first screen for the shared app.
+- `fixtures/mobile-admin-contract.json`: checked-in fixture generated from the
+  web contract in `src/lib/mobile-admin.ts`.
+- `ios/BumpgradeMobileAdmin.xcodeproj`: simulator smoke target that renders the
+  same fixture with SwiftUI for a real iOS screenshot path.
+
+This is not App Store distribution, push notifications, private mobile auth, or
+mobile write support yet. Do not replace the app with a broad WebView shortcut.
 
 First screen target:
 
@@ -27,3 +35,21 @@ First screen target:
    commerce health sections.
 3. Keep the first slice read-only.
 4. Add confirmed-write UI only after the shared mobile action API exists.
+
+## Validation
+
+From the repo root:
+
+```bash
+npm run mobile:ios:validate
+npm run mobile:ios:smoke
+```
+
+`mobile:ios:validate` checks that the fixture matches `src/lib/mobile-admin.ts`,
+that the iOS source-data route is declared, and that Xcode is available.
+
+`mobile:ios:smoke` syncs the fixture, builds the simulator target, installs and
+launches it on the `iPhone 17` simulator by default, and writes a screenshot to
+`docs/pr-screenshots/issue-67-ios-mobile-admin-simulator.png`.
+
+Use `IOS_SIMULATOR_NAME="iPhone 17 Pro"` to target another installed simulator.
