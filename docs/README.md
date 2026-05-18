@@ -12,6 +12,8 @@ then open the relevant shelf for the task.
   direct agent clients instead of hidden browser automation.
 - `agent/admin-surfaces.md`: expectations for `/features`, `/admin/roadmap`,
   `/admin/work-log`, and `/admin/user-journeys`.
+- `agent/codex-mail-workflow.md`: Codex shipped notices, inbound reply routing,
+  and inbox polling.
 - `agent/pr-screenshots.md`: screenshot storage and PR-link rules.
 - `agent/work-log.md`: how to record substantive agent work.
 - `agent/user-journeys.md`: how journeys tie back to features and roadmap items.

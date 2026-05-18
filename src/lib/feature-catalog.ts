@@ -285,7 +285,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-codex-email",
     title: "Codex project email and reply monitor",
     group: "Operations",
-    status: "pending",
+    status: "live",
     issue: 10,
     summary:
       "Cloudflare email sending/routing for `codex@bumpgrade.com`, shipped-feature notices, reply monitoring, and attachment-aware follow-up.",
@@ -294,11 +294,16 @@ export const featureCatalog: FeatureRecord[] = [
       "Outbound shipped-feature and attention emails from `codex@bumpgrade.com`.",
       "Inbound routing and reply detection.",
       "Attachment and inline-image visibility checks.",
-      "Per-session reply context when plus-addressing is added.",
+      "D1/R2-backed evidence for outbound notices and inbound replies.",
     ],
-    evidence: ["Tracked by issue #10.", "Issue #10 currently notes that #5 shipped before outbound project email existed."],
+    evidence: [
+      "Tracked by issue #10.",
+      "Cloudflare Email Routing for bumpgrade.com reports ready after required DNS records were installed.",
+      "`codex_outbound_messages` and `codex_inbound_messages` persist notice and reply evidence.",
+      "Per-session plus addressing is deferred because Cloudflare reports subaddressing disabled for bumpgrade.com.",
+    ],
     agentContract:
-      "Agents should monitor replies before unrelated large work once Bumpgrade email routing exists.",
+      "Agents should send shipped PR notices, poll trusted recent replies before unrelated large work, and keep private inbox bodies out of GitHub.",
   },
   {
     id: "feature-stripe-commerce",
