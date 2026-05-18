@@ -528,6 +528,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-publisher-previews-analytics-experiments",
+    title: "Publisher previews analytics and experiment reporting",
+    featureId: "feature-analytics-testing",
+    featureStatus: "pending",
+    issueNumbers: [18, 87],
+    primaryUser: "Publisher or agent optimizing a launch funnel",
+    userGoal: "Inspect event definitions, metric formulas, fixture funnel reports, and A/B assignment rules before live tracking exists.",
+    sourceEvidence: [
+      "https://bumpgrade.com/analytics/source-data",
+      "https://bumpgrade.com/analytics/indie-launch-dashboard",
+      "https://bumpgrade.com/funnels/source-data",
+      "https://github.com/markitics/bumpgrade/issues/18",
+      "https://github.com/markitics/bumpgrade/issues/87",
+    ],
+    happyPath: [
+      "Fetch /analytics/source-data.",
+      "Find event IDs, metric IDs, fixture funnel-step reports, experiment IDs, variant IDs, assignment rule, and write boundary.",
+      "Open /analytics/indie-launch-dashboard to inspect the public preview.",
+      "Use /funnels/source-data, /offers/source-data, and /audience/source-data to resolve the sources before assuming live tracking exists.",
+    ],
+    edgeCases: [
+      "The seeded dashboard uses fixture counts and does not collect live event rows.",
+      "Cookie assignment, contact-level analytics, experiment traffic changes, automated winners, and revenue claims require future confirmed-write APIs.",
+      "Agents must include sample-size caveats and must not call fixture metrics statistically meaningful.",
+    ],
+    agentAccess:
+      "Agents can read /analytics/source-data and the preview route. Analytics writes require actor identity, privacy review, idempotency, bot filtering, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats in a later API.",
+    validation: [
+      "Playwright covers /analytics/source-data, /analytics/indie-launch-dashboard, sitemap discovery, and agent manifest read-contract discovery.",
+      "Issue #87 records the first analytics and experiments source-data contract and preview scaffold.",
+    ],
+    sortOrder: 51,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-plans-first-checkout",
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",

@@ -28,6 +28,8 @@ then open the relevant shelf for the task.
   entitlement source-data contract from issue #83.
 - `features/audience-automation.md`: read-only opt-in, lead magnet, tag,
   sequence, broadcast, and automation source-data contract from issue #85.
+- `features/analytics-experiments.md`: read-only event, metric, fixture report,
+  variant, and assignment-rule source-data contract from issue #87.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

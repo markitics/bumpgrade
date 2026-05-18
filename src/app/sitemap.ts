@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { analyticsDashboards } from "@/lib/analytics-experiments";
 import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
@@ -19,6 +20,7 @@ const sourceDataRoutes = [
   "/commerce/source-data",
   "/content/source-data",
   "/audience/source-data",
+  "/analytics/source-data",
   "/funnels/source-data",
   "/offers/source-data",
   "/products/source-data",
@@ -35,6 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const offerRoutes = checkoutOfferStacks.map((stack) => stack.previewRoute);
   const productRoutes = productAccessCatalogs.map((catalog) => catalog.previewRoute);
   const audienceRoutes = audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute);
+  const analyticsRoutes = analyticsDashboards.map((dashboard) => dashboard.previewRoute);
   return [
     "",
     ...scaffoldRoutes,
@@ -44,6 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...offerRoutes,
     ...productRoutes,
     ...audienceRoutes,
+    ...analyticsRoutes,
   ].map((path) => ({
       url: `${site.url}${path}`,
       lastModified,

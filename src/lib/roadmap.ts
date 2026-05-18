@@ -267,13 +267,18 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-analytics-testing",
     title: "Analytics, A/B testing, and conversion tracking",
-    status: "planned",
+    status: "active",
     issue: 18,
     featureId: featureIdFor(18),
     group: "Optimization",
-    summary: "Funnel events, checkout metrics, attribution, experiments, and source-linked reporting.",
-    publicEvidence: ["Tracked by issue #18."],
-    nextMilestone: "Define event taxonomy before feature slices emit production analytics.",
+    summary:
+      "Read-only analytics and experiment contract, event taxonomy, funnel metrics, attribution, A/B assignment, and source-linked reporting.",
+    publicEvidence: [
+      "Tracked by issue #18.",
+      "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
+    ],
+    nextMilestone:
+      "Build privacy-safe event ingestion and deterministic experiment assignment after the taxonomy and sample-size caveats are stable.",
   },
   {
     id: "roadmap-affiliates-referrals",
