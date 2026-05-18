@@ -142,8 +142,9 @@ export const roadmapItems: RoadmapItem[] = [
     publicEvidence: [
       "Issue #9 owns the Better Auth foundation slice.",
       "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation.",
+      "Issue #55 adds owner verification resend UX and last-sent status for protected admin gates.",
     ],
-    nextMilestone: "Enable verified production owner access after Cloudflare project email in #10 can send confirmation mail, then broaden publisher account surfaces.",
+    nextMilestone: "Broaden publisher account surfaces and keep verification email evidence connected to admin access.",
   },
   {
     id: "roadmap-stripe-commerce",
