@@ -3,9 +3,9 @@
   --ink: #121713;
   --muted: #5c645e;
   --panel: #ffffff;
-  --paper: #f6f1e8;
-  --paper-strong: #ebe3d3;
-  --line: #d4c8b8;
+  --paper: #f5f7f4;
+  --paper-strong: #e6eef0;
+  --line: #c9d3ce;
   --green: #174131;
   --green-soft: #dce9d7;
   --blue: #1f536b;
@@ -56,7 +56,7 @@ a {
   min-height: 72px;
   padding: 0 28px;
   border-bottom: 1px solid rgba(18, 23, 19, 0.12);
-  background: rgba(246, 241, 232, 0.94);
+  background: rgba(245, 247, 244, 0.94);
   backdrop-filter: blur(18px);
 }
 
@@ -306,7 +306,7 @@ h3 {
   min-height: 54px;
   padding: 0 16px;
   border-bottom: 1px solid var(--line);
-  background: #f9f5ee;
+  background: #f7faf8;
   font-weight: 800;
 }
 
@@ -365,6 +365,7 @@ h3 {
 
 .content-band {
   border-top: 1px solid var(--line);
+  background: var(--panel);
   padding: 54px 28px;
 }
 
@@ -375,7 +376,7 @@ h3 {
 }
 
 .alternate {
-  background: #f0ece0;
+  background: #edf3f4;
 }
 
 .section-heading {

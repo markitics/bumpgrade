@@ -102,7 +102,7 @@ export default function HomePage() {
         <div className="status-list">
           <div>
             <Cloud aria-hidden="true" />
-            <p>D1 `bumpgrade-prod` and R2 `bumpgrade-opennext-cache` are configured for the Worker.</p>
+            <p>D1 bumpgrade-prod and R2 bumpgrade-opennext-cache are configured for the Worker.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
@@ -110,7 +110,7 @@ export default function HomePage() {
           </div>
           <div>
             <FileText aria-hidden="true" />
-            <p>Public `llms.txt`, docs, and route placeholders keep future agents oriented.</p>
+            <p>Public llms.txt, docs, and route placeholders keep future agents oriented.</p>
           </div>
         </div>
       </section>

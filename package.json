@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit --pretty false",
-    "verify": "npm run lint && npm run typecheck && npm run build",
+    "test:browser": "playwright test",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run test:browser",
     "cf:build": "opennextjs-cloudflare build",
     "preview:worker": "wrangler dev",
     "preview": "npm run cf:build && wrangler dev",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260515.1",
+    "@playwright/test": "^1.60.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

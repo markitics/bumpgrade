@@ -19,8 +19,8 @@ export default function AdminRoadmapPage() {
       bullets={[
         "D1-backed feature and issue state.",
         "Active, next, pending, blocked, shipped, and parked lanes.",
-        "Links to public `/features`, `/roadmap`, work-log entries, and PR screenshots.",
-        "Exact blocker notes that can move to `/admin/for-mark` when Mark attention is needed.",
+        "Links to public features, roadmap, work-log entries, and PR screenshots.",
+        "Exact blocker notes that can move to For Mark when Mark attention is needed.",
       ]}
     />
   );
