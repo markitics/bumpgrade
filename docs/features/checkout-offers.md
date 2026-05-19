@@ -8,7 +8,9 @@ attribution evidence on sandbox checkout intents. Issue #113 adds review-only
 commission ledger evidence from trusted checkout attribution. Issue #115 adds
 owner-gated review, hold, and reversal actions for that evidence without payout
 mutation. Issue #117 adds a trusted post-purchase route and an idempotent
-non-billing decision API for upsell/downsell follow-up evidence.
+non-billing decision API for upsell/downsell follow-up evidence. Issue #133
+gates the checkout success CTA on trusted webhook state before opening that
+post-purchase path.
 
 Live in this slice:
 
@@ -22,6 +24,9 @@ Live in this slice:
   after exact confirmation. Test and incomplete-secret environments return a
   redacted preview response. Eligible referral click IDs can be attached as
   public-safe attribution evidence.
+- `/commerce/checkout/success`: safe Stripe return target that polls the
+  post-purchase decision contract and only shows the upsell/downsell CTA once
+  the checkout intent is paid or completed from trusted webhook evidence.
 - `/api/affiliates/commission-ledger`: confirmed write route that can create
   non-payable, review-only commission ledger evidence from a trusted checkout
   intent with referral attribution.

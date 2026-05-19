@@ -107,6 +107,9 @@ Issue #115 adds owner-gated review actions for that ledger evidence:
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 
+- `/commerce/checkout/success` is the Stripe return target and issue #133 gates
+  its post-purchase CTA on trusted webhook state instead of assuming the webhook
+  has already updated D1.
 - `/commerce/post-purchase/{checkoutIntentId}` renders the seeded launch
   accelerator upsell and launch review downsell only after trusted paid or
   completed sandbox checkout evidence exists.

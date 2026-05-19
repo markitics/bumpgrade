@@ -240,6 +240,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution.",
       "Issue #115 adds owner-gated review/reversal actions for commission evidence.",
       "Issue #117 records non-billing post-purchase upsell/downsell decisions from trusted checkout evidence.",
+      "Issue #133 gates the checkout success CTA on trusted webhook state before opening the post-purchase path.",
     ],
     nextMilestone:
       "Add explicit post-purchase billing contracts and partner-facing reporting only after decision evidence and owner review boundaries stay stable.",

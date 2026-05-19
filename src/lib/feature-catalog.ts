@@ -147,6 +147,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Confirmed sandbox checkout start with the seeded primary offer and constrained order bump from issue #99.",
       "Optional referral-click attribution evidence on sandbox checkout intents from issue #111.",
       "Non-billing post-purchase upsell/downsell decision evidence from issue #117.",
+      "Checkout success page CTA gated on trusted webhook state from issue #133.",
       "Checkout pages and embeddable checkout entry points.",
       "Order bumps, upsells, downsells, coupons, and subscription offers.",
       "Customer portal and billing-safe state transitions.",
@@ -159,6 +160,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #99 adds a confirmed sandbox checkout start panel and API support for the seeded pre-payment order bump.",
       "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
       "Issue #117 adds a trusted post-purchase route and idempotent non-billing decision API for upsell/downsell follow-up evidence.",
+      "Issue #133 makes the checkout success page wait for the redacted post-purchase contract before showing the upsell/downsell CTA.",
     ],
     agentContract:
       "Agents may read offer-stack and aggregate post-purchase decision evidence; billing-impacting, fulfillment, and commission-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
