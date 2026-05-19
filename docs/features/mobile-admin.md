@@ -19,6 +19,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - Dashboard scaffold rendering issue: #155. The Expo, iOS, and Android scaffold
   surfaces render the dashboard route, status, issue, and redaction boundary
   from the generated mobile-admin fixture.
+- Dashboard live hydration issue: #157. The Expo, iOS, and Android scaffold
+  surfaces fetch the live public dashboard route and fall back to the generated
+  fixture when network hydration is unavailable.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -56,11 +59,11 @@ IDs, issue evidence, recent public-safe work-log metadata, and redaction flags,
 not private buyer rows, raw inbox bodies, owner email values, session IDs, R2
 object keys, signed URLs, upload bodies, secret values, or write tokens.
 
-The #155 scaffold-rendering slice keeps the apps fixture-backed for simulator and
-emulator smoke tests, but the visible mobile screens now show the live dashboard
-route and boundary explicitly. Future slices should replace fixture-only
-hydration with live network reads while keeping fixture fallback for deterministic
-smoke tests.
+The #155 scaffold-rendering slice made the dashboard route and boundary visible
+from the generated fixture. The #157 live-hydration slice keeps that fixture as
+deterministic fallback while the Expo, iOS, and Android surfaces fetch the live
+public-safe dashboard route and label whether the panel came from the live
+network or fallback fixture.
 
 ## First Mobile Jobs
 
