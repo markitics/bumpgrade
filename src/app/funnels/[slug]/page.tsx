@@ -5,7 +5,7 @@ import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "luc
 
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
-import { getFunnelBySlug, seededFunnels } from "@/lib/funnels";
+import { funnelBlockLibrary, funnelTemplateLibrary, getFunnelBySlug, seededFunnels } from "@/lib/funnels";
 import { site } from "@/lib/site";
 
 type FunnelPreviewPageProps = {
@@ -170,6 +170,63 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
               </article>
             )),
           )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Template library</p>
+            <h2>Reusable funnel shapes before template writes exist</h2>
+          </div>
+          <Link href="/funnels/source-data" className="text-link compact-link">
+            Template JSON
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid">
+          {funnelTemplateLibrary.map((template) => (
+            <article key={template.id} className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">Read-only</span>
+                <span className="admin-pill">Issue #{template.sourceIssue}</span>
+              </div>
+              <h3>{template.title}</h3>
+              <p>{template.goal}</p>
+              <div className="roadmap-detail">
+                <strong>Audience</strong>
+                <span>{template.audience}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Steps</strong>
+                <span>{template.steps.map((step) => `${step.order}. ${step.kind.replaceAll("_", " ")}`).join(" / ")}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="feature-section-heading compact-section-heading">
+          <div>
+            <p className="eyebrow">Block library</p>
+            <h2>Reusable page blocks with write boundaries</h2>
+          </div>
+        </div>
+        <div className="feature-grid">
+          {funnelBlockLibrary.map((block) => (
+            <article key={block.id} className="feature-card compact-content-card">
+              <div className="feature-card-top">
+                <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
+                  {block.agentEditable ? "Draftable" : "Locked"}
+                </span>
+                <span className="admin-pill">{block.kind}</span>
+              </div>
+              <h3>{block.title}</h3>
+              <p>{block.purpose}</p>
+              <div className="feature-detail">
+                <strong>Boundary</strong>
+                <span>{block.writeBoundary}</span>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 

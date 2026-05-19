@@ -39,11 +39,40 @@ export type FunnelRecord = {
   validation: string[];
 };
 
-export const funnelsUpdatedAt = "2026-05-18";
+export type FunnelTemplateStep = {
+  order: number;
+  kind: FunnelStepKind;
+  title: string;
+  requiredBlockKinds: FunnelBlockKind[];
+};
+
+export type FunnelTemplate = {
+  id: string;
+  title: string;
+  audience: string;
+  goal: string;
+  recommendedFor: string[];
+  steps: FunnelTemplateStep[];
+  sourceIssue: number;
+  draftCreation: "future-confirmed-write";
+};
+
+export type FunnelBlockLibraryItem = {
+  id: string;
+  kind: FunnelBlockKind;
+  title: string;
+  purpose: string;
+  agentEditable: boolean;
+  safeInputs: string[];
+  writeBoundary: string;
+};
+
+export const funnelsUpdatedAt = "2026-05-19";
 export const draftFunnelBuilderIssue = 91;
 export const draftFunnelStepEditingIssue = 93;
 export const draftFunnelPreviewIssue = 95;
 export const draftFunnelPublishingIssue = 135;
+export const funnelTemplateLibraryIssue = 159;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
@@ -201,6 +230,107 @@ export const seededFunnel: FunnelRecord = {
 
 export const seededFunnels = [seededFunnel];
 
+export const funnelTemplateLibrary: FunnelTemplate[] = [
+  {
+    id: "template-warm-list-opt-in",
+    title: "Warm list opt-in funnel",
+    audience: "Newsletter publishers and creators validating demand before a paid launch.",
+    goal: "Capture consented subscribers, set expectations, and route them to a thank-you or nurture step.",
+    recommendedFor: ["lead magnet", "waitlist", "prelaunch"],
+    sourceIssue: funnelTemplateLibraryIssue,
+    draftCreation: "future-confirmed-write",
+    steps: [
+      { order: 1, kind: "opt_in", title: "Promise and email capture", requiredBlockKinds: ["hero", "benefits", "cta"] },
+      { order: 2, kind: "thank_you", title: "Confirmation and next step", requiredBlockKinds: ["hero", "delivery", "cta"] },
+    ],
+  },
+  {
+    id: "template-launch-sales-stack",
+    title: "Launch sales funnel",
+    audience: "Indie sellers launching a digital product, cohort, service, or workshop.",
+    goal: "Move a visitor from opt-in or offer context through proof, checkout handoff, and fulfillment expectation.",
+    recommendedFor: ["digital product", "course", "service launch"],
+    sourceIssue: funnelTemplateLibraryIssue,
+    draftCreation: "future-confirmed-write",
+    steps: [
+      { order: 1, kind: "opt_in", title: "Lead capture", requiredBlockKinds: ["hero", "benefits", "cta"] },
+      { order: 2, kind: "sales", title: "Offer and proof", requiredBlockKinds: ["hero", "proof", "checkout"] },
+      { order: 3, kind: "thank_you", title: "Delivery expectation", requiredBlockKinds: ["hero", "delivery", "cta"] },
+    ],
+  },
+  {
+    id: "template-post-purchase-offer",
+    title: "Post-purchase offer path",
+    audience: "Publishers testing non-billing upsell or downsell messaging after trusted checkout state.",
+    goal: "Present a follow-up offer decision path without creating one-click billing or fulfillment mutations.",
+    recommendedFor: ["upsell", "downsell", "checkout follow-up"],
+    sourceIssue: funnelTemplateLibraryIssue,
+    draftCreation: "future-confirmed-write",
+    steps: [
+      { order: 1, kind: "checkout", title: "Trusted checkout handoff", requiredBlockKinds: ["checkout", "proof"] },
+      { order: 2, kind: "upsell", title: "Follow-up offer", requiredBlockKinds: ["hero", "benefits", "cta"] },
+      { order: 3, kind: "thank_you", title: "Final confirmation", requiredBlockKinds: ["delivery", "cta"] },
+    ],
+  },
+];
+
+export const funnelBlockLibrary: FunnelBlockLibraryItem[] = [
+  {
+    id: "block-template-hero",
+    kind: "hero",
+    title: "Outcome-led hero",
+    purpose: "State the offer, audience, and primary action without unsupported claims.",
+    agentEditable: true,
+    safeInputs: ["offer title", "audience segment", "approved value proposition"],
+    writeBoundary: "Creator-speech changes require owner review before publishing.",
+  },
+  {
+    id: "block-template-benefits",
+    kind: "benefits",
+    title: "Benefit stack",
+    purpose: "List practical outcomes, objections, and reasons to continue.",
+    agentEditable: true,
+    safeInputs: ["feature IDs", "audience pain points", "approved offer notes"],
+    writeBoundary: "Do not invent revenue, testimonial, or guarantee claims.",
+  },
+  {
+    id: "block-template-proof",
+    kind: "proof",
+    title: "Evidence and proof",
+    purpose: "Anchor claims to source IDs, screenshots, approved quotes, or shipped-product evidence.",
+    agentEditable: true,
+    safeInputs: ["source IDs", "approved quotes", "screenshot URLs", "PR evidence"],
+    writeBoundary: "Only cite verified evidence; private customer data stays excluded.",
+  },
+  {
+    id: "block-template-checkout",
+    kind: "checkout",
+    title: "Checkout handoff",
+    purpose: "Connect the funnel to a checkout contract without exposing raw Stripe or buyer data.",
+    agentEditable: false,
+    safeInputs: ["offer ID", "price ID alias", "checkout route"],
+    writeBoundary: "Billing-impacting changes require confirmed-write checkout APIs.",
+  },
+  {
+    id: "block-template-delivery",
+    kind: "delivery",
+    title: "Delivery and access status",
+    purpose: "Explain what the customer receives and where fulfillment evidence comes from.",
+    agentEditable: false,
+    safeInputs: ["product ID", "entitlement template ID", "fulfillment status"],
+    writeBoundary: "Do not expose private asset URLs, R2 keys, signed URLs, or buyer records.",
+  },
+  {
+    id: "block-template-cta",
+    kind: "cta",
+    title: "Primary call to action",
+    purpose: "Render the next action for opt-in, checkout, reply, or follow-up paths.",
+    agentEditable: true,
+    safeInputs: ["route", "button label", "confirmation requirement"],
+    writeBoundary: "Public CTA changes require owner confirmation when they affect publishing, billing, or creator speech.",
+  },
+];
+
 export function getFunnelBySlug(slug: string) {
   return seededFunnels.find((funnel) => funnel.slug === slug) ?? null;
 }
@@ -208,8 +338,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "read-contract-owner-preview-and-publish-ready",
-  issue: draftFunnelPublishingIssue,
+  status: "read-contract-template-library-ready",
+  issue: funnelTemplateLibraryIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
@@ -218,6 +348,8 @@ export const funnelSourceData = {
     "funnelId",
     "funnelStepId",
     "funnelBlockId",
+    "funnelTemplateId",
+    "funnelBlockTemplateId",
     "funnelRevisionId",
     "funnelDraftId",
     "funnelAuditEventId",
@@ -225,7 +357,10 @@ export const funnelSourceData = {
   ],
   writeBoundary: seededFunnel.writeBoundary,
   editableDraftCapability,
+  templateLibraryIssue: funnelTemplateLibraryIssue,
+  templates: funnelTemplateLibrary,
+  blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. It does not expose unpublished private draft copy publicly and is not checkout integration, drag-and-drop visual builder, or unconfirmed agent-write API.",
+    "This public contract proves read and preview semantics, reusable template and block-template records, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Template-to-draft creation, block editing, checkout integration, drag-and-drop visual building, and unconfirmed agent-write APIs are not live.",
 };
