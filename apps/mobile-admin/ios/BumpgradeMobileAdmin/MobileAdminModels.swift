@@ -8,6 +8,7 @@ struct MobileAdminContract: Decodable {
     let featureId: String
     let stackDecision: String
     let scaffoldBoundary: String
+    let liveDashboard: MobileLiveDashboard
     let childIssues: [MobilePlatformSlice]
     let jobs: [MobileJob]
     let apiDependencies: [MobileApiDependency]
@@ -25,6 +26,17 @@ struct MobileAdminContract: Decodable {
             fatalError("Could not decode mobile-admin-contract.json: \(error)")
         }
     }
+}
+
+struct MobileLiveDashboard: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let route: String
+    let purpose: String
+    let publicSafeReads: [String]
+    let redactionBoundary: String
+    let renderedInScaffoldsIssue: Int?
 }
 
 struct MobilePlatformSlice: Decodable, Identifiable {

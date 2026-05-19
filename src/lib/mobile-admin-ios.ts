@@ -25,13 +25,14 @@ export const iosMobileAdminSourceData = {
   smokeCommand: iosSlice.smokeCommand ?? "npm run mobile:ios:smoke",
   validationCommand: "npm run mobile:ios:validate",
   screenshotPath: iosSlice.screenshotPath ?? "/pr-screenshots/issue-67-ios-mobile-admin-simulator.png",
+  dashboardPanelIssue: 155,
   reads: [
     {
       id: "ios-read-mobile-contract-fixture",
       route: "/mobile-admin/source-data",
       fixturePath: iosSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Expo entrypoint and iOS simulator target render the mobile admin digest from the checked-in fixture generated from the shared source-data contract.",
+        "The Expo entrypoint and iOS simulator target render the mobile admin digest plus the live dashboard route from the checked-in fixture generated from the shared source-data contract.",
     },
     {
       id: "ios-read-live-mobile-dashboard-next",

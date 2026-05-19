@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
     try {
       JSONObject contract = new JSONObject(readAsset("mobile-admin-contract.json"));
       JSONObject androidSlice = findPlatformSlice(contract.getJSONArray("childIssues"), "android");
+      JSONObject liveDashboard = contract.getJSONObject("liveDashboard");
       JSONArray jobs = contract.getJSONArray("jobs");
 
       ScrollView scrollView = new ScrollView(this);
@@ -57,6 +58,14 @@ public class MainActivity extends Activity {
       sourcePanel.addView(body("Parent issue #" + contract.getInt("parentIssue") + ". Feature " + contract.getString("featureId") + "."));
       sourcePanel.addView(meta(androidSlice.optString("sourceDataRoute", "/mobile-admin/android/source-data")));
       content.addView(sourcePanel);
+
+      LinearLayout dashboardPanel = panel();
+      dashboardPanel.addView(kicker("Live dashboard"));
+      dashboardPanel.addView(panelTitle(liveDashboard.getString("route")));
+      dashboardPanel.addView(body(liveDashboard.getString("purpose")));
+      dashboardPanel.addView(meta("Status: " + liveDashboard.getString("status") + " · issue #" + liveDashboard.getInt("issue")));
+      dashboardPanel.addView(meta("Boundary: " + liveDashboard.getString("redactionBoundary")));
+      content.addView(dashboardPanel);
 
       content.addView(sectionLabel("Phone jobs"));
       for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {

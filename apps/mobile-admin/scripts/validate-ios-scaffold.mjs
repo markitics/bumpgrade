@@ -44,10 +44,13 @@ assert(fixture.id === "bumpgrade-mobile-admin-contract", "Fixture has unexpected
 assert(fixture.childIssues.some((slice) => slice.platform === "ios" && slice.issue === 67), "Fixture does not include iOS issue #67.");
 assert(fixture.childIssues.some((slice) => slice.platform === "android" && slice.issue === 68), "Fixture does not include Android issue #68.");
 assert(fixture.childIssues.find((slice) => slice.platform === "ios")?.sourceDataRoute === "/mobile-admin/ios/source-data", "iOS slice source-data route is missing.");
+assert(fixture.liveDashboard?.route === "/mobile-admin/dashboard/source-data", "Fixture does not include the live mobile dashboard route.");
+assert(fixture.liveDashboard?.renderedInScaffoldsIssue === 155, "Fixture does not record issue #155 as the mobile dashboard scaffold render slice.");
 
 const appSource = readFileSync(appSourcePath, "utf8");
 assert(appSource.includes("mobileAdminContractFixture"), "Expo app does not read the generated fixture.");
 assert(appSource.includes("Bumpgrade mobile admin"), "Expo app title is missing.");
+assert(appSource.includes("Live dashboard"), "Expo app does not render the live dashboard panel.");
 
 const xcodeVersion = spawnSync("xcodebuild", ["-version"], { encoding: "utf8" });
 assert(xcodeVersion.status === 0, "xcodebuild is not available for iOS validation.");
