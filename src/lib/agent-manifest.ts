@@ -291,11 +291,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect sandbox entitlement grant mappings",
       "Inspect aggregate owner-entitlement counts and redaction flags",
       "Discover the customer-safe checkout intent entitlement lookup contract",
-      "Discover short-lived sandbox download-token boundaries",
+      "Discover short-lived private R2-backed download-token boundaries",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows in /admin/products; customers can inspect checkout-intent-scoped entitlement status and create short-lived sandbox download tokens without buyer or provider identifiers; product, private asset, signed object URL, revocation, live fulfillment, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows in /admin/products; customers can inspect checkout-intent-scoped entitlement status and create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers; product creation, arbitrary private asset uploads, signed object URLs, revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -315,19 +315,19 @@ export const agentReadContracts: AgentReadContract[] = [
   },
   {
     id: "create-sandbox-product-download-token",
-    title: "Sandbox product download token",
+    title: "Private R2 product download token",
     route: "/api/products/download-tokens",
     kind: "api",
     auth: "public",
     sourceOfTruth: "src/lib/product-download-tokens.ts",
     stableIds: ["checkoutIntentId", "productEntitlementId", "productDownloadTokenId", "assetId"],
     safeForAgents: [
-      "Create a short-lived sandbox download token for an active checkout-linked file entitlement",
-      "Confirm placeholder delivery does not expose private R2 keys or signed object URLs",
+      "Create a short-lived download token for an active checkout-linked file entitlement",
+      "Confirm private R2-backed fixture delivery does not expose private R2 keys or signed object URLs",
       "Inspect token expiry, one-use replay rejection, and entitlement scope",
     ],
     writeBoundary:
-      "This creates only a short-lived sandbox token and placeholder attachment; private R2-backed delivery, protected content, revocation, and live fulfillment require future authenticated confirmed-write APIs.",
+      "This creates a short-lived token and streams a seeded private R2-backed fixture through Bumpgrade; protected content, arbitrary asset uploads, revocation, subscription access, and live fulfillment automation require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-admin-product-entitlements",
@@ -600,7 +600,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, redaction flags, preview route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "productId",
       "assetId",
@@ -612,7 +612,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "fulfillmentId",
     ],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, and short-lived sandbox download tokens; it is not private R2-backed asset delivery, signed object URL access, revocation, or live fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, and short-lived tokens that stream a seeded private R2 fixture; it is not signed object URL access, arbitrary asset upload, revocation, protected content, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",
@@ -778,9 +778,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived sandbox download-token boundaries, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries, and fulfillment boundaries.",
     safetyBoundary:
-      "Read-only; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data, while private asset access, private owner rows, entitlement writes, subscription access changes, and fulfillment actions require owner auth or confirmed-write contracts.",
+      "Read-only; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade, while private owner rows, entitlement writes, arbitrary asset uploads, subscription access changes, and fulfillment actions require owner auth or confirmed-write contracts.",
   },
   {
     id: "mcp-resource-audience-automation",

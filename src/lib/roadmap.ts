@@ -254,17 +254,18 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
       "Issue #101 adds idempotent sandbox entitlement rows and fulfillment task evidence from trusted paid checkout webhook events.",
       "Issue #139 adds `/admin/products` owner entitlement inspection and aggregate public redaction flags.",
       "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
-      "Issue #143 adds short-lived sandbox download tokens for active file entitlements without exposing private R2 keys or signed object URLs.",
+      "Issue #143 adds one-use download tokens for active file entitlements without exposing private R2 keys or signed object URLs.",
+      "Issue #146 adds a seeded private R2-backed fixture delivery path through one-use Bumpgrade tokens.",
     ],
     nextMilestone:
-      "Replace sandbox placeholder downloads with private R2-backed delivery while preserving the same token, entitlement, expiry, and redaction boundaries.",
+      "Add arbitrary product asset uploads and protected content delivery while preserving the same token, entitlement, expiry, and redaction boundaries.",
   },
   {
     id: "roadmap-email-automation",

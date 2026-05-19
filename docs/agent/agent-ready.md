@@ -144,14 +144,14 @@ access rules, and queued fulfillment evidence. `/products/entitlements` and
 entitlement and fulfillment status without exposing buyer email, hashes, raw
 Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
-counts, the customer lookup contract, short-lived sandbox download-token
+counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
-`/api/products/downloads?token={token}` returns a sandbox placeholder attachment while
+`/api/products/downloads?token={token}` streams a seeded private R2-backed fixture through Bumpgrade while
 rejecting expired or replayed tokens. This proves entitlement grant,
-owner-inspection, customer-safe lookup, and sandbox token-delivery semantics, not
-private R2-backed asset delivery, signed object URLs, protected content,
-revocation, live fulfillment, or direct agent write capability.
+owner-inspection, customer-safe lookup, and private fixture delivery semantics,
+not signed object URLs, arbitrary asset uploads, protected content, revocation,
+live fulfillment automation, or direct agent write capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,

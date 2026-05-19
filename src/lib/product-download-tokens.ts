@@ -3,13 +3,16 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { productAccessCatalogs } from "@/lib/product-access";
 
 export const productDownloadTokenIssue = 143;
-export const productDownloadTokenStatus = "sandbox-download-tokens-ready";
+export const productDownloadAssetDeliveryIssue = 146;
+export const productDownloadTokenStatus = "private-r2-download-delivery-ready";
 export const productDownloadTokenApiRoute = "/api/products/download-tokens";
 export const productDownloadRoutePrefix = "/api/products/downloads";
 export const productDownloadTokenTtlSeconds = 15 * 60;
+export const productAssetBucketBinding = "PRODUCT_ASSETS";
 
 type DownloadTokenRuntime = {
   db: D1Database;
+  productAssets: R2Bucket;
 };
 
 type EntitlementForDownloadRow = {
@@ -40,13 +43,17 @@ export type ProductDownloadAsset = {
   assetTitle: string;
   productId: string;
   productTitle: string;
+  fileName: string;
+  contentType: string;
+  deliveryMode: "private-r2-fixture";
+  r2Backed: true;
 };
 
 export type ProductDownloadTokenResult =
   | {
       ok: true;
       status: typeof productDownloadTokenStatus;
-      issue: typeof productDownloadTokenIssue;
+      issue: typeof productDownloadAssetDeliveryIssue;
       token: string;
       downloadUrl: string;
       expiresAt: string;
@@ -56,7 +63,7 @@ export type ProductDownloadTokenResult =
   | {
       ok: false;
       status: "invalid_request" | "not_found" | "not_eligible" | "unavailable";
-      issue: typeof productDownloadTokenIssue;
+      issue: typeof productDownloadAssetDeliveryIssue;
       message: string;
       redaction: ProductDownloadRedaction;
     };
@@ -73,15 +80,24 @@ export type ProductDownloadRedaction = {
 export const productDownloadTokenSummary = {
   id: "sandbox-product-download-token-contract",
   status: productDownloadTokenStatus,
-  issue: productDownloadTokenIssue,
+  issue: productDownloadAssetDeliveryIssue,
+  followsIssue: productDownloadTokenIssue,
   parentIssue: 16,
   apiRoute: productDownloadTokenApiRoute,
   downloadRoutePrefix: productDownloadRoutePrefix,
   sourceDataRoute: "/products/source-data",
   ttlSeconds: productDownloadTokenTtlSeconds,
   tables: ["product_download_tokens"],
+  privateAssetBucketBinding: productAssetBucketBinding,
   authBoundary: "checkout-intent-and-entitlement-bearer-reference",
   eligibleAssetKind: "file",
+  deliveryMode: "private-r2-fixture",
+  privateAssetDelivery: {
+    r2Backed: true,
+    seededAssetId: "asset-launch-checklist-pdf",
+    rawR2KeysIncluded: false,
+    signedUrlsIncluded: false,
+  },
   redaction: {
     buyerEmailIncluded: false,
     buyerEmailHashIncluded: false,
@@ -91,8 +107,38 @@ export const productDownloadTokenSummary = {
     metadataJsonIncluded: false,
   } satisfies ProductDownloadRedaction,
   writeBoundary:
-    "Issue #143 can create short-lived sandbox download tokens for active checkout-linked file entitlements and return a placeholder attachment. It does not expose private R2 keys, signed object URLs, protected lessons, buyer identity, revocation, subscription access, or live fulfillment.",
+    "Issue #146 can create short-lived download tokens for active checkout-linked file entitlements and stream a seeded private R2-backed fixture through Bumpgrade. It does not expose private R2 keys, signed object URLs, protected lessons, buyer identity, revocation, subscription access, arbitrary uploads, or live fulfillment automation.",
 };
+
+type PrivateProductAssetFixture = {
+  assetId: string;
+  objectKey: string;
+  fileName: string;
+  contentType: string;
+  body: string;
+};
+
+const privateProductAssetFixtures = new Map<string, PrivateProductAssetFixture>([
+  [
+    "asset-launch-checklist-pdf",
+    {
+      assetId: "asset-launch-checklist-pdf",
+      objectKey: "products/fixtures/asset-launch-checklist-pdf.txt",
+      fileName: "asset-launch-checklist-pdf.txt",
+      contentType: "text/plain; charset=utf-8",
+      body: [
+        "Bumpgrade Launch Checklist",
+        "",
+        "This private fixture proves entitlement-scoped R2 delivery through Bumpgrade.",
+        "It is safe sample content and contains no buyer identity, Stripe identifiers, R2 object keys, signed URLs, or private metadata.",
+        "",
+        "- Confirm the offer and checkout route.",
+        "- Confirm the access rule and entitlement template.",
+        "- Confirm replay attempts are rejected after the first download.",
+      ].join("\n"),
+    },
+  ],
+]);
 
 async function getRuntime(): Promise<DownloadTokenRuntime> {
   const { env } = await getCloudflareContext({ async: true });
@@ -100,7 +146,10 @@ async function getRuntime(): Promise<DownloadTokenRuntime> {
   if (!cloudflareEnv.DB) {
     throw new Error("Cloudflare D1 binding DB is not available.");
   }
-  return { db: cloudflareEnv.DB };
+  if (!cloudflareEnv.PRODUCT_ASSETS) {
+    throw new Error("Cloudflare R2 binding PRODUCT_ASSETS is not available.");
+  }
+  return { db: cloudflareEnv.DB, productAssets: cloudflareEnv.PRODUCT_ASSETS };
 }
 
 function timestampValue(value: number | string | null | undefined) {
@@ -135,14 +184,59 @@ export function downloadableAssetForProduct(productId: string): ProductDownloadA
       .map((assetId) => catalog.assets.find((item) => item.id === assetId) ?? null)
       .find((item) => item?.kind === "file");
     if (!asset) return null;
+    const fixture = privateProductAssetFixtures.get(asset.id);
+    if (!fixture) return null;
     return {
       assetId: asset.id,
       assetTitle: asset.title,
       productId: product.id,
       productTitle: product.title,
+      fileName: fixture.fileName,
+      contentType: fixture.contentType,
+      deliveryMode: "private-r2-fixture",
+      r2Backed: true,
     };
   }
   return null;
+}
+
+async function readPrivateProductAsset(bucket: R2Bucket, asset: ProductDownloadAsset) {
+  const fixture = privateProductAssetFixtures.get(asset.assetId);
+  if (!fixture) {
+    throw new Error("No private fixture is configured for this asset.");
+  }
+
+  let object = await bucket.get(fixture.objectKey);
+  if (!object) {
+    await bucket.put(fixture.objectKey, fixture.body, {
+      httpMetadata: {
+        contentType: fixture.contentType,
+      },
+      customMetadata: {
+        assetId: fixture.assetId,
+        issue: String(productDownloadAssetDeliveryIssue),
+        seededFixture: "true",
+        rawR2KeysIncluded: "false",
+        signedUrlsIncluded: "false",
+      },
+    });
+    object = await bucket.get(fixture.objectKey);
+  }
+
+  if (!object) {
+    throw new Error("Private product asset could not be read from R2.");
+  }
+
+  const body = await object.arrayBuffer();
+  return {
+    body,
+    byteLength: body.byteLength,
+    fileName: fixture.fileName,
+    contentType: object.httpMetadata?.contentType ?? fixture.contentType,
+    r2Backed: true as const,
+    privateR2KeysIncluded: false as const,
+    signedUrlsIncluded: false as const,
+  };
 }
 
 function resultError(
@@ -152,7 +246,7 @@ function resultError(
   return {
     ok: false,
     status,
-    issue: productDownloadTokenIssue,
+    issue: productDownloadAssetDeliveryIssue,
     message,
     redaction: productDownloadTokenSummary.redaction,
   };
@@ -200,7 +294,7 @@ export async function createProductDownloadToken(input: {
 
     const asset = downloadableAssetForProduct(entitlement.product_id);
     if (!asset) {
-      return resultError("not_eligible", "This entitlement does not include a sandbox file asset.");
+      return resultError("not_eligible", "This entitlement does not include a private file asset.");
     }
 
     const token = randomToken();
@@ -224,7 +318,8 @@ export async function createProductDownloadToken(input: {
         asset.assetId,
         expiresAtSeconds,
         JSON.stringify({
-          issue: productDownloadTokenIssue,
+          issue: productDownloadAssetDeliveryIssue,
+          followsIssue: productDownloadTokenIssue,
           rawR2KeysIncluded: false,
           signedUrlsIncluded: false,
           buyerDataIncluded: false,
@@ -237,7 +332,7 @@ export async function createProductDownloadToken(input: {
     return {
       ok: true,
       status: productDownloadTokenStatus,
-      issue: productDownloadTokenIssue,
+      issue: productDownloadAssetDeliveryIssue,
       token,
       downloadUrl,
       expiresAt: timestampValue(expiresAtSeconds) ?? new Date(expiresAtSeconds * 1000).toISOString(),
@@ -259,7 +354,7 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
   }
 
   const tokenHash = await sha256(token);
-  const { db } = await getRuntime();
+  const { db, productAssets } = await getRuntime();
   const row = await db
     .prepare("SELECT * FROM product_download_tokens WHERE token_hash = ?")
     .bind(tokenHash)
@@ -284,6 +379,17 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
     return { ok: false as const, status: 409, message: "Download token asset scope is no longer valid." };
   }
 
+  let privateAsset;
+  try {
+    privateAsset = await readPrivateProductAsset(productAssets, asset);
+  } catch (error) {
+    return {
+      ok: false as const,
+      status: 503,
+      message: error instanceof Error ? error.message : "Private product asset is unavailable.",
+    };
+  }
+
   const update = await db
     .prepare(
       "UPDATE product_download_tokens SET status = 'downloaded', used_at = unixepoch(), updated_at = unixepoch() WHERE id = ? AND status = 'active' AND used_at IS NULL",
@@ -300,6 +406,7 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
     checkoutIntentId: row.checkout_intent_id,
     entitlementId: row.entitlement_id,
     asset,
+    file: privateAsset,
     expiresAt: timestampValue(row.expires_at),
   };
 }

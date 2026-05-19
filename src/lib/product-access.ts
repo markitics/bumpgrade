@@ -82,14 +82,15 @@ export const productAccessCatalog: ProductAccessCatalog = {
   commerceContractRoute: "/commerce/source-data",
   revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, and sandbox webhook-backed entitlement grants before private fulfillment delivery exists.",
+    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, and the first private R2-backed fixture delivery path.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",
       kind: "file",
       title: "Launch checklist PDF",
-      publicDescription: "A downloadable checklist asset represented without a private R2 key or signed URL.",
-      storageBoundary: "Future implementation stores private object keys server-side and returns signed access only to entitled users.",
+      publicDescription: "A downloadable checklist asset delivered through a private R2-backed fixture without exposing object keys or signed URLs.",
+      storageBoundary:
+        "Issue #146 stores and reads the safe fixture through the PRODUCT_ASSETS R2 binding server-side; private object keys and signed URLs stay out of public source-data and token responses.",
     },
     {
       id: "asset-launch-course-lessons",
@@ -128,7 +129,8 @@ export const productAccessCatalog: ProductAccessCatalog = {
       timing: "after_webhook_paid",
       revocable: true,
       sourceEvent: "checkout.session.completed",
-      writeBoundary: "No download link is issued until a future entitlement write verifies paid status and buyer identity.",
+      writeBoundary:
+        "Issue #146 can issue a short-lived one-use token for active file entitlements and stream the seeded private R2 fixture through Bumpgrade.",
     },
     {
       id: "access-rule-course-after-paid-webhook",
@@ -302,12 +304,13 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, and issue #143 can create short-lived sandbox download tokens for active file entitlements. Product creation, private asset upload, signed object URLs, protected content, subscription access changes, refunds, revocations, live fulfillment, and direct agent writes require future authenticated confirmed-write APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, and issue #146 can stream a seeded private R2-backed fixture through Bumpgrade. Product creation, arbitrary private asset upload, signed object URLs, protected content, subscription access changes, refunds, revocations, live fulfillment automation, and direct agent writes require future authenticated confirmed-write APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
     "/products/entitlements renders checkout-intent-scoped customer entitlement lookup.",
-    "/api/products/download-tokens creates short-lived sandbox download tokens for active file entitlements.",
+    "/api/products/download-tokens creates short-lived download tokens for active file entitlements.",
+    "/api/products/downloads?token={token} streams the seeded private R2 fixture once and rejects token replay.",
     "/api/stripe/webhook grants idempotent sandbox entitlements after trusted paid checkout evidence.",
     "/agent-docs/source-data lists the product access read contract for future MCP resources.",
   ],
@@ -322,8 +325,8 @@ export function getProductAccessCatalogBySlug(slug: string) {
 export const productAccessSourceData = {
   id: "bumpgrade-product-access-source-data",
   updatedAt: productAccessUpdatedAt,
-  status: "sandbox-entitlement-grants-ready",
-  issue: 101,
+  status: "private-r2-product-delivery-ready",
+  issue: 146,
   parentIssue: 16,
   generatedFrom: "src/lib/product-access.ts",
   routes: [
@@ -350,5 +353,5 @@ export const productAccessSourceData = {
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, customer-safe checkout-intent entitlement lookup, and short-lived sandbox download tokens. It does not expose private R2 keys, signed object URLs, protected content, revocation APIs, live fulfillment, customer portals, or direct agent confirmed-write APIs.",
+    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, and seeded private R2-backed fixture delivery. It does not expose private R2 keys, signed object URLs, protected content, revocation APIs, live fulfillment automation, customer portals, arbitrary asset uploads, or direct agent confirmed-write APIs.",
 };

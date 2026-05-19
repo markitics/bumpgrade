@@ -193,9 +193,9 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
                     <div className="admin-step-editor">
                       <div className="admin-step-editor-heading">
                         <div>
-                          <span>Sandbox delivery</span>
+                          <span>Private delivery</span>
                           <strong>{entitlement.downloadDelivery.assetTitle}</strong>
-                          <p>Creates a short-lived token without exposing private R2 keys or signed object URLs.</p>
+                          <p>Streams a private R2-backed fixture without exposing object keys or signed URLs.</p>
                         </div>
                       </div>
                       <CustomerDownloadTokenButton checkoutIntentId={lookup.checkoutIntentId} entitlementId={entitlement.id} />
