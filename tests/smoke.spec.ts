@@ -459,8 +459,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "sandbox-entitlement-grants-ready",
-        issue: 101,
+        status: "private-r2-product-delivery-ready",
+        issue: 146,
         parentIssue: 16,
       }),
     );
@@ -515,10 +515,19 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.sandboxDownloadTokens).toEqual(
       expect.objectContaining({
         id: productDownloadTokenSummary.id,
-        status: "sandbox-download-tokens-ready",
-        issue: 143,
+        status: "private-r2-download-delivery-ready",
+        issue: 146,
+        followsIssue: 143,
         apiRoute: "/api/products/download-tokens",
         downloadRoutePrefix: "/api/products/downloads",
+        privateAssetBucketBinding: "PRODUCT_ASSETS",
+        deliveryMode: "private-r2-fixture",
+        privateAssetDelivery: expect.objectContaining({
+          r2Backed: true,
+          seededAssetId: "asset-launch-checklist-pdf",
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+        }),
         redaction: expect.objectContaining({
           buyerEmailIncluded: false,
           buyerEmailHashIncluded: false,
@@ -620,6 +629,8 @@ test.describe("Bumpgrade scaffold", () => {
           downloadDelivery: expect.objectContaining({
             available: true,
             assetId: "asset-launch-checklist-pdf",
+            deliveryMode: "private-r2-fixture",
+            r2Backed: true,
             privateR2KeysIncluded: false,
             signedUrlsIncluded: false,
           }),
@@ -630,6 +641,8 @@ test.describe("Bumpgrade scaffold", () => {
           downloadDelivery: expect.objectContaining({
             available: true,
             assetId: "asset-launch-checklist-pdf",
+            deliveryMode: "private-r2-fixture",
+            r2Backed: true,
             privateR2KeysIncluded: false,
             signedUrlsIncluded: false,
           }),
@@ -653,10 +666,16 @@ test.describe("Bumpgrade scaffold", () => {
     expect(tokenPayload).toEqual(
       expect.objectContaining({
         ok: true,
-        status: "sandbox-download-tokens-ready",
-        issue: 143,
+        status: "private-r2-download-delivery-ready",
+        issue: 146,
         token: expect.stringMatching(/^download-token-/),
         downloadUrl: expect.stringContaining("/api/products/downloads?token=download-token-"),
+        asset: expect.objectContaining({
+          assetId: "asset-launch-checklist-pdf",
+          fileName: "asset-launch-checklist-pdf.txt",
+          deliveryMode: "private-r2-fixture",
+          r2Backed: true,
+        }),
         redaction: expect.objectContaining({
           buyerEmailIncluded: false,
           buyerEmailHashIncluded: false,
@@ -676,12 +695,15 @@ test.describe("Bumpgrade scaffold", () => {
     const download = await request.get(tokenPayload.downloadUrl);
     expect(download.ok(), await download.text()).toBeTruthy();
     expect(download.headers()["content-disposition"]).toContain("asset-launch-checklist-pdf.txt");
+    expect(download.headers()["x-bumpgrade-delivery"]).toContain("private-r2-fixture");
     expect(download.headers()["x-bumpgrade-redaction"]).toContain("private-r2-keys=false");
     const downloadText = await download.text();
-    expect(downloadText).toContain("Bumpgrade sandbox download");
-    expect(downloadText).toContain("No private R2 object key or signed object URL is exposed.");
+    expect(downloadText).toContain("Bumpgrade Launch Checklist");
+    expect(downloadText).toContain("entitlement-scoped R2 delivery through Bumpgrade");
     expect(downloadText).not.toContain(buyerEmail);
     expect(downloadText).not.toContain(grant.eventId);
+    expect(downloadText).not.toContain("products/fixtures/");
+    expect(downloadText).not.toContain("signed_url");
 
     const replay = await request.get(tokenPayload.downloadUrl);
     expect(replay.status()).toBe(410);
@@ -2282,12 +2304,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
