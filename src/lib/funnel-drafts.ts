@@ -6,6 +6,7 @@ import {
   draftFunnelBuilderIssue,
   draftFunnelBuilderParentIssue,
   draftFunnelBuilderWriteBoundary,
+  draftFunnelStepEditingIssue,
   editableDraftCapability,
   seededFunnel,
 } from "@/lib/funnels";
@@ -79,6 +80,8 @@ type D1FunnelStepRow = {
   route_anchor: string;
   blocks_json: string;
 };
+
+const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "thank_you"];
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -229,6 +232,11 @@ async function loadDraftsFromD1(db: D1Database): Promise<DraftFunnelRecord[]> {
   return rows.map((row) => draftFromRow(row, stepsByDraftId.get(row.id) ?? []));
 }
 
+async function loadDraftFromD1(db: D1Database, draftId: string) {
+  const drafts = await loadDraftsFromD1(db);
+  return drafts.find((draft) => draft.id === draftId) ?? null;
+}
+
 export async function getDraftFunnelAdminState(): Promise<DraftFunnelAdminState> {
   try {
     const db = await getFunnelDraftD1OrThrow();
@@ -325,9 +333,13 @@ function insertAuditStatement(
   db: D1Database,
   draft: DraftFunnelRecord,
   identity: AdminIdentity,
-  eventKind: "draft_seeded" | "draft_created",
+  eventKind: "draft_seeded" | "draft_created" | "draft_updated",
   idempotencyKey: string,
+  summary?: string,
+  metadata: Record<string, unknown> = {},
 ) {
+  const action = eventKind === "draft_seeded" ? "seeded" : eventKind === "draft_created" ? "created" : "updated";
+  const issue = eventKind === "draft_updated" ? draftFunnelStepEditingIssue : draftFunnelBuilderIssue;
   return db
     .prepare(
       `INSERT INTO funnel_audit_events (
@@ -341,9 +353,9 @@ function insertAuditStatement(
       identity.userId,
       identityEmail(identity),
       eventKind,
-      `${identityEmail(identity)} ${eventKind === "draft_seeded" ? "seeded" : "created"} ${draft.title}.`,
+      summary ?? `${identityEmail(identity)} ${action} ${draft.title}.`,
       idempotencyKey,
-      JSON.stringify({ issue: draftFunnelBuilderIssue, parentIssue: draftFunnelBuilderParentIssue }),
+      JSON.stringify({ issue, parentIssue: draftFunnelBuilderParentIssue, ...metadata }),
     );
 }
 
@@ -420,4 +432,120 @@ export async function createDraftFunnelFromTemplate(
   };
 
   return persistDraft(db, draft, identity, "draft_created", input.idempotencyKey);
+}
+
+function normalizeStepKind(value: string, fallback: FunnelStepKind) {
+  return draftFunnelStepKinds.includes(value as FunnelStepKind) ? (value as FunnelStepKind) : fallback;
+}
+
+function compactStepForAudit(step: DraftFunnelStepRecord) {
+  return {
+    id: step.id,
+    order: step.order,
+    kind: step.kind,
+    title: step.title,
+    goal: step.goal,
+  };
+}
+
+export async function updateDraftFunnelStep(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { draftId: string; stepId: string; title: string; goal: string; kind: string; idempotencyKey: string },
+) {
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const nextTitle = input.title.trim().slice(0, 120) || step.title;
+  const nextGoal = input.goal.trim().slice(0, 500) || step.goal;
+  const nextKind = normalizeStepKind(input.kind, step.kind);
+  const nextRevisionId = `${draft.revisionId}-step-edit-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare(
+        `UPDATE funnel_draft_steps
+        SET title = ?, goal = ?, kind = ?, updated_at = unixepoch()
+        WHERE id = ? AND funnel_draft_id = ?`,
+      )
+      .bind(nextTitle, nextGoal, nextKind, step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} updated step ${step.id} in ${draft.title}.`,
+      {
+        action: "step_update",
+        before: compactStepForAudit(step),
+        after: { ...compactStepForAudit(step), title: nextTitle, goal: nextGoal, kind: nextKind },
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function reorderDraftFunnelStep(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { draftId: string; stepId: string; direction: string; idempotencyKey: string },
+) {
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  const orderedSteps = [...draft.steps].sort((left, right) => left.order - right.order);
+  const currentIndex = orderedSteps.findIndex((step) => step.id === input.stepId);
+  if (currentIndex === -1) throw new Error("Draft funnel step not found.");
+
+  const neighborIndex = input.direction === "down" ? currentIndex + 1 : currentIndex - 1;
+  const neighbor = orderedSteps[neighborIndex];
+  const step = orderedSteps[currentIndex];
+  if (!neighbor) return draft;
+
+  const nextRevisionId = `${draft.revisionId}-step-reorder-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET step_order = -9999, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_draft_steps SET step_order = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(step.order, neighbor.id, draft.id),
+    db
+      .prepare("UPDATE funnel_draft_steps SET step_order = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(neighbor.order, step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} reordered step ${step.id} in ${draft.title}.`,
+      {
+        action: "step_reorder",
+        direction: input.direction === "down" ? "down" : "up",
+        before: orderedSteps.map(compactStepForAudit),
+        after: orderedSteps
+          .map((item) => {
+            if (item.id === step.id) return { ...compactStepForAudit(item), order: neighbor.order };
+            if (item.id === neighbor.id) return { ...compactStepForAudit(item), order: step.order };
+            return compactStepForAudit(item);
+          })
+          .sort((left, right) => left.order - right.order),
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
 }

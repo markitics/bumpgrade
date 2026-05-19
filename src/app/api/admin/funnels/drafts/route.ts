@@ -4,7 +4,9 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   createDraftFunnelFromTemplate,
   getFunnelDraftD1OrThrow,
+  reorderDraftFunnelStep,
   seedEditableFunnelDraft,
+  updateDraftFunnelStep,
 } from "@/lib/funnel-drafts";
 
 export const dynamic = "force-dynamic";
@@ -42,13 +44,32 @@ export async function POST(request: NextRequest) {
     const db = await getFunnelDraftD1OrThrow();
     const mode = formValue(formData, "mode") || "create";
     const idempotencyKey = formValue(formData, "idempotencyKey") || fallbackIdempotencyKey();
-    const draft =
-      mode === "seed"
-        ? await seedEditableFunnelDraft(db, adminState.identity, idempotencyKey)
-        : await createDraftFunnelFromTemplate(db, adminState.identity, {
-            title: formValue(formData, "title"),
-            idempotencyKey,
-          });
+    let draft;
+
+    if (mode === "seed") {
+      draft = await seedEditableFunnelDraft(db, adminState.identity, idempotencyKey);
+    } else if (mode === "update-step") {
+      draft = await updateDraftFunnelStep(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        title: formValue(formData, "title"),
+        goal: formValue(formData, "goal"),
+        kind: formValue(formData, "kind"),
+        idempotencyKey,
+      });
+    } else if (mode === "move-step") {
+      draft = await reorderDraftFunnelStep(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        direction: formValue(formData, "direction"),
+        idempotencyKey,
+      });
+    } else {
+      draft = await createDraftFunnelFromTemplate(db, adminState.identity, {
+        title: formValue(formData, "title"),
+        idempotencyKey,
+      });
+    }
 
     if (json) {
       return NextResponse.json({ ok: true, mode, draft });

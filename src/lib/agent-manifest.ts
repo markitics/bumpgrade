@@ -196,10 +196,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded draft funnel",
       "Inspect ordered steps",
       "Inspect page blocks and write boundaries",
-      "Discover owner-session editable draft capability from issue #91",
+      "Discover owner-session editable draft capability from issues #91 and #93",
     ],
     writeBoundary:
-      "Owner-session seed/create draft writes exist at /admin/funnels. Publishing, checkout linking, deletion, drag-and-drop layout editing, and agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/update/reorder draft writes exist at /admin/funnels. Publishing, checkout linking, deletion, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -211,7 +211,7 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["funnelDraftId", "funnelDraftStepId", "funnelAuditEventId", "ownerUserId"],
     safeForAgents: ["Read private draft funnel rows only with an owner session", "Check audit metadata before acting on draft state"],
     writeBoundary:
-      "The POST endpoint can seed or create private drafts for an authenticated owner; public publishing, checkout linking, deletion, and agent edits are not live.",
+      "The POST endpoint can seed, create, update, and reorder private draft steps for an authenticated owner; public publishing, checkout linking, deletion, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -506,7 +506,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/funnels/source-data",
     purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
-    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed exists in admin UI, while publish, checkout-link, and agent-edit tools require confirmed-write contracts.",
+    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder exists in admin UI, while publish, checkout-link, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",
@@ -516,6 +516,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     purpose: "Create a private draft funnel for an authenticated owner using the same D1 tables and audit model.",
     safetyBoundary:
       "Requires owner identity, explicit confirmation, idempotency key, audit event, stale-state check, and redaction before an agent may call it directly.",
+  },
+  {
+    id: "mcp-tool-edit-funnel-step",
+    resourceOrTool: "tool edit_funnel_step",
+    status: "planned",
+    backedBy: "/admin/funnels and /api/admin/funnels/drafts",
+    purpose: "Edit or reorder a private draft funnel step for an authenticated owner using the same D1 tables and audit model.",
+    safetyBoundary:
+      "Requires owner identity, explicit confirmation for creator-speech edits, idempotency key, audit event, stale-state check, and redaction before an agent may call it directly.",
   },
   {
     id: "mcp-resource-checkout-offers",
