@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { customerProductEntitlementLookupSummary } from "@/lib/customer-product-entitlements";
 import { productAccessSourceData } from "@/lib/product-access";
 import { getProductEntitlementInspectionSummary } from "@/lib/product-entitlement-inspection";
 
@@ -12,5 +13,6 @@ export async function GET() {
   return NextResponse.json({
     ...productAccessSourceData,
     entitlementInspection,
+    customerEntitlementLookup: customerProductEntitlementLookupSummary,
   });
 }
