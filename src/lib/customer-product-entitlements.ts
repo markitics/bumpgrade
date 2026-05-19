@@ -72,6 +72,8 @@ export type CustomerProductEntitlement = {
     assetId: string | null;
     assetTitle: string | null;
     tokenApiRoute: typeof productDownloadTokenApiRoute;
+    deliveryMode: "private-r2-fixture" | null;
+    r2Backed: boolean;
     privateR2KeysIncluded: false;
     signedUrlsIncluded: false;
   };
@@ -194,7 +196,7 @@ const privateFieldsExcluded = [
 ];
 
 const writeBoundary =
-  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. Issue #143 can create one-use sandbox placeholder download tokens for active file entitlements. Private R2-backed delivery, signed URLs, protected lessons, private buyer data, entitlement mutation, revocation, and live fulfillment remain future authenticated confirmed-write APIs.";
+  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. Issue #143 can create one-use download tokens for active file entitlements, and issue #146 can stream a seeded private R2-backed fixture through Bumpgrade. Private R2 keys, signed URLs, protected lessons, private buyer data, entitlement mutation, revocation, arbitrary asset uploads, and live fulfillment automation remain future authenticated confirmed-write APIs.";
 
 export const customerProductEntitlementLookupSummary: CustomerProductEntitlementLookupSummary = {
   id: "customer-product-entitlement-lookup-contract",
@@ -280,6 +282,8 @@ function customerEntitlement(row: CustomerEntitlementRow): CustomerProductEntitl
       assetId: downloadableAsset?.assetId ?? null,
       assetTitle: downloadableAsset?.assetTitle ?? null,
       tokenApiRoute: productDownloadTokenApiRoute,
+      deliveryMode: downloadableAsset?.deliveryMode ?? null,
+      r2Backed: downloadableAsset?.r2Backed ?? false,
       privateR2KeysIncluded: false,
       signedUrlsIncluded: false,
     },

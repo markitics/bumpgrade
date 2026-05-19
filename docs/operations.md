@@ -13,6 +13,8 @@ check before changing Bumpgrade infrastructure.
 - R2 bucket name: `bumpgrade-opennext-cache`.
 - R2 Codex mail binding: `MAIL`.
 - R2 Codex mail bucket name: `bumpgrade-mail`.
+- R2 product asset binding: `PRODUCT_ASSETS`.
+- R2 product asset bucket name: `bumpgrade-product-assets`.
 
 ## Production Build
 
