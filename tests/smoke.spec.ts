@@ -585,8 +585,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "conversion-report-ready",
-        issue: 119,
+        status: "page-view-beacon-ready",
+        issue: 121,
         parentIssue: 18,
       }),
     );
@@ -595,15 +595,25 @@ test.describe("Bumpgrade scaffold", () => {
         "/analytics/source-data",
         "/api/analytics/events",
         "/api/analytics/assignments",
+        "/funnels/indie-launch-sandbox",
         "/analytics/indie-launch-dashboard",
       ]),
     );
     expect(payload.eventWrites).toEqual(
       expect.objectContaining({
-        status: "event-capture-ready",
-        issue: 105,
+        status: "event-capture-and-beacon-ready",
+        issue: 121,
         apiRoute: "/api/analytics/events",
         tables: expect.arrayContaining(["analytics_events", "analytics_event_ingestions"]),
+      }),
+    );
+    expect(payload.pageViewBeacon).toEqual(
+      expect.objectContaining({
+        status: "page-view-beacon-ready",
+        issue: 121,
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        eventDefinitionId: "event-funnel-page-view",
+        apiRoute: "/api/analytics/events",
       }),
     );
     expect(payload.assignmentWrites).toEqual(
@@ -673,8 +683,8 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issues #105, #107, and #119 can capture seeded analytics events");
-    expect(payload.caveat).toContain("deterministic seeded assignment");
+    expect(payload.writeBoundary).toContain("Issues #105, #107, #119, and #121 can capture seeded analytics events");
+    expect(payload.caveat).toContain("browser-side seeded funnel page-view beacons");
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
@@ -770,6 +780,77 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("analytics event API ignores known bot page-view traffic without adding event rows", async ({ request }) => {
+    const countPageViews = async () => {
+      const response = await request.get("/analytics/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      return payload.eventSummary.aggregateCounts
+        .filter((row: { event_definition_id: string }) => row.event_definition_id === "event-funnel-page-view")
+        .reduce((total: number, row: { total_events: number }) => total + Number(row.total_events ?? 0), 0);
+    };
+
+    const beforeCount = await countPageViews();
+    const botResponse = await request.post("/api/analytics/events", {
+      headers: { "user-agent": "Googlebot/2.1 (+http://www.google.com/bot.html)" },
+      data: {
+        eventDefinitionId: "event-funnel-page-view",
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        idempotencyKey: `playwright-bot-page-view-${Date.now()}`,
+        anonymousId: "playwright-bot-visitor",
+        publicProperties: {
+          route: "/funnels/indie-launch-sandbox",
+          funnelId: "funnel-indie-launch-sandbox",
+          stepId: "funnel-step-indie-launch-opt-in",
+          fullReferrer: "https://private.example/referrer",
+        },
+      },
+    });
+
+    expect(botResponse.ok(), await botResponse.text()).toBeTruthy();
+    await expect(botResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        recorded: false,
+        status: "ignored",
+        ignoredReason: "bot_or_crawler",
+        eventDefinitionId: "event-funnel-page-view",
+        privateDataIncluded: false,
+        rawRequestDataIncluded: false,
+      }),
+    );
+    await expect.poll(countPageViews).toBe(beforeCount);
+  });
+
+  test("funnel preview emits one session-idempotent page-view beacon", async ({ request, page }) => {
+    const waitlistRow = async () => {
+      const response = await request.get("/analytics/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const report = payload.funnelConversionReport;
+      expect(report.rawRowsIncluded).toBe(false);
+      expect(report.privateDataIncluded).toBe(false);
+      return report.rows.find(
+        (candidate: { metricId: string }) => candidate.metricId === "funnel-metric-waitlist-opt-in",
+      ) as {
+        visitorCount: number;
+        reportMode: "captured_events" | "fixture_fallback";
+      };
+    };
+
+    const before = await waitlistRow();
+    const beforeVisitors = before.reportMode === "captured_events" ? before.visitorCount : 0;
+
+    await page.goto("/funnels/indie-launch-sandbox");
+    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
+    await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
+    await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
   });
 
   test("analytics source data reports funnel conversion from captured events without raw rows", async ({ request }) => {
@@ -1748,17 +1829,17 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119],
+          issueNumbers: [18, 87, 105, 107, 119, 121],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119],
+          issueNumbers: [18, 87, 105, 107, 119, 121],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105],
+          issueNumbers: [18, 87, 105, 121],
         }),
         expect.objectContaining({
           id: "journey-agent-assigns-privacy-safe-experiment-variant",
@@ -1966,7 +2047,11 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "read-analytics-experiments",
-          stableIds: expect.arrayContaining(["experimentAssignmentId", "analyticsFunnelConversionReportId"]),
+          stableIds: expect.arrayContaining([
+            "experimentAssignmentId",
+            "analyticsFunnelConversionReportId",
+            "analyticsPageViewBeaconId",
+          ]),
         }),
         expect.objectContaining({
           id: "read-affiliate-referrals",

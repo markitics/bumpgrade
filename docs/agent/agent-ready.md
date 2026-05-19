@@ -155,11 +155,14 @@ variants, deterministic assignment rules, the `/api/analytics/events` write
 boundary, and the `/api/analytics/assignments` write boundary.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
-validation, and hashed request evidence. Aggregate conversion rows are computed
-from captured test events when samples exist. This proves seeded event,
-assignment, and reporting semantics, not cookie assignment, traffic routing,
-contact-level reporting, raw event or assignment exposure, automated decisions,
-direct agent analytics writes, or statistically meaningful proof.
+validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
+emits a browser-side `event-funnel-page-view` beacon with session-scoped
+idempotency and server-side bot/preview suppression. Aggregate conversion rows
+are computed from captured test events when samples exist. This proves seeded
+event, page-view beacon, assignment, and reporting semantics, not cookie
+assignment, traffic routing, contact-level reporting, raw event or assignment
+exposure, automated decisions, direct agent analytics writes, or statistically
+meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,

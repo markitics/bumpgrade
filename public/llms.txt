@@ -29,6 +29,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded analytics dashboard preview: https://bumpgrade.com/analytics/indie-launch-dashboard
 - Seeded analytics event API: https://bumpgrade.com/api/analytics/events
 - Seeded analytics assignment API: https://bumpgrade.com/api/analytics/assignments
+- Seeded funnel page-view beacon: https://bumpgrade.com/funnels/indie-launch-sandbox
 - Affiliate/referral source data: https://bumpgrade.com/affiliates/source-data
 - Seeded affiliate partner preview: https://bumpgrade.com/affiliates/indie-launch-partners
 - Seeded affiliate click API: https://bumpgrade.com/api/affiliates/clicks
@@ -135,11 +136,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   workspace with event definitions, aggregate event counts, aggregate
   assignment counts, aggregate funnel conversion report rows, metric formulas,
   variants, assignment rules, and the `/api/analytics/events` and
-  `/api/analytics/assignments` write boundaries. Treat it as seeded event
-  capture, seeded assignment, and aggregate/source-data evidence, not cookie
-  assignment, traffic routing, contact-level analytics, raw event or assignment
-  exposure, automated decisions, direct agent analytics writes, or statistically
-  meaningful proof.
+  `/api/analytics/assignments` write boundaries. The seeded funnel preview emits
+  a session-idempotent page-view beacon through the analytics event API, with
+  server-side bot and preview suppression. Treat it as seeded event capture,
+  seeded page-view beacon, seeded assignment, and aggregate/source-data
+  evidence, not cookie assignment, traffic routing, contact-level analytics, raw
+  event or assignment exposure, automated decisions, direct agent analytics
+  writes, or statistically meaningful proof.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, aggregate click counts, checkout attribution
   evidence, aggregate review-only commission ledger counts, attribution rules,
