@@ -8,6 +8,7 @@ export type FunnelBlock = {
   title: string;
   body: string;
   agentEditable: boolean;
+  checkoutLink?: FunnelCheckoutLink | null;
 };
 
 export type FunnelStep = {
@@ -67,6 +68,30 @@ export type FunnelBlockLibraryItem = {
   writeBoundary: string;
 };
 
+export type FunnelCheckoutLink = {
+  id: string;
+  status: "owner-session-linked";
+  issue: number;
+  parentIssue: number;
+  offerStackId: string;
+  offerId: string;
+  offerKind: "primary" | "order_bump" | "upsell" | "downsell";
+  offerTitle: string;
+  priceId: string;
+  productId: string;
+  checkoutEndpoint: string;
+  offerPreviewRoute: string;
+  offerSourceDataRoute: string;
+  checkoutContractRoute: string;
+  mode: "sandbox";
+  liveBillingEnabled: false;
+  confirmationRequired: true;
+  idempotencyRequired: true;
+  staleRevisionRequired: true;
+  rawStripeIdsIncluded: false;
+  linkedAt: string | null;
+};
+
 export const funnelsUpdatedAt = "2026-05-19";
 export const draftFunnelBuilderIssue = 91;
 export const draftFunnelStepEditingIssue = 93;
@@ -74,10 +99,11 @@ export const draftFunnelPreviewIssue = 95;
 export const draftFunnelPublishingIssue = 135;
 export const funnelTemplateLibraryIssue = 159;
 export const draftFunnelTemplateCreationIssue = 161;
+export const draftFunnelCheckoutLinkingIssue = 163;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, template-to-draft creation, step editing, step reordering, private preview, and exact-confirmed public publishing of D1 draft funnels. Deleting, archiving, checkout linking, drag-and-drop visual editing, direct agent template creation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live for creating, seeding, template-to-draft creation, step editing, step reordering, private preview, exact-confirmed public publishing of D1 draft funnels, and exact-confirmed checkout-offer linking on private draft steps. Deleting, archiving, unpublishing, drag-and-drop visual editing, direct agent template creation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -89,6 +115,7 @@ export const editableDraftCapability = {
   createEndpoint: "/api/admin/funnels/drafts",
   editEndpoint: "/api/admin/funnels/drafts",
   publishEndpoint: "/api/admin/funnels/drafts",
+  checkoutLinkEndpoint: "/api/admin/funnels/drafts",
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
   auth: "owner-session",
   safeForPublicAgents: [
@@ -96,13 +123,14 @@ export const editableDraftCapability = {
     "Read that owner sessions can update and reorder draft funnel steps.",
     "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Read that owner sessions can publish a D1 draft to a stable public funnel route after exact confirmation.",
+    "Read that owner sessions can attach the seeded sandbox checkout offer to a private draft step after exact confirmation.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91, #93, #95, and #135 before claiming editable or publishable draft capability.",
+    "Cite issues #91, #93, #95, #135, and #163 before claiming editable, publishable, or checkout-linkable draft capability.",
   ],
   notYetLive: [
-    "Checkout-step linking",
     "Drag-and-drop layout editing",
     "Deletion/archive workflows",
+    "Unpublishing workflows",
     "Agent-initiated edits without owner confirmation",
   ],
   writeBoundary: draftFunnelBuilderWriteBoundary,
@@ -221,7 +249,7 @@ export const seededFunnel: FunnelRecord = {
     },
   ],
   writeBoundary:
-    "Issue #79 is read-only. Creating, editing, publishing, deleting, checkout-linking, or agent-writing funnel state requires actor identity, confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
+    "Issue #79 is read-only. Owner-session creating, editing, publishing, and checkout-linking run through /admin/funnels with confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes; deleting, unpublishing, or direct agent-writing funnel state still requires future confirmed-write APIs.",
   validation: [
     "/funnels/source-data returns a three-step draft funnel.",
     "/funnels/indie-launch-sandbox renders semantic preview sections.",
@@ -350,6 +378,33 @@ export const templateDraftCreationCapability = {
   notYetLive: ["Direct agent template creation", "Public publishing from a template without owner review"],
 };
 
+export const checkoutLinkingCapability = {
+  id: "funnel-step-checkout-link-owner-confirmed",
+  status: "owner-session-confirmed-write-ready",
+  issue: draftFunnelCheckoutLinkingIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  createEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  staleRevisionRequired: true,
+  storesIn: "funnel_draft_steps.blocks_json",
+  auditTable: "funnel_audit_events",
+  liveBillingEnabled: false,
+  safeForPublicAgents: [
+    "Read that private draft steps can carry a public-safe checkout offer link after owner confirmation.",
+    "Read that the link points at Bumpgrade's sandbox checkout offer contract and does not start a checkout session by itself.",
+    "Distinguish owner-gated checkout linking from direct agent checkout writes, live billing, and Stripe mutation.",
+  ],
+  notYetLive: [
+    "Direct agent checkout linking without owner confirmation",
+    "Live-mode checkout routing",
+    "Checkout-link deletion or unpublishing",
+    "Arbitrary offer or price mutation from funnel editing",
+  ],
+};
+
 export function getFunnelBySlug(slug: string) {
   return seededFunnels.find((funnel) => funnel.slug === slug) ?? null;
 }
@@ -357,8 +412,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "owner-template-draft-creation-ready",
-  issue: draftFunnelTemplateCreationIssue,
+  status: "owner-checkout-linking-ready",
+  issue: draftFunnelCheckoutLinkingIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
@@ -369,18 +424,22 @@ export const funnelSourceData = {
     "funnelBlockId",
     "funnelTemplateId",
     "funnelBlockTemplateId",
+    "funnelCheckoutLinkId",
     "funnelRevisionId",
     "funnelDraftId",
     "funnelAuditEventId",
+    "checkoutOfferStackId",
+    "offerId",
     "agentActionId",
   ],
   writeBoundary: seededFunnel.writeBoundary,
   editableDraftCapability,
   templateDraftCreationCapability,
+  checkoutLinkingCapability,
   templateLibraryIssue: funnelTemplateLibraryIssue,
   templates: funnelTemplateLibrary,
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, checkout integration, drag-and-drop visual building, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, owner-session checkout-offer linking on private draft steps, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, drag-and-drop visual building, deletion/unpublishing, and unconfirmed agent-write APIs are not live.",
 };

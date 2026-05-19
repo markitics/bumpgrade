@@ -1814,6 +1814,30 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.admin-checkout-link-form {
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.admin-checkout-link-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.admin-checkout-link-summary svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--green);
+}
+
+.admin-checkout-link-summary p {
+  margin: 0;
+}
+
 .admin-step-edit-form button {
   justify-self: start;
 }

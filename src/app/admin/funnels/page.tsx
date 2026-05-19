@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
+import { ArrowRight, CreditCard, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
+import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
+  draftFunnelCheckoutLinkConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
-import { draftFunnelTemplateCreationIssue, funnelTemplateLibrary } from "@/lib/funnels";
+import { draftFunnelCheckoutLinkingIssue, funnelTemplateLibrary } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -42,16 +44,17 @@ export default async function AdminFunnelsPage() {
           <p className="lede">
             Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
             steps. Exact-confirmed publishing is live for public D1 funnel routes, and owner-confirmed template-to-draft
-            creation is live for the reusable template library. Checkout linking, deletion, drag-and-drop layout editing,
-            and direct agent edits still need confirmed-write slices.
+            creation is live for the reusable template library. Owners can also attach the seeded sandbox checkout offer
+            to private draft checkout blocks. Deletion, unpublishing, drag-and-drop layout editing, and direct agent edits
+            still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelTemplateCreationIssue}`} className="secondary-action">
-              Issue #{draftFunnelTemplateCreationIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelCheckoutLinkingIssue}`} className="secondary-action">
+              Issue #{draftFunnelCheckoutLinkingIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -207,8 +210,11 @@ export default async function AdminFunnelsPage() {
                 <span>{draft.updatedAt ?? "Fixture only"}</span>
               </div>
               <div className="admin-step-list" aria-label={`${draft.title} steps`}>
-                {draft.steps.map((step, index) => (
-                  <div key={step.id} className="admin-step-editor">
+                {draft.steps.map((step, index) => {
+                  const checkoutBlock = step.blocks.find((block) => block.kind === "checkout");
+                  const checkoutLink = checkoutBlock?.checkoutLink;
+                  return (
+                    <div key={step.id} className="admin-step-editor">
                     <div className="admin-step-editor-heading">
                       <div>
                         <span>Step {step.order}</span>
@@ -267,8 +273,40 @@ export default async function AdminFunnelsPage() {
                         <ArrowRight aria-hidden="true" />
                       </button>
                     </form>
+                    {checkoutBlock ? (
+                      <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-checkout-link-form">
+                        <input type="hidden" name="mode" value="link-checkout" />
+                        <input type="hidden" name="draftId" value={draft.id} />
+                        <input type="hidden" name="stepId" value={step.id} />
+                        <input type="hidden" name="offerId" value={checkoutOfferStack.primaryOffer.id} />
+                        <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                        <input type="hidden" name="idempotencyKey" value={`checkout-link-${draft.id}-${step.id}-${draft.revisionId}`} />
+                        <div className="admin-checkout-link-summary">
+                          <CreditCard aria-hidden="true" />
+                          <p>
+                            {checkoutLink
+                              ? `Linked to ${checkoutLink.offerTitle} (${checkoutLink.mode}, no live billing).`
+                              : `Attach ${checkoutOfferStack.primaryOffer.title} to this checkout block.`}
+                          </p>
+                        </div>
+                        <label className="admin-step-goal-field">
+                          Checkout link confirmation
+                          <textarea
+                            name="confirmationText"
+                            placeholder={draftFunnelCheckoutLinkConfirmationText}
+                            rows={2}
+                            disabled={!state.canWrite}
+                          />
+                        </label>
+                        <button type="submit" className="secondary-action" disabled={!state.canWrite}>
+                          Link checkout offer
+                          <CreditCard aria-hidden="true" />
+                        </button>
+                      </form>
+                    ) : null}
                   </div>
-                ))}
+                  );
+                })}
               </div>
               {draft.status === "published" ? null : (
                 <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-publish-form">
