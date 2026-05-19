@@ -249,6 +249,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Affiliate/referral source data and preview route from issue #89.",
       "Partner profiles, tracking links, and privacy-safe click capture from issue #109.",
       "Checkout attribution evidence that links eligible referral clicks to sandbox checkout intents from issue #111.",
+      "Review-only commission ledger evidence from trusted checkout attribution from issue #113.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -258,9 +259,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #89 adds `/affiliates/source-data` and `/affiliates/indie-launch-partners` as the first read-only affiliate/referral contract.",
       "Issue #109 adds seeded referral click capture with idempotency, hashed request evidence, and aggregate-only source-data reporting.",
       "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
+      "Issue #113 creates non-payable commission ledger evidence from checkout attribution.",
     ],
     agentContract:
-      "Agents may read aggregate referral click counts, checkout attribution evidence, and write boundaries; buyer attribution finalization, commission writes, payout-impacting actions, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, owner review, reversal execution, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",
@@ -364,12 +366,13 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 11,
     summary:
-      "Stripe SDK, mode-specific secret mapping, Checkout-first architecture, D1 commerce tables, optional referral-click attribution evidence, and billing-safe agent rules. No live customer checkout is enabled yet.",
+      "Stripe SDK, mode-specific secret mapping, Checkout-first architecture, D1 commerce tables, optional referral-click attribution evidence, review-only commission ledger evidence, and billing-safe agent rules. No live customer checkout or payout flow is enabled yet.",
     audience: "Publishers selling products, courses, memberships, coaching, or services.",
     expectedCapabilities: [
       "Stripe-hosted Checkout Sessions as the first payment surface.",
       "D1 product, price, checkout-intent, subscription, webhook, and audit records.",
       "Optional referral-click attribution evidence attached to sandbox checkout intents from issue #111.",
+      "Review-only commission ledger evidence calculated from checkout attribution from issue #113.",
       "Webhook ingestion and event idempotency before fulfillment is trusted.",
       "Subscriptions, trials, upgrades, downgrades, and cancellations after the sandbox path works.",
       "Redacted payment metadata for admin and agent reads.",
@@ -380,9 +383,10 @@ export const featureCatalog: FeatureRecord[] = [
       "`/commerce/source-data` exposes the redacted commerce contract.",
       "Issue #34 owns the first sandbox Checkout Session and webhook ingestion route.",
       "Issue #111 adds checkout referral attribution evidence without commissions or payout state.",
+      "Issue #113 adds review-only commission ledger evidence without payout mutation.",
     ],
     agentContract:
-      "Agents can read public-safe commerce contracts and referral attribution evidence, but checkout, refund, subscription, commission, payout, and billing mutations require confirmed-write rules.",
+      "Agents can read public-safe commerce contracts, referral attribution evidence, and review-only commission ledger evidence, but checkout, refund, subscription, payable commission, payout, and billing mutations require confirmed-write rules.",
   },
   {
     id: "feature-mobile-admin",

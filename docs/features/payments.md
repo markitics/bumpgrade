@@ -73,6 +73,22 @@ intents:
   mutate payout state, make fraud decisions, collect tax data, notify partners,
   or expose raw request, buyer, or Stripe identifiers.
 
+Issue #113 connects checkout attribution to review-only commission ledger
+evidence:
+
+- `POST /api/affiliates/commission-ledger` accepts a checkout intent ID, exact
+  confirmation text, and idempotency key.
+- The route reads D1 checkout intent and referral attribution state before
+  calculating commission evidence from seeded commission rules. Client payloads
+  cannot supply gross sale or commission amounts.
+- Bumpgrade stores one `affiliate_commission_ledger_entries` row per checkout
+  intent. The row is `review_only`, `refund_window_open`, and `not_payable`.
+- Replaying the ledger idempotency key returns the same non-payable ledger row
+  without duplicating evidence.
+- This does not make commissions payable, mutate payout state, execute owner
+  review or reversal actions, make fraud decisions, collect tax data, notify
+  partners, or expose raw request, buyer, payout, or Stripe identifiers.
+
 ## Source Checks
 
 Checked on 2026-05-18:
@@ -139,6 +155,8 @@ commerce tables, and later migrations extend them:
   called.
 - `checkout_referral_attributions`: public-safe evidence linking eligible
   seeded referral clicks to sandbox checkout intents.
+- `affiliate_commission_ledger_entries`: review-only, non-payable commission
+  evidence created from trusted checkout referral attribution.
 - `billing_subscriptions`: Stripe subscription state mirrored into D1.
 - `stripe_webhook_events`: webhook idempotency and redacted event evidence.
 - `payment_audit_events`: public-safe payment state changes and agent/action

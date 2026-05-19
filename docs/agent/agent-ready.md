@@ -117,10 +117,12 @@ contract for the first seeded primary offer, constrained order bump, upsell, and
 downsell stack. `/offers/indie-launch-stack` can start a sandbox checkout for
 the primary offer plus seeded order bump after exact confirmation, and
 `/api/commerce/checkout` can attach eligible referral click IDs as attribution
-evidence. This proves offer-sequence semantics, sandbox Checkout Session start
-semantics, and referral-click-to-checkout evidence, not live billing, one-click
-upsell charging, fulfillment, commission writes, price mutation, arbitrary
-order-bump mutation, or agent write capability.
+evidence. `/api/affiliates/commission-ledger` can create review-only commission
+ledger evidence from trusted checkout attribution. This proves offer-sequence
+semantics, sandbox Checkout Session start semantics, referral-click-to-checkout
+evidence, and non-payable ledger evidence, not live billing, one-click upsell
+charging, fulfillment, payable commission writes, price mutation, arbitrary
+order-bump mutation, payout mutation, or agent write capability.
 
 Current product/access boundary: `/products/source-data` is the public-safe
 contract for seeded downloads, courses, memberships, services, events, bundles,
@@ -157,15 +159,19 @@ writes, or statistically meaningful proof.
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
 referral links, aggregate click counts, checkout attribution evidence,
-attribution rules, commission rules, ledger fixtures, payout review, fraud
-flags, and the `/api/affiliates/clicks` write boundary.
+aggregate review-only commission ledger counts, attribution rules, commission
+rules, ledger fixtures, payout review, fraud flags, and the
+`/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
 evidence, and eligible clicks can be attached to sandbox checkout intents as
-public-safe attribution evidence. This proves affiliate and referral
-click-to-checkout semantics, not cookie assignment, buyer attribution
-finalization, payable commission state, tax collection, fraud enforcement,
-Stripe payout capability, or partner notifications.
+public-safe attribution evidence. Trusted checkout attribution can create
+review-only commission ledger evidence through
+`/api/affiliates/commission-ledger`. This proves affiliate and referral
+click-to-checkout-to-ledger semantics, not cookie assignment, buyer attribution
+finalization, payable commission state, owner review automation, reversal
+execution, tax collection, fraud enforcement, Stripe payout capability, or
+partner notifications.
 
 ## MCP And Tooling
 
@@ -222,10 +228,11 @@ Current commerce boundary: issue #34 exposes a sandbox checkout write path at
 `POST /api/commerce/checkout`. Agents must provide exact confirmation text when
 `agentClientId` is present, and the route writes an audit-correlated
 `checkout_intents` record before Stripe is called. Issue #111 can attach
-eligible referral click evidence to the checkout intent, but commissions,
-payouts, fraud decisions, partner notifications, and buyer attribution
-finalization remain disabled. Live billing remains disabled until a later
-explicit rollout issue.
+eligible referral click evidence to the checkout intent. Issue #113 can create
+review-only commission ledger evidence from trusted checkout attribution, but
+payable commissions, payouts, owner review automation, reversal execution, fraud
+decisions, partner notifications, and buyer attribution finalization remain
+disabled. Live billing remains disabled until a later explicit rollout issue.
 
 ## Browser-Agent UX
 

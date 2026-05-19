@@ -134,8 +134,9 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <p>Status</p>
           <strong>{program.partners.length} partner records</strong>
           <span>
-            Referral links, privacy-safe click capture, checkout attribution evidence, commission ledger fixtures, and
-            payout review states are public-safe records; cookies, buyers, tax forms, and payout accounts stay disabled.
+            Referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger
+            evidence, and payout review states are public-safe records; cookies, buyers, tax forms, and payout accounts
+            stay disabled.
           </span>
         </aside>
       </section>
@@ -207,7 +208,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Commission ledger</p>
-            <h2>Fixture commissions show approval, review, and reversal states</h2>
+            <h2>Review-only commission evidence stays reversible before payout</h2>
           </div>
           <Link href={program.linkedAnalyticsRoute} className="text-link compact-link">
             Analytics preview
@@ -256,7 +257,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect partner fixtures and capture clicks, not create payable commissions.</h2>
+            <h2>Agents can inspect partner evidence and create review-only ledgers, not payable commissions.</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
