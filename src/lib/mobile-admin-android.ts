@@ -27,13 +27,14 @@ export const androidMobileAdminSourceData = {
   smokeCommand: androidSlice.smokeCommand ?? "npm run mobile:android:smoke",
   validationCommand: "npm run mobile:android:validate",
   screenshotPath: androidSlice.screenshotPath ?? "/pr-screenshots/issue-68-android-mobile-admin-emulator.png",
+  dashboardPanelIssue: 155,
   reads: [
     {
       id: "android-read-mobile-contract-fixture",
       route: "/mobile-admin/source-data",
       fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Expo entrypoint and native Android activity render the mobile admin digest from the checked-in fixture generated from the shared source-data contract.",
+        "The Expo entrypoint and native Android activity render the mobile admin digest plus the live dashboard route from the checked-in fixture generated from the shared source-data contract.",
     },
     {
       id: "android-read-live-mobile-dashboard-next",

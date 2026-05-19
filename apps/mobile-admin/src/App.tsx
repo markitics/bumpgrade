@@ -13,6 +13,7 @@ function Badge({ children }: { children: string }) {
 
 export default function App() {
   const jobs = mobileAdminContractFixture.jobs.slice(0, 3);
+  const dashboard = mobileAdminContractFixture.liveDashboard;
 
   return (
     <SafeAreaView style={styles.shell}>
@@ -33,6 +34,16 @@ export default function App() {
           <Text style={styles.body}>
             Parent issue #{mobileAdminContractFixture.parentIssue}. Feature {mobileAdminContractFixture.featureId}.
           </Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Live dashboard</Text>
+          <Text style={styles.panelTitle}>{dashboard.route}</Text>
+          <Text style={styles.body}>{dashboard.purpose}</Text>
+          <Text style={styles.meta}>
+            Status: {dashboard.status} · issue #{dashboard.issue}
+          </Text>
+          <Text style={styles.meta}>Boundary: {dashboard.redactionBoundary}</Text>
         </View>
 
         {jobs.map((job) => (

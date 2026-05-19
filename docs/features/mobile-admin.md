@@ -16,6 +16,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - Live dashboard contract issue: #153. `/mobile-admin/dashboard/source-data`
   now gives iOS, Android, web, and agents one public-safe digest for feature,
   roadmap, work-log, attention, commerce, agent, and platform status.
+- Dashboard scaffold rendering issue: #155. The Expo, iOS, and Android scaffold
+  surfaces render the dashboard route, status, issue, and redaction boundary
+  from the generated mobile-admin fixture.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -52,6 +55,12 @@ private auth exists. The payload intentionally exposes counts, statuses, route
 IDs, issue evidence, recent public-safe work-log metadata, and redaction flags,
 not private buyer rows, raw inbox bodies, owner email values, session IDs, R2
 object keys, signed URLs, upload bodies, secret values, or write tokens.
+
+The #155 scaffold-rendering slice keeps the apps fixture-backed for simulator and
+emulator smoke tests, but the visible mobile screens now show the live dashboard
+route and boundary explicitly. Future slices should replace fixture-only
+hydration with live network reads while keeping fixture fallback for deterministic
+smoke tests.
 
 ## First Mobile Jobs
 

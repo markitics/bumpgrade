@@ -2575,7 +2575,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
-          issueNumbers: [13, 67, 68, 153],
+          issueNumbers: [13, 67, 68, 153, 155],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
@@ -2865,6 +2865,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.liveDashboard).toEqual(
       expect.objectContaining({
         issue: mobileAdminDashboardIssue,
+        renderedInScaffoldsIssue: 155,
         route: mobileAdminDashboardRoute,
         status: "live-public-source-data-ready",
       }),
@@ -3010,6 +3011,7 @@ test.describe("Bumpgrade scaffold", () => {
         status: "simulator-smoke-ready",
         sourceContractRoute: "/mobile-admin/source-data",
         sourceDataRoute: "/mobile-admin/ios/source-data",
+        dashboardPanelIssue: 155,
         fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
         simulatorBundleId: "com.bumpgrade.mobileadmin",
         smokeCommand: "npm run mobile:ios:smoke",
@@ -3043,6 +3045,7 @@ test.describe("Bumpgrade scaffold", () => {
         status: "emulator-smoke-ready",
         sourceContractRoute: "/mobile-admin/source-data",
         sourceDataRoute: "/mobile-admin/android/source-data",
+        dashboardPanelIssue: 155,
         fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
         androidAssetPath: "apps/mobile-admin/android/src/main/assets/mobile-admin-contract.json",
         nativePackage: "com.bumpgrade.mobileadmin",

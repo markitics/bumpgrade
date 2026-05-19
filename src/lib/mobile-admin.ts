@@ -35,6 +35,7 @@ export type MobilePlatformSlice = {
 export type MobileLiveDashboard = {
   id: string;
   issue: number;
+  renderedInScaffoldsIssue?: number;
   status: "live-public-source-data-ready";
   route: string;
   purpose: string;
@@ -72,6 +73,7 @@ export const mobileAdminContract: MobileAdminContract = {
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
+    renderedInScaffoldsIssue: 155,
     status: "live-public-source-data-ready",
     route: "/mobile-admin/dashboard/source-data",
     purpose:
@@ -94,7 +96,7 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 67,
       title: "Build first iOS publisher admin app slice",
       firstMilestone:
-        "Render the mobile admin digest from the generated source-data fixture in the Expo app scaffold and iOS simulator smoke target.",
+        "Render the mobile admin digest and live dashboard route from the generated source-data fixture in the Expo app scaffold and iOS simulator smoke target.",
       validation: [
         "Run npm run mobile:ios:validate to prove the fixture matches the shared contract and Xcode is available.",
         "Run npm run mobile:ios:smoke to build, install, launch, and screenshot the iOS simulator target.",
@@ -111,7 +113,7 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 68,
       title: "Build first Android publisher admin app slice",
       firstMilestone:
-        "Render the mobile admin digest from the generated source-data fixture in a native Android activity and emulator smoke target.",
+        "Render the mobile admin digest and live dashboard route from the generated source-data fixture in a native Android activity and emulator smoke target.",
       validation: [
         "Run npm run mobile:android:validate to prove the fixture matches the shared contract and Android API 36 tooling is available.",
         "Run npm run mobile:android:smoke to build, install, launch, and screenshot the Android emulator target.",

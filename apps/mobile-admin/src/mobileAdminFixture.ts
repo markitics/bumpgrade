@@ -16,6 +16,16 @@ export type MobileAdminContractFixture = {
   updatedAt: string;
   parentIssue: number;
   featureId: string;
+  liveDashboard: {
+    id: string;
+    issue: number;
+    status: string;
+    route: string;
+    purpose: string;
+    publicSafeReads: string[];
+    redactionBoundary: string;
+    renderedInScaffoldsIssue?: number;
+  };
   childIssues: Array<{
     platform: "ios" | "android";
     issue: number;

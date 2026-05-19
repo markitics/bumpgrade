@@ -102,7 +102,7 @@ export const agentDocs: AgentDoc[] = [
     route: "/agent-docs/bumpgrade-mobile-admin",
     purpose: "Shared iOS and Android publisher/admin app jobs, API dependencies, auth boundaries, and write-safety rules.",
     status: "live",
-    evidence: ["Issue #13", "Issue #67", "Issue #68", "Issue #153", "/mobile-admin/source-data"],
+    evidence: ["Issue #13", "Issue #67", "Issue #68", "Issue #153", "Issue #155", "/mobile-admin/source-data"],
   },
 ];
 
