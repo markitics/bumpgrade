@@ -279,14 +279,15 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, seeded event taxonomy, aggregate funnel metrics, attribution boundaries, A/B assignment model, and source-linked reporting.",
+      "Privacy-safe analytics event capture, deterministic seeded experiment assignment, aggregate funnel metrics, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
       "Issue #105 adds `POST /api/analytics/events` with seeded event validation, idempotency, hashed request evidence, and aggregate-only source-data reporting.",
+      "Issue #107 adds `POST /api/analytics/assignments` with seeded experiment validation, deterministic weighted variant assignment, hashed visitor evidence, and aggregate-only assignment reporting.",
     ],
     nextMilestone:
-      "Add deterministic experiment assignment and bot-filtered page-view instrumentation without exposing raw visitor identifiers.",
+      "Add bot-filtered page-view instrumentation and connect assignment evidence to captured funnel events without exposing raw visitor identifiers.",
   },
   {
     id: "roadmap-affiliates-referrals",

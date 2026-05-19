@@ -436,6 +436,36 @@ export const analyticsEventIngestions = sqliteTable(
   }),
 );
 
+export const analyticsExperimentAssignments = sqliteTable(
+  "analytics_experiment_assignments",
+  {
+    id: text("id").primaryKey(),
+    experimentId: text("experiment_id").notNull(),
+    variantId: text("variant_id").notNull(),
+    sourceRoute: text("source_route").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    assignmentBucket: integer("assignment_bucket").notNull(),
+    assignmentHash: text("assignment_hash").notNull(),
+    visitorKeyHash: text("visitor_key_hash").notNull(),
+    ipHash: text("ip_hash"),
+    userAgentHash: text("user_agent_hash"),
+    requestHash: text("request_hash").notNull(),
+    metadataJson: text("metadata_json"),
+    assignedAt: integer("assigned_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_experiment_assignments_idempotency_unique").on(table.idempotencyKey),
+    experimentVariantTimeIdx: index("analytics_experiment_assignments_experiment_variant_time_idx").on(
+      table.experimentId,
+      table.variantId,
+      table.assignedAt,
+    ),
+    sourceTimeIdx: index("analytics_experiment_assignments_source_time_idx").on(table.sourceRoute, table.assignedAt),
+    bucketIdx: index("analytics_experiment_assignments_bucket_idx").on(table.experimentId, table.assignmentBucket),
+  }),
+);
+
 export const funnelDrafts = sqliteTable(
   "funnel_drafts",
   {

@@ -134,8 +134,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <p>Status</p>
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
-            Seeded event capture is live with idempotency and aggregate-only reporting; cookies, contact-level
-            analytics, automated winners, and revenue claims stay disabled until confirmed-write APIs exist.
+            Seeded event capture and deterministic assignments are live with idempotency and aggregate-only reporting;
+            cookies, traffic routing, contact-level analytics, automated winners, and revenue claims stay disabled.
           </span>
         </aside>
       </section>
@@ -192,7 +192,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Experiment model</p>
-            <h2>Deterministic assignment is defined before traffic writes exist</h2>
+            <h2>Deterministic assignment can be audited before traffic writes exist</h2>
           </div>
           <Link href={dashboard.linkedOfferRoute} className="text-link compact-link">
             Checkout offer
@@ -209,8 +209,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Agents may summarize fixture metrics, but future experiment decisions need sample-size caveats, retention
-              limits, and owner confirmation before routing live traffic.
+              Agents may summarize fixture metrics and assignment counts, but future experiment decisions need
+              sample-size caveats, retention limits, and owner confirmation before routing live traffic.
             </p>
           </article>
         </div>
@@ -220,7 +220,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect metric definitions and capture seeded events, not track visitors.</h2>
+            <h2>Agents can inspect metrics, capture seeded events, and assign variants, not track visitors.</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -233,7 +233,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <h3>Source data first</h3>
             <p>
               <code>/analytics/source-data</code> exposes public-safe events, metric formulas, fixture reports,
-              aggregate event counts, and experiment definitions.
+              aggregate event and assignment counts, and experiment definitions.
             </p>
           </div>
           <div>
