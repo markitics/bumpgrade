@@ -239,6 +239,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/indie-launch-stack");
     expect(sitemapXml).toContain("https://bumpgrade.com/products/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/products/indie-launch-library");
+    expect(sitemapXml).toContain("https://bumpgrade.com/api/products/entitlements");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
@@ -453,12 +454,36 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "sandbox-entitlement-grants-ready",
-        issue: 101,
+        status: "customer-entitlement-lookup-ready",
+        issue: 141,
         parentIssue: 16,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/products/source-data", "/products/indie-launch-library"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining([
+        "/products/source-data",
+        "/products/indie-launch-library",
+        "/api/products/entitlements",
+        "/products/entitlements/{checkoutIntentId}",
+      ]),
+    );
+    expect(payload.customerEntitlementLookup).toEqual(
+      expect.objectContaining({
+        status: "customer-product-entitlement-lookup-ready",
+        issue: 141,
+        routePattern: "/products/entitlements/{checkoutIntentId}",
+        apiRoute: "/api/products/entitlements",
+        redaction: expect.objectContaining({
+          privateBuyerDataIncluded: false,
+          rawBuyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          sourceStripeEventIdsIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
     expect(payload.entitlementWrites).toEqual(
       expect.objectContaining({
         status: "sandbox-webhook-grants-ready",
@@ -528,7 +553,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Launch membership")).toBeVisible();
   });
 
-  test("product entitlement inspection exposes aggregate source data and owner rows", async ({ page, request }, testInfo) => {
+  test("product entitlement inspection exposes aggregate source data, customer lookup, and owner rows", async ({ page, request }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Owner product inspection is covered once on desktop.");
 
     const buyerEmail = `product-owner-${Date.now()}@example.com`;
@@ -556,6 +581,49 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.entitlementInspection.counts.fulfillmentTasks).toBeGreaterThanOrEqual(2);
     expect(JSON.stringify(payload)).not.toContain(grant.buyerEmail);
     expect(JSON.stringify(payload)).not.toContain(grant.eventId);
+
+    const lookupResponse = await request.get(`/api/products/entitlements?checkoutIntentId=${encodeURIComponent(grant.checkoutIntentId)}`);
+    expect(lookupResponse.ok(), await lookupResponse.text()).toBeTruthy();
+    const lookupPayload = await lookupResponse.json();
+    expect(lookupPayload.lookup).toEqual(
+      expect.objectContaining({
+        status: "customer-product-entitlement-lookup-ready",
+        issue: 141,
+        lookupStatus: "ready",
+        checkout: expect.objectContaining({
+          checkoutIntentId: grant.checkoutIntentId,
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          privateBuyerDataIncluded: false,
+          rawBuyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          sourceStripeEventIdsIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
+    expect(lookupPayload.lookup.entitlements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ productTitle: "Launch bundle", status: "active" }),
+        expect.objectContaining({ productTitle: "Launch checklist download", status: "active" }),
+      ]),
+    );
+    expect(JSON.stringify(lookupPayload)).not.toContain(grant.buyerEmail);
+    expect(JSON.stringify(lookupPayload)).not.toContain(grant.eventId);
+    expect(JSON.stringify(lookupPayload)).not.toContain("cs_test");
+
+    await page.goto(`/products/entitlements/${grant.checkoutIntentId}`);
+    await expect(page.getByRole("heading", { name: /Product entitlement status for this checkout/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText("Launch bundle");
+    await expect(page.locator("body")).toContainText("Launch checklist download");
+    await expect(page.locator("body")).toContainText("Fulfillment evidence is queued.");
+    await expect(page.locator("body")).not.toContainText(grant.buyerEmail);
+    await expect(page.locator("body")).not.toContainText(grant.eventId);
+    await expect(page.locator("body")).not.toContainText("cs_test");
 
     await signInOrCreateOwner(page);
     await page.goto("/admin/products");
@@ -2104,12 +2172,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139],
+          issueNumbers: [16, 83, 101, 139, 141],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139],
+          issueNumbers: [16, 83, 99, 101, 139, 141],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -2330,6 +2398,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-customer-product-entitlements", route: "/api/products/entitlements", auth: "public" }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
@@ -2355,6 +2424,16 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
+        }),
+        expect.objectContaining({
+          id: "read-product-access-catalog",
+          stableIds: expect.arrayContaining(["customerProductEntitlementLookupId", "checkoutIntentId"]),
+          safeForAgents: expect.arrayContaining(["Inspect customer-safe entitlement lookup boundaries"]),
+        }),
+        expect.objectContaining({
+          id: "read-customer-product-entitlements",
+          stableIds: expect.arrayContaining(["checkoutIntentId", "customerProductEntitlementLookupId"]),
+          safeForAgents: expect.arrayContaining(["Read product entitlement status for a caller-provided checkout intent ID"]),
         }),
         expect.objectContaining({
           id: "read-affiliate-referrals",
@@ -2838,6 +2917,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /sandbox checkout returned successfully/i })).toBeVisible();
     await expect(page.getByText("No checkout intent was returned with this success page.")).toBeVisible();
     await expect(page.getByRole("link", { name: /Continue offer path/i })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /View product access/i })).toHaveCount(0);
 
     const suffix = Date.now();
     const checkout = await request.post("/api/commerce/checkout", {
@@ -2856,6 +2936,10 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto(`/commerce/checkout/success?checkout_intent_id=${checkoutPayload.checkoutIntentId}`);
     await expect(page.getByText(/Waiting for webhook confirmation/i)).toBeVisible();
     await expect(page.getByRole("link", { name: /Continue offer path/i })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: /View product access/i })).toHaveAttribute(
+      "href",
+      `/products/entitlements/${checkoutPayload.checkoutIntentId}`,
+    );
     await expect(page.locator("body")).not.toContainText("cs_test");
     await expect(page.locator("body")).not.toContainText("pi_test");
 

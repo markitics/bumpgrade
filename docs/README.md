@@ -29,8 +29,9 @@ then open the relevant shelf for the task.
   referral-click attribution evidence from issue #111 and review-only commission
   ledger evidence from issue #113 plus owner review/reversal actions from issue
   #115 and non-billing post-purchase decision evidence from issue #117.
-- `features/product-access.md`: product, asset, access-rule, entitlement, and
-  sandbox webhook grant contract from issues #83 and #101.
+- `features/product-access.md`: product, asset, access-rule, entitlement,
+  sandbox webhook grant, owner inspection, and customer lookup contract from
+  issues #83, #101, #139, and #141.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
   broadcast, automation, consent, seeded subscriber capture, and owner subscriber
   inspection contract from issues #85, #103, and #137.

@@ -55,9 +55,12 @@ Issue #101 connects paid sandbox checkout evidence to product access:
   `product_entitlements` rows for the seeded primary offer and selected order
   bump.
 - Matching `product_fulfillment_tasks` rows are queued as public-safe evidence.
-- Private R2 keys, signed URLs, authenticated customer entitlement inspection,
-  revocation, live fulfillment, and direct agent writes still require future
-  confirmed-write APIs.
+- Issue #141 adds `/api/products/entitlements` and
+  `/products/entitlements/{checkoutIntentId}` for customer-safe entitlement
+  status, fulfillment summaries, and next steps keyed by Bumpgrade checkout
+  intent evidence.
+- Private R2 keys, signed URLs, protected content, revocation, live fulfillment,
+  and direct agent writes still require future confirmed-write APIs.
 
 Issue #111 connects privacy-safe referral click evidence to sandbox checkout
 intents:

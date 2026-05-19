@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Clock3, ReceiptText, RefreshCw } from "lucide-react";
+import { CheckCircle2, Clock3, PackageCheck, ReceiptText, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { postPurchaseDecisionRoutePrefix } from "@/lib/post-purchase-decisions";
@@ -35,6 +35,7 @@ export function CheckoutSuccessStatus({ checkoutIntentId }: { checkoutIntentId?:
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const postPurchasePath = checkoutIntentId ? `${postPurchaseDecisionRoutePrefix}/${checkoutIntentId}` : null;
+  const productAccessPath = checkoutIntentId ? `/products/entitlements/${encodeURIComponent(checkoutIntentId)}` : null;
 
   const statusUrl = useMemo(() => {
     if (!checkoutIntentId) return null;
@@ -144,6 +145,11 @@ export function CheckoutSuccessStatus({ checkoutIntentId }: { checkoutIntentId?:
               {isRefreshing ? "Checking..." : "Refresh status"}
               <RefreshCw aria-hidden="true" />
             </button>
+          ) : null}
+          {productAccessPath ? (
+            <Link className="secondary-action" href={productAccessPath}>
+              View product access <PackageCheck aria-hidden="true" />
+            </Link>
           ) : null}
           <Link className={isReady || checkoutIntentId ? "secondary-action" : "text-link"} href="/commerce/source-data">
             Commerce source data <ReceiptText aria-hidden="true" />

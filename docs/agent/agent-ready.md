@@ -139,11 +139,16 @@ assets, access rules, entitlement templates, and sandbox webhook grant mappings.
 webhooks can grant idempotent `product_entitlements` rows and queue public-safe
 `product_fulfillment_tasks`. `/admin/products` lets verified owners inspect
 private entitlement rows, buyer email, checkout state, product and price context,
-access rules, and queued fulfillment evidence. Public product source-data only
-exposes aggregate entitlement inspection counts and redaction flags. This proves
-entitlement grant and owner-inspection semantics, not private R2 access, signed
-downloads, customer self-service entitlement inspection, protected content,
-revocation, live fulfillment, or direct agent write capability.
+access rules, and queued fulfillment evidence. `/api/products/entitlements` and
+`/products/entitlements/{checkoutIntentId}` let a customer read entitlement
+status, fulfillment summaries, and next steps from checkout intent evidence
+without exposing buyer identity, hashes, raw Stripe IDs, source event IDs,
+metadata JSON, private R2 keys, or signed URLs. Public product source-data
+exposes aggregate entitlement inspection counts, the customer lookup contract,
+and redaction flags. This proves entitlement grant, owner-inspection, and
+customer-safe lookup semantics, not private R2 access, signed downloads,
+protected content, revocation, live fulfillment, or direct agent write
+capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
