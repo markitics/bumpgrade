@@ -112,9 +112,9 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <strong>{sequence.length} offer decisions</strong>
           <span>
             Sandbox checkout start is available for the primary offer and seeded order bump, with optional referral-click
-            evidence, review-only commission ledger evidence, and owner review/reversal actions. Upsells, downsells,
-            fulfillment, payable commissions, partner notifications, and live billing stay disabled until confirmed-write
-            contracts exist.
+            evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing
+            post-purchase decision evidence. One-click charging, fulfillment, payable commissions, partner
+            notifications, and live billing stay disabled until confirmed-write contracts exist.
           </span>
         </aside>
       </section>
@@ -171,8 +171,8 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             <TimerReset aria-hidden="true" />
             <h3>{stack.postPurchasePath.expiresAfterMinutes}-minute upsell window</h3>
             <p>
-              The preview models a limited upsell and downsell after {stack.postPurchasePath.trigger}, but no one-click
-              charge or entitlement write is live in this slice.
+              The route can record a non-billing follow-up decision after {stack.postPurchasePath.trigger}, but no
+              one-click charge or entitlement write is live in this slice.
             </p>
           </article>
           <article className="roadmap-card">
@@ -217,7 +217,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             <h3>Webhook evidence required</h3>
             <p>
               Fulfillment, access, payable commissions, and post-purchase billing depend on trusted webhook and owner
-              review state in later slices.
+              review state in later slices; this slice records decision evidence only.
             </p>
           </div>
         </div>

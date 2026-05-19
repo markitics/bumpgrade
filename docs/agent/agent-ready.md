@@ -118,11 +118,15 @@ downsell stack. `/offers/indie-launch-stack` can start a sandbox checkout for
 the primary offer plus seeded order bump after exact confirmation, and
 `/api/commerce/checkout` can attach eligible referral click IDs as attribution
 evidence. `/api/affiliates/commission-ledger` can create review-only commission
-ledger evidence from trusted checkout attribution. This proves offer-sequence
-semantics, sandbox Checkout Session start semantics, referral-click-to-checkout
-evidence, and non-payable ledger evidence, not live billing, one-click upsell
-charging, fulfillment, payable commission writes, price mutation, arbitrary
-order-bump mutation, payout mutation, or agent write capability.
+ledger evidence from trusted checkout attribution, and
+`/api/commerce/post-purchase-decisions` can record non-billing upsell/downsell
+follow-up decisions after trusted checkout state with exact confirmation,
+idempotency, and stale-state checks. This proves offer-sequence semantics,
+sandbox Checkout Session start semantics, referral-click-to-checkout evidence,
+non-payable ledger evidence, and post-purchase decision evidence, not live
+billing, one-click upsell charging, fulfillment, payable commission writes,
+price mutation, arbitrary order-bump mutation, payout mutation, or agent write
+capability.
 
 Current product/access boundary: `/products/source-data` is the public-safe
 contract for seeded downloads, courses, memberships, services, events, bundles,

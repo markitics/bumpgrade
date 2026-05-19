@@ -19,6 +19,7 @@ import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
+import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
@@ -299,12 +300,14 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: checkoutOfferSourceData.id,
-        status: "owner-review-actions-ready",
-        issue: 115,
+        status: "post-purchase-decision-ready",
+        issue: 117,
         parentIssue: 15,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/offers/source-data", "/offers/indie-launch-stack"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining(["/offers/source-data", "/offers/indie-launch-stack", "/api/commerce/post-purchase-decisions"]),
+    );
     expect(payload.sandboxCheckout).toEqual(
       expect.objectContaining({
         endpoint: "/api/commerce/checkout",
@@ -339,7 +342,26 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #111 allows eligible referral click IDs");
     expect(payload.writeBoundary).toContain("Issue #113 allows review-only commission ledger evidence");
     expect(payload.writeBoundary).toContain("Issue #115 allows owner-gated review");
+    expect(payload.writeBoundary).toContain("Issue #117 allows non-billing post-purchase");
+    expect(payload.postPurchaseDecisions).toEqual(
+      expect.objectContaining({
+        status: "non-billing-decision-ready",
+        issue: 117,
+        apiRoute: "/api/commerce/post-purchase-decisions",
+      }),
+    );
+    expect(payload.postPurchaseDecisionSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        billingMutationsIncluded: false,
+        fulfillmentRowsIncluded: false,
+        entitlementRowsIncluded: false,
+      }),
+    );
     expect(payload.caveat).toContain("confirmed sandbox checkout start");
+    expect(payload.caveat).toContain("non-billing post-purchase");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
 
     await page.goto("/offers/indie-launch-stack");
@@ -1604,7 +1626,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           featureId: "feature-stripe-commerce",
-          issueNumbers: [11, 34, 15, 16, 99, 101, 111],
+          issueNumbers: [11, 34, 15, 16, 81, 99, 101, 111, 113, 115, 117],
+        }),
+        expect.objectContaining({
+          id: "journey-buyer-chooses-post-purchase-offer",
+          featureId: "feature-checkout-offers",
+          issueNumbers: [15, 99, 117],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -1706,6 +1733,8 @@ test.describe("Bumpgrade scaffold", () => {
         offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
         supportsOrderBumps: true,
         supportsReferralAttributionEvidence: true,
+        postPurchaseDecisionRoute: "/api/commerce/post-purchase-decisions",
+        postPurchaseRoutePrefix: "/commerce/post-purchase",
         orderBumps: expect.arrayContaining([
           expect.objectContaining({ priceId: "price-launch-checklist-bump-usd", unitAmountCents: 1900 }),
         ]),
@@ -1719,6 +1748,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "commerce_products" }),
         expect.objectContaining({ table: "checkout_intents" }),
         expect.objectContaining({ table: "checkout_referral_attributions" }),
+        expect.objectContaining({ table: "checkout_post_purchase_decisions" }),
         expect.objectContaining({ table: "affiliate_commission_ledger_entries" }),
         expect.objectContaining({ table: "affiliate_commission_ledger_actions" }),
         expect.objectContaining({ table: "product_entitlements" }),
@@ -1764,6 +1794,23 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.postPurchaseDecisions).toEqual(
+      expect.objectContaining({
+        contract: expect.objectContaining({
+          status: "non-billing-decision-ready",
+          issue: 117,
+          apiRoute: "/api/commerce/post-purchase-decisions",
+        }),
+        summary: expect.objectContaining({
+          status: "available",
+          rawRowsIncluded: false,
+          privateDataIncluded: false,
+          billingMutationsIncluded: false,
+          fulfillmentRowsIncluded: false,
+          entitlementRowsIncluded: false,
+        }),
+      }),
+    );
   });
 
   test("agent docs source data exposes stable read contracts and MCP roadmap", async ({ request }) => {
@@ -1777,7 +1824,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.mcpPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mcp-resource-features", status: "ready-contract" }),
-        expect.objectContaining({ id: "mcp-resource-checkout-offers", status: "ready-contract" }),
+        expect.objectContaining({
+          id: "mcp-resource-checkout-offers",
+          status: "ready-contract",
+          purpose: expect.stringContaining("aggregate post-purchase decision evidence"),
+        }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
@@ -1806,6 +1857,11 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.readContracts).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          id: "read-checkout-offer-stack",
+          stableIds: expect.arrayContaining(["postPurchaseDecisionId"]),
+          safeForAgents: expect.arrayContaining(["Inspect aggregate non-billing post-purchase decision counts"]),
+        }),
         expect.objectContaining({
           id: "read-analytics-experiments",
           stableIds: expect.arrayContaining(["experimentAssignmentId"]),
@@ -2095,6 +2151,194 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(second.ok()).toBeTruthy();
     await expect(second.json()).resolves.toEqual(expect.objectContaining({ ok: true, duplicate: true }));
+  });
+
+  test("post-purchase decision API records non-billing upsell and downsell evidence", async ({ request, page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Post-purchase decision flow is covered once on desktop.");
+
+    const sourceBefore = await request.get("/offers/source-data");
+    expect(sourceBefore.ok()).toBeTruthy();
+    const beforePayload = await sourceBefore.json();
+    const beforeAccepted =
+      beforePayload.postPurchaseDecisionSummary.aggregateCounts.find(
+        (row: { decision_kind: string }) => row.decision_kind === "accept_upsell_follow_up",
+      )?.total_decisions ?? 0;
+    const beforeDeclinedDownsell =
+      beforePayload.postPurchaseDecisionSummary.aggregateCounts.find(
+        (row: { decision_kind: string }) => row.decision_kind === "decline_downsell",
+      )?.total_decisions ?? 0;
+
+    const suffix = Date.now();
+    const checkout = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        buyerEmail: "post-purchase-buyer@example.com",
+        idempotencyKey: `playwright-post-purchase-checkout-${suffix}`,
+      },
+    });
+    expect(checkout.ok(), await checkout.text()).toBeTruthy();
+    const checkoutPayload = await checkout.json();
+    expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
+
+    const ineligible = await request.post("/api/commerce/post-purchase-decisions", {
+      data: {
+        checkoutIntentId: checkoutPayload.checkoutIntentId,
+        decisionKind: "accept_upsell_follow_up",
+        confirmationText: postPurchaseDecisionConfirmationText,
+        idempotencyKey: `playwright-post-purchase-ineligible-${suffix}`,
+        expectedCheckoutUpdatedAt: 1,
+      },
+    });
+    expect(ineligible.status()).toBe(409);
+    await expect(ineligible.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "post_purchase_checkout_not_eligible" }),
+    );
+
+    const event = {
+      id: `evt_bumpgrade_post_purchase_${suffix}`,
+      object: "event",
+      api_version: "2026-04-22.dahlia",
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_test_redacted_by_route",
+          object: "checkout.session",
+          client_reference_id: checkoutPayload.checkoutIntentId,
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            checkout_intent_id: checkoutPayload.checkoutIntentId,
+            product_id: sandboxCheckoutOffer.productId,
+            price_id: sandboxCheckoutOffer.priceId,
+            audit_correlation_id: "audit-playwright-post-purchase",
+          },
+        },
+      },
+    };
+
+    const webhook = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(webhook.ok(), await webhook.text()).toBeTruthy();
+
+    const contract = await request.get(`/api/commerce/post-purchase-decisions?checkoutIntentId=${checkoutPayload.checkoutIntentId}`);
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    const contractPayload = await contract.json();
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 117,
+        status: "non-billing-decision-ready",
+        checkout: expect.objectContaining({
+          checkoutIntentId: checkoutPayload.checkoutIntentId,
+          status: "paid",
+          eligible: true,
+          updatedAt: expect.any(Number),
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    await page.goto(`/commerce/post-purchase/${checkoutPayload.checkoutIntentId}`);
+    await expect(page.getByRole("heading", { name: /Choose the next Bumpgrade launch offer/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch accelerator upsell" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch review downsell" })).toBeVisible();
+
+    const decisionPayload = {
+      checkoutIntentId: checkoutPayload.checkoutIntentId,
+      decisionKind: "accept_upsell_follow_up",
+      confirmationText: postPurchaseDecisionConfirmationText,
+      idempotencyKey: `playwright-post-purchase-decision-${suffix}`,
+      expectedCheckoutUpdatedAt: contractPayload.checkout.updatedAt,
+    };
+    const decision = await request.post("/api/commerce/post-purchase-decisions", { data: decisionPayload });
+    expect(decision.ok(), await decision.text()).toBeTruthy();
+    const decisionResult = await decision.json();
+    expect(decisionResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "post_purchase_decision_recorded",
+        duplicate: false,
+        decision: expect.objectContaining({
+          checkoutIntentId: checkoutPayload.checkoutIntentId,
+          presentedOfferId: "offer-upsell-launch-accelerator",
+          decisionKind: "accept_upsell_follow_up",
+          stripeChargeCreated: false,
+          paymentIntentCreated: false,
+          fulfillmentCreated: false,
+          entitlementGranted: false,
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    const duplicate = await request.post("/api/commerce/post-purchase-decisions", { data: decisionPayload });
+    expect(duplicate.ok(), await duplicate.text()).toBeTruthy();
+    await expect(duplicate.json()).resolves.toEqual(
+      expect.objectContaining({ ok: true, status: "post_purchase_decision_replayed", duplicate: true }),
+    );
+
+    const downsellDeclinePayload = {
+      ...decisionPayload,
+      decisionKind: "decline_downsell",
+      idempotencyKey: `playwright-post-purchase-downsell-decline-${suffix}`,
+    };
+    const downsellDecline = await request.post("/api/commerce/post-purchase-decisions", {
+      data: downsellDeclinePayload,
+    });
+    expect(downsellDecline.ok(), await downsellDecline.text()).toBeTruthy();
+    await expect(downsellDecline.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "post_purchase_decision_recorded",
+        duplicate: false,
+        decision: expect.objectContaining({
+          checkoutIntentId: checkoutPayload.checkoutIntentId,
+          presentedOfferId: "offer-downsell-launch-review",
+          decisionKind: "decline_downsell",
+          stripeChargeCreated: false,
+          paymentIntentCreated: false,
+          fulfillmentCreated: false,
+          entitlementGranted: false,
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    const stale = await request.post("/api/commerce/post-purchase-decisions", {
+      data: {
+        ...decisionPayload,
+        idempotencyKey: `${decisionPayload.idempotencyKey}-stale`,
+        decisionKind: "accept_downsell_follow_up",
+        expectedCheckoutUpdatedAt: contractPayload.checkout.updatedAt - 1,
+      },
+    });
+    expect(stale.status()).toBe(409);
+    await expect(stale.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "post_purchase_checkout_stale_state" }),
+    );
+
+    const sourceAfter = await request.get("/offers/source-data");
+    expect(sourceAfter.ok()).toBeTruthy();
+    const afterPayload = await sourceAfter.json();
+    const afterAccepted =
+      afterPayload.postPurchaseDecisionSummary.aggregateCounts.find(
+        (row: { decision_kind: string }) => row.decision_kind === "accept_upsell_follow_up",
+      )?.total_decisions ?? 0;
+    expect(afterAccepted).toBe(beforeAccepted + 1);
+    const afterDeclinedDownsell =
+      afterPayload.postPurchaseDecisionSummary.aggregateCounts.find(
+        (row: { decision_kind: string }) => row.decision_kind === "decline_downsell",
+      )?.total_decisions ?? 0;
+    expect(afterDeclinedDownsell).toBe(beforeDeclinedDownsell + 1);
   });
 
   test("allowlisted owner can sign in and open protected admin surfaces", async ({ page }, testInfo) => {

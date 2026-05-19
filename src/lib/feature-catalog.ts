@@ -13,7 +13,7 @@ export type FeatureRecord = {
   agentContract: string;
 };
 
-export const featureCatalogUpdatedAt = "2026-05-18";
+export const featureCatalogUpdatedAt = "2026-05-19";
 
 export const featureCatalog: FeatureRecord[] = [
   {
@@ -146,6 +146,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Read-only checkout offer source data and preview route from issue #81.",
       "Confirmed sandbox checkout start with the seeded primary offer and constrained order bump from issue #99.",
       "Optional referral-click attribution evidence on sandbox checkout intents from issue #111.",
+      "Non-billing post-purchase upsell/downsell decision evidence from issue #117.",
       "Checkout pages and embeddable checkout entry points.",
       "Order bumps, upsells, downsells, coupons, and subscription offers.",
       "Customer portal and billing-safe state transitions.",
@@ -157,9 +158,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #81 adds `/offers/source-data` and `/offers/indie-launch-stack` as the first read-only checkout-offer contract and preview scaffold.",
       "Issue #99 adds a confirmed sandbox checkout start panel and API support for the seeded pre-payment order bump.",
       "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
+      "Issue #117 adds a trusted post-purchase route and idempotent non-billing decision API for upsell/downsell follow-up evidence.",
     ],
     agentContract:
-      "Billing-impacting and commission-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
+      "Agents may read offer-stack and aggregate post-purchase decision evidence; billing-impacting, fulfillment, and commission-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
   },
   {
     id: "feature-products-access",

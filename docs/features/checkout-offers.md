@@ -7,7 +7,8 @@ offer and constrained order bump. Issue #111 adds optional referral-click
 attribution evidence on sandbox checkout intents. Issue #113 adds review-only
 commission ledger evidence from trusted checkout attribution. Issue #115 adds
 owner-gated review, hold, and reversal actions for that evidence without payout
-mutation.
+mutation. Issue #117 adds a trusted post-purchase route and an idempotent
+non-billing decision API for upsell/downsell follow-up evidence.
 
 Live in this slice:
 
@@ -26,6 +27,11 @@ Live in this slice:
   intent with referral attribution.
 - `/api/admin/affiliates/commission-ledger/actions`: owner-gated review action
   route that can review, hold, or reverse that evidence without payout state.
+- `/commerce/post-purchase/{checkoutIntentId}`: public-safe post-purchase offer
+  path for eligible paid or completed sandbox checkout intents.
+- `/api/commerce/post-purchase-decisions`: confirmed, idempotent route that can
+  record non-billing upsell/downsell follow-up decisions from trusted checkout
+  state.
 - Agent manifest entries for reading checkout-offer state and future MCP
   resources.
 

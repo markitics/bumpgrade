@@ -28,7 +28,7 @@ then open the relevant shelf for the task.
   checkout start and constrained order-bump path from issue #99, with optional
   referral-click attribution evidence from issue #111 and review-only commission
   ledger evidence from issue #113 plus owner review/reversal actions from issue
-  #115.
+  #115 and non-billing post-purchase decision evidence from issue #117.
 - `features/product-access.md`: product, asset, access-rule, entitlement, and
   sandbox webhook grant contract from issues #83 and #101.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
