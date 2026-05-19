@@ -114,6 +114,27 @@ should read `/funnels/source-data` for the capability boundary, not scrape
 private draft copy. Publishing, checkout linking, deletion, public preview, and
 direct agent edits still need future confirmed-write APIs.
 
+## Admin `/admin/products`
+
+Purpose: owner-gated product entitlement, checkout, and fulfillment inspection
+on top of the public product/access source contract.
+
+Issue #139 added the first owner-only product entitlement inspection surface.
+The page reads:
+
+- `product_entitlements`
+- `product_fulfillment_tasks`
+- `checkout_intents`
+- `commerce_products`
+- `commerce_prices`
+
+Verified owners can inspect buyer email, checkout status, product/price context,
+access rules, and queued fulfillment evidence. Public agents should read
+`/products/source-data` for aggregate counts and redaction flags, not scrape or
+infer private buyer rows. Signed downloads, protected content, revocation,
+subscription access changes, refunds, customer portals, private asset delivery,
+and direct agent entitlement writes still need future confirmed-write APIs.
+
 ## Agent Maintenance Rule
 
 When any of these change, update the others in the same PR when practical:

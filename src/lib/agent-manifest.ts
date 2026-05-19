@@ -271,16 +271,42 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/products/source-data",
     kind: "json",
     auth: "public",
-    sourceOfTruth: "src/lib/product-access.ts",
-    stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "subscriptionPlanId", "fulfillmentId", "agentActionId"],
+    sourceOfTruth: "src/lib/product-access.ts + src/lib/product-entitlement-inspection.ts",
+    stableIds: [
+      "productId",
+      "assetId",
+      "accessRuleId",
+      "entitlementTemplateId",
+      "productEntitlementInspectionId",
+      "subscriptionPlanId",
+      "fulfillmentId",
+      "agentActionId",
+    ],
     safeForAgents: [
       "Read seeded product catalog",
       "Inspect access rules",
       "Inspect sandbox entitlement grant mappings",
+      "Inspect aggregate owner-entitlement counts and redaction flags",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; product, asset, signed URL, revocation, live fulfillment, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows in /admin/products; product, asset, signed URL, revocation, live fulfillment, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+  },
+  {
+    id: "read-admin-product-entitlements",
+    title: "Admin product entitlements",
+    route: "/admin/products",
+    kind: "doc",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables product_entitlements, product_fulfillment_tasks, checkout_intents, commerce_products, and commerce_prices",
+    stableIds: ["productId", "entitlementTemplateId", "productEntitlementId", "fulfillmentTaskId", "checkoutIntentId", "ownerUserId"],
+    safeForAgents: [
+      "Read private buyer entitlement rows only with an owner session",
+      "Inspect checkout status, product/price context, access rule, and queued fulfillment state",
+      "Confirm public source-data redacts buyer email, raw Stripe IDs, hashes, metadata JSON, private R2 keys, and signed URLs",
+    ],
+    writeBoundary:
+      "This owner page is inspection-only; signed downloads, protected content, revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct agent entitlement writes require future confirmed-write APIs.",
   },
   {
     id: "read-audience-automation",
@@ -537,10 +563,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, preview route, revision ID, and confirmed-write boundary.",
-    stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "fulfillmentId"],
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+    stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "productEntitlementInspectionId", "fulfillmentId"],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants; it is not private asset delivery, signed URL access, authenticated customer entitlement inspection, revocation, or live fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants and owner-only entitlement inspection; it is not private asset delivery, signed URL access, customer self-service entitlement inspection, revocation, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",
@@ -705,8 +731,8 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://product-access",
     status: "ready-contract",
     backedBy: "/products/source-data",
-    purpose: "Expose seeded products, assets, access rules, entitlement templates, revision IDs, and fulfillment boundaries.",
-    safetyBoundary: "Read-only; private asset access, entitlement writes, subscription access changes, and fulfillment actions require confirmed-write contracts.",
+    purpose: "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, and fulfillment boundaries.",
+    safetyBoundary: "Read-only; private asset access, private entitlement rows, entitlement writes, subscription access changes, and fulfillment actions require owner auth or confirmed-write contracts.",
   },
   {
     id: "mcp-resource-audience-automation",

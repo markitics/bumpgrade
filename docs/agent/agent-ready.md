@@ -137,10 +137,13 @@ contract for seeded downloads, courses, memberships, services, events, bundles,
 assets, access rules, entitlement templates, and sandbox webhook grant mappings.
 `/products/indie-launch-library` is the read-only preview. Trusted paid sandbox
 webhooks can grant idempotent `product_entitlements` rows and queue public-safe
-`product_fulfillment_tasks`. This proves entitlement grant semantics, not
-private R2 access, signed downloads, authenticated customer entitlement
-inspection, protected content, revocation, live fulfillment, or direct agent
-write capability.
+`product_fulfillment_tasks`. `/admin/products` lets verified owners inspect
+private entitlement rows, buyer email, checkout state, product and price context,
+access rules, and queued fulfillment evidence. Public product source-data only
+exposes aggregate entitlement inspection counts and redaction flags. This proves
+entitlement grant and owner-inspection semantics, not private R2 access, signed
+downloads, customer self-service entitlement inspection, protected content,
+revocation, live fulfillment, or direct agent write capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
