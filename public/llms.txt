@@ -100,10 +100,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   availability.
 - `/funnels/source-data` exposes the first funnel/page-builder contract, seeded
   public preview, and owner-session editable draft capability from issues #91,
-  #93, and #95. Treat the admin draft builder as private D1 draft creation plus
-  step edit/reorder and owner-gated private preview only, not public publishing,
-  checkout integration, drag-and-drop visual editing, deletion, or an
-  unconfirmed agent-write API.
+  #93, #95, and #135. Treat the admin draft builder as private D1 draft creation
+  plus step edit/reorder, owner-gated private preview, and exact-confirmed
+  public publishing to `/funnels/{slug}`. It is not checkout integration,
+  drag-and-drop visual editing, deletion/unpublishing, or an unconfirmed
+  agent-write API.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
   can start a confirmed sandbox checkout for the primary offer plus seeded order
