@@ -1,8 +1,8 @@
 import {
+  audienceBroadcastPreviewSafetyIssue,
+  audienceBroadcastPreviewSafetyStatus,
   audienceBroadcastReadinessUpdatedAt,
   audienceBroadcastScheduleIntentApiRoute,
-  audienceBroadcastScheduleIntentIssue,
-  audienceBroadcastScheduleIntentStatus,
 } from "@/lib/audience-broadcasts";
 import { audienceCrmTimelineApiRoute, audienceCrmTimelineWriteContract } from "@/lib/audience-crm";
 import { audienceOptInApiRoute, audienceOptInWriteContract } from "@/lib/audience-opt-in";
@@ -137,7 +137,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   slug: "indie-launch-waitlist",
   title: "Indie launch waitlist and nurture preview",
   status: "draft",
-  issue: audienceBroadcastScheduleIntentIssue,
+  issue: audienceBroadcastPreviewSafetyIssue,
   parentIssue: 17,
   sourceDataRoute: "/audience/source-data",
   previewRoute: "/audience/indie-launch-waitlist",
@@ -309,14 +309,14 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
       status: "draft",
       audienceScope: "Only subscribers who explicitly opted into the indie launch waitlist and are not unsubscribed.",
       approvalBoundary:
-        "Issue #173 can record an owner-confirmed dry-run schedule intent for this draft after stale-readiness checks, but real sending still requires preview rendering, unsubscribe footer validation, sender-domain safety, provider limits, and audit correlation.",
+        "Issue #175 can inspect preview and unsubscribe-footer safety for this draft, but real sending still requires sender-domain safety, provider limits, delivery queues, and audit correlation.",
     },
   ],
   unsubscribeManagement: audienceUnsubscribeWriteContract,
   crmTimeline: audienceCrmTimelineWriteContract,
   broadcastScheduleIntentApiRoute: audienceBroadcastScheduleIntentApiRoute,
   writeBoundary:
-    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Issue #167 can record unsubscribe/suppression evidence and mark known subscribers unsubscribed without revealing list membership. Issue #169 can create owner-only CRM timeline notes with exact confirmation, idempotency, and expected subscriber-status checks. Issue #171 can inspect suppression-aware broadcast draft readiness without creating send queues. Issue #173 can record owner-confirmed dry-run broadcast schedule intents with idempotency, exact confirmation, draft revision checks, and expected readiness counts while still creating no send queue rows. Imports, real email sends, private exports, CRM automation, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, unsubscribe footers, and sender-domain safety.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Issue #167 can record unsubscribe/suppression evidence and mark known subscribers unsubscribed without revealing list membership. Issue #169 can create owner-only CRM timeline notes with exact confirmation, idempotency, and expected subscriber-status checks. Issue #171 can inspect suppression-aware broadcast draft readiness without creating send queues. Issue #173 can record owner-confirmed dry-run broadcast schedule intents with idempotency, exact confirmation, draft revision checks, and expected readiness counts while still creating no send queue rows. Issue #175 can inspect broadcast preview and unsubscribe-footer safety without personalized bodies or provider sends. Imports, real email sends, private exports, CRM automation, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, unsubscribe footers, and sender-domain safety.",
   validation: [
     "/audience/source-data returns seeded audience segments, forms, tags, sequences, automations, and write boundaries.",
     "/audience/indie-launch-waitlist renders the opt-in and nurture preview.",
@@ -325,6 +325,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     "/api/admin/audience/notes stores owner-only CRM timeline notes with public aggregate redaction.",
     "Broadcast readiness is calculated from D1 subscriber, consent, and suppression evidence without creating send queue rows.",
     "/api/admin/audience/broadcasts/schedule-intents stores owner-confirmed dry-run schedule intents without recipient payloads, queues, or provider message IDs.",
+    "Broadcast preview safety is stored from D1 without personalized bodies, recipient payloads, send queue rows, or provider message IDs.",
     "/agent-docs/source-data lists the audience automation read contract for future MCP resources.",
   ],
 };
@@ -338,8 +339,8 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: audienceBroadcastScheduleIntentStatus,
-  issue: audienceBroadcastScheduleIntentIssue,
+  status: audienceBroadcastPreviewSafetyStatus,
+  issue: audienceBroadcastPreviewSafetyIssue,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
   routes: [
@@ -366,6 +367,7 @@ export const audienceAutomationSourceData = {
     "timelineEntryId",
     "broadcastReadinessId",
     "broadcastScheduleIntentId",
+    "broadcastPreviewSafetyId",
     "agentActionId",
   ],
   optInWrites: audienceOptInWriteContract,
@@ -374,5 +376,5 @@ export const audienceAutomationSourceData = {
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, and aggregate owner-inspection evidence. It does not import contacts, send email, create send queue rows, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, broadcast preview/footer safety evidence, and aggregate owner-inspection evidence. It does not import contacts, send email, create send queue rows, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
 };

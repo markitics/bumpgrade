@@ -190,7 +190,7 @@ email sequences, broadcast drafts, automation rules, the
 unsubscribe/suppression boundary, the owner-gated `/api/admin/audience/notes`
 CRM note boundary, the owner-gated
 `/api/admin/audience/broadcasts/schedule-intents` dry-run schedule intent
-boundary, suppression-aware broadcast readiness, and aggregate
+boundary, broadcast preview/footer safety records, suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
 `/audience/indie-launch-waitlist` can capture
 explicit-consent waitlist opt-ins, normalize the submitted email, assign seeded
@@ -199,9 +199,9 @@ preference without revealing list membership. `/admin/audience` lets verified
 owners inspect private subscriber rows, consent counts, active tags, draft
 sequence enrollments, suppression totals, private CRM timeline notes, and
 broadcast readiness from D1, plus record dry-run schedule intents without
-recipient payloads. This proves seeded subscriber capture, unsubscribe
+recipient payloads and inspect preview/footer safety without personalized bodies. This proves seeded subscriber capture, unsubscribe
 evidence, owner inspection, private owner-note semantics, aggregate broadcast
-readiness, and owner-confirmed dry-run schedule intent semantics, not contact import, live email sending, send queues, CRM
+readiness, owner-confirmed dry-run schedule intent semantics, and preview safety semantics, not contact import, live email sending, send queues, CRM
 automation, private export, suppression-list administration, or direct agent
 subscriber write capability.
 
