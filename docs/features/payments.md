@@ -104,6 +104,23 @@ Issue #115 adds owner-gated review actions for that ledger evidence:
   collect tax data, finalize buyer attribution, or enable direct agent review
   writes.
 
+Issue #117 records post-purchase upsell/downsell follow-up decisions without
+creating a billing mutation:
+
+- `/commerce/post-purchase/{checkoutIntentId}` renders the seeded launch
+  accelerator upsell and launch review downsell only after trusted paid or
+  completed sandbox checkout evidence exists.
+- `POST /api/commerce/post-purchase-decisions` requires a checkout intent ID,
+  supported decision kind, exact confirmation text, idempotency key, and current
+  checkout `updatedAt` stale-state value.
+- The route stores `checkout_post_purchase_decisions` rows and redacted
+  `payment_audit_events` only.
+- Source-data exposes aggregate decision counts through `/offers/source-data`
+  and `/commerce/source-data`.
+- This does not create Stripe charges, PaymentIntents, subscriptions,
+  fulfillment, entitlement grants, payable commissions, payout state, tax
+  records, partner notifications, or direct agent billing writes.
+
 ## Source Checks
 
 Checked on 2026-05-18:
@@ -174,6 +191,8 @@ commerce tables, and later migrations extend them:
   evidence created from trusted checkout referral attribution.
 - `affiliate_commission_ledger_actions`: owner-gated review, hold, and reversal
   action evidence for non-payable commission ledger rows.
+- `checkout_post_purchase_decisions`: non-billing upsell/downsell decision
+  evidence tied to trusted sandbox checkout state.
 - `billing_subscriptions`: Stripe subscription state mirrored into D1.
 - `stripe_webhook_events`: webhook idempotency and redacted event evidence.
 - `payment_audit_events`: public-safe payment state changes and agent/action
