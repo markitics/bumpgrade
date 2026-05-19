@@ -8,7 +8,14 @@ import {
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
-import { audienceBroadcastReadinessIssue, audienceBroadcastReadinessStatus } from "../src/lib/audience-broadcasts";
+import {
+  audienceBroadcastReadinessIssue,
+  audienceBroadcastReadinessStatus,
+  audienceBroadcastScheduleIntentApiRoute,
+  audienceBroadcastScheduleIntentConfirmationText,
+  audienceBroadcastScheduleIntentIssue,
+  audienceBroadcastScheduleIntentStatus,
+} from "../src/lib/audience-broadcasts";
 import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
@@ -1137,8 +1144,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceBroadcastReadinessStatus,
-        issue: audienceBroadcastReadinessIssue,
+        status: audienceBroadcastScheduleIntentStatus,
+        issue: audienceBroadcastScheduleIntentIssue,
         parentIssue: 17,
       }),
     );
@@ -1148,6 +1155,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/audience/opt-in",
         "/api/audience/unsubscribe",
         "/api/admin/audience/notes",
+        audienceBroadcastScheduleIntentApiRoute,
         "/audience/indie-launch-waitlist",
         "/admin/audience",
       ]),
@@ -1178,6 +1186,31 @@ test.describe("Bumpgrade scaffold", () => {
           suppressionReasonIncluded: false,
           privateTimelineNoteBodiesIncluded: false,
           timelineActorEmailIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.broadcastScheduleIntents).toEqual(
+      expect.objectContaining({
+        status: audienceBroadcastScheduleIntentStatus,
+        issue: audienceBroadcastScheduleIntentIssue,
+        apiRoute: audienceBroadcastScheduleIntentApiRoute,
+        ownerRoute: "/admin/audience",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceBroadcastScheduleIntentConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          scheduleIntents: expect.any(Number),
+          activeDryRunIntents: expect.any(Number),
+          readyRecipientsReserved: expect.any(Number),
+          heldRecipientsSnapshotted: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          actorEmailIncluded: false,
+          providerMessageIdsIncluded: false,
+          sendQueueRowsCreated: false,
         }),
       }),
     );
@@ -1282,6 +1315,7 @@ test.describe("Bumpgrade scaffold", () => {
             apiRoute: "/api/admin/audience/notes",
             issue: 169,
           }),
+          broadcastScheduleIntentApiRoute: audienceBroadcastScheduleIntentApiRoute,
           broadcastDrafts: expect.arrayContaining([
             expect.objectContaining({ id: "broadcast-draft-launch-window" }),
           ]),
@@ -1499,6 +1533,20 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedNoteResponse.status()).toBe(401);
     await expect(unauthorizedNoteResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedScheduleIntentResponse = await request.post(audienceBroadcastScheduleIntentApiRoute, {
+      data: {
+        draftId: "broadcast-draft-launch-window",
+        expectedDraftUpdatedAt: "2026-05-19T00:00:00.000Z",
+        expectedReadyRecipientCount: 0,
+        confirmationText: audienceBroadcastScheduleIntentConfirmationText,
+        idempotencyKey: `${idempotencyKey}-unauthorized-schedule-intent`,
+      },
+    });
+    expect(unauthorizedScheduleIntentResponse.status()).toBe(401);
+    await expect(unauthorizedScheduleIntentResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
   });
@@ -2896,7 +2944,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103, 137, 167, 169, 171],
+          issueNumbers: [17, 85, 103, 137, 167, 169, 171, 173],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
@@ -3130,8 +3178,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-audience-automation",
           route: "/audience/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["broadcastReadinessId"]),
-          safeForAgents: expect.arrayContaining(["Inspect suppression-aware broadcast readiness without recipient exposure"]),
+          stableIds: expect.arrayContaining(["broadcastReadinessId", "broadcastScheduleIntentId"]),
+          safeForAgents: expect.arrayContaining([
+            "Inspect suppression-aware broadcast readiness without recipient exposure",
+            "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
+          ]),
         }),
         expect.objectContaining({
           id: "create-audience-unsubscribe-suppression",
@@ -3141,6 +3192,11 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "create-owner-audience-crm-note",
           route: "/api/admin/audience/notes",
+          auth: "owner-session",
+        }),
+        expect.objectContaining({
+          id: "create-owner-broadcast-schedule-intent",
+          route: audienceBroadcastScheduleIntentApiRoute,
           auth: "owner-session",
         }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
@@ -3903,12 +3959,99 @@ test.describe("Bumpgrade scaffold", () => {
     expect(audienceSourceAfterNotePayload.subscriberInspection.counts.timelineEntries).toBeGreaterThanOrEqual(1);
     expect(JSON.stringify(audienceSourceAfterNotePayload.subscriberInspection)).not.toContain(ownerNoteBody);
 
+    const broadcastDraft = audienceSourceAfterNotePayload.broadcastReadiness.drafts.find(
+      (draft: { id: string }) => draft.id === "broadcast-draft-launch-window",
+    );
+    expect(broadcastDraft).toEqual(
+      expect.objectContaining({
+        id: "broadcast-draft-launch-window",
+        updatedAt: expect.any(String),
+        readyRecipientCount: expect.any(Number),
+      }),
+    );
+    const scheduleIntentIdempotencyKey = `playwright-broadcast-schedule-intent-${Date.now()}`;
+    const scheduleIntentResponse = await page.request.post(audienceBroadcastScheduleIntentApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        requestedSendAt: "2026-05-21T16:00",
+        confirmationText: audienceBroadcastScheduleIntentConfirmationText,
+        idempotencyKey: scheduleIntentIdempotencyKey,
+      },
+    });
+    expect(scheduleIntentResponse.ok(), await scheduleIntentResponse.text()).toBeTruthy();
+    const scheduleIntentPayload = await scheduleIntentResponse.json();
+    expect(scheduleIntentPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "broadcast_schedule_intent_recorded",
+        duplicate: false,
+        intent: expect.objectContaining({
+          draftId: broadcastDraft.id,
+          readyRecipientCount: broadcastDraft.readyRecipientCount,
+          sendQueueRowsCreated: false,
+          providerMessageIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          sendQueueRowsCreated: false,
+        }),
+      }),
+    );
+    const replayScheduleIntentResponse = await page.request.post(audienceBroadcastScheduleIntentApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        requestedSendAt: "2026-05-21T16:00",
+        confirmationText: audienceBroadcastScheduleIntentConfirmationText,
+        idempotencyKey: scheduleIntentIdempotencyKey,
+      },
+    });
+    expect(replayScheduleIntentResponse.ok(), await replayScheduleIntentResponse.text()).toBeTruthy();
+    await expect(replayScheduleIntentResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        intent: expect.objectContaining({ id: scheduleIntentPayload.intent.id }),
+      }),
+    );
+    const staleScheduleIntentResponse = await page.request.post(audienceBroadcastScheduleIntentApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount + 1,
+        confirmationText: audienceBroadcastScheduleIntentConfirmationText,
+        idempotencyKey: `playwright-broadcast-schedule-intent-stale-${Date.now()}`,
+      },
+    });
+    expect(staleScheduleIntentResponse.status()).toBe(409);
+    await expect(staleScheduleIntentResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyRecipientCount: broadcastDraft.readyRecipientCount,
+      }),
+    );
+    const audienceSourceAfterSchedule = await page.request.get("/audience/source-data");
+    expect(audienceSourceAfterSchedule.ok(), await audienceSourceAfterSchedule.text()).toBeTruthy();
+    const audienceSourceAfterSchedulePayload = await audienceSourceAfterSchedule.json();
+    expect(audienceSourceAfterSchedulePayload.broadcastScheduleIntents.counts.scheduleIntents).toBeGreaterThanOrEqual(1);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain("m@rkmoriarty.com");
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain(audienceEmail);
+
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
+    await expect(page.getByText("Dry-run schedule intents", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Owner intent is recorded before any delivery queue exists" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Draft sends stay blocked until readiness is explicit" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record dry-run schedule intent/i })).toBeVisible();
     await expect(page.getByText("Launch window announcement")).toBeVisible();
     const audienceCard = page.getByRole("article").filter({ hasText: audienceEmail.toLowerCase() });
     await expect(audienceCard.getByRole("heading", { name: audienceEmail.toLowerCase() })).toBeVisible();
