@@ -226,6 +226,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Analytics and experiment source data and preview route from issue #87.",
       "Privacy-safe event capture for seeded page views, opt-ins, checkout starts, purchases, bumps, upsells, refunds, and cancellations from issue #105.",
       "Deterministic seeded experiment assignment for page and offer variants from issue #107.",
+      "Aggregate funnel conversion reporting from captured test events from issue #119.",
       "UTM and source attribution.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
@@ -234,9 +235,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #87 adds `/analytics/source-data` and `/analytics/indie-launch-dashboard` as the first read-only analytics and experiment contract.",
       "Issue #105 adds seeded event capture with idempotency, hashed request evidence, and aggregate-only source-data reporting.",
       "Issue #107 adds seeded experiment assignment with idempotency, hashed visitor evidence, and aggregate-only assignment reporting.",
+      "Issue #119 adds aggregate funnel conversion report rows from captured test events without exposing raw analytics rows.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, and assignment boundaries with sample-size caveats; direct agent analytics writes, custom events, contact analytics, experiment routing, and automated decisions require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, experiment routing, and automated decisions require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",

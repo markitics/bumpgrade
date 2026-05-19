@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, ArrowRight, BarChart3, Database, FlaskConical, ShieldCheck, TrendingUp } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Database, FlaskConical, ShieldCheck } from "lucide-react";
 
+import { AnalyticsConversionReportPanel } from "@/components/analytics-conversion-report-panel";
+import { analyticsFunnelConversionFallbackReport } from "@/lib/analytics-conversion-report";
 import {
   analyticsDashboards,
   getAnalyticsDashboardBySlug,
   type ExperimentDefinition,
-  type FunnelStepMetric,
 } from "@/lib/analytics-experiments";
 import { site } from "@/lib/site";
 
@@ -42,30 +43,6 @@ export async function generateMetadata({ params }: AnalyticsPageProps): Promise<
   };
 }
 
-function formatPercent(value: number) {
-  return `${Math.round(value * 1000) / 10}%`;
-}
-
-function MetricCard({ metric }: { metric: FunnelStepMetric }) {
-  return (
-    <article className="feature-card compact-content-card">
-      <div className="feature-card-top">
-        <span className="status-badge planned">Fixture</span>
-        <span className="admin-pill">{formatPercent(metric.conversionRate)}</span>
-      </div>
-      <TrendingUp aria-hidden="true" />
-      <h3>{metric.label}</h3>
-      <p>
-        {metric.conversions} conversions from {metric.visitors} fixture visitors.
-      </p>
-      <div className="feature-detail">
-        <strong>Step ID</strong>
-        <span>{metric.stepId}</span>
-      </div>
-    </article>
-  );
-}
-
 function ExperimentCard({ experiment }: { experiment: ExperimentDefinition }) {
   return (
     <article className="roadmap-card">
@@ -92,6 +69,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
     notFound();
   }
 
+  const conversionReport = analyticsFunnelConversionFallbackReport(dashboard);
   const primaryExperiment = dashboard.experiments[0];
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -135,7 +113,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
             Seeded event capture and deterministic assignments are live with idempotency and aggregate-only reporting;
-            cookies, traffic routing, contact-level analytics, automated winners, and revenue claims stay disabled.
+            conversion report rows now use captured events when present. Cookies, traffic routing, contact-level
+            analytics, automated winners, and revenue claims stay disabled.
           </span>
         </aside>
       </section>
@@ -144,18 +123,14 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Funnel report</p>
-            <h2>Step-level conversion metrics combine fixtures and captured event counts</h2>
+            <h2>Step-level conversion metrics come from aggregate captured events</h2>
           </div>
           <Link href={dashboard.linkedFunnelRoute} className="text-link compact-link">
             Linked funnel
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
-        <div className="feature-grid">
-          {dashboard.funnelStepMetrics.map((metric) => (
-            <MetricCard key={metric.id} metric={metric} />
-          ))}
-        </div>
+        <AnalyticsConversionReportPanel fallbackReport={conversionReport} />
       </section>
 
       <section className="content-band">
@@ -232,8 +207,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <Database aria-hidden="true" />
             <h3>Source data first</h3>
             <p>
-              <code>/analytics/source-data</code> exposes public-safe events, metric formulas, fixture reports,
-              aggregate event and assignment counts, and experiment definitions.
+              <code>/analytics/source-data</code> exposes public-safe events, metric formulas, aggregate event and
+              assignment counts, aggregate conversion report rows, and experiment definitions.
             </p>
           </div>
           <div>

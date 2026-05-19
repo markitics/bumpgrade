@@ -707,9 +707,10 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher previews analytics and experiment reporting",
     featureId: "feature-analytics-testing",
     featureStatus: "pending",
-    issueNumbers: [18, 87, 105, 107],
+    issueNumbers: [18, 87, 105, 107, 119],
     primaryUser: "Publisher or agent optimizing a launch funnel",
-    userGoal: "Inspect seeded analytics definitions, capture privacy-safe test events, assign deterministic variants, and read aggregate counts before cookies, contact-level reporting, or automated decisions exist.",
+    userGoal:
+      "Inspect seeded analytics definitions, capture privacy-safe test events, assign deterministic variants, and read aggregate conversion report rows before cookies, contact-level reporting, or automated decisions exist.",
     sourceEvidence: [
       "https://bumpgrade.com/analytics/source-data",
       "https://bumpgrade.com/analytics/indie-launch-dashboard",
@@ -720,28 +721,65 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://github.com/markitics/bumpgrade/issues/87",
       "https://github.com/markitics/bumpgrade/issues/105",
       "https://github.com/markitics/bumpgrade/issues/107",
+      "https://github.com/markitics/bumpgrade/issues/119",
     ],
     happyPath: [
       "Fetch /analytics/source-data.",
-      "Find event IDs, metric IDs, aggregate event counts, experiment IDs, variant IDs, assignment rule, assignment API, and write boundary.",
+      "Find event IDs, metric IDs, aggregate event counts, aggregate conversion report rows, experiment IDs, variant IDs, assignment rule, assignment API, and write boundary.",
       "POST a seeded event to /api/analytics/events with an idempotency key and source route.",
       "POST a seeded experiment assignment to /api/analytics/assignments with an anonymous assignment key, idempotency key, and source route.",
       "Confirm duplicate idempotency returns the same public-safe event or assignment without duplicating rows.",
       "Open /analytics/indie-launch-dashboard to inspect the public preview and caveats.",
     ],
     edgeCases: [
-      "Public source-data exposes aggregate counts only, not raw event or assignment rows.",
+      "Public source-data exposes aggregate counts and conversion rows only, not raw event or assignment rows.",
       "Unsupported event IDs, experiment IDs, source routes, missing idempotency keys, and missing assignment keys return public-safe validation errors.",
       "Cookie assignment, contact-level analytics, experiment traffic changes, automated winners, and revenue claims require future confirmed-write APIs.",
       "Agents must include sample-size caveats and must not call sparse test events or assignments statistically meaningful.",
     ],
     agentAccess:
-      "Agents can read /analytics/source-data, event capture boundaries, and assignment boundaries. Direct agent analytics writes, custom events, campaign attribution mutation, experiment routing, and automated decisions require future authenticated confirmed-write APIs with privacy review, idempotency, bot filtering, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+      "Agents can read /analytics/source-data, event capture boundaries, assignment boundaries, and aggregate conversion report rows. Direct agent analytics writes, custom events, campaign attribution mutation, experiment routing, and automated decisions require future authenticated confirmed-write APIs with privacy review, idempotency, bot filtering, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
     validation: [
-      "Playwright covers /analytics/source-data, /analytics/indie-launch-dashboard, event ingestion, assignment ingestion, duplicate idempotency, deterministic assignment, validation failures, opt-in event recording, sitemap discovery, and agent manifest discovery.",
-      "Issues #87, #105, and #107 record the analytics source-data scaffold, first privacy-safe event capture path, and first deterministic assignment path.",
+      "Playwright covers /analytics/source-data, /analytics/indie-launch-dashboard, event ingestion, assignment ingestion, conversion reporting from captured events, duplicate idempotency, deterministic assignment, validation failures, opt-in event recording, sitemap discovery, and agent manifest discovery.",
+      "Issues #87, #105, #107, and #119 record the analytics source-data scaffold, first privacy-safe event capture path, first deterministic assignment path, and first aggregate conversion report.",
     ],
     sortOrder: 51,
+    updatedAt: null,
+  },
+  {
+    id: "journey-publisher-reads-funnel-conversion-report",
+    title: "Publisher reads a funnel conversion report",
+    featureId: "feature-analytics-testing",
+    featureStatus: "pending",
+    issueNumbers: [18, 87, 105, 107, 119],
+    primaryUser: "Publisher or agent validating funnel optimization evidence",
+    userGoal:
+      "Read visitor, conversion, and conversion-rate rows from captured test events without exposing raw analytics events or visitor identifiers.",
+    sourceEvidence: [
+      "https://bumpgrade.com/analytics/source-data",
+      "https://bumpgrade.com/analytics/indie-launch-dashboard",
+      "https://github.com/markitics/bumpgrade/issues/18",
+      "https://github.com/markitics/bumpgrade/issues/119",
+    ],
+    happyPath: [
+      "Capture seeded analytics events with idempotency.",
+      "Fetch /analytics/source-data.",
+      "Read funnelConversionReport rows for metric ID, step ID, visitor count, conversion count, conversion rate, report mode, and sample-size caveat.",
+      "Open /analytics/indie-launch-dashboard and confirm the report renders captured rows when samples exist.",
+    ],
+    edgeCases: [
+      "Duplicate idempotency does not inflate conversion counts.",
+      "Rows fall back to fixture counts only when no captured samples exist.",
+      "Raw analytics rows, IP hashes, user agent hashes, visitor keys, contact IDs, and Stripe IDs are not included.",
+      "Sparse samples are not statistically meaningful and must be labeled with caveats.",
+    ],
+    agentAccess:
+      "Agents can read aggregate funnel conversion rows and cite metric IDs, event IDs, and issue #119 evidence. Direct analytics writes, traffic routing, and automated experiment decisions require future confirmed-write APIs.",
+    validation: [
+      "Playwright seeds captured events, replays duplicate idempotency, verifies conversion counts and rates, and checks public source-data excludes raw/private rows.",
+      "Issue #119 records the first aggregate conversion report from captured analytics events.",
+    ],
+    sortOrder: 55,
     updatedAt: null,
   },
   {

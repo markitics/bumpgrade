@@ -1,10 +1,13 @@
 import {
+  analyticsConversionReportContract,
+  analyticsConversionReportUpdatedAt,
+} from "@/lib/analytics-conversion-report";
+import {
   analyticsEventCaptureApiRoute,
   analyticsEventCaptureWriteContract,
 } from "@/lib/analytics-events";
 import {
   analyticsExperimentAssignmentApiRoute,
-  analyticsExperimentAssignmentUpdatedAt,
   analyticsExperimentAssignmentWriteContract,
 } from "@/lib/experiment-assignments";
 
@@ -98,14 +101,14 @@ export type AnalyticsDashboard = {
   validation: string[];
 };
 
-export const analyticsExperimentsUpdatedAt = analyticsExperimentAssignmentUpdatedAt;
+export const analyticsExperimentsUpdatedAt = analyticsConversionReportUpdatedAt;
 
 export const analyticsDashboard: AnalyticsDashboard = {
   id: "analytics-dashboard-indie-launch",
   slug: "indie-launch-dashboard",
   title: "Indie launch analytics and experiment preview",
   status: "draft",
-  issue: 107,
+  issue: 119,
   parentIssue: 18,
   sourceDataRoute: "/analytics/source-data",
   previewRoute: "/analytics/indie-launch-dashboard",
@@ -113,9 +116,9 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAudienceRoute: "/audience/indie-launch-waitlist",
   linkedProductRoute: "/products/indie-launch-library",
-  revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-assignment",
+  revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-conversion-report",
   summary:
-    "A privacy-safe analytics and experiment scaffold for funnel conversion, checkout revenue, audience opt-ins, seeded live event capture, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
+    "A privacy-safe analytics and experiment scaffold for aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
   events: [
     {
       id: "event-funnel-page-view",
@@ -185,7 +188,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
       format: "rate",
       formula: "event-audience-opt-in-created / event-funnel-page-view for the opt-in step",
       sourceEventIds: ["event-funnel-page-view", "event-audience-opt-in-created"],
-      caveat: "Preview values are fixtures until live event capture and bot filtering ship.",
+      caveat: "Aggregate report values now come from captured test events when available; sparse samples still require caveats.",
     },
     {
       id: "metric-checkout-start-rate",
@@ -193,7 +196,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
       format: "rate",
       formula: "event-checkout-started / sales-page event-funnel-page-view",
       sourceEventIds: ["event-funnel-page-view", "event-checkout-started"],
-      caveat: "Checkout starts require confirmed audit records before reporting live values.",
+      caveat: "Checkout starts can be reported from captured test events; production claims still require bot filtering and attribution review.",
     },
     {
       id: "metric-gross-revenue",
@@ -273,12 +276,13 @@ export const analyticsDashboard: AnalyticsDashboard = {
     },
   ],
   writeBoundary:
-    "Issues #105 and #107 can capture seeded analytics events and assign seeded experiment variants with idempotency, source-route validation, hashed request evidence, and aggregate-only public reporting. Cookie creation, contact-level analytics, arbitrary custom events, experiment traffic routing, dashboard decisions, and revenue claims require actor identity, privacy review, idempotency, bot filtering, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+    "Issues #105, #107, and #119 can capture seeded analytics events, assign seeded experiment variants, and report aggregate funnel conversion rows with idempotency, source-route validation, hashed request evidence, and aggregate-only public reporting. Cookie creation, contact-level analytics, arbitrary custom events, experiment traffic routing, dashboard decisions, and revenue claims require actor identity, privacy review, idempotency, bot filtering, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
   validation: [
-    "/analytics/source-data returns seeded events, metrics, funnel-step fixtures, and experiment definitions.",
+    "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, and experiment definitions.",
     "/analytics/indie-launch-dashboard renders the analytics and experiment preview.",
     `${analyticsEventCaptureApiRoute} stores seeded analytics event capture evidence with idempotency.`,
     `${analyticsExperimentAssignmentApiRoute} stores seeded experiment assignment evidence with idempotency.`,
+    `${analyticsConversionReportContract.sourceDataRoute} reports captured test-event conversion rows without exposing raw events.`,
     "/agent-docs/source-data lists the analytics read contract for future MCP resources.",
   ],
 };
@@ -292,8 +296,8 @@ export function getAnalyticsDashboardBySlug(slug: string) {
 export const analyticsExperimentsSourceData = {
   id: "bumpgrade-analytics-experiments-source-data",
   updatedAt: analyticsExperimentsUpdatedAt,
-  status: "assignment-ready",
-  issue: 107,
+  status: "conversion-report-ready",
+  issue: 119,
   parentIssue: 18,
   generatedFrom: "src/lib/analytics-experiments.ts",
   routes: [
@@ -306,6 +310,7 @@ export const analyticsExperimentsSourceData = {
     "analyticsEventId",
     "analyticsEventIngestionId",
     "experimentAssignmentId",
+    "analyticsFunnelConversionReportId",
     "metricId",
     "funnelStepMetricId",
     "experimentId",
@@ -316,8 +321,9 @@ export const analyticsExperimentsSourceData = {
   ],
   eventWrites: analyticsEventCaptureWriteContract,
   assignmentWrites: analyticsExperimentAssignmentWriteContract,
+  conversionReport: analyticsConversionReportContract,
   writeBoundary: analyticsDashboard.writeBoundary,
   dashboards: analyticsDashboards,
   caveat:
-    "This contract proves analytics, reporting, experiment read/preview semantics, privacy-safe seeded event capture, and deterministic seeded assignment. Public source-data may expose aggregate event and assignment counts, but it does not expose raw event rows, raw assignment rows, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct confirmed-write agent APIs.",
+    "This contract proves analytics, reporting, experiment read/preview semantics, privacy-safe seeded event capture, deterministic seeded assignment, and aggregate funnel conversion reporting. Public source-data may expose aggregate event, assignment, and conversion-report counts, but it does not expose raw event rows, raw assignment rows, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct confirmed-write agent APIs.",
 };

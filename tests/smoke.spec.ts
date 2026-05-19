@@ -585,8 +585,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "assignment-ready",
-        issue: 107,
+        status: "conversion-report-ready",
+        issue: 119,
         parentIssue: 18,
       }),
     );
@@ -612,6 +612,30 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 107,
         apiRoute: "/api/analytics/assignments",
         tables: expect.arrayContaining(["analytics_experiment_assignments"]),
+      }),
+    );
+    expect(payload.conversionReport).toEqual(
+      expect.objectContaining({
+        status: "conversion-report-ready",
+        issue: 119,
+        sourceDataRoute: "/analytics/source-data",
+        tables: expect.arrayContaining(["analytics_events"]),
+      }),
+    );
+    expect(payload.funnelConversionReport).toEqual(
+      expect.objectContaining({
+        id: "analytics-funnel-conversion-report-indie-launch",
+        status: "available",
+        issue: 119,
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        rows: expect.arrayContaining([
+          expect.objectContaining({
+            metricId: "funnel-metric-waitlist-opt-in",
+            visitorEventId: "event-funnel-page-view",
+            conversionEventId: "event-audience-opt-in-created",
+          }),
+        ]),
       }),
     );
     expect(payload.eventSummary).toEqual(
@@ -649,12 +673,12 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issues #105 and #107 can capture seeded analytics events and assign seeded experiment variants");
+    expect(payload.writeBoundary).toContain("Issues #105, #107, and #119 can capture seeded analytics events");
     expect(payload.caveat).toContain("deterministic seeded assignment");
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Step-level conversion metrics combine fixtures and captured event counts/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step-level conversion metrics come from aggregate captured events/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Deterministic assignment can be audited before traffic writes exist/i })).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
@@ -746,6 +770,79 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("analytics source data reports funnel conversion from captured events without raw rows", async ({ request }) => {
+    const reportRow = async () => {
+      const response = await request.get("/analytics/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const report = payload.funnelConversionReport;
+      expect(report).toEqual(
+        expect.objectContaining({
+          rawRowsIncluded: false,
+          privateDataIncluded: false,
+        }),
+      );
+      expect(JSON.stringify(report)).not.toContain("client_correlation_hash");
+      expect(JSON.stringify(report)).not.toContain("user_agent_hash");
+      expect(JSON.stringify(report)).not.toContain("raw analytics event rows");
+      return report.rows.find(
+        (candidate: { metricId: string }) => candidate.metricId === "funnel-metric-waitlist-opt-in",
+      ) as {
+        visitorCount: number;
+        conversionCount: number;
+        conversionRate: number;
+        reportMode: "captured_events" | "fixture_fallback";
+      };
+    };
+
+    const before = await reportRow();
+    const beforeVisitors = before.reportMode === "captured_events" ? before.visitorCount : 0;
+    const beforeConversions = before.reportMode === "captured_events" ? before.conversionCount : 0;
+    const suffix = Date.now();
+    const viewPayload = {
+      eventDefinitionId: "event-funnel-page-view",
+      sourceRoute: "/funnels/indie-launch-sandbox",
+      idempotencyKey: `playwright-analytics-report-view-${suffix}`,
+      anonymousId: "playwright-report-visitor",
+      publicProperties: {
+        route: "/funnels/indie-launch-sandbox",
+        funnelId: "funnel-indie-launch-sandbox",
+        stepId: "funnel-step-indie-launch-opt-in",
+        variantId: "variant-opt-in-outcome-first",
+      },
+    };
+    const optInPayload = {
+      eventDefinitionId: "event-audience-opt-in-created",
+      sourceRoute: "/audience/indie-launch-waitlist",
+      idempotencyKey: `playwright-analytics-report-opt-in-${suffix}`,
+      anonymousId: "playwright-report-visitor",
+      publicProperties: {
+        formId: "opt-in-form-indie-launch-waitlist",
+        segmentId: "segment-warm-launch-list",
+        leadMagnetId: "lead-magnet-launch-readiness-checklist",
+        consentVersion: "issue-119-report-test",
+      },
+    };
+
+    const view = await request.post("/api/analytics/events", { data: viewPayload });
+    expect(view.ok(), await view.text()).toBeTruthy();
+    const duplicateView = await request.post("/api/analytics/events", { data: viewPayload });
+    expect(duplicateView.ok(), await duplicateView.text()).toBeTruthy();
+    await expect(duplicateView.json()).resolves.toEqual(expect.objectContaining({ ok: true, duplicate: true }));
+
+    const optIn = await request.post("/api/analytics/events", { data: optInPayload });
+    expect(optIn.ok(), await optIn.text()).toBeTruthy();
+    const duplicateOptIn = await request.post("/api/analytics/events", { data: optInPayload });
+    expect(duplicateOptIn.ok(), await duplicateOptIn.text()).toBeTruthy();
+    await expect(duplicateOptIn.json()).resolves.toEqual(expect.objectContaining({ ok: true, duplicate: true }));
+
+    const after = await reportRow();
+    expect(after.reportMode).toBe("captured_events");
+    expect(after.visitorCount).toBe(beforeVisitors + 1);
+    expect(after.conversionCount).toBe(beforeConversions + 1);
+    expect(after.conversionRate).toBeCloseTo((beforeConversions + 1) / (beforeVisitors + 1), 3);
   });
 
   test("analytics assignment API validates seeded experiments and keeps deterministic replay stable", async ({ request }) => {
@@ -1651,7 +1748,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107],
+          issueNumbers: [18, 87, 105, 107, 119],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-reads-funnel-conversion-report",
+          featureId: "feature-analytics-testing",
+          issueNumbers: [18, 87, 105, 107, 119],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",
@@ -1864,7 +1966,7 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "read-analytics-experiments",
-          stableIds: expect.arrayContaining(["experimentAssignmentId"]),
+          stableIds: expect.arrayContaining(["experimentAssignmentId", "analyticsFunnelConversionReportId"]),
         }),
         expect.objectContaining({
           id: "read-affiliate-referrals",

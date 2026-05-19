@@ -1,7 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
-import { analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
+import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
+import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
 
 export const dynamic = "force-dynamic";
 
@@ -96,5 +97,6 @@ export async function GET() {
     ...analyticsExperimentsSourceData,
     eventSummary: await loadEventSummary(db),
     assignmentSummary: await loadAssignmentSummary(db),
+    funnelConversionReport: await loadAnalyticsFunnelConversionReport(db, analyticsDashboard),
   });
 }
