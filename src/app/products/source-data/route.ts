@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { customerProductEntitlementLookupSummary } from "@/lib/customer-product-entitlements";
+import { getProductAssetUploadIntentSummary } from "@/lib/product-asset-uploads";
 import { productAccessSourceData } from "@/lib/product-access";
 import { productDownloadTokenSummary } from "@/lib/product-download-tokens";
 import { getProductEntitlementInspectionSummary } from "@/lib/product-entitlement-inspection";
@@ -10,11 +11,13 @@ export const revalidate = 0;
 
 export async function GET() {
   const entitlementInspection = await getProductEntitlementInspectionSummary();
+  const ownerAssetUploadIntents = await getProductAssetUploadIntentSummary();
 
   return NextResponse.json({
     ...productAccessSourceData,
     entitlementInspection,
     customerEntitlementLookup: customerProductEntitlementLookupSummary,
     sandboxDownloadTokens: productDownloadTokenSummary,
+    ownerAssetUploadIntents,
   });
 }
