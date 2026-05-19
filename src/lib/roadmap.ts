@@ -287,7 +287,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
@@ -297,6 +297,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #169 adds owner-gated private audience CRM timeline notes with aggregate public redaction.",
       "Issue #171 adds suppression-aware broadcast draft readiness without send queues or provider message IDs.",
       "Issue #173 adds owner-confirmed dry-run broadcast schedule intents without recipient payloads, send queues, or provider message IDs.",
+      "Issue #175 adds broadcast preview and unsubscribe-footer safety records without personalized bodies, send queues, or provider message IDs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:

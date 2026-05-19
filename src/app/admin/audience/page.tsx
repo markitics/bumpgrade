@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CalendarClock,
   Database,
+  FileText,
   MailCheck,
   MailX,
   NotebookPen,
@@ -19,6 +20,7 @@ import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
+  getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
 } from "@/lib/audience-broadcasts";
@@ -46,10 +48,11 @@ export default async function AdminAudiencePage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/audience" />;
 
-  const [state, broadcastReadiness, broadcastScheduleIntents] = await Promise.all([
+  const [state, broadcastReadiness, broadcastScheduleIntents, broadcastPreviewSafety] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
     getAudienceBroadcastScheduleIntentSummary(),
+    getAudienceBroadcastPreviewSafetySummary(),
   ]);
 
   return (
@@ -135,6 +138,15 @@ export default async function AdminAudiencePage() {
               {broadcastScheduleIntents.counts.readyRecipientsReserved} ready recipients snapshotted.
             </p>
           </div>
+          <div>
+            <FileText aria-hidden="true" />
+            <h3>Preview safety</h3>
+            <p>
+              {broadcastPreviewSafety.counts.previewSafetyRecords} preview record
+              {broadcastPreviewSafety.counts.previewSafetyRecords === 1 ? "" : "s"};{" "}
+              {broadcastPreviewSafety.counts.unsubscribeFooterRequiredRecords} require unsubscribe footer checks.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -206,6 +218,59 @@ export default async function AdminAudiencePage() {
               </div>
               <h3>No broadcast readiness rows</h3>
               <p>{broadcastReadiness.loadError ?? "Run the audience broadcast readiness migration to seed the draft."}</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Broadcast preview safety</p>
+            <h2>Preview copy stays separate from delivery</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/175" className="text-link compact-link">
+            Issue #175
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastPreviewSafety.records.length > 0 ? (
+            broadcastPreviewSafety.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status}</span>
+                  <span className="admin-pill">{record.senderDomainStatus.replaceAll("_", " ")}</span>
+                </div>
+                <h3>{record.subjectLine}</h3>
+                <p>{record.previewText}</p>
+                <div className="roadmap-detail">
+                  <strong>Unsubscribe footer</strong>
+                  <span>{record.unsubscribeFooterPolicy}</span>
+                </div>
+                <div className="admin-step-list" aria-label={`${record.subjectLine} preview safety`}>
+                  {record.bodyOutline.map((item) => (
+                    <div key={item} className="admin-step-editor">
+                      <div className="admin-step-editor-heading">
+                        <div>
+                          <span>Preview section</span>
+                          <strong>{item}</strong>
+                          <p>No personalized body, recipient payload, queue row, or provider ID is created here.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No preview</span>
+                <span className="admin-pill">Issue #175</span>
+              </div>
+              <h3>No preview safety records</h3>
+              <p>{broadcastPreviewSafety.loadError ?? "Run the preview safety migration to seed the broadcast preview."}</p>
             </article>
           )}
         </div>
