@@ -252,6 +252,46 @@ export const affiliateCommissionLedgerEntries = sqliteTable(
   }),
 );
 
+export const affiliateCommissionLedgerActions = sqliteTable(
+  "affiliate_commission_ledger_actions",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    commissionLedgerId: text("commission_ledger_id")
+      .notNull()
+      .references(() => affiliateCommissionLedgerEntries.id, { onDelete: "cascade" }),
+    checkoutIntentId: text("checkout_intent_id")
+      .notNull()
+      .references(() => checkoutIntents.id, { onDelete: "cascade" }),
+    actionKind: text("action_kind").notNull(),
+    previousLedgerStatus: text("previous_ledger_status").notNull(),
+    previousReviewStatus: text("previous_review_status").notNull(),
+    previousPayoutStatus: text("previous_payout_status").notNull(),
+    nextLedgerStatus: text("next_ledger_status").notNull(),
+    nextReviewStatus: text("next_review_status").notNull(),
+    nextPayoutStatus: text("next_payout_status").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmail: text("actor_email"),
+    actorRole: text("actor_role").notNull(),
+    reasonPublic: text("reason_public"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("affiliate_commission_ledger_actions_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    ledgerCreatedIdx: index("affiliate_commission_ledger_actions_ledger_created_idx").on(
+      table.commissionLedgerId,
+      table.createdAt,
+    ),
+    actionCreatedIdx: index("affiliate_commission_ledger_actions_action_created_idx").on(
+      table.actionKind,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const billingSubscriptions = sqliteTable(
   "billing_subscriptions",
   {
