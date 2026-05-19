@@ -131,8 +131,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <p>Status</p>
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
-            Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, and broadcast readiness are live
-            for the seeded waitlist; email sending stays disabled until confirmed-write APIs exist.
+            Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, broadcast readiness, and dry-run
+            schedule intents are live for the seeded waitlist; email sending stays disabled until confirmed-write APIs exist.
           </span>
         </aside>
       </section>
@@ -270,7 +270,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             <h3>Source data first</h3>
             <p>
               <code>/audience/source-data</code> exposes public-safe segment, opt-in form, tag, sequence, broadcast,
-              automation, subscriber capture, suppression, CRM timeline, and broadcast readiness records.
+              automation, subscriber capture, suppression, CRM timeline, broadcast readiness, and schedule intent records.
             </p>
           </div>
           <div>

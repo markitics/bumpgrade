@@ -1,11 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, MailCheck, MailX, NotebookPen, Send, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  Database,
+  MailCheck,
+  MailX,
+  NotebookPen,
+  Send,
+  ShieldCheck,
+  Tags,
+  UsersRound,
+  Workflow,
+} from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
+import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { getAudienceBroadcastReadinessSummary } from "@/lib/audience-broadcasts";
+import {
+  getAudienceBroadcastReadinessSummary,
+  getAudienceBroadcastScheduleIntentSummary,
+} from "@/lib/audience-broadcasts";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -30,9 +46,10 @@ export default async function AdminAudiencePage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/audience" />;
 
-  const [state, broadcastReadiness] = await Promise.all([
+  const [state, broadcastReadiness, broadcastScheduleIntents] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
+    getAudienceBroadcastScheduleIntentSummary(),
   ]);
 
   return (
@@ -43,8 +60,8 @@ export default async function AdminAudiencePage() {
           <h1>Subscriber inspection without public contact leaks.</h1>
           <p className="lede">
             Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
-            unsubscribe suppression totals, private CRM timeline notes, and broadcast readiness created by audience APIs.
-            Public source-data stays aggregate-only.
+            unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, and dry-run schedule intents
+            created by audience APIs. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -109,6 +126,15 @@ export default async function AdminAudiencePage() {
               held before any send queue exists.
             </p>
           </div>
+          <div>
+            <CalendarClock aria-hidden="true" />
+            <h3>Schedule intents</h3>
+            <p>
+              {broadcastScheduleIntents.counts.scheduleIntents} dry-run intent
+              {broadcastScheduleIntents.counts.scheduleIntents === 1 ? "" : "s"} recorded;{" "}
+              {broadcastScheduleIntents.counts.readyRecipientsReserved} ready recipients snapshotted.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -159,11 +185,16 @@ export default async function AdminAudiencePage() {
                     <div className="admin-step-editor-heading">
                       <div>
                         <span>Approval</span>
-                        <strong>Owner confirmation required later</strong>
+                        <strong>Owner dry-run confirmation now available</strong>
                         <p>{draft.approvalBoundary}</p>
                       </div>
                     </div>
                   </div>
+                  <AdminBroadcastScheduleIntentForm
+                    draftId={draft.id}
+                    expectedDraftUpdatedAt={draft.updatedAt}
+                    expectedReadyRecipientCount={draft.readyRecipientCount}
+                  />
                 </div>
               </article>
             ))
@@ -175,6 +206,59 @@ export default async function AdminAudiencePage() {
               </div>
               <h3>No broadcast readiness rows</h3>
               <p>{broadcastReadiness.loadError ?? "Run the audience broadcast readiness migration to seed the draft."}</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Dry-run schedule intents</p>
+            <h2>Owner intent is recorded before any delivery queue exists</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/173" className="text-link compact-link">
+            Issue #173
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastScheduleIntents.latestIntents.length > 0 ? (
+            broadcastScheduleIntents.latestIntents.map((intent) => (
+              <article key={intent.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{intent.status}</span>
+                  <span className="admin-pill">{intent.readyRecipientCount} ready</span>
+                </div>
+                <h3>{intent.scheduleKind.replaceAll("_", " ")}</h3>
+                <p>
+                  Held recipients: {intent.heldRecipientCount}. Active suppression entries snapshotted:{" "}
+                  {intent.activeSuppressionCount}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Draft</strong>
+                  <span>{intent.draftId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Requested send</strong>
+                  <span>{intent.requestedSendAt ?? "Not specified"}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Recorded</strong>
+                  <span>{compactDate(intent.createdAt)}</span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No dry runs</span>
+                <span className="admin-pill">Issue #173</span>
+              </div>
+              <h3>No schedule intents yet</h3>
+              <p>
+                Record a dry-run intent from the broadcast readiness card after checking the current readiness count.
+              </p>
             </article>
           )}
         </div>
