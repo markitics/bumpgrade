@@ -131,12 +131,14 @@ inspection, protected content, revocation, live fulfillment, or direct agent
 write capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
-read contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
-email sequences, broadcast drafts, and automation rules.
-`/audience/indie-launch-waitlist` is the read-only preview. This proves
-audience and automation semantics, not subscriber storage, contact import, live
-email sending, unsubscribe management, CRM timeline state, or agent write
-capability.
+contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
+email sequences, broadcast drafts, automation rules, and the
+`/api/audience/opt-in` write boundary. `/audience/indie-launch-waitlist` can
+capture explicit-consent waitlist opt-ins, normalize the submitted email, assign
+seeded tags, and record draft sequence enrollment evidence. This proves seeded
+subscriber capture semantics, not contact import, live email sending,
+unsubscribe management, CRM timeline state, suppression-list mutation, or direct
+agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe read
 contract for seeded event definitions, metric formulas, fixture funnel-step

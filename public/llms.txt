@@ -24,6 +24,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded product access preview: https://bumpgrade.com/products/indie-launch-library
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
+- Seeded audience opt-in API: https://bumpgrade.com/api/audience/opt-in
 - Analytics and experiments source data: https://bumpgrade.com/analytics/source-data
 - Seeded analytics dashboard preview: https://bumpgrade.com/analytics/indie-launch-dashboard
 - Affiliate/referral source data: https://bumpgrade.com/affiliates/source-data
@@ -112,11 +113,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   it as grant-boundary evidence, not private asset access, signed download
   links, authenticated customer entitlement inspection, revocation, live
   fulfillment, or a confirmed-write agent API.
-- `/audience/source-data` exposes the first read-only audience automation
-  workspace with opt-in form, lead magnet, tags, segments, sequence, broadcast
-  draft, and automation records. Treat it as preview/source-data evidence, not
-  subscriber storage, live email sending, contact import, unsubscribe management,
-  CRM timeline state, or a confirmed-write agent API.
+- `/audience/source-data` exposes the first audience automation workspace with
+  opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
+  automation records, and the `/api/audience/opt-in` write boundary.
+  `/audience/indie-launch-waitlist` can capture explicit-consent waitlist
+  opt-ins and record normalized subscriber, consent, seeded tag, and draft
+  sequence enrollment evidence. Treat it as seeded opt-in capture evidence, not
+  live email sending, contact import, unsubscribe management, CRM timeline
+  state, suppression-list mutation, or a direct agent subscriber-write API.
 - `/analytics/source-data` exposes the first read-only analytics and
   experimentation workspace with event definitions, metric formulas, fixture
   funnel-step reports, variants, and assignment rules. Treat it as

@@ -291,6 +291,99 @@ export const productFulfillmentTasks = sqliteTable(
   }),
 );
 
+export const audienceSubscribers = sqliteTable(
+  "audience_subscribers",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    emailHash: text("email_hash").notNull(),
+    firstName: text("first_name"),
+    status: text("status").notNull().default("subscribed"),
+    sourceFormId: text("source_form_id").notNull(),
+    sourceSegmentId: text("source_segment_id"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    emailUnique: uniqueIndex("audience_subscribers_email_unique").on(table.email),
+    statusCreatedIdx: index("audience_subscribers_status_created_idx").on(table.status, table.createdAt),
+    emailHashIdx: index("audience_subscribers_email_hash_idx").on(table.emailHash),
+  }),
+);
+
+export const audienceConsentEvents = sqliteTable(
+  "audience_consent_events",
+  {
+    id: text("id").primaryKey(),
+    subscriberId: text("subscriber_id")
+      .notNull()
+      .references(() => audienceSubscribers.id, { onDelete: "cascade" }),
+    formId: text("form_id").notNull(),
+    consentStatement: text("consent_statement").notNull(),
+    consentKind: text("consent_kind").notNull().default("launch_follow_up"),
+    status: text("status").notNull().default("consented"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    ipHash: text("ip_hash"),
+    userAgentHash: text("user_agent_hash"),
+    metadataJson: text("metadata_json"),
+    consentedAt: integer("consented_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_consent_events_idempotency_unique").on(table.idempotencyKey),
+    subscriberIdx: index("audience_consent_events_subscriber_idx").on(table.subscriberId, table.consentedAt),
+  }),
+);
+
+export const audienceTagAssignments = sqliteTable(
+  "audience_tag_assignments",
+  {
+    id: text("id").primaryKey(),
+    subscriberId: text("subscriber_id")
+      .notNull()
+      .references(() => audienceSubscribers.id, { onDelete: "cascade" }),
+    tagId: text("tag_id").notNull(),
+    sourceFormId: text("source_form_id").notNull(),
+    status: text("status").notNull().default("active"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    subscriberTagUnique: uniqueIndex("audience_tag_assignments_subscriber_tag_unique").on(
+      table.subscriberId,
+      table.tagId,
+    ),
+    idempotencyUnique: uniqueIndex("audience_tag_assignments_idempotency_unique").on(table.idempotencyKey),
+  }),
+);
+
+export const audienceSequenceEnrollments = sqliteTable(
+  "audience_sequence_enrollments",
+  {
+    id: text("id").primaryKey(),
+    subscriberId: text("subscriber_id")
+      .notNull()
+      .references(() => audienceSubscribers.id, { onDelete: "cascade" }),
+    sequenceId: text("sequence_id").notNull(),
+    sourceFormId: text("source_form_id").notNull(),
+    status: text("status").notNull().default("draft_enrolled"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    nextStepId: text("next_step_id"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    subscriberSequenceUnique: uniqueIndex("audience_sequence_enrollments_subscriber_sequence_unique").on(
+      table.subscriberId,
+      table.sequenceId,
+    ),
+    idempotencyUnique: uniqueIndex("audience_sequence_enrollments_idempotency_unique").on(table.idempotencyKey),
+  }),
+);
+
 export const funnelDrafts = sqliteTable(
   "funnel_drafts",
   {

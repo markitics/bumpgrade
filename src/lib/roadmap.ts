@@ -261,14 +261,15 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, read-only opt-in and automation contract, lead magnets, tags, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
+      "Issue #103 adds `POST /api/audience/opt-in` with normalized subscriber, consent, tag, and draft sequence enrollment rows.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Build confirmed subscriber/consent writes and unsubscribe-safe email delivery without exposing private contact data.",
+      "Add unsubscribe-safe email delivery and subscriber inspection without exposing private contact data.",
   },
   {
     id: "roadmap-analytics-testing",
