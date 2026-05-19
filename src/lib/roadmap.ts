@@ -297,13 +297,14 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Read-only affiliate/referral contract, partner profiles, referral links, commission rules, attribution, payout review, and fraud checks.",
+      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, commission rules, attribution boundaries, payout review, and fraud checks.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
+      "Issue #109 adds `POST /api/affiliates/clicks` with seeded referral link validation, idempotency, hashed request evidence, and aggregate-only click reporting.",
     ],
     nextMilestone:
-      "Build live referral click capture and commission writes after privacy-safe analytics and trusted checkout evidence are connected.",
+      "Connect privacy-safe click evidence to sandbox checkout intent attribution without creating payable commissions or exposing buyer identifiers.",
   },
   {
     id: "roadmap-marketing-surfaces",

@@ -466,6 +466,36 @@ export const analyticsExperimentAssignments = sqliteTable(
   }),
 );
 
+export const affiliateReferralClicks = sqliteTable(
+  "affiliate_referral_clicks",
+  {
+    id: text("id").primaryKey(),
+    referralLinkId: text("referral_link_id").notNull(),
+    referralCode: text("referral_code").notNull(),
+    partnerId: text("partner_id").notNull(),
+    destinationRoute: text("destination_route").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    utmSource: text("utm_source"),
+    visitorKeyHash: text("visitor_key_hash"),
+    ipHash: text("ip_hash"),
+    userAgentHash: text("user_agent_hash"),
+    referrerHash: text("referrer_hash"),
+    requestHash: text("request_hash").notNull(),
+    metadataJson: text("metadata_json"),
+    clickedAt: integer("clicked_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("affiliate_referral_clicks_idempotency_unique").on(table.idempotencyKey),
+    linkTimeIdx: index("affiliate_referral_clicks_link_time_idx").on(table.referralLinkId, table.clickedAt),
+    partnerTimeIdx: index("affiliate_referral_clicks_partner_time_idx").on(table.partnerId, table.clickedAt),
+    destinationTimeIdx: index("affiliate_referral_clicks_destination_time_idx").on(
+      table.destinationRoute,
+      table.clickedAt,
+    ),
+  }),
+);
+
 export const funnelDrafts = sqliteTable(
   "funnel_drafts",
   {

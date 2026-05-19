@@ -320,6 +320,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "affiliateProgramId",
       "affiliatePartnerId",
       "referralLinkId",
+      "referralClickId",
       "attributionRuleId",
       "commissionRuleId",
       "commissionLedgerId",
@@ -328,9 +329,14 @@ export const agentReadContracts: AgentReadContract[] = [
       "auditEventId",
       "agentActionId",
     ],
-    safeForAgents: ["Read seeded affiliate program", "Inspect referral links and attribution rules", "Inspect commission and payout review boundaries"],
+    safeForAgents: [
+      "Read seeded affiliate program",
+      "Inspect referral links and attribution rules",
+      "Inspect aggregate referral click counts",
+      "Inspect commission and payout review boundaries",
+    ],
     writeBoundary:
-      "Referral click capture, cookie assignment, buyer attribution, commission writes, fraud enforcement, payout actions, and partner notifications require future confirmed-write APIs.",
+      "Seeded referral clicks can be captured with idempotency and destination-route validation; cookie assignment, buyer attribution, commission writes, fraud enforcement, payout actions, and partner notifications require future confirmed-write APIs.",
   },
   {
     id: "read-mobile-admin-contract",
@@ -474,10 +480,18 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-affiliate-referrals",
     route: "/affiliates/source-data",
     resolves:
-      "Seeded affiliate program, partner records, referral links, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
-    stableIds: ["affiliateProgramId", "affiliatePartnerId", "referralLinkId", "commissionRuleId", "commissionLedgerId", "payoutBatchId"],
+      "Seeded affiliate program, partner records, referral links, referral click capture API, aggregate click counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+    stableIds: [
+      "affiliateProgramId",
+      "affiliatePartnerId",
+      "referralLinkId",
+      "referralClickId",
+      "commissionRuleId",
+      "commissionLedgerId",
+      "payoutBatchId",
+    ],
     volatileClaims:
-      "The affiliate/referral contract is read-only preview evidence; it is not live click tracking, buyer attribution, payable commission state, fraud enforcement, tax collection, or Stripe payout capability.",
+      "The affiliate/referral contract includes seeded click capture and aggregate counts; it is not cookie assignment, buyer attribution, payable commission state, fraud enforcement, tax collection, or Stripe payout capability.",
   },
   {
     id: "evidence-mobile-admin",
@@ -613,9 +627,10 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://affiliate-referrals",
     status: "ready-contract",
     backedBy: "/affiliates/source-data",
-    purpose: "Expose seeded affiliate programs, partner records, referral links, attribution rules, commission fixtures, payout review, and fraud flags.",
+    purpose:
+      "Expose seeded affiliate programs, partner records, referral links, aggregate click counts, attribution rules, commission fixtures, payout review, and fraud flags.",
     safetyBoundary:
-      "Read-only; referral tracking, buyer attribution, commission writes, fraud decisions, tax handling, payout account access, and Stripe payouts require confirmed-write contracts.",
+      "Seeded referral click capture is live; buyer attribution, commission writes, fraud decisions, tax handling, payout account access, and Stripe payouts require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",
