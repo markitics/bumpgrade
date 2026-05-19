@@ -8,6 +8,7 @@ import {
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
+import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
@@ -1135,8 +1136,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: "unsubscribe-suppression-ready",
-        issue: 167,
+        status: "owner-crm-timeline-ready",
+        issue: 169,
         parentIssue: 17,
       }),
     );
@@ -1145,6 +1146,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/audience/source-data",
         "/api/audience/opt-in",
         "/api/audience/unsubscribe",
+        "/api/admin/audience/notes",
         "/audience/indie-launch-waitlist",
         "/admin/audience",
       ]),
@@ -1162,6 +1164,8 @@ test.describe("Bumpgrade scaffold", () => {
           sequenceEnrollments: expect.any(Number),
           suppressionEntries: expect.any(Number),
           activeSuppressionEntries: expect.any(Number),
+          timelineEntries: expect.any(Number),
+          activeTimelineEntries: expect.any(Number),
         }),
         redaction: expect.objectContaining({
           privateContactDataIncluded: false,
@@ -1171,6 +1175,8 @@ test.describe("Bumpgrade scaffold", () => {
           rawUserAgentIncluded: false,
           rawSuppressionHashIncluded: false,
           suppressionReasonIncluded: false,
+          privateTimelineNoteBodiesIncluded: false,
+          timelineActorEmailIncluded: false,
         }),
       }),
     );
@@ -1202,6 +1208,19 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.crmTimelineWrites).toEqual(
+      expect.objectContaining({
+        status: "owner-crm-timeline-ready",
+        issue: 169,
+        apiRoute: "/api/admin/audience/notes",
+        auth: "owner-session",
+        tables: expect.arrayContaining(["audience_subscribers", "audience_timeline_entries"]),
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceCrmTimelineConfirmationText,
+        }),
+      }),
+    );
     expect(payload.workspaces).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1224,6 +1243,10 @@ test.describe("Bumpgrade scaffold", () => {
           unsubscribeManagement: expect.objectContaining({
             apiRoute: "/api/audience/unsubscribe",
             issue: 167,
+          }),
+          crmTimeline: expect.objectContaining({
+            apiRoute: "/api/admin/audience/notes",
+            issue: 169,
           }),
           automations: expect.arrayContaining([
             expect.objectContaining({ id: "automation-enroll-waitlist-nurture" }),
@@ -1420,6 +1443,20 @@ test.describe("Bumpgrade scaffold", () => {
     expect(invalidEmailResponse.status()).toBe(400);
     await expect(invalidEmailResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "invalid_email" }),
+    );
+
+    const unauthorizedNoteResponse = await request.post("/api/admin/audience/notes", {
+      data: {
+        subscriberId: "subscriber-not-public",
+        expectedSubscriberStatus: "subscribed",
+        noteBody: "Should not be public",
+        confirmationText: audienceCrmTimelineConfirmationText,
+        idempotencyKey: `${idempotencyKey}-unauthorized-note`,
+      },
+    });
+    expect(unauthorizedNoteResponse.status()).toBe(401);
+    await expect(unauthorizedNoteResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
   });
 
@@ -2816,7 +2853,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103, 137, 167],
+          issueNumbers: [17, 85, 103, 137, 167, 169],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
@@ -3051,6 +3088,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "create-audience-unsubscribe-suppression",
           route: "/api/audience/unsubscribe",
           auth: "public",
+        }),
+        expect.objectContaining({
+          id: "create-owner-audience-crm-note",
+          route: "/api/admin/audience/notes",
+          auth: "owner-session",
         }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
@@ -3755,6 +3797,7 @@ test.describe("Bumpgrade scaffold", () => {
       },
     });
     expect(audienceOptInResponse.ok(), await audienceOptInResponse.text()).toBeTruthy();
+    const audienceOptInPayload = await audienceOptInResponse.json();
     const audienceUnsubscribeResponse = await page.request.post("/api/audience/unsubscribe", {
       data: {
         email: ` ${audienceEmail.toUpperCase()} `,
@@ -3763,16 +3806,65 @@ test.describe("Bumpgrade scaffold", () => {
       },
     });
     expect(audienceUnsubscribeResponse.ok(), await audienceUnsubscribeResponse.text()).toBeTruthy();
+    const ownerNoteBody = `Owner CRM note ${Date.now()}`;
+    const ownerNoteIdempotencyKey = `playwright-owner-audience-note-${Date.now()}`;
+    const audienceNoteResponse = await page.request.post("/api/admin/audience/notes", {
+      data: {
+        subscriberId: audienceOptInPayload.subscriberId,
+        expectedSubscriberStatus: "unsubscribed",
+        noteBody: ownerNoteBody,
+        confirmationText: audienceCrmTimelineConfirmationText,
+        idempotencyKey: ownerNoteIdempotencyKey,
+      },
+    });
+    expect(audienceNoteResponse.ok(), await audienceNoteResponse.text()).toBeTruthy();
+    const audienceNotePayload = await audienceNoteResponse.json();
+    expect(audienceNotePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "crm_timeline_note_recorded",
+        duplicate: false,
+        note: expect.objectContaining({
+          subscriberId: audienceOptInPayload.subscriberId,
+          body: ownerNoteBody,
+          privateNoteBodyIncluded: true,
+        }),
+      }),
+    );
+    const replayNoteResponse = await page.request.post("/api/admin/audience/notes", {
+      data: {
+        subscriberId: audienceOptInPayload.subscriberId,
+        expectedSubscriberStatus: "unsubscribed",
+        noteBody: ownerNoteBody,
+        confirmationText: audienceCrmTimelineConfirmationText,
+        idempotencyKey: ownerNoteIdempotencyKey,
+      },
+    });
+    expect(replayNoteResponse.ok(), await replayNoteResponse.text()).toBeTruthy();
+    await expect(replayNoteResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        note: expect.objectContaining({ id: audienceNotePayload.note.id }),
+      }),
+    );
+    const audienceSourceAfterNote = await page.request.get("/audience/source-data");
+    expect(audienceSourceAfterNote.ok(), await audienceSourceAfterNote.text()).toBeTruthy();
+    const audienceSourceAfterNotePayload = await audienceSourceAfterNote.json();
+    expect(audienceSourceAfterNotePayload.subscriberInspection.counts.timelineEntries).toBeGreaterThanOrEqual(1);
+    expect(JSON.stringify(audienceSourceAfterNotePayload.subscriberInspection)).not.toContain(ownerNoteBody);
 
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
     const audienceCard = page.getByRole("article").filter({ hasText: audienceEmail.toLowerCase() });
     await expect(audienceCard.getByRole("heading", { name: audienceEmail.toLowerCase() })).toBeVisible();
     await expect(audienceCard.getByText("unsubscribed")).toBeVisible();
     await expect(audienceCard.getByText("First name: Owner Contact")).toBeVisible();
     await expect(audienceCard.getByText("lead-magnet:launch-checklist")).toBeVisible();
     await expect(audienceCard.getByText("Indie launch nurture sequence")).toBeVisible();
+    await expect(audienceCard.getByText(ownerNoteBody)).toBeVisible();
 
     const seedResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },

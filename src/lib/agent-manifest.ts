@@ -403,18 +403,20 @@ export const agentReadContracts: AgentReadContract[] = [
       "broadcastDraftId",
       "consentRecordId",
       "suppressionEntryId",
+      "timelineEntryId",
       "agentActionId",
     ],
     safeForAgents: [
       "Read seeded opt-in form",
       "Inspect tags and segments",
       "Inspect consent-backed capture boundary",
-      "Inspect aggregate owner-subscriber and suppression counts with redaction flags",
+      "Inspect aggregate owner-subscriber, suppression, and timeline counts with redaction flags",
       "Inspect the public-safe unsubscribe/suppression write boundary",
+      "Inspect the owner-only CRM timeline note boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows in /admin/audience; imports, broadcasts, CRM notes, private exports, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows and create private CRM notes in /admin/audience; imports, broadcasts, private exports, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
   },
   {
     id: "create-audience-unsubscribe-suppression",
@@ -434,20 +436,37 @@ export const agentReadContracts: AgentReadContract[] = [
       "This public API records hashed unsubscribe/suppression evidence and marks known subscribers unsubscribed without revealing list membership. It does not send email, export subscribers, expose suppression hashes or reasons publicly, or authorize direct agent subscriber management.",
   },
   {
+    id: "create-owner-audience-crm-note",
+    title: "Owner audience CRM timeline note",
+    route: "/api/admin/audience/notes",
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 table audience_timeline_entries",
+    stableIds: ["timelineEntryId", "subscriberId", "ownerUserId", "idempotencyKey"],
+    safeForAgents: [
+      "Inspect the owner-only CRM note confirmation contract",
+      "Create a short private timeline note only with an owner session",
+      "Confirm public source-data exposes note counts and redaction flags, not note bodies",
+      "Use exact confirmation, idempotency, and expected subscriber status before writing",
+    ],
+    writeBoundary:
+      "This owner-session API stores private audience timeline notes after exact confirmation, idempotency, and expected subscriber-status checks. It does not expose note bodies publicly, import contacts, send email, schedule broadcasts, export private data, or authorize unauthenticated/direct public agent writes.",
+  },
+  {
     id: "read-admin-audience-subscribers",
     title: "Admin audience subscribers",
     route: "/admin/audience",
     kind: "doc",
     auth: "owner-session",
-    sourceOfTruth: "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, audience_sequence_enrollments, and audience_suppression_entries",
-    stableIds: ["subscriberId", "subscriberSegmentId", "subscriberTagId", "emailSequenceId", "consentRecordId", "suppressionEntryId", "ownerUserId"],
+    sourceOfTruth: "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, audience_sequence_enrollments, audience_suppression_entries, and audience_timeline_entries",
+    stableIds: ["subscriberId", "subscriberSegmentId", "subscriberTagId", "emailSequenceId", "consentRecordId", "suppressionEntryId", "timelineEntryId", "ownerUserId"],
     safeForAgents: [
       "Read private subscriber rows only with an owner session",
-      "Inspect consent counts, active tags, source form, draft sequence enrollment state, and suppression totals",
-      "Confirm public source-data redacts email, name, suppression hashes, reasons, raw IP, raw user agent, and private metadata",
+      "Inspect consent counts, active tags, source form, draft sequence enrollment state, suppression totals, and private timeline notes",
+      "Confirm public source-data redacts email, name, suppression hashes, reasons, private note bodies, actor emails, raw IP, raw user agent, and private metadata",
     ],
     writeBoundary:
-      "This owner page is inspection-only; imports, sends, broadcasts, CRM notes, private exports, and direct agent subscriber writes require future confirmed-write APIs.",
+      "This owner page can create private CRM notes through the owner note API; imports, sends, broadcasts, private exports, CRM automation, and direct agent subscriber writes require future confirmed-write APIs.",
   },
   {
     id: "read-analytics-experiments",
@@ -896,9 +915,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, redaction flags, consent boundaries, and unsubscribe boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, redaction flags, consent boundaries, unsubscribe boundaries, and owner-note boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, and owner-gated subscriber inspection are live; imports, sends, broadcasts, private exports, CRM notes, and direct agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, and owner-only CRM notes are live; imports, sends, broadcasts, private exports, CRM automation, and direct agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",
