@@ -23,6 +23,7 @@ import {
   checkoutLinkingCapability,
   editableDraftCapability,
   funnelSourceData,
+  publicFunnelCheckoutStartCapability,
   seededFunnel,
   templateDraftCreationCapability,
 } from "../src/lib/funnels";
@@ -358,12 +359,12 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "owner-checkout-linking-ready",
-        issue: 163,
+        status: "public-funnel-checkout-start-ready",
+        issue: 165,
         parentIssue: 14,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/funnels/indie-launch-sandbox"]));
+    expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/api/commerce/checkout", "/funnels/indie-launch-sandbox"]));
     expect(payload.adminRoutes).toEqual(expect.arrayContaining(["/admin/funnels", "/admin/funnels/:draftId/preview"]));
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
@@ -408,9 +409,32 @@ test.describe("Bumpgrade scaffold", () => {
         liveBillingEnabled: false,
       }),
     );
+    expect(payload.publicFunnelCheckoutStartCapability).toEqual(
+      expect.objectContaining({
+        id: publicFunnelCheckoutStartCapability.id,
+        status: "sandbox-checkout-start-ready",
+        issue: 165,
+        publicRoutePattern: "/funnels/:slug",
+        checkoutEndpoint: "/api/commerce/checkout",
+        requiresPublishedFunnel: true,
+        requiresCheckoutLink: true,
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        supportsOrderBumps: true,
+        liveBillingEnabled: false,
+        rawStripeIdsIncluded: false,
+      }),
+    );
     expect(payload.templateLibraryIssue).toBe(159);
     expect(payload.stableIds).toEqual(
-      expect.arrayContaining(["funnelTemplateId", "funnelBlockTemplateId", "funnelCheckoutLinkId", "checkoutOfferStackId", "offerId"]),
+      expect.arrayContaining([
+        "funnelTemplateId",
+        "funnelBlockTemplateId",
+        "funnelCheckoutLinkId",
+        "checkoutIntentId",
+        "checkoutOfferStackId",
+        "offerId",
+      ]),
     );
     expect(payload.templates).toEqual(
       expect.arrayContaining([
@@ -458,6 +482,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
     expect(payload.caveat).toContain("exact-confirmed public publishing");
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
+    expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -3859,6 +3884,12 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Published funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Start the sandbox checkout from this published funnel." })).toBeVisible();
+    await page.getByLabel(/Launch checklist bump/i).check();
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
+    await page.getByRole("button", { name: /Start sandbox checkout/i }).click();
+    await expect(page.getByText(/Preview response/i)).toBeVisible();
+    await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
     await expect(page.locator("body")).not.toContainText("m@rkmoriarty.com");
 
     const publishedSourceResponse = await page.request.get("/funnels/source-data");

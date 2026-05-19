@@ -8,7 +8,8 @@ issue #135 adds exact-confirmed public publishing from D1 draft funnels. Issue
 #159 adds the read-only reusable funnel template and block-template library.
 Issue #161 adds owner-confirmed private draft creation from those templates.
 Issue #163 adds owner-confirmed checkout-offer links on private draft checkout
-blocks.
+blocks. Issue #165 renders linked checkout blocks on published funnel routes as
+the existing sandbox checkout start surface.
 
 Live in this slice:
 
@@ -21,7 +22,9 @@ Live in this slice:
   opt-in, sales, and thank-you funnel, including reusable template and block
   library cards.
 - `/funnels/:slug`: crawlable semantic public route for published D1 draft
-  funnels, with unpublished private draft copy excluded from source data.
+  funnels, with unpublished private draft copy excluded from source data. When a
+  published checkout block carries owner-confirmed `checkoutLink` metadata, the
+  route renders the sandbox checkout start panel for the seeded offer stack.
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, attach the seeded
   sandbox checkout offer to checkout blocks, and publish private D1 draft
@@ -41,7 +44,7 @@ Not live in this slice:
 - Drag-and-drop visual editing or granular block editing.
 - Deleting, archiving, unpublishing, or duplicating funnels.
 - Checkout-link deletion, arbitrary offer mutation, order-bump mutation,
-  one-click upsell charging, or fulfillment.
+  live billing, one-click upsell charging, or fulfillment.
 - Agent-initiated draft edits or publishing tools.
 
 Current draft creation and step editing require an owner session, D1 storage, an
@@ -50,9 +53,12 @@ template additionally requires exact template confirmation text. Linking the
 seeded sandbox checkout offer additionally requires exact checkout-link
 confirmation text, idempotency, and a current revision ID; it stores public-safe
 metadata in private draft step blocks and does not start checkout or enable live
-billing. Current draft preview requires an owner session and does not publish
-private copy publicly. Publishing requires an owner session, the exact publish
-confirmation text, an idempotency key, and a current revision ID. Future direct
-agent writes, unpublishing, checkout-link deletion, and destructive draft actions
-must add explicit confirmation, stale-state checks, audit correlation,
-redaction, and rollback notes before acting on draft state.
+billing by itself. After publishing, a linked checkout block can render the
+existing sandbox checkout start panel on the public funnel route; that path
+remains exact-confirmed, idempotent, redacted, and constrained to the seeded
+offer stack. Current draft preview requires an owner session and does not
+publish private copy publicly. Publishing requires an owner session, the exact
+publish confirmation text, an idempotency key, and a current revision ID. Future
+direct agent writes, unpublishing, checkout-link deletion, live billing, and
+destructive draft actions must add explicit confirmation, stale-state checks,
+audit correlation, redaction, and rollback notes before acting on draft state.

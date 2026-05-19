@@ -126,14 +126,16 @@ the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
 private preview, and exact-confirmed publish surface from issues #91, #93, #95,
-#135, #159, #161, and #163. This proves ordered funnel/page-block semantics,
+#135, #159, #161, #163, and #165. This proves ordered funnel/page-block semantics,
 read-only template and block-template discovery, owner-confirmed
 template-to-draft creation from issue #161, owner-confirmed checkout-offer
 linking on private checkout blocks from issue #163, private draft
 seed/create/update/reorder and preview state, and public D1 funnel publishing to
-`/funnels/{slug}` after owner confirmation and revision checks. It is not direct
-agent template creation, live billing mutation, drag-and-drop editing,
-deletion/unpublishing, or a direct agent write API.
+`/funnels/{slug}` after owner confirmation and revision checks. Issue #165 lets
+published funnel routes render the existing sandbox checkout start surface when
+a checkout block carries owner-confirmed `checkoutLink` metadata. It is not
+direct agent template creation, live billing mutation, drag-and-drop editing,
+deletion/unpublishing, one-click upsell charging, or a direct agent write API.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
 contract for the first seeded primary offer, constrained order bump, upsell, and

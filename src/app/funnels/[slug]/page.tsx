@@ -3,9 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
+import { CheckoutStartPanel } from "@/components/checkout-start-panel";
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
+import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
-import { funnelBlockLibrary, funnelTemplateLibrary, getFunnelBySlug, seededFunnels } from "@/lib/funnels";
+import {
+  funnelBlockLibrary,
+  funnelTemplateLibrary,
+  getFunnelBySlug,
+  publicFunnelCheckoutStartCapability,
+  seededFunnels,
+} from "@/lib/funnels";
 import { site } from "@/lib/site";
 
 type FunnelPreviewPageProps = {
@@ -55,6 +63,10 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
   }
 
   const published = funnel.status === "published";
+  const hasLinkedCheckoutBlock = funnel.steps.some((step) =>
+    step.blocks.some((block) => block.kind === "checkout" && block.checkoutLink?.offerStackId === checkoutOfferStack.id),
+  );
+  const canStartLinkedCheckout = published && hasLinkedCheckoutBlock;
 
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -173,6 +185,18 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         </div>
       </section>
 
+      {canStartLinkedCheckout ? (
+        <CheckoutStartPanel
+          stack={checkoutOfferStack}
+          context={{
+            eyebrow: "Linked funnel checkout start",
+            heading: "Start the sandbox checkout from this published funnel.",
+            agentClientId: "public-funnel-ui",
+            idempotencyPrefix: `bumpgrade-funnel-${funnel.slug}`,
+          }}
+        />
+      ) : null}
+
       <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
@@ -256,8 +280,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>{published ? "Published read surface" : "Confirmed writes later"}</h3>
-            <p>{funnel.writeBoundary}</p>
+            <h3>{canStartLinkedCheckout ? "Linked checkout start" : published ? "Published read surface" : "Confirmed writes later"}</h3>
+            <p>{canStartLinkedCheckout ? publicFunnelCheckoutStartCapability.writeBoundary : funnel.writeBoundary}</p>
           </div>
         </div>
       </section>
