@@ -287,7 +287,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
@@ -296,10 +296,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #167 adds `POST /api/audience/unsubscribe` with idempotent unsubscribe/suppression evidence and no list-membership leak.",
       "Issue #169 adds owner-gated private audience CRM timeline notes with aggregate public redaction.",
       "Issue #171 adds suppression-aware broadcast draft readiness without send queues or provider message IDs.",
+      "Issue #173 adds owner-confirmed dry-run broadcast schedule intents without recipient payloads, send queues, or provider message IDs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add owner-confirmed broadcast scheduling and email delivery queues only after sender-domain, unsubscribe footer, suppression, and audit checks are explicit.",
+      "Add real email delivery queues only after sender-domain, unsubscribe footer, suppression, provider limits, and audit checks are explicit.",
   },
   {
     id: "roadmap-analytics-testing",

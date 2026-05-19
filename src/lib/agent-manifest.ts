@@ -406,6 +406,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "suppressionEntryId",
       "timelineEntryId",
       "agentActionId",
+      "broadcastScheduleIntentId",
     ],
     safeForAgents: [
       "Read seeded opt-in form",
@@ -413,12 +414,30 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect consent-backed capture boundary",
       "Inspect aggregate owner-subscriber, suppression, and timeline counts with redaction flags",
       "Inspect suppression-aware broadcast readiness without recipient exposure",
+      "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
       "Inspect the public-safe unsubscribe/suppression write boundary",
       "Inspect the owner-only CRM timeline note boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, and view broadcast readiness in /admin/audience; imports, broadcast scheduling, private exports, direct agent subscriber writes, send queues, and email sends require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, and record dry-run schedule intents in /admin/audience; imports, real email delivery, private exports, direct agent subscriber writes, send queues, and provider message IDs require future confirmed-write APIs.",
+  },
+  {
+    id: "create-owner-broadcast-schedule-intent",
+    title: "Owner broadcast schedule dry-run intent",
+    route: "/api/admin/audience/broadcasts/schedule-intents",
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables audience_broadcast_schedule_intents, audience_broadcast_drafts, audience_subscribers, audience_consent_events, and audience_suppression_entries",
+    stableIds: ["broadcastScheduleIntentId", "broadcastDraftId", "ownerUserId", "idempotencyKey", "expectedDraftUpdatedAt"],
+    safeForAgents: [
+      "Inspect the owner-only dry-run schedule intent contract",
+      "Create dry-run schedule intent records only with an owner session and exact confirmation",
+      "Use draft revision, expected readiness count, and idempotency checks before recording intent",
+      "Confirm responses omit actor email, recipient email, recipient names, suppression hashes, recipient payloads, send queue rows, and provider message IDs",
+    ],
+    writeBoundary:
+      "This owner-session API records dry-run broadcast schedule intent metadata only. It does not send email, create send queue rows, create provider message IDs, expose recipients, authorize public agent writes, or bypass future unsubscribe footer, sender-domain, suppression, and audit requirements.",
   },
   {
     id: "create-audience-unsubscribe-suppression",
@@ -727,10 +746,20 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-audience-automation",
     route: "/audience/source-data",
     resolves:
-      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, and confirmed-write boundary.",
-    stableIds: ["subscriberSegmentId", "subscriberId", "subscriberInspectionId", "optInFormId", "leadMagnetId", "emailSequenceId", "automationRuleId"],
+      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, broadcast readiness, dry-run schedule intent counts, and confirmed-write boundary.",
+    stableIds: [
+      "subscriberSegmentId",
+      "subscriberId",
+      "subscriberInspectionId",
+      "optInFormId",
+      "leadMagnetId",
+      "emailSequenceId",
+      "automationRuleId",
+      "broadcastReadinessId",
+      "broadcastScheduleIntentId",
+    ],
     volatileClaims:
-      "The audience automation contract includes consent-backed opt-in capture and aggregate owner-inspection evidence; it is not contact import, live email sending, unsubscribe management, CRM timeline state, private export, or direct agent subscriber write capability.",
+      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, and dry-run schedule intent counts; it is not contact import, live email sending, private export, send queue creation, provider message creation, or direct public agent subscriber write capability.",
   },
   {
     id: "evidence-analytics-experiments",
@@ -917,9 +946,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, redaction flags, consent boundaries, unsubscribe boundaries, and owner-note boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run schedule intent counts, redaction flags, consent boundaries, unsubscribe boundaries, owner-note boundaries, and owner schedule-intent boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, and read-only broadcast readiness are live; imports, sends, broadcast scheduling, send queues, private exports, CRM automation, and direct agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, read-only broadcast readiness, and owner-confirmed dry-run schedule intents are live; imports, real sends, send queues, private exports, CRM automation, and direct public agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",
