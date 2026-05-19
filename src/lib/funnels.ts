@@ -100,6 +100,7 @@ export const draftFunnelPublishingIssue = 135;
 export const funnelTemplateLibraryIssue = 159;
 export const draftFunnelTemplateCreationIssue = 161;
 export const draftFunnelCheckoutLinkingIssue = 163;
+export const publicFunnelCheckoutStartIssue = 165;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
@@ -124,8 +125,9 @@ export const editableDraftCapability = {
     "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Read that owner sessions can publish a D1 draft to a stable public funnel route after exact confirmation.",
     "Read that owner sessions can attach the seeded sandbox checkout offer to a private draft step after exact confirmation.",
+    "Read that published linked checkout blocks can render the existing sandbox checkout start surface.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91, #93, #95, #135, and #163 before claiming editable, publishable, or checkout-linkable draft capability.",
+    "Cite issues #91, #93, #95, #135, #163, and #165 before claiming editable, publishable, checkout-linkable, or public checkout-start capability.",
   ],
   notYetLive: [
     "Drag-and-drop layout editing",
@@ -405,6 +407,36 @@ export const checkoutLinkingCapability = {
   ],
 };
 
+export const publicFunnelCheckoutStartCapability = {
+  id: "public-funnel-linked-checkout-start",
+  status: "sandbox-checkout-start-ready",
+  issue: publicFunnelCheckoutStartIssue,
+  parentIssue: 15,
+  funnelParentIssue: draftFunnelBuilderParentIssue,
+  publicRoutePattern: "/funnels/:slug",
+  checkoutEndpoint: "/api/commerce/checkout",
+  requiresPublishedFunnel: true,
+  requiresCheckoutLink: true,
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  supportsOrderBumps: true,
+  liveBillingEnabled: false,
+  rawStripeIdsIncluded: false,
+  safeForPublicAgents: [
+    "Read that published funnel checkout blocks can render the sandbox checkout start surface only after an owner linked the checkout offer.",
+    "Read that the public funnel route uses Bumpgrade's existing checkout endpoint, confirmation text, idempotency, and redacted redirect wrapper.",
+    "Distinguish public funnel checkout start from live billing, direct Stripe URL exposure, one-click upsell charging, fulfillment, and agent billing writes.",
+  ],
+  notYetLive: [
+    "Live billing from public funnel routes",
+    "Direct agent-started checkout without confirmation",
+    "Arbitrary offer, price, or order-bump mutation from the funnel page",
+    "One-click post-purchase charging",
+  ],
+  writeBoundary:
+    "Issue #165 lets published funnel pages render the existing sandbox checkout start surface when a checkout block carries owner-confirmed checkoutLink metadata. The route remains sandbox-only, exact-confirmed, idempotent, redacted, and constrained to the seeded offer stack; live billing, arbitrary offer mutation, fulfillment, one-click upsell charging, and direct agent checkout writes require later confirmed-write APIs.",
+};
+
 export function getFunnelBySlug(slug: string) {
   return seededFunnels.find((funnel) => funnel.slug === slug) ?? null;
 }
@@ -412,11 +444,11 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "owner-checkout-linking-ready",
-  issue: draftFunnelCheckoutLinkingIssue,
+  status: "public-funnel-checkout-start-ready",
+  issue: publicFunnelCheckoutStartIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
-  routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
+  routes: ["/funnels/source-data", "/api/commerce/checkout", ...seededFunnels.map((funnel) => funnel.previewRoute)],
   adminRoutes: [editableDraftCapability.adminRoute, editableDraftCapability.previewRoutePattern],
   stableIds: [
     "funnelId",
@@ -428,6 +460,7 @@ export const funnelSourceData = {
     "funnelRevisionId",
     "funnelDraftId",
     "funnelAuditEventId",
+    "checkoutIntentId",
     "checkoutOfferStackId",
     "offerId",
     "agentActionId",
@@ -436,10 +469,11 @@ export const funnelSourceData = {
   editableDraftCapability,
   templateDraftCreationCapability,
   checkoutLinkingCapability,
+  publicFunnelCheckoutStartCapability,
   templateLibraryIssue: funnelTemplateLibraryIssue,
   templates: funnelTemplateLibrary,
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, owner-session checkout-offer linking on private draft steps, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, drag-and-drop visual building, deletion/unpublishing, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, drag-and-drop visual building, deletion/unpublishing, and unconfirmed agent-write APIs are not live.",
 };

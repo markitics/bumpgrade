@@ -216,7 +216,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records, owner-confirmed template-to-draft creation, owner-confirmed checkout-offer linking on private draft steps, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records, owner-confirmed template-to-draft creation, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
@@ -227,9 +227,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #159 adds reusable funnel templates and block-template library records to `/funnels/source-data` and the seeded preview route.",
       "Issue #161 adds owner-confirmed template-to-draft creation from reusable funnel templates.",
       "Issue #163 adds owner-confirmed checkout-offer linking to private draft checkout blocks.",
+      "Issue #165 adds public sandbox checkout start rendering on published funnel checkout blocks with owner-confirmed checkout links.",
     ],
     nextMilestone:
-      "Add deletion/archive, unpublishing, drag-and-drop block editing, and direct agent-safe edit tools on top of D1 draft funnels.",
+      "Add deletion/archive, unpublishing, drag-and-drop block editing, live checkout rollout, and direct agent-safe edit tools on top of D1 draft funnels.",
   },
   {
     id: "roadmap-checkout-offers",
@@ -250,6 +251,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #115 adds owner-gated review/reversal actions for commission evidence.",
       "Issue #117 records non-billing post-purchase upsell/downsell decisions from trusted checkout evidence.",
       "Issue #133 gates the checkout success CTA on trusted webhook state before opening the post-purchase path.",
+      "Issue #165 renders the existing sandbox checkout start surface from published linked funnel checkout blocks.",
     ],
     nextMilestone:
       "Add explicit post-purchase billing contracts and partner-facing reporting only after decision evidence and owner review boundaries stay stable.",

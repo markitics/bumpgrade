@@ -31,6 +31,12 @@ type CheckoutResponse = {
 
 type CheckoutStartPanelProps = {
   stack: Pick<CheckoutOfferStack, "checkoutEndpoint" | "confirmation" | "primaryOffer" | "orderBumps" | "writeBoundary">;
+  context?: {
+    eyebrow?: string;
+    heading?: string;
+    agentClientId?: string;
+    idempotencyPrefix?: string;
+  };
 };
 
 function formatMoney(cents: number, currency: string) {
@@ -44,7 +50,7 @@ function lineItemTotal(primaryOffer: CheckoutOffer, selectedBumps: CheckoutOffer
   return [primaryOffer, ...selectedBumps].reduce((total, offer) => total + offer.unitAmountCents, 0);
 }
 
-export function CheckoutStartPanel({ stack }: CheckoutStartPanelProps) {
+export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) {
   const [selectedOrderBumpPriceIds, setSelectedOrderBumpPriceIds] = useState<string[]>([]);
   const [confirmationText, setConfirmationText] = useState("");
   const [buyerEmail, setBuyerEmail] = useState("");
@@ -81,8 +87,8 @@ export function CheckoutStartPanel({ stack }: CheckoutStartPanelProps) {
           orderBumpPriceIds: selectedOrderBumpPriceIds,
           buyerEmail: buyerEmail.trim() || undefined,
           confirmationText,
-          idempotencyKey: `bumpgrade-offer-${crypto.randomUUID()}`,
-          agentClientId: "offer-preview-ui",
+          idempotencyKey: `${context?.idempotencyPrefix ?? "bumpgrade-offer"}-${crypto.randomUUID()}`,
+          agentClientId: context?.agentClientId ?? "offer-preview-ui",
         }),
       });
       const payload = (await checkoutResponse.json()) as CheckoutResponse;
@@ -104,8 +110,8 @@ export function CheckoutStartPanel({ stack }: CheckoutStartPanelProps) {
     <section className="content-band">
       <div className="feature-section-heading">
         <div>
-          <p className="eyebrow">Sandbox checkout start</p>
-          <h2>Choose the bump, confirm the checkout, keep billing sandboxed.</h2>
+          <p className="eyebrow">{context?.eyebrow ?? "Sandbox checkout start"}</p>
+          <h2>{context?.heading ?? "Choose the bump, confirm the checkout, keep billing sandboxed."}</h2>
         </div>
       </div>
       <div className="checkout-start-grid">

@@ -875,10 +875,11 @@ export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
     revisionId: draft.revisionId,
     steps: draft.steps,
     writeBoundary:
-      "Published D1 funnels are public read surfaces. Further publishing edits, unpublishing, checkout-linking, deletion, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
+      "Published D1 funnels are public read surfaces. Linked checkout blocks can render the existing sandbox checkout start panel after exact confirmation. Further publishing edits, unpublishing, checkout-linking, deletion, live billing, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
     validation: [
       "Owner-session publish action requires exact confirmation and revision match.",
       "Public /funnels/{slug} route renders ordered D1 steps and blocks.",
+      "Public /funnels/{slug} route renders sandbox checkout start when a checkout block carries owner-confirmed checkoutLink metadata.",
       "/funnels/source-data lists only published D1 funnel summaries, not unpublished private drafts.",
     ],
   };
