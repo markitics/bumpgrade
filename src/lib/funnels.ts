@@ -42,17 +42,19 @@ export type FunnelRecord = {
 export const funnelsUpdatedAt = "2026-05-18";
 export const draftFunnelBuilderIssue = 91;
 export const draftFunnelStepEditingIssue = 93;
+export const draftFunnelPreviewIssue = 95;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live only for creating, seeding, step editing, and step reordering private D1 draft funnels. Publishing, deleting, checkout linking, public preview generation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live only for creating, seeding, step editing, and step reordering private D1 draft funnels. Owner-gated draft preview is live for private D1 draft state. Publishing, deleting, checkout linking, public unauthenticated preview generation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
-  status: "owner-session-step-edit-ready",
-  issue: draftFunnelStepEditingIssue,
+  status: "owner-session-preview-ready",
+  issue: draftFunnelPreviewIssue,
   parentIssue: draftFunnelBuilderParentIssue,
   adminRoute: "/admin/funnels",
+  previewRoutePattern: "/admin/funnels/:draftId/preview",
   createEndpoint: "/api/admin/funnels/drafts",
   editEndpoint: "/api/admin/funnels/drafts",
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
@@ -60,11 +62,13 @@ export const editableDraftCapability = {
   safeForPublicAgents: [
     "Read that editable D1-backed draft funnels exist behind owner auth.",
     "Read that owner sessions can update and reorder draft funnel steps.",
+    "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91 and #93 before claiming editable draft capability.",
+    "Cite issues #91, #93, and #95 before claiming editable draft capability.",
   ],
   notYetLive: [
     "Public publishing",
+    "Public unauthenticated draft preview",
     "Checkout-step linking",
     "Drag-and-drop layout editing",
     "Deletion/archive workflows",
@@ -203,12 +207,12 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "read-contract-and-owner-step-edit-ready",
-  issue: draftFunnelStepEditingIssue,
+  status: "read-contract-and-owner-preview-ready",
+  issue: draftFunnelPreviewIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
-  adminRoutes: [editableDraftCapability.adminRoute],
+  adminRoutes: [editableDraftCapability.adminRoute, editableDraftCapability.previewRoutePattern],
   stableIds: [
     "funnelId",
     "funnelStepId",
@@ -222,5 +226,5 @@ export const funnelSourceData = {
   editableDraftCapability,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics plus the existence of an owner-session D1 draft builder with step edit/reorder controls. It does not expose private draft copy and is not a public publishing system, checkout integration, drag-and-drop visual builder, or unconfirmed agent-write API.",
+    "This public contract proves read and preview semantics plus the existence of an owner-session D1 draft builder with step edit/reorder controls and owner-gated private draft preview. It does not expose private draft copy publicly and is not a public publishing system, checkout integration, drag-and-drop visual builder, or unconfirmed agent-write API.",
 };

@@ -158,6 +158,7 @@ export const scaffoldRoutes = [
   "/admin/work-log",
   "/admin/user-journeys",
   "/admin/funnels",
+  "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
   "/admin/for-mark",
   "/agent-docs",
   "/agent-docs/bumpgrade-agent-surface",
