@@ -120,12 +120,15 @@ offer-sequence semantics and sandbox Checkout Session start semantics, not live
 billing, one-click upsell charging, fulfillment, price mutation, arbitrary
 order-bump mutation, or agent write capability.
 
-Current product/access boundary: `/products/source-data` is the public-safe read
+Current product/access boundary: `/products/source-data` is the public-safe
 contract for seeded downloads, courses, memberships, services, events, bundles,
-assets, access rules, and entitlement templates. `/products/indie-launch-library`
-is the read-only preview. This proves access semantics, not private R2 access,
-signed downloads, customer entitlements, protected content, fulfillment writes,
-or agent write capability.
+assets, access rules, entitlement templates, and sandbox webhook grant mappings.
+`/products/indie-launch-library` is the read-only preview. Trusted paid sandbox
+webhooks can grant idempotent `product_entitlements` rows and queue public-safe
+`product_fulfillment_tasks`. This proves entitlement grant semantics, not
+private R2 access, signed downloads, authenticated customer entitlement
+inspection, protected content, revocation, live fulfillment, or direct agent
+write capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 read contract for seeded opt-in forms, lead magnets, subscriber segments, tags,

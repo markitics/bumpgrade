@@ -26,8 +26,8 @@ then open the relevant shelf for the task.
 - `features/checkout-offers.md`: checkout offer, order bump, upsell, and
   downsell source-data contract from issue #81 plus the confirmed sandbox
   checkout start and constrained order-bump path from issue #99.
-- `features/product-access.md`: read-only product, asset, access-rule, and
-  entitlement source-data contract from issue #83.
+- `features/product-access.md`: product, asset, access-rule, entitlement, and
+  sandbox webhook grant contract from issues #83 and #101.
 - `features/audience-automation.md`: read-only opt-in, lead magnet, tag,
   sequence, broadcast, and automation source-data contract from issue #85.
 - `features/analytics-experiments.md`: read-only event, metric, fixture report,

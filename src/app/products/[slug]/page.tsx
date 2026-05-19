@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ProductAccessPageProps): Prom
 
   return {
     title: `${catalog.title} Preview`,
-    description: `${catalog.summary} This is a read-only Bumpgrade product/access scaffold tied to issue #${catalog.issue}.`,
+    description: `${catalog.summary} This Bumpgrade product/access scaffold is tied to issue #${catalog.issue}.`,
     alternates: {
       canonical: `${site.url}${catalog.previewRoute}`,
     },
@@ -107,8 +107,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <p>Status</p>
           <strong>{catalog.products.length} product types</strong>
           <span>
-            Draft preview only. Assets, access rules, and entitlement templates are public-safe records; private
-            downloads, protected content, and fulfillment writes stay disabled until confirmed-write APIs exist.
+            Assets, access rules, entitlement templates, and sandbox grant mappings are public-safe records; private
+            downloads, protected content, and live fulfillment stay disabled until confirmed-write APIs exist.
           </span>
         </aside>
       </section>
@@ -167,7 +167,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect access plans, not grant entitlements.</h2>
+            <h2>Agents can inspect entitlement grants, not deliver private assets.</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -179,8 +179,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
             <Database aria-hidden="true" />
             <h3>Source data first</h3>
             <p>
-              <code>/products/source-data</code> exposes public-safe product, asset, access-rule, and entitlement
-              template records.
+              <code>/products/source-data</code> exposes public-safe product, asset, access-rule, entitlement
+              template, and sandbox grant mapping records.
             </p>
           </div>
           <div>

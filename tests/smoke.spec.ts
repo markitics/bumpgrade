@@ -354,12 +354,31 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "read-contract-ready",
-        issue: 83,
+        status: "sandbox-entitlement-grants-ready",
+        issue: 101,
         parentIssue: 16,
       }),
     );
     expect(payload.routes).toEqual(expect.arrayContaining(["/products/source-data", "/products/indie-launch-library"]));
+    expect(payload.entitlementWrites).toEqual(
+      expect.objectContaining({
+        status: "sandbox-webhook-grants-ready",
+        issue: 101,
+        tables: expect.arrayContaining(["product_entitlements", "product_fulfillment_tasks"]),
+      }),
+    );
+    expect(payload.grantMappings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourcePriceId: sandboxCheckoutOffer.priceId,
+          entitlementTemplateId: "entitlement-template-launch-bundle",
+        }),
+        expect.objectContaining({
+          sourcePriceId: "price-launch-checklist-bump-usd",
+          entitlementTemplateId: "entitlement-template-launch-download",
+        }),
+      ]),
+    );
     expect(payload.catalogs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -385,8 +404,8 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #83 is read-only");
-    expect(payload.caveat).toContain("does not expose private R2 keys");
+    expect(payload.writeBoundary).toContain("Issue #101 can grant idempotent sandbox product entitlement rows");
+    expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
 
     await page.goto("/products/indie-launch-library");
     await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
@@ -670,6 +689,8 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ table: "commerce_products" }),
         expect.objectContaining({ table: "checkout_intents" }),
+        expect.objectContaining({ table: "product_entitlements" }),
+        expect.objectContaining({ table: "product_fulfillment_tasks" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
         expect.objectContaining({ table: "payment_audit_events" }),
       ]),
@@ -905,6 +926,79 @@ test.describe("Bumpgrade scaffold", () => {
         duplicate: false,
         eventType: "checkout.session.completed",
         checkoutIntentUpdated: false,
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
+      }),
+    );
+
+    const second = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(second.ok()).toBeTruthy();
+    await expect(second.json()).resolves.toEqual(expect.objectContaining({ ok: true, duplicate: true }));
+  });
+
+  test("paid checkout webhook grants sandbox product entitlements once", async ({ request }) => {
+    const idempotencyKey = `playwright-entitlements-${Date.now()}`;
+    const checkout = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        buyerEmail: "sandbox-buyer@example.com",
+        idempotencyKey,
+      },
+    });
+    expect(checkout.ok()).toBeTruthy();
+    const checkoutPayload = await checkout.json();
+    expect(checkoutPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "preview",
+        reason: "test_checkout_intent_created",
+        totalAmountCents: 2800,
+      }),
+    );
+    expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
+
+    const eventId = `evt_bumpgrade_entitlements_${Date.now()}`;
+    const event = {
+      id: eventId,
+      object: "event",
+      api_version: "2026-04-22.dahlia",
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_test_redacted_by_route",
+          object: "checkout.session",
+          client_reference_id: checkoutPayload.checkoutIntentId,
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            checkout_intent_id: checkoutPayload.checkoutIntentId,
+            product_id: sandboxCheckoutOffer.productId,
+            price_id: sandboxCheckoutOffer.priceId,
+            audit_correlation_id: "audit-playwright-entitlements",
+          },
+        },
+      },
+    };
+
+    const first = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(first.ok()).toBeTruthy();
+    await expect(first.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        eventType: "checkout.session.completed",
+        checkoutIntentUpdated: true,
+        entitlementGrantsCreated: 2,
+        entitlementGrantsSkipped: 0,
         redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
       }),
     );

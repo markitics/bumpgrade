@@ -205,6 +205,7 @@ function previewResponse(input: {
   origin: string;
   reason: string;
   mode: string;
+  checkoutIntentId?: string;
 }) {
   const [primaryItem] = input.items;
 
@@ -213,6 +214,7 @@ function previewResponse(input: {
     status: "preview",
     reason: input.reason,
     mode: input.mode,
+    checkoutIntentId: input.checkoutIntentId,
     offer: safeOffer(primaryItem.product, primaryItem.price, "primary"),
     lineItems: safeLineItems(input.items),
     selectedOrderBumpPriceIds: input.items.filter((item) => item.kind === "order_bump").map((item) => item.price.id),
@@ -466,6 +468,62 @@ export async function POST(request: NextRequest) {
 
   if (mode !== "sandbox") {
     return jsonError(409, "live_mode_disabled", "This route is sandbox-only.");
+  }
+
+  if (
+    env.APP_ENV === "test" &&
+    request.headers.get("x-bumpgrade-test-checkout-write") === "allow" &&
+    body.confirmationText === checkoutConfirmationText
+  ) {
+    const checkoutIntentId = `checkout-intent-${crypto.randomUUID()}`;
+    const auditCorrelationId = `audit-${crypto.randomUUID()}`;
+    const idempotencyKey =
+      body.idempotencyKey?.trim() || request.headers.get("idempotency-key") || `bumpgrade-${crypto.randomUUID()}`;
+    const successUrl = body.successUrl?.trim() || publicCheckoutUrl(origin, checkoutRoutes.success);
+    const cancelUrl = body.cancelUrl?.trim() || publicCheckoutUrl(origin, checkoutRoutes.cancel);
+    const buyerEmail = parseEmail(body.buyerEmail);
+    const agentClientId = body.agentClientId?.trim() || null;
+    const intent = await createOrReadIntent(db, {
+      id: checkoutIntentId,
+      idempotencyKey,
+      product: checkoutSelection.primary.product,
+      price: checkoutSelection.primary.price,
+      items: checkoutSelection.items,
+      buyerEmail,
+      mode,
+      successUrl,
+      cancelUrl,
+      auditCorrelationId,
+      agentClientId,
+    });
+
+    if (!intent) {
+      return jsonError(500, "checkout_intent_not_created", "Checkout intent could not be created.");
+    }
+
+    if (intent.id === checkoutIntentId) {
+      await insertAuditEvent(db, {
+        checkoutIntentId: intent.id,
+        eventKind: "checkout_intent_created",
+        summary: "Created sandbox checkout intent in test mode before entitlement webhook smoke.",
+        actorId: agentClientId,
+        metadata: {
+          productId: checkoutSelection.primary.product.id,
+          priceId: checkoutSelection.primary.price.id,
+          lineItems: safeLineItems(checkoutSelection.items),
+          idempotencyKey,
+          rawStripeIdsRedacted: true,
+        },
+      });
+    }
+
+    return previewResponse({
+      items: checkoutSelection.items,
+      origin,
+      mode,
+      reason: "test_checkout_intent_created",
+      checkoutIntentId: intent.id,
+    });
   }
 
   if (body.previewOnly || env.APP_ENV === "test" || body.confirmationText !== checkoutConfirmationText) {

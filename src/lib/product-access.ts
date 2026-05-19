@@ -1,3 +1,5 @@
+import { entitlementGrantMappings, entitlementWriteContract } from "@/lib/product-entitlements";
+
 export type ProductAccessCatalogStatus = "draft";
 export type ProductKind = "digital_download" | "course" | "membership" | "coaching_service" | "event_webinar" | "bundle";
 export type ProductAssetKind = "file" | "lesson" | "member_area" | "booking" | "event" | "bundle";
@@ -65,22 +67,22 @@ export type ProductAccessCatalog = {
   validation: string[];
 };
 
-export const productAccessUpdatedAt = "2026-05-18";
+export const productAccessUpdatedAt = "2026-05-19";
 
 export const productAccessCatalog: ProductAccessCatalog = {
   id: "product-access-catalog-indie-launch",
   slug: "indie-launch-library",
   title: "Indie launch product and access library",
   status: "draft",
-  issue: 83,
+  issue: 101,
   parentIssue: 16,
   sourceDataRoute: "/products/source-data",
   previewRoute: "/products/indie-launch-library",
   checkoutOfferRoute: "/offers/indie-launch-stack",
   commerceContractRoute: "/commerce/source-data",
-  revisionId: "product-access-revision-indie-launch-2026-05-18",
+  revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A read-only product/access scaffold covering downloads, courses, memberships, services, events, and bundles before private fulfillment writes exist.",
+    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, and sandbox webhook-backed entitlement grants before private fulfillment delivery exists.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",
@@ -300,10 +302,11 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #83 is read-only. Product creation, private asset upload, signed download URLs, entitlement grants, subscription access changes, fulfillment tasks, refunds, or revocations require actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and trusted checkout or subscription evidence.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks. Product creation, private asset upload, signed download URLs, protected content, subscription access changes, refunds, revocations, live fulfillment, and direct agent writes require future authenticated confirmed-write APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
+    "/api/stripe/webhook grants idempotent sandbox entitlements after trusted paid checkout evidence.",
     "/agent-docs/source-data lists the product access read contract for future MCP resources.",
   ],
 };
@@ -317,8 +320,8 @@ export function getProductAccessCatalogBySlug(slug: string) {
 export const productAccessSourceData = {
   id: "bumpgrade-product-access-source-data",
   updatedAt: productAccessUpdatedAt,
-  status: "read-contract-ready",
-  issue: 83,
+  status: "sandbox-entitlement-grants-ready",
+  issue: 101,
   parentIssue: 16,
   generatedFrom: "src/lib/product-access.ts",
   routes: ["/products/source-data", ...productAccessCatalogs.map((catalog) => catalog.previewRoute)],
@@ -331,8 +334,10 @@ export const productAccessSourceData = {
     "fulfillmentId",
     "agentActionId",
   ],
+  entitlementWrites: entitlementWriteContract,
+  grantMappings: entitlementGrantMappings,
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics only. It does not expose private R2 keys, signed URLs, customer entitlements, protected content, fulfillment writes, or confirmed-write agent APIs.",
+    "This contract proves product/access read and preview semantics plus sandbox webhook-backed entitlement row grants. It does not expose private R2 keys, signed URLs, protected content, revocation APIs, live fulfillment, customer portals, or direct agent confirmed-write APIs.",
 };

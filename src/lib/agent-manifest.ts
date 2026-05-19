@@ -241,8 +241,14 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "src/lib/product-access.ts",
     stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "subscriptionPlanId", "fulfillmentId", "agentActionId"],
-    safeForAgents: ["Read seeded product catalog", "Inspect access rules", "Inspect entitlement and fulfillment boundaries"],
-    writeBoundary: "Product, asset, entitlement, fulfillment, subscription access, and private content writes require future confirmed-write APIs.",
+    safeForAgents: [
+      "Read seeded product catalog",
+      "Inspect access rules",
+      "Inspect sandbox entitlement grant mappings",
+      "Inspect entitlement and fulfillment boundaries",
+    ],
+    writeBoundary:
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; product, asset, signed URL, revocation, live fulfillment, subscription access, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-audience-automation",
@@ -414,10 +420,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-products-access",
     route: "/products/source-data",
-    resolves: "Seeded product catalog, assets, access rules, entitlement templates, preview route, revision ID, and confirmed-write boundary.",
+    resolves:
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, preview route, revision ID, and confirmed-write boundary.",
     stableIds: ["productId", "assetId", "accessRuleId", "entitlementTemplateId", "fulfillmentId"],
     volatileClaims:
-      "The product/access contract is read-only preview evidence; it is not private asset delivery, signed URL access, customer entitlement state, or fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants; it is not private asset delivery, signed URL access, authenticated customer entitlement inspection, revocation, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",

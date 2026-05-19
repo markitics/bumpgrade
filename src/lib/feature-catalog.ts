@@ -170,6 +170,7 @@ export const featureCatalog: FeatureRecord[] = [
     audience: "Knowledge sellers, newsletter publishers, and digital-product businesses.",
     expectedCapabilities: [
       "Read-only product/access source data and preview route from issue #83.",
+      "Sandbox webhook-backed entitlement row grants from issue #101.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -178,9 +179,10 @@ export const featureCatalog: FeatureRecord[] = [
     evidence: [
       "Tracked by issue #16.",
       "Issue #83 adds `/products/source-data` and `/products/indie-launch-library` as the first read-only product/access contract and preview scaffold.",
+      "Issue #101 adds idempotent entitlement grants and fulfillment task evidence after paid sandbox checkout webhooks.",
     ],
     agentContract:
-      "Agents may read public product metadata; private customer access and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata and entitlement grant boundaries; private customer access, signed delivery, revocation, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

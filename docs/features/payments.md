@@ -48,8 +48,16 @@ Issue #83 adds the first read-only product/access contract:
   and bundles.
 - `/products/indie-launch-library` previews those records for humans and browser
   agents.
-- Private R2 keys, signed URLs, customer entitlement rows, and fulfillment writes
-  still require future confirmed-write APIs.
+
+Issue #101 connects paid sandbox checkout evidence to product access:
+
+- Trusted `checkout.session.completed` paid webhooks can create idempotent
+  `product_entitlements` rows for the seeded primary offer and selected order
+  bump.
+- Matching `product_fulfillment_tasks` rows are queued as public-safe evidence.
+- Private R2 keys, signed URLs, authenticated customer entitlement inspection,
+  revocation, live fulfillment, and direct agent writes still require future
+  confirmed-write APIs.
 
 ## Source Checks
 
