@@ -1,3 +1,5 @@
+import { audienceOptInApiRoute, audienceOptInUpdatedAt, audienceOptInWriteContract } from "@/lib/audience-opt-in";
+
 export type AudienceAutomationStatus = "draft";
 export type AudienceFieldKind = "email" | "text" | "checkbox";
 export type EmailStepTiming = "immediate" | "delay_hours" | "delay_days";
@@ -117,23 +119,23 @@ export type AudienceAutomationWorkspace = {
   validation: string[];
 };
 
-export const audienceAutomationUpdatedAt = "2026-05-18";
+export const audienceAutomationUpdatedAt = audienceOptInUpdatedAt;
 
 export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   id: "audience-automation-workspace-indie-launch",
   slug: "indie-launch-waitlist",
   title: "Indie launch waitlist and nurture preview",
   status: "draft",
-  issue: 85,
+  issue: 103,
   parentIssue: 17,
   sourceDataRoute: "/audience/source-data",
   previewRoute: "/audience/indie-launch-waitlist",
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedProductRoute: "/products/indie-launch-library",
-  revisionId: "audience-automation-revision-indie-launch-2026-05-18",
+  revisionId: "audience-automation-revision-indie-launch-2026-05-19",
   summary:
-    "A read-only audience and automation scaffold for opt-in forms, lead magnets, tags, sequences, broadcasts, and automation rules before subscriber writes or email sends exist.",
+    "An audience and automation scaffold with live consent-backed opt-in capture for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
   segments: [
     {
       id: "segment-indie-launch-waitlist",
@@ -194,7 +196,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           label: "Email address",
           kind: "email",
           required: true,
-          storageBoundary: "Future writes must trim and normalize email before validation, then store it server-side with consent evidence.",
+          storageBoundary: "The opt-in API trims and normalizes email before validation, then stores it server-side with consent evidence.",
         },
         {
           id: "field-waitlist-name",
@@ -208,13 +210,13 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           label: "Consent to receive launch emails",
           kind: "checkbox",
           required: true,
-          storageBoundary: "Consent records require timestamp, source, and unsubscribe-safe audit state in a future write slice.",
+          storageBoundary: "Consent records include timestamp, source form, idempotency key, and hashed request evidence; unsubscribe state is future work.",
         },
       ],
       consentStatement:
         "I want the launch checklist and practical follow-up about Bumpgrade. I can unsubscribe later.",
       writeBoundary:
-        "This form is a preview only. Subscriber creation, consent recording, email delivery, tagging, and sequence enrollment require actor identity, explicit consent, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.",
+        `This form posts to ${audienceOptInApiRoute}. Email delivery, unsubscribe changes, imports, broadcasts, and CRM notes require future confirmed-write APIs with actor identity, explicit consent, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.`,
     },
   ],
   sequences: [
@@ -300,10 +302,11 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     },
   ],
   writeBoundary:
-    "Issue #85 is read-only. Subscriber writes, imports, tags, sequence enrollment, broadcasts, email sends, unsubscribe changes, contact timelines, and CRM notes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Imports, broadcasts, email sends, unsubscribe changes, contact timelines, CRM notes, suppression-list changes, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
   validation: [
     "/audience/source-data returns seeded audience segments, forms, tags, sequences, automations, and write boundaries.",
     "/audience/indie-launch-waitlist renders the opt-in and nurture preview.",
+    "/api/audience/opt-in stores normalized subscriber, consent, tag, and draft sequence enrollment evidence.",
     "/agent-docs/source-data lists the audience automation read contract for future MCP resources.",
   ],
 };
@@ -317,12 +320,17 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: "read-contract-ready",
-  issue: 85,
+  status: "subscriber-capture-ready",
+  issue: 103,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
-  routes: ["/audience/source-data", ...audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute)],
+  routes: [
+    "/audience/source-data",
+    audienceOptInApiRoute,
+    ...audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute),
+  ],
   stableIds: [
+    "subscriberId",
     "subscriberSegmentId",
     "optInFormId",
     "leadMagnetId",
@@ -333,8 +341,9 @@ export const audienceAutomationSourceData = {
     "consentRecordId",
     "agentActionId",
   ],
+  optInWrites: audienceOptInWriteContract,
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, and automation read/preview semantics only. It does not store subscribers, import contacts, send email, schedule broadcasts, alter unsubscribe state, expose private contact data, or provide confirmed-write agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, and consent-backed subscriber capture. It does not import contacts, send email, schedule broadcasts, alter unsubscribe state, expose private contact data, or provide direct confirmed-write agent APIs.",
 };

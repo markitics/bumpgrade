@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Database, MailCheck, Send, ShieldCheck, Tags, Workflow } from "lucide-react";
 
+import { AudienceOptInForm } from "@/components/audience-opt-in-form";
 import {
   audienceAutomationWorkspaces,
   getAudienceAutomationWorkspaceBySlug,
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: AudienceAutomationPageProps):
 
   return {
     title: `${workspace.title} Preview`,
-    description: `${workspace.summary} This is a read-only Bumpgrade audience automation scaffold tied to issue #${workspace.issue}.`,
+    description: `${workspace.summary} This Bumpgrade audience automation scaffold is tied to issue #${workspace.issue}.`,
     alternates: {
       canonical: `${site.url}${workspace.previewRoute}`,
     },
@@ -129,8 +130,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <p>Status</p>
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
-            Draft preview only. Opt-ins, tags, lead magnets, sequences, and broadcasts are public-safe records; real
-            contacts, consent logs, unsubscribe state, and email sending stay disabled until confirmed-write APIs exist.
+            Consent-backed opt-in capture is live for the seeded waitlist; broadcasts, unsubscribe state, CRM notes,
+            and email sending stay disabled until confirmed-write APIs exist.
           </span>
         </aside>
       </section>
@@ -163,21 +164,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
               <span>{form.consentStatement}</span>
             </div>
           </article>
-          <article className="feature-card compact-content-card">
-            <div className="feature-card-top">
-              <span className="status-badge pending">Preview form</span>
-              <span className="admin-pill">No submit</span>
-            </div>
-            <h3>Subscriber fields</h3>
-            <div className="stacked-details">
-              {form.fields.map((field) => (
-                <div key={field.id} className="feature-detail">
-                  <strong>{field.label}</strong>
-                  <span>{field.kind}{field.required ? " required" : " optional"}</span>
-                </div>
-              ))}
-            </div>
-          </article>
+          <AudienceOptInForm formId={form.id} consentStatement={form.consentStatement} />
         </div>
       </section>
 
@@ -249,13 +236,13 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             <h3>Source data first</h3>
             <p>
               <code>/audience/source-data</code> exposes public-safe segment, opt-in form, tag, sequence, broadcast,
-              and automation records.
+              automation, and subscriber capture records.
             </p>
           </div>
           <div>
             <MailCheck aria-hidden="true" />
             <h3>No email send path</h3>
-            <p>Subscriber identities, consent logs, unsubscribe state, provider IDs, and private contact timelines stay out of public data.</p>
+            <p>Consent is stored server-side, but unsubscribe state, provider IDs, and private contact timelines stay out of public data.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />

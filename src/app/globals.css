@@ -1405,6 +1405,31 @@ h3 {
   border-color: var(--green);
 }
 
+.audience-opt-in-panel {
+  align-self: stretch;
+}
+
+.audience-consent-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(55, 95, 76, 0.06);
+  color: var(--muted);
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.audience-consent-row input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--green);
+}
+
 .checkout-start-panel button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -1448,6 +1473,13 @@ h3 {
 .checkout-alert svg {
   flex: 0 0 auto;
   margin-top: 2px;
+}
+
+.checkout-alert > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .checkout-alert.success {
