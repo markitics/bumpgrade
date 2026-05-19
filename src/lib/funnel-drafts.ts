@@ -52,6 +52,14 @@ export type DraftFunnelAdminState = {
   writeBoundary: string;
 };
 
+export type DraftFunnelPreviewState = {
+  source: DraftFunnelSource;
+  loadError: string | null;
+  draft: DraftFunnelRecord | null;
+  storage: string;
+  writeBoundary: string;
+};
+
 type D1FunnelDraftRow = {
   id: string;
   owner_user_id: string | null;
@@ -105,6 +113,10 @@ export function slugifyDraftFunnelTitle(value: string) {
     .slice(0, 70);
 
   return slug || "untitled-funnel";
+}
+
+export function draftFunnelPreviewPath(draftId: string) {
+  return `/admin/funnels/${encodeURIComponent(draftId)}/preview`;
 }
 
 function runtimeId(prefix: string) {
@@ -237,6 +249,10 @@ async function loadDraftFromD1(db: D1Database, draftId: string) {
   return drafts.find((draft) => draft.id === draftId) ?? null;
 }
 
+function fixtureDraftForId(draftId: string) {
+  return [fixtureDraftFunnel].find((draft) => draft.id === draftId || draft.slug === draftId) ?? null;
+}
+
 export async function getDraftFunnelAdminState(): Promise<DraftFunnelAdminState> {
   try {
     const db = await getFunnelDraftD1OrThrow();
@@ -251,6 +267,29 @@ export async function getDraftFunnelAdminState(): Promise<DraftFunnelAdminState>
     };
   } catch (error) {
     return fallbackDraftState(error instanceof Error ? error.message : "Unable to load draft funnel D1 records.");
+  }
+}
+
+export async function getDraftFunnelPreviewState(draftId: string): Promise<DraftFunnelPreviewState> {
+  const normalizedDraftId = draftId.trim();
+  try {
+    const db = await getFunnelDraftD1OrThrow();
+    const draft = await loadDraftFromD1(db, normalizedDraftId);
+    return {
+      source: "d1",
+      loadError: draft ? null : "D1 draft tables are reachable, but this draft funnel was not found.",
+      draft,
+      storage: "D1 tables: funnel_drafts, funnel_draft_steps, funnel_audit_events.",
+      writeBoundary: draftFunnelBuilderWriteBoundary,
+    };
+  } catch (error) {
+    return {
+      source: "fixture",
+      loadError: error instanceof Error ? error.message : "Unable to load draft funnel D1 records.",
+      draft: fixtureDraftForId(normalizedDraftId),
+      storage: "Fixture fallback only. D1 writes need the funnel_drafts, funnel_draft_steps, and funnel_audit_events tables.",
+      writeBoundary: draftFunnelBuilderWriteBoundary,
+    };
   }
 }
 

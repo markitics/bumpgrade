@@ -98,8 +98,8 @@ See `docs/agent/user-journeys.md` for the template.
 
 ## Admin `/admin/funnels`
 
-Purpose: owner-gated draft funnel creation and step editing on top of the public
-funnel source contract.
+Purpose: owner-gated draft funnel creation, step editing, and private preview on
+top of the public funnel source contract.
 
 Issue #91 added the first D1-backed draft tables:
 
@@ -108,11 +108,11 @@ Issue #91 added the first D1-backed draft tables:
 - `funnel_audit_events`
 
 The page can seed the indie launch working draft, create a new three-step
-template draft, update step title/goal/kind, and reorder steps. This is
-private/admin state. Public agents should read `/funnels/source-data` for the
-capability boundary, not scrape private draft copy. Publishing, checkout
-linking, deletion, and direct agent edits still need future confirmed-write
-APIs.
+template draft, update step title/goal/kind, reorder steps, and link to an
+owner-gated private preview route. This is private/admin state. Public agents
+should read `/funnels/source-data` for the capability boundary, not scrape
+private draft copy. Publishing, checkout linking, deletion, public preview, and
+direct agent edits still need future confirmed-write APIs.
 
 ## Agent Maintenance Rule
 

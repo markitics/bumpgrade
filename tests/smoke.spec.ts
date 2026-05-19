@@ -40,6 +40,7 @@ const routes = [
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
   { path: "/admin/funnels", heading: "Owner access is required" },
+  { path: "/admin/funnels/funnel-draft-indie-launch-working-copy/preview", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs", heading: "Bumpgrade is readable by agents" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Agents get public contracts" },
@@ -242,19 +243,20 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-and-owner-step-edit-ready",
-        issue: 93,
+        status: "read-contract-and-owner-preview-ready",
+        issue: 95,
         parentIssue: 14,
       }),
     );
     expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/funnels/indie-launch-sandbox"]));
-    expect(payload.adminRoutes).toEqual(expect.arrayContaining(["/admin/funnels"]));
+    expect(payload.adminRoutes).toEqual(expect.arrayContaining(["/admin/funnels", "/admin/funnels/:draftId/preview"]));
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
         id: editableDraftCapability.id,
-        status: "owner-session-step-edit-ready",
-        issue: 93,
+        status: "owner-session-preview-ready",
+        issue: 95,
         adminRoute: "/admin/funnels",
+        previewRoutePattern: "/admin/funnels/:draftId/preview",
         createEndpoint: "/api/admin/funnels/drafts",
         editEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
@@ -276,7 +278,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
-    expect(payload.caveat).toContain("step edit/reorder controls");
+    expect(payload.caveat).toContain("owner-gated private draft preview");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
@@ -983,6 +985,16 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");
+    await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
+      "href",
+      "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
+    );
+
+    await page.goto("/admin/funnels/funnel-draft-indie-launch-working-copy/preview");
+    await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Current private funnel sequence" })).toBeVisible();
+    await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
+    await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
+import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { getDraftFunnelAdminState } from "@/lib/funnel-drafts";
-import { draftFunnelStepEditingIssue } from "@/lib/funnels";
+import { draftFunnelPreviewPath, getDraftFunnelAdminState } from "@/lib/funnel-drafts";
+import { draftFunnelPreviewIssue } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -43,8 +43,8 @@ export default async function AdminFunnelsPage() {
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelStepEditingIssue}`} className="secondary-action">
-              Issue #{draftFunnelStepEditingIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelPreviewIssue}`} className="secondary-action">
+              Issue #{draftFunnelPreviewIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -123,6 +123,12 @@ export default async function AdminFunnelsPage() {
               </div>
               <h3>{draft.title}</h3>
               <p>{draft.summary}</p>
+              <div className="admin-draft-actions">
+                <Link href={draftFunnelPreviewPath(draft.id)} className="secondary-action compact-action">
+                  Preview draft
+                  <Eye aria-hidden="true" />
+                </Link>
+              </div>
               <div className="roadmap-detail">
                 <strong>Draft ID</strong>
                 <span>{draft.id}</span>

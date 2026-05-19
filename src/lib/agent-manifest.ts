@@ -196,10 +196,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded draft funnel",
       "Inspect ordered steps",
       "Inspect page blocks and write boundaries",
-      "Discover owner-session editable draft capability from issues #91 and #93",
+      "Discover owner-session editable draft and private preview capability from issues #91, #93, and #95",
     ],
     writeBoundary:
-      "Owner-session seed/create/update/reorder draft writes exist at /admin/funnels. Publishing, checkout linking, deletion, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/update/reorder draft writes and private draft preview exist at /admin/funnels. Publishing, checkout linking, deletion, public preview, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -209,9 +209,13 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "owner-session",
     sourceOfTruth: "D1 tables funnel_drafts, funnel_draft_steps, and funnel_audit_events",
     stableIds: ["funnelDraftId", "funnelDraftStepId", "funnelAuditEventId", "ownerUserId"],
-    safeForAgents: ["Read private draft funnel rows only with an owner session", "Check audit metadata before acting on draft state"],
+    safeForAgents: [
+      "Read private draft funnel rows only with an owner session",
+      "Preview private draft funnel state only with an owner session",
+      "Check audit metadata before acting on draft state",
+    ],
     writeBoundary:
-      "The POST endpoint can seed, create, update, and reorder private draft steps for an authenticated owner; public publishing, checkout linking, deletion, and direct agent edits are not live.",
+      "The POST endpoint can seed, create, update, and reorder private draft steps for an authenticated owner; private preview is owner-gated; public publishing, checkout linking, deletion, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -506,7 +510,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/funnels/source-data",
     purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
-    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder exists in admin UI, while publish, checkout-link, and direct agent-edit tools require confirmed-write contracts.",
+    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder and private preview exist in admin UI, while publish, checkout-link, public preview, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",
