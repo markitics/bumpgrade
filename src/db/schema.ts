@@ -621,6 +621,37 @@ export const audienceBroadcastDrafts = sqliteTable(
   }),
 );
 
+export const audienceBroadcastScheduleIntents = sqliteTable(
+  "audience_broadcast_schedule_intents",
+  {
+    id: text("id").primaryKey(),
+    draftId: text("draft_id").notNull(),
+    status: text("status").notNull().default("dry_run_recorded"),
+    scheduleKind: text("schedule_kind").notNull().default("owner_confirmed_dry_run"),
+    expectedDraftUpdatedAt: text("expected_draft_updated_at").notNull(),
+    readyRecipientCount: integer("ready_recipient_count").notNull().default(0),
+    heldRecipientCount: integer("held_recipient_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    requestedSendAt: text("requested_send_at"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_broadcast_schedule_intents_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    draftStatusIdx: index("audience_broadcast_schedule_intents_draft_status_idx").on(table.draftId, table.status),
+    statusCreatedIdx: index("audience_broadcast_schedule_intents_status_created_idx").on(
+      table.status,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {
