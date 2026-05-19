@@ -1,6 +1,9 @@
 import {
+  affiliateCommissionLedgerContract,
+  affiliateCommissionLedgerUpdatedAt,
+} from "@/lib/affiliate-commission-ledger";
+import {
   checkoutReferralAttributionContract,
-  checkoutReferralAttributionUpdatedAt,
 } from "@/lib/referral-checkout-attribution";
 
 export type CommerceObjectStatus = "live" | "planned";
@@ -23,7 +26,7 @@ export type CommerceDecision = {
   evidence: string[];
 };
 
-export const stripeCommerceUpdatedAt = checkoutReferralAttributionUpdatedAt;
+export const stripeCommerceUpdatedAt = affiliateCommissionLedgerUpdatedAt;
 
 export const stripeNodeVersion = "22.1.1";
 
@@ -36,7 +39,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, and optional referral-click attribution evidence. Live payment rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, and review-only commission ledger evidence. Live payment and payout rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -55,6 +58,7 @@ export const stripeCommerceContract = {
     liveModeEnabled: false,
   },
   referralAttribution: checkoutReferralAttributionContract,
+  affiliateCommissionLedger: affiliateCommissionLedgerContract,
   secretNames: [
     {
       name: "STRIPE_SECRET_KEY_SANDBOX",
@@ -238,6 +242,35 @@ export const commerceTables: CommerceTableContract[] = [
     purpose: "Public-safe evidence that a validated seeded referral click was attached to a sandbox checkout intent.",
   },
   {
+    table: "affiliate_commission_ledger_entries",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "checkout_intent_id",
+      "referral_attribution_id",
+      "referral_click_id",
+      "referral_link_id",
+      "partner_id",
+      "source_checkout_amount_cents",
+      "commission_cents",
+      "ledger_status",
+      "review_status",
+      "payout_status",
+    ],
+    serverPrivateFields: [
+      "idempotency_key",
+      "audit_correlation_id",
+      "metadata_json",
+      "buyer identifiers",
+      "raw Stripe identifiers",
+      "partner payout accounts",
+      "tax forms",
+      "private review notes",
+    ],
+    purpose:
+      "Review-only, non-payable commission ledger evidence created from trusted checkout referral attribution before payout workflows exist.",
+  },
+  {
     table: "stripe_webhook_events",
     status: "live",
     publicSafeFields: ["event_type", "api_version", "livemode", "status", "processed_at"],
@@ -303,6 +336,6 @@ export const commerceAgentWriteRules = [
   "Agents must not create, expire, refund, cancel, upgrade, downgrade, or publish a billing object without explicit confirmation text.",
   "Billing-impacting writes require actor identity, client attribution, idempotency key, audit correlation id, stale-state check, and redacted output.",
   "Model-visible output must not include raw Stripe secret keys, webhook secrets, customer IDs, Checkout Session IDs, PaymentIntent IDs, Subscription IDs, connected-account IDs, or private customer data.",
-  "Referral attribution evidence may link a seeded referral click to a checkout intent, but it must not create payable commissions, payout state, fraud decisions, tax records, or partner notifications.",
+  "Referral attribution evidence may link a seeded referral click to a checkout intent, and review-only commission ledger evidence may calculate draft commission amounts, but neither may create payable commissions, payout state, fraud decisions, tax records, or partner notifications.",
   "If an event or provider response is ambiguous, record the blocked state and continue with non-billing work instead of guessing.",
 ];
