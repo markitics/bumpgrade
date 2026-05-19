@@ -855,12 +855,29 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "read-contract-ready",
-        issue: 89,
+        status: "click-capture-ready",
+        issue: 109,
         parentIssue: 19,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/affiliates/source-data", "/affiliates/indie-launch-partners"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining(["/affiliates/source-data", "/api/affiliates/clicks", "/affiliates/indie-launch-partners"]),
+    );
+    expect(payload.clickWrites).toEqual(
+      expect.objectContaining({
+        status: "click-capture-ready",
+        issue: 109,
+        apiRoute: "/api/affiliates/clicks",
+        tables: expect.arrayContaining(["affiliate_referral_clicks"]),
+      }),
+    );
+    expect(payload.clickSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+      }),
+    );
     expect(payload.programs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -888,14 +905,100 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #89 is read-only");
-    expect(payload.caveat).toContain("does not track live clicks");
+    expect(payload.writeBoundary).toContain("Issue #109 can capture seeded referral clicks");
+    expect(payload.caveat).toContain("privacy-safe seeded click capture");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Partner links resolve to stable draft attribution rules/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Partner links can capture privacy-safe clicks before buyer attribution/i })).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
+  });
+
+  test("affiliate click API validates seeded links and replays idempotent responses", async ({ request }) => {
+    const countFor = async () => {
+      const response = await request.get("/affiliates/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const row = payload.clickSummary.aggregateCounts.find(
+        (candidate: { referral_link_id: string }) => candidate.referral_link_id === "ref-link-launch-circle-waitlist",
+      );
+      return row?.total_clicks ?? 0;
+    };
+    const beforeCount = await countFor();
+    const idempotencyKey = `playwright-referral-click-${Date.now()}`;
+    const payload = {
+      referralLinkId: "ref-link-launch-circle-waitlist",
+      destinationRoute: "/funnels/indie-launch-sandbox",
+      anonymousVisitorKey: "playwright-referral-visitor",
+      idempotencyKey,
+    };
+
+    const firstResponse = await request.post("/api/affiliates/clicks", { data: payload });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const firstResult = await firstResponse.json();
+    expect(firstResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        status: "recorded",
+        referralLinkId: "ref-link-launch-circle-waitlist",
+        referralCode: "LAUNCHCIRCLE",
+        partnerId: "affiliate-partner-launch-circle",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        privateDataIncluded: false,
+        rawRequestDataIncluded: false,
+      }),
+    );
+    expect(firstResult).not.toHaveProperty("anonymousVisitorKey");
+
+    const duplicateResponse = await request.post("/api/affiliates/clicks", { data: payload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicateResult = await duplicateResponse.json();
+    expect(duplicateResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        referralClickId: firstResult.referralClickId,
+      }),
+    );
+
+    const codeResponse = await request.post("/api/affiliates/clicks", {
+      data: {
+        code: "launchcircle",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        idempotencyKey: `${idempotencyKey}-code`,
+      },
+    });
+    expect(codeResponse.ok(), await codeResponse.text()).toBeTruthy();
+    const codeResult = await codeResponse.json();
+    expect(codeResult.referralLinkId).toBe("ref-link-launch-circle-waitlist");
+
+    const unsupportedLinkResponse = await request.post("/api/affiliates/clicks", {
+      data: { ...payload, referralLinkId: "ref-link-private", idempotencyKey: `${idempotencyKey}-unsupported` },
+    });
+    expect(unsupportedLinkResponse.status()).toBe(400);
+    await expect(unsupportedLinkResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_referral_link" }),
+    );
+
+    const unsupportedRouteResponse = await request.post("/api/affiliates/clicks", {
+      data: { ...payload, destinationRoute: "/private-admin", idempotencyKey: `${idempotencyKey}-route` },
+    });
+    expect(unsupportedRouteResponse.status()).toBe(400);
+    await expect(unsupportedRouteResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_destination_route" }),
+    );
+
+    const missingIdempotencyResponse = await request.post("/api/affiliates/clicks", {
+      data: { ...payload, idempotencyKey: "" },
+    });
+    expect(missingIdempotencyResponse.status()).toBe(400);
+    await expect(missingIdempotencyResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_required" }),
+    );
+
+    await expect.poll(countFor).toBe(beforeCount + 2);
   });
 
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
@@ -987,7 +1090,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89],
+          issueNumbers: [19, 89, 109],
+        }),
+        expect.objectContaining({
+          id: "journey-agent-records-privacy-safe-referral-click",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 89, 109],
         }),
       ]),
     );
@@ -1096,6 +1204,10 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "read-analytics-experiments",
           stableIds: expect.arrayContaining(["experimentAssignmentId"]),
+        }),
+        expect.objectContaining({
+          id: "read-affiliate-referrals",
+          stableIds: expect.arrayContaining(["referralClickId"]),
         }),
       ]),
     );

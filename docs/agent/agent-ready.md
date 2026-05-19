@@ -154,11 +154,14 @@ writes, or statistically meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
-referral links, attribution rules, commission rules, ledger fixtures, payout
-review, and fraud flags. `/affiliates/indie-launch-partners` is the read-only
-preview. This proves affiliate and referral semantics, not live click tracking,
-cookie assignment, buyer attribution, payable commission state, tax collection,
-fraud enforcement, Stripe payout capability, or partner notifications.
+referral links, aggregate click counts, attribution rules, commission rules,
+ledger fixtures, payout review, fraud flags, and the
+`/api/affiliates/clicks` write boundary. `/affiliates/indie-launch-partners` is
+the preview. Seeded referral clicks can be captured with idempotency,
+destination-route validation, and hashed request evidence. This proves affiliate
+and referral click semantics, not cookie assignment, buyer attribution, payable
+commission state, tax collection, fraud enforcement, Stripe payout capability,
+or partner notifications.
 
 ## MCP And Tooling
 

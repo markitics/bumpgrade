@@ -1,7 +1,7 @@
 # Affiliate And Referral Management
 
-Issue #89 adds the first read-only affiliate/referral source-data and preview
-surface for parent issue #19.
+Issues #89 and #109 add the first affiliate/referral source-data, preview
+surface, and privacy-safe click capture path for parent issue #19.
 
 ## Live Public-Safe Routes
 
@@ -11,6 +11,7 @@ surface for parent issue #19.
   write boundaries.
 - `/affiliates/indie-launch-partners`: semantic preview of the same fixture
   program for humans and browser agents.
+- `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
 
 ## Stable IDs
 
@@ -19,6 +20,7 @@ The contract introduces stable IDs for:
 - `affiliateProgramId`
 - `affiliatePartnerId`
 - `referralLinkId`
+- `referralClickId`
 - `attributionRuleId`
 - `commissionRuleId`
 - `commissionLedgerId`
@@ -33,12 +35,13 @@ buyer identifiers.
 
 ## Current Boundary
 
-This slice is read-only. It proves affiliate/referral semantics, not live
-tracking or payout capability.
+This slice can capture seeded referral clicks with idempotency, destination
+route validation, hashed request evidence, and aggregate-only public reporting.
+It proves affiliate/referral semantics and click capture, not buyer attribution
+or payout capability.
 
 Not live in this slice:
 
-- live referral click capture;
 - cookie assignment;
 - buyer attribution;
 - commission writes;

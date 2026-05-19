@@ -244,8 +244,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Referral links, affiliate partners, commission rules, attribution, payouts, and partner performance reporting.",
     audience: "Publishers who grow through partners, creators, and audience referrals.",
     expectedCapabilities: [
-      "Read-only affiliate/referral source data and preview route from issue #89.",
-      "Partner profiles and tracking links.",
+      "Affiliate/referral source data and preview route from issue #89.",
+      "Partner profiles, tracking links, and privacy-safe click capture from issue #109.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -253,9 +253,10 @@ export const featureCatalog: FeatureRecord[] = [
     evidence: [
       "Tracked by issue #19.",
       "Issue #89 adds `/affiliates/source-data` and `/affiliates/indie-launch-partners` as the first read-only affiliate/referral contract.",
+      "Issue #109 adds seeded referral click capture with idempotency, hashed request evidence, and aggregate-only source-data reporting.",
     ],
     agentContract:
-      "Payout-impacting writes require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts and click-capture boundaries; buyer attribution, commission writes, payout-impacting actions, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",

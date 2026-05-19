@@ -31,6 +31,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded analytics assignment API: https://bumpgrade.com/api/analytics/assignments
 - Affiliate/referral source data: https://bumpgrade.com/affiliates/source-data
 - Seeded affiliate partner preview: https://bumpgrade.com/affiliates/indie-launch-partners
+- Seeded affiliate click API: https://bumpgrade.com/api/affiliates/clicks
 - Public roadmap: https://bumpgrade.com/roadmap
 - Roadmap source data: https://bumpgrade.com/roadmap/source-data
 - Commerce source data: https://bumpgrade.com/commerce/source-data
@@ -132,12 +133,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   assignment, traffic routing, contact-level analytics, raw event or assignment
   exposure, automated decisions, direct agent analytics writes, or statistically
   meaningful proof.
-- `/affiliates/source-data` exposes the first read-only affiliate/referral
-  workspace with partner records, referral links, attribution rules, commission
-  rules, ledger fixtures, payout review, and fraud flags. Treat it as
-  preview/source-data evidence, not live click tracking, cookie assignment,
-  buyer attribution, payable commission state, tax collection, fraud
-  enforcement, Stripe payout capability, or a confirmed-write agent API.
+- `/affiliates/source-data` exposes the first affiliate/referral workspace with
+  partner records, referral links, aggregate click counts, attribution rules,
+  commission rules, ledger fixtures, payout review, fraud flags, and the
+  `/api/affiliates/clicks` write boundary. Treat it as seeded click capture and
+  source-data evidence, not cookie assignment, buyer attribution, payable
+  commission state, tax collection, fraud enforcement, Stripe payout capability,
+  or a confirmed-write agent API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.

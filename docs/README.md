@@ -34,9 +34,9 @@ then open the relevant shelf for the task.
 - `features/analytics-experiments.md`: event, metric, fixture report, variant,
   assignment-rule, aggregate count, seeded event capture, and seeded assignment
   contract from issues #87, #105, and #107.
-- `features/affiliate-referrals.md`: read-only affiliate program, referral
-  link, attribution, commission, payout review, and fraud flag source-data
-  contract from issue #89.
+- `features/affiliate-referrals.md`: affiliate program, referral link, click
+  capture, attribution, commission, payout review, and fraud flag source-data
+  contract from issues #89 and #109.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
