@@ -1,3 +1,9 @@
+import {
+  referralClickCaptureApiRoute,
+  referralClickCaptureUpdatedAt,
+  referralClickCaptureWriteContract,
+} from "@/lib/referral-clicks";
+
 export type AffiliateProgramStatus = "draft";
 export type AffiliatePartnerStatus = "approved" | "review";
 export type ReferralLinkStatus = "draft" | "review";
@@ -117,23 +123,23 @@ export type AffiliateProgram = {
   validation: string[];
 };
 
-export const affiliateReferralsUpdatedAt = "2026-05-18";
+export const affiliateReferralsUpdatedAt = referralClickCaptureUpdatedAt;
 
 export const affiliateProgram: AffiliateProgram = {
   id: "affiliate-program-indie-launch-partners",
   slug: "indie-launch-partners",
   title: "Indie launch partner program preview",
   status: "draft",
-  issue: 89,
+  issue: 109,
   parentIssue: 19,
   sourceDataRoute: "/affiliates/source-data",
   previewRoute: "/affiliates/indie-launch-partners",
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
-  revisionId: "affiliate-program-revision-indie-launch-2026-05-18",
+  revisionId: "affiliate-program-revision-indie-launch-2026-05-19-click-capture",
   summary:
-    "A read-only affiliate and referral scaffold for partner links, attribution windows, commission rules, review flags, payout readiness, and audit-safe agent access before live tracking exists.",
+    "An affiliate and referral scaffold for partner links, privacy-safe click capture, attribution windows, commission rules, review flags, payout readiness, and audit-safe agent access before buyer attribution exists.",
   attributionRules: [
     {
       id: "attribution-rule-first-click-30",
@@ -319,10 +325,11 @@ export const affiliateProgram: AffiliateProgram = {
     },
   ],
   writeBoundary:
-    "Issue #89 is read-only. Live referral click capture, cookie assignment, buyer attribution, commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, and partner notifications require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, private-data redaction, refund-window checks, and owner review before payout.",
+    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Cookie assignment, buyer attribution, commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, and partner notifications require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, private-data redaction, refund-window checks, and owner review before payout.",
   validation: [
     "/affiliates/source-data returns seeded programs, partners, links, attribution rules, commission rules, ledger fixtures, payout batches, and review flags.",
     "/affiliates/indie-launch-partners renders the affiliate/referral preview.",
+    `${referralClickCaptureApiRoute} stores seeded referral click evidence with idempotency.`,
     "/agent-docs/source-data lists the affiliate/referral read contract for future MCP resources.",
   ],
 };
@@ -336,15 +343,16 @@ export function getAffiliateProgramBySlug(slug: string) {
 export const affiliateReferralsSourceData = {
   id: "bumpgrade-affiliate-referrals-source-data",
   updatedAt: affiliateReferralsUpdatedAt,
-  status: "read-contract-ready",
-  issue: 89,
+  status: "click-capture-ready",
+  issue: 109,
   parentIssue: 19,
   generatedFrom: "src/lib/affiliate-referrals.ts",
-  routes: ["/affiliates/source-data", ...affiliatePrograms.map((program) => program.previewRoute)],
+  routes: ["/affiliates/source-data", referralClickCaptureApiRoute, ...affiliatePrograms.map((program) => program.previewRoute)],
   stableIds: [
     "affiliateProgramId",
     "affiliatePartnerId",
     "referralLinkId",
+    "referralClickId",
     "attributionRuleId",
     "commissionRuleId",
     "commissionLedgerId",
@@ -353,8 +361,9 @@ export const affiliateReferralsSourceData = {
     "auditEventId",
     "agentActionId",
   ],
+  clickWrites: referralClickCaptureWriteContract,
   writeBoundary: affiliateProgram.writeBoundary,
   programs: affiliatePrograms,
   caveat:
-    "This contract proves affiliate and referral read/preview semantics only. It does not track live clicks, assign cookies, attribute buyers, create commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, or provide confirmed-write agent APIs.",
+    "This contract proves affiliate and referral read/preview semantics plus privacy-safe seeded click capture. Public source-data may expose aggregate click counts, but it does not expose raw click rows, assign cookies, attribute buyers, create commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, or provide confirmed-write agent APIs.",
 };
