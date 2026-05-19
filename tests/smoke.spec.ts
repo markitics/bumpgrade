@@ -14,6 +14,7 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
+import { draftFunnelPublishConfirmationText } from "../src/lib/funnel-drafts";
 import { editableDraftCapability, funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
@@ -248,8 +249,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-and-owner-preview-ready",
-        issue: 95,
+        status: "read-contract-owner-preview-and-publish-ready",
+        issue: 135,
         parentIssue: 14,
       }),
     );
@@ -258,15 +259,19 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
         id: editableDraftCapability.id,
-        status: "owner-session-preview-ready",
-        issue: 95,
+        status: "owner-session-publish-ready",
+        issue: 135,
         adminRoute: "/admin/funnels",
         previewRoutePattern: "/admin/funnels/:draftId/preview",
         createEndpoint: "/api/admin/funnels/drafts",
         editEndpoint: "/api/admin/funnels/drafts",
+        publishEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
+    expect(payload.publishedD1Funnels).toEqual(expect.any(Array));
+    expect(payload.privateDraftsIncluded).toBe(false);
+    expect(payload.rawOwnerDataIncluded).toBe(false);
     expect(payload.funnels).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -283,7 +288,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
-    expect(payload.caveat).toContain("owner-gated private draft preview");
+    expect(payload.caveat).toContain("exact-confirmed public publishing");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
@@ -2818,6 +2823,42 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
 
+    const stalePublishResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "publish",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: "stale-revision",
+        confirmationText: draftFunnelPublishConfirmationText,
+        idempotencyKey: `playwright-publish-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(stalePublishResponse.status()).toBe(503);
+    const stalePublishPayload = await stalePublishResponse.json();
+    expect(stalePublishPayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
+    const publishResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "publish",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: movePayload.draft.revisionId,
+        confirmationText: draftFunnelPublishConfirmationText,
+        idempotencyKey: `playwright-publish-indie-launch-working-copy-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(publishResponse.ok(), await publishResponse.text()).toBeTruthy();
+    const publishPayload = await publishResponse.json();
+    expect(publishPayload.draft).toEqual(
+      expect.objectContaining({
+        id: "funnel-draft-indie-launch-working-copy",
+        status: "published",
+        previewRoute: "/funnels/indie-launch-working-copy",
+      }),
+    );
+
     await page.goto("/admin/funnels");
     await expect(page.getByRole("heading", { name: /Draft funnel builder backed by D1/i })).toBeVisible();
     const draftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
@@ -2828,12 +2869,40 @@ test.describe("Bumpgrade scaffold", () => {
       "href",
       "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
     );
+    await expect(draftCard.getByRole("link", { name: /Public route/i })).toHaveAttribute(
+      "href",
+      "/funnels/indie-launch-working-copy",
+    );
 
     await page.goto("/admin/funnels/funnel-draft-indie-launch-working-copy/preview");
     await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Current private funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
+
+    await page.goto("/funnels/indie-launch-working-copy");
+    await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Published funnel sequence" })).toBeVisible();
+    await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
+    await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("m@rkmoriarty.com");
+
+    const publishedSourceResponse = await page.request.get("/funnels/source-data");
+    expect(publishedSourceResponse.ok()).toBeTruthy();
+    const publishedSource = await publishedSourceResponse.json();
+    expect(publishedSource.routes).toEqual(expect.arrayContaining(["/funnels/indie-launch-working-copy"]));
+    expect(publishedSource.publishedD1Funnels).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          slug: "indie-launch-working-copy",
+          status: "published",
+          previewRoute: "/funnels/indie-launch-working-copy",
+          issue: 135,
+        }),
+      ]),
+    );
+    expect(publishedSource.privateDraftsIncluded).toBe(false);
+    expect(publishedSource.rawOwnerDataIncluded).toBe(false);
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

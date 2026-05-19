@@ -4,8 +4,8 @@ import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { draftFunnelPreviewPath, getDraftFunnelAdminState } from "@/lib/funnel-drafts";
-import { draftFunnelPreviewIssue } from "@/lib/funnels";
+import { draftFunnelPreviewPath, draftFunnelPublishConfirmationText, getDraftFunnelAdminState } from "@/lib/funnel-drafts";
+import { draftFunnelPublishingIssue } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -35,16 +35,16 @@ export default async function AdminFunnelsPage() {
           <h1>Draft funnel builder backed by D1.</h1>
           <p className="lede">
             Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
-            steps. Publishing, checkout linking, deletion, drag-and-drop layout editing, and agent edits still need
-            confirmed-write slices.
+            steps. Exact-confirmed publishing is live for public D1 funnel routes. Checkout linking, deletion,
+            drag-and-drop layout editing, and agent edits still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelPreviewIssue}`} className="secondary-action">
-              Issue #{draftFunnelPreviewIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelPublishingIssue}`} className="secondary-action">
+              Issue #{draftFunnelPublishingIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -128,6 +128,12 @@ export default async function AdminFunnelsPage() {
                   Preview draft
                   <Eye aria-hidden="true" />
                 </Link>
+                {draft.status === "published" && draft.previewRoute ? (
+                  <Link href={draft.previewRoute} className="primary-action compact-action">
+                    Public route
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                ) : null}
               </div>
               <div className="roadmap-detail">
                 <strong>Draft ID</strong>
@@ -209,6 +215,27 @@ export default async function AdminFunnelsPage() {
                   </div>
                 ))}
               </div>
+              {draft.status === "published" ? null : (
+                <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-publish-form">
+                  <input type="hidden" name="mode" value="publish" />
+                  <input type="hidden" name="draftId" value={draft.id} />
+                  <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                  <input type="hidden" name="idempotencyKey" value={`publish-${draft.id}-${draft.revisionId}`} />
+                  <label className="admin-step-goal-field">
+                    Publish confirmation
+                    <input
+                      name="confirmationText"
+                      type="text"
+                      placeholder={draftFunnelPublishConfirmationText}
+                      disabled={!state.canWrite}
+                    />
+                  </label>
+                  <button type="submit" className="primary-action" disabled={!state.canWrite || draft.steps.length < 3}>
+                    Publish funnel
+                    <ArrowRight aria-hidden="true" />
+                  </button>
+                </form>
+              )}
             </article>
           ))}
         </div>

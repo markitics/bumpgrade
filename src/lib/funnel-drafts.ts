@@ -1,11 +1,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
-import type { FunnelBlock, FunnelStep, FunnelStepKind } from "@/lib/funnels";
+import type { FunnelBlock, FunnelRecord, FunnelStep, FunnelStepKind } from "@/lib/funnels";
 import {
   draftFunnelBuilderIssue,
   draftFunnelBuilderParentIssue,
   draftFunnelBuilderWriteBoundary,
+  draftFunnelPublishingIssue,
   draftFunnelStepEditingIssue,
   editableDraftCapability,
   seededFunnel,
@@ -90,6 +91,7 @@ type D1FunnelStepRow = {
 };
 
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "thank_you"];
+export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -117,6 +119,10 @@ export function slugifyDraftFunnelTitle(value: string) {
 
 export function draftFunnelPreviewPath(draftId: string) {
   return `/admin/funnels/${encodeURIComponent(draftId)}/preview`;
+}
+
+export function publicFunnelPath(slug: string) {
+  return `/funnels/${encodeURIComponent(slug)}`;
 }
 
 function runtimeId(prefix: string) {
@@ -249,6 +255,32 @@ async function loadDraftFromD1(db: D1Database, draftId: string) {
   return drafts.find((draft) => draft.id === draftId) ?? null;
 }
 
+async function loadDraftBySlugFromD1(db: D1Database, slug: string, status?: DraftFunnelStatus) {
+  const row = status
+    ? await db.prepare("SELECT * FROM funnel_drafts WHERE slug = ? AND status = ?").bind(slug, status).first<D1FunnelDraftRow>()
+    : await db.prepare("SELECT * FROM funnel_drafts WHERE slug = ?").bind(slug).first<D1FunnelDraftRow>();
+
+  if (!row) return null;
+
+  const stepResult = await db
+    .prepare("SELECT * FROM funnel_draft_steps WHERE funnel_draft_id = ? ORDER BY step_order ASC")
+    .bind(row.id)
+    .all<D1FunnelStepRow>();
+
+  const steps = (stepResult.results ?? []).map((step) => ({
+    id: step.id,
+    slug: step.slug,
+    order: step.step_order,
+    kind: step.kind,
+    title: step.title,
+    goal: step.goal,
+    routeAnchor: step.route_anchor,
+    blocks: parseJson<FunnelBlock[]>(step.blocks_json, []),
+  }));
+
+  return draftFromRow(row, steps);
+}
+
 function fixtureDraftForId(draftId: string) {
   return [fixtureDraftFunnel].find((draft) => draft.id === draftId || draft.slug === draftId) ?? null;
 }
@@ -378,13 +410,25 @@ function insertAuditStatement(
   db: D1Database,
   draft: DraftFunnelRecord,
   identity: AdminIdentity,
-  eventKind: "draft_seeded" | "draft_created" | "draft_updated",
+  eventKind: "draft_seeded" | "draft_created" | "draft_updated" | "draft_published",
   idempotencyKey: string,
   summary?: string,
   metadata: Record<string, unknown> = {},
 ) {
-  const action = eventKind === "draft_seeded" ? "seeded" : eventKind === "draft_created" ? "created" : "updated";
-  const issue = eventKind === "draft_updated" ? draftFunnelStepEditingIssue : draftFunnelBuilderIssue;
+  const action =
+    eventKind === "draft_seeded"
+      ? "seeded"
+      : eventKind === "draft_created"
+        ? "created"
+        : eventKind === "draft_published"
+          ? "published"
+          : "updated";
+  const issue =
+    eventKind === "draft_updated"
+      ? draftFunnelStepEditingIssue
+      : eventKind === "draft_published"
+        ? draftFunnelPublishingIssue
+        : draftFunnelBuilderIssue;
   return db
     .prepare(
       `INSERT INTO funnel_audit_events (
@@ -537,6 +581,123 @@ export async function updateDraftFunnelStep(
   ]);
 
   return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+async function draftForIdempotencyKey(db: D1Database, idempotencyKey: string) {
+  const existing = await db
+    .prepare("SELECT funnel_draft_id FROM funnel_audit_events WHERE idempotency_key = ?")
+    .bind(idempotencyKey)
+    .first<{ funnel_draft_id: string | null }>();
+
+  if (!existing?.funnel_draft_id) return null;
+  return loadDraftFromD1(db, existing.funnel_draft_id);
+}
+
+export async function publishDraftFunnel(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelPublishConfirmationText) {
+    throw new Error("Exact publish confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before publishing.");
+  }
+
+  if (draft.steps.length < 3) {
+    throw new Error("Draft funnel needs at least three ordered steps before publishing.");
+  }
+
+  const publicRoute = publicFunnelPath(draft.slug);
+  const nextRevisionId = `${draft.revisionId}-published-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_drafts SET status = 'published', preview_route = ?, revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(publicRoute, nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_published",
+      input.idempotencyKey,
+      `${identityEmail(identity)} published ${draft.title} to ${publicRoute}.`,
+      {
+        action: "draft_publish",
+        publicRoute,
+        expectedRevisionId: input.expectedRevisionId,
+        stepCount: draft.steps.length,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? { ...draft, status: "published", previewRoute: publicRoute, revisionId: nextRevisionId };
+}
+
+export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
+  return {
+    id: `published-${draft.id}`,
+    slug: draft.slug,
+    title: draft.title,
+    status: "published",
+    issue: draftFunnelPublishingIssue,
+    parentIssue: draftFunnelBuilderParentIssue,
+    summary: draft.summary,
+    audienceSegmentIds: seededFunnel.audienceSegmentIds,
+    linkedFeatureIds: seededFunnel.linkedFeatureIds,
+    previewRoute: draft.previewRoute ?? publicFunnelPath(draft.slug),
+    sourceDataRoute: draft.sourceDataRoute,
+    revisionId: draft.revisionId,
+    steps: draft.steps,
+    writeBoundary:
+      "Published D1 funnels are public read surfaces. Further publishing edits, unpublishing, checkout-linking, deletion, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
+    validation: [
+      "Owner-session publish action requires exact confirmation and revision match.",
+      "Public /funnels/{slug} route renders ordered D1 steps and blocks.",
+      "/funnels/source-data lists only published D1 funnel summaries, not unpublished private drafts.",
+    ],
+  };
+}
+
+export async function getPublishedD1FunnelBySlug(slug: string) {
+  try {
+    const db = await getFunnelDraftD1OrThrow();
+    const draft = await loadDraftBySlugFromD1(db, slug, "published");
+    return draft ? publicFunnelFromDraft(draft) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getPublishedD1FunnelSourceData() {
+  try {
+    const db = await getFunnelDraftD1OrThrow();
+    const drafts = (await loadDraftsFromD1(db)).filter((draft) => draft.status === "published");
+    return {
+      source: "d1" as const,
+      loadError: null,
+      publishedFunnels: drafts.map((draft) => publicFunnelFromDraft(draft)),
+      privateDraftsIncluded: false,
+      rawOwnerDataIncluded: false,
+    };
+  } catch (error) {
+    return {
+      source: "fixture" as const,
+      loadError: error instanceof Error ? error.message : "Unable to load published D1 funnels.",
+      publishedFunnels: [] as FunnelRecord[],
+      privateDraftsIncluded: false,
+      rawOwnerDataIncluded: false,
+    };
+  }
 }
 
 export async function reorderDraftFunnelStep(

@@ -118,6 +118,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-gated D1 draft funnel seed/create scaffold from issue #91.",
       "Owner-gated draft step title, goal, kind, and order editing from issue #93.",
       "Owner-gated private D1 draft preview route from issue #95.",
+      "Exact-confirmed public D1 draft publishing from issue #135.",
       "Funnel steps for opt-in, sales, checkout, upsell, downsell, thank-you, and nurture paths.",
       "Reusable blocks, templates, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
@@ -129,9 +130,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #91 adds `/admin/funnels`, `/api/admin/funnels/drafts`, and D1 draft/audit tables for owner-gated draft creation.",
       "Issue #93 adds owner-session step edit and reorder controls on top of D1 draft funnels.",
       "Issue #95 adds an owner-gated preview route for the current private D1 draft sequence.",
+      "Issue #135 adds exact-confirmed publishing from D1 drafts to public `/funnels/{slug}` routes.",
     ],
     agentContract:
-      "Owner sessions can seed, create, update, reorder, and preview private draft funnel steps; future direct agent writes must require confirmation before editing creator-speech or publishing public funnel pages.",
+      "Owner sessions can seed, create, update, reorder, preview, and publish private draft funnel steps with confirmation and stale-state checks; future direct agent writes must require confirmation before editing creator-speech or publishing public funnel pages.",
   },
   {
     id: "feature-checkout-offers",

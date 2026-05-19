@@ -211,16 +211,17 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls and owner-gated private preview, reusable blocks, templates, publishing, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable blocks, templates, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
       "Issue #91 adds owner-gated `/admin/funnels`, `/api/admin/funnels/drafts`, and D1 draft/audit tables.",
       "Issue #93 adds owner-gated step title, goal, kind, and order editing on private D1 drafts.",
       "Issue #95 adds owner-gated private draft preview from current D1 draft state.",
+      "Issue #135 adds exact-confirmed public publishing from D1 draft funnels to stable public `/funnels/{slug}` routes.",
     ],
     nextMilestone:
-      "Add confirmed publish review, checkout linking, deletion/archive, drag-and-drop block editing, and direct agent-safe edit tools on top of D1 draft funnels.",
+      "Add checkout linking, deletion/archive, unpublishing, drag-and-drop block editing, and direct agent-safe edit tools on top of D1 draft funnels.",
   },
   {
     id: "roadmap-checkout-offers",

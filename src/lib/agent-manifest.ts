@@ -215,10 +215,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded draft funnel",
       "Inspect ordered steps",
       "Inspect page blocks and write boundaries",
-      "Discover owner-session editable draft and private preview capability from issues #91, #93, and #95",
+      "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, and #135",
     ],
     writeBoundary:
-      "Owner-session seed/create/update/reorder draft writes and private draft preview exist at /admin/funnels. Publishing, checkout linking, deletion, public preview, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/update/reorder draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Checkout linking, deletion, unpublishing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -231,10 +231,11 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read private draft funnel rows only with an owner session",
       "Preview private draft funnel state only with an owner session",
+      "Publish a draft only through owner-session UI with exact confirmation, idempotency, and a fresh revision ID",
       "Check audit metadata before acting on draft state",
     ],
     writeBoundary:
-      "The POST endpoint can seed, create, update, and reorder private draft steps for an authenticated owner; private preview is owner-gated; public publishing, checkout linking, deletion, and direct agent edits are not live.",
+      "The POST endpoint can seed, create, update, reorder, and publish private draft steps for an authenticated owner; private preview is owner-gated; checkout linking, deletion, unpublishing, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -491,10 +492,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+      "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
     stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "funnelDraftId", "funnelAuditEventId"],
     volatileClaims:
-      "The public funnel contract exposes owner-gated editable draft capability metadata; it does not expose private draft copy, public publishing, checkout linking, or unconfirmed agent edits.",
+      "The public funnel contract exposes owner-gated editable draft and publish capability metadata; it does not expose unpublished private draft copy, checkout linking, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -650,8 +651,8 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
-    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder and private preview exist in admin UI, while publish, checkout-link, public preview, and direct agent-edit tools require confirmed-write contracts.",
+    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder, private preview, and exact-confirmed publish exist in admin UI, while checkout-link, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",

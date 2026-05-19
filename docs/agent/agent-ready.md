@@ -107,10 +107,12 @@ amounts, limits, trials, or live billing availability.
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel, `/funnels/indie-launch-sandbox` is the read-only
 preview, and `/admin/funnels` is the Better Auth owner-gated D1 draft creation,
-step-edit, and private preview surface from issues #91, #93, and #95. This
-proves ordered funnel/page-block semantics and private draft
-seed/create/update/reorder/preview state, not public publishing, checkout
-integration, drag-and-drop editing, deletion, or a direct agent write API.
+step-edit, private preview, and exact-confirmed publish surface from issues #91,
+#93, #95, and #135. This proves ordered funnel/page-block semantics, private
+draft seed/create/update/reorder/preview state, and public D1 funnel publishing
+to `/funnels/{slug}` after owner confirmation and revision checks. It is not
+checkout integration, drag-and-drop editing, deletion/unpublishing, or a direct
+agent write API.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
 contract for the first seeded primary offer, constrained order bump, upsell, and
