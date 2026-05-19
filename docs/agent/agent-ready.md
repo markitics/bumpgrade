@@ -150,15 +150,16 @@ agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
 for seeded event definitions, aggregate event counts, aggregate assignment
-counts, metric formulas, fixture funnel-step reports, A/B test variants,
-deterministic assignment rules, the `/api/analytics/events` write boundary, and
-the `/api/analytics/assignments` write boundary.
+counts, aggregate funnel conversion report rows, metric formulas, A/B test
+variants, deterministic assignment rules, the `/api/analytics/events` write
+boundary, and the `/api/analytics/assignments` write boundary.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
-validation, and hashed request evidence. This proves seeded event and assignment
-semantics, not cookie assignment, traffic routing, contact-level reporting, raw
-event or assignment exposure, automated decisions, direct agent analytics
-writes, or statistically meaningful proof.
+validation, and hashed request evidence. Aggregate conversion rows are computed
+from captured test events when samples exist. This proves seeded event,
+assignment, and reporting semantics, not cookie assignment, traffic routing,
+contact-level reporting, raw event or assignment exposure, automated decisions,
+direct agent analytics writes, or statistically meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
