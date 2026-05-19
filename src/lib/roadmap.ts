@@ -216,7 +216,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records, owner-confirmed template-to-draft creation, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
@@ -225,9 +225,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #95 adds owner-gated private draft preview from current D1 draft state.",
       "Issue #135 adds exact-confirmed public publishing from D1 draft funnels to stable public `/funnels/{slug}` routes.",
       "Issue #159 adds reusable funnel templates and block-template library records to `/funnels/source-data` and the seeded preview route.",
+      "Issue #161 adds owner-confirmed template-to-draft creation from reusable funnel templates.",
     ],
     nextMilestone:
-      "Add template-to-draft creation, checkout linking, deletion/archive, unpublishing, drag-and-drop block editing, and direct agent-safe edit tools on top of D1 draft funnels.",
+      "Add checkout linking, deletion/archive, unpublishing, drag-and-drop block editing, and direct agent-safe edit tools on top of D1 draft funnels.",
   },
   {
     id: "roadmap-checkout-offers",

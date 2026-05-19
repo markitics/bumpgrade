@@ -14,8 +14,8 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
-import { draftFunnelPublishConfirmationText } from "../src/lib/funnel-drafts";
-import { editableDraftCapability, funnelSourceData, seededFunnel } from "../src/lib/funnels";
+import { draftFunnelPublishConfirmationText, draftFunnelTemplateCreationConfirmationText } from "../src/lib/funnel-drafts";
+import { editableDraftCapability, funnelSourceData, seededFunnel, templateDraftCreationCapability } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import {
@@ -348,8 +348,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-template-library-ready",
-        issue: 159,
+        status: "owner-template-draft-creation-ready",
+        issue: 161,
         parentIssue: 14,
       }),
     );
@@ -371,6 +371,18 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.publishedD1Funnels).toEqual(expect.any(Array));
     expect(payload.privateDraftsIncluded).toBe(false);
     expect(payload.rawOwnerDataIncluded).toBe(false);
+    expect(payload.templateDraftCreationCapability).toEqual(
+      expect.objectContaining({
+        id: templateDraftCreationCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 161,
+        adminRoute: "/admin/funnels",
+        createEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+      }),
+    );
     expect(payload.templateLibraryIssue).toBe(159);
     expect(payload.stableIds).toEqual(expect.arrayContaining(["funnelTemplateId", "funnelBlockTemplateId"]));
     expect(payload.templates).toEqual(
@@ -378,7 +390,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "template-launch-sales-stack",
           title: "Launch sales funnel",
-          draftCreation: "future-confirmed-write",
+          draftCreation: "owner-session-confirmed-write",
           steps: expect.arrayContaining([
             expect.objectContaining({ order: 1, kind: "opt_in" }),
             expect.objectContaining({ order: 2, kind: "sales" }),
@@ -418,6 +430,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
     expect(payload.caveat).toContain("exact-confirmed public publishing");
+    expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
@@ -3581,6 +3594,52 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+
+    const templateDraftIdempotencyKey = `playwright-template-draft-${Date.now()}`;
+    const templateDraftTitle = `Post-purchase template draft ${Date.now()}`;
+    const templateDraftResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-post-purchase-offer",
+        title: templateDraftTitle,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: templateDraftIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(templateDraftResponse.ok(), await templateDraftResponse.text()).toBeTruthy();
+    const templateDraftPayload = await templateDraftResponse.json();
+    expect(templateDraftPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "create-from-template",
+        draft: expect.objectContaining({
+          title: templateDraftTitle,
+          sourceIssueNumber: 161,
+          parentIssueNumber: 14,
+          steps: expect.arrayContaining([
+            expect.objectContaining({ order: 1, kind: "checkout", title: "Trusted checkout handoff" }),
+            expect.objectContaining({ order: 2, kind: "upsell", title: "Follow-up offer" }),
+            expect.objectContaining({ order: 3, kind: "thank_you", title: "Final confirmation" }),
+          ]),
+        }),
+      }),
+    );
+    const templateDraftReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-post-purchase-offer",
+        title: `${templateDraftTitle} replay should not create a second draft`,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: templateDraftIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(templateDraftReplay.ok(), await templateDraftReplay.text()).toBeTruthy();
+    const templateDraftReplayPayload = await templateDraftReplay.json();
+    expect(templateDraftReplayPayload.draft.id).toBe(templateDraftPayload.draft.id);
 
     const updateResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },

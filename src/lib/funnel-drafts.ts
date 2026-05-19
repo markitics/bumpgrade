@@ -1,15 +1,19 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
-import type { FunnelBlock, FunnelRecord, FunnelStep, FunnelStepKind } from "@/lib/funnels";
+import type { FunnelBlock, FunnelRecord, FunnelStep, FunnelStepKind, FunnelTemplate, FunnelTemplateStep } from "@/lib/funnels";
 import {
   draftFunnelBuilderIssue,
   draftFunnelBuilderParentIssue,
   draftFunnelBuilderWriteBoundary,
   draftFunnelPublishingIssue,
   draftFunnelStepEditingIssue,
+  draftFunnelTemplateCreationIssue,
   editableDraftCapability,
+  funnelBlockLibrary,
+  funnelTemplateLibrary,
   seededFunnel,
+  templateDraftCreationCapability,
 } from "@/lib/funnels";
 
 export type DraftFunnelSource = "d1" | "fixture";
@@ -92,6 +96,7 @@ type D1FunnelStepRow = {
 
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
+export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -141,6 +146,23 @@ function draftBlocksForStep(step: FunnelStep): FunnelBlock[] {
   }));
 }
 
+function blockLibraryItem(kind: FunnelBlock["kind"]) {
+  return funnelBlockLibrary.find((block) => block.kind === kind);
+}
+
+function draftBlocksForTemplateStep(draftId: string, step: FunnelTemplateStep): FunnelBlock[] {
+  return step.requiredBlockKinds.map((kind, index) => {
+    const libraryItem = blockLibraryItem(kind);
+    return {
+      id: `${draftId}-block-${step.order}-${kind}-${index + 1}`,
+      kind,
+      title: libraryItem?.title ?? `${kind.replaceAll("_", " ")} block`,
+      body: libraryItem?.purpose ?? "Reusable template block.",
+      agentEditable: libraryItem?.agentEditable ?? false,
+    };
+  });
+}
+
 function templateSteps(draftId: string): DraftFunnelStepRecord[] {
   return seededFunnel.steps.map((step) => ({
     id: `${draftId}-${step.kind}-${step.order}`,
@@ -152,6 +174,22 @@ function templateSteps(draftId: string): DraftFunnelStepRecord[] {
     routeAnchor: step.routeAnchor,
     blocks: draftBlocksForStep(step),
   }));
+}
+
+function templateLibrarySteps(draftId: string, template: FunnelTemplate): DraftFunnelStepRecord[] {
+  return template.steps.map((step) => {
+    const slug = slugifyDraftFunnelTitle(step.title);
+    return {
+      id: `${draftId}-${step.kind}-${step.order}`,
+      slug,
+      order: step.order,
+      kind: step.kind,
+      title: step.title,
+      goal: `${step.title} for ${template.title}.`,
+      routeAnchor: slug,
+      blocks: draftBlocksForTemplateStep(draftId, step),
+    };
+  });
 }
 
 export const fixtureDraftFunnel: DraftFunnelRecord = {
@@ -428,7 +466,7 @@ function insertAuditStatement(
       ? draftFunnelStepEditingIssue
       : eventKind === "draft_published"
         ? draftFunnelPublishingIssue
-        : draftFunnelBuilderIssue;
+        : draft.sourceIssueNumber;
   return db
     .prepare(
       `INSERT INTO funnel_audit_events (
@@ -454,16 +492,18 @@ async function persistDraft(
   identity: AdminIdentity,
   eventKind: "draft_seeded" | "draft_created",
   idempotencyKey: string,
+  metadata: Record<string, unknown> = {},
 ) {
   await db.batch([
     insertDraftStatement(db, draft, {
-      issue: draftFunnelBuilderIssue,
+      issue: draft.sourceIssueNumber,
       parentIssue: draftFunnelBuilderParentIssue,
       editableDraftCapability: editableDraftCapability.id,
+      ...metadata,
     }),
     parkExistingStepOrdersStatement(db, draft.id),
     ...insertStepStatements(db, draft),
-    insertAuditStatement(db, draft, identity, eventKind, idempotencyKey),
+    insertAuditStatement(db, draft, identity, eventKind, idempotencyKey, undefined, metadata),
   ]);
 
   const persisted = await loadDraftsFromD1(db);
@@ -494,11 +534,24 @@ export async function seedEditableFunnelDraft(db: D1Database, identity: AdminIde
   return persistDraft(db, draft, identity, "draft_seeded", idempotencyKey);
 }
 
+async function draftForIdempotencyKey(db: D1Database, idempotencyKey: string) {
+  const existing = await db
+    .prepare("SELECT funnel_draft_id FROM funnel_audit_events WHERE idempotency_key = ?")
+    .bind(idempotencyKey)
+    .first<{ funnel_draft_id: string | null }>();
+
+  if (!existing?.funnel_draft_id) return null;
+  return loadDraftFromD1(db, existing.funnel_draft_id);
+}
+
 export async function createDraftFunnelFromTemplate(
   db: D1Database,
   identity: AdminIdentity,
   input: { title: string; idempotencyKey: string },
 ) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
   const baseTitle = input.title.trim() || "Untitled launch funnel";
   const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(baseTitle));
   const draftId = `funnel-draft-${slug}`;
@@ -522,6 +575,51 @@ export async function createDraftFunnelFromTemplate(
   };
 
   return persistDraft(db, draft, identity, "draft_created", input.idempotencyKey);
+}
+
+export async function createDraftFunnelFromLibraryTemplate(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { templateId: string; title: string; confirmationText: string; idempotencyKey: string },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelTemplateCreationConfirmationText) {
+    throw new Error("Exact template draft confirmation text is required.");
+  }
+
+  const template = funnelTemplateLibrary.find((item) => item.id === input.templateId);
+  if (!template) throw new Error("Funnel template not found.");
+
+  const baseTitle = input.title.trim() || `${template.title} draft`;
+  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(baseTitle));
+  const draftId = `funnel-draft-${slug}`;
+  const draft: DraftFunnelRecord = {
+    id: draftId,
+    slug,
+    title: baseTitle.slice(0, 120),
+    status: "draft",
+    summary: `D1-backed private draft created from the ${template.title} template. ${template.goal}`,
+    sourceIssueNumber: draftFunnelTemplateCreationIssue,
+    parentIssueNumber: draftFunnelBuilderParentIssue,
+    previewRoute: null,
+    sourceDataRoute: "/funnels/source-data",
+    revisionId: `funnel-draft-revision-${slug}-${new Date().toISOString().slice(0, 10)}`,
+    createdByEmail: identityEmail(identity),
+    ownerUserId: identity.userId,
+    steps: templateLibrarySteps(draftId, template),
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  return persistDraft(db, draft, identity, "draft_created", input.idempotencyKey, {
+    templateDraftCreationCapability: templateDraftCreationCapability.id,
+    templateId: template.id,
+    templateSourceIssue: template.sourceIssue,
+    templateDraftCreationIssue: draftFunnelTemplateCreationIssue,
+    draftCreation: template.draftCreation,
+  });
 }
 
 function normalizeStepKind(value: string, fallback: FunnelStepKind) {
@@ -581,16 +679,6 @@ export async function updateDraftFunnelStep(
   ]);
 
   return (await loadDraftFromD1(db, draft.id)) ?? draft;
-}
-
-async function draftForIdempotencyKey(db: D1Database, idempotencyKey: string) {
-  const existing = await db
-    .prepare("SELECT funnel_draft_id FROM funnel_audit_events WHERE idempotency_key = ?")
-    .bind(idempotencyKey)
-    .first<{ funnel_draft_id: string | null }>();
-
-  if (!existing?.funnel_draft_id) return null;
-  return loadDraftFromD1(db, existing.funnel_draft_id);
 }
 
 export async function publishDraftFunnel(

@@ -4,8 +4,13 @@ import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { draftFunnelPreviewPath, draftFunnelPublishConfirmationText, getDraftFunnelAdminState } from "@/lib/funnel-drafts";
-import { draftFunnelPublishingIssue } from "@/lib/funnels";
+import {
+  draftFunnelPreviewPath,
+  draftFunnelPublishConfirmationText,
+  draftFunnelTemplateCreationConfirmationText,
+  getDraftFunnelAdminState,
+} from "@/lib/funnel-drafts";
+import { draftFunnelTemplateCreationIssue, funnelTemplateLibrary } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -26,6 +31,7 @@ export default async function AdminFunnelsPage() {
 
   const state = await getDraftFunnelAdminState();
   const seedIdempotencyKey = "funnel-draft-seed-indie-launch-working-copy-v1";
+  const templateIdempotencySeed = state.drafts.length;
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-funnels-page">
@@ -35,16 +41,17 @@ export default async function AdminFunnelsPage() {
           <h1>Draft funnel builder backed by D1.</h1>
           <p className="lede">
             Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
-            steps. Exact-confirmed publishing is live for public D1 funnel routes. Checkout linking, deletion,
-            drag-and-drop layout editing, and agent edits still need confirmed-write slices.
+            steps. Exact-confirmed publishing is live for public D1 funnel routes, and owner-confirmed template-to-draft
+            creation is live for the reusable template library. Checkout linking, deletion, drag-and-drop layout editing,
+            and direct agent edits still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelPublishingIssue}`} className="secondary-action">
-              Issue #{draftFunnelPublishingIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelTemplateCreationIssue}`} className="secondary-action">
+              Issue #{draftFunnelTemplateCreationIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -100,6 +107,54 @@ export default async function AdminFunnelsPage() {
               <ArrowRight aria-hidden="true" />
             </button>
           </form>
+        </div>
+        <div className="feature-section-heading compact-section-heading">
+          <div>
+            <p className="eyebrow">Template drafts</p>
+            <h2>Create private drafts from reusable templates</h2>
+          </div>
+        </div>
+        <div className="admin-action-grid">
+          {funnelTemplateLibrary.map((template, index) => (
+            <form action="/api/admin/funnels/drafts" method="post" className="admin-action-panel" key={template.id}>
+              <input type="hidden" name="mode" value="create-from-template" />
+              <input type="hidden" name="templateId" value={template.id} />
+              <input
+                type="hidden"
+                name="idempotencyKey"
+                value={`template-draft-${template.id}-${templateIdempotencySeed}-${index}`}
+              />
+              <div>
+                <p className="eyebrow">Template</p>
+                <h3>{template.title}</h3>
+                <p>{template.goal}</p>
+              </div>
+              <label>
+                Draft title
+                <input
+                  name="title"
+                  type="text"
+                  defaultValue={`${template.title} draft`}
+                  minLength={3}
+                  maxLength={120}
+                  disabled={!state.canWrite}
+                />
+              </label>
+              <label>
+                Confirmation
+                <input
+                  name="confirmationText"
+                  type="text"
+                  placeholder={draftFunnelTemplateCreationConfirmationText}
+                  disabled={!state.canWrite}
+                />
+              </label>
+              <button type="submit" className="primary-action" disabled={!state.canWrite}>
+                Create from template
+                <GitBranch aria-hidden="true" />
+              </button>
+            </form>
+          ))}
         </div>
       </section>
 

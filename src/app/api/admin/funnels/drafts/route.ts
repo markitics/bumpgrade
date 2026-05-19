@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   createDraftFunnelFromTemplate,
+  createDraftFunnelFromLibraryTemplate,
   getFunnelDraftD1OrThrow,
   publishDraftFunnel,
   reorderDraftFunnelStep,
@@ -49,6 +50,13 @@ export async function POST(request: NextRequest) {
 
     if (mode === "seed") {
       draft = await seedEditableFunnelDraft(db, adminState.identity, idempotencyKey);
+    } else if (mode === "create-from-template") {
+      draft = await createDraftFunnelFromLibraryTemplate(db, adminState.identity, {
+        templateId: formValue(formData, "templateId"),
+        title: formValue(formData, "title"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
     } else if (mode === "update-step") {
       draft = await updateDraftFunnelStep(db, adminState.identity, {
         draftId: formValue(formData, "draftId"),

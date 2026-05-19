@@ -120,6 +120,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-gated private D1 draft preview route from issue #95.",
       "Exact-confirmed public D1 draft publishing from issue #135.",
       "Read-only reusable funnel templates and block-template library from issue #159.",
+      "Owner-confirmed template-to-draft creation from issue #161.",
       "Funnel steps for opt-in, sales, checkout, upsell, downsell, thank-you, and nurture paths.",
       "Reusable template and block metadata, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
@@ -133,9 +134,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #95 adds an owner-gated preview route for the current private D1 draft sequence.",
       "Issue #135 adds exact-confirmed publishing from D1 drafts to public `/funnels/{slug}` routes.",
       "Issue #159 adds reusable funnel templates and block-template library records to `/funnels/source-data` and the seeded preview route.",
+      "Issue #161 lets verified owners create private D1 drafts from reusable templates after exact confirmation and idempotency.",
     ],
     agentContract:
-      "Agents may read reusable template and block-template records from `/funnels/source-data`; owner sessions can seed, create, update, reorder, preview, and publish private draft funnel steps with confirmation and stale-state checks; future direct agent writes must require confirmation before creating drafts from templates, editing creator-speech, or publishing public funnel pages.",
+      "Agents may read reusable template and block-template records from `/funnels/source-data`; owner sessions can seed, create from templates, update, reorder, preview, and publish private draft funnel steps with confirmation and stale-state checks; future direct agent writes must require confirmation before creating drafts directly, editing creator-speech, or publishing public funnel pages.",
   },
   {
     id: "feature-checkout-offers",
