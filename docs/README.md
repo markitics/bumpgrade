@@ -28,8 +28,9 @@ then open the relevant shelf for the task.
   checkout start and constrained order-bump path from issue #99.
 - `features/product-access.md`: product, asset, access-rule, entitlement, and
   sandbox webhook grant contract from issues #83 and #101.
-- `features/audience-automation.md`: read-only opt-in, lead magnet, tag,
-  sequence, broadcast, and automation source-data contract from issue #85.
+- `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
+  broadcast, automation, consent, and seeded subscriber capture contract from
+  issues #85 and #103.
 - `features/analytics-experiments.md`: read-only event, metric, fixture report,
   variant, and assignment-rule source-data contract from issue #87.
 - `features/affiliate-referrals.md`: read-only affiliate program, referral

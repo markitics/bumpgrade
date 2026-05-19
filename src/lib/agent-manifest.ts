@@ -258,6 +258,7 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "src/lib/audience-automation.ts",
     stableIds: [
+      "subscriberId",
       "subscriberSegmentId",
       "optInFormId",
       "leadMagnetId",
@@ -268,8 +269,14 @@ export const agentReadContracts: AgentReadContract[] = [
       "consentRecordId",
       "agentActionId",
     ],
-    safeForAgents: ["Read seeded opt-in form", "Inspect tags and segments", "Inspect sequence and automation boundaries"],
-    writeBoundary: "Subscriber, tag, sequence, broadcast, unsubscribe, and email-send writes require future confirmed-write APIs.",
+    safeForAgents: [
+      "Read seeded opt-in form",
+      "Inspect tags and segments",
+      "Inspect consent-backed capture boundary",
+      "Inspect sequence and automation boundaries",
+    ],
+    writeBoundary:
+      "Public visitors can submit the seeded opt-in form with explicit consent; imports, broadcasts, unsubscribes, CRM notes, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
   },
   {
     id: "read-analytics-experiments",
@@ -429,10 +436,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-audience-automation",
     route: "/audience/source-data",
-    resolves: "Seeded audience automation workspace, opt-in form, tags, segments, lead magnet, sequence, broadcast draft, and confirmed-write boundary.",
-    stableIds: ["subscriberSegmentId", "optInFormId", "leadMagnetId", "emailSequenceId", "automationRuleId"],
+    resolves:
+      "Seeded audience automation workspace, opt-in form, consent-backed capture API, tags, segments, lead magnet, sequence, broadcast draft, and confirmed-write boundary.",
+    stableIds: ["subscriberSegmentId", "subscriberId", "optInFormId", "leadMagnetId", "emailSequenceId", "automationRuleId"],
     volatileClaims:
-      "The audience automation contract is read-only preview evidence; it is not subscriber storage, contact import, live email sending, unsubscribe management, or CRM timeline state.",
+      "The audience automation contract includes consent-backed opt-in capture; it is not contact import, live email sending, unsubscribe management, CRM timeline state, or direct agent subscriber write capability.",
   },
   {
     id: "evidence-analytics-experiments",
@@ -567,7 +575,8 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/audience/source-data",
     purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, and consent boundaries.",
-    safetyBoundary: "Read-only; subscriber writes, imports, sends, broadcasts, unsubscribe changes, and CRM notes require confirmed-write contracts.",
+    safetyBoundary:
+      "Seeded public opt-in capture is live; imports, sends, broadcasts, unsubscribe changes, CRM notes, and direct agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",

@@ -422,12 +422,27 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: "read-contract-ready",
-        issue: 85,
+        status: "subscriber-capture-ready",
+        issue: 103,
         parentIssue: 17,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/audience/source-data", "/audience/indie-launch-waitlist"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining(["/audience/source-data", "/api/audience/opt-in", "/audience/indie-launch-waitlist"]),
+    );
+    expect(payload.optInWrites).toEqual(
+      expect.objectContaining({
+        status: "subscriber-capture-ready",
+        issue: 103,
+        apiRoute: "/api/audience/opt-in",
+        tables: expect.arrayContaining([
+          "audience_subscribers",
+          "audience_consent_events",
+          "audience_tag_assignments",
+          "audience_sequence_enrollments",
+        ]),
+      }),
+    );
     expect(payload.workspaces).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -453,14 +468,83 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #85 is read-only");
-    expect(payload.caveat).toContain("does not store subscribers");
+    expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
+    expect(payload.caveat).toContain("consent-backed subscriber capture");
 
     await page.goto("/audience/indie-launch-waitlist");
     await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Indie launch waitlist opt-in/i })).toBeVisible();
     await expect(page.getByText("Launch checklist lead magnet")).toBeVisible();
     await expect(page.getByText("Indie launch nurture sequence")).toBeVisible();
+
+    await page.getByLabel("Email address").fill(`playwright-waitlist-${Date.now()}@example.com`);
+    await page.getByLabel("First name, optional").fill("Playwright");
+    await page.getByLabel(/I want the launch checklist/i).check();
+    await page.getByRole("button", { name: /Join waitlist/i }).click();
+    await expect(page.getByText("Waitlist opt-in saved")).toBeVisible();
+    await expect(page.getByText("Email delivery remains disabled")).toBeVisible();
+  });
+
+  test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
+    const idempotencyKey = `playwright-audience-opt-in-${Date.now()}`;
+    const payload = {
+      email: "  M@RKMORIARTY.COM ",
+      firstName: " Mark ",
+      consent: true,
+      formId: "opt-in-form-indie-launch-waitlist",
+      idempotencyKey,
+    };
+
+    const firstResponse = await request.post("/api/audience/opt-in", { data: payload });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const firstResult = await firstResponse.json();
+    expect(firstResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "subscribed",
+        duplicate: false,
+        normalizedEmail: "m@rkmoriarty.com",
+        firstName: "Mark",
+        formId: "opt-in-form-indie-launch-waitlist",
+        sequenceId: "sequence-indie-launch-nurture",
+        emailDeliveryEnabled: false,
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          providerIdsIncluded: false,
+        }),
+      }),
+    );
+    expect(firstResult.tagIds).toEqual(
+      expect.arrayContaining(["tag-lead-magnet-launch-checklist", "tag-source-funnel-indie-launch"]),
+    );
+
+    const duplicateResponse = await request.post("/api/audience/opt-in", { data: payload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicateResult = await duplicateResponse.json();
+    expect(duplicateResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        subscriberId: firstResult.subscriberId,
+        normalizedEmail: "m@rkmoriarty.com",
+      }),
+    );
+
+    const invalidEmailResponse = await request.post("/api/audience/opt-in", {
+      data: { ...payload, email: "not-an-email", idempotencyKey: `${idempotencyKey}-invalid-email` },
+    });
+    expect(invalidEmailResponse.status()).toBe(400);
+    await expect(invalidEmailResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "invalid_email" }),
+    );
+
+    const missingConsentResponse = await request.post("/api/audience/opt-in", {
+      data: { ...payload, consent: false, idempotencyKey: `${idempotencyKey}-missing-consent` },
+    });
+    expect(missingConsentResponse.status()).toBe(400);
+    await expect(missingConsentResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "consent_required" }),
+    );
   });
 
   test("analytics source data exposes events, metrics, and experiment definitions", async ({ request, page }) => {
@@ -621,7 +705,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85],
+          issueNumbers: [17, 85, 103],
+        }),
+        expect.objectContaining({
+          id: "journey-visitor-joins-indie-launch-waitlist",
+          featureId: "feature-email-automation-crm",
+          issueNumbers: [17, 85, 103],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
