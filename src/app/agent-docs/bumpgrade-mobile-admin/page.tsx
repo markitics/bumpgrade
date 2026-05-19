@@ -32,12 +32,49 @@ export default function MobileAdminAgentDocPage() {
             Mobile admin source data
             <Database aria-hidden="true" />
           </Link>
+          <Link href={mobileAdminContract.liveDashboard.route} className="text-link">
+            Live mobile dashboard source data
+            <Database aria-hidden="true" />
+          </Link>
         </div>
         <div className="route-status-panel">
           <MonitorSmartphone aria-hidden="true" />
           <p>Status</p>
           <strong>Contract ready</strong>
-          <span>Issue #{mobileAdminContract.parentIssue} splits platform work into iOS issue #67 and Android issue #68.</span>
+          <span>
+            Issue #{mobileAdminContract.parentIssue} splits platform work into iOS issue #67, Android issue #68, and
+            dashboard issue #{mobileAdminContract.liveDashboard.issue}.
+          </span>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Live dashboard</p>
+            <h2>One public-safe digest for mobile clients.</h2>
+          </div>
+          <Link href={mobileAdminContract.liveDashboard.route} className="text-link compact-link">
+            Dashboard source data
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <Database aria-hidden="true" />
+            <h3>Route</h3>
+            <p>{mobileAdminContract.liveDashboard.route} gives iOS, Android, web, and agents one dashboard payload.</p>
+          </div>
+          <div>
+            <MonitorSmartphone aria-hidden="true" />
+            <h3>Status</h3>
+            <p>{mobileAdminContract.liveDashboard.status} from issue #{mobileAdminContract.liveDashboard.issue}.</p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Redaction</h3>
+            <p>{mobileAdminContract.liveDashboard.redactionBoundary}</p>
+          </div>
         </div>
       </section>
 

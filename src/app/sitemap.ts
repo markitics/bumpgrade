@@ -30,6 +30,7 @@ const sourceDataRoutes = [
   "/api/products/download-tokens",
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
+  "/mobile-admin/dashboard/source-data",
   "/mobile-admin/ios/source-data",
   "/mobile-admin/android/source-data",
   "/api/commerce/checkout",

@@ -18,6 +18,11 @@ import { draftFunnelPublishConfirmationText } from "../src/lib/funnel-drafts";
 import { editableDraftCapability, funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
+import {
+  mobileAdminDashboardIssue,
+  mobileAdminDashboardRoute,
+  mobileAdminDashboardStatus,
+} from "../src/lib/mobile-admin-dashboard";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
 import { customerProductEntitlementLookupSummary } from "../src/lib/customer-product-entitlements";
 import {
@@ -277,7 +282,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/dashboard/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/android/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/admin/funnels");
     expect(sitemapXml).toContain("https://bumpgrade.com/admin/products");
 
@@ -2568,7 +2575,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
-          issueNumbers: [13, 67, 68],
+          issueNumbers: [13, 67, 68, 153],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
@@ -2769,6 +2776,7 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-product-asset-upload-intent", status: "planned" }),
+        expect.objectContaining({ id: "mcp-resource-mobile-admin-dashboard", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
@@ -2807,6 +2815,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-mobile-admin-dashboard", route: "/mobile-admin/dashboard/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),
       ]),
@@ -2853,6 +2862,13 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.id).toBe(mobileAdminContract.id);
     expect(payload.parentIssue).toBe(13);
     expect(payload.status).toBe("contract-ready");
+    expect(payload.liveDashboard).toEqual(
+      expect.objectContaining({
+        issue: mobileAdminDashboardIssue,
+        route: mobileAdminDashboardRoute,
+        status: "live-public-source-data-ready",
+      }),
+    );
     expect(payload.childIssues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ platform: "ios", issue: 67 }),
@@ -2880,6 +2896,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.apiDependencies).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-api-admin-source", route: "/admin/source-data" }),
+        expect.objectContaining({ id: "mobile-api-dashboard", route: "/mobile-admin/dashboard/source-data" }),
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
       ]),
     );
@@ -2889,6 +2906,96 @@ test.describe("Bumpgrade scaffold", () => {
         expect.stringContaining("same feature, roadmap, commerce, admin, and agent contracts as web"),
       ]),
     );
+  });
+
+  test("mobile admin dashboard source data exposes one public-safe live digest", async ({ request }) => {
+    const response = await request.get(mobileAdminDashboardRoute);
+    expect(response.ok()).toBeTruthy();
+    const text = await response.text();
+    const payload = JSON.parse(text);
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: "bumpgrade-mobile-admin-dashboard-source-data",
+        status: mobileAdminDashboardStatus,
+        issue: mobileAdminDashboardIssue,
+        parentIssue: 13,
+        featureId: "feature-mobile-admin",
+        route: mobileAdminDashboardRoute,
+      }),
+    );
+    expect(payload.sourceRoutes).toEqual(
+      expect.arrayContaining([
+        "/mobile-admin/source-data",
+        "/mobile-admin/dashboard/source-data",
+        "/mobile-admin/ios/source-data",
+        "/mobile-admin/android/source-data",
+        "/features/source-data",
+        "/roadmap/source-data",
+        "/admin/source-data",
+        "/commerce/source-data",
+        "/agent-docs/source-data",
+      ]),
+    );
+    expect(payload.redaction).toEqual(
+      expect.objectContaining({
+        privateBuyerDataIncluded: false,
+        rawInboxBodiesIncluded: false,
+        ownerEmailValuesIncluded: false,
+        sessionIdentifiersIncluded: false,
+        r2ObjectKeysIncluded: false,
+        signedUrlsIncluded: false,
+        uploadBodiesIncluded: false,
+        secretValuesIncluded: false,
+        writeTokensIncluded: false,
+      }),
+    );
+    expect(payload.platformStatus).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ platform: "ios", issue: 67, sourceDataRoute: "/mobile-admin/ios/source-data" }),
+        expect.objectContaining({ platform: "android", issue: 68, sourceDataRoute: "/mobile-admin/android/source-data" }),
+      ]),
+    );
+    expect(payload.featureSummary).toEqual(
+      expect.objectContaining({
+        total: featureCatalog.length,
+        mobileFeature: expect.objectContaining({ id: "feature-mobile-admin", issue: 13 }),
+      }),
+    );
+    expect(payload.adminDigest).toEqual(
+      expect.objectContaining({
+        source: expect.stringMatching(/^(d1|fixture|mixed)$/),
+        counts: expect.objectContaining({
+          roadmapItems: expect.any(Number),
+          workLogEntries: expect.any(Number),
+          userJourneys: expect.any(Number),
+          openAttentionItems: expect.any(Number),
+        }),
+      }),
+    );
+    expect(payload.commerceDigest).toEqual(
+      expect.objectContaining({
+        sourceDataRoute: "/commerce/source-data",
+        tableCount: commerceTables.length,
+        privateFieldsIncluded: false,
+      }),
+    );
+    expect(payload.agentDigest).toEqual(
+      expect.objectContaining({
+        sourceDataRoute: "/agent-docs/source-data",
+        mobileReadContracts: expect.arrayContaining([
+          expect.objectContaining({ id: "read-mobile-admin-contract" }),
+          expect.objectContaining({ id: "read-mobile-admin-dashboard" }),
+        ]),
+      }),
+    );
+    expect(text).not.toContain("products/uploads/");
+    expect(text).not.toContain("signed_url");
+    expect(text).not.toContain("BETTER_AUTH_SECRET");
+    expect(text).not.toContain("STRIPE_SECRET_KEY");
+    expect(text).not.toContain("m@rkmoriarty.com");
+    expect(text).not.toContain("mark@awesound.com");
+    expect(text).not.toContain("markmoriarty@stripe.com");
   });
 
   test("iOS mobile admin source data exposes scaffold and simulator smoke evidence", async ({ request }) => {
@@ -2914,6 +3021,10 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "ios-read-mobile-contract-fixture",
           route: "/mobile-admin/source-data",
+        }),
+        expect.objectContaining({
+          id: "ios-read-live-mobile-dashboard-next",
+          route: "/mobile-admin/dashboard/source-data",
         }),
       ]),
     );
@@ -2945,6 +3056,10 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "android-read-mobile-contract-fixture",
           route: "/mobile-admin/source-data",
+        }),
+        expect.objectContaining({
+          id: "android-read-live-mobile-dashboard-next",
+          route: "/mobile-admin/dashboard/source-data",
         }),
       ]),
     );

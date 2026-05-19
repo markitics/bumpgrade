@@ -49,8 +49,9 @@ then open the relevant shelf for the task.
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
   source-data dependencies, auth boundaries, and confirmed-write rules.
-  The first iOS and Android scaffolds live in `apps/mobile-admin/` and publish
-  `/mobile-admin/ios/source-data` and `/mobile-admin/android/source-data`.
+  The first iOS and Android scaffolds live in `apps/mobile-admin/`; mobile
+  source-data now includes `/mobile-admin/dashboard/source-data`,
+  `/mobile-admin/ios/source-data`, and `/mobile-admin/android/source-data`.
 - `decision-log.md`: durable technical decisions that future agents should not
   rediscover from chat.
 - `keep-working/README.md`: how to use the repo-tracked `goal-runner` and

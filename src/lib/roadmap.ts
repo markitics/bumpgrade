@@ -192,16 +192,19 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(13),
     group: "Mobile",
     summary:
-      "Shared mobile-admin contract plus first iOS simulator and Android emulator scaffolds for independently shippable mobile app slices.",
+      "Shared mobile-admin contract, live public-safe dashboard source-data, plus first iOS simulator and Android emulator scaffolds for independently shippable mobile app slices.",
     publicEvidence: [
       "Tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
+      "Live dashboard source-data slice tracked by issue #153.",
       "`/mobile-admin/source-data` exposes the shared mobile contract and no-installable-app caveat.",
+      "`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest for mobile clients.",
       "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
-    nextMilestone: "Use the iOS and Android smoke evidence to add mobile auth, live source-data reads, and confirmed-write UX in follow-up slices.",
+    nextMilestone:
+      "Wire iOS and Android clients to the live dashboard route, then add mobile auth and confirmed-write UX in follow-up slices.",
   },
   {
     id: "roadmap-funnels",
