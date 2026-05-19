@@ -1284,6 +1284,193 @@ h3 {
   border-color: var(--green);
 }
 
+.checkout-start-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.checkout-start-panel,
+.checkout-result-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 8px 20px rgba(31, 45, 36, 0.06);
+}
+
+.checkout-line-list {
+  display: grid;
+  gap: 10px;
+}
+
+.checkout-line-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+}
+
+.checkout-line-item.selected {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-color: rgba(55, 95, 76, 0.35);
+  background: rgba(55, 95, 76, 0.06);
+}
+
+.checkout-line-item.selectable {
+  cursor: pointer;
+}
+
+.checkout-line-item input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+}
+
+.checkout-line-item span,
+.checkout-total-row span,
+.checkout-result-panel p,
+.checkout-field {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.checkout-line-item strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 18px;
+}
+
+.checkout-line-item p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.checkout-line-item b {
+  color: var(--green);
+  white-space: nowrap;
+}
+
+.checkout-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.checkout-total-row strong {
+  font-size: 28px;
+}
+
+.checkout-field {
+  display: grid;
+  gap: 7px;
+}
+
+.checkout-field input,
+.checkout-field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+
+.checkout-field textarea {
+  min-height: 84px;
+  padding: 11px 13px;
+  resize: vertical;
+}
+
+.checkout-field input:focus,
+.checkout-field textarea:focus {
+  outline: 3px solid rgba(55, 95, 76, 0.18);
+  border-color: var(--green);
+}
+
+.checkout-start-panel button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.checkout-result-panel > svg {
+  width: 34px;
+  height: 34px;
+  color: var(--green);
+}
+
+.checkout-result-panel > strong {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.checkout-result-panel code {
+  display: block;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.checkout-result-panel > span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.checkout-alert {
+  display: flex;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 8px;
+  line-height: 1.45;
+}
+
+.checkout-alert svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.checkout-alert.success {
+  border: 1px solid rgba(55, 95, 76, 0.35);
+  background: rgba(55, 95, 76, 0.08);
+  color: var(--green);
+}
+
+.checkout-alert.error {
+  border: 1px solid rgba(124, 62, 70, 0.35);
+  background: #fbedef;
+  color: var(--rose);
+}
+
+.checkout-alert a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--green);
+  font-weight: 900;
+}
+
 .admin-action-panel button:disabled,
 .admin-action-panel input:disabled {
   opacity: 0.65;
@@ -1887,6 +2074,10 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .checkout-start-grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-step-edit-form {
     grid-template-columns: 1fr;
   }
@@ -1937,6 +2128,15 @@ h3 {
   .roadmap-proof-grid,
   .admin-action-grid {
     grid-template-columns: 1fr;
+  }
+
+  .checkout-line-item,
+  .checkout-line-item.selected {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-line-item input {
+    order: -1;
   }
 
   .compare-section-heading,

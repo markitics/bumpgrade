@@ -225,8 +225,13 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "src/lib/checkout-offers.ts",
     stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId", "agentActionId"],
-    safeForAgents: ["Read seeded checkout offer stack", "Inspect bump and upsell sequence", "Inspect billing write boundaries"],
-    writeBoundary: "Offer, bump, upsell, downsell, fulfillment, and billing writes require future confirmed-write APIs.",
+    safeForAgents: [
+      "Read seeded checkout offer stack",
+      "Inspect bump and upsell sequence",
+      "Inspect confirmed sandbox checkout start boundaries",
+    ],
+    writeBoundary:
+      "A confirmed sandbox checkout start can include the seeded primary offer and constrained order bump; live billing, price mutation, fulfillment, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
   },
   {
     id: "read-product-access-catalog",
@@ -400,10 +405,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-checkout-offers",
     route: "/offers/source-data",
-    resolves: "Seeded checkout offer stack, primary offer, order bump, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
+    resolves:
+      "Seeded checkout offer stack, primary offer, selectable order bump, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
     stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId"],
     volatileClaims:
-      "The checkout-offer contract is read-only preview evidence; it is not live billing, one-click upsell charging, fulfillment, or order-bump mutation.",
+      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump; it is not live billing, one-click upsell charging, fulfillment, price mutation, or direct agent write capability.",
   },
   {
     id: "evidence-products-access",
@@ -535,8 +541,10 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://checkout-offers",
     status: "ready-contract",
     backedBy: "/offers/source-data",
-    purpose: "Expose seeded checkout offer stack, primary offer, order bump, upsell, downsell, revision IDs, and billing boundaries.",
-    safetyBoundary: "Read-only; offer writes, Stripe mutations, fulfillment, and post-purchase charges require confirmed-write contracts.",
+    purpose:
+      "Expose seeded checkout offer stack, primary offer, constrained order bump, upsell, downsell, revision IDs, and billing boundaries.",
+    safetyBoundary:
+      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation, while live billing, offer writes, fulfillment, and post-purchase charges require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-product-access",

@@ -226,14 +226,15 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(15),
     group: "Checkout and offers",
     summary:
-      "Stripe-backed checkout flows, read-only offer-stack contract, order bumps, upsells, downsells, subscriptions, coupons, and audit trails.",
+      "Stripe-backed checkout flows, confirmed sandbox checkout start with a constrained order bump, read-only upsell/downsell path, subscriptions, coupons, and audit trails.",
     publicEvidence: [
       "Tracked by issue #15.",
       "Depends on Stripe architecture in #11.",
       "Issue #81 adds the first `/offers/source-data` contract and `/offers/indie-launch-stack` preview scaffold.",
+      "Issue #99 adds confirmed sandbox checkout start support for the seeded primary offer plus pre-payment order bump.",
     ],
     nextMilestone:
-      "Build the first confirmed sandbox checkout flow that can include an approved order bump while preserving billing audit evidence.",
+      "Add post-purchase upsell/downsell decision surfaces and webhook-backed fulfillment state after the order-bump checkout start is verified.",
   },
   {
     id: "roadmap-products-access",

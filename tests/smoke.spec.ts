@@ -295,8 +295,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: checkoutOfferSourceData.id,
-        status: "read-contract-ready",
-        issue: 81,
+        status: "confirmed-sandbox-checkout-start-ready",
+        issue: 99,
         parentIssue: 15,
       }),
     );
@@ -305,6 +305,8 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         endpoint: "/api/commerce/checkout",
         confirmationRequired: true,
+        supportsOrderBumps: true,
+        allowedOrderBumpPriceIds: expect.arrayContaining(["price-launch-checklist-bump-usd"]),
         rawStripeIdsIncluded: false,
         liveModeEnabled: false,
       }),
@@ -328,15 +330,21 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #81 is read-only");
-    expect(payload.caveat).toContain("does not enable live billing");
+    expect(payload.writeBoundary).toContain("Issue #99 allows a confirmed sandbox Checkout Session start");
+    expect(payload.caveat).toContain("confirmed sandbox checkout start");
 
     await page.goto("/offers/indie-launch-stack");
     await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Choose the bump, confirm the checkout/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Primary offer, order bump, upsell, and downsell/i })).toBeVisible();
-    await expect(page.getByText("Launch checklist bump")).toBeVisible();
-    await expect(page.getByText("Launch accelerator upsell")).toBeVisible();
-    await expect(page.getByText("Launch review downsell")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch checklist bump" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch accelerator upsell" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch review downsell" })).toBeVisible();
+    await page.getByLabel(/Launch checklist bump/i).check();
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
+    await page.getByRole("button", { name: /Start sandbox checkout/i }).click();
+    await expect(page.getByText(/Preview response/i)).toBeVisible();
+    await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
   });
 
   test("product access source data exposes seeded products, assets, and entitlement templates", async ({ request, page }) => {
@@ -649,6 +657,10 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.sandboxCheckout).toEqual(
       expect.objectContaining({
         offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
+        supportsOrderBumps: true,
+        orderBumps: expect.arrayContaining([
+          expect.objectContaining({ priceId: "price-launch-checklist-bump-usd", unitAmountCents: 1900 }),
+        ]),
         confirmation: expect.objectContaining({ required: true, text: checkoutConfirmationText }),
         rawStripeIdsIncluded: false,
       }),
@@ -831,6 +843,7 @@ test.describe("Bumpgrade scaffold", () => {
     const response = await request.post("/api/commerce/checkout", {
       data: {
         confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
         buyerEmail: "sandbox-buyer@example.com",
         idempotencyKey: `playwright-${Date.now()}`,
       },
@@ -841,6 +854,12 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         ok: true,
         status: "preview",
+        selectedOrderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        totalAmountCents: 2800,
+        lineItems: expect.arrayContaining([
+          expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
+          expect.objectContaining({ priceId: "price-launch-checklist-bump-usd", unitAmountCents: 1900 }),
+        ]),
         redaction: expect.objectContaining({ rawStripeIdsIncluded: false, checkoutUrlIncluded: false }),
       }),
     );

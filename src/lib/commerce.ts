@@ -31,7 +31,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, and a sandbox Checkout Session path. Live payment rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, and constrained order-bump checkout start. Live payment rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -39,9 +39,11 @@ export const stripeCommerceContract = {
   ],
   sandboxCheckout: {
     issue: 34,
+    orderBumpIssue: 99,
     checkoutEndpoint: "/api/commerce/checkout",
     webhookEndpoint: "/api/stripe/webhook",
     createsStripeCheckoutSession: true,
+    supportsConstrainedOrderBump: true,
     liveModeEnabled: false,
   },
   secretNames: [

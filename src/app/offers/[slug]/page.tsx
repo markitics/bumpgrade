@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, BadgeDollarSign, Database, ShieldCheck, ShoppingCart, TimerReset } from "lucide-react";
 
+import { CheckoutStartPanel } from "@/components/checkout-start-panel";
 import { checkoutOfferStacks, getCheckoutOfferStackBySlug, type CheckoutOffer } from "@/lib/checkout-offers";
 import { site } from "@/lib/site";
 
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: OfferPreviewPageProps): Promi
 
   return {
     title: `${stack.title} Preview`,
-    description: `${stack.summary} This is a read-only Bumpgrade checkout-offer scaffold tied to issue #${stack.issue}.`,
+    description: `${stack.summary} This is a sandbox Bumpgrade checkout-offer scaffold tied to issue #${stack.issue}.`,
     alternates: {
       canonical: `${site.url}${stack.previewRoute}`,
     },
@@ -110,11 +111,13 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <p>Status</p>
           <strong>{sequence.length} offer decisions</strong>
           <span>
-            Draft preview only. The primary offer can use the sandbox checkout contract; bumps, upsells, downsells,
+            Sandbox checkout start is available for the primary offer and seeded order bump. Upsells, downsells,
             fulfillment, and live billing stay disabled until confirmed-write contracts exist.
           </span>
         </aside>
       </section>
+
+      <CheckoutStartPanel stack={stack} />
 
       <section className="content-band alternate">
         <div className="feature-section-heading">
@@ -154,8 +157,8 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             <BadgeDollarSign aria-hidden="true" />
             <h3>Hosted Checkout stays first</h3>
             <p>
-              The seeded primary offer links to <code>{stack.checkoutEndpoint}</code> and requires exact confirmation
-              text before a sandbox Checkout Session is attempted.
+              The seeded primary offer and launch checklist bump link to <code>{stack.checkoutEndpoint}</code> and
+              require exact confirmation text before a sandbox Checkout Session is attempted.
             </p>
           </article>
           <article className="roadmap-card">

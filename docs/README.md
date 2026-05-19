@@ -23,8 +23,9 @@ then open the relevant shelf for the task.
 - `features/funnels.md`: funnel source-data and preview contract from issue #79,
   plus the owner-gated D1 draft builder, step editing, and private preview
   slices from issues #91, #93, and #95.
-- `features/checkout-offers.md`: read-only checkout offer, order bump, upsell,
-  and downsell source-data contract from issue #81.
+- `features/checkout-offers.md`: checkout offer, order bump, upsell, and
+  downsell source-data contract from issue #81 plus the confirmed sandbox
+  checkout start and constrained order-bump path from issue #99.
 - `features/product-access.md`: read-only product, asset, access-rule, and
   entitlement source-data contract from issue #83.
 - `features/audience-automation.md`: read-only opt-in, lead magnet, tag,
