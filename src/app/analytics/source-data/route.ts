@@ -1,8 +1,15 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
+import {
+  analyticsTimeWindowStart,
+  analyticsTimeWindows,
+  resolveAnalyticsTimeWindow,
+  type AnalyticsTimeWindow,
+} from "@/lib/analytics-time-windows";
 
 export const dynamic = "force-dynamic";
 
@@ -48,10 +55,11 @@ async function getDb() {
   return (env as Cloudflare.Env).DB;
 }
 
-async function loadEventSummary(db: D1Database | undefined) {
+async function loadEventSummary(db: D1Database | undefined, timeWindow: AnalyticsTimeWindow) {
   if (!db) {
     return {
       status: "unavailable",
+      timeWindow,
       aggregateCounts: [],
       aggregateVariantCounts: [],
       aggregateSourceCounts: [],
@@ -60,22 +68,26 @@ async function loadEventSummary(db: D1Database | undefined) {
     };
   }
 
-  const result = await db
-    .prepare(
-      `SELECT
+  const windowStart = analyticsTimeWindowStart(timeWindow);
+  const windowWhere = windowStart === null ? "" : "WHERE occurred_at >= ?";
+  const aggregateStatement = db.prepare(
+    `SELECT
         event_definition_id,
         event_kind,
         source_route,
         COUNT(*) AS total_events,
         MAX(occurred_at) AS last_event_at
        FROM analytics_events
+       ${windowWhere}
        GROUP BY event_definition_id, event_kind, source_route
        ORDER BY event_definition_id`,
-    )
-    .all<AnalyticsAggregateRow>();
-  const variantResult = await db
-    .prepare(
-      `SELECT
+  );
+  const result =
+    windowStart === null
+      ? await aggregateStatement.all<AnalyticsAggregateRow>()
+      : await aggregateStatement.bind(windowStart).all<AnalyticsAggregateRow>();
+  const variantStatement = db.prepare(
+    `SELECT
         event_definition_id,
         source_route,
         variant_id,
@@ -83,13 +95,16 @@ async function loadEventSummary(db: D1Database | undefined) {
         MAX(occurred_at) AS last_event_at
        FROM analytics_events
        WHERE variant_id IS NOT NULL
+         ${windowStart === null ? "" : "AND occurred_at >= ?"}
        GROUP BY event_definition_id, source_route, variant_id
        ORDER BY event_definition_id, variant_id`,
-    )
-    .all<AnalyticsVariantAggregateRow>();
-  const sourceResult = await db
-    .prepare(
-      `SELECT
+  );
+  const variantResult =
+    windowStart === null
+      ? await variantStatement.all<AnalyticsVariantAggregateRow>()
+      : await variantStatement.bind(windowStart).all<AnalyticsVariantAggregateRow>();
+  const sourceStatement = db.prepare(
+    `SELECT
         event_definition_id,
         source_route,
         json_extract(public_properties_json, '$.utmSource') AS utm_source,
@@ -102,6 +117,7 @@ async function loadEventSummary(db: D1Database | undefined) {
         MAX(occurred_at) AS last_event_at
        FROM analytics_events
        WHERE event_definition_id = 'event-funnel-page-view'
+         ${windowStart === null ? "" : "AND occurred_at >= ?"}
          AND (
           json_extract(public_properties_json, '$.utmSource') IS NOT NULL OR
           json_extract(public_properties_json, '$.utmMedium') IS NOT NULL OR
@@ -120,11 +136,15 @@ async function loadEventSummary(db: D1Database | undefined) {
         utm_term,
         referrer_host
        ORDER BY total_events DESC, utm_source, utm_campaign`,
-    )
-    .all<AnalyticsSourceAggregateRow>();
+  );
+  const sourceResult =
+    windowStart === null
+      ? await sourceStatement.all<AnalyticsSourceAggregateRow>()
+      : await sourceStatement.bind(windowStart).all<AnalyticsSourceAggregateRow>();
 
   return {
     status: "available",
+    timeWindow,
     aggregateCounts: result.results ?? [],
     aggregateVariantCounts: variantResult.results ?? [],
     aggregateSourceCounts: sourceResult.results ?? [],
@@ -165,12 +185,18 @@ async function loadAssignmentSummary(db: D1Database | undefined) {
   };
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const db = await getDb();
+  const timeWindow = resolveAnalyticsTimeWindow(request.nextUrl.searchParams.get("window"));
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
-    eventSummary: await loadEventSummary(db),
+    timeWindows: {
+      default: analyticsTimeWindows[0].key,
+      selected: timeWindow.key,
+      supported: analyticsTimeWindows,
+    },
+    eventSummary: await loadEventSummary(db, timeWindow),
     assignmentSummary: await loadAssignmentSummary(db),
-    funnelConversionReport: await loadAnalyticsFunnelConversionReport(db, analyticsDashboard),
+    funnelConversionReport: await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow),
   });
 }

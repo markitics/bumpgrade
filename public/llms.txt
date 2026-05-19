@@ -142,12 +142,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   analytics event API, with deterministic variant evidence, normalized
   UTM/source attribution, and server-side bot and preview suppression. The
   analytics dashboard preview renders aggregate source attribution rows from
-  the same public-safe source-data. Treat it as seeded event capture, seeded
-  page-view beacon, seeded assignment, dashboard-visible aggregate evidence, and
-  aggregate/source-data evidence, not cookie assignment, traffic routing,
-  contact-level analytics, raw referrer/query exposure, raw event or assignment
-  exposure, automated decisions, direct agent analytics writes, or statistically
-  meaningful proof.
+  the same public-safe source-data and supports fixed all-time, 24-hour, 7-day,
+  and 30-day aggregate source/conversion windows. Treat it as seeded event
+  capture, seeded page-view beacon, seeded assignment, dashboard-visible
+  fixed-window aggregate evidence, and aggregate/source-data evidence, not
+  cookie assignment, traffic routing, contact-level analytics, raw
+  referrer/query exposure, raw event or assignment exposure, automated
+  decisions, direct agent analytics writes, or statistically meaningful proof.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, aggregate click counts, checkout attribution
   evidence, aggregate review-only commission ledger counts, attribution rules,

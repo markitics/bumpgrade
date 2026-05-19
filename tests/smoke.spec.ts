@@ -585,8 +585,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "dashboard-source-attribution-ready",
-        issue: 127,
+        status: "time-windowed-dashboard-ready",
+        issue: 129,
         parentIssue: 18,
       }),
     );
@@ -603,6 +603,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         "analyticsEventVariantAggregateId",
         "analyticsEventSourceAggregateId",
+        "analyticsTimeWindow",
         "experimentAssignmentId",
         "variantId",
         "utmSource",
@@ -653,6 +654,7 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 119,
         rawRowsIncluded: false,
         privateDataIncluded: false,
+        timeWindow: expect.objectContaining({ key: "all" }),
         rows: expect.arrayContaining([
           expect.objectContaining({
             metricId: "funnel-metric-waitlist-opt-in",
@@ -665,6 +667,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.eventSummary).toEqual(
       expect.objectContaining({
         status: "available",
+        timeWindow: expect.objectContaining({ key: "all" }),
         aggregateVariantCounts: expect.any(Array),
         aggregateSourceCounts: expect.any(Array),
         rawRowsIncluded: false,
@@ -700,14 +703,27 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, and #127 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, and #129 can capture seeded analytics events",
     );
-    expect(payload.caveat).toContain("dashboard-visible aggregate source attribution");
+    expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
+    expect(payload.timeWindows).toEqual(
+      expect.objectContaining({
+        default: "all",
+        selected: "all",
+        supported: expect.arrayContaining([
+          expect.objectContaining({ key: "24h", label: "24 hours" }),
+          expect.objectContaining({ key: "7d", label: "7 days" }),
+          expect.objectContaining({ key: "30d", label: "30 days" }),
+        ]),
+      }),
+    );
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Step-level conversion metrics come from aggregate captured events/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Conversion window" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Source window" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Deterministic assignment can be audited before traffic writes exist/i })).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
@@ -827,8 +843,31 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(sourceData.eventSummary.aggregateSourceCounts)).not.toContain("secret");
 
+    const windowedSourceData = await (await request.get("/analytics/source-data?window=24h")).json();
+    expect(windowedSourceData.timeWindows).toEqual(expect.objectContaining({ selected: "24h" }));
+    expect(windowedSourceData.eventSummary.timeWindow).toEqual(expect.objectContaining({ key: "24h" }));
+    expect(windowedSourceData.funnelConversionReport.timeWindow).toEqual(expect.objectContaining({ key: "24h" }));
+    expect(windowedSourceData.eventSummary.aggregateSourceCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event_definition_id: "event-funnel-page-view",
+          utm_source: "newsletter",
+          utm_campaign: "Launch Week",
+          referrer_host: "private.example",
+        }),
+      ]),
+    );
+
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
+    await page.getByRole("group", { name: "Conversion window" }).getByRole("button", { name: "24 hours" }).click();
+    await expect(
+      page.getByRole("group", { name: "Conversion window" }).getByRole("button", { name: "24 hours" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("group", { name: "Source window" }).getByRole("button", { name: "24 hours" }).click();
+    await expect(
+      page.getByRole("group", { name: "Source window" }).getByRole("button", { name: "24 hours" }),
+    ).toHaveAttribute("aria-pressed", "true");
     await expect(
       page.getByRole("row", { name: /newsletter.*Launch Week.*private\.example/i }).first(),
     ).toBeVisible();
@@ -1932,12 +1971,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",

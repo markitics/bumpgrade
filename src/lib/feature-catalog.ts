@@ -230,6 +230,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Browser-side seeded funnel page-view beacons with server-side bot/preview suppression from issue #121.",
       "Aggregate variant evidence attached to captured funnel page views from issue #123.",
       "Normalized UTM/source attribution attached to funnel page-view events from issue #125.",
+      "Dashboard-visible aggregate source attribution rows from issue #127.",
+      "Fixed all-time, 24-hour, 7-day, and 30-day aggregate source and conversion windows from issue #129.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
     evidence: [
@@ -242,9 +244,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #123 attaches deterministic seeded assignment evidence to funnel page-view events and exposes aggregate variant counts.",
       "Issue #125 attaches normalized UTM/source attribution to funnel page-view events and exposes aggregate source counts.",
       "Issue #127 renders aggregate source attribution rows in the analytics dashboard preview.",
+      "Issue #129 adds fixed time-window controls and public-safe source-data window metadata for aggregate source and conversion summaries.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, aggregate variant evidence, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, raw referrer/query reporting, experiment routing, and automated decisions require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, raw referrer/query reporting, experiment routing, and automated decisions require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",
