@@ -505,6 +505,24 @@ h3 {
   margin-top: 14px;
 }
 
+.checkout-success-status code {
+  display: block;
+  margin-top: 14px;
+  overflow-wrap: anywhere;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.checkout-success-status.ready {
+  border-color: rgba(34, 88, 65, 0.34);
+}
+
+.checkout-success-status.waiting,
+.checkout-success-status.loading {
+  border-color: rgba(154, 112, 43, 0.28);
+}
+
 .verification-card {
   margin-top: 22px;
   max-width: 720px;
