@@ -27,7 +27,8 @@ then open the relevant shelf for the task.
   downsell source-data contract from issue #81 plus the confirmed sandbox
   checkout start and constrained order-bump path from issue #99, with optional
   referral-click attribution evidence from issue #111 and review-only commission
-  ledger evidence from issue #113.
+  ledger evidence from issue #113 plus owner review/reversal actions from issue
+  #115.
 - `features/product-access.md`: product, asset, access-rule, entitlement, and
   sandbox webhook grant contract from issues #83 and #101.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
@@ -38,8 +39,8 @@ then open the relevant shelf for the task.
   contract from issues #87, #105, and #107.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
-  review, and fraud flag source-data contract from issues #89, #109, #111, and
-  #113.
+  review, owner review/reversal actions, and fraud flag source-data contract
+  from issues #89, #109, #111, #113, and #115.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

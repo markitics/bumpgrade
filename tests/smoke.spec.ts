@@ -1,7 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
-import { affiliateCommissionLedgerConfirmationText } from "../src/lib/affiliate-commission-ledger";
+import {
+  affiliateCommissionLedgerConfirmationText,
+  affiliateCommissionReviewActionConfirmationText,
+} from "../src/lib/affiliate-commission-ledger";
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
@@ -296,8 +299,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: checkoutOfferSourceData.id,
-        status: "review-only-commission-ledger-ready",
-        issue: 113,
+        status: "owner-review-actions-ready",
+        issue: 115,
         parentIssue: 15,
       }),
     );
@@ -335,6 +338,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #99 allows a confirmed sandbox Checkout Session start");
     expect(payload.writeBoundary).toContain("Issue #111 allows eligible referral click IDs");
     expect(payload.writeBoundary).toContain("Issue #113 allows review-only commission ledger evidence");
+    expect(payload.writeBoundary).toContain("Issue #115 allows owner-gated review");
     expect(payload.caveat).toContain("confirmed sandbox checkout start");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
 
@@ -860,8 +864,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "review-only-commission-ledger-ready",
-        issue: 113,
+        status: "owner-review-actions-ready",
+        issue: 115,
         parentIssue: 19,
       }),
     );
@@ -871,6 +875,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/affiliates/clicks",
         "/api/commerce/checkout",
         "/api/affiliates/commission-ledger",
+        "/api/admin/affiliates/commission-ledger/actions",
         "/affiliates/indie-launch-partners",
       ]),
     );
@@ -906,10 +911,17 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.commissionLedgerWrites).toEqual(
       expect.objectContaining({
-        status: "review-only-ledger-ready",
-        issue: 113,
+        status: "owner-review-actions-ready",
+        issue: 115,
         apiRoute: "/api/affiliates/commission-ledger",
-        tables: expect.arrayContaining(["affiliate_commission_ledger_entries"]),
+        tables: expect.arrayContaining(["affiliate_commission_ledger_entries", "affiliate_commission_ledger_actions"]),
+      }),
+    );
+    expect(payload.commissionReviewActions.contract).toEqual(
+      expect.objectContaining({
+        status: "owner-review-actions-ready",
+        issue: 115,
+        apiRoute: "/api/admin/affiliates/commission-ledger/actions",
       }),
     );
     expect(payload.commissionLedgerSummary).toEqual(
@@ -919,6 +931,7 @@ test.describe("Bumpgrade scaffold", () => {
         privateDataIncluded: false,
         payableRowsIncluded: false,
         payoutRowsIncluded: false,
+        partnerNotificationsIncluded: false,
       }),
     );
     expect(payload.programs).toEqual(
@@ -951,6 +964,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #109 can capture seeded referral clicks");
     expect(payload.writeBoundary).toContain("Issue #111 can attach validated referral click evidence");
     expect(payload.writeBoundary).toContain("Issue #113 can create review-only");
+    expect(payload.writeBoundary).toContain("Issue #115 can apply owner-gated review");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
 
     await page.goto("/affiliates/indie-launch-partners");
@@ -1183,10 +1197,9 @@ test.describe("Bumpgrade scaffold", () => {
       const response = await request.get("/affiliates/source-data");
       expect(response.ok()).toBeTruthy();
       const payload = await response.json();
-      const row = payload.commissionLedgerSummary.aggregateCounts.find(
-        (candidate: { referral_link_id: string }) => candidate.referral_link_id === "ref-link-launch-circle-waitlist",
-      );
-      return row?.total_ledgers ?? 0;
+      return payload.commissionLedgerSummary.aggregateCounts
+        .filter((candidate: { referral_link_id: string }) => candidate.referral_link_id === "ref-link-launch-circle-waitlist")
+        .reduce((sum: number, row: { total_ledgers: number }) => sum + row.total_ledgers, 0);
     };
     const beforeCount = await countFor();
     const contractResponse = await request.get("/api/affiliates/commission-ledger");
@@ -1194,8 +1207,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(contractResponse.json()).resolves.toEqual(
       expect.objectContaining({
         ok: true,
-        issue: 113,
-        status: "review-only-ledger-ready",
+        issue: 115,
+        status: "owner-review-actions-ready",
         confirmation: expect.objectContaining({ text: affiliateCommissionLedgerConfirmationText }),
         redaction: expect.objectContaining({
           payableCommissionCreated: false,
@@ -1332,6 +1345,211 @@ test.describe("Bumpgrade scaffold", () => {
     await expect.poll(countFor).toBe(beforeCount + 1);
   });
 
+  test("owner can review and reverse commission ledger evidence without payout state", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner-gated review action flow is covered once on desktop.");
+
+    const signedOutResponse = await request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: {
+        commissionLedgerId: "commission-ledger-missing",
+        actionKind: "mark_reviewed",
+        confirmationText: affiliateCommissionReviewActionConfirmationText,
+        idempotencyKey: "playwright-signed-out-commission-review",
+        expectedUpdatedAt: 1,
+      },
+    });
+    expect(signedOutResponse.status()).toBe(401);
+    await expect(signedOutResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const suffix = Date.now();
+    const clickResponse = await page.request.post("/api/affiliates/clicks", {
+      data: {
+        referralLinkId: "ref-link-launch-circle-waitlist",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        idempotencyKey: `playwright-commission-review-click-${suffix}`,
+      },
+    });
+    expect(clickResponse.ok(), await clickResponse.text()).toBeTruthy();
+    const clickResult = await clickResponse.json();
+    const checkoutResponse = await page.request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        referralClickId: clickResult.referralClickId,
+        idempotencyKey: `playwright-commission-review-checkout-${suffix}`,
+      },
+    });
+    expect(checkoutResponse.ok(), await checkoutResponse.text()).toBeTruthy();
+    const checkoutResult = await checkoutResponse.json();
+
+    const ledgerResponse = await page.request.post("/api/affiliates/commission-ledger", {
+      data: {
+        checkoutIntentId: checkoutResult.checkoutIntentId,
+        confirmationText: affiliateCommissionLedgerConfirmationText,
+        idempotencyKey: `playwright-commission-review-ledger-${suffix}`,
+      },
+    });
+    expect(ledgerResponse.ok(), await ledgerResponse.text()).toBeTruthy();
+    const ledgerResult = await ledgerResponse.json();
+    const createdLedger = ledgerResult.commissionLedger;
+    expect(createdLedger).toEqual(
+      expect.objectContaining({
+        commissionCents: 460,
+        ledgerStatus: "review_only",
+        reviewStatus: "refund_window_open",
+        payoutStatus: "not_payable",
+        updatedAt: expect.any(Number),
+      }),
+    );
+
+    const contractResponse = await page.request.get("/api/admin/affiliates/commission-ledger/actions");
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 115,
+        status: "owner-review-actions-ready",
+        confirmation: expect.objectContaining({ text: affiliateCommissionReviewActionConfirmationText }),
+        redaction: expect.objectContaining({
+          payableCommissionCreated: false,
+          payoutCreated: false,
+          taxDataIncluded: false,
+          partnerNotificationSent: false,
+        }),
+      }),
+    );
+
+    const reviewPayload = {
+      commissionLedgerId: createdLedger.commissionLedgerId,
+      actionKind: "mark_reviewed",
+      confirmationText: affiliateCommissionReviewActionConfirmationText,
+      idempotencyKey: `playwright-commission-review-action-${suffix}`,
+      expectedUpdatedAt: createdLedger.updatedAt,
+      reason: "Public note: source checkout and referral attribution match.",
+    };
+    const reviewResponse = await page.request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: reviewPayload,
+    });
+    expect(reviewResponse.ok(), await reviewResponse.text()).toBeTruthy();
+    const reviewResult = await reviewResponse.json();
+    expect(reviewResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "commission_review_action_recorded",
+        duplicate: false,
+        reviewAction: expect.objectContaining({
+          actionKind: "mark_reviewed",
+          previousReviewStatus: "refund_window_open",
+          nextReviewStatus: "owner_reviewed",
+          nextPayoutStatus: "not_payable",
+          privateDataIncluded: false,
+          payoutCreated: false,
+          taxDataIncluded: false,
+          partnerNotificationSent: false,
+        }),
+        commissionLedger: expect.objectContaining({
+          commissionLedgerId: createdLedger.commissionLedgerId,
+          ledgerStatus: "review_only",
+          reviewStatus: "owner_reviewed",
+          payoutStatus: "not_payable",
+          updatedAt: expect.any(Number),
+        }),
+      }),
+    );
+    expect(reviewResult.commissionLedger.updatedAt).toBeGreaterThan(createdLedger.updatedAt);
+
+    const duplicateReview = await page.request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: reviewPayload,
+    });
+    expect(duplicateReview.ok(), await duplicateReview.text()).toBeTruthy();
+    await expect(duplicateReview.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "commission_review_action_replayed",
+        duplicate: true,
+        reviewAction: expect.objectContaining({ actionId: reviewResult.reviewAction.actionId }),
+      }),
+    );
+
+    const staleResponse = await page.request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: {
+        ...reviewPayload,
+        actionKind: "hold_for_review",
+        idempotencyKey: `${reviewPayload.idempotencyKey}-stale`,
+      },
+    });
+    expect(staleResponse.status()).toBe(409);
+    await expect(staleResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "commission_review_stale_state" }),
+    );
+
+    const reverseResponse = await page.request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: {
+        commissionLedgerId: createdLedger.commissionLedgerId,
+        actionKind: "reverse_evidence",
+        confirmationText: affiliateCommissionReviewActionConfirmationText,
+        idempotencyKey: `playwright-commission-review-reverse-${suffix}`,
+        expectedUpdatedAt: reviewResult.commissionLedger.updatedAt,
+        reason: "Public note: reversal before payout eligibility.",
+      },
+    });
+    expect(reverseResponse.ok(), await reverseResponse.text()).toBeTruthy();
+    const reverseResult = await reverseResponse.json();
+    expect(reverseResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "commission_review_action_recorded",
+        commissionLedger: expect.objectContaining({
+          ledgerStatus: "reversed",
+          reviewStatus: "owner_reversed",
+          payoutStatus: "not_payable",
+          payoutCreated: false,
+          taxDataIncluded: false,
+          partnerNotificationSent: false,
+        }),
+      }),
+    );
+
+    const secondReviewResponse = await page.request.post("/api/admin/affiliates/commission-ledger/actions", {
+      data: {
+        commissionLedgerId: createdLedger.commissionLedgerId,
+        actionKind: "mark_reviewed",
+        confirmationText: affiliateCommissionReviewActionConfirmationText,
+        idempotencyKey: `playwright-commission-review-after-reverse-${suffix}`,
+        expectedUpdatedAt: reverseResult.commissionLedger.updatedAt,
+      },
+    });
+    expect(secondReviewResponse.status()).toBe(409);
+    await expect(secondReviewResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "commission_review_already_reversed" }),
+    );
+
+    const sourceDataResponse = await page.request.get("/affiliates/source-data");
+    expect(sourceDataResponse.ok(), await sourceDataResponse.text()).toBeTruthy();
+    const sourceData = await sourceDataResponse.json();
+    expect(sourceData.commissionReviewActions.contract.issue).toBe(115);
+    expect(sourceData.commissionLedgerSummary.reviewActionCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action_kind: "mark_reviewed", next_payout_status: "not_payable" }),
+        expect.objectContaining({ action_kind: "reverse_evidence", next_payout_status: "not_payable" }),
+      ]),
+    );
+    expect(sourceData.commissionLedgerSummary).toEqual(
+      expect.objectContaining({
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        payableRowsIncluded: false,
+        payoutRowsIncluded: false,
+        taxRowsIncluded: false,
+        partnerNotificationsIncluded: false,
+      }),
+    );
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -1421,7 +1639,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111, 113],
+          issueNumbers: [19, 89, 109, 111, 113, 115],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-referral-click",
@@ -1437,6 +1655,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-agent-creates-review-only-commission-evidence",
           featureId: "feature-affiliates-referrals",
           issueNumbers: [19, 109, 111, 113],
+        }),
+        expect.objectContaining({
+          id: "journey-owner-reviews-commission-ledger-evidence",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 113, 115],
         }),
       ]),
     );
@@ -1497,6 +1720,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "checkout_intents" }),
         expect.objectContaining({ table: "checkout_referral_attributions" }),
         expect.objectContaining({ table: "affiliate_commission_ledger_entries" }),
+        expect.objectContaining({ table: "affiliate_commission_ledger_actions" }),
         expect.objectContaining({ table: "product_entitlements" }),
         expect.objectContaining({ table: "product_fulfillment_tasks" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
@@ -1521,9 +1745,14 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.affiliateCommissionLedger).toEqual(
       expect.objectContaining({
         contract: expect.objectContaining({
-          status: "review-only-ledger-ready",
-          issue: 113,
+          status: "owner-review-actions-ready",
+          issue: 115,
           apiRoute: "/api/affiliates/commission-ledger",
+        }),
+        ownerReviewActions: expect.objectContaining({
+          status: "owner-review-actions-ready",
+          issue: 115,
+          apiRoute: "/api/admin/affiliates/commission-ledger/actions",
         }),
         summary: expect.objectContaining({
           status: "available",
@@ -1531,6 +1760,7 @@ test.describe("Bumpgrade scaffold", () => {
           privateDataIncluded: false,
           payableRowsIncluded: false,
           payoutRowsIncluded: false,
+          partnerNotificationsIncluded: false,
         }),
       }),
     );

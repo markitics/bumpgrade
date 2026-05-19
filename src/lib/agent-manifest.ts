@@ -154,6 +154,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "referralClickId",
       "referralAttributionId",
       "reviewOnlyCommissionLedgerId",
+      "commissionReviewActionId",
       "auditCorrelationId",
     ],
     safeForAgents: [
@@ -161,6 +162,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Separate sandbox from live billing",
       "Inspect referral attribution evidence",
       "Inspect review-only commission ledger evidence",
+      "Inspect owner review action boundaries",
       "Inspect write safety rules",
     ],
     writeBoundary:
@@ -349,6 +351,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "checkoutIntentId",
       "referralAttributionId",
       "reviewOnlyCommissionLedgerId",
+      "commissionReviewActionId",
       "attributionRuleId",
       "commissionRuleId",
       "commissionLedgerId",
@@ -363,10 +366,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect aggregate referral click counts",
       "Inspect aggregate checkout attribution counts",
       "Inspect aggregate review-only commission ledger counts",
+      "Inspect aggregate owner review and reversal action counts",
       "Inspect commission and payout review boundaries",
     ],
     writeBoundary:
-      "Seeded referral clicks can be captured with idempotency and destination-route validation, eligible clicks can be attached to sandbox checkout intents as evidence, and trusted checkout attribution can create review-only commission ledger evidence; cookie assignment, buyer attribution finalization, payable commission writes, owner review, reversal execution, fraud enforcement, payout actions, tax collection, and partner notifications require future confirmed-write APIs.",
+      "Seeded referral clicks can be captured with idempotency and destination-route validation, eligible clicks can be attached to sandbox checkout intents as evidence, trusted checkout attribution can create review-only commission ledger evidence, and owner sessions can review, hold, or reverse that evidence; cookie assignment, buyer attribution finalization, payable commission writes, direct agent review writes, fraud enforcement, payout actions, tax collection, and partner notifications require future confirmed-write APIs.",
   },
   {
     id: "read-mobile-admin-contract",
@@ -436,13 +440,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-commerce",
     route: "/commerce/source-data",
     resolves:
-      "Redacted commerce architecture, sandbox checkout offer, referral attribution evidence, review-only commission ledger evidence, payment tables, webhook rules, and billing write safety.",
+      "Redacted commerce architecture, sandbox checkout offer, referral attribution evidence, review-only commission ledger evidence, owner review action boundaries, payment tables, webhook rules, and billing write safety.",
     stableIds: [
       "productId",
       "priceId",
       "checkoutIntentId",
       "referralClickId",
       "referralAttributionId",
+      "commissionReviewActionId",
       "reviewOnlyCommissionLedgerId",
       "auditCorrelationId",
     ],
@@ -528,7 +533,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-affiliate-referrals",
     route: "/affiliates/source-data",
     resolves:
-      "Seeded affiliate program, partner records, referral links, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+      "Seeded affiliate program, partner records, referral links, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
     stableIds: [
       "affiliateProgramId",
       "affiliatePartnerId",
@@ -537,12 +542,13 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "checkoutIntentId",
       "referralAttributionId",
       "reviewOnlyCommissionLedgerId",
+      "commissionReviewActionId",
       "commissionRuleId",
       "commissionLedgerId",
       "payoutBatchId",
     ],
     volatileClaims:
-      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, and aggregate counts; it is not cookie assignment, buyer attribution finalization, payable commission state, fraud enforcement, tax collection, partner notification, owner review automation, or Stripe payout capability.",
+      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, and aggregate counts; it is not cookie assignment, buyer attribution finalization, payable commission state, fraud enforcement, tax collection, partner notification, direct agent review automation, or Stripe payout capability.",
   },
   {
     id: "evidence-mobile-admin",

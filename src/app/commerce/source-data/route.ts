@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import {
   affiliateCommissionLedgerContract,
+  affiliateCommissionReviewActionsContract,
   loadAffiliateCommissionLedgerSummary,
 } from "@/lib/affiliate-commission-ledger";
 import {
@@ -63,6 +64,7 @@ export async function GET() {
     },
     affiliateCommissionLedger: {
       contract: affiliateCommissionLedgerContract,
+      ownerReviewActions: affiliateCommissionReviewActionsContract,
       summary: await loadAffiliateCommissionLedgerSummary(db),
     },
     agentWriteRules: commerceAgentWriteRules,

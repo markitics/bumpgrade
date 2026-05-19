@@ -135,8 +135,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <strong>{program.partners.length} partner records</strong>
           <span>
             Referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger
-            evidence, and payout review states are public-safe records; cookies, buyers, tax forms, and payout accounts
-            stay disabled.
+            evidence, owner review/reversal actions, and payout review states are public-safe records; cookies, buyers,
+            tax forms, partner notifications, and payout accounts stay disabled.
           </span>
         </aside>
       </section>
