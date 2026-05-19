@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
+import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
 import { getFunnelBySlug, seededFunnels } from "@/lib/funnels";
 import { site } from "@/lib/site";
 
@@ -17,15 +18,22 @@ export function generateStaticParams() {
   return seededFunnels.map((funnel) => ({ slug: funnel.slug }));
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+async function getPublicFunnel(slug: string) {
+  return getFunnelBySlug(slug) ?? (await getPublishedD1FunnelBySlug(slug));
+}
+
 export async function generateMetadata({ params }: FunnelPreviewPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const funnel = getFunnelBySlug(slug);
+  const funnel = await getPublicFunnel(slug);
 
   if (!funnel) return {};
 
   return {
-    title: `${funnel.title} Preview`,
-    description: `${funnel.summary} This is a read-only Bumpgrade funnel/page-builder scaffold tied to issue #${funnel.issue}.`,
+    title: funnel.status === "published" ? funnel.title : `${funnel.title} Preview`,
+    description: `${funnel.summary} This Bumpgrade funnel/page-builder route is tied to issue #${funnel.issue}.`,
     alternates: {
       canonical: `${site.url}${funnel.previewRoute}`,
     },
@@ -40,16 +48,18 @@ export async function generateMetadata({ params }: FunnelPreviewPageProps): Prom
 
 export default async function FunnelPreviewPage({ params }: FunnelPreviewPageProps) {
   const { slug } = await params;
-  const funnel = getFunnelBySlug(slug);
+  const funnel = await getPublicFunnel(slug);
 
   if (!funnel) {
     notFound();
   }
 
+  const published = funnel.status === "published";
+
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${funnel.title} preview`,
+    name: published ? funnel.title : `${funnel.title} preview`,
     url: `${site.url}${funnel.previewRoute}`,
     description: funnel.summary,
     isPartOf: {
@@ -94,8 +104,9 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <p>Status</p>
           <strong>{funnel.steps.length} steps</strong>
           <span>
-            Draft preview only. Revision {funnel.revisionId} is readable by agents, but writes and publishing stay
-            disabled until confirmed-write contracts exist.
+            {published
+              ? `Published D1 funnel. Revision ${funnel.revisionId} is public and readable by agents.`
+              : `Draft preview only. Revision ${funnel.revisionId} is readable by agents, but writes stay disabled until confirmed-write contracts exist.`}
           </span>
         </aside>
       </section>
@@ -104,7 +115,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Ordered steps</p>
-            <h2>Three-step launch funnel scaffold</h2>
+            <h2>{published ? "Published funnel sequence" : "Three-step launch funnel scaffold"}</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -184,11 +195,11 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <div>
             <PanelsTopLeft aria-hidden="true" />
             <h3>Preview semantics</h3>
-            <p>The seeded funnel is crawlable and semantic so browser agents can inspect it without private admin UI.</p>
+            <p>The funnel route is crawlable and semantic so browser agents can inspect it without private admin UI.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>{published ? "Published read surface" : "Confirmed writes later"}</h3>
             <p>{funnel.writeBoundary}</p>
           </div>
         </div>

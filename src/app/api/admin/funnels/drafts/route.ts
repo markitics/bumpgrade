@@ -4,6 +4,7 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   createDraftFunnelFromTemplate,
   getFunnelDraftD1OrThrow,
+  publishDraftFunnel,
   reorderDraftFunnelStep,
   seedEditableFunnelDraft,
   updateDraftFunnelStep,
@@ -62,6 +63,13 @@ export async function POST(request: NextRequest) {
         draftId: formValue(formData, "draftId"),
         stepId: formValue(formData, "stepId"),
         direction: formValue(formData, "direction"),
+        idempotencyKey,
+      });
+    } else if (mode === "publish") {
+      draft = await publishDraftFunnel(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,
       });
     } else {
