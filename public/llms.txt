@@ -25,6 +25,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
 - Seeded audience opt-in API: https://bumpgrade.com/api/audience/opt-in
+- Admin audience subscriber inspection: https://bumpgrade.com/admin/audience (human page requires Better Auth owner session)
 - Analytics and experiments source data: https://bumpgrade.com/analytics/source-data
 - Seeded analytics dashboard preview: https://bumpgrade.com/analytics/indie-launch-dashboard
 - Seeded analytics event API: https://bumpgrade.com/api/analytics/events
@@ -129,12 +130,15 @@ GitHub repo: https://github.com/markitics/bumpgrade
   fulfillment, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
-  automation records, and the `/api/audience/opt-in` write boundary.
+  automation records, aggregate owner-inspection counts, redaction flags, and
+  the `/api/audience/opt-in` write boundary.
   `/audience/indie-launch-waitlist` can capture explicit-consent waitlist
   opt-ins and record normalized subscriber, consent, seeded tag, and draft
-  sequence enrollment evidence. Treat it as seeded opt-in capture evidence, not
-  live email sending, contact import, unsubscribe management, CRM timeline
-  state, suppression-list mutation, or a direct agent subscriber-write API.
+  sequence enrollment evidence. `/admin/audience` is owner-gated and can inspect
+  private subscriber rows. Treat the public contract as seeded opt-in capture and
+  aggregate inspection evidence, not live email sending, contact import,
+  unsubscribe management, CRM timeline state, private export, suppression-list
+  mutation, or a direct agent subscriber-write API.
 - `/analytics/source-data` exposes the first analytics and experimentation
   workspace with event definitions, aggregate event counts, aggregate source
   attribution counts, aggregate variant event counts, aggregate assignment

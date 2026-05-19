@@ -45,6 +45,7 @@ const routes = [
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
+  { path: "/admin/audience", heading: "Owner access is required" },
   { path: "/admin/funnels", heading: "Owner access is required" },
   { path: "/admin/funnels/funnel-draft-indie-launch-working-copy/preview", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
@@ -458,14 +459,35 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: "subscriber-capture-ready",
-        issue: 103,
+        status: "owner-subscriber-inspection-ready",
+        issue: 137,
         parentIssue: 17,
       }),
     );
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/audience/source-data", "/api/audience/opt-in", "/audience/indie-launch-waitlist"]),
+      expect.arrayContaining(["/audience/source-data", "/api/audience/opt-in", "/audience/indie-launch-waitlist", "/admin/audience"]),
     );
+    expect(payload.subscriberInspection).toEqual(
+      expect.objectContaining({
+        status: "owner-subscriber-inspection-ready",
+        issue: 137,
+        ownerRoute: "/admin/audience",
+        counts: expect.objectContaining({
+          subscribers: expect.any(Number),
+          consentEvents: expect.any(Number),
+          tagAssignments: expect.any(Number),
+          sequenceEnrollments: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailIncluded: false,
+          rawNameIncluded: false,
+          rawIpIncluded: false,
+          rawUserAgentIncluded: false,
+        }),
+      }),
+    );
+    const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     expect(payload.optInWrites).toEqual(
       expect.objectContaining({
         status: "subscriber-capture-ready",
@@ -519,6 +541,12 @@ test.describe("Bumpgrade scaffold", () => {
     await page.getByRole("button", { name: /Join waitlist/i }).click();
     await expect(page.getByText("Waitlist opt-in saved")).toBeVisible();
     await expect(page.getByText("Email delivery remains disabled")).toBeVisible();
+
+    const afterResponse = await request.get("/audience/source-data");
+    expect(afterResponse.ok()).toBeTruthy();
+    const afterPayload = await afterResponse.json();
+    expect(afterPayload.subscriberInspection.counts.subscribers).toBeGreaterThanOrEqual(beforeSubscriberCount + 1);
+    expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("@example.com");
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -1966,7 +1994,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103],
+          issueNumbers: [17, 85, 103, 137],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
@@ -2178,6 +2206,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
@@ -2752,6 +2781,26 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/admin/for-mark");
     await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
     await expect(page.locator("header.site-header").getByRole("link", { name: "Log in / sign up", exact: true })).toHaveCount(0);
+
+    const audienceEmail = `owner-audience-${Date.now()}@example.com`;
+    const audienceOptInResponse = await page.request.post("/api/audience/opt-in", {
+      data: {
+        email: ` ${audienceEmail.toUpperCase()} `,
+        firstName: " Owner Contact ",
+        consent: true,
+        formId: "opt-in-form-indie-launch-waitlist",
+        idempotencyKey: `playwright-owner-audience-${Date.now()}`,
+      },
+    });
+    expect(audienceOptInResponse.ok(), await audienceOptInResponse.text()).toBeTruthy();
+
+    await page.goto("/admin/audience");
+    await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
+    const audienceCard = page.getByRole("article").filter({ hasText: audienceEmail.toLowerCase() });
+    await expect(audienceCard.getByRole("heading", { name: audienceEmail.toLowerCase() })).toBeVisible();
+    await expect(audienceCard.getByText("First name: Owner Contact")).toBeVisible();
+    await expect(audienceCard.getByText("lead-magnet:launch-checklist")).toBeVisible();
+    await expect(audienceCard.getByText("Indie launch nurture sequence")).toBeVisible();
 
     const seedResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
