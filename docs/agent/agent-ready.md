@@ -147,8 +147,10 @@ URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
-`/api/products/downloads?token={token}` streams a seeded private R2-backed fixture through Bumpgrade while
-rejecting expired or replayed tokens. This proves entitlement grant,
+`/api/products/downloads?token={token}` revalidates current entitlement status,
+checkout intent linkage, trusted checkout state, and asset scope before it
+streams a seeded private R2-backed fixture through Bumpgrade while rejecting
+expired or replayed tokens. This proves entitlement grant,
 owner-inspection, customer-safe lookup, and private fixture delivery semantics,
 not signed object URLs, arbitrary asset uploads, protected content, revocation,
 live fulfillment automation, or direct agent write capability.

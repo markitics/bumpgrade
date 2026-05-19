@@ -136,8 +136,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   entitlement and fulfillment status without buyer email, hashes, raw Stripe
   identifiers, event IDs, metadata JSON, private R2 keys, or signed URLs.
   `/api/products/download-tokens` can create short-lived tokens for active file
-  entitlements, and `/api/products/downloads?token={token}` streams a seeded
-  private R2-backed fixture through Bumpgrade while rejecting replayed or expired tokens. Public
+  entitlements, and `/api/products/downloads?token={token}` revalidates current
+  entitlement status, checkout intent linkage, trusted checkout state, and asset
+  scope before streaming a seeded private R2-backed fixture through Bumpgrade
+  while rejecting replayed or expired tokens. Public
   product source-data exposes aggregate entitlement inspection counts, customer
   lookup contract metadata, download-token contract metadata, and redaction
   flags only. Treat it as grant-boundary, owner-inspection, customer-safe lookup,
