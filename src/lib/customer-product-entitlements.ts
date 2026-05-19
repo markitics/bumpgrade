@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import { entitlementGrantMappings } from "@/lib/product-entitlements";
 import { productAccessCatalogs } from "@/lib/product-access";
+import { downloadableAssetForProduct, productDownloadTokenApiRoute } from "@/lib/product-download-tokens";
 
 export const customerProductEntitlementLookupIssue = 141;
 export const customerProductEntitlementLookupStatus = "customer-product-entitlement-lookup-ready";
@@ -66,6 +67,14 @@ export type CustomerProductEntitlement = {
     summary: string | null;
     updatedAt: string | null;
   };
+  downloadDelivery: {
+    available: boolean;
+    assetId: string | null;
+    assetTitle: string | null;
+    tokenApiRoute: typeof productDownloadTokenApiRoute;
+    privateR2KeysIncluded: false;
+    signedUrlsIncluded: false;
+  };
 };
 
 export type CustomerProductEntitlementLookup = {
@@ -101,6 +110,7 @@ export type CustomerProductEntitlementLookup = {
     rawR2KeysIncluded: false;
     signedUrlsIncluded: false;
     metadataJsonIncluded: false;
+    downloadTokensIncluded: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
@@ -184,7 +194,7 @@ const privateFieldsExcluded = [
 ];
 
 const writeBoundary =
-  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. It does not issue signed downloads, expose protected lessons, reveal private buyer data, mutate entitlements, revoke access, or perform live fulfillment.";
+  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. Issue #143 can create one-use sandbox placeholder download tokens for active file entitlements. Private R2-backed delivery, signed URLs, protected lessons, private buyer data, entitlement mutation, revocation, and live fulfillment remain future authenticated confirmed-write APIs.";
 
 export const customerProductEntitlementLookupSummary: CustomerProductEntitlementLookupSummary = {
   id: "customer-product-entitlement-lookup-contract",
@@ -204,6 +214,7 @@ export const customerProductEntitlementLookupSummary: CustomerProductEntitlement
     rawR2KeysIncluded: false,
     signedUrlsIncluded: false,
     metadataJsonIncluded: false,
+    downloadTokensIncluded: false,
   },
   privateFieldsExcluded,
   writeBoundary,
@@ -238,6 +249,7 @@ function customerEntitlement(row: CustomerEntitlementRow): CustomerProductEntitl
   const product = products.get(row.product_id);
   const template = templates.get(row.entitlement_template_id);
   const accessRule = accessRules.get(row.access_rule_id);
+  const downloadableAsset = downloadableAssetForProduct(row.product_id);
 
   return {
     id: row.entitlement_id,
@@ -262,6 +274,14 @@ function customerEntitlement(row: CustomerEntitlementRow): CustomerProductEntitl
       kind: row.fulfillment_kind,
       summary: row.fulfillment_summary,
       updatedAt: timestampValue(row.fulfillment_updated_at),
+    },
+    downloadDelivery: {
+      available: row.entitlement_status === "active" && Boolean(downloadableAsset),
+      assetId: downloadableAsset?.assetId ?? null,
+      assetTitle: downloadableAsset?.assetTitle ?? null,
+      tokenApiRoute: productDownloadTokenApiRoute,
+      privateR2KeysIncluded: false,
+      signedUrlsIncluded: false,
     },
   };
 }

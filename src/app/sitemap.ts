@@ -27,6 +27,7 @@ const sourceDataRoutes = [
   "/offers/source-data",
   "/products/source-data",
   "/api/products/entitlements",
+  "/api/products/download-tokens",
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
   "/mobile-admin/ios/source-data",
