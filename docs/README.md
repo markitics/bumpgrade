@@ -20,8 +20,8 @@ then open the relevant shelf for the task.
 - `operations.md`: production facts, secrets, migrations, and auth notes.
 - `features/content-surfaces.md`: users, resources, pricing, and
   `/content/source-data` content contracts from issue #20.
-- `features/funnels.md`: read-only funnel source-data and preview contract from
-  issue #79, plus the write boundary for future builder slices.
+- `features/funnels.md`: funnel source-data and preview contract from issue #79,
+  plus the owner-gated D1 draft builder scaffold from issue #91.
 - `features/checkout-offers.md`: read-only checkout offer, order bump, upsell,
   and downsell source-data contract from issue #81.
 - `features/product-access.md`: read-only product, asset, access-rule, and

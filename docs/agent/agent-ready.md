@@ -104,10 +104,12 @@ audience segments, resource records, pricing principles, and planned pricing
 tracks. Pricing tracks are positioning hypotheses, not published plan names,
 amounts, limits, trials, or live billing availability.
 
-Current funnel boundary: `/funnels/source-data` is the public-safe read contract
-for the first seeded draft funnel and `/funnels/indie-launch-sandbox` is the
-read-only preview. This proves ordered funnel and page-block semantics, not a
-live builder, publishing system, checkout integration, or agent write API.
+Current funnel boundary: `/funnels/source-data` is the public-safe contract for
+the first seeded draft funnel, `/funnels/indie-launch-sandbox` is the read-only
+preview, and `/admin/funnels` is the Better Auth owner-gated D1 draft creation
+surface from issue #91. This proves ordered funnel/page-block semantics and
+private draft seed/create state, not public publishing, checkout integration,
+drag-and-drop editing, deletion, or an agent write API.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
 contract for the first seeded primary offer, order bump, upsell, and downsell
@@ -163,6 +165,8 @@ Useful first MCP resources/tools:
   and audit records once the public-safe contracts exist.
 - Read redacted affiliate/referral programs, referral links, commission rules,
   payout review, and fraud flag records once the public-safe contracts exist.
+- Read owner-gated draft funnel state only with an owner session, and keep
+  private draft copy out of public source-data.
 - Draft a feature, journey, comparison, or funnel update from validated source
   evidence.
 - Create proposed admin updates that require explicit confirmation before

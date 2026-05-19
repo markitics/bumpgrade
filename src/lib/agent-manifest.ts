@@ -191,9 +191,27 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/funnels.ts",
-    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "agentActionId"],
-    safeForAgents: ["Read seeded draft funnel", "Inspect ordered steps", "Inspect page blocks and write boundaries"],
-    writeBoundary: "Funnel writes, publishing, checkout linking, and agent edits require future confirmed-write APIs.",
+    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "funnelDraftId", "funnelAuditEventId", "agentActionId"],
+    safeForAgents: [
+      "Read seeded draft funnel",
+      "Inspect ordered steps",
+      "Inspect page blocks and write boundaries",
+      "Discover owner-session editable draft capability from issue #91",
+    ],
+    writeBoundary:
+      "Owner-session seed/create draft writes exist at /admin/funnels. Publishing, checkout linking, deletion, drag-and-drop layout editing, and agent edits require future confirmed-write APIs.",
+  },
+  {
+    id: "read-admin-draft-funnels",
+    title: "Admin draft funnels",
+    route: "/admin/funnels",
+    kind: "doc",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables funnel_drafts, funnel_draft_steps, and funnel_audit_events",
+    stableIds: ["funnelDraftId", "funnelDraftStepId", "funnelAuditEventId", "ownerUserId"],
+    safeForAgents: ["Read private draft funnel rows only with an owner session", "Check audit metadata before acting on draft state"],
+    writeBoundary:
+      "The POST endpoint can seed or create private drafts for an authenticated owner; public publishing, checkout linking, deletion, and agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -369,9 +387,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-funnels",
     route: "/funnels/source-data",
-    resolves: "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, and confirmed-write boundary.",
-    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId"],
-    volatileClaims: "The funnel contract is read-only preview evidence; it is not a live builder, publishing system, or checkout integration.",
+    resolves:
+      "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "funnelDraftId", "funnelAuditEventId"],
+    volatileClaims:
+      "The public funnel contract exposes owner-gated editable draft capability metadata; it does not expose private draft copy, public publishing, checkout linking, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -485,8 +505,17 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, and write-safety boundaries.",
-    safetyBoundary: "Read-only; create, update, publish, checkout-link, and agent-edit tools require confirmed-write contracts.",
+    purpose: "Expose seeded funnel, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed exists in admin UI, while publish, checkout-link, and agent-edit tools require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-tool-create-funnel-draft",
+    resourceOrTool: "tool create_funnel_draft",
+    status: "planned",
+    backedBy: "/admin/funnels and /api/admin/funnels/drafts",
+    purpose: "Create a private draft funnel for an authenticated owner using the same D1 tables and audit model.",
+    safetyBoundary:
+      "Requires owner identity, explicit confirmation, idempotency key, audit event, stale-state check, and redaction before an agent may call it directly.",
   },
   {
     id: "mcp-resource-checkout-offers",

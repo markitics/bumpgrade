@@ -115,6 +115,7 @@ export const featureCatalog: FeatureRecord[] = [
     audience: "Creators, coaches, agencies, and small publishers launching offers.",
     expectedCapabilities: [
       "Read-only seeded draft funnel source data and preview route from issue #79.",
+      "Owner-gated D1 draft funnel seed/create scaffold from issue #91.",
       "Funnel steps for opt-in, sales, checkout, upsell, downsell, thank-you, and nurture paths.",
       "Reusable blocks, templates, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
@@ -123,9 +124,10 @@ export const featureCatalog: FeatureRecord[] = [
     evidence: [
       "Tracked by issue #14.",
       "Issue #79 adds `/funnels/source-data` and `/funnels/indie-launch-sandbox` as the first read-only contract and preview scaffold.",
+      "Issue #91 adds `/admin/funnels`, `/api/admin/funnels/drafts`, and D1 draft/audit tables for owner-gated draft creation.",
     ],
     agentContract:
-      "Future agent writes must create drafts first and require confirmation before publishing public funnel pages.",
+      "Owner sessions can seed or create private draft funnels; future agent writes must require confirmation before editing or publishing public funnel pages.",
   },
   {
     id: "feature-checkout-offers",

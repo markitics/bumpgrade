@@ -17,6 +17,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Content surface source data: https://bumpgrade.com/content/source-data
 - Funnel source data: https://bumpgrade.com/funnels/source-data
 - Seeded funnel preview: https://bumpgrade.com/funnels/indie-launch-sandbox
+- Admin draft funnels: https://bumpgrade.com/admin/funnels (human page requires Better Auth owner session)
 - Checkout offer source data: https://bumpgrade.com/offers/source-data
 - Seeded checkout offer preview: https://bumpgrade.com/offers/indie-launch-stack
 - Product access source data: https://bumpgrade.com/products/source-data
@@ -92,10 +93,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Treat pricing tracks as positioning
   hypotheses, not published plan names, amounts, trials, limits, or live billing
   availability.
-- `/funnels/source-data` exposes the first read-only funnel/page-builder
-  contract and seeded draft preview. Treat it as preview/source-data evidence,
-  not a live visual builder, publishing system, checkout integration, or
-  confirmed-write agent API.
+- `/funnels/source-data` exposes the first funnel/page-builder contract, seeded
+  public preview, and owner-session editable draft capability from issue #91.
+  Treat the admin draft builder as private D1 draft creation only, not public
+  publishing, checkout integration, drag-and-drop visual editing, deletion, or
+  an unconfirmed agent-write API.
 - `/offers/source-data` exposes the first read-only checkout offer stack with a
   primary sandbox offer, order bump, upsell, and downsell. Treat it as
   preview/source-data evidence, not live billing, one-click upsell charging,

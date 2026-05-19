@@ -238,6 +238,74 @@ export const paymentAuditEvents = sqliteTable(
   }),
 );
 
+export const funnelDrafts = sqliteTable(
+  "funnel_drafts",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    status: text("status").notNull().default("draft"),
+    summary: text("summary").notNull(),
+    sourceIssueNumber: integer("source_issue_number").notNull(),
+    parentIssueNumber: integer("parent_issue_number").notNull(),
+    previewRoute: text("preview_route"),
+    sourceDataRoute: text("source_data_route").notNull().default("/funnels/source-data"),
+    revisionId: text("revision_id").notNull(),
+    createdByEmail: text("created_by_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    slugUnique: uniqueIndex("funnel_drafts_slug_unique").on(table.slug),
+    statusUpdatedIdx: index("funnel_drafts_status_updated_idx").on(table.status, table.updatedAt),
+    ownerUpdatedIdx: index("funnel_drafts_owner_updated_idx").on(table.ownerUserId, table.updatedAt),
+  }),
+);
+
+export const funnelDraftSteps = sqliteTable(
+  "funnel_draft_steps",
+  {
+    id: text("id").primaryKey(),
+    funnelDraftId: text("funnel_draft_id")
+      .notNull()
+      .references(() => funnelDrafts.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    stepOrder: integer("step_order").notNull(),
+    kind: text("kind").notNull(),
+    title: text("title").notNull(),
+    goal: text("goal").notNull(),
+    routeAnchor: text("route_anchor").notNull(),
+    blocksJson: text("blocks_json").notNull().default("[]"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    draftOrderUnique: uniqueIndex("funnel_draft_steps_draft_order_unique").on(table.funnelDraftId, table.stepOrder),
+    draftSlugUnique: uniqueIndex("funnel_draft_steps_draft_slug_unique").on(table.funnelDraftId, table.slug),
+  }),
+);
+
+export const funnelAuditEvents = sqliteTable(
+  "funnel_audit_events",
+  {
+    id: text("id").primaryKey(),
+    funnelDraftId: text("funnel_draft_id").references(() => funnelDrafts.id, { onDelete: "set null" }),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorEmail: text("actor_email").notNull(),
+    eventKind: text("event_kind").notNull(),
+    summary: text("summary").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("funnel_audit_events_idempotency_unique").on(table.idempotencyKey),
+    draftCreatedIdx: index("funnel_audit_events_draft_created_idx").on(table.funnelDraftId, table.createdAt),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {

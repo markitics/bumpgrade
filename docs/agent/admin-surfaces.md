@@ -96,6 +96,23 @@ Every main feature should have at least one journey. Each journey should include
 
 See `docs/agent/user-journeys.md` for the template.
 
+## Admin `/admin/funnels`
+
+Purpose: owner-gated draft funnel creation on top of the public funnel source
+contract.
+
+Issue #91 added the first D1-backed draft tables:
+
+- `funnel_drafts`
+- `funnel_draft_steps`
+- `funnel_audit_events`
+
+The page can seed the indie launch working draft or create a new three-step
+template draft. This is private/admin state. Public agents should read
+`/funnels/source-data` for the capability boundary, not scrape private draft
+copy. Publishing, checkout linking, deletion, and agent edits still need future
+confirmed-write APIs.
+
 ## Agent Maintenance Rule
 
 When any of these change, update the others in the same PR when practical:
