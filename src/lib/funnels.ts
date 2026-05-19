@@ -40,6 +40,35 @@ export type FunnelRecord = {
 };
 
 export const funnelsUpdatedAt = "2026-05-18";
+export const draftFunnelBuilderIssue = 91;
+export const draftFunnelBuilderParentIssue = 14;
+
+export const draftFunnelBuilderWriteBoundary =
+  "Owner-session draft writes are live only for creating or seeding private D1 draft funnels. Publishing, deleting, checkout linking, public preview generation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+
+export const editableDraftCapability = {
+  id: "editable-funnel-drafts-admin",
+  status: "owner-session-live",
+  issue: draftFunnelBuilderIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  createEndpoint: "/api/admin/funnels/drafts",
+  storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
+  auth: "owner-session",
+  safeForPublicAgents: [
+    "Read that editable D1-backed draft funnels exist behind owner auth.",
+    "Distinguish private draft creation from public funnel preview and publishing.",
+    "Cite issue #91 before claiming editable draft capability.",
+  ],
+  notYetLive: [
+    "Public publishing",
+    "Checkout-step linking",
+    "Drag-and-drop layout editing",
+    "Deletion/archive workflows",
+    "Agent-initiated edits without owner confirmation",
+  ],
+  writeBoundary: draftFunnelBuilderWriteBoundary,
+};
 
 export const seededFunnel: FunnelRecord = {
   id: "funnel-indie-launch-sandbox",
@@ -171,14 +200,24 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "read-contract-ready",
-  issue: 79,
+  status: "read-contract-and-owner-draft-ready",
+  issue: draftFunnelBuilderIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
-  stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "agentActionId"],
+  adminRoutes: [editableDraftCapability.adminRoute],
+  stableIds: [
+    "funnelId",
+    "funnelStepId",
+    "funnelBlockId",
+    "funnelRevisionId",
+    "funnelDraftId",
+    "funnelAuditEventId",
+    "agentActionId",
+  ],
   writeBoundary: seededFunnel.writeBoundary,
+  editableDraftCapability,
   funnels: seededFunnels,
   caveat:
-    "This contract proves read and preview semantics only. It is not a live visual builder, publishing system, checkout integration, or confirmed-write agent API.",
+    "This public contract proves read and preview semantics plus the existence of an owner-session D1 draft builder. It does not expose private draft copy and is not a public publishing system, checkout integration, drag-and-drop visual builder, or unconfirmed agent-write API.",
 };

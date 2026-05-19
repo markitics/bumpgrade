@@ -207,12 +207,14 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only preview scaffold, reusable blocks, templates, publishing, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only preview scaffold, D1-backed editable draft scaffold, reusable blocks, templates, publishing, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
+      "Issue #91 adds owner-gated `/admin/funnels`, `/api/admin/funnels/drafts`, and D1 draft/audit tables.",
     ],
-    nextMilestone: "Build the first authenticated create/edit draft workflow on top of the read-only funnel contract.",
+    nextMilestone:
+      "Add granular edit/reorder controls, public preview generation, and confirmed publish review on top of D1 draft funnels.",
   },
   {
     id: "roadmap-checkout-offers",

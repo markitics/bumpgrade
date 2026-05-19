@@ -10,7 +10,7 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
-import { funnelSourceData, seededFunnel } from "../src/lib/funnels";
+import { editableDraftCapability, funnelSourceData, seededFunnel } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
@@ -39,6 +39,7 @@ const routes = [
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
+  { path: "/admin/funnels", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs", heading: "Bumpgrade is readable by agents" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Agents get public contracts" },
@@ -179,6 +180,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/admin/funnels");
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBeTruthy();
@@ -240,12 +242,23 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-ready",
-        issue: 79,
+        status: "read-contract-and-owner-draft-ready",
+        issue: 91,
         parentIssue: 14,
       }),
     );
     expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/funnels/indie-launch-sandbox"]));
+    expect(payload.adminRoutes).toEqual(expect.arrayContaining(["/admin/funnels"]));
+    expect(payload.editableDraftCapability).toEqual(
+      expect.objectContaining({
+        id: editableDraftCapability.id,
+        status: "owner-session-live",
+        issue: 91,
+        adminRoute: "/admin/funnels",
+        createEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+      }),
+    );
     expect(payload.funnels).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -262,7 +275,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
-    expect(payload.caveat).toContain("not a live visual builder");
+    expect(payload.caveat).toContain("owner-session D1 draft builder");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
@@ -664,6 +677,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -674,6 +688,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-funnel-contract", route: "/funnels/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
@@ -890,6 +905,36 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/admin/for-mark");
     await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
     await expect(page.locator("header.site-header").getByRole("link", { name: "Log in / sign up", exact: true })).toHaveCount(0);
+
+    const seedResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "seed",
+        idempotencyKey: "playwright-seed-indie-launch-working-copy",
+        return: "json",
+      },
+    });
+    expect(seedResponse.ok(), await seedResponse.text()).toBeTruthy();
+    const seedPayload = await seedResponse.json();
+    expect(seedPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "seed",
+        draft: expect.objectContaining({
+          id: "funnel-draft-indie-launch-working-copy",
+          steps: expect.arrayContaining([
+            expect.objectContaining({ order: 1, kind: "opt_in" }),
+            expect.objectContaining({ order: 2, kind: "sales" }),
+            expect.objectContaining({ order: 3, kind: "thank_you" }),
+          ]),
+        }),
+      }),
+    );
+
+    await page.goto("/admin/funnels");
+    await expect(page.getByRole("heading", { name: /Draft funnel builder backed by D1/i })).toBeVisible();
+    await expect(page.getByText("Indie launch working draft")).toBeVisible();
+    await expect(page.locator(".admin-step-list").filter({ hasText: "Warm list opt-in" })).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

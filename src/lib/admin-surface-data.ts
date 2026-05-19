@@ -381,6 +381,41 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-owner-seeds-editable-draft-funnel",
+    title: "Owner seeds an editable draft funnel",
+    featureId: "feature-funnel-builder",
+    featureStatus: "pending",
+    issueNumbers: [14, 79, 91],
+    primaryUser: "Publisher or owner preparing the first launch funnel",
+    userGoal: "Create or seed a D1-backed draft funnel with ordered opt-in, sales, and thank-you steps before public publishing exists.",
+    sourceEvidence: [
+      "https://bumpgrade.com/admin/funnels",
+      "https://bumpgrade.com/funnels/source-data",
+      "https://github.com/markitics/bumpgrade/issues/14",
+      "https://github.com/markitics/bumpgrade/issues/91",
+    ],
+    happyPath: [
+      "Sign in with an allowlisted owner account.",
+      "Open /admin/funnels.",
+      "Seed the indie launch working draft or create a new template draft.",
+      "Confirm the page lists a D1-backed draft with at least three ordered steps and audit metadata.",
+      "Use /funnels/source-data to distinguish owner-session editable drafts from public preview records.",
+    ],
+    edgeCases: [
+      "The admin draft builder is owner-gated and not crawlable public content.",
+      "Publishing, checkout linking, deletion, drag-and-drop layout editing, and agent writes still require future confirmed-write APIs.",
+      "Draft copy remains private/admin-scoped until a separate preview or publishing slice explicitly exposes it.",
+    ],
+    agentAccess:
+      "Agents can read public /funnels/source-data for capability metadata. Owner-session tools may create draft funnels only with actor identity, idempotency, audit correlation, stale-state checks, and redaction.",
+    validation: [
+      "Playwright covers the owner-gated /admin/funnels surface, seed POST endpoint, /funnels/source-data capability metadata, and agent manifest discovery.",
+      "Issue #91 records the first D1-backed draft funnel builder scaffold.",
+    ],
+    sortOrder: 47,
+    updatedAt: null,
+  },
+  {
     id: "journey-publisher-checks-mobile-admin",
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",

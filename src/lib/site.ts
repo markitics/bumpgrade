@@ -91,6 +91,12 @@ export const adminNavItems: NavItem[] = [
     icon: Route,
   },
   {
+    label: "Draft funnels",
+    href: "/admin/funnels",
+    description: "Owner-gated D1 draft funnel creation and ordered step records.",
+    icon: PanelsTopLeft,
+  },
+  {
     label: "For Mark",
     href: "/admin/for-mark",
     description: "Non-blocking decisions, risks, and blockers Mark should not miss.",
@@ -151,6 +157,7 @@ export const scaffoldRoutes = [
   "/admin/roadmap",
   "/admin/work-log",
   "/admin/user-journeys",
+  "/admin/funnels",
   "/admin/for-mark",
   "/agent-docs",
   "/agent-docs/bumpgrade-agent-surface",
