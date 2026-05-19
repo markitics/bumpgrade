@@ -20,6 +20,11 @@ import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
 import { customerProductEntitlementLookupSummary } from "../src/lib/customer-product-entitlements";
+import {
+  productAssetUploadConfirmationText,
+  productAssetUploadIntentStatus,
+  productAssetUploadMaxBytes,
+} from "../src/lib/product-asset-uploads";
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
 import { productDownloadTokenSummary } from "../src/lib/product-download-tokens";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
@@ -477,8 +482,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "private-r2-product-delivery-ready",
-        issue: 146,
+        status: "owner-private-asset-upload-intents-ready",
+        issue: 151,
         parentIssue: 16,
       }),
     );
@@ -489,6 +494,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/products/entitlements",
         "/api/products/entitlements",
         "/api/products/download-tokens",
+        "/api/admin/products/assets",
       ]),
     );
     expect(payload.entitlementWrites).toEqual(
@@ -564,6 +570,40 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.ownerAssetUploadIntents).toEqual(
+      expect.objectContaining({
+        id: "owner-private-product-asset-upload-intents",
+        status: productAssetUploadIntentStatus,
+        issue: 151,
+        parentIssue: 16,
+        apiRoute: "/api/admin/products/assets",
+        ownerAuthBoundary: "Better Auth owner session",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: productAssetUploadConfirmationText,
+        }),
+        staleStateCheck: expect.objectContaining({
+          required: true,
+          field: "expectedCatalogRevisionId",
+          currentRevisionId: productAccessCatalog.revisionId,
+        }),
+        maxPayloadBytes: productAssetUploadMaxBytes,
+        privateAssetBucketBinding: "PRODUCT_ASSETS",
+        counts: expect.objectContaining({
+          uploadRecords: expect.any(Number),
+          storedPrivateUploads: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawUploadBodyIncluded: false,
+          privateMetadataIncluded: false,
+          rawOwnerEmailIncluded: false,
+          buyerDataIncluded: false,
+        }),
+        rawRowsIncluded: false,
+      }),
+    );
     expect(payload.grantMappings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -602,7 +642,9 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #101 can grant idempotent sandbox product entitlement rows");
+    expect(payload.writeBoundary).toContain("issue #151 lets verified owners create small private asset upload records");
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
+    expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
 
     await page.goto("/products/indie-launch-library");
     await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
@@ -853,6 +895,130 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("body")).toContainText("Launch checklist download");
     await expect(page.locator("body")).toContainText(grant.checkoutIntentId);
     await expect(page.locator("body")).not.toContainText(grant.eventId);
+  });
+
+  test("owner private product asset upload intents require auth, confirmation, idempotency, and redaction", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner product asset upload intents are covered once on desktop.");
+
+    const idempotencyKey = `playwright-product-asset-upload-${Date.now()}`;
+    const uploadBody = `Private owner-upload fixture body ${Date.now()}`;
+    const requestBody = {
+      productId: "product-launch-checklist-download",
+      assetId: "asset-launch-checklist-pdf",
+      fileName: "mark-private-checklist.txt",
+      contentType: "text/plain; charset=utf-8",
+      bodyText: uploadBody,
+      confirmationText: productAssetUploadConfirmationText,
+      idempotencyKey,
+      expectedCatalogRevisionId: productAccessCatalog.revisionId,
+    };
+
+    const unauthorized = await request.post("/api/admin/products/assets", { data: requestBody });
+    expect(unauthorized.status()).toBe(401);
+    await expect(unauthorized.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawUploadBodyIncluded: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+    const contract = await page.request.get("/api/admin/products/assets");
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    await expect(contract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productAssetUploadIntentStatus,
+        issue: 151,
+        route: "/api/admin/products/assets",
+        confirmation: expect.objectContaining({ text: productAssetUploadConfirmationText }),
+        redaction: expect.objectContaining({
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawUploadBodyIncluded: false,
+          rawOwnerEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const created = await page.request.post("/api/admin/products/assets", { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productAssetUploadIntentStatus,
+        issue: 151,
+        duplicate: false,
+        upload: expect.objectContaining({
+          uploadId: expect.stringMatching(/^product-asset-upload-/),
+          productId: requestBody.productId,
+          assetId: requestBody.assetId,
+          fileName: requestBody.fileName,
+          contentType: requestBody.contentType,
+          byteCount: new TextEncoder().encode(uploadBody).byteLength,
+          bodySha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          storedPrivate: true,
+          redaction: expect.objectContaining({
+            rawR2KeysIncluded: false,
+            signedUrlsIncluded: false,
+            rawUploadBodyIncluded: false,
+            rawOwnerEmailIncluded: false,
+            buyerDataIncluded: false,
+          }),
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(uploadBody);
+    expect(createdText).not.toContain("products/uploads/");
+    expect(createdText).not.toContain("signed_url");
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post("/api/admin/products/assets", { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-private-asset-upload-intent-replayed",
+        duplicate: true,
+        upload: expect.objectContaining({
+          uploadId: createdPayload.upload.uploadId,
+          bodySha256: createdPayload.upload.bodySha256,
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post("/api/admin/products/assets", {
+      data: { ...requestBody, bodyText: `${uploadBody} changed` },
+    });
+    expect(conflict.status()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "idempotency_conflict",
+        redaction: expect.objectContaining({
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawUploadBodyIncluded: false,
+        }),
+      }),
+    );
+
+    const sourceData = await request.get("/products/source-data");
+    expect(sourceData.ok(), await sourceData.text()).toBeTruthy();
+    const sourcePayload = await sourceData.json();
+    expect(sourcePayload.ownerAssetUploadIntents.counts.uploadRecords).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.ownerAssetUploadIntents.counts.storedPrivateUploads).toBeGreaterThanOrEqual(1);
+    const sourceText = JSON.stringify(sourcePayload);
+    expect(sourceText).not.toContain(uploadBody);
+    expect(sourceText).not.toContain("products/uploads/");
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
   });
 
   test("audience automation source data exposes opt-in, tags, sequences, and automation rules", async ({ request, page }) => {
@@ -2392,12 +2558,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -2524,6 +2690,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "affiliate_commission_ledger_actions" }),
         expect.objectContaining({ table: "product_entitlements" }),
         expect.objectContaining({ table: "product_fulfillment_tasks" }),
+        expect.objectContaining({ table: "product_asset_uploads" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
         expect.objectContaining({ table: "payment_audit_events" }),
       ]),
@@ -2601,6 +2768,7 @@ test.describe("Bumpgrade scaffold", () => {
           purpose: expect.stringContaining("aggregate post-purchase decision evidence"),
         }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-create-product-asset-upload-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
@@ -2629,6 +2797,11 @@ test.describe("Bumpgrade scaffold", () => {
           auth: "public",
         }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
+        expect.objectContaining({
+          id: "create-owner-product-asset-upload-intent",
+          route: "/api/admin/products/assets",
+          auth: "owner-session",
+        }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),

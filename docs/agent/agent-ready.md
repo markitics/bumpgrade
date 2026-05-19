@@ -150,10 +150,15 @@ short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
 streams a seeded private R2-backed fixture through Bumpgrade while rejecting
-expired or replayed tokens. This proves entitlement grant,
-owner-inspection, customer-safe lookup, and private fixture delivery semantics,
-not signed object URLs, arbitrary asset uploads, protected content, revocation,
-live fulfillment automation, or direct agent write capability.
+expired or replayed tokens. `/api/admin/products/assets` lets verified owners
+create small private product asset upload records only after exact confirmation,
+idempotency, and product-catalog revision checks. It stores the body in
+`PRODUCT_ASSETS` under a server-only object key and returns only redacted
+metadata. This proves entitlement grant, owner-inspection, customer-safe lookup,
+private fixture delivery, and owner-confirmed private upload-record semantics,
+not signed object URLs, customer delivery of arbitrary uploads, protected
+content, revocation, live fulfillment automation, or direct unauthenticated
+agent write capability.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
