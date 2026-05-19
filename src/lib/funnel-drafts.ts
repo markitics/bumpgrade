@@ -329,6 +329,12 @@ function insertStepStatements(db: D1Database, draft: DraftFunnelRecord) {
   );
 }
 
+function parkExistingStepOrdersStatement(db: D1Database, draftId: string) {
+  return db
+    .prepare("UPDATE funnel_draft_steps SET step_order = (step_order * -1) - 1000 WHERE funnel_draft_id = ?")
+    .bind(draftId);
+}
+
 function insertAuditStatement(
   db: D1Database,
   draft: DraftFunnelRecord,
@@ -372,6 +378,7 @@ async function persistDraft(
       parentIssue: draftFunnelBuilderParentIssue,
       editableDraftCapability: editableDraftCapability.id,
     }),
+    parkExistingStepOrdersStatement(db, draft.id),
     ...insertStepStatements(db, draft),
     insertAuditStatement(db, draft, identity, eventKind, idempotencyKey),
   ]);
