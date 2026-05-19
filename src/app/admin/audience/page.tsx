@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, MailCheck, MailX, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
+import { ArrowRight, Database, MailCheck, MailX, NotebookPen, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
@@ -37,8 +38,9 @@ export default async function AdminAudiencePage() {
           <p className="eyebrow">Admin audience</p>
           <h1>Subscriber inspection without public contact leaks.</h1>
           <p className="lede">
-            Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments, and
-            unsubscribe suppression totals created by the public audience APIs. Public source-data stays aggregate-only.
+            Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
+            unsubscribe suppression totals, and private CRM timeline notes created by audience APIs. Public source-data
+            stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -82,6 +84,14 @@ export default async function AdminAudiencePage() {
             <p>
               {state.counts.activeSuppressionEntries} active suppression entries, last recorded{" "}
               {compactDate(state.lastSuppressionAt)}.
+            </p>
+          </div>
+          <div>
+            <NotebookPen aria-hidden="true" />
+            <h3>CRM notes</h3>
+            <p>
+              {state.counts.activeTimelineEntries} active private timeline notes, last recorded{" "}
+              {compactDate(state.lastTimelineAt)}.
             </p>
           </div>
         </div>
@@ -147,6 +157,23 @@ export default async function AdminAudiencePage() {
                       </div>
                     </div>
                   </div>
+                  <div className="admin-step-editor">
+                    <div className="admin-step-editor-heading">
+                      <div>
+                        <span>Timeline</span>
+                        <strong>{subscriber.timelineNoteCount || "None"}</strong>
+                        <p>
+                          {subscriber.timelineEntries
+                            .map((entry) => `${entry.body} (${compactDate(entry.createdAt)})`)
+                            .join(" | ") || "No private CRM notes recorded."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <AdminAudienceNoteForm
+                    subscriberId={subscriber.id}
+                    expectedSubscriberStatus={subscriber.status}
+                  />
                 </div>
               </article>
             ))
