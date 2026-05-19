@@ -228,6 +228,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Deterministic seeded experiment assignment for page and offer variants from issue #107.",
       "Aggregate funnel conversion reporting from captured test events from issue #119.",
       "Browser-side seeded funnel page-view beacons with server-side bot/preview suppression from issue #121.",
+      "Aggregate variant evidence attached to captured funnel page views from issue #123.",
       "UTM and source attribution.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
@@ -238,9 +239,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #107 adds seeded experiment assignment with idempotency, hashed visitor evidence, and aggregate-only assignment reporting.",
       "Issue #119 adds aggregate funnel conversion report rows from captured test events without exposing raw analytics rows.",
       "Issue #121 adds a session-idempotent funnel page-view beacon with bot and preview suppression.",
+      "Issue #123 attaches deterministic seeded assignment evidence to funnel page-view events and exposes aggregate variant counts.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, experiment routing, and automated decisions require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, aggregate variant evidence, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, experiment routing, and automated decisions require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",
