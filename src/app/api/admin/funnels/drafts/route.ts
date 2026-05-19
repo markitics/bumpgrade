@@ -5,6 +5,7 @@ import {
   createDraftFunnelFromTemplate,
   createDraftFunnelFromLibraryTemplate,
   getFunnelDraftD1OrThrow,
+  linkDraftFunnelStepToCheckoutOffer,
   publishDraftFunnel,
   reorderDraftFunnelStep,
   seedEditableFunnelDraft,
@@ -64,6 +65,15 @@ export async function POST(request: NextRequest) {
         title: formValue(formData, "title"),
         goal: formValue(formData, "goal"),
         kind: formValue(formData, "kind"),
+        idempotencyKey,
+      });
+    } else if (mode === "link-checkout") {
+      draft = await linkDraftFunnelStepToCheckoutOffer(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        offerId: formValue(formData, "offerId"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "move-step") {

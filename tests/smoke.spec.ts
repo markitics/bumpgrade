@@ -14,8 +14,18 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
-import { draftFunnelPublishConfirmationText, draftFunnelTemplateCreationConfirmationText } from "../src/lib/funnel-drafts";
-import { editableDraftCapability, funnelSourceData, seededFunnel, templateDraftCreationCapability } from "../src/lib/funnels";
+import {
+  draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelPublishConfirmationText,
+  draftFunnelTemplateCreationConfirmationText,
+} from "../src/lib/funnel-drafts";
+import {
+  checkoutLinkingCapability,
+  editableDraftCapability,
+  funnelSourceData,
+  seededFunnel,
+  templateDraftCreationCapability,
+} from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import {
@@ -348,8 +358,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "owner-template-draft-creation-ready",
-        issue: 161,
+        status: "owner-checkout-linking-ready",
+        issue: 163,
         parentIssue: 14,
       }),
     );
@@ -365,6 +375,7 @@ test.describe("Bumpgrade scaffold", () => {
         createEndpoint: "/api/admin/funnels/drafts",
         editEndpoint: "/api/admin/funnels/drafts",
         publishEndpoint: "/api/admin/funnels/drafts",
+        checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
@@ -383,8 +394,24 @@ test.describe("Bumpgrade scaffold", () => {
         idempotencyRequired: true,
       }),
     );
+    expect(payload.checkoutLinkingCapability).toEqual(
+      expect.objectContaining({
+        id: checkoutLinkingCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 163,
+        adminRoute: "/admin/funnels",
+        createEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        liveBillingEnabled: false,
+      }),
+    );
     expect(payload.templateLibraryIssue).toBe(159);
-    expect(payload.stableIds).toEqual(expect.arrayContaining(["funnelTemplateId", "funnelBlockTemplateId"]));
+    expect(payload.stableIds).toEqual(
+      expect.arrayContaining(["funnelTemplateId", "funnelBlockTemplateId", "funnelCheckoutLinkId", "checkoutOfferStackId", "offerId"]),
+    );
     expect(payload.templates).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -430,6 +457,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
     expect(payload.caveat).toContain("exact-confirmed public publishing");
+    expect(payload.caveat).toContain("owner-session checkout-offer linking");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -3641,6 +3669,79 @@ test.describe("Bumpgrade scaffold", () => {
     const templateDraftReplayPayload = await templateDraftReplay.json();
     expect(templateDraftReplayPayload.draft.id).toBe(templateDraftPayload.draft.id);
 
+    const checkoutLinkIdempotencyKey = `playwright-checkout-link-${Date.now()}`;
+    const checkoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-checkout",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        offerId: checkoutOfferStack.primaryOffer.id,
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutLinkConfirmationText,
+        idempotencyKey: checkoutLinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(checkoutLinkResponse.ok(), await checkoutLinkResponse.text()).toBeTruthy();
+    const checkoutLinkPayload = await checkoutLinkResponse.json();
+    const linkedSalesStep = checkoutLinkPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    expect(linkedSalesStep).toEqual(
+      expect.objectContaining({
+        blocks: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "checkout",
+            checkoutLink: expect.objectContaining({
+              status: "owner-session-linked",
+              issue: 163,
+              offerStackId: checkoutOfferStack.id,
+              offerId: checkoutOfferStack.primaryOffer.id,
+              priceId: checkoutOfferStack.primaryOffer.priceId,
+              mode: "sandbox",
+              liveBillingEnabled: false,
+              rawStripeIdsIncluded: false,
+            }),
+          }),
+        ]),
+      }),
+    );
+
+    const checkoutLinkReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-checkout",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        offerId: checkoutOfferStack.primaryOffer.id,
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutLinkConfirmationText,
+        idempotencyKey: checkoutLinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(checkoutLinkReplay.ok(), await checkoutLinkReplay.text()).toBeTruthy();
+    const checkoutLinkReplayPayload = await checkoutLinkReplay.json();
+    expect(checkoutLinkReplayPayload.draft.id).toBe(checkoutLinkPayload.draft.id);
+
+    const staleCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-checkout",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        offerId: checkoutOfferStack.primaryOffer.id,
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutLinkConfirmationText,
+        idempotencyKey: `playwright-checkout-link-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleCheckoutLinkResponse.status()).toBe(503);
+    const staleCheckoutLinkPayload = await staleCheckoutLinkResponse.json();
+    expect(staleCheckoutLinkPayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
     const updateResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
@@ -3681,7 +3782,16 @@ test.describe("Bumpgrade scaffold", () => {
     const movePayload = await moveResponse.json();
     expect(movePayload.draft.steps).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-sales-2", order: 1 }),
+        expect.objectContaining({
+          id: "funnel-draft-indie-launch-working-copy-sales-2",
+          order: 1,
+          blocks: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "checkout",
+              checkoutLink: expect.objectContaining({ offerId: checkoutOfferStack.primaryOffer.id }),
+            }),
+          ]),
+        }),
         expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-opt_in-1", order: 2 }),
       ]),
     );
@@ -3727,6 +3837,7 @@ test.describe("Bumpgrade scaffold", () => {
     const draftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
     await expect(draftCard.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
+    await expect(draftCard.locator(".admin-step-list").filter({ hasText: checkoutOfferStack.primaryOffer.title })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");
     await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
       "href",
@@ -3761,6 +3872,21 @@ test.describe("Bumpgrade scaffold", () => {
           status: "published",
           previewRoute: "/funnels/indie-launch-working-copy",
           issue: 135,
+          steps: expect.arrayContaining([
+            expect.objectContaining({
+              id: "funnel-draft-indie-launch-working-copy-sales-2",
+              blocks: expect.arrayContaining([
+                expect.objectContaining({
+                  kind: "checkout",
+                  checkoutLink: expect.objectContaining({
+                    offerId: checkoutOfferStack.primaryOffer.id,
+                    liveBillingEnabled: false,
+                    rawStripeIdsIncluded: false,
+                  }),
+                }),
+              ]),
+            }),
+          ]),
         }),
       ]),
     );

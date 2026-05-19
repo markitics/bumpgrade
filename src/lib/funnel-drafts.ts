@@ -1,8 +1,19 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
-import type { FunnelBlock, FunnelRecord, FunnelStep, FunnelStepKind, FunnelTemplate, FunnelTemplateStep } from "@/lib/funnels";
+import { checkoutOfferStack, type CheckoutOffer } from "@/lib/checkout-offers";
+import type {
+  FunnelBlock,
+  FunnelCheckoutLink,
+  FunnelRecord,
+  FunnelStep,
+  FunnelStepKind,
+  FunnelTemplate,
+  FunnelTemplateStep,
+} from "@/lib/funnels";
 import {
+  checkoutLinkingCapability,
+  draftFunnelCheckoutLinkingIssue,
   draftFunnelBuilderIssue,
   draftFunnelBuilderParentIssue,
   draftFunnelBuilderWriteBoundary,
@@ -97,6 +108,7 @@ type D1FunnelStepRow = {
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
+export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -633,6 +645,38 @@ function compactStepForAudit(step: DraftFunnelStepRecord) {
     kind: step.kind,
     title: step.title,
     goal: step.goal,
+    checkoutLinks: step.blocks.flatMap((block) => (block.checkoutLink ? [block.checkoutLink.id] : [])),
+  };
+}
+
+function checkoutOfferForDraftLink(offerId: string) {
+  if (offerId === checkoutOfferStack.primaryOffer.id) return checkoutOfferStack.primaryOffer;
+  return null;
+}
+
+function checkoutLinkForOffer(draft: DraftFunnelRecord, step: DraftFunnelStepRecord, offer: CheckoutOffer): FunnelCheckoutLink {
+  return {
+    id: `checkout-link-${draft.id}-${step.id}-${offer.id}`,
+    status: "owner-session-linked",
+    issue: draftFunnelCheckoutLinkingIssue,
+    parentIssue: draftFunnelBuilderParentIssue,
+    offerStackId: checkoutOfferStack.id,
+    offerId: offer.id,
+    offerKind: offer.kind,
+    offerTitle: offer.title,
+    priceId: offer.priceId,
+    productId: offer.productId,
+    checkoutEndpoint: checkoutOfferStack.checkoutEndpoint,
+    offerPreviewRoute: checkoutOfferStack.previewRoute,
+    offerSourceDataRoute: checkoutOfferStack.sourceDataRoute,
+    checkoutContractRoute: checkoutOfferStack.checkoutContractRoute,
+    mode: "sandbox",
+    liveBillingEnabled: false,
+    confirmationRequired: true,
+    idempotencyRequired: true,
+    staleRevisionRequired: true,
+    rawStripeIdsIncluded: false,
+    linkedAt: new Date().toISOString(),
   };
 }
 
@@ -674,6 +718,90 @@ export async function updateDraftFunnelStep(
         action: "step_update",
         before: compactStepForAudit(step),
         after: { ...compactStepForAudit(step), title: nextTitle, goal: nextGoal, kind: nextKind },
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function linkDraftFunnelStepToCheckoutOffer(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    offerId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelCheckoutLinkConfirmationText) {
+    throw new Error("Exact checkout link confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before linking checkout.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const checkoutBlockIndex = step.blocks.findIndex((block) => block.kind === "checkout");
+  if (checkoutBlockIndex === -1) {
+    throw new Error("Draft funnel step needs a checkout block before linking checkout.");
+  }
+
+  const offer = checkoutOfferForDraftLink(input.offerId);
+  if (!offer) {
+    throw new Error("Only the seeded primary checkout offer can be linked in this slice.");
+  }
+
+  const checkoutLink = checkoutLinkForOffer(draft, step, offer);
+  const nextBlocks = step.blocks.map((block, index) => {
+    if (index !== checkoutBlockIndex) return block;
+    return {
+      ...block,
+      body: `Linked to ${offer.title} through ${checkoutOfferStack.checkoutEndpoint}. This does not start a checkout session or enable live billing by itself.`,
+      checkoutLink,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-checkout-link-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} linked ${offer.title} to step ${step.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelCheckoutLinkingIssue,
+        action: "checkout_link",
+        checkoutLinkingCapability: checkoutLinkingCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        offerCatalogRevisionId: checkoutOfferStack.revisionId,
+        before: compactStepForAudit(step),
+        after: {
+          ...compactStepForAudit({ ...step, blocks: nextBlocks }),
+          checkoutLink,
+        },
+        liveBillingEnabled: false,
+        rawStripeIdsIncluded: false,
       },
     ),
   ]);
