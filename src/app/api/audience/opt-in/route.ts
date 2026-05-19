@@ -1,6 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 
+import { analyticsDashboard } from "@/lib/analytics-experiments";
+import { recordAnalyticsEvent } from "@/lib/analytics-events";
 import { audienceAutomationWorkspace } from "@/lib/audience-automation";
 import { normalizeOptionalName, normalizeOptInEmail, sha256Hex } from "@/lib/audience-opt-in";
 
@@ -69,6 +71,33 @@ async function findSubscriberByConsentIdempotency(db: D1Database, idempotencyKey
     .first<SubscriberRow>();
 }
 
+async function recordAudienceOptInAnalyticsEvent(input: {
+  db: D1Database;
+  subscriber: SubscriberRow;
+  form: (typeof audienceAutomationWorkspace.forms)[number];
+  idempotencyKey: string;
+  request: NextRequest;
+}) {
+  const result = await recordAnalyticsEvent(input.db, analyticsDashboard.events, {
+    eventDefinitionId: "event-audience-opt-in-created",
+    sourceRoute: "/audience/indie-launch-waitlist",
+    idempotencyKey: `${input.idempotencyKey}:analytics:event-audience-opt-in-created`,
+    publicProperties: {
+      formId: input.form.id,
+      segmentId: input.form.targetSegmentIds[0] ?? null,
+      leadMagnetId: input.form.leadMagnetId,
+      consentVersion: "issue-103-consent-statement",
+    },
+    privateCorrelationId: input.subscriber.id,
+    requestIp: requestClientIp(input.request),
+    userAgent: input.request.headers.get("user-agent"),
+  });
+
+  if (!result.ok) {
+    throw new Error(`Audience opt-in analytics event was not recorded: ${result.code}`);
+  }
+}
+
 function publicResponse(input: {
   subscriber: SubscriberRow;
   formId: string;
@@ -123,6 +152,13 @@ export async function POST(request: NextRequest) {
       : `audience-opt-in-${crypto.randomUUID()}`;
   const duplicateSubscriber = await findSubscriberByConsentIdempotency(db, idempotencyKey);
   if (duplicateSubscriber) {
+    await recordAudienceOptInAnalyticsEvent({
+      db,
+      subscriber: duplicateSubscriber,
+      form,
+      idempotencyKey,
+      request,
+    });
     return publicResponse({
       subscriber: duplicateSubscriber,
       formId: form.id,
@@ -222,6 +258,14 @@ export async function POST(request: NextRequest) {
       JSON.stringify({ issue: 103, emailDeliveryEnabled: false, privateContactDataIncluded: false }),
     )
     .run();
+
+  await recordAudienceOptInAnalyticsEvent({
+    db,
+    subscriber,
+    form,
+    idempotencyKey,
+    request,
+  });
 
   return publicResponse({
     subscriber,

@@ -219,8 +219,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Conversion events, funnel analytics, checkout metrics, experiments, UTM tracking, and source-linked reporting.",
     audience: "Operators optimizing launch funnels, checkout offers, and audience acquisition.",
     expectedCapabilities: [
-      "Read-only analytics and experiment source data and preview route from issue #87.",
-      "Event capture for page views, opt-ins, checkout starts, purchases, bumps, upsells, refunds, and cancellations.",
+      "Analytics and experiment source data and preview route from issue #87.",
+      "Privacy-safe event capture for seeded page views, opt-ins, checkout starts, purchases, bumps, upsells, refunds, and cancellations from issue #105.",
       "A/B tests for page and offer variants.",
       "UTM and source attribution.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
@@ -228,9 +228,10 @@ export const featureCatalog: FeatureRecord[] = [
     evidence: [
       "Tracked by issue #18.",
       "Issue #87 adds `/analytics/source-data` and `/analytics/indie-launch-dashboard` as the first read-only analytics and experiment contract.",
+      "Issue #105 adds seeded event capture with idempotency, hashed request evidence, and aggregate-only source-data reporting.",
     ],
     agentContract:
-      "Agents may summarize analytics with sample-size caveats and must not call a result statistically meaningful without evidence.",
+      "Agents may read aggregate analytics and event capture boundaries with sample-size caveats; direct agent analytics writes, custom events, contact analytics, experiment routing, and automated decisions require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",

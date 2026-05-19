@@ -287,6 +287,7 @@ export const agentReadContracts: AgentReadContract[] = [
     sourceOfTruth: "src/lib/analytics-experiments.ts",
     stableIds: [
       "analyticsEventId",
+      "analyticsEventIngestionId",
       "metricId",
       "funnelStepMetricId",
       "experimentId",
@@ -295,8 +296,15 @@ export const agentReadContracts: AgentReadContract[] = [
       "reportId",
       "agentActionId",
     ],
-    safeForAgents: ["Read seeded event taxonomy", "Inspect metric formulas", "Inspect experiment assignment boundaries"],
-    writeBoundary: "Event ingestion, visitor assignment, contact analytics, experiment traffic, and decision writes require future confirmed-write APIs.",
+    safeForAgents: [
+      "Read seeded event taxonomy",
+      "Inspect aggregate event counts",
+      "Inspect metric formulas",
+      "Inspect seeded event capture boundary",
+      "Inspect experiment assignment boundaries",
+    ],
+    writeBoundary:
+      "Seeded analytics events can be captured with idempotency and source-route validation; cookie assignment, contact analytics, custom events, experiment traffic, and decision writes require future confirmed-write APIs.",
   },
   {
     id: "read-affiliate-referrals",
@@ -445,10 +453,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-analytics-experiments",
     route: "/analytics/source-data",
-    resolves: "Seeded analytics event taxonomy, metric formulas, fixture funnel-step reports, experiment variants, assignment rule, and confirmed-write boundary.",
-    stableIds: ["analyticsEventId", "metricId", "experimentId", "variantId", "assignmentRuleId"],
+    resolves:
+      "Seeded analytics event taxonomy, event capture API, aggregate event counts, metric formulas, fixture funnel-step reports, experiment variants, assignment rule, and confirmed-write boundary.",
+    stableIds: ["analyticsEventId", "analyticsEventIngestionId", "metricId", "experimentId", "variantId", "assignmentRuleId"],
     volatileClaims:
-      "The analytics contract is read-only preview evidence; it is not live event collection, cookie assignment, contact-level analytics, raw event storage, automated decisions, or statistically meaningful proof.",
+      "The analytics contract includes seeded event capture and aggregate counts; it is not cookie assignment, contact-level analytics, raw event exposure, automated decisions, or statistically meaningful proof.",
   },
   {
     id: "evidence-affiliate-referrals",
@@ -583,8 +592,10 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://analytics-experiments",
     status: "ready-contract",
     backedBy: "/analytics/source-data",
-    purpose: "Expose seeded event taxonomy, metric formulas, fixture reports, experiment variants, assignment rules, and sample-size caveats.",
-    safetyBoundary: "Read-only; event ingestion, cookie assignment, visitor tracking, experiment traffic changes, and automated decisions require confirmed-write contracts.",
+    purpose:
+      "Expose seeded event taxonomy, aggregate event counts, metric formulas, fixture reports, experiment variants, assignment rules, and sample-size caveats.",
+    safetyBoundary:
+      "Seeded event capture is live; cookie assignment, visitor tracking, contact analytics, experiment traffic changes, custom events, and automated decisions require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-affiliate-referrals",

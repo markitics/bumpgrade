@@ -384,6 +384,58 @@ export const audienceSequenceEnrollments = sqliteTable(
   }),
 );
 
+export const analyticsEvents = sqliteTable(
+  "analytics_events",
+  {
+    id: text("id").primaryKey(),
+    eventDefinitionId: text("event_definition_id").notNull(),
+    eventKind: text("event_kind").notNull(),
+    sourceRoute: text("source_route").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    funnelId: text("funnel_id"),
+    funnelStepId: text("funnel_step_id"),
+    formId: text("form_id"),
+    productId: text("product_id"),
+    priceId: text("price_id"),
+    variantId: text("variant_id"),
+    amountCents: integer("amount_cents"),
+    currency: text("currency"),
+    publicPropertiesJson: text("public_properties_json"),
+    clientCorrelationHash: text("client_correlation_hash"),
+    ipHash: text("ip_hash"),
+    userAgentHash: text("user_agent_hash"),
+    metadataJson: text("metadata_json"),
+    occurredAt: integer("occurred_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_events_idempotency_unique").on(table.idempotencyKey),
+    definitionTimeIdx: index("analytics_events_definition_time_idx").on(table.eventDefinitionId, table.occurredAt),
+    sourceTimeIdx: index("analytics_events_source_time_idx").on(table.sourceRoute, table.occurredAt),
+    kindTimeIdx: index("analytics_events_kind_time_idx").on(table.eventKind, table.occurredAt),
+  }),
+);
+
+export const analyticsEventIngestions = sqliteTable(
+  "analytics_event_ingestions",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    analyticsEventId: text("analytics_event_id").references(() => analyticsEvents.id, { onDelete: "set null" }),
+    eventDefinitionId: text("event_definition_id").notNull(),
+    status: text("status").notNull().default("recorded"),
+    requestHash: text("request_hash").notNull(),
+    errorCode: text("error_code"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_event_ingestions_idempotency_unique").on(table.idempotencyKey),
+    eventIdx: index("analytics_event_ingestions_event_idx").on(table.analyticsEventId),
+    statusCreatedIdx: index("analytics_event_ingestions_status_created_idx").on(table.status, table.createdAt),
+  }),
+);
+
 export const funnelDrafts = sqliteTable(
   "funnel_drafts",
   {

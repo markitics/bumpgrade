@@ -27,6 +27,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded audience opt-in API: https://bumpgrade.com/api/audience/opt-in
 - Analytics and experiments source data: https://bumpgrade.com/analytics/source-data
 - Seeded analytics dashboard preview: https://bumpgrade.com/analytics/indie-launch-dashboard
+- Seeded analytics event API: https://bumpgrade.com/api/analytics/events
 - Affiliate/referral source data: https://bumpgrade.com/affiliates/source-data
 - Seeded affiliate partner preview: https://bumpgrade.com/affiliates/indie-launch-partners
 - Public roadmap: https://bumpgrade.com/roadmap
@@ -121,11 +122,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   sequence enrollment evidence. Treat it as seeded opt-in capture evidence, not
   live email sending, contact import, unsubscribe management, CRM timeline
   state, suppression-list mutation, or a direct agent subscriber-write API.
-- `/analytics/source-data` exposes the first read-only analytics and
-  experimentation workspace with event definitions, metric formulas, fixture
-  funnel-step reports, variants, and assignment rules. Treat it as
-  preview/source-data evidence, not live tracking, cookie assignment,
-  contact-level analytics, raw event storage, automated decisions, or
+- `/analytics/source-data` exposes the first analytics and experimentation
+  workspace with event definitions, aggregate event counts, metric formulas,
+  fixture funnel-step reports, variants, assignment rules, and the
+  `/api/analytics/events` write boundary. Treat it as seeded event capture and
+  aggregate/source-data evidence, not cookie assignment, contact-level
+  analytics, raw event exposure, automated decisions, direct agent analytics
+  writes, or
   statistically meaningful proof.
 - `/affiliates/source-data` exposes the first read-only affiliate/referral
   workspace with partner records, referral links, attribution rules, commission
