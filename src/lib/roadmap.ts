@@ -287,7 +287,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, attribution boundaries, and source-linked reporting.",
+      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
@@ -298,9 +298,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #123 attaches deterministic seeded assignment evidence to captured funnel page views and exposes aggregate variant counts.",
       "Issue #125 attaches normalized UTM/source attribution to captured funnel page views and exposes aggregate source counts.",
       "Issue #127 renders aggregate source attribution rows in the analytics dashboard preview.",
+      "Issue #129 adds fixed all-time, 24-hour, 7-day, and 30-day aggregate source and conversion windows to source-data and the dashboard preview.",
     ],
     nextMilestone:
-      "Add time-windowed source and conversion filters without exposing raw event rows.",
+      "Add exportable aggregate reports and cohort comparison fixtures without exposing raw event rows.",
   },
   {
     id: "roadmap-affiliates-referrals",

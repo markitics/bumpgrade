@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { MapPinned } from "lucide-react";
 
+import { AnalyticsTimeWindowSelector } from "@/components/analytics-time-window-selector";
+import type { AnalyticsTimeWindow, AnalyticsTimeWindowKey } from "@/lib/analytics-time-windows";
+
 type AnalyticsSourceAggregateRow = {
   event_definition_id: string;
   source_route: string;
@@ -18,6 +21,8 @@ type AnalyticsSourceAggregateRow = {
 
 type AnalyticsSourceAttributionPanelProps = {
   fallbackRows?: AnalyticsSourceAggregateRow[];
+  selectedWindow: AnalyticsTimeWindowKey;
+  timeWindows: AnalyticsTimeWindow[];
 };
 
 function sourceLabel(row: AnalyticsSourceAggregateRow) {
@@ -29,15 +34,22 @@ function campaignLabel(row: AnalyticsSourceAggregateRow) {
   return parts.length > 0 ? parts.join(" / ") : "No campaign label";
 }
 
-export function AnalyticsSourceAttributionPanel({ fallbackRows = [] }: AnalyticsSourceAttributionPanelProps) {
+export function AnalyticsSourceAttributionPanel({
+  fallbackRows = [],
+  selectedWindow: initialSelectedWindow,
+  timeWindows,
+}: AnalyticsSourceAttributionPanelProps) {
   const [rows, setRows] = useState(fallbackRows);
   const [status, setStatus] = useState<"ready" | "loading" | "unavailable">("loading");
+  const [selectedWindow, setSelectedWindow] = useState<AnalyticsTimeWindowKey>(initialSelectedWindow);
 
   useEffect(() => {
     let cancelled = false;
     async function loadSources() {
       try {
-        const response = await fetch("/analytics/source-data", { headers: { accept: "application/json" } });
+        const response = await fetch(`/analytics/source-data?window=${encodeURIComponent(selectedWindow)}`, {
+          headers: { accept: "application/json" },
+        });
         if (!response.ok) {
           if (!cancelled) setStatus("unavailable");
           return;
@@ -59,7 +71,7 @@ export function AnalyticsSourceAttributionPanel({ fallbackRows = [] }: Analytics
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedWindow]);
 
   const topRows = rows.slice(0, 6);
 
@@ -71,6 +83,12 @@ export function AnalyticsSourceAttributionPanel({ fallbackRows = [] }: Analytics
           <strong>{rows.length}</strong>
           <span>aggregate source rows</span>
         </div>
+        <AnalyticsTimeWindowSelector
+          label="Source window"
+          options={timeWindows}
+          selected={selectedWindow}
+          onSelect={setSelectedWindow}
+        />
         <p>Raw event rows, visitor keys, full referrers, and raw query strings stay excluded.</p>
       </div>
 

@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { TrendingUp } from "lucide-react";
 
+import { AnalyticsTimeWindowSelector } from "@/components/analytics-time-window-selector";
 import type {
   AnalyticsFunnelConversionReport,
   AnalyticsFunnelConversionRow,
 } from "@/lib/analytics-conversion-report";
+import type { AnalyticsTimeWindow, AnalyticsTimeWindowKey } from "@/lib/analytics-time-windows";
 
 type AnalyticsConversionReportPanelProps = {
   fallbackReport: AnalyticsFunnelConversionReport;
+  timeWindows: AnalyticsTimeWindow[];
 };
 
 function formatPercent(value: number | null) {
@@ -51,14 +54,17 @@ function MetricCard({ metric }: { metric: AnalyticsFunnelConversionRow }) {
   );
 }
 
-export function AnalyticsConversionReportPanel({ fallbackReport }: AnalyticsConversionReportPanelProps) {
+export function AnalyticsConversionReportPanel({ fallbackReport, timeWindows }: AnalyticsConversionReportPanelProps) {
   const [report, setReport] = useState(fallbackReport);
+  const [selectedWindow, setSelectedWindow] = useState<AnalyticsTimeWindowKey>(fallbackReport.timeWindow.key);
 
   useEffect(() => {
     let cancelled = false;
     async function loadReport() {
       try {
-        const response = await fetch("/analytics/source-data", { headers: { accept: "application/json" } });
+        const response = await fetch(`/analytics/source-data?window=${encodeURIComponent(selectedWindow)}`, {
+          headers: { accept: "application/json" },
+        });
         if (!response.ok) return;
         const payload = (await response.json()) as { funnelConversionReport?: AnalyticsFunnelConversionReport };
         if (!cancelled && payload.funnelConversionReport) {
@@ -72,10 +78,16 @@ export function AnalyticsConversionReportPanel({ fallbackReport }: AnalyticsConv
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [selectedWindow]);
 
   return (
     <>
+      <AnalyticsTimeWindowSelector
+        label="Conversion window"
+        options={timeWindows}
+        selected={selectedWindow}
+        onSelect={setSelectedWindow}
+      />
       <div className="feature-grid">
         {report.rows.map((metric) => (
           <MetricCard key={metric.metricId} metric={metric} />

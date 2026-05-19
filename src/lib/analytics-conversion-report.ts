@@ -1,4 +1,9 @@
 import type { AnalyticsDashboard } from "@/lib/analytics-experiments";
+import {
+  analyticsTimeWindowStart,
+  defaultAnalyticsTimeWindow,
+  type AnalyticsTimeWindow,
+} from "@/lib/analytics-time-windows";
 
 export const analyticsConversionReportUpdatedAt = "2026-05-19";
 
@@ -20,6 +25,7 @@ export const analyticsConversionReportContract = {
     "conversionRate",
     "sampleSize",
     "reportMode",
+    "timeWindow",
   ],
   serverPrivateFields: [
     "raw analytics event rows",
@@ -34,7 +40,7 @@ export const analyticsConversionReportContract = {
     "raw Stripe identifiers",
   ],
   writeBoundary:
-    "Issue #119 can report aggregate funnel conversion rows from captured seeded analytics events. It does not expose raw rows, contact-level analytics, visitor timelines, bot filtering decisions, attribution mutation, experiment traffic routing, automated winners, or direct agent analytics writes.",
+    "Issues #119 and #129 can report aggregate funnel conversion rows from captured seeded analytics events and filter them by fixed public-safe time windows. It does not expose raw rows, contact-level analytics, visitor timelines, bot filtering decisions, attribution mutation, experiment traffic routing, automated winners, or direct agent analytics writes.",
 };
 
 type AnalyticsEventAggregateRow = {
@@ -76,6 +82,7 @@ export type AnalyticsFunnelConversionReport = {
   parentIssue: number;
   dashboardId: string;
   sourceTable: "analytics_events";
+  timeWindow: AnalyticsTimeWindow;
   rows: AnalyticsFunnelConversionRow[];
   rawRowsIncluded: false;
   privateDataIncluded: false;
@@ -167,19 +174,23 @@ function buildRows(dashboard: AnalyticsDashboard, eventRows: AnalyticsEventAggre
   });
 }
 
-async function loadEventRows(db: D1Database) {
-  const result = await db
-    .prepare(
-      `SELECT
+async function loadEventRows(db: D1Database, timeWindow: AnalyticsTimeWindow) {
+  const windowStart = analyticsTimeWindowStart(timeWindow);
+  const statement = db.prepare(
+    `SELECT
         event_definition_id,
         funnel_step_id,
         COUNT(*) AS total_events,
         MAX(occurred_at) AS last_event_at
        FROM analytics_events
+       ${windowStart === null ? "" : "WHERE occurred_at >= ?"}
        GROUP BY event_definition_id, funnel_step_id
        ORDER BY event_definition_id, funnel_step_id`,
-    )
-    .all<AnalyticsEventAggregateRow>();
+  );
+  const result =
+    windowStart === null
+      ? await statement.all<AnalyticsEventAggregateRow>()
+      : await statement.bind(windowStart).all<AnalyticsEventAggregateRow>();
 
   return result.results ?? [];
 }
@@ -187,20 +198,22 @@ async function loadEventRows(db: D1Database) {
 export async function loadAnalyticsFunnelConversionReport(
   db: D1Database | undefined,
   dashboard: AnalyticsDashboard,
+  timeWindow = defaultAnalyticsTimeWindow,
 ): Promise<AnalyticsFunnelConversionReport> {
-  const eventRows = db ? await loadEventRows(db) : [];
+  const eventRows = db ? await loadEventRows(db, timeWindow) : [];
 
-  return analyticsFunnelConversionReportFromRows(dashboard, eventRows, db ? "available" : "unavailable");
+  return analyticsFunnelConversionReportFromRows(dashboard, eventRows, db ? "available" : "unavailable", timeWindow);
 }
 
 export function analyticsFunnelConversionFallbackReport(dashboard: AnalyticsDashboard) {
-  return analyticsFunnelConversionReportFromRows(dashboard, [], "unavailable");
+  return analyticsFunnelConversionReportFromRows(dashboard, [], "unavailable", defaultAnalyticsTimeWindow);
 }
 
 function analyticsFunnelConversionReportFromRows(
   dashboard: AnalyticsDashboard,
   eventRows: AnalyticsEventAggregateRow[],
   status: AnalyticsFunnelConversionReport["status"],
+  timeWindow: AnalyticsTimeWindow,
 ): AnalyticsFunnelConversionReport {
   return {
     id: "analytics-funnel-conversion-report-indie-launch",
@@ -209,6 +222,7 @@ function analyticsFunnelConversionReportFromRows(
     parentIssue: 18,
     dashboardId: dashboard.id,
     sourceTable: "analytics_events",
+    timeWindow,
     rows: buildRows(dashboard, eventRows),
     rawRowsIncluded: false,
     privateDataIncluded: false,

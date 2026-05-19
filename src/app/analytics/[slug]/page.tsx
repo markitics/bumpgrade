@@ -6,6 +6,7 @@ import { Activity, ArrowRight, BarChart3, Database, FlaskConical, MapPinned, Shi
 import { AnalyticsConversionReportPanel } from "@/components/analytics-conversion-report-panel";
 import { AnalyticsSourceAttributionPanel } from "@/components/analytics-source-attribution-panel";
 import { analyticsFunnelConversionFallbackReport } from "@/lib/analytics-conversion-report";
+import { analyticsTimeWindows, defaultAnalyticsTimeWindow } from "@/lib/analytics-time-windows";
 import {
   analyticsDashboards,
   getAnalyticsDashboardBySlug,
@@ -131,7 +132,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
-        <AnalyticsConversionReportPanel fallbackReport={conversionReport} />
+        <AnalyticsConversionReportPanel fallbackReport={conversionReport} timeWindows={analyticsTimeWindows} />
       </section>
 
       <section className="content-band">
@@ -175,7 +176,10 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <MapPinned aria-hidden="true" />
           </Link>
         </div>
-        <AnalyticsSourceAttributionPanel />
+        <AnalyticsSourceAttributionPanel
+          selectedWindow={defaultAnalyticsTimeWindow.key}
+          timeWindows={analyticsTimeWindows}
+        />
       </section>
 
       <section className="content-band">
