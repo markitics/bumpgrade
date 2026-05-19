@@ -1135,13 +1135,19 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: "owner-subscriber-inspection-ready",
-        issue: 137,
+        status: "unsubscribe-suppression-ready",
+        issue: 167,
         parentIssue: 17,
       }),
     );
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/audience/source-data", "/api/audience/opt-in", "/audience/indie-launch-waitlist", "/admin/audience"]),
+      expect.arrayContaining([
+        "/audience/source-data",
+        "/api/audience/opt-in",
+        "/api/audience/unsubscribe",
+        "/audience/indie-launch-waitlist",
+        "/admin/audience",
+      ]),
     );
     expect(payload.subscriberInspection).toEqual(
       expect.objectContaining({
@@ -1150,9 +1156,12 @@ test.describe("Bumpgrade scaffold", () => {
         ownerRoute: "/admin/audience",
         counts: expect.objectContaining({
           subscribers: expect.any(Number),
+          unsubscribedSubscribers: expect.any(Number),
           consentEvents: expect.any(Number),
           tagAssignments: expect.any(Number),
           sequenceEnrollments: expect.any(Number),
+          suppressionEntries: expect.any(Number),
+          activeSuppressionEntries: expect.any(Number),
         }),
         redaction: expect.objectContaining({
           privateContactDataIncluded: false,
@@ -1160,10 +1169,13 @@ test.describe("Bumpgrade scaffold", () => {
           rawNameIncluded: false,
           rawIpIncluded: false,
           rawUserAgentIncluded: false,
+          rawSuppressionHashIncluded: false,
+          suppressionReasonIncluded: false,
         }),
       }),
     );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
+    const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     expect(payload.optInWrites).toEqual(
       expect.objectContaining({
         status: "subscriber-capture-ready",
@@ -1175,6 +1187,19 @@ test.describe("Bumpgrade scaffold", () => {
           "audience_tag_assignments",
           "audience_sequence_enrollments",
         ]),
+      }),
+    );
+    expect(payload.unsubscribeWrites).toEqual(
+      expect.objectContaining({
+        status: "unsubscribe-suppression-ready",
+        issue: 167,
+        apiRoute: "/api/audience/unsubscribe",
+        tables: expect.arrayContaining(["audience_subscribers", "audience_suppression_entries"]),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          subscriberExistenceRevealed: false,
+          rawEmailIncludedInSourceData: false,
+        }),
       }),
     );
     expect(payload.workspaces).toEqual(
@@ -1196,6 +1221,10 @@ test.describe("Bumpgrade scaffold", () => {
           sequences: expect.arrayContaining([
             expect.objectContaining({ id: "sequence-indie-launch-nurture", linkedFormId: "opt-in-form-indie-launch-waitlist" }),
           ]),
+          unsubscribeManagement: expect.objectContaining({
+            apiRoute: "/api/audience/unsubscribe",
+            issue: 167,
+          }),
           automations: expect.arrayContaining([
             expect.objectContaining({ id: "automation-enroll-waitlist-nurture" }),
           ]),
@@ -1208,21 +1237,33 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/audience/indie-launch-waitlist");
     await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Indie launch waitlist opt-in/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Unsubscribe evidence is captured/i })).toBeVisible();
     await expect(page.getByText("Launch checklist lead magnet")).toBeVisible();
     await expect(page.getByText("Indie launch nurture sequence")).toBeVisible();
 
-    await page.getByLabel("Email address").fill(`playwright-waitlist-${Date.now()}@example.com`);
-    await page.getByLabel("First name, optional").fill("Playwright");
-    await page.getByLabel(/I want the launch checklist/i).check();
-    await page.getByRole("button", { name: /Join waitlist/i }).click();
+    const browserEmail = `playwright-waitlist-${Date.now()}@example.com`;
+    const optInForm = page.getByRole("form", { name: "Audience opt-in" });
+    await optInForm.getByLabel("Email address").fill(browserEmail);
+    await optInForm.getByLabel("First name, optional").fill("Playwright");
+    await optInForm.getByLabel(/I want the launch checklist/i).check();
+    await optInForm.getByRole("button", { name: /Join waitlist/i }).click();
     await expect(page.getByText("Waitlist opt-in saved")).toBeVisible();
     await expect(page.getByText("Email delivery remains disabled")).toBeVisible();
+
+    const unsubscribeForm = page.getByRole("form", { name: "Audience unsubscribe" });
+    await unsubscribeForm.getByLabel("Email address").fill(` ${browserEmail.toUpperCase()} `);
+    await unsubscribeForm.getByLabel("Reason, optional").fill("  Browser smoke  ");
+    await unsubscribeForm.getByRole("button", { name: /Record unsubscribe/i }).click();
+    await expect(page.getByText("Unsubscribe preference recorded")).toBeVisible();
+    await expect(page.getByText("List membership is not exposed")).toBeVisible();
 
     const afterResponse = await request.get("/audience/source-data");
     expect(afterResponse.ok()).toBeTruthy();
     const afterPayload = await afterResponse.json();
     expect(afterPayload.subscriberInspection.counts.subscribers).toBeGreaterThanOrEqual(beforeSubscriberCount + 1);
+    expect(afterPayload.subscriberInspection.counts.suppressionEntries).toBeGreaterThanOrEqual(beforeSuppressionCount + 1);
     expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("@example.com");
+    expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("Browser smoke");
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -1284,6 +1325,101 @@ test.describe("Bumpgrade scaffold", () => {
     expect(missingConsentResponse.status()).toBe(400);
     await expect(missingConsentResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "consent_required" }),
+    );
+  });
+
+  test("audience unsubscribe API records suppression evidence without revealing membership", async ({ request }) => {
+    const suffix = Date.now();
+    const knownEmail = `playwright-known-unsub-${suffix}@example.com`;
+    const optInResponse = await request.post("/api/audience/opt-in", {
+      data: {
+        email: knownEmail,
+        firstName: "Known",
+        consent: true,
+        formId: "opt-in-form-indie-launch-waitlist",
+        idempotencyKey: `playwright-known-unsub-opt-in-${suffix}`,
+      },
+    });
+    expect(optInResponse.ok(), await optInResponse.text()).toBeTruthy();
+
+    const idempotencyKey = `playwright-audience-unsubscribe-${suffix}`;
+    const firstResponse = await request.post("/api/audience/unsubscribe", {
+      data: {
+        email: ` ${knownEmail.toUpperCase()} `,
+        reason: "  no longer interested  ",
+        idempotencyKey,
+      },
+    });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const firstResult = await firstResponse.json();
+    expect(firstResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "unsubscribed",
+        duplicate: false,
+        normalizedEmail: knownEmail,
+        emailDeliveryEnabled: false,
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          providerIdsIncluded: false,
+          subscriberExistenceRevealed: false,
+        }),
+      }),
+    );
+    expect(firstResult.suppressionEntryId).toMatch(/^suppression-/);
+    expect(JSON.stringify(firstResult)).not.toContain("subscriber-");
+
+    const duplicateResponse = await request.post("/api/audience/unsubscribe", {
+      data: {
+        email: knownEmail,
+        idempotencyKey,
+      },
+    });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    await expect(duplicateResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        suppressionEntryId: firstResult.suppressionEntryId,
+        normalizedEmail: knownEmail,
+      }),
+    );
+
+    const unknownEmail = `playwright-unknown-unsub-${suffix}@example.com`;
+    const unknownResponse = await request.post("/api/audience/unsubscribe", {
+      data: {
+        email: unknownEmail,
+        idempotencyKey: `${idempotencyKey}-unknown`,
+      },
+    });
+    expect(unknownResponse.ok(), await unknownResponse.text()).toBeTruthy();
+    await expect(unknownResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "unsubscribed",
+        normalizedEmail: unknownEmail,
+        redaction: expect.objectContaining({
+          subscriberExistenceRevealed: false,
+        }),
+      }),
+    );
+
+    const sourceResponse = await request.get("/audience/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    expect(sourcePayload.subscriberInspection.counts.suppressionEntries).toBeGreaterThanOrEqual(2);
+    expect(sourcePayload.subscriberInspection.counts.unsubscribedSubscribers).toBeGreaterThanOrEqual(1);
+    const sourceText = JSON.stringify(sourcePayload);
+    expect(sourceText).not.toContain(knownEmail);
+    expect(sourceText).not.toContain(unknownEmail);
+    expect(sourceText).not.toContain("no longer interested");
+
+    const invalidEmailResponse = await request.post("/api/audience/unsubscribe", {
+      data: { email: "not-an-email", idempotencyKey: `${idempotencyKey}-invalid` },
+    });
+    expect(invalidEmailResponse.status()).toBe(400);
+    await expect(invalidEmailResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "invalid_email" }),
     );
   });
 
@@ -2680,12 +2816,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103, 137],
+          issueNumbers: [17, 85, 103, 137, 167],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103],
+          issueNumbers: [17, 85, 103, 167],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
@@ -2911,6 +3047,11 @@ test.describe("Bumpgrade scaffold", () => {
           auth: "owner-session",
         }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "create-audience-unsubscribe-suppression",
+          route: "/api/audience/unsubscribe",
+          auth: "public",
+        }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
@@ -3614,11 +3755,21 @@ test.describe("Bumpgrade scaffold", () => {
       },
     });
     expect(audienceOptInResponse.ok(), await audienceOptInResponse.text()).toBeTruthy();
+    const audienceUnsubscribeResponse = await page.request.post("/api/audience/unsubscribe", {
+      data: {
+        email: ` ${audienceEmail.toUpperCase()} `,
+        reason: "owner smoke",
+        idempotencyKey: `playwright-owner-audience-unsubscribe-${Date.now()}`,
+      },
+    });
+    expect(audienceUnsubscribeResponse.ok(), await audienceUnsubscribeResponse.text()).toBeTruthy();
 
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
     const audienceCard = page.getByRole("article").filter({ hasText: audienceEmail.toLowerCase() });
     await expect(audienceCard.getByRole("heading", { name: audienceEmail.toLowerCase() })).toBeVisible();
+    await expect(audienceCard.getByText("unsubscribed")).toBeVisible();
     await expect(audienceCard.getByText("First name: Owner Contact")).toBeVisible();
     await expect(audienceCard.getByText("lead-magnet:launch-checklist")).toBeVisible();
     await expect(audienceCard.getByText("Indie launch nurture sequence")).toBeVisible();

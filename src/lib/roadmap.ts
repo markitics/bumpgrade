@@ -287,16 +287,17 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
       "Issue #103 adds `POST /api/audience/opt-in` with normalized subscriber, consent, tag, and draft sequence enrollment rows.",
       "Issue #137 adds `/admin/audience` owner subscriber inspection and aggregate public redaction flags.",
+      "Issue #167 adds `POST /api/audience/unsubscribe` with idempotent unsubscribe/suppression evidence and no list-membership leak.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add unsubscribe-safe email delivery and CRM timeline notes without exposing private contact data publicly.",
+      "Add unsubscribe-safe email delivery, broadcast scheduling, and CRM timeline notes without exposing private contact data publicly.",
   },
   {
     id: "roadmap-analytics-testing",
