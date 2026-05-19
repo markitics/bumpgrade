@@ -2,10 +2,12 @@ export const analyticsEventCaptureUpdatedAt = "2026-05-19";
 
 export const analyticsEventCaptureApiRoute = "/api/analytics/events";
 
+export const analyticsFunnelPageViewBeaconIssue = 121;
+
 export const analyticsEventCaptureWriteContract = {
   id: "analytics-event-capture-contract",
-  status: "event-capture-ready",
-  issue: 105,
+  status: "event-capture-and-beacon-ready",
+  issue: analyticsFunnelPageViewBeaconIssue,
   parentIssue: 18,
   apiRoute: analyticsEventCaptureApiRoute,
   tables: ["analytics_events", "analytics_event_ingestions"],
@@ -29,7 +31,30 @@ export const analyticsEventCaptureWriteContract = {
     "raw UTM payload",
   ],
   writeBoundary:
-    "Issue #105 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, and public-safe responses. Cookie assignment, contact-level reporting, arbitrary custom events, campaign attribution mutation, A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
+    "Issues #105 and #121 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, and public-safe responses. Cookie assignment, contact-level reporting, arbitrary custom events, campaign attribution mutation, A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
+};
+
+export const analyticsFunnelPageViewBeaconContract = {
+  id: "analytics-funnel-page-view-beacon-contract",
+  status: "page-view-beacon-ready",
+  issue: analyticsFunnelPageViewBeaconIssue,
+  parentIssue: 18,
+  sourceRoute: "/funnels/indie-launch-sandbox",
+  apiRoute: analyticsEventCaptureApiRoute,
+  eventDefinitionId: "event-funnel-page-view",
+  storage: "sessionStorage-scoped idempotency and anonymous key only; no cookie assignment",
+  suppressedTraffic: ["known bot user agents", "known crawler user agents", "explicit preview/test suppression flags"],
+  publicSafeFields: ["route", "funnelId", "stepId", "eventDefinitionId", "sourceRoute", "status", "duplicate"],
+  serverPrivateFields: [
+    "anonymous session key before hashing",
+    "raw IP address",
+    "raw user agent",
+    "raw referrer",
+    "cookies",
+    "contact identifiers",
+  ],
+  writeBoundary:
+    "Issue #121 records a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API. It does not create cookies, route A/B traffic, expose raw visitors, assign contact identity, or make automated optimization decisions.",
 };
 
 export type AnalyticsEventCaptureDefinition = {
@@ -50,6 +75,8 @@ export type AnalyticsEventRecordInput = {
   userAgent?: string | null;
 };
 
+type AnalyticsSuppressionReason = "bot_or_crawler" | "preview_or_test";
+
 type AnalyticsEventRow = {
   id: string;
   event_definition_id: string;
@@ -64,6 +91,19 @@ type AnalyticsEventResult =
       duplicate: boolean;
       status: "recorded";
       analyticsEventId: string;
+      eventDefinitionId: string;
+      eventKind: string;
+      sourceRoute: string;
+      publicProperties: Record<string, string | number | boolean | null>;
+      privateDataIncluded: false;
+      rawRequestDataIncluded: false;
+    }
+  | {
+      ok: true;
+      duplicate: false;
+      recorded: false;
+      status: "ignored";
+      ignoredReason: AnalyticsSuppressionReason;
       eventDefinitionId: string;
       eventKind: string;
       sourceRoute: string;
@@ -117,6 +157,26 @@ function publicResult(row: AnalyticsEventRow, duplicate: boolean): AnalyticsEven
   };
 }
 
+function ignoredResult(
+  definition: AnalyticsEventCaptureDefinition,
+  publicProperties: Record<string, string | number | boolean | null>,
+  ignoredReason: AnalyticsSuppressionReason,
+): AnalyticsEventResult {
+  return {
+    ok: true,
+    duplicate: false,
+    recorded: false,
+    status: "ignored",
+    ignoredReason,
+    eventDefinitionId: definition.id,
+    eventKind: definition.kind,
+    sourceRoute: definition.sourceRoute,
+    publicProperties,
+    privateDataIncluded: false,
+    rawRequestDataIncluded: false,
+  };
+}
+
 function normalizeIdempotencyKey(value: string) {
   const normalized = value.trim();
   if (!normalized) return null;
@@ -147,6 +207,52 @@ function safePublicProperties(
     }
   }
   return safe;
+}
+
+function suppressionFlagValue(value: unknown) {
+  if (value === true) return true;
+  if (typeof value !== "string") return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "preview";
+}
+
+function explicitPreviewSuppression(value: Record<string, unknown> | undefined) {
+  if (!value) return false;
+  return (
+    suppressionFlagValue(value.preview) ||
+    suppressionFlagValue(value.previewMode) ||
+    suppressionFlagValue(value.testMode) ||
+    suppressionFlagValue(value.suppressAnalytics) ||
+    suppressionFlagValue(value.analyticsSuppressed)
+  );
+}
+
+function isKnownBotUserAgent(userAgent: string | null | undefined) {
+  if (!userAgent) return false;
+  const normalized = userAgent.toLowerCase();
+  return [
+    "bot",
+    "crawler",
+    "spider",
+    "slurp",
+    "bingpreview",
+    "facebookexternalhit",
+    "twitterbot",
+    "linkedinbot",
+    "slackbot",
+    "discordbot",
+    "telegrambot",
+    "whatsapp",
+    "yandex",
+    "baiduspider",
+    "duckduckbot",
+  ].some((needle) => normalized.includes(needle));
+}
+
+function analyticsSuppressionReason(input: AnalyticsEventRecordInput): AnalyticsSuppressionReason | null {
+  if (explicitPreviewSuppression(input.publicProperties)) return "preview_or_test";
+  if (isKnownBotUserAgent(input.userAgent)) return "bot_or_crawler";
+  return null;
 }
 
 function stringProperty(properties: Record<string, string | number | boolean | null>, key: string) {
@@ -210,6 +316,11 @@ export async function recordAnalyticsEvent(
   }
 
   const publicProperties = safePublicProperties(definition, input.publicProperties);
+  const suppressionReason = analyticsSuppressionReason(input);
+  if (suppressionReason) {
+    return ignoredResult(definition, publicProperties, suppressionReason);
+  }
+
   const analyticsEventId = `analytics-event-${crypto.randomUUID()}`;
   const publicPropertiesJson = JSON.stringify(publicProperties);
   const requestHash = await sha256Hex(

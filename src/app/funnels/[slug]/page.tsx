@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
+import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
 import { getFunnelBySlug, seededFunnels } from "@/lib/funnels";
 import { site } from "@/lib/site";
 
@@ -61,6 +62,12 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
 
   return (
     <main className="route-page">
+      <FunnelPageViewBeacon
+        eventDefinitionId="event-funnel-page-view"
+        sourceRoute={funnel.previewRoute}
+        funnelId={funnel.id}
+        steps={funnel.steps.map((step) => ({ stepId: step.id, routeAnchor: step.routeAnchor }))}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd).replaceAll("<", "\\u003c") }}
