@@ -585,8 +585,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "source-attributed-page-view-ready",
-        issue: 125,
+        status: "dashboard-source-attribution-ready",
+        issue: 127,
         parentIssue: 18,
       }),
     );
@@ -700,19 +700,20 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, and #125 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, and #127 can capture seeded analytics events",
     );
-    expect(payload.caveat).toContain("normalized source attribution");
+    expect(payload.caveat).toContain("dashboard-visible aggregate source attribution");
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Step-level conversion metrics come from aggregate captured events/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Deterministic assignment can be audited before traffic writes exist/i })).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
   });
 
-  test("analytics event API validates seeded events and replays idempotent responses", async ({ request }) => {
+  test("analytics event API validates seeded events and replays idempotent responses", async ({ request, page }) => {
     const idempotencyKey = `playwright-analytics-event-${Date.now()}`;
     const payload = {
       eventDefinitionId: "event-funnel-page-view",
@@ -825,6 +826,13 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(JSON.stringify(sourceData.eventSummary.aggregateSourceCounts)).not.toContain("secret");
+
+    await page.goto("/analytics/indie-launch-dashboard");
+    await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
+    await expect(
+      page.getByRole("row", { name: /newsletter.*Launch Week.*private\.example/i }).first(),
+    ).toBeVisible();
+    await expect(page.getByText("secret")).toHaveCount(0);
   });
 
   test("analytics event API ignores known bot page-view traffic without adding event rows", async ({ request }) => {
@@ -1924,12 +1932,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",
@@ -2735,8 +2743,7 @@ test.describe("Bumpgrade scaffold", () => {
 
     const resendButton = page.locator(".verification-actions button");
     await expect(resendButton).toBeVisible();
-    const resendText = (await resendButton.textContent()) ?? "";
-    if (/Resend confirmation email/i.test(resendText)) {
+    if (await resendButton.isEnabled()) {
       await resendButton.click();
     }
     await expect(resendButton).toContainText(/Resend available in/i);
