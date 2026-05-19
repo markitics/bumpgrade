@@ -102,7 +102,7 @@ export const agentDocs: AgentDoc[] = [
     route: "/agent-docs/bumpgrade-mobile-admin",
     purpose: "Shared iOS and Android publisher/admin app jobs, API dependencies, auth boundaries, and write-safety rules.",
     status: "live",
-    evidence: ["Issue #13", "Issue #67", "Issue #68", "/mobile-admin/source-data"],
+    evidence: ["Issue #13", "Issue #67", "Issue #68", "Issue #153", "/mobile-admin/source-data"],
   },
 ];
 
@@ -503,6 +503,22 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Mobile app writes remain read-only until a future confirmed-write API exists.",
   },
   {
+    id: "read-mobile-admin-dashboard",
+    title: "Live mobile admin dashboard source data",
+    route: "/mobile-admin/dashboard/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/mobile-admin-dashboard.ts",
+    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
+    safeForAgents: [
+      "Read one public-safe mobile dashboard digest",
+      "Inspect live feature, roadmap, admin, commerce, and agent-readiness counts",
+      "Find iOS and Android source-data routes without scraping private admin pages",
+    ],
+    writeBoundary:
+      "Read-only public-safe digest; private mobile auth, push notifications, and confirmed mobile writes require future authenticated APIs.",
+  },
+  {
     id: "read-ios-mobile-admin",
     title: "iOS mobile admin source data",
     route: "/mobile-admin/ios/source-data",
@@ -693,9 +709,19 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-mobile-admin",
     route: "/mobile-admin/source-data",
-    resolves: "Mobile jobs-to-be-done, iOS and Android child issues, API dependencies, stack decision, and write boundaries.",
-    stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue"],
-    volatileClaims: "The mobile contract is live, but installable iOS and Android app claims require #67 and #68 smoke evidence.",
+    resolves: "Mobile jobs-to-be-done, iOS and Android child issues, live dashboard source-data route, API dependencies, stack decision, and write boundaries.",
+    stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue", "mobileDashboardCardId"],
+    volatileClaims:
+      "The mobile contract and live public dashboard digest are live, but installable iOS and Android app claims require #67 and #68 smoke evidence.",
+  },
+  {
+    id: "evidence-mobile-admin-dashboard",
+    route: "/mobile-admin/dashboard/source-data",
+    resolves:
+      "Public-safe mobile dashboard digest with feature counts, roadmap counts, recent work-log metadata, attention counts, commerce table counts, agent-readiness counts, and platform source-data routes.",
+    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
+    volatileClaims:
+      "The dashboard is a public-safe read contract, not private mobile auth, push notifications, confirmed writes, App Store distribution, or Play Store distribution.",
   },
   {
     id: "evidence-ios-mobile-admin",
@@ -856,6 +882,14 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/mobile-admin/source-data",
     purpose: "Expose the shared iOS and Android mobile admin plan, jobs, API dependencies, and confirmed-write boundaries.",
     safetyBoundary: "Read-only; mobile writes require a future confirmed-write action API and authenticated actor.",
+  },
+  {
+    id: "mcp-resource-mobile-admin-dashboard",
+    resourceOrTool: "resource bumpgrade://mobile-admin/dashboard",
+    status: "ready-contract",
+    backedBy: "/mobile-admin/dashboard/source-data",
+    purpose: "Expose the public-safe mobile dashboard digest that iOS, Android, web, and agents can share.",
+    safetyBoundary: "Read-only; no private admin rows, write tokens, R2 object keys, signed URLs, or secret values.",
   },
   {
     id: "mcp-resource-ios-mobile-admin",

@@ -9,7 +9,7 @@ if (!androidSlice) {
 export const androidMobileAdminSourceData = {
   id: "bumpgrade-android-mobile-admin-source-data",
   generatedFrom: "src/lib/mobile-admin-android.ts",
-  updatedAt: "2026-05-18",
+  updatedAt: "2026-05-19",
   platform: "android",
   issue: 68,
   parentIssue: mobileAdminContract.parentIssue,
@@ -34,6 +34,13 @@ export const androidMobileAdminSourceData = {
       fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
         "The Expo entrypoint and native Android activity render the mobile admin digest from the checked-in fixture generated from the shared source-data contract.",
+    },
+    {
+      id: "android-read-live-mobile-dashboard-next",
+      route: "/mobile-admin/dashboard/source-data",
+      fixturePath: null,
+      purpose:
+        "The next Android app slice should fetch or hydrate from the live public-safe mobile dashboard contract while keeping the fixture as an emulator fallback.",
     },
     {
       id: "android-read-admin-source-next",

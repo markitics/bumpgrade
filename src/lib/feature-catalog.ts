@@ -434,6 +434,7 @@ export const featureCatalog: FeatureRecord[] = [
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
       "Shared `/mobile-admin/source-data` contract for iOS and Android.",
+      "Live `/mobile-admin/dashboard/source-data` digest for public-safe mobile dashboard reads from issue #153.",
       "Independently shippable iOS issue #67 and Android issue #68.",
       "Roadmap and notification-aware mobile admin flows.",
       "Offer, checkout, product, and customer summaries.",
@@ -444,12 +445,14 @@ export const featureCatalog: FeatureRecord[] = [
       "Tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
+      "Live dashboard source-data bridge tracked by issue #153.",
       "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
+      "`/mobile-admin/dashboard/source-data` exposes a public-safe digest of feature, roadmap, work-log, attention, commerce, agent, and platform status for mobile clients.",
       "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
-      "Mobile apps must reuse web/admin contracts and need the same confirmed-write and audit rules as web admin actions.",
+      "Mobile apps can read the shared public-safe dashboard digest, but private mobile auth, push notifications, and confirmed writes must reuse web/admin contracts and the same audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",

@@ -9,7 +9,7 @@ if (!iosSlice) {
 export const iosMobileAdminSourceData = {
   id: "bumpgrade-ios-mobile-admin-source-data",
   generatedFrom: "src/lib/mobile-admin-ios.ts",
-  updatedAt: "2026-05-18",
+  updatedAt: "2026-05-19",
   platform: "ios",
   issue: 67,
   parentIssue: mobileAdminContract.parentIssue,
@@ -32,6 +32,13 @@ export const iosMobileAdminSourceData = {
       fixturePath: iosSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
         "The Expo entrypoint and iOS simulator target render the mobile admin digest from the checked-in fixture generated from the shared source-data contract.",
+    },
+    {
+      id: "ios-read-live-mobile-dashboard-next",
+      route: "/mobile-admin/dashboard/source-data",
+      fixturePath: null,
+      purpose:
+        "The next iOS app slice should fetch or hydrate from the live public-safe mobile dashboard contract while keeping the fixture as a simulator fallback.",
     },
     {
       id: "ios-read-admin-source-next",

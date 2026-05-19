@@ -13,6 +13,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - Android implementation issue: #68. The first Android slice now has a native
   activity, generated fixture asset, emulator smoke target, and
   `/mobile-admin/android/source-data`.
+- Live dashboard contract issue: #153. `/mobile-admin/dashboard/source-data`
+  now gives iOS, Android, web, and agents one public-safe digest for feature,
+  roadmap, work-log, attention, commerce, agent, and platform status.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -43,6 +46,13 @@ activity reads `android/src/main/assets/mobile-admin-contract.json` so Codex can
 build, install, launch, and screenshot a real emulator surface without claiming
 Play Store distribution or full mobile parity.
 
+The #153 dashboard slice does not replace the fixture smoke path. It adds a live
+public-safe contract route that future iOS and Android clients can fetch before
+private auth exists. The payload intentionally exposes counts, statuses, route
+IDs, issue evidence, recent public-safe work-log metadata, and redaction flags,
+not private buyer rows, raw inbox bodies, owner email values, session IDs, R2
+object keys, signed URLs, upload bodies, secret values, or write tokens.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -53,6 +63,8 @@ Play Store distribution or full mobile parity.
 
 - `/admin/source-data`: roadmap, work-log, user-journey, and Mark-attention
   digest.
+- `/mobile-admin/dashboard/source-data`: live public-safe dashboard digest for
+  mobile clients.
 - `/features/source-data`: feature status and issue evidence.
 - `/roadmap/source-data`: public roadmap lanes and blockers.
 - `/commerce/source-data`: redacted commerce architecture and checkout state.

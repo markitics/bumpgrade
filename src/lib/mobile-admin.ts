@@ -32,6 +32,16 @@ export type MobilePlatformSlice = {
   screenshotPath?: string;
 };
 
+export type MobileLiveDashboard = {
+  id: string;
+  issue: number;
+  status: "live-public-source-data-ready";
+  route: string;
+  purpose: string;
+  publicSafeReads: string[];
+  redactionBoundary: string;
+};
+
 export type MobileAdminContract = {
   id: string;
   updatedAt: string;
@@ -40,13 +50,14 @@ export type MobileAdminContract = {
   featureId: string;
   stackDecision: string;
   scaffoldBoundary: string;
+  liveDashboard: MobileLiveDashboard;
   childIssues: MobilePlatformSlice[];
   jobs: MobileJob[];
   apiDependencies: MobileApiDependency[];
   confirmedWriteRules: string[];
 };
 
-export const mobileAdminUpdatedAt = "2026-05-18";
+export const mobileAdminUpdatedAt = "2026-05-19";
 
 export const mobileAdminContract: MobileAdminContract = {
   id: "bumpgrade-mobile-admin-contract",
@@ -57,7 +68,26 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. It does not ship a WebView shortcut or claim a native app is installable yet; iOS and Android implementation happen in #67 and #68.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, and issue #153 adds the live public-safe dashboard source-data contract. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
+  liveDashboard: {
+    id: "mobile-live-dashboard-source-data",
+    issue: 153,
+    status: "live-public-source-data-ready",
+    route: "/mobile-admin/dashboard/source-data",
+    purpose:
+      "Give iOS, Android, web, and agents one public-safe mobile dashboard payload summarizing features, roadmap state, work-log recency, attention counts, commerce contract state, and agent-readiness without exposing private admin data.",
+    publicSafeReads: [
+      "/features/source-data",
+      "/roadmap/source-data",
+      "/admin/source-data",
+      "/admin/work-log/source-data",
+      "/admin/for-mark/source-data",
+      "/commerce/source-data",
+      "/agent-docs/source-data",
+    ],
+    redactionBoundary:
+      "The dashboard exposes counts, statuses, route IDs, issue evidence, and recent public-safe work-log metadata only. It excludes private buyer rows, raw inbox bodies, owner email values, session IDs, R2 object keys, signed URLs, upload bodies, secret values, and write tokens.",
+  },
   childIssues: [
     {
       platform: "ios",
@@ -101,7 +131,7 @@ export const mobileAdminContract: MobileAdminContract = {
       primaryUser: "Publisher or owner monitoring Bumpgrade from a phone",
       goal: "See whether funnels, checkout, products, email, analytics, agent work, and blockers are moving without opening the desktop admin app.",
       firstScreen: "Mobile admin digest",
-      sourceRoutes: ["/features/source-data", "/roadmap/source-data", "/admin/source-data"],
+      sourceRoutes: ["/mobile-admin/dashboard/source-data", "/features/source-data", "/roadmap/source-data", "/admin/source-data"],
       writeBoundary: "Read-only in the first mobile slice.",
     },
     {
@@ -110,7 +140,12 @@ export const mobileAdminContract: MobileAdminContract = {
       primaryUser: "Owner receiving Codex, ChatGPT, Claude, or automation proposals",
       goal: "Inspect work-log entries, for-Mark items, screenshots, and required confirmations before approving public or billing-impacting work.",
       firstScreen: "For-Mark and work-log inbox",
-      sourceRoutes: ["/admin/work-log/source-data", "/admin/for-mark/source-data", "/agent-docs/source-data"],
+      sourceRoutes: [
+        "/mobile-admin/dashboard/source-data",
+        "/admin/work-log/source-data",
+        "/admin/for-mark/source-data",
+        "/agent-docs/source-data",
+      ],
       writeBoundary: "Confirmed writes need actor identity, confirmation text, idempotency key, stale-state check, audit correlation, and redaction.",
     },
     {
@@ -119,11 +154,19 @@ export const mobileAdminContract: MobileAdminContract = {
       primaryUser: "Publisher watching sales and fulfillment state",
       goal: "Read products, prices, sandbox/live checkout state, webhook evidence, and known Stripe blockers before taking action.",
       firstScreen: "Commerce health summary",
-      sourceRoutes: ["/commerce/source-data", "/api/commerce/checkout"],
+      sourceRoutes: ["/mobile-admin/dashboard/source-data", "/commerce/source-data", "/api/commerce/checkout"],
       writeBoundary: "No live checkout, refund, subscription, price, or fulfillment mutation from mobile until confirmed-write APIs ship.",
     },
   ],
   apiDependencies: [
+    {
+      id: "mobile-api-dashboard",
+      route: "/mobile-admin/dashboard/source-data",
+      purpose:
+        "Live public-safe dashboard bundle for iOS and Android clients so mobile does not stitch or infer project state from hidden admin pages.",
+      authBoundary: "public-safe",
+      stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
+    },
     {
       id: "mobile-api-admin-source",
       route: "/admin/source-data",

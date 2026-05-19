@@ -99,6 +99,18 @@ manifest. It lists agent-doc pages, stable read contracts, source-evidence
 routes, the MCP roadmap, and write-safety rules. It is discovery metadata, not
 permission to write.
 
+Current mobile-admin boundary: `/mobile-admin/source-data` is the shared
+iOS/Android app contract, `/mobile-admin/ios/source-data` and
+`/mobile-admin/android/source-data` describe the first simulator/emulator smoke
+paths, and `/mobile-admin/dashboard/source-data` is the live public-safe
+dashboard digest for mobile clients. The dashboard summarizes feature, roadmap,
+recent work-log, attention, commerce, agent-readiness, and platform status from
+the same contracts as the web app. It returns counts, statuses, route IDs, issue
+evidence, recent public-safe work-log metadata, and redaction flags only. It is
+not private mobile auth, push notifications, confirmed writes, installable app
+distribution, private buyer rows, raw inbox bodies, owner email values, session
+IDs, R2 object keys, signed URLs, upload bodies, secret values, or write tokens.
+
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing
 tracks. Pricing tracks are positioning hypotheses, not published plan names,
