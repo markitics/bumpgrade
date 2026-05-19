@@ -36,8 +36,9 @@ then open the relevant shelf for the task.
   issues #85 and #103.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
-  browser-side page-view beacon, aggregate variant evidence, and seeded
-  assignment contract from issues #87, #105, #107, #119, #121, and #123.
+  browser-side page-view beacon, aggregate source attribution evidence,
+  aggregate variant evidence, and seeded assignment contract from issues #87,
+  #105, #107, #119, #121, #123, and #125.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, and fraud flag source-data contract
