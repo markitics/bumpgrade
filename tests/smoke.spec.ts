@@ -554,13 +554,18 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "event-capture-ready",
-        issue: 105,
+        status: "assignment-ready",
+        issue: 107,
         parentIssue: 18,
       }),
     );
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/analytics/source-data", "/api/analytics/events", "/analytics/indie-launch-dashboard"]),
+      expect.arrayContaining([
+        "/analytics/source-data",
+        "/api/analytics/events",
+        "/api/analytics/assignments",
+        "/analytics/indie-launch-dashboard",
+      ]),
     );
     expect(payload.eventWrites).toEqual(
       expect.objectContaining({
@@ -570,7 +575,22 @@ test.describe("Bumpgrade scaffold", () => {
         tables: expect.arrayContaining(["analytics_events", "analytics_event_ingestions"]),
       }),
     );
+    expect(payload.assignmentWrites).toEqual(
+      expect.objectContaining({
+        status: "assignment-ready",
+        issue: 107,
+        apiRoute: "/api/analytics/assignments",
+        tables: expect.arrayContaining(["analytics_experiment_assignments"]),
+      }),
+    );
     expect(payload.eventSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+      }),
+    );
+    expect(payload.assignmentSummary).toEqual(
       expect.objectContaining({
         status: "available",
         rawRowsIncluded: false,
@@ -598,12 +618,13 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #105 can capture seeded analytics events");
-    expect(payload.caveat).toContain("privacy-safe seeded event capture");
+    expect(payload.writeBoundary).toContain("Issues #105 and #107 can capture seeded analytics events and assign seeded experiment variants");
+    expect(payload.caveat).toContain("deterministic seeded assignment");
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Step-level conversion metrics combine fixtures and captured event counts/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Deterministic assignment can be audited before traffic writes exist/i })).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
   });
@@ -694,6 +715,106 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("analytics assignment API validates seeded experiments and keeps deterministic replay stable", async ({ request }) => {
+    const countFor = async () => {
+      const response = await request.get("/analytics/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const rows = payload.assignmentSummary.aggregateCounts.filter(
+        (candidate: { experiment_id: string }) => candidate.experiment_id === "experiment-opt-in-hero-promise",
+      );
+      return rows.reduce((total: number, row: { total_assignments: number }) => total + row.total_assignments, 0);
+    };
+    const beforeCount = await countFor();
+    const idempotencyKey = `playwright-analytics-assignment-${Date.now()}`;
+    const payload = {
+      experimentId: "experiment-opt-in-hero-promise",
+      sourceRoute: "/funnels/indie-launch-sandbox",
+      anonymousAssignmentKey: "playwright-stable-assignment-key",
+      idempotencyKey,
+    };
+
+    const firstResponse = await request.post("/api/analytics/assignments", { data: payload });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const firstResult = await firstResponse.json();
+    expect(firstResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        status: "assigned",
+        experimentId: "experiment-opt-in-hero-promise",
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        privateDataIncluded: false,
+        rawRequestDataIncluded: false,
+      }),
+    );
+    expect(["variant-opt-in-outcome-first", "variant-opt-in-speed-first"]).toContain(firstResult.variantId);
+    expect(firstResult.assignmentBucket).toBeGreaterThanOrEqual(0);
+    expect(firstResult.assignmentBucket).toBeLessThan(100);
+    expect(firstResult).not.toHaveProperty("anonymousAssignmentKey");
+
+    const duplicateResponse = await request.post("/api/analytics/assignments", { data: payload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicateResult = await duplicateResponse.json();
+    expect(duplicateResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        experimentAssignmentId: firstResult.experimentAssignmentId,
+        variantId: firstResult.variantId,
+        assignmentBucket: firstResult.assignmentBucket,
+      }),
+    );
+
+    const stableReplayResponse = await request.post("/api/analytics/assignments", {
+      data: { ...payload, idempotencyKey: `${idempotencyKey}-stable-replay` },
+    });
+    expect(stableReplayResponse.ok(), await stableReplayResponse.text()).toBeTruthy();
+    const stableReplayResult = await stableReplayResponse.json();
+    expect(stableReplayResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        variantId: firstResult.variantId,
+        assignmentBucket: firstResult.assignmentBucket,
+      }),
+    );
+
+    const unsupportedExperimentResponse = await request.post("/api/analytics/assignments", {
+      data: { ...payload, experimentId: "experiment-private-custom", idempotencyKey: `${idempotencyKey}-unsupported` },
+    });
+    expect(unsupportedExperimentResponse.status()).toBe(400);
+    await expect(unsupportedExperimentResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_experiment" }),
+    );
+
+    const unsupportedRouteResponse = await request.post("/api/analytics/assignments", {
+      data: { ...payload, sourceRoute: "/private-admin", idempotencyKey: `${idempotencyKey}-source` },
+    });
+    expect(unsupportedRouteResponse.status()).toBe(400);
+    await expect(unsupportedRouteResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_source_route" }),
+    );
+
+    const missingAssignmentKeyResponse = await request.post("/api/analytics/assignments", {
+      data: { ...payload, anonymousAssignmentKey: "", idempotencyKey: `${idempotencyKey}-missing-key` },
+    });
+    expect(missingAssignmentKeyResponse.status()).toBe(400);
+    await expect(missingAssignmentKeyResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "assignment_key_required" }),
+    );
+
+    const missingIdempotencyResponse = await request.post("/api/analytics/assignments", {
+      data: { ...payload, idempotencyKey: "" },
+    });
+    expect(missingIdempotencyResponse.status()).toBe(400);
+    await expect(missingIdempotencyResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_required" }),
+    );
+
+    await expect.poll(countFor).toBe(beforeCount + 2);
   });
 
   test("audience opt-in records one privacy-safe analytics event across idempotent replay", async ({ request }) => {
@@ -851,12 +972,17 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105],
+          issueNumbers: [18, 87, 105, 107],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",
           featureId: "feature-analytics-testing",
           issueNumbers: [18, 87, 105],
+        }),
+        expect.objectContaining({
+          id: "journey-agent-assigns-privacy-safe-experiment-variant",
+          featureId: "feature-analytics-testing",
+          issueNumbers: [18, 87, 105, 107],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
@@ -963,6 +1089,14 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),
+      ]),
+    );
+    expect(payload.readContracts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "read-analytics-experiments",
+          stableIds: expect.arrayContaining(["experimentAssignmentId"]),
+        }),
       ]),
     );
     expect(payload.writeSafetyRules).toEqual(
