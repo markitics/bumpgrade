@@ -390,7 +390,7 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/audience/source-data",
     kind: "json",
     auth: "public",
-    sourceOfTruth: "src/lib/audience-automation.ts + src/lib/audience-subscribers.ts",
+    sourceOfTruth: "src/lib/audience-automation.ts + src/lib/audience-subscribers.ts + src/lib/audience-broadcasts.ts",
     stableIds: [
       "subscriberId",
       "subscriberInspectionId",
@@ -401,6 +401,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "emailSequenceId",
       "automationRuleId",
       "broadcastDraftId",
+      "broadcastReadinessId",
       "consentRecordId",
       "suppressionEntryId",
       "timelineEntryId",
@@ -411,12 +412,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect tags and segments",
       "Inspect consent-backed capture boundary",
       "Inspect aggregate owner-subscriber, suppression, and timeline counts with redaction flags",
+      "Inspect suppression-aware broadcast readiness without recipient exposure",
       "Inspect the public-safe unsubscribe/suppression write boundary",
       "Inspect the owner-only CRM timeline note boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows and create private CRM notes in /admin/audience; imports, broadcasts, private exports, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, and view broadcast readiness in /admin/audience; imports, broadcast scheduling, private exports, direct agent subscriber writes, send queues, and email sends require future confirmed-write APIs.",
   },
   {
     id: "create-audience-unsubscribe-suppression",
@@ -915,9 +917,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, redaction flags, consent boundaries, unsubscribe boundaries, and owner-note boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, redaction flags, consent boundaries, unsubscribe boundaries, and owner-note boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, and owner-only CRM notes are live; imports, sends, broadcasts, private exports, CRM automation, and direct agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, and read-only broadcast readiness are live; imports, sends, broadcast scheduling, send queues, private exports, CRM automation, and direct agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",

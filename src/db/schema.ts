@@ -595,6 +595,32 @@ export const audienceTimelineEntries = sqliteTable(
   }),
 );
 
+export const audienceBroadcastDrafts = sqliteTable(
+  "audience_broadcast_drafts",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    title: text("title").notNull(),
+    status: text("status").notNull().default("draft"),
+    subjectIntent: text("subject_intent").notNull(),
+    previewText: text("preview_text").notNull(),
+    audienceScope: text("audience_scope").notNull(),
+    segmentId: text("segment_id").notNull(),
+    approvalBoundary: text("approval_boundary").notNull(),
+    suppressionPolicy: text("suppression_policy").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    workspaceStatusIdx: index("audience_broadcast_drafts_workspace_status_idx").on(
+      table.workspaceId,
+      table.status,
+    ),
+    segmentStatusIdx: index("audience_broadcast_drafts_segment_status_idx").on(table.segmentId, table.status),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {

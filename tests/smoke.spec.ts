@@ -8,6 +8,7 @@ import {
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
+import { audienceBroadcastReadinessIssue, audienceBroadcastReadinessStatus } from "../src/lib/audience-broadcasts";
 import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
@@ -1136,8 +1137,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: "owner-crm-timeline-ready",
-        issue: 169,
+        status: audienceBroadcastReadinessStatus,
+        issue: audienceBroadcastReadinessIssue,
         parentIssue: 17,
       }),
     );
@@ -1182,6 +1183,39 @@ test.describe("Bumpgrade scaffold", () => {
     );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
+    const beforeBroadcastScopedCount = payload.broadcastReadiness.counts.scopedSubscribers;
+    const beforeBroadcastSuppressionCount = payload.broadcastReadiness.counts.activeSuppressionEntries;
+    expect(payload.broadcastReadiness).toEqual(
+      expect.objectContaining({
+        status: audienceBroadcastReadinessStatus,
+        issue: audienceBroadcastReadinessIssue,
+        counts: expect.objectContaining({
+          broadcastDrafts: expect.any(Number),
+          scopedSubscribers: expect.any(Number),
+          consentedSubscribers: expect.any(Number),
+          readyRecipients: expect.any(Number),
+          suppressedRecipients: expect.any(Number),
+          unsubscribedRecipients: expect.any(Number),
+          missingConsentRecipients: expect.any(Number),
+          activeSuppressionEntries: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          suppressionHashesIncluded: false,
+          providerMessageIdsIncluded: false,
+          sendQueueRowsCreated: false,
+        }),
+        drafts: expect.arrayContaining([
+          expect.objectContaining({
+            id: "broadcast-draft-launch-window",
+            readyRecipientCount: expect.any(Number),
+            sendQueueRowsCreated: false,
+            providerMessageIdsIncluded: false,
+          }),
+        ]),
+      }),
+    );
     expect(payload.optInWrites).toEqual(
       expect.objectContaining({
         status: "subscriber-capture-ready",
@@ -1248,6 +1282,9 @@ test.describe("Bumpgrade scaffold", () => {
             apiRoute: "/api/admin/audience/notes",
             issue: 169,
           }),
+          broadcastDrafts: expect.arrayContaining([
+            expect.objectContaining({ id: "broadcast-draft-launch-window" }),
+          ]),
           automations: expect.arrayContaining([
             expect.objectContaining({ id: "automation-enroll-waitlist-nurture" }),
           ]),
@@ -1285,8 +1322,14 @@ test.describe("Bumpgrade scaffold", () => {
     const afterPayload = await afterResponse.json();
     expect(afterPayload.subscriberInspection.counts.subscribers).toBeGreaterThanOrEqual(beforeSubscriberCount + 1);
     expect(afterPayload.subscriberInspection.counts.suppressionEntries).toBeGreaterThanOrEqual(beforeSuppressionCount + 1);
+    expect(afterPayload.broadcastReadiness.counts.scopedSubscribers).toBeGreaterThanOrEqual(beforeBroadcastScopedCount + 1);
+    expect(afterPayload.broadcastReadiness.counts.activeSuppressionEntries).toBeGreaterThanOrEqual(
+      beforeBroadcastSuppressionCount + 1,
+    );
     expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("@example.com");
+    expect(JSON.stringify(afterPayload.broadcastReadiness)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("Browser smoke");
+    expect(JSON.stringify(afterPayload.broadcastReadiness)).not.toContain("Browser smoke");
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -2853,7 +2896,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103, 137, 167, 169],
+          issueNumbers: [17, 85, 103, 137, 167, 169, 171],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
@@ -3083,7 +3126,13 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/api/admin/products/assets",
           auth: "owner-session",
         }),
-        expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-audience-automation",
+          route: "/audience/source-data",
+          auth: "public",
+          stableIds: expect.arrayContaining(["broadcastReadinessId"]),
+          safeForAgents: expect.arrayContaining(["Inspect suppression-aware broadcast readiness without recipient exposure"]),
+        }),
         expect.objectContaining({
           id: "create-audience-unsubscribe-suppression",
           route: "/api/audience/unsubscribe",
@@ -3858,6 +3907,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Draft sends stay blocked until readiness is explicit" })).toBeVisible();
+    await expect(page.getByText("Launch window announcement")).toBeVisible();
     const audienceCard = page.getByRole("article").filter({ hasText: audienceEmail.toLowerCase() });
     await expect(audienceCard.getByRole("heading", { name: audienceEmail.toLowerCase() })).toBeVisible();
     await expect(audienceCard.getByText("unsubscribed")).toBeVisible();
