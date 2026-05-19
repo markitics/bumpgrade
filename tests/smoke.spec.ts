@@ -933,8 +933,9 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/admin/funnels");
     await expect(page.getByRole("heading", { name: /Draft funnel builder backed by D1/i })).toBeVisible();
-    await expect(page.getByText("Indie launch working draft")).toBeVisible();
-    await expect(page.locator(".admin-step-list").filter({ hasText: "Warm list opt-in" })).toBeVisible();
+    const draftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
+    await expect(draftCard.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
+    await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in" })).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {
