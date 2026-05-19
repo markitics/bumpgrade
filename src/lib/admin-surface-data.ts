@@ -469,7 +469,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher previews checkout bump and post-purchase decision stack",
     featureId: "feature-checkout-offers",
     featureStatus: "pending",
-    issueNumbers: [15, 81, 99, 101, 111, 113, 115, 117],
+    issueNumbers: [15, 81, 99, 101, 111, 113, 115, 117, 133],
     primaryUser: "Publisher or agent planning checkout revenue lifts",
     userGoal:
       "Inspect the primary offer, choose the seeded order bump, start a confirmed sandbox Checkout Session, and understand the post-purchase upsell/downsell decision boundary without enabling live billing.",
@@ -477,6 +477,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://bumpgrade.com/offers/source-data",
       "https://bumpgrade.com/offers/indie-launch-stack",
       "https://bumpgrade.com/api/commerce/checkout",
+      "https://bumpgrade.com/commerce/checkout/success",
       "https://bumpgrade.com/api/commerce/post-purchase-decisions",
       "https://bumpgrade.com/commerce/source-data",
       "https://github.com/markitics/bumpgrade/issues/15",
@@ -487,6 +488,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://github.com/markitics/bumpgrade/issues/113",
       "https://github.com/markitics/bumpgrade/issues/115",
       "https://github.com/markitics/bumpgrade/issues/117",
+      "https://github.com/markitics/bumpgrade/issues/133",
     ],
     happyPath: [
       "Open /offers/indie-launch-stack.",
@@ -494,6 +496,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Choose the order bump, enter the exact confirmation text, and submit the sandbox checkout start form.",
       "In test or incomplete-secret environments, receive a redacted preview response.",
       "In production sandbox mode with valid secrets, receive a Bumpgrade redirect URL for the Checkout Session rather than a raw Stripe URL.",
+      "Return to /commerce/checkout/success and wait until the redacted post-purchase contract reports trusted webhook eligibility.",
       "After trusted paid checkout evidence exists, open the post-purchase path and record a non-billing upsell or downsell follow-up decision.",
       "Read aggregate post-purchase decision counts from /offers/source-data or /commerce/source-data without exposing buyer, Stripe, entitlement, or private checkout data.",
     ],
@@ -507,8 +510,9 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     agentAccess:
       "Agents can read /offers/source-data, /commerce/source-data, the preview route, post-purchase decision contracts, and aggregate decision counts. Agents must not create or mutate checkout sessions or billing-impacting post-purchase actions without exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and webhook evidence.",
     validation: [
-      "Playwright covers /offers/source-data, /offers/indie-launch-stack, the order-bump form preview response, post-purchase page rendering, non-billing decision writes, idempotent replay, stale-state rejection, aggregate source-data, sitemap discovery, and agent manifest read-contract discovery.",
+      "Playwright covers /offers/source-data, /offers/indie-launch-stack, the order-bump form preview response, checkout success webhook gating, post-purchase page rendering, non-billing decision writes, idempotent replay, stale-state rejection, aggregate source-data, sitemap discovery, and agent manifest read-contract discovery.",
       "Issue #117 records the first post-purchase upsell/downsell decision evidence boundary.",
+      "Issue #133 gates the checkout success CTA on trusted webhook state.",
     ],
     sortOrder: 48,
     updatedAt: null,
@@ -518,10 +522,11 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Buyer chooses a post-purchase follow-up offer",
     featureId: "feature-checkout-offers",
     featureStatus: "pending",
-    issueNumbers: [15, 99, 117],
+    issueNumbers: [15, 99, 117, 133],
     primaryUser: "Buyer returning from a trusted sandbox checkout",
     userGoal: "Accept or decline a time-boxed upsell/downsell follow-up without triggering a one-click charge.",
     sourceEvidence: [
+      "https://bumpgrade.com/commerce/checkout/success",
       "https://bumpgrade.com/commerce/post-purchase/{checkoutIntentId}",
       "https://bumpgrade.com/api/commerce/post-purchase-decisions",
       "https://bumpgrade.com/offers/source-data",
@@ -529,9 +534,11 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://github.com/markitics/bumpgrade/issues/15",
       "https://github.com/markitics/bumpgrade/issues/99",
       "https://github.com/markitics/bumpgrade/issues/117",
+      "https://github.com/markitics/bumpgrade/issues/133",
     ],
     happyPath: [
       "Complete or simulate a trusted sandbox checkout intent.",
+      "Return to the checkout success page and wait for the redacted contract to confirm trusted webhook eligibility.",
       "Open the post-purchase route for that checkout intent.",
       "Choose the launch accelerator upsell or decline it and choose the launch review downsell.",
       "The decision API records follow-up evidence only and returns a redacted public response.",
@@ -546,7 +553,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     agentAccess:
       "Agents can inspect the decision contract and aggregate counts. Agents cannot create billing-impacting post-purchase charges in this slice.",
     validation: [
-      "Playwright covers post-purchase page rendering, accepted/declined decision writes, stale-state rejection, aggregate source-data, and no billing/fulfillment mutation.",
+      "Playwright covers checkout success webhook gating, post-purchase page rendering, accepted/declined decision writes, stale-state rejection, aggregate source-data, and no billing/fulfillment mutation.",
     ],
     sortOrder: 50,
     updatedAt: null,
@@ -1091,7 +1098,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher plans the first paid offer",
     featureId: "feature-stripe-commerce",
     featureStatus: "live",
-    issueNumbers: [11, 34, 15, 16, 81, 99, 101, 111, 113, 115, 117],
+    issueNumbers: [11, 34, 15, 16, 81, 99, 101, 111, 113, 115, 117, 133],
     primaryUser: "Publisher preparing to sell a digital offer",
     userGoal:
       "Plan a checkout offer stack with a primary offer, order bump, post-purchase upsell, and downsell while seeing what is live, what is only decision evidence, and what remains billing-locked.",
@@ -1102,6 +1109,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://bumpgrade.com/offers/source-data",
       "https://bumpgrade.com/offers/indie-launch-stack",
       "https://bumpgrade.com/api/commerce/checkout",
+      "https://bumpgrade.com/commerce/checkout/success",
       "https://bumpgrade.com/api/commerce/post-purchase-decisions",
       "https://bumpgrade.com/products/source-data",
       "https://bumpgrade.com/affiliates/source-data",
@@ -1116,6 +1124,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://github.com/markitics/bumpgrade/issues/113",
       "https://github.com/markitics/bumpgrade/issues/115",
       "https://github.com/markitics/bumpgrade/issues/117",
+      "https://github.com/markitics/bumpgrade/issues/133",
     ],
     happyPath: [
       "Create or identify a commerce product record.",
@@ -1124,6 +1133,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Create a checkout intent with an idempotency key and audit correlation id.",
       "Use sandbox Stripe Checkout first.",
       "Let the webhook update intent, subscription, entitlement, and audit state before public fulfillment is trusted.",
+      "Let the checkout success page gate the post-purchase CTA on trusted webhook state.",
       "Use trusted checkout state to open the post-purchase path and record non-billing upsell/downsell follow-up evidence.",
       "Read aggregate post-purchase decision counts from /offers/source-data or /commerce/source-data without exposing buyer, Stripe, entitlement, or private checkout data.",
     ],
@@ -1142,6 +1152,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #34 tracks the first sandbox route and webhook ingestion implementation.",
       "Issue #111 records the first checkout referral attribution evidence path.",
       "Issue #117 records the first post-purchase upsell/downsell decision evidence boundary.",
+      "Issue #133 records the checkout success CTA gating boundary.",
     ],
     sortOrder: 45,
     updatedAt: null,

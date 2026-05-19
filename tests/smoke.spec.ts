@@ -2671,6 +2671,72 @@ test.describe("Bumpgrade scaffold", () => {
     expect(afterDeclinedDownsell).toBe(beforeDeclinedDownsell + 1);
   });
 
+  test("checkout success page waits for trusted webhook state before post-purchase CTA", async ({ request, page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Checkout success polling is covered once on desktop.");
+
+    await page.goto("/commerce/checkout/success");
+    await expect(page.getByRole("heading", { name: /sandbox checkout returned successfully/i })).toBeVisible();
+    await expect(page.getByText("No checkout intent was returned with this success page.")).toBeVisible();
+    await expect(page.getByRole("link", { name: /Continue offer path/i })).toHaveCount(0);
+
+    const suffix = Date.now();
+    const checkout = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        buyerEmail: "checkout-success-buyer@example.com",
+        idempotencyKey: `playwright-checkout-success-${suffix}`,
+      },
+    });
+    expect(checkout.ok(), await checkout.text()).toBeTruthy();
+    const checkoutPayload = await checkout.json();
+    expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
+
+    await page.goto(`/commerce/checkout/success?checkout_intent_id=${checkoutPayload.checkoutIntentId}`);
+    await expect(page.getByText(/Waiting for webhook confirmation/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Continue offer path/i })).toHaveCount(0);
+    await expect(page.locator("body")).not.toContainText("cs_test");
+    await expect(page.locator("body")).not.toContainText("pi_test");
+
+    const event = {
+      id: `evt_bumpgrade_checkout_success_${suffix}`,
+      object: "event",
+      api_version: "2026-04-22.dahlia",
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_test_redacted_by_route",
+          object: "checkout.session",
+          client_reference_id: checkoutPayload.checkoutIntentId,
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            checkout_intent_id: checkoutPayload.checkoutIntentId,
+            product_id: sandboxCheckoutOffer.productId,
+            price_id: sandboxCheckoutOffer.priceId,
+            audit_correlation_id: "audit-playwright-checkout-success",
+          },
+        },
+      },
+    };
+
+    const webhook = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: event,
+    });
+    expect(webhook.ok(), await webhook.text()).toBeTruthy();
+
+    const continueLink = page.getByRole("link", { name: /Continue offer path/i });
+    await expect(continueLink).toBeVisible({ timeout: 8000 });
+    await expect(continueLink).toHaveAttribute("href", `/commerce/post-purchase/${checkoutPayload.checkoutIntentId}`);
+    await expect(page.getByText("Trusted checkout evidence is ready for the post-purchase path.")).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("cs_test");
+    await expect(page.locator("body")).not.toContainText("pi_test");
+  });
+
   test("allowlisted owner can sign in and open protected admin surfaces", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
     await signInOrCreateOwner(page);

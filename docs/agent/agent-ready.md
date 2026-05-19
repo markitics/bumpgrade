@@ -121,7 +121,9 @@ evidence. `/api/affiliates/commission-ledger` can create review-only commission
 ledger evidence from trusted checkout attribution, and
 `/api/commerce/post-purchase-decisions` can record non-billing upsell/downsell
 follow-up decisions after trusted checkout state with exact confirmation,
-idempotency, and stale-state checks. This proves offer-sequence semantics,
+idempotency, and stale-state checks. `/commerce/checkout/success` polls that
+redacted contract and only opens the post-purchase path after trusted webhook
+state marks the checkout eligible. This proves offer-sequence semantics,
 sandbox Checkout Session start semantics, referral-click-to-checkout evidence,
 non-payable ledger evidence, and post-purchase decision evidence, not live
 billing, one-click upsell charging, fulfillment, payable commission writes,

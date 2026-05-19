@@ -112,7 +112,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   evidence can be created from trusted checkout attribution.
   `/api/commerce/post-purchase-decisions` can record non-billing upsell/downsell
   follow-up decisions after trusted checkout state with exact confirmation,
-  idempotency, and stale-state checks. Treat it as sandbox checkout-start,
+  idempotency, and stale-state checks. `/commerce/checkout/success` only opens
+  that path after the redacted contract reports trusted webhook eligibility.
+  Treat it as sandbox checkout-start,
   referral-click-to-checkout, non-payable ledger, and non-billing
   post-purchase decision evidence, not live billing, one-click upsell charging,
   fulfillment, payable commission writes, arbitrary order-bump mutation, payout
