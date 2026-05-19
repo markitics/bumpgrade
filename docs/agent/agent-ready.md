@@ -149,20 +149,22 @@ unsubscribe management, CRM timeline state, suppression-list mutation, or direct
 agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
-for seeded event definitions, aggregate event counts, aggregate assignment
-counts, aggregate funnel conversion report rows, metric formulas, A/B test
-variants, deterministic assignment rules, the `/api/analytics/events` write
-boundary, and the `/api/analytics/assignments` write boundary.
+for seeded event definitions, aggregate event counts, aggregate variant event
+counts, aggregate assignment counts, aggregate funnel conversion report rows,
+metric formulas, A/B test variants, deterministic assignment rules, the
+`/api/analytics/events` write boundary, and the `/api/analytics/assignments`
+write boundary.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
 emits a browser-side `event-funnel-page-view` beacon with session-scoped
-idempotency and server-side bot/preview suppression. Aggregate conversion rows
-are computed from captured test events when samples exist. This proves seeded
-event, page-view beacon, assignment, and reporting semantics, not cookie
-assignment, traffic routing, contact-level reporting, raw event or assignment
-exposure, automated decisions, direct agent analytics writes, or statistically
-meaningful proof.
+idempotency, deterministic variant evidence from the seeded assignment API, and
+server-side bot/preview suppression. Aggregate conversion rows are computed
+from captured test events when samples exist. This proves seeded event,
+page-view beacon, aggregate variant, assignment, and reporting semantics, not
+cookie assignment, traffic routing, contact-level reporting, raw event or
+assignment exposure, automated decisions, direct agent analytics writes, or
+statistically meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
