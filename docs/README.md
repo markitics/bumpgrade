@@ -32,8 +32,8 @@ then open the relevant shelf for the task.
 - `features/product-access.md`: product, asset, access-rule, entitlement, and
   sandbox webhook grant contract from issues #83 and #101.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
-  broadcast, automation, consent, and seeded subscriber capture contract from
-  issues #85 and #103.
+  broadcast, automation, consent, seeded subscriber capture, and owner subscriber
+  inspection contract from issues #85, #103, and #137.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,

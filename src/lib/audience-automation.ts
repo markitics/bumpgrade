@@ -302,7 +302,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     },
   ],
   writeBoundary:
-    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Imports, broadcasts, email sends, unsubscribe changes, contact timelines, CRM notes, suppression-list changes, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Imports, broadcasts, email sends, unsubscribe changes, private exports, contact timelines, CRM notes, suppression-list changes, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
   validation: [
     "/audience/source-data returns seeded audience segments, forms, tags, sequences, automations, and write boundaries.",
     "/audience/indie-launch-waitlist renders the opt-in and nurture preview.",
@@ -320,17 +320,19 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: "subscriber-capture-ready",
-  issue: 103,
+  status: "owner-subscriber-inspection-ready",
+  issue: 137,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
   routes: [
     "/audience/source-data",
     audienceOptInApiRoute,
+    "/admin/audience",
     ...audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute),
   ],
   stableIds: [
     "subscriberId",
+    "subscriberInspectionId",
     "subscriberSegmentId",
     "optInFormId",
     "leadMagnetId",
@@ -345,5 +347,5 @@ export const audienceAutomationSourceData = {
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, and consent-backed subscriber capture. It does not import contacts, send email, schedule broadcasts, alter unsubscribe state, expose private contact data, or provide direct confirmed-write agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, and aggregate owner-inspection evidence. It does not import contacts, send email, schedule broadcasts, alter unsubscribe state, publicly expose private contact data, or provide direct confirmed-write agent APIs.",
 };

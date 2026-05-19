@@ -276,10 +276,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
       "Issue #103 adds `POST /api/audience/opt-in` with normalized subscriber, consent, tag, and draft sequence enrollment rows.",
+      "Issue #137 adds `/admin/audience` owner subscriber inspection and aggregate public redaction flags.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add unsubscribe-safe email delivery and subscriber inspection without exposing private contact data.",
+      "Add unsubscribe-safe email delivery and CRM timeline notes without exposing private contact data publicly.",
   },
   {
     id: "roadmap-analytics-testing",
