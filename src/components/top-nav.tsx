@@ -2,17 +2,34 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { authClient } from "@/lib/auth-client";
 import { loginNavItem, site, topNavItems } from "@/lib/site";
 
+function subscribeToHydrationStore() {
+  return () => undefined;
+}
+
+function getClientHydrationSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
+
 export function TopNav() {
   const session = authClient.useSession();
+  const hasHydrated = useSyncExternalStore(
+    subscribeToHydrationStore,
+    getClientHydrationSnapshot,
+    getServerHydrationSnapshot,
+  );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const mobileNavRef = useRef<HTMLDivElement>(null);
   const mobileNavPanelId = "mobile-nav-panel";
-  const showLoginNavItem = !session.isPending && !session.data?.user;
+  const showLoginNavItem = hasHydrated && !session.isPending && !session.data?.user;
   const mobileNavItems = showLoginNavItem ? [...topNavItems, loginNavItem] : topNavItems;
 
   useEffect(() => {
