@@ -210,15 +210,26 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/funnels.ts",
-    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "funnelDraftId", "funnelAuditEventId", "agentActionId"],
+    stableIds: [
+      "funnelId",
+      "funnelStepId",
+      "funnelBlockId",
+      "funnelTemplateId",
+      "funnelBlockTemplateId",
+      "funnelRevisionId",
+      "funnelDraftId",
+      "funnelAuditEventId",
+      "agentActionId",
+    ],
     safeForAgents: [
       "Read seeded draft funnel",
       "Inspect ordered steps",
       "Inspect page blocks and write boundaries",
+      "Inspect reusable funnel templates and block-template write boundaries from issue #159",
       "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, and #135",
     ],
     writeBoundary:
-      "Owner-session seed/create/update/reorder draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Checkout linking, deletion, unpublishing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/update/reorder draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Template-to-draft creation, block editing, checkout linking, deletion, unpublishing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -608,10 +619,19 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
-    stableIds: ["funnelId", "funnelStepId", "funnelBlockId", "funnelRevisionId", "funnelDraftId", "funnelAuditEventId"],
+      "Seeded funnel, ordered steps, page blocks, reusable funnel templates, block-template library records, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+    stableIds: [
+      "funnelId",
+      "funnelStepId",
+      "funnelBlockId",
+      "funnelTemplateId",
+      "funnelBlockTemplateId",
+      "funnelRevisionId",
+      "funnelDraftId",
+      "funnelAuditEventId",
+    ],
     volatileClaims:
-      "The public funnel contract exposes owner-gated editable draft and publish capability metadata; it does not expose unpublished private draft copy, checkout linking, unpublishing, or unconfirmed agent edits.",
+      "The public funnel contract exposes template and block-template records plus owner-gated editable draft and publish capability metadata; it does not expose unpublished private draft copy, template-to-draft creation, checkout linking, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -787,8 +807,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, revision IDs, owner-gated draft capability, and write-safety boundaries.",
-    safetyBoundary: "Public resource stays read-only; owner-session draft create/seed/update/reorder, private preview, and exact-confirmed publish exist in admin UI, while checkout-link, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
+    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates, block templates, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    safetyBoundary:
+      "Public resource stays read-only; owner-session draft create/seed/update/reorder, private preview, and exact-confirmed publish exist in admin UI, while template-to-draft creation, block editing, checkout-link, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",

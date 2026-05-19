@@ -348,8 +348,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-owner-preview-and-publish-ready",
-        issue: 135,
+        status: "read-contract-template-library-ready",
+        issue: 159,
         parentIssue: 14,
       }),
     );
@@ -371,6 +371,36 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.publishedD1Funnels).toEqual(expect.any(Array));
     expect(payload.privateDraftsIncluded).toBe(false);
     expect(payload.rawOwnerDataIncluded).toBe(false);
+    expect(payload.templateLibraryIssue).toBe(159);
+    expect(payload.stableIds).toEqual(expect.arrayContaining(["funnelTemplateId", "funnelBlockTemplateId"]));
+    expect(payload.templates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "template-launch-sales-stack",
+          title: "Launch sales funnel",
+          draftCreation: "future-confirmed-write",
+          steps: expect.arrayContaining([
+            expect.objectContaining({ order: 1, kind: "opt_in" }),
+            expect.objectContaining({ order: 2, kind: "sales" }),
+            expect.objectContaining({ order: 3, kind: "thank_you" }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.blockLibrary).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "block-template-proof",
+          kind: "proof",
+          agentEditable: true,
+        }),
+        expect.objectContaining({
+          id: "block-template-checkout",
+          kind: "checkout",
+          agentEditable: false,
+        }),
+      ]),
+    );
     expect(payload.funnels).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -392,6 +422,10 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Three-step launch funnel scaffold/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reusable funnel shapes before template writes exist/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reusable page blocks with write boundaries/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Launch sales funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Checkout handoff/i }).last()).toBeVisible();
     await expect(page.locator("#warm-list-opt-in")).toContainText("Warm list opt-in");
     await expect(page.locator("#offer-sales-page")).toContainText("Offer sales page");
     await expect(page.locator("#thank-you-delivery")).toContainText("Thank-you and delivery");

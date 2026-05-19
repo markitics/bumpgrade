@@ -4,15 +4,18 @@ Issue #14 owns the funnel and page builder MVP. Issue #79 shipped the first
 read-only funnel source-data contract and preview scaffold. Issue #91 adds the
 first owner-gated D1 draft builder scaffold, issue #93 adds owner-gated step
 editing and reordering, issue #95 adds owner-gated private draft preview, and
-issue #135 adds exact-confirmed public publishing from D1 draft funnels.
+issue #135 adds exact-confirmed public publishing from D1 draft funnels. Issue
+#159 adds the read-only reusable funnel template and block-template library.
 
 Live in this slice:
 
 - `/funnels/source-data`: public-safe JSON with one seeded draft funnel, ordered
-  steps, block IDs, revision ID, preview route, owner-session editable draft
-  capability metadata, published D1 funnel summaries, and write boundary.
+  steps, block IDs, reusable funnel templates, block-template records, revision
+  ID, preview route, owner-session editable draft capability metadata, published
+  D1 funnel summaries, and write boundary.
 - `/funnels/indie-launch-sandbox`: crawlable semantic preview of the seeded
-  opt-in, sales, and thank-you funnel.
+  opt-in, sales, and thank-you funnel, including reusable template and block
+  library cards.
 - `/funnels/:slug`: crawlable semantic public route for published D1 draft
   funnels, with unpublished private draft copy excluded from source data.
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
@@ -28,6 +31,7 @@ Live in this slice:
 
 Not live in this slice:
 
+- Template-to-draft creation from the reusable template library.
 - Drag-and-drop visual editing or granular block editing.
 - Deleting, archiving, unpublishing, or duplicating funnels.
 - Checkout-linking, order bumps, upsells, or fulfillment.
