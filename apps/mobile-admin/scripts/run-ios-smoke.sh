@@ -28,7 +28,7 @@ xcrun simctl bootstatus booted -b
 APP_BUNDLE="$DERIVED_DATA/Build/Products/Debug-iphonesimulator/$SCHEME.app"
 xcrun simctl install booted "$APP_BUNDLE"
 xcrun simctl launch booted com.bumpgrade.mobileadmin
-sleep 3
+sleep 5
 mkdir -p "$(dirname "$SCREENSHOT_PATH")"
 xcrun simctl io booted screenshot "$SCREENSHOT_PATH"
 echo "iOS smoke screenshot saved to $SCREENSHOT_PATH"

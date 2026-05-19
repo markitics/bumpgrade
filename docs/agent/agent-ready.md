@@ -110,9 +110,11 @@ evidence, recent public-safe work-log metadata, and redaction flags only. It is
 not private mobile auth, push notifications, confirmed writes, installable app
 distribution, private buyer rows, raw inbox bodies, owner email values, session
 IDs, R2 object keys, signed URLs, upload bodies, secret values, or write tokens.
-The Expo, iOS, and Android smoke scaffolds render this dashboard route and
-redaction boundary from the generated fixture, but they are still not live
-network clients.
+The Expo, iOS, and Android smoke scaffolds now render the dashboard route,
+fetch the live public-safe dashboard payload, label live-network versus fallback
+fixture hydration, and keep the generated fixture as a deterministic simulator
+or emulator fallback. They are still not private mobile auth, mobile write
+clients, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing

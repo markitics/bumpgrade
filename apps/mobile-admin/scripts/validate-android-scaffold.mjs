@@ -52,17 +52,23 @@ const currentContract = loadCurrentContract();
 assert(JSON.stringify(fixture) === JSON.stringify(currentContract), "Fixture is stale. Run npm --prefix apps/mobile-admin run fixture:sync.");
 assert(readFileSync(androidAssetPath, "utf8") === fixtureText, "Android asset fixture is stale. Run npm --prefix apps/mobile-admin run fixture:sync.");
 assert(fixture.childIssues.some((slice) => slice.platform === "android" && slice.issue === 68), "Fixture does not include Android issue #68.");
+assert(fixture.publicBaseUrl === "https://bumpgrade.com", "Fixture does not include the public mobile base URL.");
 assert(fixture.liveDashboard?.route === "/mobile-admin/dashboard/source-data", "Fixture does not include the live mobile dashboard route.");
 assert(fixture.liveDashboard?.renderedInScaffoldsIssue === 155, "Fixture does not record issue #155 as the mobile dashboard scaffold render slice.");
+assert(fixture.liveDashboard?.liveHydrationIssue === 157, "Fixture does not record issue #157 as the mobile dashboard live hydration slice.");
 assert(
   fixture.childIssues.find((slice) => slice.platform === "android")?.sourceDataRoute === "/mobile-admin/android/source-data",
   "Android slice source-data route is missing.",
 );
 
 const activitySource = readFileSync(activityPath, "utf8");
+const manifestSource = readFileSync(manifestPath, "utf8");
 assert(activitySource.includes("mobile-admin-contract.json"), "Android activity does not read the generated fixture asset.");
 assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity title is missing.");
 assert(activitySource.includes("Live dashboard"), "Android activity does not render the live dashboard panel.");
+assert(activitySource.includes("HttpURLConnection"), "Android activity does not fetch the live dashboard route.");
+assert(activitySource.includes("Live network"), "Android activity does not distinguish live network hydration from fixture fallback.");
+assert(manifestSource.includes("android.permission.INTERNET"), "Android manifest does not allow the live dashboard network read.");
 
 for (const tool of ["aapt2", "d8", "zipalign", "apksigner"]) {
   assert(existsSync(path.join(buildTools, tool)), `Missing Android build tool: ${tool}.`);

@@ -98,9 +98,10 @@ for _ in {1..90}; do
   sleep 2
 done
 
+"${adb_for_device[@]}" shell pm uninstall com.bumpgrade.mobileadmin >/dev/null 2>&1 || true
 "${adb_for_device[@]}" install -r "$BUILD_ROOT/bumpgrade-mobile-admin.apk" >/dev/null
 "${adb_for_device[@]}" shell am start -n com.bumpgrade.mobileadmin/.MainActivity >/dev/null
-sleep 3
+sleep 5
 mkdir -p "$(dirname "$SCREENSHOT_PATH")"
 "${adb_for_device[@]}" exec-out screencap -p > "$SCREENSHOT_PATH"
 echo "Android smoke screenshot saved to $SCREENSHOT_PATH"

@@ -11,6 +11,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -61,11 +63,18 @@ public class MainActivity extends Activity {
 
       LinearLayout dashboardPanel = panel();
       dashboardPanel.addView(kicker("Live dashboard"));
-      dashboardPanel.addView(panelTitle(liveDashboard.getString("route")));
-      dashboardPanel.addView(body(liveDashboard.getString("purpose")));
-      dashboardPanel.addView(meta("Status: " + liveDashboard.getString("status") + " · issue #" + liveDashboard.getInt("issue")));
-      dashboardPanel.addView(meta("Boundary: " + liveDashboard.getString("redactionBoundary")));
+      TextView dashboardTitle = panelTitle(liveDashboard.getString("route"));
+      TextView dashboardBody = body(liveDashboard.getString("purpose"));
+      TextView dashboardStatus = meta("Status: " + liveDashboard.getString("status") + " · issue #" + liveDashboard.getInt("issue"));
+      TextView dashboardSource = meta("Source: Fixture fallback");
+      TextView dashboardBoundary = meta("Boundary: " + liveDashboard.getString("redactionBoundary"));
+      dashboardPanel.addView(dashboardTitle);
+      dashboardPanel.addView(dashboardBody);
+      dashboardPanel.addView(dashboardStatus);
+      dashboardPanel.addView(dashboardSource);
+      dashboardPanel.addView(dashboardBoundary);
       content.addView(dashboardPanel);
+      fetchLiveDashboard(contract, liveDashboard, dashboardTitle, dashboardBody, dashboardStatus, dashboardSource, dashboardBoundary);
 
       content.addView(sectionLabel("Phone jobs"));
       for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {
@@ -97,6 +106,90 @@ public class MainActivity extends Activity {
       }
       return output.toString(StandardCharsets.UTF_8.name());
     }
+  }
+
+  private void fetchLiveDashboard(
+    JSONObject contract,
+    JSONObject fixtureDashboard,
+    TextView dashboardTitle,
+    TextView dashboardBody,
+    TextView dashboardStatus,
+    TextView dashboardSource,
+    TextView dashboardBoundary
+  ) {
+    new Thread(() -> {
+      HttpURLConnection connection = null;
+      try {
+        URL url = new URL(contract.getString("publicBaseUrl") + fixtureDashboard.getString("route"));
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/json");
+        if (connection.getResponseCode() < 200 || connection.getResponseCode() >= 300) {
+          return;
+        }
+
+        JSONObject payload = new JSONObject(readStream(connection.getInputStream()));
+        String bodyText = liveDashboardSummary(payload);
+        String boundaryText = redactionSummary(payload.optJSONObject("redaction"), fixtureDashboard.getString("redactionBoundary"));
+        runOnUiThread(() -> {
+          dashboardTitle.setText(payload.optString("route", fixtureDashboard.optString("route")));
+          dashboardBody.setText(bodyText);
+          dashboardStatus.setText("Status: " + payload.optString("status", fixtureDashboard.optString("status")) + " · issue #" + payload.optInt("issue", fixtureDashboard.optInt("issue")));
+          dashboardSource.setText("Source: Live network");
+          dashboardBoundary.setText("Boundary: " + boundaryText);
+        });
+      } catch (Exception ignored) {
+        runOnUiThread(() -> dashboardSource.setText("Source: Fixture fallback"));
+      } finally {
+        if (connection != null) {
+          connection.disconnect();
+        }
+      }
+    }).start();
+  }
+
+  private String readStream(InputStream input) throws Exception {
+    try (InputStream stream = input; ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+      byte[] buffer = new byte[4096];
+      int read;
+      while ((read = stream.read(buffer)) != -1) {
+        output.write(buffer, 0, read);
+      }
+      return output.toString(StandardCharsets.UTF_8.name());
+    }
+  }
+
+  private String liveDashboardSummary(JSONObject payload) {
+    JSONObject counts = payload.optJSONObject("adminDigest") != null
+      ? payload.optJSONObject("adminDigest").optJSONObject("counts")
+      : null;
+    if (counts == null) {
+      return "Live public-safe dashboard payload loaded.";
+    }
+    return "Roadmap "
+      + counts.optInt("roadmapItems", 0)
+      + ", work logs "
+      + counts.optInt("workLogEntries", 0)
+      + ", journeys "
+      + counts.optInt("userJourneys", 0)
+      + ", attention "
+      + counts.optInt("openAttentionItems", 0)
+      + ".";
+  }
+
+  private String redactionSummary(JSONObject redaction, String fallbackBoundary) {
+    if (redaction == null || redaction.length() == 0) {
+      return fallbackBoundary;
+    }
+    JSONArray keys = redaction.names();
+    for (int index = 0; keys != null && index < keys.length(); index += 1) {
+      if (redaction.optBoolean(keys.optString(index), true)) {
+        return fallbackBoundary;
+      }
+    }
+    return "Redaction: " + redaction.length() + " private-data flags false.";
   }
 
   private JSONObject findPlatformSlice(JSONArray slices, String platform) throws Exception {

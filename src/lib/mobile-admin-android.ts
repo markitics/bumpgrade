@@ -28,20 +28,22 @@ export const androidMobileAdminSourceData = {
   validationCommand: "npm run mobile:android:validate",
   screenshotPath: androidSlice.screenshotPath ?? "/pr-screenshots/issue-68-android-mobile-admin-emulator.png",
   dashboardPanelIssue: 155,
+  liveHydrationIssue: 157,
+  liveDashboardUrl: `${mobileAdminContract.publicBaseUrl}${mobileAdminContract.liveDashboard.route}`,
   reads: [
     {
       id: "android-read-mobile-contract-fixture",
       route: "/mobile-admin/source-data",
       fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Expo entrypoint and native Android activity render the mobile admin digest plus the live dashboard route from the checked-in fixture generated from the shared source-data contract.",
+        "The Expo entrypoint and native Android activity render the mobile admin digest from the checked-in fixture generated from the shared source-data contract when live hydration is unavailable.",
     },
     {
-      id: "android-read-live-mobile-dashboard-next",
+      id: "android-read-live-mobile-dashboard",
       route: "/mobile-admin/dashboard/source-data",
       fixturePath: null,
       purpose:
-        "The next Android app slice should fetch or hydrate from the live public-safe mobile dashboard contract while keeping the fixture as an emulator fallback.",
+        "The Expo entrypoint and native Android activity fetch the live public-safe mobile dashboard contract and distinguish live network hydration from fixture fallback.",
     },
     {
       id: "android-read-admin-source-next",

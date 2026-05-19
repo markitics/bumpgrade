@@ -2575,7 +2575,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
-          issueNumbers: [13, 67, 68, 153, 155],
+          issueNumbers: [13, 67, 68, 153, 155, 157],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
@@ -2861,11 +2861,13 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.id).toBe(mobileAdminContract.id);
     expect(payload.parentIssue).toBe(13);
+    expect(payload.publicBaseUrl).toBe("https://bumpgrade.com");
     expect(payload.status).toBe("contract-ready");
     expect(payload.liveDashboard).toEqual(
       expect.objectContaining({
         issue: mobileAdminDashboardIssue,
         renderedInScaffoldsIssue: 155,
+        liveHydrationIssue: 157,
         route: mobileAdminDashboardRoute,
         status: "live-public-source-data-ready",
       }),
@@ -3012,6 +3014,8 @@ test.describe("Bumpgrade scaffold", () => {
         sourceContractRoute: "/mobile-admin/source-data",
         sourceDataRoute: "/mobile-admin/ios/source-data",
         dashboardPanelIssue: 155,
+        liveHydrationIssue: 157,
+        liveDashboardUrl: "https://bumpgrade.com/mobile-admin/dashboard/source-data",
         fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
         simulatorBundleId: "com.bumpgrade.mobileadmin",
         smokeCommand: "npm run mobile:ios:smoke",
@@ -3025,7 +3029,7 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/mobile-admin/source-data",
         }),
         expect.objectContaining({
-          id: "ios-read-live-mobile-dashboard-next",
+          id: "ios-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
         }),
       ]),
@@ -3046,6 +3050,8 @@ test.describe("Bumpgrade scaffold", () => {
         sourceContractRoute: "/mobile-admin/source-data",
         sourceDataRoute: "/mobile-admin/android/source-data",
         dashboardPanelIssue: 155,
+        liveHydrationIssue: 157,
+        liveDashboardUrl: "https://bumpgrade.com/mobile-admin/dashboard/source-data",
         fixturePath: "apps/mobile-admin/fixtures/mobile-admin-contract.json",
         androidAssetPath: "apps/mobile-admin/android/src/main/assets/mobile-admin-contract.json",
         nativePackage: "com.bumpgrade.mobileadmin",
@@ -3061,7 +3067,7 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/mobile-admin/source-data",
         }),
         expect.objectContaining({
-          id: "android-read-live-mobile-dashboard-next",
+          id: "android-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
         }),
       ]),

@@ -160,9 +160,9 @@ export async function getMobileAdminDashboardSourceData() {
         })),
     },
     nextMobileMilestones: [
-      "Wire iOS and Android clients to this live dashboard route while preserving fixture fallback for smoke tests.",
       "Add Better Auth mobile owner-session handling before exposing private admin rows.",
       "Add a shared confirmed-write API before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
+      "Add distribution and push-notification readiness after the read-only mobile surface stabilizes.",
     ],
     writeBoundary: mobileAdminContract.confirmedWriteRules,
   };

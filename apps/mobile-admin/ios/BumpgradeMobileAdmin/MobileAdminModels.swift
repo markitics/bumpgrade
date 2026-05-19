@@ -3,6 +3,7 @@ import Foundation
 struct MobileAdminContract: Decodable {
     let id: String
     let updatedAt: String
+    let publicBaseUrl: String
     let parentIssue: Int
     let status: String
     let featureId: String
@@ -37,6 +38,68 @@ struct MobileLiveDashboard: Decodable {
     let publicSafeReads: [String]
     let redactionBoundary: String
     let renderedInScaffoldsIssue: Int?
+    let liveHydrationIssue: Int?
+}
+
+struct MobileDashboardSourceData: Decodable {
+    let issue: Int
+    let status: String
+    let route: String
+    let redaction: [String: Bool]
+    let adminDigest: AdminDigest?
+
+    struct AdminDigest: Decodable {
+        let counts: Counts?
+    }
+
+    struct Counts: Decodable {
+        let roadmapItems: Int?
+        let workLogEntries: Int?
+        let userJourneys: Int?
+        let openAttentionItems: Int?
+    }
+}
+
+struct MobileDashboardViewModel {
+    let route: String
+    let purpose: String
+    let status: String
+    let issue: Int
+    let sourceLabel: String
+    let boundary: String
+
+    static func fixture(_ dashboard: MobileLiveDashboard) -> MobileDashboardViewModel {
+        MobileDashboardViewModel(
+            route: dashboard.route,
+            purpose: dashboard.purpose,
+            status: dashboard.status,
+            issue: dashboard.issue,
+            sourceLabel: "Fixture fallback",
+            boundary: dashboard.redactionBoundary
+        )
+    }
+
+    static func live(_ payload: MobileDashboardSourceData, fallbackBoundary: String) -> MobileDashboardViewModel {
+        let counts = payload.adminDigest?.counts
+        let purpose = if let counts {
+            "Roadmap \(counts.roadmapItems ?? 0), work logs \(counts.workLogEntries ?? 0), journeys \(counts.userJourneys ?? 0), attention \(counts.openAttentionItems ?? 0)."
+        } else {
+            "Live public-safe dashboard payload loaded."
+        }
+        let values = Array(payload.redaction.values)
+        let boundary = values.isEmpty || !values.allSatisfy { $0 == false }
+            ? fallbackBoundary
+            : "Redaction: \(values.count) private-data flags false."
+
+        return MobileDashboardViewModel(
+            route: payload.route,
+            purpose: purpose,
+            status: payload.status,
+            issue: payload.issue,
+            sourceLabel: "Live network",
+            boundary: boundary
+        )
+    }
 }
 
 struct MobilePlatformSlice: Decodable, Identifiable {
