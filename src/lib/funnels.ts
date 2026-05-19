@@ -54,7 +54,7 @@ export type FunnelTemplate = {
   recommendedFor: string[];
   steps: FunnelTemplateStep[];
   sourceIssue: number;
-  draftCreation: "future-confirmed-write";
+  draftCreation: "future-confirmed-write" | "owner-session-confirmed-write";
 };
 
 export type FunnelBlockLibraryItem = {
@@ -73,10 +73,11 @@ export const draftFunnelStepEditingIssue = 93;
 export const draftFunnelPreviewIssue = 95;
 export const draftFunnelPublishingIssue = 135;
 export const funnelTemplateLibraryIssue = 159;
+export const draftFunnelTemplateCreationIssue = 161;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, step editing, step reordering, private preview, and exact-confirmed public publishing of D1 draft funnels. Deleting, archiving, checkout linking, drag-and-drop visual editing, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live for creating, seeding, template-to-draft creation, step editing, step reordering, private preview, and exact-confirmed public publishing of D1 draft funnels. Deleting, archiving, checkout linking, drag-and-drop visual editing, direct agent template creation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -238,7 +239,7 @@ export const funnelTemplateLibrary: FunnelTemplate[] = [
     goal: "Capture consented subscribers, set expectations, and route them to a thank-you or nurture step.",
     recommendedFor: ["lead magnet", "waitlist", "prelaunch"],
     sourceIssue: funnelTemplateLibraryIssue,
-    draftCreation: "future-confirmed-write",
+    draftCreation: "owner-session-confirmed-write",
     steps: [
       { order: 1, kind: "opt_in", title: "Promise and email capture", requiredBlockKinds: ["hero", "benefits", "cta"] },
       { order: 2, kind: "thank_you", title: "Confirmation and next step", requiredBlockKinds: ["hero", "delivery", "cta"] },
@@ -251,7 +252,7 @@ export const funnelTemplateLibrary: FunnelTemplate[] = [
     goal: "Move a visitor from opt-in or offer context through proof, checkout handoff, and fulfillment expectation.",
     recommendedFor: ["digital product", "course", "service launch"],
     sourceIssue: funnelTemplateLibraryIssue,
-    draftCreation: "future-confirmed-write",
+    draftCreation: "owner-session-confirmed-write",
     steps: [
       { order: 1, kind: "opt_in", title: "Lead capture", requiredBlockKinds: ["hero", "benefits", "cta"] },
       { order: 2, kind: "sales", title: "Offer and proof", requiredBlockKinds: ["hero", "proof", "checkout"] },
@@ -265,7 +266,7 @@ export const funnelTemplateLibrary: FunnelTemplate[] = [
     goal: "Present a follow-up offer decision path without creating one-click billing or fulfillment mutations.",
     recommendedFor: ["upsell", "downsell", "checkout follow-up"],
     sourceIssue: funnelTemplateLibraryIssue,
-    draftCreation: "future-confirmed-write",
+    draftCreation: "owner-session-confirmed-write",
     steps: [
       { order: 1, kind: "checkout", title: "Trusted checkout handoff", requiredBlockKinds: ["checkout", "proof"] },
       { order: 2, kind: "upsell", title: "Follow-up offer", requiredBlockKinds: ["hero", "benefits", "cta"] },
@@ -331,6 +332,24 @@ export const funnelBlockLibrary: FunnelBlockLibraryItem[] = [
   },
 ];
 
+export const templateDraftCreationCapability = {
+  id: "template-to-draft-owner-confirmed",
+  status: "owner-session-confirmed-write-ready",
+  issue: draftFunnelTemplateCreationIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  createEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  safeForPublicAgents: [
+    "Read that reusable funnel templates can become private drafts only behind owner auth.",
+    "Read that template creation uses explicit confirmation and idempotency.",
+    "Distinguish owner-gated template-to-draft creation from direct unauthenticated agent writes.",
+  ],
+  notYetLive: ["Direct agent template creation", "Public publishing from a template without owner review"],
+};
+
 export function getFunnelBySlug(slug: string) {
   return seededFunnels.find((funnel) => funnel.slug === slug) ?? null;
 }
@@ -338,8 +357,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "read-contract-template-library-ready",
-  issue: funnelTemplateLibraryIssue,
+  status: "owner-template-draft-creation-ready",
+  issue: draftFunnelTemplateCreationIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", ...seededFunnels.map((funnel) => funnel.previewRoute)],
@@ -357,10 +376,11 @@ export const funnelSourceData = {
   ],
   writeBoundary: seededFunnel.writeBoundary,
   editableDraftCapability,
+  templateDraftCreationCapability,
   templateLibraryIssue: funnelTemplateLibraryIssue,
   templates: funnelTemplateLibrary,
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Template-to-draft creation, block editing, checkout integration, drag-and-drop visual building, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, checkout integration, drag-and-drop visual building, and unconfirmed agent-write APIs are not live.",
 };
