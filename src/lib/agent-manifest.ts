@@ -216,9 +216,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "funnelBlockId",
       "funnelTemplateId",
       "funnelBlockTemplateId",
+      "funnelCheckoutLinkId",
       "funnelRevisionId",
       "funnelDraftId",
       "funnelAuditEventId",
+      "checkoutOfferStackId",
+      "offerId",
       "agentActionId",
     ],
     safeForAgents: [
@@ -227,10 +230,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect page blocks and write boundaries",
       "Inspect reusable funnel templates and block-template write boundaries from issue #159",
       "Discover owner-session template-to-draft creation from issue #161",
-      "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, and #135",
+      "Discover owner-session checkout-offer linking from issue #163",
+      "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, #135, and #163",
     ],
     writeBoundary:
-      "Owner-session seed/create/template-create/update/reorder draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Direct agent template creation, block editing, checkout linking, deletion, unpublishing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/template-create/update/reorder/checkout-link draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Direct agent template creation, block editing, direct agent checkout linking, deletion, unpublishing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -244,11 +248,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read private draft funnel rows only with an owner session",
       "Preview private draft funnel state only with an owner session",
       "Create private drafts from reusable templates only with an owner session, exact confirmation, and idempotency",
+      "Attach the seeded sandbox checkout offer to private checkout blocks only with an owner session, exact confirmation, idempotency, and a fresh revision ID",
       "Publish a draft only through owner-session UI with exact confirmation, idempotency, and a fresh revision ID",
       "Check audit metadata before acting on draft state",
     ],
     writeBoundary:
-      "The POST endpoint can seed, create, create from templates, update, reorder, and publish private draft steps for an authenticated owner; private preview is owner-gated; checkout linking, deletion, unpublishing, direct agent template creation, and direct agent edits are not live.",
+      "The POST endpoint can seed, create, create from templates, update, reorder, checkout-link, and publish private draft steps for an authenticated owner; private preview is owner-gated; deletion, unpublishing, direct agent template creation, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -621,19 +626,22 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, reusable funnel templates, block-template library records, owner-session template-to-draft capability, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+      "Seeded funnel, ordered steps, page blocks, reusable funnel templates, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
     stableIds: [
       "funnelId",
       "funnelStepId",
       "funnelBlockId",
       "funnelTemplateId",
       "funnelBlockTemplateId",
+      "funnelCheckoutLinkId",
       "funnelRevisionId",
       "funnelDraftId",
       "funnelAuditEventId",
+      "checkoutOfferStackId",
+      "offerId",
     ],
     volatileClaims:
-      "The public funnel contract exposes template and block-template records plus owner-gated template-create, editable draft, and publish capability metadata; it does not expose unpublished private draft copy, direct agent template creation, checkout linking, unpublishing, or unconfirmed agent edits.",
+      "The public funnel contract exposes template and block-template records plus owner-gated template-create, checkout-link, editable draft, and publish capability metadata; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -809,9 +817,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates, block templates, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates, block templates, checkout-link capability, revision IDs, owner-gated draft capability, and write-safety boundaries.",
     safetyBoundary:
-      "Public resource stays read-only; owner-session draft create/seed/template-create/update/reorder, private preview, and exact-confirmed publish exist in admin UI, while direct agent template creation, block editing, checkout-link, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
+      "Public resource stays read-only; owner-session draft create/seed/template-create/update/reorder/checkout-link, private preview, and exact-confirmed publish exist in admin UI, while direct agent template creation, block editing, direct agent checkout-link, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",

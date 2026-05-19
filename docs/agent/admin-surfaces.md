@@ -109,12 +109,13 @@ Issue #91 added the first D1-backed draft tables:
 
 The page can seed the indie launch working draft, create a new generic draft,
 create a private draft from a reusable template after exact confirmation, update
-step title/goal/kind, reorder steps, and link to an owner-gated private preview
-route. This is private/admin state. Public agents should read
-`/funnels/source-data` for the capability boundary, not scrape private draft
-copy. Publishing is owner-confirmed; checkout linking, deletion, unpublishing,
-drag-and-drop block editing, and direct agent edits still need future
-confirmed-write APIs.
+step title/goal/kind, reorder steps, attach the seeded sandbox checkout offer to
+a private checkout block after exact confirmation and a fresh revision check,
+and link to an owner-gated private preview route. This is private/admin state.
+Public agents should read `/funnels/source-data` for the capability boundary,
+not scrape private draft copy. Publishing and checkout-linking are
+owner-confirmed; checkout-link deletion, unpublishing, drag-and-drop block
+editing, and direct agent edits still need future confirmed-write APIs.
 
 ## Admin `/admin/products`
 
