@@ -1,6 +1,6 @@
 import { site } from "@/lib/site";
 
-export const agentManifestUpdatedAt = "2026-05-18";
+export const agentManifestUpdatedAt = "2026-05-19";
 
 export type AgentReadContract = {
   id: string;
@@ -147,9 +147,15 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/commerce.ts and src/lib/sandbox-checkout.ts",
-    stableIds: ["productId", "priceId", "checkoutIntentId", "auditCorrelationId"],
-    safeForAgents: ["Read redacted commerce architecture", "Separate sandbox from live billing", "Inspect write safety rules"],
-    writeBoundary: "Billing-impacting writes require exact confirmation, idempotency, stale-state checks, audit correlation, and webhook evidence.",
+    stableIds: ["productId", "priceId", "checkoutIntentId", "referralClickId", "referralAttributionId", "auditCorrelationId"],
+    safeForAgents: [
+      "Read redacted commerce architecture",
+      "Separate sandbox from live billing",
+      "Inspect referral attribution evidence",
+      "Inspect write safety rules",
+    ],
+    writeBoundary:
+      "Billing-impacting and commission-impacting writes require exact confirmation, idempotency, stale-state checks, audit correlation, and webhook evidence.",
   },
   {
     id: "read-admin-source",
@@ -224,14 +230,24 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/checkout-offers.ts",
-    stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId", "agentActionId"],
+    stableIds: [
+      "checkoutOfferStackId",
+      "offerId",
+      "orderBumpId",
+      "upsellId",
+      "downsellId",
+      "checkoutRevisionId",
+      "referralClickId",
+      "agentActionId",
+    ],
     safeForAgents: [
       "Read seeded checkout offer stack",
       "Inspect bump and upsell sequence",
       "Inspect confirmed sandbox checkout start boundaries",
+      "Inspect optional referral-click attribution evidence",
     ],
     writeBoundary:
-      "A confirmed sandbox checkout start can include the seeded primary offer and constrained order bump; live billing, price mutation, fulfillment, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
+      "A confirmed sandbox checkout start can include the seeded primary offer, constrained order bump, and optional referral-click attribution evidence; live billing, price mutation, fulfillment, commission writes, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
   },
   {
     id: "read-product-access-catalog",
@@ -321,6 +337,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "affiliatePartnerId",
       "referralLinkId",
       "referralClickId",
+      "checkoutIntentId",
+      "referralAttributionId",
       "attributionRuleId",
       "commissionRuleId",
       "commissionLedgerId",
@@ -333,10 +351,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded affiliate program",
       "Inspect referral links and attribution rules",
       "Inspect aggregate referral click counts",
+      "Inspect aggregate checkout attribution counts",
       "Inspect commission and payout review boundaries",
     ],
     writeBoundary:
-      "Seeded referral clicks can be captured with idempotency and destination-route validation; cookie assignment, buyer attribution, commission writes, fraud enforcement, payout actions, and partner notifications require future confirmed-write APIs.",
+      "Seeded referral clicks can be captured with idempotency and destination-route validation, and eligible clicks can be attached to sandbox checkout intents as evidence; cookie assignment, buyer attribution finalization, commission writes, fraud enforcement, payout actions, and partner notifications require future confirmed-write APIs.",
   },
   {
     id: "read-mobile-admin-contract",
@@ -405,9 +424,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-commerce",
     route: "/commerce/source-data",
-    resolves: "Redacted commerce architecture, sandbox checkout offer, payment tables, webhook rules, and billing write safety.",
-    stableIds: ["productId", "priceId", "checkoutIntentId", "auditCorrelationId"],
-    volatileClaims: "Live payment capability is not enabled until a separate rollout and webhook smoke evidence prove it.",
+    resolves:
+      "Redacted commerce architecture, sandbox checkout offer, referral attribution evidence, payment tables, webhook rules, and billing write safety.",
+    stableIds: ["productId", "priceId", "checkoutIntentId", "referralClickId", "referralAttributionId", "auditCorrelationId"],
+    volatileClaims:
+      "Live payment capability and payable commission state are not enabled until separate rollout and webhook smoke evidence prove them.",
   },
   {
     id: "evidence-agent-manifest",
@@ -436,10 +457,18 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-checkout-offers",
     route: "/offers/source-data",
     resolves:
-      "Seeded checkout offer stack, primary offer, selectable order bump, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
-    stableIds: ["checkoutOfferStackId", "offerId", "orderBumpId", "upsellId", "downsellId", "checkoutRevisionId"],
+      "Seeded checkout offer stack, primary offer, selectable order bump, optional referral-click attribution evidence, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
+    stableIds: [
+      "checkoutOfferStackId",
+      "offerId",
+      "orderBumpId",
+      "upsellId",
+      "downsellId",
+      "checkoutRevisionId",
+      "referralClickId",
+    ],
     volatileClaims:
-      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump; it is not live billing, one-click upsell charging, fulfillment, price mutation, or direct agent write capability.",
+      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump and optional referral-click attribution evidence; it is not live billing, one-click upsell charging, fulfillment, commission writes, price mutation, or direct agent write capability.",
   },
   {
     id: "evidence-products-access",
@@ -480,18 +509,20 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-affiliate-referrals",
     route: "/affiliates/source-data",
     resolves:
-      "Seeded affiliate program, partner records, referral links, referral click capture API, aggregate click counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+      "Seeded affiliate program, partner records, referral links, referral click capture API, checkout attribution evidence, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
     stableIds: [
       "affiliateProgramId",
       "affiliatePartnerId",
       "referralLinkId",
       "referralClickId",
+      "checkoutIntentId",
+      "referralAttributionId",
       "commissionRuleId",
       "commissionLedgerId",
       "payoutBatchId",
     ],
     volatileClaims:
-      "The affiliate/referral contract includes seeded click capture and aggregate counts; it is not cookie assignment, buyer attribution, payable commission state, fraud enforcement, tax collection, or Stripe payout capability.",
+      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, and aggregate counts; it is not cookie assignment, buyer attribution finalization, payable commission state, fraud enforcement, tax collection, or Stripe payout capability.",
   },
   {
     id: "evidence-mobile-admin",
@@ -548,8 +579,8 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://commerce",
     status: "ready-contract",
     backedBy: "/commerce/source-data",
-    purpose: "Expose redacted commerce architecture, sandbox checkout status, and billing write rules.",
-    safetyBoundary: "No live billing or destructive action may be performed by this resource.",
+    purpose: "Expose redacted commerce architecture, sandbox checkout status, referral attribution evidence, and billing write rules.",
+    safetyBoundary: "No live billing, commission write, payout mutation, or destructive action may be performed by this resource.",
   },
   {
     id: "mcp-resource-content",
@@ -591,9 +622,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/offers/source-data",
     purpose:
-      "Expose seeded checkout offer stack, primary offer, constrained order bump, upsell, downsell, revision IDs, and billing boundaries.",
+      "Expose seeded checkout offer stack, primary offer, constrained order bump, optional referral attribution evidence, upsell, downsell, revision IDs, and billing boundaries.",
     safetyBoundary:
-      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation, while live billing, offer writes, fulfillment, and post-purchase charges require confirmed-write contracts.",
+      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation, while live billing, offer writes, fulfillment, commission writes, and post-purchase charges require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-product-access",
@@ -628,9 +659,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/affiliates/source-data",
     purpose:
-      "Expose seeded affiliate programs, partner records, referral links, aggregate click counts, attribution rules, commission fixtures, payout review, and fraud flags.",
+      "Expose seeded affiliate programs, partner records, referral links, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
     safetyBoundary:
-      "Seeded referral click capture is live; buyer attribution, commission writes, fraud decisions, tax handling, payout account access, and Stripe payouts require confirmed-write contracts.",
+      "Seeded referral click capture and checkout attribution evidence are live; buyer attribution finalization, commission writes, fraud decisions, tax handling, payout account access, and Stripe payouts require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-propose-update",

@@ -2,7 +2,7 @@
 
 Architecture issue: #11
 Sandbox checkout issue: #34
-Last reviewed: 2026-05-18
+Last reviewed: 2026-05-19
 
 Bumpgrade will use Stripe Checkout Sessions first, backed by Cloudflare Workers
 and D1. This keeps Bumpgrade out of raw card-data handling, gives publishers a
@@ -58,6 +58,20 @@ Issue #101 connects paid sandbox checkout evidence to product access:
 - Private R2 keys, signed URLs, authenticated customer entitlement inspection,
   revocation, live fulfillment, and direct agent writes still require future
   confirmed-write APIs.
+
+Issue #111 connects privacy-safe referral click evidence to sandbox checkout
+intents:
+
+- A recorded seeded referral click can be referenced when creating a sandbox
+  checkout intent.
+- Bumpgrade stores a `checkout_referral_attributions` row with public-safe
+  referral click, link, code, partner, destination, checkout intent, and
+  attribution status fields.
+- Replaying the checkout idempotency key returns the same attribution evidence
+  without duplicating rows.
+- This does not create commissions, finalize buyer attribution, set cookies,
+  mutate payout state, make fraud decisions, collect tax data, notify partners,
+  or expose raw request, buyer, or Stripe identifiers.
 
 ## Source Checks
 
@@ -115,7 +129,7 @@ represent.
 ## D1 Commerce Contract
 
 Migration `0004_stripe_commerce_architecture.sql` defines the first durable
-commerce tables:
+commerce tables, and later migrations extend them:
 
 - `commerce_products`: products, memberships, services, downloads, or offer
   records owned by a publisher/user.
@@ -123,6 +137,8 @@ commerce tables:
   optional Stripe Price id.
 - `checkout_intents`: idempotent checkout-start records created before Stripe is
   called.
+- `checkout_referral_attributions`: public-safe evidence linking eligible
+  seeded referral clicks to sandbox checkout intents.
 - `billing_subscriptions`: Stripe subscription state mirrored into D1.
 - `stripe_webhook_events`: webhook idempotency and redacted event evidence.
 - `payment_audit_events`: public-safe payment state changes and agent/action

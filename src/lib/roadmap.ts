@@ -15,7 +15,7 @@ export type RoadmapItem = {
   markAttention?: string;
 };
 
-export const roadmapUpdatedAt = "2026-05-18";
+export const roadmapUpdatedAt = "2026-05-19";
 
 export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
   {
@@ -155,14 +155,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(11),
     group: "Payments",
     summary:
-      "Stripe mode-specific secrets are stored in Cloudflare, Checkout Sessions are the first payment surface, and D1 commerce/audit tables are defined before live payment code.",
+      "Stripe mode-specific secrets are stored in Cloudflare, Checkout Sessions are the first payment surface, and D1 commerce/audit tables now include optional referral-click attribution evidence before live payment code.",
     publicEvidence: [
       "Issue #11 owns this Stripe architecture slice.",
       "Cloudflare now stores mode-specific Stripe secret names without repo secret values.",
       "D1 tables define products, prices, checkout intents, subscriptions, webhook idempotency, and payment audit events.",
       "Issue #34 owns the first sandbox checkout and webhook implementation.",
+      "Issue #111 adds checkout referral attribution evidence without commission or payout mutation.",
     ],
-    nextMilestone: "Build sandbox-only Checkout Session and webhook ingestion path in #34 before enabling live payments.",
+    nextMilestone:
+      "Use trusted paid checkout plus referral attribution evidence to create reversible commission ledger records without payout mutation.",
   },
   {
     id: "roadmap-agent-contracts",
@@ -226,15 +228,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(15),
     group: "Checkout and offers",
     summary:
-      "Stripe-backed checkout flows, confirmed sandbox checkout start with a constrained order bump, read-only upsell/downsell path, subscriptions, coupons, and audit trails.",
+      "Stripe-backed checkout flows, confirmed sandbox checkout start with a constrained order bump, optional referral-click attribution evidence, read-only upsell/downsell path, subscriptions, coupons, and audit trails.",
     publicEvidence: [
       "Tracked by issue #15.",
       "Depends on Stripe architecture in #11.",
       "Issue #81 adds the first `/offers/source-data` contract and `/offers/indie-launch-stack` preview scaffold.",
       "Issue #99 adds confirmed sandbox checkout start support for the seeded primary offer plus pre-payment order bump.",
+      "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
     ],
     nextMilestone:
-      "Add post-purchase upsell/downsell decision surfaces and webhook-backed fulfillment state after the order-bump checkout start is verified.",
+      "Add post-purchase upsell/downsell decision surfaces and reversible commission ledger evidence after referral-attributed checkout is verified.",
   },
   {
     id: "roadmap-products-access",
@@ -297,14 +300,15 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, commission rules, attribution boundaries, payout review, and fraud checks.",
+      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, commission rules, attribution boundaries, payout review, and fraud checks.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
       "Issue #109 adds `POST /api/affiliates/clicks` with seeded referral link validation, idempotency, hashed request evidence, and aggregate-only click reporting.",
+      "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
     ],
     nextMilestone:
-      "Connect privacy-safe click evidence to sandbox checkout intent attribution without creating payable commissions or exposing buyer identifiers.",
+      "Create reversible commission ledger evidence from trusted paid sandbox checkout attribution without making commissions payable or exposing buyer identifiers.",
   },
   {
     id: "roadmap-marketing-surfaces",

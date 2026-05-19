@@ -295,8 +295,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: checkoutOfferSourceData.id,
-        status: "confirmed-sandbox-checkout-start-ready",
-        issue: 99,
+        status: "checkout-referral-attribution-ready",
+        issue: 111,
         parentIssue: 15,
       }),
     );
@@ -306,6 +306,7 @@ test.describe("Bumpgrade scaffold", () => {
         endpoint: "/api/commerce/checkout",
         confirmationRequired: true,
         supportsOrderBumps: true,
+        supportsReferralAttributionEvidence: true,
         allowedOrderBumpPriceIds: expect.arrayContaining(["price-launch-checklist-bump-usd"]),
         rawStripeIdsIncluded: false,
         liveModeEnabled: false,
@@ -331,7 +332,9 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #99 allows a confirmed sandbox Checkout Session start");
+    expect(payload.writeBoundary).toContain("Issue #111 allows eligible referral click IDs");
     expect(payload.caveat).toContain("confirmed sandbox checkout start");
+    expect(payload.caveat).toContain("referral-click attribution evidence");
 
     await page.goto("/offers/indie-launch-stack");
     await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
@@ -855,13 +858,18 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "click-capture-ready",
-        issue: 109,
+        status: "checkout-attribution-ready",
+        issue: 111,
         parentIssue: 19,
       }),
     );
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/affiliates/source-data", "/api/affiliates/clicks", "/affiliates/indie-launch-partners"]),
+      expect.arrayContaining([
+        "/affiliates/source-data",
+        "/api/affiliates/clicks",
+        "/api/commerce/checkout",
+        "/affiliates/indie-launch-partners",
+      ]),
     );
     expect(payload.clickWrites).toEqual(
       expect.objectContaining({
@@ -876,6 +884,21 @@ test.describe("Bumpgrade scaffold", () => {
         status: "available",
         rawRowsIncluded: false,
         privateDataIncluded: false,
+      }),
+    );
+    expect(payload.checkoutAttribution).toEqual(
+      expect.objectContaining({
+        status: "checkout-attribution-evidence-ready",
+        issue: 111,
+        tables: expect.arrayContaining(["checkout_referral_attributions"]),
+      }),
+    );
+    expect(payload.checkoutAttributionSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        commissionRowsIncluded: false,
       }),
     );
     expect(payload.programs).toEqual(
@@ -906,11 +929,12 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #109 can capture seeded referral clicks");
-    expect(payload.caveat).toContain("privacy-safe seeded click capture");
+    expect(payload.writeBoundary).toContain("Issue #111 can attach validated referral click evidence");
+    expect(payload.caveat).toContain("checkout attribution evidence");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Partner links can capture privacy-safe clicks before buyer attribution/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
   });
@@ -1001,6 +1025,138 @@ test.describe("Bumpgrade scaffold", () => {
     await expect.poll(countFor).toBe(beforeCount + 2);
   });
 
+  test("checkout API attaches referral click evidence without creating commissions", async ({ request }) => {
+    const countFor = async () => {
+      const response = await request.get("/commerce/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const row = payload.referralAttribution.summary.aggregateCounts.find(
+        (candidate: { referral_link_id: string }) => candidate.referral_link_id === "ref-link-launch-circle-waitlist",
+      );
+      return row?.total_checkouts ?? 0;
+    };
+    const beforeCount = await countFor();
+    const clickIdempotencyKey = `playwright-referral-checkout-click-${Date.now()}`;
+    const clickResponse = await request.post("/api/affiliates/clicks", {
+      data: {
+        referralLinkId: "ref-link-launch-circle-waitlist",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        anonymousVisitorKey: "playwright-referral-checkout-visitor",
+        idempotencyKey: clickIdempotencyKey,
+      },
+    });
+    expect(clickResponse.ok(), await clickResponse.text()).toBeTruthy();
+    const clickResult = await clickResponse.json();
+
+    const checkoutPayload = {
+      confirmationText: checkoutConfirmationText,
+      orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+      referralClickId: clickResult.referralClickId,
+      idempotencyKey: `playwright-referral-checkout-${Date.now()}`,
+    };
+    const checkoutResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: checkoutPayload,
+    });
+    expect(checkoutResponse.ok(), await checkoutResponse.text()).toBeTruthy();
+    const checkoutResult = await checkoutResponse.json();
+    expect(checkoutResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        reason: "test_checkout_intent_created",
+        checkoutIntentId: expect.stringMatching(/^checkout-intent-/),
+        totalAmountCents: 2800,
+        referralAttribution: expect.objectContaining({
+          checkoutIntentId: expect.stringMatching(/^checkout-intent-/),
+          referralClickId: clickResult.referralClickId,
+          referralLinkId: "ref-link-launch-circle-waitlist",
+          referralCode: "LAUNCHCIRCLE",
+          partnerId: "affiliate-partner-launch-circle",
+          attributionStatus: "checkout_intent_attached",
+          commissionCreated: false,
+          payableCommissionCreated: false,
+          privateDataIncluded: false,
+          rawRequestDataIncluded: false,
+        }),
+      }),
+    );
+    expect(checkoutResult.referralAttribution.checkoutIntentId).toBe(checkoutResult.checkoutIntentId);
+
+    const duplicateCheckoutResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: checkoutPayload,
+    });
+    expect(duplicateCheckoutResponse.ok(), await duplicateCheckoutResponse.text()).toBeTruthy();
+    const duplicateCheckoutResult = await duplicateCheckoutResponse.json();
+    expect(duplicateCheckoutResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        checkoutIntentId: checkoutResult.checkoutIntentId,
+        referralAttribution: expect.objectContaining({
+          referralClickId: clickResult.referralClickId,
+          commissionCreated: false,
+          payableCommissionCreated: false,
+        }),
+      }),
+    );
+
+    const missingClickResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: { ...checkoutPayload, referralClickId: "referral-click-missing", idempotencyKey: `${checkoutPayload.idempotencyKey}-missing` },
+    });
+    expect(missingClickResponse.status()).toBe(400);
+    await expect(missingClickResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "referral_click_not_found" }),
+    );
+
+    const routeMismatchClickResponse = await request.post("/api/affiliates/clicks", {
+      data: {
+        referralLinkId: "ref-link-template-partner-sales",
+        destinationRoute: "/offers/indie-launch-stack",
+        idempotencyKey: `${clickIdempotencyKey}-route-mismatch`,
+      },
+    });
+    expect(routeMismatchClickResponse.ok(), await routeMismatchClickResponse.text()).toBeTruthy();
+    const routeMismatchClick = await routeMismatchClickResponse.json();
+    const routeMismatchCheckoutResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        ...checkoutPayload,
+        referralClickId: routeMismatchClick.referralClickId,
+        idempotencyKey: `${checkoutPayload.idempotencyKey}-route-mismatch`,
+      },
+    });
+    expect(routeMismatchCheckoutResponse.status()).toBe(400);
+    await expect(routeMismatchCheckoutResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "referral_click_route_mismatch" }),
+    );
+
+    const secondClickResponse = await request.post("/api/affiliates/clicks", {
+      data: {
+        code: "launchcircle",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        idempotencyKey: `${clickIdempotencyKey}-second-valid`,
+      },
+    });
+    expect(secondClickResponse.ok(), await secondClickResponse.text()).toBeTruthy();
+    const secondClick = await secondClickResponse.json();
+    const conflictingReplayResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        ...checkoutPayload,
+        referralClickId: secondClick.referralClickId,
+      },
+    });
+    expect(conflictingReplayResponse.status()).toBe(409);
+    await expect(conflictingReplayResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "checkout_referral_attribution_conflict" }),
+    );
+
+    await expect.poll(countFor).toBe(beforeCount + 1);
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -1055,7 +1211,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           featureId: "feature-stripe-commerce",
-          issueNumbers: [11, 34, 15, 16],
+          issueNumbers: [11, 34, 15, 16, 99, 101, 111],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -1090,12 +1246,17 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109],
+          issueNumbers: [19, 89, 109, 111],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-referral-click",
           featureId: "feature-affiliates-referrals",
           issueNumbers: [19, 89, 109],
+        }),
+        expect.objectContaining({
+          id: "journey-agent-attaches-referral-click-to-checkout",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 109, 111],
         }),
       ]),
     );
@@ -1141,6 +1302,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
         supportsOrderBumps: true,
+        supportsReferralAttributionEvidence: true,
         orderBumps: expect.arrayContaining([
           expect.objectContaining({ priceId: "price-launch-checklist-bump-usd", unitAmountCents: 1900 }),
         ]),
@@ -1153,11 +1315,27 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ table: "commerce_products" }),
         expect.objectContaining({ table: "checkout_intents" }),
+        expect.objectContaining({ table: "checkout_referral_attributions" }),
         expect.objectContaining({ table: "product_entitlements" }),
         expect.objectContaining({ table: "product_fulfillment_tasks" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
         expect.objectContaining({ table: "payment_audit_events" }),
       ]),
+    );
+    expect(payload.referralAttribution).toEqual(
+      expect.objectContaining({
+        contract: expect.objectContaining({
+          status: "checkout-attribution-evidence-ready",
+          issue: 111,
+          checkoutApiRoute: "/api/commerce/checkout",
+        }),
+        summary: expect.objectContaining({
+          status: "available",
+          rawRowsIncluded: false,
+          privateDataIncluded: false,
+          commissionRowsIncluded: false,
+        }),
+      }),
     );
   });
 
@@ -1207,7 +1385,7 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "read-affiliate-referrals",
-          stableIds: expect.arrayContaining(["referralClickId"]),
+          stableIds: expect.arrayContaining(["referralClickId", "checkoutIntentId", "referralAttributionId"]),
         }),
       ]),
     );
