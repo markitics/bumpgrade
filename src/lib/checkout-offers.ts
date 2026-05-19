@@ -63,7 +63,7 @@ export const checkoutOfferStack: CheckoutOfferStack = {
   slug: "indie-launch-stack",
   title: "Indie launch checkout offer stack",
   status: "sandbox_checkout_ready",
-  issue: 99,
+  issue: 111,
   parentIssue: 15,
   linkedFunnelId: "funnel-indie-launch-sandbox",
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
@@ -72,9 +72,9 @@ export const checkoutOfferStack: CheckoutOfferStack = {
   checkoutContractRoute: "/commerce/source-data",
   checkoutEndpoint: checkoutRoutes.start,
   webhookEndpoint: checkoutRoutes.webhook,
-  revisionId: "checkout-offer-revision-indie-launch-stack-2026-05-19",
+  revisionId: "checkout-offer-revision-indie-launch-stack-2026-05-19-referral-attribution",
   summary:
-    "A sandbox checkout-offer scaffold for the primary offer, one selectable pre-payment order bump, and a still-read-only post-purchase upsell/downsell path.",
+    "A sandbox checkout-offer scaffold for the primary offer, one selectable pre-payment order bump, optional referral-click attribution evidence, and a still-read-only post-purchase upsell/downsell path.",
   primaryOffer: {
     id: "offer-primary-sandbox-launch-pass",
     kind: "primary",
@@ -150,11 +150,12 @@ export const checkoutOfferStack: CheckoutOfferStack = {
     checkoutText: checkoutConfirmationText,
   },
   writeBoundary:
-    "Issue #99 allows a confirmed sandbox Checkout Session start with the seeded primary offer and constrained order bump. Charging post-purchase upsells, changing prices, publishing offer copy, granting fulfillment, live billing, and direct agent writes require future confirmed-write APIs with actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and webhook evidence.",
+    "Issue #99 allows a confirmed sandbox Checkout Session start with the seeded primary offer and constrained order bump. Issue #111 allows eligible referral click IDs to be attached as checkout attribution evidence. Charging post-purchase upsells, changing prices, publishing offer copy, granting fulfillment, live billing, commission writes, payout mutation, and direct agent writes require future confirmed-write APIs with actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, and webhook evidence.",
   validation: [
     "/offers/source-data returns the seeded primary offer, order bump, upsell, and downsell records.",
     "/offers/indie-launch-stack renders the checkout-offer preview and sandbox checkout start panel.",
     "/api/commerce/checkout accepts the seeded order bump in sandbox/test mode and returns redacted responses.",
+    "/api/commerce/checkout accepts eligible referral click IDs and returns public-safe attribution evidence.",
     "/agent-docs/source-data lists the checkout-offer read contract for future MCP resources.",
   ],
 };
@@ -168,8 +169,8 @@ export function getCheckoutOfferStackBySlug(slug: string) {
 export const checkoutOfferSourceData = {
   id: "bumpgrade-checkout-offer-source-data",
   updatedAt: checkoutOffersUpdatedAt,
-  status: "confirmed-sandbox-checkout-start-ready",
-  issue: 99,
+  status: "checkout-referral-attribution-ready",
+  issue: 111,
   parentIssue: 15,
   generatedFrom: "src/lib/checkout-offers.ts",
   routes: ["/offers/source-data", ...checkoutOfferStacks.map((stack) => stack.previewRoute)],
@@ -187,6 +188,7 @@ export const checkoutOfferSourceData = {
     webhook: checkoutRoutes.webhook,
     confirmationRequired: true,
     supportsOrderBumps: true,
+    supportsReferralAttributionEvidence: true,
     allowedOrderBumpPriceIds: checkoutOfferStack.orderBumps.map((offer) => offer.priceId),
     rawStripeIdsIncluded: false,
     liveModeEnabled: false,
@@ -194,5 +196,5 @@ export const checkoutOfferSourceData = {
   writeBoundary: checkoutOfferStack.writeBoundary,
   stacks: checkoutOfferStacks,
   caveat:
-    "This contract proves offer-stack read semantics and a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump. It does not enable live billing, one-click upsell charging, fulfillment, price mutation, or confirmed-write agent APIs.",
+    "This contract proves offer-stack read semantics, a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, and optional referral-click attribution evidence. It does not enable live billing, one-click upsell charging, fulfillment, price mutation, commission writes, payout mutation, or confirmed-write agent APIs.",
 };

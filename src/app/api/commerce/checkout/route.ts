@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 import {
+  attachCheckoutReferralAttribution,
+  loadCheckoutReferralAttribution,
+  type PublicCheckoutReferralAttribution,
+  type ReferralClickEvidenceRow,
+  validateReferralClickForCheckout,
+} from "@/lib/referral-checkout-attribution";
+import {
   appendCheckoutQuery,
   checkoutConfirmationText,
   checkoutModeForPrice,
@@ -30,6 +37,7 @@ type CheckoutRequestBody = {
   successUrl?: string;
   cancelUrl?: string;
   previewOnly?: boolean;
+  referralClickId?: string;
 };
 
 type CheckoutRuntime = {
@@ -190,6 +198,12 @@ function parseEmail(value: unknown) {
   return trimmed;
 }
 
+function parseOptionalString(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
 async function parseBody(request: NextRequest): Promise<CheckoutRequestBody> {
   if (!request.body) return {};
 
@@ -206,6 +220,8 @@ function previewResponse(input: {
   reason: string;
   mode: string;
   checkoutIntentId?: string;
+  duplicate?: boolean;
+  referralAttribution?: PublicCheckoutReferralAttribution | null;
 }) {
   const [primaryItem] = input.items;
 
@@ -215,6 +231,8 @@ function previewResponse(input: {
     reason: input.reason,
     mode: input.mode,
     checkoutIntentId: input.checkoutIntentId,
+    duplicate: input.duplicate ?? false,
+    referralAttribution: input.referralAttribution ?? null,
     offer: safeOffer(primaryItem.product, primaryItem.price, "primary"),
     lineItems: safeLineItems(input.items),
     selectedOrderBumpPriceIds: input.items.filter((item) => item.kind === "order_bump").map((item) => item.price.id),
@@ -232,6 +250,8 @@ function previewResponse(input: {
     redaction: {
       rawStripeIdsIncluded: false,
       checkoutUrlIncluded: false,
+      commissionCreated: false,
+      payableCommissionCreated: false,
     },
   });
 }
@@ -319,12 +339,29 @@ async function createOrReadIntent(
     .first<CheckoutIntentRow>();
 }
 
-function existingIntentResponse(intent: CheckoutIntentRow, origin: string) {
+async function existingIntentResponse(
+  db: D1Database,
+  intent: CheckoutIntentRow,
+  origin: string,
+  requestedReferralClickId: string | null,
+) {
+  const referralAttribution = await loadCheckoutReferralAttribution(db, intent.id);
+  if (requestedReferralClickId && referralAttribution?.referralClickId !== requestedReferralClickId) {
+    return jsonError(
+      409,
+      "checkout_referral_attribution_conflict",
+      referralAttribution
+        ? "This checkout intent is already linked to a different referral click."
+        : "This checkout intent was already created without referral attribution evidence.",
+    );
+  }
+
   return NextResponse.json({
     ok: true,
     status: intent.status,
     duplicate: true,
     checkoutIntentId: intent.id,
+    referralAttribution,
     redirect: intent.stripe_checkout_session_id
       ? {
           type: "bumpgrade",
@@ -333,8 +370,61 @@ function existingIntentResponse(intent: CheckoutIntentRow, origin: string) {
       : null,
     redaction: {
       rawStripeIdsIncluded: false,
+      commissionCreated: false,
+      payableCommissionCreated: false,
     },
   });
+}
+
+async function maybeValidateReferralClick(input: { db: D1Database; referralClickId: string | null }) {
+  if (!input.referralClickId) return null;
+
+  const result = await validateReferralClickForCheckout({
+    db: input.db,
+    referralClickId: input.referralClickId,
+    expectedDestinationRoute: checkoutOfferStack.linkedFunnelRoute,
+  });
+  if (!result.ok) return jsonError(result.status, result.code, result.message);
+  return result.referralClick;
+}
+
+async function attachReferralClickToIntent(input: {
+  db: D1Database;
+  intent: CheckoutIntentRow;
+  referralClick: ReferralClickEvidenceRow | null;
+  product: CommerceProductRow;
+  price: CommercePriceRow;
+}) {
+  if (!input.referralClick) return null;
+
+  const result = await attachCheckoutReferralAttribution({
+    db: input.db,
+    checkoutIntentId: input.intent.id,
+    referralClick: input.referralClick,
+    checkoutProductId: input.product.id,
+    checkoutPriceId: input.price.id,
+    auditCorrelationId: input.intent.audit_correlation_id ?? "",
+  });
+  if (!result.ok) return jsonError(result.status, result.code, result.message);
+
+  if (result.created) {
+    await insertAuditEvent(input.db, {
+      checkoutIntentId: input.intent.id,
+      eventKind: "checkout_referral_attribution_attached",
+      summary: "Attached privacy-safe referral click evidence to sandbox checkout intent.",
+      actorId: input.intent.agent_client_id,
+      metadata: {
+        referralClickId: result.attribution.referralClickId,
+        referralLinkId: result.attribution.referralLinkId,
+        partnerId: result.attribution.partnerId,
+        commissionCreated: false,
+        payableCommissionCreated: false,
+        rawPrivateDataRedacted: true,
+      },
+    });
+  }
+
+  return result.attribution;
 }
 
 async function createStripeSession(input: {
@@ -435,6 +525,7 @@ export async function GET(request: NextRequest) {
       currency: orderBump.currency,
     })),
     supportsOrderBumps: true,
+    supportsReferralAttributionEvidence: true,
     confirmation: {
       required: true,
       text: checkoutConfirmationText,
@@ -465,10 +556,14 @@ export async function POST(request: NextRequest) {
   const mode = stripeModeFromEnv(env);
   const secret = stripeSecretKeyFromEnv(env, mode);
   const origin = request.nextUrl.origin;
+  const referralClickId = parseOptionalString(body.referralClickId);
 
   if (mode !== "sandbox") {
     return jsonError(409, "live_mode_disabled", "This route is sandbox-only.");
   }
+
+  const referralClick = await maybeValidateReferralClick({ db, referralClickId });
+  if (referralClick instanceof NextResponse) return referralClick;
 
   if (
     env.APP_ENV === "test" &&
@@ -501,6 +596,19 @@ export async function POST(request: NextRequest) {
       return jsonError(500, "checkout_intent_not_created", "Checkout intent could not be created.");
     }
 
+    if (intent.id !== checkoutIntentId) {
+      return existingIntentResponse(db, intent, origin, referralClickId);
+    }
+
+    const referralAttribution = await attachReferralClickToIntent({
+      db,
+      intent,
+      referralClick,
+      product: checkoutSelection.primary.product,
+      price: checkoutSelection.primary.price,
+    });
+    if (referralAttribution instanceof NextResponse) return referralAttribution;
+
     if (intent.id === checkoutIntentId) {
       await insertAuditEvent(db, {
         checkoutIntentId: intent.id,
@@ -513,6 +621,7 @@ export async function POST(request: NextRequest) {
           lineItems: safeLineItems(checkoutSelection.items),
           idempotencyKey,
           rawStripeIdsRedacted: true,
+          referralAttributionAttached: Boolean(referralAttribution),
         },
       });
     }
@@ -523,6 +632,8 @@ export async function POST(request: NextRequest) {
       mode,
       reason: "test_checkout_intent_created",
       checkoutIntentId: intent.id,
+      duplicate: false,
+      referralAttribution,
     });
   }
 
@@ -576,8 +687,17 @@ export async function POST(request: NextRequest) {
   }
 
   if (intent.id !== checkoutIntentId) {
-    return existingIntentResponse(intent, origin);
+    return existingIntentResponse(db, intent, origin, referralClickId);
   }
+
+  const referralAttribution = await attachReferralClickToIntent({
+    db,
+    intent,
+    referralClick,
+    product: checkoutSelection.primary.product,
+    price: checkoutSelection.primary.price,
+  });
+  if (referralAttribution instanceof NextResponse) return referralAttribution;
 
   await insertAuditEvent(db, {
     checkoutIntentId: intent.id,
@@ -589,6 +709,7 @@ export async function POST(request: NextRequest) {
       priceId: checkoutSelection.primary.price.id,
       lineItems: safeLineItems(checkoutSelection.items),
       idempotencyKey,
+      referralAttributionAttached: Boolean(referralAttribution),
     },
   });
 
@@ -614,6 +735,7 @@ export async function POST(request: NextRequest) {
           checkout_surface: "sandbox",
           issue: 99,
           selected_order_bump_price_ids: checkoutSelection.selectedOrderBumpPriceIds,
+          referral_attribution: referralAttribution,
           stripe_error: error instanceof Error ? error.message.slice(0, 240) : "Unknown Stripe error",
         }),
         intent.id,
@@ -627,6 +749,7 @@ export async function POST(request: NextRequest) {
     ok: true,
     status: "stripe_session_created",
     checkoutIntentId: intent.id,
+    referralAttribution,
     redirect: {
       type: "bumpgrade",
       url: checkoutRedirectUrl(origin, intent.id),
@@ -634,6 +757,8 @@ export async function POST(request: NextRequest) {
     redaction: {
       rawStripeIdsIncluded: false,
       rawCheckoutUrlIncluded: false,
+      commissionCreated: false,
+      payableCommissionCreated: false,
     },
   });
 }

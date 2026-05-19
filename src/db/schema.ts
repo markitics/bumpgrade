@@ -170,6 +170,35 @@ export const checkoutIntents = sqliteTable(
   }),
 );
 
+export const checkoutReferralAttributions = sqliteTable(
+  "checkout_referral_attributions",
+  {
+    id: text("id").primaryKey(),
+    checkoutIntentId: text("checkout_intent_id")
+      .notNull()
+      .references(() => checkoutIntents.id, { onDelete: "cascade" }),
+    referralClickId: text("referral_click_id")
+      .notNull()
+      .references(() => affiliateReferralClicks.id, { onDelete: "cascade" }),
+    referralLinkId: text("referral_link_id").notNull(),
+    referralCode: text("referral_code").notNull(),
+    partnerId: text("partner_id").notNull(),
+    destinationRoute: text("destination_route").notNull(),
+    attributionStatus: text("attribution_status").notNull().default("checkout_intent_attached"),
+    checkoutProductId: text("checkout_product_id").references(() => commerceProducts.id, { onDelete: "set null" }),
+    checkoutPriceId: text("checkout_price_id").references(() => commercePrices.id, { onDelete: "set null" }),
+    auditCorrelationId: text("audit_correlation_id"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    intentUnique: uniqueIndex("checkout_referral_attributions_intent_unique").on(table.checkoutIntentId),
+    clickIdx: index("checkout_referral_attributions_click_idx").on(table.referralClickId),
+    partnerTimeIdx: index("checkout_referral_attributions_partner_time_idx").on(table.partnerId, table.createdAt),
+    linkTimeIdx: index("checkout_referral_attributions_link_time_idx").on(table.referralLinkId, table.createdAt),
+  }),
+);
+
 export const billingSubscriptions = sqliteTable(
   "billing_subscriptions",
   {
