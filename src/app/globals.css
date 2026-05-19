@@ -1564,6 +1564,49 @@ h3 {
   align-items: end;
 }
 
+.post-purchase-layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 52px min(8vw, 112px);
+}
+
+.post-purchase-offer-card {
+  min-height: 360px;
+}
+
+.offer-decision-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.offer-decision-actions .primary-action,
+.offer-decision-actions .secondary-action {
+  min-height: 46px;
+}
+
+.decision-status {
+  align-self: stretch;
+}
+
+.decision-status.recorded {
+  border-color: rgba(34, 88, 65, 0.34);
+}
+
+.decision-status.error {
+  border-color: rgba(122, 45, 45, 0.34);
+}
+
+.decision-status code {
+  color: var(--ink-muted);
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .admin-step-edit-form label {
   display: grid;
   gap: 7px;
@@ -2113,6 +2156,10 @@ h3 {
   .admin-step-edit-form {
     grid-template-columns: 1fr;
   }
+
+  .post-purchase-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -2192,5 +2239,9 @@ h3 {
 
   .admin-step-editor-heading {
     flex-direction: column;
+  }
+
+  .post-purchase-layout {
+    padding: 42px 16px;
   }
 }

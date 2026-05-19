@@ -230,7 +230,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(15),
     group: "Checkout and offers",
     summary:
-      "Stripe-backed checkout flows, confirmed sandbox checkout start with a constrained order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, read-only upsell/downsell path, subscriptions, coupons, and audit trails.",
+      "Stripe-backed checkout flows, confirmed sandbox checkout start with a constrained order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, subscriptions, coupons, and audit trails.",
     publicEvidence: [
       "Tracked by issue #15.",
       "Depends on Stripe architecture in #11.",
@@ -239,9 +239,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution.",
       "Issue #115 adds owner-gated review/reversal actions for commission evidence.",
+      "Issue #117 records non-billing post-purchase upsell/downsell decisions from trusted checkout evidence.",
     ],
     nextMilestone:
-      "Add post-purchase upsell/downsell decision surfaces and partner-facing reporting before payout preparation.",
+      "Add explicit post-purchase billing contracts and partner-facing reporting only after decision evidence and owner review boundaries stay stable.",
   },
   {
     id: "roadmap-products-access",

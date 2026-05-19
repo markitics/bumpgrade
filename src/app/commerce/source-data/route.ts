@@ -17,6 +17,10 @@ import {
 } from "@/lib/commerce";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
+  loadPostPurchaseDecisionSummary,
+  postPurchaseDecisionContract,
+} from "@/lib/post-purchase-decisions";
+import {
   checkoutReferralAttributionContract,
   loadCheckoutReferralAttributionSummary,
 } from "@/lib/referral-checkout-attribution";
@@ -52,11 +56,17 @@ export async function GET() {
       supportsOrderBumps: true,
       supportsReferralAttributionEvidence: true,
       routes: checkoutRoutes,
+      postPurchaseDecisionRoute: postPurchaseDecisionContract.apiRoute,
+      postPurchaseRoutePrefix: postPurchaseDecisionContract.routePrefix,
       confirmation: {
         required: true,
         text: checkoutConfirmationText,
       },
       rawStripeIdsIncluded: false,
+    },
+    postPurchaseDecisions: {
+      contract: postPurchaseDecisionContract,
+      summary: await loadPostPurchaseDecisionSummary(db),
     },
     referralAttribution: {
       contract: checkoutReferralAttributionContract,

@@ -31,6 +31,7 @@ const sourceDataRoutes = [
   "/mobile-admin/ios/source-data",
   "/mobile-admin/android/source-data",
   "/api/commerce/checkout",
+  "/api/commerce/post-purchase-decisions",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

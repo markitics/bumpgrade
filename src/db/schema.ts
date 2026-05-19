@@ -199,6 +199,40 @@ export const checkoutReferralAttributions = sqliteTable(
   }),
 );
 
+export const checkoutPostPurchaseDecisions = sqliteTable(
+  "checkout_post_purchase_decisions",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    checkoutIntentId: text("checkout_intent_id")
+      .notNull()
+      .references(() => checkoutIntents.id, { onDelete: "cascade" }),
+    offerStackId: text("offer_stack_id").notNull(),
+    presentedOfferId: text("presented_offer_id").notNull(),
+    decisionKind: text("decision_kind").notNull(),
+    checkoutStatus: text("checkout_status").notNull(),
+    checkoutUpdatedAt: integer("checkout_updated_at", { mode: "timestamp" }).notNull(),
+    actorKind: text("actor_kind").notNull(),
+    auditCorrelationId: text("audit_correlation_id"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("checkout_post_purchase_decisions_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    checkoutCreatedIdx: index("checkout_post_purchase_decisions_checkout_created_idx").on(
+      table.checkoutIntentId,
+      table.createdAt,
+    ),
+    offerCreatedIdx: index("checkout_post_purchase_decisions_offer_created_idx").on(
+      table.presentedOfferId,
+      table.decisionKind,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const affiliateCommissionLedgerEntries = sqliteTable(
   "affiliate_commission_ledger_entries",
   {

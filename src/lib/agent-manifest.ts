@@ -155,6 +155,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "referralAttributionId",
       "reviewOnlyCommissionLedgerId",
       "commissionReviewActionId",
+      "postPurchaseDecisionId",
       "auditCorrelationId",
     ],
     safeForAgents: [
@@ -163,10 +164,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect referral attribution evidence",
       "Inspect review-only commission ledger evidence",
       "Inspect owner review action boundaries",
+      "Inspect non-billing post-purchase decision evidence",
       "Inspect write safety rules",
     ],
     writeBoundary:
-      "Billing-impacting and payable commission writes require exact confirmation, idempotency, stale-state checks, audit correlation, owner review, and webhook evidence.",
+      "Non-billing post-purchase decisions can be recorded only for trusted checkout state; billing-impacting and payable commission writes require exact confirmation, idempotency, stale-state checks, audit correlation, owner review, and webhook evidence.",
   },
   {
     id: "read-admin-source",
@@ -249,6 +251,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "downsellId",
       "checkoutRevisionId",
       "referralClickId",
+      "postPurchaseDecisionId",
       "agentActionId",
     ],
     safeForAgents: [
@@ -256,9 +259,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect bump and upsell sequence",
       "Inspect confirmed sandbox checkout start boundaries",
       "Inspect optional referral-click attribution evidence",
+      "Inspect aggregate non-billing post-purchase decision counts",
     ],
     writeBoundary:
-      "A confirmed sandbox checkout start can include the seeded primary offer, constrained order bump, and optional referral-click attribution evidence; live billing, price mutation, fulfillment, commission writes, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
+      "A confirmed sandbox checkout start can include the seeded primary offer, constrained order bump, and optional referral-click attribution evidence; trusted checkout state can record non-billing upsell/downsell follow-up decisions; live billing, price mutation, fulfillment, commission writes, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
   },
   {
     id: "read-product-access-catalog",
@@ -440,7 +444,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-commerce",
     route: "/commerce/source-data",
     resolves:
-      "Redacted commerce architecture, sandbox checkout offer, referral attribution evidence, review-only commission ledger evidence, owner review action boundaries, payment tables, webhook rules, and billing write safety.",
+      "Redacted commerce architecture, sandbox checkout offer, referral attribution evidence, review-only commission ledger evidence, owner review action boundaries, non-billing post-purchase decision evidence, payment tables, webhook rules, and billing write safety.",
     stableIds: [
       "productId",
       "priceId",
@@ -449,10 +453,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "referralAttributionId",
       "commissionReviewActionId",
       "reviewOnlyCommissionLedgerId",
+      "postPurchaseDecisionId",
       "auditCorrelationId",
     ],
     volatileClaims:
-      "Live payment capability and payable commission state are not enabled until separate rollout and webhook smoke evidence prove them.",
+      "Live payment capability, one-click post-purchase charging, fulfillment, and payable commission state are not enabled until separate rollout and webhook smoke evidence prove them.",
   },
   {
     id: "evidence-agent-manifest",
@@ -481,7 +486,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-checkout-offers",
     route: "/offers/source-data",
     resolves:
-      "Seeded checkout offer stack, primary offer, selectable order bump, optional referral-click attribution evidence, upsell, downsell, checkout route, revision ID, and confirmed-write boundary.",
+      "Seeded checkout offer stack, primary offer, selectable order bump, optional referral-click attribution evidence, upsell, downsell, non-billing post-purchase decision contract, aggregate decision counts, checkout route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "checkoutOfferStackId",
       "offerId",
@@ -490,9 +495,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "downsellId",
       "checkoutRevisionId",
       "referralClickId",
+      "postPurchaseDecisionId",
     ],
     volatileClaims:
-      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump and optional referral-click attribution evidence; it is not live billing, one-click upsell charging, fulfillment, commission writes, price mutation, or direct agent write capability.",
+      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, and non-billing upsell/downsell decision evidence; it is not live billing, one-click upsell charging, fulfillment, commission writes, price mutation, or direct agent write capability.",
   },
   {
     id: "evidence-products-access",
@@ -648,9 +654,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/offers/source-data",
     purpose:
-      "Expose seeded checkout offer stack, primary offer, constrained order bump, optional referral attribution evidence, upsell, downsell, revision IDs, and billing boundaries.",
+      "Expose seeded checkout offer stack, primary offer, constrained order bump, optional referral attribution evidence, upsell, downsell, aggregate post-purchase decision evidence, revision IDs, and billing boundaries.",
     safetyBoundary:
-      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation, while live billing, offer writes, fulfillment, commission writes, and post-purchase charges require confirmed-write contracts.",
+      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation and can record non-billing follow-up decisions after trusted checkout state, while live billing, offer writes, fulfillment, commission writes, and post-purchase charges require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-product-access",
