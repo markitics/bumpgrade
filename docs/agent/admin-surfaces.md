@@ -131,9 +131,12 @@ The page reads:
 Verified owners can inspect buyer email, checkout status, product/price context,
 access rules, and queued fulfillment evidence. Public agents should read
 `/products/source-data` for aggregate counts and redaction flags, not scrape or
-infer private buyer rows. Signed downloads, protected content, revocation,
-subscription access changes, refunds, customer portals, private asset delivery,
-and direct agent entitlement writes still need future confirmed-write APIs.
+infer private buyer rows. Issue #141 adds `/products/entitlements` and
+`/api/products/entitlements` for customer-safe checkout intent lookup without
+buyer emails, hashes, raw Stripe IDs, event IDs, metadata JSON, private R2 keys,
+or signed URLs. Signed downloads, protected content, revocation, subscription
+access changes, refunds, customer portals, private asset delivery, and direct
+agent entitlement writes still need future confirmed-write APIs.
 
 ## Agent Maintenance Rule
 

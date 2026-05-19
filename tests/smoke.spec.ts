@@ -19,6 +19,7 @@ import { editableDraftCapability, funnelSourceData, seededFunnel } from "../src/
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
+import { customerProductEntitlementLookupSummary } from "../src/lib/customer-product-entitlements";
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
@@ -36,6 +37,7 @@ const routes = [
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
+  { path: "/products/entitlements", heading: "Customer product access lookup" },
   { path: "/audience/indie-launch-waitlist", heading: "Indie launch waitlist and nurture preview" },
   { path: "/analytics/indie-launch-dashboard", heading: "Indie launch analytics and experiment preview" },
   { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program preview" },
@@ -239,6 +241,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/indie-launch-stack");
     expect(sitemapXml).toContain("https://bumpgrade.com/products/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/products/indie-launch-library");
+    expect(sitemapXml).toContain("https://bumpgrade.com/products/entitlements");
+    expect(sitemapXml).toContain("https://bumpgrade.com/api/products/entitlements");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
@@ -458,7 +462,14 @@ test.describe("Bumpgrade scaffold", () => {
         parentIssue: 16,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/products/source-data", "/products/indie-launch-library"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining([
+        "/products/source-data",
+        "/products/indie-launch-library",
+        "/products/entitlements",
+        "/api/products/entitlements",
+      ]),
+    );
     expect(payload.entitlementWrites).toEqual(
       expect.objectContaining({
         status: "sandbox-webhook-grants-ready",
@@ -477,6 +488,24 @@ test.describe("Bumpgrade scaffold", () => {
           rawBuyerEmailIncluded: false,
           rawStripeIdsIncluded: false,
           signedUrlsIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.customerEntitlementLookup).toEqual(
+      expect.objectContaining({
+        id: customerProductEntitlementLookupSummary.id,
+        status: "customer-product-entitlement-lookup-ready",
+        issue: 141,
+        route: "/products/entitlements",
+        apiRoute: "/api/products/entitlements",
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          sourceStripeEventIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
         }),
       }),
     );
@@ -526,6 +555,70 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Launch checklist download")).toBeVisible();
     await expect(page.getByText("Launch course lite")).toBeVisible();
     await expect(page.getByText("Launch membership")).toBeVisible();
+  });
+
+  test("customer product entitlement lookup exposes redacted checkout access state", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Customer entitlement lookup is covered once on desktop.");
+
+    const buyerEmail = `product-customer-${Date.now()}@example.com`;
+    const grant = await grantSandboxProductEntitlements(request, buyerEmail);
+
+    const response = await request.get(`/api/products/entitlements?checkoutIntentId=${encodeURIComponent(grant.checkoutIntentId)}`);
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        status: "customer-product-entitlement-lookup-ready",
+        issue: 141,
+        checkoutIntentId: grant.checkoutIntentId,
+        checkout: expect.objectContaining({
+          checkoutIntentId: grant.checkoutIntentId,
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+        counts: expect.objectContaining({
+          entitlements: 2,
+          activeEntitlements: 2,
+          fulfillmentTasks: 2,
+        }),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          sourceStripeEventIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.entitlements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ productTitle: "Launch bundle", fulfillment: expect.objectContaining({ status: "queued" }) }),
+        expect.objectContaining({
+          productTitle: "Launch checklist download",
+          fulfillment: expect.objectContaining({ status: "queued" }),
+        }),
+      ]),
+    );
+    const payloadText = JSON.stringify(payload);
+    expect(payloadText).not.toContain(buyerEmail);
+    expect(payloadText).not.toContain(grant.eventId);
+    expect(payloadText).not.toContain("cs_test");
+    expect(payloadText).not.toContain("r2://");
+    expect(payloadText).not.toContain("signed_url");
+
+    const invalid = await request.get("/api/products/entitlements?checkoutIntentId=not-a-real-intent");
+    expect(invalid.status()).toBe(400);
+    await expect(invalid.json()).resolves.toEqual(expect.objectContaining({ source: "invalid" }));
+
+    await page.goto(`/products/entitlements?checkout_intent_id=${encodeURIComponent(grant.checkoutIntentId)}`);
+    await expect(page.getByRole("heading", { name: /Customer product access lookup/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Product access and fulfillment state/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch bundle" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch checklist download" })).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(buyerEmail);
+    await expect(page.locator("body")).not.toContainText(grant.eventId);
   });
 
   test("product entitlement inspection exposes aggregate source data and owner rows", async ({ page, request }, testInfo) => {
@@ -2104,12 +2197,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139],
+          issueNumbers: [16, 83, 101, 139, 141],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139],
+          issueNumbers: [16, 83, 99, 101, 139, 141],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -2330,6 +2423,11 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-customer-product-entitlements",
+          route: "/api/products/entitlements",
+          auth: "public",
+        }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
