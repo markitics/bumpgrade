@@ -6,6 +6,7 @@ first owner-gated D1 draft builder scaffold, issue #93 adds owner-gated step
 editing and reordering, issue #95 adds owner-gated private draft preview, and
 issue #135 adds exact-confirmed public publishing from D1 draft funnels. Issue
 #159 adds the read-only reusable funnel template and block-template library.
+Issue #161 adds owner-confirmed private draft creation from those templates.
 
 Live in this slice:
 
@@ -19,28 +20,30 @@ Live in this slice:
 - `/funnels/:slug`: crawlable semantic public route for published D1 draft
   funnels, with unpublished private draft copy excluded from source data.
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
-  reorder, and publish private D1 draft funnels with three ordered steps.
+  reorder, create private drafts from reusable templates, and publish private
+  D1 draft funnels with ordered steps.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
-  step update, step reorder, and exact-confirmed publish actions with
-  idempotency, revision checks, and audit rows.
+  template-to-draft create, step update, step reorder, and exact-confirmed
+  publish actions with idempotency, revision checks, and audit rows.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, and `funnel_audit_events`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
   draft capability, and future MCP resources/tools.
 
 Not live in this slice:
 
-- Template-to-draft creation from the reusable template library.
 - Drag-and-drop visual editing or granular block editing.
 - Deleting, archiving, unpublishing, or duplicating funnels.
 - Checkout-linking, order bumps, upsells, or fulfillment.
 - Agent-initiated draft edits or publishing tools.
 
 Current draft creation and step editing require an owner session, D1 storage, an
-idempotency key, and an audit event. Current draft preview requires an owner
-session and does not publish private copy publicly. Publishing requires an owner
-session, the exact publish confirmation text, an idempotency key, and a current
-revision ID. Future direct agent writes, unpublishing, checkout linking, and
-destructive draft actions must add explicit confirmation, stale-state checks,
-audit correlation, redaction, and rollback notes before acting on draft state.
+idempotency key, and an audit event. Creating a private draft from a reusable
+template additionally requires exact template confirmation text. Current draft
+preview requires an owner session and does not publish private copy publicly.
+Publishing requires an owner session, the exact publish confirmation text, an
+idempotency key, and a current revision ID. Future direct agent writes,
+unpublishing, checkout linking, and destructive draft actions must add explicit
+confirmation, stale-state checks, audit correlation, redaction, and rollback
+notes before acting on draft state.
