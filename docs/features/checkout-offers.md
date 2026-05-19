@@ -3,7 +3,8 @@
 Issue #15 owns the checkout, order bump, upsell, and downsell MVP. Issue #81
 added the first checkout-offer source-data contract and preview scaffold. Issue
 #99 adds the first confirmed sandbox checkout start path with the seeded primary
-offer and constrained order bump.
+offer and constrained order bump. Issue #111 adds optional referral-click
+attribution evidence on sandbox checkout intents.
 
 Live in this slice:
 
@@ -15,7 +16,8 @@ Live in this slice:
 - `/api/commerce/checkout`: sandbox-only checkout start route that can include
   the seeded primary offer and the `price-launch-checklist-bump-usd` order bump
   after exact confirmation. Test and incomplete-secret environments return a
-  redacted preview response.
+  redacted preview response. Eligible referral click IDs can be attached as
+  public-safe attribution evidence.
 - Agent manifest entries for reading checkout-offer state and future MCP
   resources.
 
@@ -25,6 +27,8 @@ Not live in this slice:
 - Arbitrary order bump mutation or unapproved bump attachment.
 - One-click upsell or downsell charging.
 - Fulfillment, entitlement, refund, coupon, or customer portal writes.
+- Commission writes, payout mutation, fraud decisions, tax records, and partner
+  notifications.
 - Agent write tools.
 
 Future checkout-offer writes must require actor identity, exact confirmation,

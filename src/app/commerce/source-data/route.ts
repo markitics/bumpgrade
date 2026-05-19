@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
 import {
@@ -10,11 +11,22 @@ import {
   stripeNodeVersion,
 } from "@/lib/commerce";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
+import {
+  checkoutReferralAttributionContract,
+  loadCheckoutReferralAttributionSummary,
+} from "@/lib/referral-checkout-attribution";
 import { checkoutConfirmationText, checkoutRoutes, sandboxCheckoutOffer } from "@/lib/sandbox-checkout";
 
 export const dynamic = "force-dynamic";
 
-export function GET() {
+async function getDb() {
+  const { env } = await getCloudflareContext({ async: true });
+  return (env as Cloudflare.Env).DB ?? null;
+}
+
+export async function GET() {
+  const db = await getDb();
+
   return NextResponse.json({
     id: "bumpgrade-commerce-source-data",
     updatedAt: stripeCommerceUpdatedAt,
@@ -33,12 +45,17 @@ export function GET() {
         currency: offer.currency,
       })),
       supportsOrderBumps: true,
+      supportsReferralAttributionEvidence: true,
       routes: checkoutRoutes,
       confirmation: {
         required: true,
         text: checkoutConfirmationText,
       },
       rawStripeIdsIncluded: false,
+    },
+    referralAttribution: {
+      contract: checkoutReferralAttributionContract,
+      summary: await loadCheckoutReferralAttributionSummary(db),
     },
     agentWriteRules: commerceAgentWriteRules,
   });

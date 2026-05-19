@@ -106,9 +106,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
   can start a confirmed sandbox checkout for the primary offer plus seeded order
-  bump after exact confirmation. Treat it as sandbox checkout-start evidence, not
-  live billing, one-click upsell charging, fulfillment, arbitrary order-bump
-  mutation, or a confirmed-write agent API.
+  bump after exact confirmation, and eligible referral click IDs can be attached
+  to checkout intents as attribution evidence. Treat it as sandbox
+  checkout-start and referral-click-to-checkout evidence, not live billing,
+  one-click upsell charging, fulfillment, commission writes, arbitrary
+  order-bump mutation, or a confirmed-write agent API.
 - `/products/source-data` exposes the product/access catalog with digital
   download, course, membership, service, event, bundle, entitlement template,
   and sandbox webhook grant records. Trusted paid sandbox webhooks can create
@@ -134,12 +136,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   exposure, automated decisions, direct agent analytics writes, or statistically
   meaningful proof.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
-  partner records, referral links, aggregate click counts, attribution rules,
-  commission rules, ledger fixtures, payout review, fraud flags, and the
-  `/api/affiliates/clicks` write boundary. Treat it as seeded click capture and
-  source-data evidence, not cookie assignment, buyer attribution, payable
-  commission state, tax collection, fraud enforcement, Stripe payout capability,
-  or a confirmed-write agent API.
+  partner records, referral links, aggregate click counts, checkout attribution
+  evidence, attribution rules, commission rules, ledger fixtures, payout review,
+  fraud flags, and the `/api/affiliates/clicks` write boundary. Treat it as
+  seeded click capture and referral-click-to-checkout source-data evidence, not
+  cookie assignment, buyer attribution finalization, payable commission state,
+  tax collection, fraud enforcement, Stripe payout capability, or a
+  confirmed-write agent API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -154,9 +157,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   into GitHub or public source-data.
 - Stripe commerce architecture is documented in `docs/features/payments.md`.
   Bumpgrade defaults to sandbox mode; `/api/commerce/checkout` can create sandbox
-  Checkout Sessions from D1 prices, but live billing remains disabled. Agents
-  must not start billing-impacting checkout work without exact confirmation,
-  idempotency, audit correlation, stale-state checks, and webhook evidence.
+  Checkout Sessions from D1 prices and can attach eligible referral click
+  evidence to checkout intents, but live billing and commission writes remain
+  disabled. Agents must not start billing-impacting or commission-impacting
+  checkout work without exact confirmation, idempotency, audit correlation,
+  stale-state checks, and webhook evidence.
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
   `/mobile-admin/source-data`. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in

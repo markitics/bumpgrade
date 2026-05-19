@@ -134,8 +134,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <p>Status</p>
           <strong>{program.partners.length} partner records</strong>
           <span>
-            Referral links, privacy-safe click capture, attribution rules, commission ledger fixtures, and payout review
-            states are public-safe records; cookies, buyers, tax forms, and payout accounts stay disabled.
+            Referral links, privacy-safe click capture, checkout attribution evidence, commission ledger fixtures, and
+            payout review states are public-safe records; cookies, buyers, tax forms, and payout accounts stay disabled.
           </span>
         </aside>
       </section>
@@ -144,7 +144,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Referral links</p>
-            <h2>Partner links can capture privacy-safe clicks before buyer attribution</h2>
+            <h2>Partner links can connect privacy-safe clicks to checkout evidence</h2>
           </div>
           <Link href={program.linkedFunnelRoute} className="text-link compact-link">
             Linked funnel
@@ -268,8 +268,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             <Database aria-hidden="true" />
             <h3>Source data first</h3>
             <p>
-              <code>/affiliates/source-data</code> exposes public-safe partners, links, aggregate click counts, rules,
-              ledger fixtures, payout batches, review flags, and audit events.
+              <code>/affiliates/source-data</code> exposes public-safe partners, links, aggregate click and checkout
+              attribution counts, rules, ledger fixtures, payout batches, review flags, and audit events.
             </p>
           </div>
           <div>

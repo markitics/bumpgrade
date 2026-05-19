@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
 import { affiliateReferralsSourceData } from "@/lib/affiliate-referrals";
+import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
 
 export const dynamic = "force-dynamic";
 
@@ -14,9 +15,12 @@ type ReferralClickAggregateRow = {
   last_click_at: number | null;
 };
 
-async function loadClickSummary() {
+async function getDb() {
   const { env } = await getCloudflareContext({ async: true });
-  const db = (env as Cloudflare.Env).DB;
+  return (env as Cloudflare.Env).DB ?? null;
+}
+
+async function loadClickSummary(db: D1Database | null) {
   if (!db) {
     return {
       status: "unavailable",
@@ -50,8 +54,11 @@ async function loadClickSummary() {
 }
 
 export async function GET() {
+  const db = await getDb();
+
   return NextResponse.json({
     ...affiliateReferralsSourceData,
-    clickSummary: await loadClickSummary(),
+    clickSummary: await loadClickSummary(db),
+    checkoutAttributionSummary: await loadCheckoutReferralAttributionSummary(db),
   });
 }

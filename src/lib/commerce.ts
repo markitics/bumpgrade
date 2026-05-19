@@ -1,3 +1,8 @@
+import {
+  checkoutReferralAttributionContract,
+  checkoutReferralAttributionUpdatedAt,
+} from "@/lib/referral-checkout-attribution";
+
 export type CommerceObjectStatus = "live" | "planned";
 
 export type StripeMode = "sandbox" | "live";
@@ -18,7 +23,7 @@ export type CommerceDecision = {
   evidence: string[];
 };
 
-export const stripeCommerceUpdatedAt = "2026-05-19";
+export const stripeCommerceUpdatedAt = checkoutReferralAttributionUpdatedAt;
 
 export const stripeNodeVersion = "22.1.1";
 
@@ -31,7 +36,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, and sandbox webhook-backed entitlement grants. Live payment rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, and optional referral-click attribution evidence. Live payment rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -46,8 +51,10 @@ export const stripeCommerceContract = {
     createsStripeCheckoutSession: true,
     supportsConstrainedOrderBump: true,
     grantsSandboxEntitlementsFromPaidWebhook: true,
+    supportsReferralAttributionEvidence: true,
     liveModeEnabled: false,
   },
+  referralAttribution: checkoutReferralAttributionContract,
   secretNames: [
     {
       name: "STRIPE_SECRET_KEY_SANDBOX",
@@ -206,6 +213,31 @@ export const commerceTables: CommerceTableContract[] = [
     purpose: "Idempotent checkout-start record created before Stripe is called.",
   },
   {
+    table: "checkout_referral_attributions",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "checkout_intent_id",
+      "referral_click_id",
+      "referral_link_id",
+      "referral_code",
+      "partner_id",
+      "destination_route",
+      "attribution_status",
+    ],
+    serverPrivateFields: [
+      "checkout_product_id",
+      "checkout_price_id",
+      "audit_correlation_id",
+      "metadata_json",
+      "raw click rows",
+      "buyer identifiers",
+      "raw Stripe identifiers",
+      "payout or tax data",
+    ],
+    purpose: "Public-safe evidence that a validated seeded referral click was attached to a sandbox checkout intent.",
+  },
+  {
     table: "stripe_webhook_events",
     status: "live",
     publicSafeFields: ["event_type", "api_version", "livemode", "status", "processed_at"],
@@ -271,5 +303,6 @@ export const commerceAgentWriteRules = [
   "Agents must not create, expire, refund, cancel, upgrade, downgrade, or publish a billing object without explicit confirmation text.",
   "Billing-impacting writes require actor identity, client attribution, idempotency key, audit correlation id, stale-state check, and redacted output.",
   "Model-visible output must not include raw Stripe secret keys, webhook secrets, customer IDs, Checkout Session IDs, PaymentIntent IDs, Subscription IDs, connected-account IDs, or private customer data.",
+  "Referral attribution evidence may link a seeded referral click to a checkout intent, but it must not create payable commissions, payout state, fraud decisions, tax records, or partner notifications.",
   "If an event or provider response is ambiguous, record the blocked state and continue with non-billing work instead of guessing.",
 ];

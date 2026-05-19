@@ -145,6 +145,7 @@ export const featureCatalog: FeatureRecord[] = [
     expectedCapabilities: [
       "Read-only checkout offer source data and preview route from issue #81.",
       "Confirmed sandbox checkout start with the seeded primary offer and constrained order bump from issue #99.",
+      "Optional referral-click attribution evidence on sandbox checkout intents from issue #111.",
       "Checkout pages and embeddable checkout entry points.",
       "Order bumps, upsells, downsells, coupons, and subscription offers.",
       "Customer portal and billing-safe state transitions.",
@@ -155,9 +156,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Stripe architecture tracked by issue #11.",
       "Issue #81 adds `/offers/source-data` and `/offers/indie-launch-stack` as the first read-only checkout-offer contract and preview scaffold.",
       "Issue #99 adds a confirmed sandbox checkout start panel and API support for the seeded pre-payment order bump.",
+      "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
     ],
     agentContract:
-      "Billing-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
+      "Billing-impacting and commission-impacting writes require explicit confirmation, idempotency keys, stale-state checks, and redacted outputs.",
   },
   {
     id: "feature-products-access",
@@ -246,6 +248,7 @@ export const featureCatalog: FeatureRecord[] = [
     expectedCapabilities: [
       "Affiliate/referral source data and preview route from issue #89.",
       "Partner profiles, tracking links, and privacy-safe click capture from issue #109.",
+      "Checkout attribution evidence that links eligible referral clicks to sandbox checkout intents from issue #111.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -254,9 +257,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Tracked by issue #19.",
       "Issue #89 adds `/affiliates/source-data` and `/affiliates/indie-launch-partners` as the first read-only affiliate/referral contract.",
       "Issue #109 adds seeded referral click capture with idempotency, hashed request evidence, and aggregate-only source-data reporting.",
+      "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
     ],
     agentContract:
-      "Agents may read aggregate referral click counts and click-capture boundaries; buyer attribution, commission writes, payout-impacting actions, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts, checkout attribution evidence, and write boundaries; buyer attribution finalization, commission writes, payout-impacting actions, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",
@@ -360,11 +364,12 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 11,
     summary:
-      "Stripe SDK, mode-specific secret mapping, Checkout-first architecture, D1 commerce tables, and billing-safe agent rules. No live customer checkout is enabled yet.",
+      "Stripe SDK, mode-specific secret mapping, Checkout-first architecture, D1 commerce tables, optional referral-click attribution evidence, and billing-safe agent rules. No live customer checkout is enabled yet.",
     audience: "Publishers selling products, courses, memberships, coaching, or services.",
     expectedCapabilities: [
       "Stripe-hosted Checkout Sessions as the first payment surface.",
       "D1 product, price, checkout-intent, subscription, webhook, and audit records.",
+      "Optional referral-click attribution evidence attached to sandbox checkout intents from issue #111.",
       "Webhook ingestion and event idempotency before fulfillment is trusted.",
       "Subscriptions, trials, upgrades, downgrades, and cancellations after the sandbox path works.",
       "Redacted payment metadata for admin and agent reads.",
@@ -374,9 +379,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #11 stores mode-specific Stripe values as Cloudflare secrets without repo secret values.",
       "`/commerce/source-data` exposes the redacted commerce contract.",
       "Issue #34 owns the first sandbox Checkout Session and webhook ingestion route.",
+      "Issue #111 adds checkout referral attribution evidence without commissions or payout state.",
     ],
     agentContract:
-      "Agents can read public-safe commerce contracts, but checkout, refund, subscription, payout, and billing mutations require confirmed-write rules.",
+      "Agents can read public-safe commerce contracts and referral attribution evidence, but checkout, refund, subscription, commission, payout, and billing mutations require confirmed-write rules.",
   },
   {
     id: "feature-mobile-admin",
