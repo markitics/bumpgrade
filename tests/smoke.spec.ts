@@ -242,8 +242,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "read-contract-and-owner-draft-ready",
-        issue: 91,
+        status: "read-contract-and-owner-step-edit-ready",
+        issue: 93,
         parentIssue: 14,
       }),
     );
@@ -252,10 +252,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
         id: editableDraftCapability.id,
-        status: "owner-session-live",
-        issue: 91,
+        status: "owner-session-step-edit-ready",
+        issue: 93,
         adminRoute: "/admin/funnels",
         createEndpoint: "/api/admin/funnels/drafts",
+        editEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
@@ -275,7 +276,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
-    expect(payload.caveat).toContain("owner-session D1 draft builder");
+    expect(payload.caveat).toContain("step edit/reorder controls");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
@@ -931,11 +932,57 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const updateResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        title: "Warm list opt-in edited",
+        goal: "Capture qualified subscribers with clearer launch promise copy.",
+        kind: "opt_in",
+        idempotencyKey: "playwright-update-warm-list-opt-in",
+        return: "json",
+      },
+    });
+    expect(updateResponse.ok(), await updateResponse.text()).toBeTruthy();
+    const updatePayload = await updateResponse.json();
+    expect(updatePayload.draft.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "funnel-draft-indie-launch-working-copy-opt_in-1",
+          title: "Warm list opt-in edited",
+          goal: "Capture qualified subscribers with clearer launch promise copy.",
+        }),
+      ]),
+    );
+
+    const moveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "move-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        direction: "down",
+        idempotencyKey: "playwright-move-warm-list-opt-in-down",
+        return: "json",
+      },
+    });
+    expect(moveResponse.ok(), await moveResponse.text()).toBeTruthy();
+    const movePayload = await moveResponse.json();
+    expect(movePayload.draft.steps).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-sales-2", order: 1 }),
+        expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-opt_in-1", order: 2 }),
+      ]),
+    );
+
     await page.goto("/admin/funnels");
     await expect(page.getByRole("heading", { name: /Draft funnel builder backed by D1/i })).toBeVisible();
     const draftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
     await expect(draftCard.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
-    await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in" })).toBeVisible();
+    await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
+    await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

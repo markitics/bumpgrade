@@ -5,7 +5,7 @@ import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "luc
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getDraftFunnelAdminState } from "@/lib/funnel-drafts";
-import { draftFunnelBuilderIssue } from "@/lib/funnels";
+import { draftFunnelStepEditingIssue } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -34,17 +34,17 @@ export default async function AdminFunnelsPage() {
           <p className="eyebrow">Admin funnels</p>
           <h1>Draft funnel builder backed by D1.</h1>
           <p className="lede">
-            Owners can seed or create private draft funnels with ordered opt-in, sales, and thank-you steps. This is
-            draft creation only; publishing, checkout linking, deletion, and agent edits still need confirmed-write
-            slices.
+            Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
+            steps. Publishing, checkout linking, deletion, drag-and-drop layout editing, and agent edits still need
+            confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelBuilderIssue}`} className="secondary-action">
-              Issue #{draftFunnelBuilderIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelStepEditingIssue}`} className="secondary-action">
+              Issue #{draftFunnelStepEditingIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -94,7 +94,7 @@ export default async function AdminFunnelsPage() {
               maxLength={120}
               disabled={!state.canWrite}
             />
-            <p>Creates a private three-step template draft. Granular block editing ships later.</p>
+            <p>Creates a private three-step template draft. Step editing is live; granular block editing ships later.</p>
             <button type="submit" className="primary-action" disabled={!state.canWrite}>
               Create draft
               <ArrowRight aria-hidden="true" />
@@ -140,11 +140,66 @@ export default async function AdminFunnelsPage() {
                 <span>{draft.updatedAt ?? "Fixture only"}</span>
               </div>
               <div className="admin-step-list" aria-label={`${draft.title} steps`}>
-                {draft.steps.map((step) => (
-                  <div key={step.id}>
-                    <span>Step {step.order}</span>
-                    <strong>{step.title}</strong>
-                    <p>{step.kind.replaceAll("_", " ")} · {step.blocks.length} blocks</p>
+                {draft.steps.map((step, index) => (
+                  <div key={step.id} className="admin-step-editor">
+                    <div className="admin-step-editor-heading">
+                      <div>
+                        <span>Step {step.order}</span>
+                        <strong>{step.title}</strong>
+                        <p>{step.kind.replaceAll("_", " ")} · {step.blocks.length} blocks</p>
+                      </div>
+                      <div className="admin-step-move-row" aria-label={`Move ${step.title}`}>
+                        <form action="/api/admin/funnels/drafts" method="post">
+                          <input type="hidden" name="mode" value="move-step" />
+                          <input type="hidden" name="draftId" value={draft.id} />
+                          <input type="hidden" name="stepId" value={step.id} />
+                          <input type="hidden" name="direction" value="up" />
+                          <button type="submit" className="secondary-action compact-action" disabled={!state.canWrite || index === 0}>
+                            Up
+                          </button>
+                        </form>
+                        <form action="/api/admin/funnels/drafts" method="post">
+                          <input type="hidden" name="mode" value="move-step" />
+                          <input type="hidden" name="draftId" value={draft.id} />
+                          <input type="hidden" name="stepId" value={step.id} />
+                          <input type="hidden" name="direction" value="down" />
+                          <button
+                            type="submit"
+                            className="secondary-action compact-action"
+                            disabled={!state.canWrite || index === draft.steps.length - 1}
+                          >
+                            Down
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                    <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form">
+                      <input type="hidden" name="mode" value="update-step" />
+                      <input type="hidden" name="draftId" value={draft.id} />
+                      <input type="hidden" name="stepId" value={step.id} />
+                      <label>
+                        Title
+                        <input name="title" type="text" defaultValue={step.title} maxLength={120} disabled={!state.canWrite} />
+                      </label>
+                      <label>
+                        Kind
+                        <select name="kind" defaultValue={step.kind} disabled={!state.canWrite}>
+                          <option value="opt_in">Opt-in</option>
+                          <option value="sales">Sales</option>
+                          <option value="checkout">Checkout</option>
+                          <option value="upsell">Upsell</option>
+                          <option value="thank_you">Thank-you</option>
+                        </select>
+                      </label>
+                      <label className="admin-step-goal-field">
+                        Goal
+                        <textarea name="goal" defaultValue={step.goal} maxLength={500} rows={3} disabled={!state.canWrite} />
+                      </label>
+                      <button type="submit" className="primary-action" disabled={!state.canWrite}>
+                        Save step
+                        <ArrowRight aria-hidden="true" />
+                      </button>
+                    </form>
                   </div>
                 ))}
               </div>
@@ -158,7 +213,7 @@ export default async function AdminFunnelsPage() {
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Owner gated</h3>
-            <p>Only allowlisted, verified owner sessions can create or seed D1 draft funnel records.</p>
+            <p>Only allowlisted, verified owner sessions can create, seed, edit, or reorder D1 draft funnel records.</p>
           </div>
           <div>
             <Database aria-hidden="true" />

@@ -1296,11 +1296,93 @@ h3 {
   margin-top: 18px;
 }
 
-.admin-step-list div {
+.admin-step-list > div {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(55, 95, 76, 0.05);
+}
+
+.admin-step-list .admin-step-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-step-editor-heading,
+.admin-step-move-row,
+.admin-step-edit-form {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-step-editor-heading {
+  align-items: start;
+  justify-content: space-between;
+}
+
+.admin-step-move-row {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-step-move-row form {
+  margin: 0;
+}
+
+.compact-action {
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.admin-step-edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.55fr);
+  align-items: end;
+}
+
+.admin-step-edit-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-step-edit-form input,
+.admin-step-edit-form select,
+.admin-step-edit-form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+
+.admin-step-edit-form textarea {
+  min-height: 82px;
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.admin-step-edit-form input:focus,
+.admin-step-edit-form select:focus,
+.admin-step-edit-form textarea:focus {
+  outline: 3px solid rgba(55, 95, 76, 0.18);
+  border-color: var(--green);
+}
+
+.admin-step-goal-field {
+  grid-column: 1 / -1;
+}
+
+.admin-step-edit-form button {
+  justify-self: start;
 }
 
 .admin-step-list span {
@@ -1318,6 +1400,12 @@ h3 {
 .admin-step-list p {
   margin: 4px 0 0;
   color: var(--muted);
+}
+
+.admin-step-edit-form button:disabled,
+.admin-step-move-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .roadmap-section-heading {
@@ -1794,6 +1882,10 @@ h3 {
   .auth-panel {
     grid-template-columns: 1fr;
   }
+
+  .admin-step-edit-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
@@ -1860,5 +1952,9 @@ h3 {
 
   .gap-row {
     grid-template-columns: 1fr;
+  }
+
+  .admin-step-editor-heading {
+    flex-direction: column;
   }
 }
