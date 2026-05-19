@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, Database, MailCheck, Send, ShieldCheck, Tags, Workflow } from "lucide-react";
 
 import { AudienceOptInForm } from "@/components/audience-opt-in-form";
+import { AudienceUnsubscribeForm } from "@/components/audience-unsubscribe-form";
 import {
   audienceAutomationWorkspaces,
   getAudienceAutomationWorkspaceBySlug,
@@ -130,8 +131,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <p>Status</p>
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
-            Consent-backed opt-in capture is live for the seeded waitlist; broadcasts, unsubscribe state, CRM notes,
-            and email sending stay disabled until confirmed-write APIs exist.
+            Consent-backed opt-in capture and unsubscribe suppression evidence are live for the seeded waitlist;
+            broadcasts, CRM notes, and email sending stay disabled until confirmed-write APIs exist.
           </span>
         </aside>
       </section>
@@ -171,6 +172,39 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
       <section className="content-band">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Suppression model</p>
+            <h2>Unsubscribe evidence is captured before any sends exist</h2>
+          </div>
+          <Link href={workspace.sourceDataRoute} className="text-link compact-link">
+            Public contract
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-grid two-column-grid">
+          <article className="feature-card compact-content-card">
+            <div className="feature-card-top">
+              <span className="status-badge planned">Unsubscribe</span>
+              <span className="admin-pill">Issue #{workspace.unsubscribeManagement.issue}</span>
+            </div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>No list-membership leak</h3>
+            <p>{workspace.unsubscribeManagement.writeBoundary}</p>
+            <div className="feature-detail">
+              <strong>API route</strong>
+              <span>{workspace.unsubscribeManagement.apiRoute}</span>
+            </div>
+            <div className="feature-detail">
+              <strong>Public-safe fields</strong>
+              <span>{workspace.unsubscribeManagement.publicSafeFields.length} fields</span>
+            </div>
+          </article>
+          <AudienceUnsubscribeForm />
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Tags and segments</p>
             <h2>Subscribers are grouped only after consent and safe writes exist</h2>
           </div>
@@ -198,7 +232,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
         </div>
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Nurture path</p>
@@ -242,7 +276,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <div>
             <MailCheck aria-hidden="true" />
             <h3>No email send path</h3>
-            <p>Consent is stored server-side, but unsubscribe state, provider IDs, and private contact timelines stay out of public data.</p>
+            <p>Consent and suppression evidence are stored server-side, but provider IDs and private contact timelines stay out of public data.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />

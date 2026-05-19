@@ -64,7 +64,7 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
   }
 
   return (
-    <form className="checkout-start-panel audience-opt-in-panel" onSubmit={handleSubmit}>
+    <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience opt-in" onSubmit={handleSubmit}>
       <label className="checkout-field">
         Email address
         <input

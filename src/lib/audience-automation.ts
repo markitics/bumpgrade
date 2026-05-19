@@ -1,4 +1,5 @@
-import { audienceOptInApiRoute, audienceOptInUpdatedAt, audienceOptInWriteContract } from "@/lib/audience-opt-in";
+import { audienceOptInApiRoute, audienceOptInWriteContract } from "@/lib/audience-opt-in";
+import { audienceUnsubscribeApiRoute, audienceUnsubscribeUpdatedAt, audienceUnsubscribeWriteContract } from "@/lib/audience-unsubscribe";
 
 export type AudienceAutomationStatus = "draft";
 export type AudienceFieldKind = "email" | "text" | "checkbox";
@@ -115,11 +116,12 @@ export type AudienceAutomationWorkspace = {
   sequences: EmailSequence[];
   automations: AutomationRule[];
   broadcastDrafts: BroadcastDraft[];
+  unsubscribeManagement: typeof audienceUnsubscribeWriteContract;
   writeBoundary: string;
   validation: string[];
 };
 
-export const audienceAutomationUpdatedAt = audienceOptInUpdatedAt;
+export const audienceAutomationUpdatedAt = audienceUnsubscribeUpdatedAt;
 
 export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   id: "audience-automation-workspace-indie-launch",
@@ -135,7 +137,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   linkedProductRoute: "/products/indie-launch-library",
   revisionId: "audience-automation-revision-indie-launch-2026-05-19",
   summary:
-    "An audience and automation scaffold with live consent-backed opt-in capture for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
+    "An audience and automation scaffold with live consent-backed opt-in capture and public-safe unsubscribe/suppression evidence for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
   segments: [
     {
       id: "segment-indie-launch-waitlist",
@@ -210,13 +212,13 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           label: "Consent to receive launch emails",
           kind: "checkbox",
           required: true,
-          storageBoundary: "Consent records include timestamp, source form, idempotency key, and hashed request evidence; unsubscribe state is future work.",
+          storageBoundary: "Consent records include timestamp, source form, idempotency key, and hashed request evidence; unsubscribe/suppression evidence is recorded through a separate public-safe endpoint.",
         },
       ],
       consentStatement:
         "I want the launch checklist and practical follow-up about Bumpgrade. I can unsubscribe later.",
       writeBoundary:
-        `This form posts to ${audienceOptInApiRoute}. Email delivery, unsubscribe changes, imports, broadcasts, and CRM notes require future confirmed-write APIs with actor identity, explicit consent, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.`,
+        `This form posts to ${audienceOptInApiRoute}. Unsubscribe preferences post to ${audienceUnsubscribeApiRoute}. Email delivery, imports, broadcasts, and CRM notes require future confirmed-write APIs with actor identity, explicit consent, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.`,
     },
   ],
   sequences: [
@@ -253,7 +255,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
         },
       ],
       writeBoundary:
-        "Sequence drafts are source-data only. Sending, scheduling, suppression, unsubscribe handling, and contact-specific personalization require future confirmed-write email infrastructure.",
+        "Sequence drafts are source-data only. Sending, scheduling, suppression checks, and contact-specific personalization require future confirmed-write email infrastructure.",
     },
   ],
   automations: [
@@ -301,12 +303,14 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
         "Broadcast scheduling requires publisher confirmation, preview rendering, suppression-list checks, unsubscribe footer validation, and audit correlation.",
     },
   ],
+  unsubscribeManagement: audienceUnsubscribeWriteContract,
   writeBoundary:
-    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Imports, broadcasts, email sends, unsubscribe changes, private exports, contact timelines, CRM notes, suppression-list changes, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Issue #167 can record unsubscribe/suppression evidence and mark known subscribers unsubscribed without revealing list membership. Imports, broadcasts, email sends, private exports, contact timelines, CRM notes, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, and sender-domain safety.",
   validation: [
     "/audience/source-data returns seeded audience segments, forms, tags, sequences, automations, and write boundaries.",
     "/audience/indie-launch-waitlist renders the opt-in and nurture preview.",
     "/api/audience/opt-in stores normalized subscriber, consent, tag, and draft sequence enrollment evidence.",
+    "/api/audience/unsubscribe stores suppression evidence without exposing list membership.",
     "/agent-docs/source-data lists the audience automation read contract for future MCP resources.",
   ],
 };
@@ -320,13 +324,14 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: "owner-subscriber-inspection-ready",
-  issue: 137,
+  status: "unsubscribe-suppression-ready",
+  issue: 167,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
   routes: [
     "/audience/source-data",
     audienceOptInApiRoute,
+    audienceUnsubscribeApiRoute,
     "/admin/audience",
     ...audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute),
   ],
@@ -341,11 +346,13 @@ export const audienceAutomationSourceData = {
     "automationRuleId",
     "broadcastDraftId",
     "consentRecordId",
+    "suppressionEntryId",
     "agentActionId",
   ],
   optInWrites: audienceOptInWriteContract,
+  unsubscribeWrites: audienceUnsubscribeWriteContract,
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, and aggregate owner-inspection evidence. It does not import contacts, send email, schedule broadcasts, alter unsubscribe state, publicly expose private contact data, or provide direct confirmed-write agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, and aggregate owner-inspection evidence. It does not import contacts, send email, schedule broadcasts, publicly expose private contact data, or provide direct confirmed-write agent APIs.",
 };

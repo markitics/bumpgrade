@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, MailCheck, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
+import { ArrowRight, Database, MailCheck, MailX, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -37,8 +37,8 @@ export default async function AdminAudiencePage() {
           <p className="eyebrow">Admin audience</p>
           <h1>Subscriber inspection without public contact leaks.</h1>
           <p className="lede">
-            Owners can inspect the consent-backed waitlist subscribers, active tags, and draft sequence enrollments
-            created by the public opt-in form. Public source-data stays aggregate-only.
+            Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments, and
+            unsubscribe suppression totals created by the public audience APIs. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -75,6 +75,14 @@ export default async function AdminAudiencePage() {
             <Workflow aria-hidden="true" />
             <h3>Draft enrollments</h3>
             <p>{state.counts.sequenceEnrollments} sequence enrollment rows. Email delivery remains disabled.</p>
+          </div>
+          <div>
+            <MailX aria-hidden="true" />
+            <h3>Suppressions</h3>
+            <p>
+              {state.counts.activeSuppressionEntries} active suppression entries, last recorded{" "}
+              {compactDate(state.lastSuppressionAt)}.
+            </p>
           </div>
         </div>
       </section>
