@@ -7,7 +7,7 @@ source-data contract and preview scaffold. Issue #101 adds the first sandbox
 entitlement write path from trusted paid checkout webhooks. Issue #139 adds
 owner entitlement and fulfillment inspection without exposing buyer rows through
 public source-data. Issue #141 adds customer-safe checkout intent entitlement
-lookup.
+lookup. Issue #143 adds short-lived sandbox download tokens.
 
 Live in this slice:
 
@@ -27,6 +27,10 @@ Live in this slice:
   and fulfillment status from a checkout intent reference.
 - `/api/products/entitlements`: matching JSON contract for checkout-intent
   scoped entitlement lookup.
+- `/api/products/download-tokens`: creates short-lived sandbox download tokens
+  for active file entitlements.
+- `/api/products/downloads?token={token}`: consumes a token once and returns a sandbox
+  placeholder attachment.
 - Agent manifest entries for reading product/access state and future MCP
   resources.
 
@@ -34,7 +38,7 @@ Not live in this slice:
 
 - Private R2 object keys or signed download URLs.
 - Protected course lessons, videos, transcripts, progress records, member posts,
-  or live fulfillment delivery.
+  private R2-backed asset delivery, or live fulfillment delivery.
 - Subscription access changes, refunds, revocations, or customer portal actions.
 - Agent write tools for granting, revoking, or delivering product access.
 
@@ -44,6 +48,8 @@ Public redaction boundary:
   plus redaction flags and the customer lookup contract.
 - `/api/products/entitlements` exposes customer-safe entitlement and fulfillment
   status for a known checkout intent only.
+- `/api/products/download-tokens` and `/api/products/downloads?token={token}` expose token
+  status and placeholder files without private object keys or signed object URLs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   private R2 object keys, and signed URLs remain server-private.
 

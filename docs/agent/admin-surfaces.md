@@ -134,9 +134,11 @@ access rules, and queued fulfillment evidence. Public agents should read
 infer private buyer rows. Issue #141 adds `/products/entitlements` and
 `/api/products/entitlements` for customer-safe checkout intent lookup without
 buyer emails, hashes, raw Stripe IDs, event IDs, metadata JSON, private R2 keys,
-or signed URLs. Signed downloads, protected content, revocation, subscription
-access changes, refunds, customer portals, private asset delivery, and direct
-agent entitlement writes still need future confirmed-write APIs.
+or signed URLs. Issue #143 adds short-lived sandbox download tokens and a
+placeholder attachment route for active file entitlements. Private R2-backed
+downloads, protected content, revocation, subscription access changes, refunds,
+customer portals, private asset delivery, and direct agent entitlement writes
+still need future confirmed-write APIs.
 
 ## Agent Maintenance Rule
 

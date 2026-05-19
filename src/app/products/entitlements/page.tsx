@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Database, FileArchive, KeyRound, ReceiptText, Search, ShieldCheck } from "lucide-react";
 
+import { CustomerDownloadTokenButton } from "@/components/customer-download-token-button";
 import {
   customerProductEntitlementLookupApiRoute,
   customerProductEntitlementLookupIssue,
@@ -188,6 +189,18 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
                       </div>
                     </div>
                   </div>
+                  {lookup.checkoutIntentId && entitlement.downloadDelivery.available ? (
+                    <div className="admin-step-editor">
+                      <div className="admin-step-editor-heading">
+                        <div>
+                          <span>Sandbox delivery</span>
+                          <strong>{entitlement.downloadDelivery.assetTitle}</strong>
+                          <p>Creates a short-lived token without exposing private R2 keys or signed object URLs.</p>
+                        </div>
+                      </div>
+                      <CustomerDownloadTokenButton checkoutIntentId={lookup.checkoutIntentId} entitlementId={entitlement.id} />
+                    </div>
+                  ) : null}
                 </div>
               </article>
             ))
@@ -224,7 +237,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
           </div>
           <div>
             <FileArchive aria-hidden="true" />
-            <h3>Delivery later</h3>
+            <h3>Delivery boundary</h3>
             <p>{lookup.writeBoundary}</p>
           </div>
         </div>

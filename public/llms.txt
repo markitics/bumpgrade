@@ -24,6 +24,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded product access preview: https://bumpgrade.com/products/indie-launch-library
 - Customer product access lookup: https://bumpgrade.com/products/entitlements
 - Customer product access lookup API: https://bumpgrade.com/api/products/entitlements
+- Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
 - Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
@@ -133,12 +134,16 @@ GitHub repo: https://github.com/markitics/bumpgrade
   queued fulfillment evidence. `/products/entitlements` and
   `/api/products/entitlements` can inspect checkout-intent-scoped customer
   entitlement and fulfillment status without buyer email, hashes, raw Stripe
-  identifiers, event IDs, metadata JSON, private R2 keys, or signed URLs. Public
+  identifiers, event IDs, metadata JSON, private R2 keys, or signed URLs.
+  `/api/products/download-tokens` can create short-lived sandbox tokens for
+  active file entitlements, and `/api/products/downloads?token={token}` returns a
+  placeholder attachment while rejecting replayed or expired tokens. Public
   product source-data exposes aggregate entitlement inspection counts, customer
-  lookup contract metadata, and redaction flags only. Treat it as
-  grant-boundary, owner-inspection, and customer-safe lookup evidence, not
-  private asset access, signed download links, revocation, live fulfillment, or
-  a confirmed-write agent API.
+  lookup contract metadata, download-token contract metadata, and redaction
+  flags only. Treat it as grant-boundary, owner-inspection, customer-safe lookup,
+  and sandbox token-delivery evidence, not private R2-backed asset delivery,
+  signed object URLs, revocation, live fulfillment, or a confirmed-write agent
+  API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, redaction flags, and

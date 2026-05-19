@@ -261,9 +261,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #101 adds idempotent sandbox entitlement rows and fulfillment task evidence from trusted paid checkout webhook events.",
       "Issue #139 adds `/admin/products` owner entitlement inspection and aggregate public redaction flags.",
       "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
+      "Issue #143 adds short-lived sandbox download tokens for active file entitlements without exposing private R2 keys or signed object URLs.",
     ],
     nextMilestone:
-      "Add signed download access without exposing private R2 keys or raw Stripe identifiers.",
+      "Replace sandbox placeholder downloads with private R2-backed delivery while preserving the same token, entitlement, expiry, and redaction boundaries.",
   },
   {
     id: "roadmap-email-automation",
