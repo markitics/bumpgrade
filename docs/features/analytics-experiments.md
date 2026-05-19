@@ -1,16 +1,18 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, and #125 add the first analytics and
-experimentation contract, the first privacy-safe event capture path, the first
-deterministic experiment assignment path, the first aggregate funnel conversion
-report, the first browser-side funnel page-view beacon, and the first aggregate
-variant and source attribution page-view evidence for issue #18.
+Issues #87, #105, #107, #119, #121, #123, #125, and #127 add the first
+analytics and experimentation contract, the first privacy-safe event capture
+path, the first deterministic experiment assignment path, the first aggregate
+funnel conversion report, the first browser-side funnel page-view beacon, the
+first aggregate variant and source attribution page-view evidence, and the first
+dashboard-visible source attribution breakdown for issue #18.
 
 ## Live Routes
 
 - `/analytics/source-data`: public-safe JSON for the seeded analytics dashboard.
 - `/analytics/indie-launch-dashboard`: crawlable preview for funnel metrics and
-  A/B assignment semantics.
+  A/B assignment semantics, with a browser-hydrated aggregate source attribution
+  panel.
 - `/api/analytics/events`: public POST endpoint for seeded analytics events.
 - `/api/analytics/assignments`: public POST endpoint for seeded experiment
   assignments.
@@ -33,6 +35,7 @@ The first dashboard includes stable IDs for:
   counts, aggregate source attribution counts, seeded event ingestion
   boundaries, and seeded assignment boundaries.
 - browser-side page-view beacon boundaries.
+- dashboard-visible source attribution breakdowns.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -54,11 +57,11 @@ statistical significance.
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, event capture boundary,
-page-view beacon boundary, aggregate source attribution evidence, aggregate
-variant evidence, assignment boundary, and aggregate conversion report rows to
-understand analytics and experiment semantics. Direct agent analytics writes,
-custom events, raw campaign/referrer reporting, tracking cookies, experiment
-traffic routing, reporting decisions, or revenue claims require authenticated
-confirmed-write APIs with actor identity, privacy review, idempotency,
-stale-state checks, audit correlation, redaction, retention limits, and
-sample-size caveats.
+page-view beacon boundary, dashboard-visible aggregate source attribution
+evidence, aggregate variant evidence, assignment boundary, and aggregate
+conversion report rows to understand analytics and experiment semantics. Direct
+agent analytics writes, custom events, raw campaign/referrer reporting, tracking
+cookies, experiment traffic routing, reporting decisions, or revenue claims
+require authenticated confirmed-write APIs with actor identity, privacy review,
+idempotency, stale-state checks, audit correlation, redaction, retention limits,
+and sample-size caveats.

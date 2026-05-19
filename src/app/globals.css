@@ -1071,6 +1071,97 @@ h3 {
   min-height: 250px;
 }
 
+.source-attribution-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.source-attribution-summary,
+.source-attribution-empty,
+.source-attribution-table {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.source-attribution-summary {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 210px;
+  padding: 18px;
+}
+
+.source-attribution-summary svg {
+  width: 30px;
+  height: 30px;
+  color: var(--green);
+}
+
+.source-attribution-summary strong {
+  display: block;
+  font-size: 42px;
+  line-height: 1;
+}
+
+.source-attribution-summary span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.source-attribution-summary p,
+.source-attribution-empty span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.source-attribution-table {
+  overflow: hidden;
+}
+
+.source-attribution-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(150px, 1.3fr) minmax(120px, 1fr) 72px;
+  gap: 12px;
+  align-items: center;
+  min-height: 58px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+}
+
+.source-attribution-row:first-child {
+  border-top: 0;
+}
+
+.source-attribution-row.heading {
+  min-height: 42px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.source-attribution-row strong,
+.source-attribution-row span {
+  overflow-wrap: anywhere;
+}
+
+.source-attribution-row span {
+  color: var(--muted);
+}
+
+.source-attribution-empty {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 210px;
+  padding: 18px;
+}
+
 .feature-card-top {
   display: flex;
   align-items: center;
@@ -2131,6 +2222,7 @@ h3 {
   .feature-grid,
   .live-feature-grid,
   .feature-proof-grid,
+  .source-attribution-panel,
   .roadmap-grid,
   .roadmap-proof-grid,
   .admin-action-grid {
@@ -2202,6 +2294,7 @@ h3 {
   .feature-grid,
   .live-feature-grid,
   .feature-proof-grid,
+  .source-attribution-panel,
   .roadmap-grid,
   .roadmap-lane-strip,
   .roadmap-proof-grid,
@@ -2239,6 +2332,25 @@ h3 {
 
   .admin-step-editor-heading {
     flex-direction: column;
+  }
+
+  .source-attribution-row,
+  .source-attribution-row.heading {
+    grid-template-columns: 1fr;
+  }
+
+  .source-attribution-row.heading {
+    display: none;
+  }
+
+  .source-attribution-row [role="cell"]::before {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--gold);
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
   }
 
   .post-purchase-layout {

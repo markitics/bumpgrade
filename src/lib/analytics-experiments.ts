@@ -109,7 +109,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
   slug: "indie-launch-dashboard",
   title: "Indie launch analytics and experiment preview",
   status: "draft",
-  issue: 125,
+  issue: 127,
   parentIssue: 18,
   sourceDataRoute: "/analytics/source-data",
   previewRoute: "/analytics/indie-launch-dashboard",
@@ -117,9 +117,9 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAudienceRoute: "/audience/indie-launch-waitlist",
   linkedProductRoute: "/products/indie-launch-library",
-  revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-source-attribution",
+  revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-dashboard-source-attribution",
   summary:
-    "A privacy-safe analytics and experiment scaffold for aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
+    "A privacy-safe analytics and experiment scaffold for aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, dashboard-visible source attribution, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
   events: [
     {
       id: "event-funnel-page-view",
@@ -297,10 +297,11 @@ export const analyticsDashboard: AnalyticsDashboard = {
     },
   ],
   writeBoundary:
-    "Issues #105, #107, #119, #121, #123, and #125 can capture seeded analytics events, assign seeded experiment variants, report aggregate funnel conversion rows, and record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, and aggregate-only public reporting. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, experiment traffic routing, dashboard decisions, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+    "Issues #105, #107, #119, #121, #123, #125, and #127 can capture seeded analytics events, assign seeded experiment variants, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, and record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, and aggregate-only public reporting. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, experiment traffic routing, dashboard decisions, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
   validation: [
     "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, and experiment definitions.",
     "/analytics/indie-launch-dashboard renders the analytics and experiment preview.",
+    "/analytics/indie-launch-dashboard renders aggregate source attribution rows when captured source evidence exists.",
     `${analyticsEventCaptureApiRoute} stores seeded analytics event capture evidence with idempotency.`,
     `${analyticsFunnelPageViewBeaconContract.sourceRoute} emits a session-idempotent seeded page-view beacon through ${analyticsFunnelPageViewBeaconContract.apiRoute} with deterministic variant evidence from ${analyticsFunnelPageViewBeaconContract.assignmentApiRoute} and normalized source attribution when URL/referrer evidence is present.`,
     `${analyticsExperimentAssignmentApiRoute} stores seeded experiment assignment evidence with idempotency.`,
@@ -318,8 +319,8 @@ export function getAnalyticsDashboardBySlug(slug: string) {
 export const analyticsExperimentsSourceData = {
   id: "bumpgrade-analytics-experiments-source-data",
   updatedAt: analyticsExperimentsUpdatedAt,
-  status: "source-attributed-page-view-ready",
-  issue: 125,
+  status: "dashboard-source-attribution-ready",
+  issue: 127,
   parentIssue: 18,
   generatedFrom: "src/lib/analytics-experiments.ts",
   routes: [
@@ -355,5 +356,5 @@ export const analyticsExperimentsSourceData = {
   writeBoundary: analyticsDashboard.writeBoundary,
   dashboards: analyticsDashboards,
   caveat:
-    "This contract proves analytics, reporting, experiment read/preview semantics, privacy-safe seeded event capture, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, deterministic seeded assignment, and aggregate funnel conversion reporting. Public source-data may expose aggregate event, source, variant, assignment, and conversion-report counts, but it does not expose raw event rows, raw assignment rows, raw visitor keys, full referrer URLs, raw query strings, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct confirmed-write agent APIs.",
+    "This contract proves analytics, reporting, experiment read/preview semantics, dashboard-visible aggregate source attribution, privacy-safe seeded event capture, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, deterministic seeded assignment, and aggregate funnel conversion reporting. Public source-data may expose aggregate event, source, variant, assignment, and conversion-report counts, but it does not expose raw event rows, raw assignment rows, raw visitor keys, full referrer URLs, raw query strings, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct confirmed-write agent APIs.",
 };

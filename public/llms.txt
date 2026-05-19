@@ -140,8 +140,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
   analytics event API, with deterministic variant evidence, normalized
-  UTM/source attribution, and server-side bot and preview suppression. Treat it
-  as seeded event capture, seeded page-view beacon, seeded assignment, and
+  UTM/source attribution, and server-side bot and preview suppression. The
+  analytics dashboard preview renders aggregate source attribution rows from
+  the same public-safe source-data. Treat it as seeded event capture, seeded
+  page-view beacon, seeded assignment, dashboard-visible aggregate evidence, and
   aggregate/source-data evidence, not cookie assignment, traffic routing,
   contact-level analytics, raw referrer/query exposure, raw event or assignment
   exposure, automated decisions, direct agent analytics writes, or statistically

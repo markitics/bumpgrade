@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, ArrowRight, BarChart3, Database, FlaskConical, ShieldCheck } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Database, FlaskConical, MapPinned, ShieldCheck } from "lucide-react";
 
 import { AnalyticsConversionReportPanel } from "@/components/analytics-conversion-report-panel";
+import { AnalyticsSourceAttributionPanel } from "@/components/analytics-source-attribution-panel";
 import { analyticsFunnelConversionFallbackReport } from "@/lib/analytics-conversion-report";
 import {
   analyticsDashboards,
@@ -164,6 +165,20 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
       </section>
 
       <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Source attribution</p>
+            <h2>Source attribution stays aggregate-only</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Source data
+            <MapPinned aria-hidden="true" />
+          </Link>
+        </div>
+        <AnalyticsSourceAttributionPanel />
+      </section>
+
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Experiment model</p>

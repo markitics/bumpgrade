@@ -160,12 +160,14 @@ validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
 emits a browser-side `event-funnel-page-view` beacon with session-scoped
 idempotency, deterministic variant evidence from the seeded assignment API,
 normalized UTM/source attribution when available, and server-side bot/preview
-suppression. Aggregate conversion rows are computed from captured test events
-when samples exist. This proves seeded event, page-view beacon, aggregate source,
-aggregate variant, assignment, and reporting semantics, not cookie assignment,
-traffic routing, contact-level reporting, raw referrer/query exposure, raw event
-or assignment exposure, automated decisions, direct agent analytics writes, or
-statistically meaningful proof.
+suppression. `/analytics/indie-launch-dashboard` renders aggregate source
+attribution rows from the same source-data contract. Aggregate conversion rows
+are computed from captured test events when samples exist. This proves seeded
+event, page-view beacon, dashboard-visible aggregate source, aggregate variant,
+assignment, and reporting semantics, not cookie assignment, traffic routing,
+contact-level reporting, raw referrer/query exposure, raw event or assignment
+exposure, automated decisions, direct agent analytics writes, or statistically
+meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,

@@ -241,9 +241,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #121 adds a session-idempotent funnel page-view beacon with bot and preview suppression.",
       "Issue #123 attaches deterministic seeded assignment evidence to funnel page-view events and exposes aggregate variant counts.",
       "Issue #125 attaches normalized UTM/source attribution to funnel page-view events and exposes aggregate source counts.",
+      "Issue #127 renders aggregate source attribution rows in the analytics dashboard preview.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, aggregate source attribution evidence, aggregate variant evidence, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, raw referrer/query reporting, experiment routing, and automated decisions require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, aggregate variant evidence, assignment boundaries, and funnel conversion report rows with sample-size caveats; direct agent analytics writes, custom events, contact analytics, raw referrer/query reporting, experiment routing, and automated decisions require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",
