@@ -21,6 +21,7 @@ import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "../src/lib/mobile-admin-ios";
 import { customerProductEntitlementLookupSummary } from "../src/lib/customer-product-entitlements";
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
+import { productDownloadTokenSummary } from "../src/lib/product-download-tokens";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -243,6 +244,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/products/indie-launch-library");
     expect(sitemapXml).toContain("https://bumpgrade.com/products/entitlements");
     expect(sitemapXml).toContain("https://bumpgrade.com/api/products/entitlements");
+    expect(sitemapXml).toContain("https://bumpgrade.com/api/products/download-tokens");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
@@ -468,6 +470,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/products/indie-launch-library",
         "/products/entitlements",
         "/api/products/entitlements",
+        "/api/products/download-tokens",
       ]),
     );
     expect(payload.entitlementWrites).toEqual(
@@ -503,6 +506,23 @@ test.describe("Bumpgrade scaffold", () => {
           buyerEmailHashIncluded: false,
           rawStripeIdsIncluded: false,
           sourceStripeEventIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.sandboxDownloadTokens).toEqual(
+      expect.objectContaining({
+        id: productDownloadTokenSummary.id,
+        status: "sandbox-download-tokens-ready",
+        issue: 143,
+        apiRoute: "/api/products/download-tokens",
+        downloadRoutePrefix: "/api/products/downloads",
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
           rawR2KeysIncluded: false,
           signedUrlsIncluded: false,
           metadataJsonIncluded: false,
@@ -594,13 +614,78 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.entitlements).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ productTitle: "Launch bundle", fulfillment: expect.objectContaining({ status: "queued" }) }),
+        expect.objectContaining({
+          productTitle: "Launch bundle",
+          fulfillment: expect.objectContaining({ status: "queued" }),
+          downloadDelivery: expect.objectContaining({
+            available: true,
+            assetId: "asset-launch-checklist-pdf",
+            privateR2KeysIncluded: false,
+            signedUrlsIncluded: false,
+          }),
+        }),
         expect.objectContaining({
           productTitle: "Launch checklist download",
           fulfillment: expect.objectContaining({ status: "queued" }),
+          downloadDelivery: expect.objectContaining({
+            available: true,
+            assetId: "asset-launch-checklist-pdf",
+            privateR2KeysIncluded: false,
+            signedUrlsIncluded: false,
+          }),
         }),
       ]),
     );
+    const downloadable = payload.entitlements.find(
+      (entitlement: { downloadDelivery?: { available?: boolean } }) => entitlement.downloadDelivery?.available,
+    ) as { id: string } | undefined;
+    expect(downloadable).toEqual(expect.objectContaining({ id: expect.stringMatching(/^entitlement-/) }));
+    if (!downloadable) throw new Error("Expected at least one downloadable entitlement.");
+
+    const token = await request.post("/api/products/download-tokens", {
+      data: {
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: downloadable.id,
+      },
+    });
+    expect(token.status(), await token.text()).toBe(201);
+    const tokenPayload = await token.json();
+    expect(tokenPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "sandbox-download-tokens-ready",
+        issue: 143,
+        token: expect.stringMatching(/^download-token-/),
+        downloadUrl: expect.stringContaining("/api/products/downloads?token=download-token-"),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
+    const tokenText = JSON.stringify(tokenPayload);
+    expect(tokenText).not.toContain(buyerEmail);
+    expect(tokenText).not.toContain(grant.eventId);
+    expect(tokenText).not.toContain("cs_test");
+    expect(tokenText).not.toContain("r2://");
+
+    const download = await request.get(tokenPayload.downloadUrl);
+    expect(download.ok(), await download.text()).toBeTruthy();
+    expect(download.headers()["content-disposition"]).toContain("asset-launch-checklist-pdf.txt");
+    expect(download.headers()["x-bumpgrade-redaction"]).toContain("private-r2-keys=false");
+    const downloadText = await download.text();
+    expect(downloadText).toContain("Bumpgrade sandbox download");
+    expect(downloadText).toContain("No private R2 object key or signed object URL is exposed.");
+    expect(downloadText).not.toContain(buyerEmail);
+    expect(downloadText).not.toContain(grant.eventId);
+
+    const replay = await request.get(tokenPayload.downloadUrl);
+    expect(replay.status()).toBe(410);
+
     const payloadText = JSON.stringify(payload);
     expect(payloadText).not.toContain(buyerEmail);
     expect(payloadText).not.toContain(grant.eventId);
@@ -2197,12 +2282,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141],
+          issueNumbers: [16, 83, 101, 139, 141, 143],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -2426,6 +2511,11 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "read-customer-product-entitlements",
           route: "/api/products/entitlements",
+          auth: "public",
+        }),
+        expect.objectContaining({
+          id: "create-sandbox-product-download-token",
+          route: "/api/products/download-tokens",
           auth: "public",
         }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
