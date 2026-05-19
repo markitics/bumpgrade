@@ -226,7 +226,7 @@ function emptySummary(source: AudienceInspectionSummary["source"], loadError: st
       "metadataJson",
     ],
     writeBoundary:
-      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Issue #167 records unsubscribe/suppression evidence and marks known subscribers unsubscribed without public list-membership leakage. Issue #169 lets owners create private CRM timeline notes while public source-data exposes aggregate counts only. Imports, sends, broadcasts, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
+      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Issue #167 records unsubscribe/suppression evidence and marks known subscribers unsubscribed without public list-membership leakage. Issue #169 lets owners create private CRM timeline notes while public source-data exposes aggregate counts only. Issue #171 calculates suppression-aware broadcast readiness without creating send queues. Imports, sends, broadcast scheduling, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
   };
 }
 

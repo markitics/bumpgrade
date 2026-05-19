@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, MailCheck, MailX, NotebookPen, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
+import { ArrowRight, Database, MailCheck, MailX, NotebookPen, Send, ShieldCheck, Tags, UsersRound, Workflow } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
+import { getAudienceBroadcastReadinessSummary } from "@/lib/audience-broadcasts";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -29,7 +30,10 @@ export default async function AdminAudiencePage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/audience" />;
 
-  const state = await getAdminAudienceInspectionState();
+  const [state, broadcastReadiness] = await Promise.all([
+    getAdminAudienceInspectionState(),
+    getAudienceBroadcastReadinessSummary(),
+  ]);
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-audience-page">
@@ -39,8 +43,8 @@ export default async function AdminAudiencePage() {
           <h1>Subscriber inspection without public contact leaks.</h1>
           <p className="lede">
             Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
-            unsubscribe suppression totals, and private CRM timeline notes created by audience APIs. Public source-data
-            stays aggregate-only.
+            unsubscribe suppression totals, private CRM timeline notes, and broadcast readiness created by audience APIs.
+            Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -94,6 +98,85 @@ export default async function AdminAudiencePage() {
               {compactDate(state.lastTimelineAt)}.
             </p>
           </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Broadcast readiness</h3>
+            <p>
+              {broadcastReadiness.counts.readyRecipients} ready recipients;{" "}
+              {broadcastReadiness.counts.suppressedRecipients +
+                broadcastReadiness.counts.unsubscribedRecipients +
+                broadcastReadiness.counts.missingConsentRecipients}{" "}
+              held before any send queue exists.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Broadcast readiness</p>
+            <h2>Draft sends stay blocked until readiness is explicit</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/171" className="text-link compact-link">
+            Issue #171
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastReadiness.drafts.length > 0 ? (
+            broadcastReadiness.drafts.map((draft) => (
+              <article key={draft.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge pending">{draft.status}</span>
+                  <span className="admin-pill">{draft.readyRecipientCount} ready</span>
+                </div>
+                <h3>{draft.title}</h3>
+                <p>{draft.subjectIntent}</p>
+                <div className="roadmap-detail">
+                  <strong>Audience scope</strong>
+                  <span>{draft.audienceScope}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Suppression policy</strong>
+                  <span>{draft.suppressionPolicy}</span>
+                </div>
+                <div className="admin-step-list" aria-label={`${draft.title} broadcast readiness`}>
+                  <div className="admin-step-editor">
+                    <div className="admin-step-editor-heading">
+                      <div>
+                        <span>Readiness</span>
+                        <strong>{draft.readyRecipientCount} eligible</strong>
+                        <p>
+                          {draft.excludedBySuppressionCount} suppressed, {draft.excludedByUnsubscribeCount} unsubscribed,{" "}
+                          {draft.excludedByMissingConsentCount} missing consent. No send queue rows or provider message IDs
+                          are created in this slice.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="admin-step-editor">
+                    <div className="admin-step-editor-heading">
+                      <div>
+                        <span>Approval</span>
+                        <strong>Owner confirmation required later</strong>
+                        <p>{draft.approvalBoundary}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No draft</span>
+                <span className="admin-pill">Issue #171</span>
+              </div>
+              <h3>No broadcast readiness rows</h3>
+              <p>{broadcastReadiness.loadError ?? "Run the audience broadcast readiness migration to seed the draft."}</p>
+            </article>
+          )}
         </div>
       </section>
 

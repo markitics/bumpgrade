@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, and #169 add the first audience automation
+Issues #85, #103, #137, #167, #169, and #171 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
-inspection, public-safe unsubscribe/suppression evidence, and owner-only CRM
-timeline notes for issue #17.
+inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
+timeline notes, and broadcast draft readiness for issue #17.
 
 ## Live Routes
 
@@ -15,7 +15,8 @@ timeline notes for issue #17.
 - `/api/admin/audience/notes`: owner-gated POST endpoint for private CRM
   timeline notes.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
-  enrollment inspection plus suppression totals and private note context.
+  enrollment inspection plus suppression totals, private note context, and
+  broadcast readiness.
 
 ## Current Contract
 
@@ -31,6 +32,7 @@ The first workspace includes stable IDs for:
 - subscriber, consent, tag assignment, and draft sequence enrollment write boundaries;
 - unsubscribe/suppression write boundaries;
 - owner-only CRM timeline note write boundaries;
+- suppression-aware broadcast readiness boundaries;
 - public-safe aggregate subscriber, suppression, and timeline inspection counts and
   redaction flags.
 
@@ -44,9 +46,12 @@ broadcasts, expose private contact metadata, or create CRM timeline entries.
 
 The current owner admin path can inspect recent subscribers, source forms, active
 tags, consent counts, draft sequence enrollments, suppression totals, and private
-CRM timeline notes from D1. The public `/audience/source-data` route exposes
-only aggregate counts and redaction flags; email addresses, names, suppression
-hashes, unsubscribe reasons, private note bodies, actor emails, raw
+CRM timeline notes from D1. Issue #171 also stores the seeded broadcast draft in
+D1 and calculates readiness from subscriber status, consent evidence, and active
+suppression rows without creating send queue rows or provider message IDs. The
+public `/audience/source-data` route exposes only aggregate counts and redaction
+flags; email addresses, names, suppression hashes, unsubscribe reasons, private
+note bodies, actor emails, provider message IDs, send queue payloads, raw
 IP/user-agent evidence, and private metadata remain excluded from public
 agent-readable JSON.
 
@@ -54,14 +59,15 @@ agent-readable JSON.
 
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
-state, including aggregate suppression counts and the unsubscribe write boundary.
+state, including aggregate suppression counts, broadcast readiness counts, and
+the unsubscribe write boundary.
 Owner sessions can inspect private contact rows and create private CRM notes in
-`/admin/audience`. Direct agent subscriber writes, imports, email sends,
-broadcast scheduling, CRM automation, private exports, or suppression-list
-administration require future authenticated confirmed-write APIs with actor
-identity, explicit consent or lawful basis, idempotency, audit correlation,
-stale-state checks, redaction, suppression-list checks, and sender-domain
-safety.
+`/admin/audience`, plus inspect broadcast readiness. Direct agent subscriber
+writes, imports, email sends, broadcast scheduling, CRM automation, private
+exports, or suppression-list administration require future authenticated
+confirmed-write APIs with actor identity, explicit consent or lawful basis,
+idempotency, audit correlation, stale-state checks, redaction, suppression-list
+checks, and sender-domain safety.
 
 Codex project email in issue #10 is separate from customer or publisher email
 automation in issue #17.

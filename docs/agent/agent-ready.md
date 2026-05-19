@@ -188,17 +188,19 @@ contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
 email sequences, broadcast drafts, automation rules, the
 `/api/audience/opt-in` write boundary, the `/api/audience/unsubscribe`
 unsubscribe/suppression boundary, the owner-gated `/api/admin/audience/notes`
-CRM note boundary, and aggregate subscriber/suppression/timeline inspection
-redaction flags. `/audience/indie-launch-waitlist` can capture
+CRM note boundary, suppression-aware broadcast readiness, and aggregate
+subscriber/suppression/timeline inspection redaction flags.
+`/audience/indie-launch-waitlist` can capture
 explicit-consent waitlist opt-ins, normalize the submitted email, assign seeded
 tags, record draft sequence enrollment evidence, and record an unsubscribe
 preference without revealing list membership. `/admin/audience` lets verified
 owners inspect private subscriber rows, consent counts, active tags, draft
-sequence enrollments, suppression totals, and private CRM timeline notes from
-D1. This proves seeded subscriber capture, unsubscribe evidence, owner
-inspection, and private owner-note semantics, not contact import, live email
-sending, CRM automation, private export, suppression-list administration, or
-direct agent subscriber write capability.
+sequence enrollments, suppression totals, private CRM timeline notes, and
+broadcast readiness from D1. This proves seeded subscriber capture, unsubscribe
+evidence, owner inspection, private owner-note semantics, and aggregate
+broadcast readiness, not contact import, live email sending, send queues, CRM
+automation, private export, suppression-list administration, or direct agent
+subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
 for seeded event definitions, aggregate event counts, aggregate source
