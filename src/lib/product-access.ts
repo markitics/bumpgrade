@@ -304,13 +304,13 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, and issue #146 can stream a seeded private R2-backed fixture through Bumpgrade. Product creation, arbitrary private asset upload, signed object URLs, protected content, subscription access changes, refunds, revocations, live fulfillment automation, and direct agent writes require future authenticated confirmed-write APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, and issue #147 revalidates current entitlement and trusted checkout state before redemption. Product creation, arbitrary private asset upload, signed object URLs, protected content, subscription access changes, refunds, revocations, live fulfillment automation, and direct agent writes require future authenticated confirmed-write APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
     "/products/entitlements renders checkout-intent-scoped customer entitlement lookup.",
     "/api/products/download-tokens creates short-lived download tokens for active file entitlements.",
-    "/api/products/downloads?token={token} streams the seeded private R2 fixture once and rejects token replay.",
+    "/api/products/downloads?token={token} revalidates current entitlement and trusted checkout state, streams the seeded private R2 fixture once, and rejects token replay.",
     "/api/stripe/webhook grants idempotent sandbox entitlements after trusted paid checkout evidence.",
     "/agent-docs/source-data lists the product access read contract for future MCP resources.",
   ],

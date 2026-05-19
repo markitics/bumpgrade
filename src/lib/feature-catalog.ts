@@ -183,6 +183,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Customer-safe checkout intent entitlement lookup from issue #141.",
       "One-use download tokens for active file entitlements from issue #143.",
       "Seeded private R2-backed fixture delivery through Bumpgrade from issue #146.",
+      "Redemption-time current entitlement and trusted checkout state revalidation from issue #147.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -196,9 +197,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
       "Issue #143 adds one-use download tokens for active file entitlements without exposing private R2 keys or signed object URLs.",
       "Issue #146 streams a seeded private R2-backed fixture through Bumpgrade without exposing private object keys or signed URLs.",
+      "Issue #147 rejects stale redemption when current entitlement or trusted checkout state is no longer eligible.",
     ],
     agentContract:
-      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries, and entitlement grant boundaries; private customer identity, arbitrary private asset storage, revocation, and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, and entitlement grant boundaries; private customer identity, arbitrary private asset storage, revocation, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

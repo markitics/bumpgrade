@@ -136,8 +136,10 @@ infer private buyer rows. Issue #141 adds `/products/entitlements` and
 buyer emails, hashes, raw Stripe IDs, event IDs, metadata JSON, private R2 keys,
 or signed URLs. Issue #143 adds one-use download tokens for active file
 entitlements. Issue #146 streams a seeded private R2-backed fixture through
-Bumpgrade without exposing object keys or signed URLs. Protected content,
-arbitrary asset uploads, revocation,
+Bumpgrade without exposing object keys or signed URLs. Issue #147 revalidates
+current entitlement status, checkout intent linkage, trusted checkout state, and
+asset scope before token redemption. Protected content, arbitrary asset uploads,
+revocation,
 subscription access changes, refunds, customer portals, and direct agent
 entitlement writes still need future confirmed-write APIs.
 

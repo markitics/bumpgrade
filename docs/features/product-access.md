@@ -31,7 +31,8 @@ Live in this slice:
 - `/api/products/download-tokens`: creates short-lived download tokens
   for active file entitlements.
 - `/api/products/downloads?token={token}`: consumes a token once and streams the
-  seeded private R2-backed fixture through Bumpgrade.
+  seeded private R2-backed fixture through Bumpgrade after revalidating current
+  entitlement and trusted checkout state.
 - Agent manifest entries for reading product/access state and future MCP
   resources.
 
@@ -49,8 +50,11 @@ Public redaction boundary:
   plus redaction flags and the customer lookup contract.
 - `/api/products/entitlements` exposes customer-safe entitlement and fulfillment
   status for a known checkout intent only.
-- `/api/products/download-tokens` and `/api/products/downloads?token={token}` expose token
-  status and stream a seeded private fixture without private object keys or signed object URLs.
+- `/api/products/download-tokens` and `/api/products/downloads?token={token}`
+  expose token status and stream a seeded private fixture without private object
+  keys or signed object URLs. Redemption revalidates current entitlement status,
+  checkout intent linkage, trusted checkout state, and asset scope before the
+  private R2 read or token consumption.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   private R2 object keys, and signed URLs remain server-private.
 

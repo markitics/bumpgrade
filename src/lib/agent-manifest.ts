@@ -324,10 +324,10 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Create a short-lived download token for an active checkout-linked file entitlement",
       "Confirm private R2-backed fixture delivery does not expose private R2 keys or signed object URLs",
-      "Inspect token expiry, one-use replay rejection, and entitlement scope",
+      "Inspect token expiry, one-use replay rejection, entitlement scope, and current checkout-state revalidation",
     ],
     writeBoundary:
-      "This creates a short-lived token and streams a seeded private R2-backed fixture through Bumpgrade; protected content, arbitrary asset uploads, revocation, subscription access, and live fulfillment automation require future authenticated confirmed-write APIs.",
+      "This creates a short-lived token and streams a seeded private R2-backed fixture through Bumpgrade after revalidating current entitlement status, checkout intent linkage, trusted checkout state, and asset scope; protected content, arbitrary asset uploads, revocation, subscription access, and live fulfillment automation require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-admin-product-entitlements",
@@ -778,7 +778,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, and fulfillment boundaries.",
     safetyBoundary:
       "Read-only; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade, while private owner rows, entitlement writes, arbitrary asset uploads, subscription access changes, and fulfillment actions require owner auth or confirmed-write contracts.",
   },
