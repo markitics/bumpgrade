@@ -14,6 +14,14 @@ type AnalyticsAggregateRow = {
   last_event_at: number | null;
 };
 
+type AnalyticsVariantAggregateRow = {
+  event_definition_id: string;
+  source_route: string;
+  variant_id: string;
+  total_events: number;
+  last_event_at: number | null;
+};
+
 type AnalyticsAssignmentAggregateRow = {
   experiment_id: string;
   variant_id: string;
@@ -32,6 +40,7 @@ async function loadEventSummary(db: D1Database | undefined) {
     return {
       status: "unavailable",
       aggregateCounts: [],
+      aggregateVariantCounts: [],
       rawRowsIncluded: false,
       privateDataIncluded: false,
     };
@@ -50,10 +59,25 @@ async function loadEventSummary(db: D1Database | undefined) {
        ORDER BY event_definition_id`,
     )
     .all<AnalyticsAggregateRow>();
+  const variantResult = await db
+    .prepare(
+      `SELECT
+        event_definition_id,
+        source_route,
+        variant_id,
+        COUNT(*) AS total_events,
+        MAX(occurred_at) AS last_event_at
+       FROM analytics_events
+       WHERE variant_id IS NOT NULL
+       GROUP BY event_definition_id, source_route, variant_id
+       ORDER BY event_definition_id, variant_id`,
+    )
+    .all<AnalyticsVariantAggregateRow>();
 
   return {
     status: "available",
     aggregateCounts: result.results ?? [],
+    aggregateVariantCounts: variantResult.results ?? [],
     rawRowsIncluded: false,
     privateDataIncluded: false,
   };

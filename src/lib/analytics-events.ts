@@ -3,6 +3,7 @@ export const analyticsEventCaptureUpdatedAt = "2026-05-19";
 export const analyticsEventCaptureApiRoute = "/api/analytics/events";
 
 export const analyticsFunnelPageViewBeaconIssue = 121;
+export const analyticsFunnelPageViewVariantIssue = 123;
 
 export const analyticsEventCaptureWriteContract = {
   id: "analytics-event-capture-contract",
@@ -36,15 +37,26 @@ export const analyticsEventCaptureWriteContract = {
 
 export const analyticsFunnelPageViewBeaconContract = {
   id: "analytics-funnel-page-view-beacon-contract",
-  status: "page-view-beacon-ready",
-  issue: analyticsFunnelPageViewBeaconIssue,
+  status: "variant-linked-page-view-beacon-ready",
+  issue: analyticsFunnelPageViewVariantIssue,
   parentIssue: 18,
   sourceRoute: "/funnels/indie-launch-sandbox",
   apiRoute: analyticsEventCaptureApiRoute,
+  assignmentApiRoute: "/api/analytics/assignments",
   eventDefinitionId: "event-funnel-page-view",
+  experimentId: "experiment-opt-in-hero-promise",
   storage: "sessionStorage-scoped idempotency and anonymous key only; no cookie assignment",
   suppressedTraffic: ["known bot user agents", "known crawler user agents", "explicit preview/test suppression flags"],
-  publicSafeFields: ["route", "funnelId", "stepId", "eventDefinitionId", "sourceRoute", "status", "duplicate"],
+  publicSafeFields: [
+    "route",
+    "funnelId",
+    "stepId",
+    "variantId",
+    "eventDefinitionId",
+    "sourceRoute",
+    "status",
+    "duplicate",
+  ],
   serverPrivateFields: [
     "anonymous session key before hashing",
     "raw IP address",
@@ -54,7 +66,7 @@ export const analyticsFunnelPageViewBeaconContract = {
     "contact identifiers",
   ],
   writeBoundary:
-    "Issue #121 records a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API. It does not create cookies, route A/B traffic, expose raw visitors, assign contact identity, or make automated optimization decisions.",
+    "Issues #121 and #123 record a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API, and attach deterministic seeded variant evidence when assignment succeeds. It does not create cookies, route A/B traffic, expose raw visitors, assign contact identity, or make automated optimization decisions.",
 };
 
 export type AnalyticsEventCaptureDefinition = {

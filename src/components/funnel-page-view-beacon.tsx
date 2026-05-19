@@ -9,6 +9,7 @@ type FunnelBeaconStep = {
 
 type FunnelPageViewBeaconProps = {
   eventDefinitionId: string;
+  experimentId: string;
   sourceRoute: string;
   funnelId: string;
   steps: FunnelBeaconStep[];
@@ -16,6 +17,13 @@ type FunnelPageViewBeaconProps = {
 
 const anonymousStorageKey = "bumpgrade.analytics.anonymous-session.v1";
 const beaconStoragePrefix = "bumpgrade.analytics.funnel-page-view.v1";
+const assignmentStoragePrefix = "bumpgrade.analytics.assignment.v1";
+
+type AssignmentResponse = {
+  ok?: boolean;
+  status?: string;
+  variantId?: unknown;
+};
 
 function randomId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -50,17 +58,51 @@ function shouldSkipBeacon() {
   return params.get("bumpgrade_analytics") === "off" || params.get("preview") === "true";
 }
 
-export function FunnelPageViewBeacon({ eventDefinitionId, sourceRoute, funnelId, steps }: FunnelPageViewBeaconProps) {
+async function assignVariant(experimentId: string, sourceRoute: string, anonymousId: string) {
+  const idempotencyKey = sessionValue(`${assignmentStoragePrefix}.${experimentId}`, "experiment-assignment");
+  if (!idempotencyKey) return null;
+
+  try {
+    const response = await fetch("/api/analytics/assignments", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      keepalive: true,
+      body: JSON.stringify({
+        experimentId,
+        sourceRoute,
+        anonymousAssignmentKey: anonymousId,
+        idempotencyKey,
+      }),
+    });
+    if (!response.ok) return null;
+    const result = (await response.json()) as AssignmentResponse;
+    return result.ok && typeof result.variantId === "string" ? result.variantId : null;
+  } catch {
+    return null;
+  }
+}
+
+export function FunnelPageViewBeacon({
+  eventDefinitionId,
+  experimentId,
+  sourceRoute,
+  funnelId,
+  steps,
+}: FunnelPageViewBeaconProps) {
   useEffect(() => {
     if (shouldSkipBeacon()) return undefined;
 
-    const recordCurrentStep = () => {
+    const recordCurrentStep = async () => {
       const step = stepForHash(steps);
       if (!step) return;
 
       const anonymousId = sessionValue(anonymousStorageKey, "anonymous-session");
       const idempotencyKey = sessionValue(`${beaconStoragePrefix}.${funnelId}.${step.stepId}`, "funnel-page-view");
       if (!anonymousId || !idempotencyKey) return;
+      const variantId = await assignVariant(experimentId, sourceRoute, anonymousId);
 
       void fetch("/api/analytics/events", {
         method: "POST",
@@ -78,6 +120,7 @@ export function FunnelPageViewBeacon({ eventDefinitionId, sourceRoute, funnelId,
             route: sourceRoute,
             funnelId,
             stepId: step.stepId,
+            ...(variantId ? { variantId } : {}),
           },
         }),
       }).catch(() => {
@@ -85,12 +128,15 @@ export function FunnelPageViewBeacon({ eventDefinitionId, sourceRoute, funnelId,
       });
     };
 
-    recordCurrentStep();
-    window.addEventListener("hashchange", recordCurrentStep);
-    return () => {
-      window.removeEventListener("hashchange", recordCurrentStep);
+    void recordCurrentStep();
+    const onHashChange = () => {
+      void recordCurrentStep();
     };
-  }, [eventDefinitionId, funnelId, sourceRoute, steps]);
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, [eventDefinitionId, experimentId, funnelId, sourceRoute, steps]);
 
   return null;
 }

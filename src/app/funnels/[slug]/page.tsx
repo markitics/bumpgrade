@@ -64,6 +64,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
     <main className="route-page">
       <FunnelPageViewBeacon
         eventDefinitionId="event-funnel-page-view"
+        experimentId="experiment-opt-in-hero-promise"
         sourceRoute={funnel.previewRoute}
         funnelId={funnel.id}
         steps={funnel.steps.map((step) => ({ stepId: step.id, routeAnchor: step.routeAnchor }))}
