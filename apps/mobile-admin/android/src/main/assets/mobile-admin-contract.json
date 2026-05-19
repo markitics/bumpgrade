@@ -1,15 +1,17 @@
 {
   "id": "bumpgrade-mobile-admin-contract",
   "updatedAt": "2026-05-19",
+  "publicBaseUrl": "https://bumpgrade.com",
   "parentIssue": 13,
   "status": "contract-ready",
   "featureId": "feature-mobile-admin",
   "stackDecision": "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
-  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, and issue #153 adds the live public-safe dashboard source-data contract. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
+  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
   "liveDashboard": {
     "id": "mobile-live-dashboard-source-data",
     "issue": 153,
     "renderedInScaffoldsIssue": 155,
+    "liveHydrationIssue": 157,
     "status": "live-public-source-data-ready",
     "route": "/mobile-admin/dashboard/source-data",
     "purpose": "Give iOS, Android, web, and agents one public-safe mobile dashboard payload summarizing features, roadmap state, work-log recency, attention counts, commerce contract state, and agent-readiness without exposing private admin data.",
@@ -29,10 +31,10 @@
       "platform": "ios",
       "issue": 67,
       "title": "Build first iOS publisher admin app slice",
-      "firstMilestone": "Render the mobile admin digest and live dashboard route from the generated source-data fixture in the Expo app scaffold and iOS simulator smoke target.",
+      "firstMilestone": "Render the mobile admin digest, fetch the live dashboard route, and preserve fixture fallback in the Expo app scaffold and iOS simulator smoke target.",
       "validation": [
         "Run npm run mobile:ios:validate to prove the fixture matches the shared contract and Xcode is available.",
-        "Run npm run mobile:ios:smoke to build, install, launch, and screenshot the iOS simulator target."
+        "Run npm run mobile:ios:smoke to build, install, launch, live-read/fallback hydrate, and screenshot the iOS simulator target."
       ],
       "status": "simulator-smoke-ready",
       "appPath": "apps/mobile-admin",
@@ -45,10 +47,10 @@
       "platform": "android",
       "issue": 68,
       "title": "Build first Android publisher admin app slice",
-      "firstMilestone": "Render the mobile admin digest and live dashboard route from the generated source-data fixture in a native Android activity and emulator smoke target.",
+      "firstMilestone": "Render the mobile admin digest, fetch the live dashboard route, and preserve fixture fallback in a native Android activity and emulator smoke target.",
       "validation": [
         "Run npm run mobile:android:validate to prove the fixture matches the shared contract and Android API 36 tooling is available.",
-        "Run npm run mobile:android:smoke to build, install, launch, and screenshot the Android emulator target."
+        "Run npm run mobile:android:smoke to build, install, launch, live-read/fallback hydrate, and screenshot the Android emulator target."
       ],
       "status": "emulator-smoke-ready",
       "appPath": "apps/mobile-admin",

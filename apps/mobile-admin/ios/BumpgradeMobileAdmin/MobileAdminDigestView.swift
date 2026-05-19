@@ -2,6 +2,12 @@ import SwiftUI
 
 struct MobileAdminDigestView: View {
     let contract: MobileAdminContract
+    @State private var dashboard: MobileDashboardViewModel
+
+    init(contract: MobileAdminContract) {
+        self.contract = contract
+        _dashboard = State(initialValue: MobileDashboardViewModel.fixture(contract.liveDashboard))
+    }
 
     private var iosSlice: MobilePlatformSlice? {
         contract.childIssues.first { $0.platform == "ios" }
@@ -23,6 +29,9 @@ struct MobileAdminDigestView: View {
             .background(Color(red: 0.96, green: 0.97, blue: 0.94))
             .navigationTitle("Bumpgrade")
             .navigationBarTitleDisplayMode(.inline)
+        }
+        .task {
+            await loadLiveDashboard()
         }
     }
 
@@ -72,15 +81,16 @@ struct MobileAdminDigestView: View {
                 .font(.caption.weight(.black))
                 .textCase(.uppercase)
                 .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
-            Text(contract.liveDashboard.route)
+            Text(dashboard.route)
                 .font(.title3.weight(.bold))
                 .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
-            Text(contract.liveDashboard.purpose)
+            Text(dashboard.purpose)
                 .font(.subheadline)
                 .lineSpacing(3)
                 .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
-            Detail(label: "Status", value: "\(contract.liveDashboard.status) · issue #\(contract.liveDashboard.issue)")
-            Detail(label: "Boundary", value: contract.liveDashboard.redactionBoundary)
+            Detail(label: "Status", value: "\(dashboard.status) · issue #\(dashboard.issue)")
+            Detail(label: "Source", value: dashboard.sourceLabel)
+            Detail(label: "Boundary", value: dashboard.boundary)
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -121,6 +131,24 @@ struct MobileAdminDigestView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(red: 0.08, green: 0.14, blue: 0.10).opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    @MainActor
+    private func loadLiveDashboard() async {
+        guard let url = URL(string: "\(contract.publicBaseUrl)\(contract.liveDashboard.route)") else {
+            return
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let httpResponse = response as? HTTPURLResponse, (200..<300).contains(httpResponse.statusCode) else {
+                return
+            }
+            let payload = try JSONDecoder().decode(MobileDashboardSourceData.self, from: data)
+            dashboard = MobileDashboardViewModel.live(payload, fallbackBoundary: contract.liveDashboard.redactionBoundary)
+        } catch {
+            dashboard = MobileDashboardViewModel.fixture(contract.liveDashboard)
+        }
     }
 }
 

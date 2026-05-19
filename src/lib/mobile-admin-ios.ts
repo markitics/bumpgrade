@@ -26,20 +26,22 @@ export const iosMobileAdminSourceData = {
   validationCommand: "npm run mobile:ios:validate",
   screenshotPath: iosSlice.screenshotPath ?? "/pr-screenshots/issue-67-ios-mobile-admin-simulator.png",
   dashboardPanelIssue: 155,
+  liveHydrationIssue: 157,
+  liveDashboardUrl: `${mobileAdminContract.publicBaseUrl}${mobileAdminContract.liveDashboard.route}`,
   reads: [
     {
       id: "ios-read-mobile-contract-fixture",
       route: "/mobile-admin/source-data",
       fixturePath: iosSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Expo entrypoint and iOS simulator target render the mobile admin digest plus the live dashboard route from the checked-in fixture generated from the shared source-data contract.",
+        "The Expo entrypoint and iOS simulator target render the mobile admin digest from the checked-in fixture generated from the shared source-data contract when live hydration is unavailable.",
     },
     {
-      id: "ios-read-live-mobile-dashboard-next",
+      id: "ios-read-live-mobile-dashboard",
       route: "/mobile-admin/dashboard/source-data",
       fixturePath: null,
       purpose:
-        "The next iOS app slice should fetch or hydrate from the live public-safe mobile dashboard contract while keeping the fixture as a simulator fallback.",
+        "The Expo entrypoint and iOS simulator target fetch the live public-safe mobile dashboard contract and distinguish live network hydration from fixture fallback.",
     },
     {
       id: "ios-read-admin-source-next",

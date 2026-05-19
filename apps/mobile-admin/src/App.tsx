@@ -1,7 +1,32 @@
 import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { iosSlice, mobileAdminContractFixture } from "./mobileAdminFixture";
+
+type LiveDashboardPayload = {
+  issue: number;
+  status: string;
+  route: string;
+  adminDigest?: {
+    counts?: {
+      roadmapItems?: number;
+      workLogEntries?: number;
+      userJourneys?: number;
+      openAttentionItems?: number;
+    };
+  };
+  redaction?: Record<string, boolean>;
+};
+
+type DashboardPanel = {
+  route: string;
+  purpose: string;
+  status: string;
+  issue: number;
+  sourceLabel: string;
+  boundary: string;
+};
 
 function Badge({ children }: { children: string }) {
   return (
@@ -11,9 +36,62 @@ function Badge({ children }: { children: string }) {
   );
 }
 
+function fixtureDashboardPanel(): DashboardPanel {
+  const dashboard = mobileAdminContractFixture.liveDashboard;
+  return {
+    route: dashboard.route,
+    purpose: dashboard.purpose,
+    status: dashboard.status,
+    issue: dashboard.issue,
+    sourceLabel: "Fixture fallback",
+    boundary: dashboard.redactionBoundary,
+  };
+}
+
+function liveDashboardPanel(payload: LiveDashboardPayload): DashboardPanel {
+  const counts = payload.adminDigest?.counts;
+  const countSummary = counts
+    ? `Roadmap ${counts.roadmapItems ?? 0}, work logs ${counts.workLogEntries ?? 0}, journeys ${counts.userJourneys ?? 0}, attention ${counts.openAttentionItems ?? 0}.`
+    : "Live public-safe dashboard payload loaded.";
+  const redactionValues = Object.values(payload.redaction ?? {});
+  const redactionSummary =
+    redactionValues.length > 0 && redactionValues.every((value) => value === false)
+      ? `Redaction: ${redactionValues.length} private-data flags false.`
+      : mobileAdminContractFixture.liveDashboard.redactionBoundary;
+  return {
+    route: payload.route,
+    purpose: countSummary,
+    status: payload.status,
+    issue: payload.issue,
+    sourceLabel: "Live network",
+    boundary: redactionSummary,
+  };
+}
+
 export default function App() {
   const jobs = mobileAdminContractFixture.jobs.slice(0, 3);
-  const dashboard = mobileAdminContractFixture.liveDashboard;
+  const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
+
+  useEffect(() => {
+    let cancelled = false;
+    const url = `${mobileAdminContractFixture.publicBaseUrl}${mobileAdminContractFixture.liveDashboard.route}`;
+
+    fetch(url)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Dashboard fetch returned ${response.status}`);
+        return (await response.json()) as LiveDashboardPayload;
+      })
+      .then((payload) => {
+        if (!cancelled) setDashboard(liveDashboardPanel(payload));
+      })
+      .catch(() => {
+        if (!cancelled) setDashboard(fixtureDashboardPanel());
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.shell}>
@@ -43,7 +121,8 @@ export default function App() {
           <Text style={styles.meta}>
             Status: {dashboard.status} · issue #{dashboard.issue}
           </Text>
-          <Text style={styles.meta}>Boundary: {dashboard.redactionBoundary}</Text>
+          <Text style={styles.meta}>Source: {dashboard.sourceLabel}</Text>
+          <Text style={styles.meta}>Boundary: {dashboard.boundary}</Text>
         </View>
 
         {jobs.map((job) => (
