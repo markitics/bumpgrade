@@ -1029,6 +1029,16 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(header.getByRole("link", { name: "Log in / sign up", exact: true })).toBeVisible();
   });
 
+  test("navigation does not server-render a false signed-out CTA before session hydration", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Server HTML is checked once on desktop.");
+
+    const response = await request.get("/admin/for-mark");
+    expect(response.ok()).toBeTruthy();
+    const html = await response.text();
+    expect(html).not.toContain('class="nav-cta"');
+    expect(html).toContain("Owner access is required");
+  });
+
   test("mobile menu exposes required high-level categories", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "Mobile menu is only checked on the mobile project.");
     await page.goto("/");
