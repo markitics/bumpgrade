@@ -99,10 +99,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   step edit/reorder and owner-gated private preview only, not public publishing,
   checkout integration, drag-and-drop visual editing, deletion, or an
   unconfirmed agent-write API.
-- `/offers/source-data` exposes the first read-only checkout offer stack with a
-  primary sandbox offer, order bump, upsell, and downsell. Treat it as
-  preview/source-data evidence, not live billing, one-click upsell charging,
-  fulfillment, order-bump mutation, or a confirmed-write agent API.
+- `/offers/source-data` exposes the checkout offer stack with a primary sandbox
+  offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
+  can start a confirmed sandbox checkout for the primary offer plus seeded order
+  bump after exact confirmation. Treat it as sandbox checkout-start evidence, not
+  live billing, one-click upsell charging, fulfillment, arbitrary order-bump
+  mutation, or a confirmed-write agent API.
 - `/products/source-data` exposes the first read-only product/access catalog
   with digital download, course, membership, service, event, and bundle records.
   Treat it as preview/source-data evidence, not private asset access, signed

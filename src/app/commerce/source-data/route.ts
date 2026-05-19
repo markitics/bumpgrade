@@ -9,6 +9,7 @@ import {
   stripeCommerceUpdatedAt,
   stripeNodeVersion,
 } from "@/lib/commerce";
+import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { checkoutConfirmationText, checkoutRoutes, sandboxCheckoutOffer } from "@/lib/sandbox-checkout";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,14 @@ export function GET() {
     tables: commerceTables,
     sandboxCheckout: {
       offer: sandboxCheckoutOffer,
+      orderBumps: checkoutOfferStack.orderBumps.map((offer) => ({
+        id: offer.id,
+        priceId: offer.priceId,
+        productId: offer.productId,
+        unitAmountCents: offer.unitAmountCents,
+        currency: offer.currency,
+      })),
+      supportsOrderBumps: true,
       routes: checkoutRoutes,
       confirmation: {
         required: true,

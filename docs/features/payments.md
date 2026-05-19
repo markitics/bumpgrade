@@ -25,17 +25,21 @@ Issue #34 adds the first sandbox-only checkout path:
   `price-bumpgrade-sandbox-launch-pass-usd`.
 
 This is not live billing parity. `STRIPE_ACTIVE_MODE` remains `sandbox`, live
-mode is rejected by the checkout route, and no customer-facing checkout button is
-published outside the smoke path.
+mode is rejected by the checkout route, and public checkout starts must still
+use exact confirmation plus the Bumpgrade redirect wrapper.
 
-Issue #81 adds the first read-only checkout-offer contract:
+Issue #81 adds the first checkout-offer contract and issue #99 adds the first
+confirmed sandbox checkout start with the seeded order bump:
 
 - `/offers/source-data` exposes a seeded primary offer, order bump, upsell, and
   downsell stack tied to the sandbox checkout contract.
-- `/offers/indie-launch-stack` previews that sequence for humans and browser
-  agents.
-- Order bump mutation, one-click upsell charging, fulfillment, and live billing
-  still require future confirmed-write APIs.
+- `/offers/indie-launch-stack` previews that sequence and includes the exact
+  confirmation form for starting a sandbox Checkout Session.
+- `/api/commerce/checkout` accepts the seeded `price-launch-checklist-bump-usd`
+  order bump in sandbox mode and returns a Bumpgrade redirect URL rather than a
+  raw Stripe URL when a Checkout Session is created.
+- Arbitrary order bump mutation, one-click upsell charging, fulfillment, and
+  live billing still require future confirmed-write APIs.
 
 Issue #83 adds the first read-only product/access contract:
 

@@ -17,10 +17,12 @@ import {
   type CommercePriceRow,
   type CommerceProductRow,
 } from "@/lib/sandbox-checkout";
+import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { createStripeClient, stripeModeFromEnv, stripeSecretKeyFromEnv } from "@/lib/stripe";
 
 type CheckoutRequestBody = {
   priceId?: string;
+  orderBumpPriceIds?: string[];
   buyerEmail?: string;
   confirmationText?: string;
   idempotencyKey?: string;
@@ -33,6 +35,12 @@ type CheckoutRequestBody = {
 type CheckoutRuntime = {
   db: D1Database;
   env: Cloudflare.Env;
+};
+
+type CheckoutItem = {
+  product: CommerceProductRow;
+  price: CommercePriceRow;
+  kind: "primary" | "order_bump";
 };
 
 const actorKind = "checkout_api";
@@ -66,17 +74,107 @@ async function loadSandboxOffer(db: D1Database, priceId = sandboxCheckoutPriceId
   return { product, price };
 }
 
-function safeOffer(product: CommerceProductRow, price: CommercePriceRow) {
+function checkoutOfferForPrice(priceId: string) {
+  if (priceId === sandboxCheckoutOffer.priceId) return { id: sandboxCheckoutOffer.id, title: sandboxCheckoutOffer.name };
+
+  const orderBump = checkoutOfferStack.orderBumps.find((offer) => offer.priceId === priceId);
+  if (orderBump) return { id: orderBump.id, title: orderBump.title };
+
+  return null;
+}
+
+function safeOffer(product: CommerceProductRow, price: CommercePriceRow, kind: CheckoutItem["kind"] = "primary") {
+  const sourceOffer = checkoutOfferForPrice(price.id);
+
   return {
-    id: sandboxCheckoutOffer.id,
+    id: sourceOffer?.id ?? product.id,
     productId: product.id,
     priceId: price.id,
-    name: product.name,
+    kind,
+    name: sourceOffer?.title ?? product.name,
     summary: product.description,
     currency: price.currency,
     unitAmountCents: price.unit_amount_cents,
     billingInterval: price.billing_interval,
     status: product.status,
+  };
+}
+
+function parseOrderBumpPriceIds(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return Array.from(
+    new Set(
+      value
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function allowedOrderBumpPriceIds() {
+  return checkoutOfferStack.orderBumps.map((offer) => offer.priceId);
+}
+
+function totalAmountCents(items: CheckoutItem[]) {
+  return items.reduce((total, item) => total + item.price.unit_amount_cents, 0);
+}
+
+function safeLineItems(items: CheckoutItem[]) {
+  return items.map((item) => safeOffer(item.product, item.price, item.kind));
+}
+
+async function loadCheckoutItems(db: D1Database, input: { primaryPriceId: string; orderBumpPriceIds: string[] }) {
+  const allowedBumpIds = allowedOrderBumpPriceIds();
+  const unsupportedBumpIds = input.orderBumpPriceIds.filter((priceId) => !allowedBumpIds.includes(priceId));
+
+  if (unsupportedBumpIds.length > 0) {
+    return {
+      ok: false as const,
+      status: 400,
+      code: "unsupported_order_bump",
+      message: "Only the seeded launch checklist order bump can be attached to this sandbox checkout.",
+    };
+  }
+
+  const primaryOffer = await loadSandboxOffer(db, input.primaryPriceId);
+  if (!primaryOffer) {
+    return {
+      ok: false as const,
+      status: 404,
+      code: "sandbox_offer_not_found",
+      message: "Sandbox checkout offer is not available.",
+    };
+  }
+
+  const orderBumpItems: CheckoutItem[] = [];
+  for (const priceId of input.orderBumpPriceIds) {
+    const orderBumpOffer = await loadSandboxOffer(db, priceId);
+    if (!orderBumpOffer) {
+      return {
+        ok: false as const,
+        status: 404,
+        code: "order_bump_not_seeded",
+        message: "Selected order bump is not seeded in Bumpgrade commerce tables.",
+      };
+    }
+    if (orderBumpOffer.price.currency !== primaryOffer.price.currency) {
+      return {
+        ok: false as const,
+        status: 409,
+        code: "order_bump_currency_mismatch",
+        message: "Selected order bump currency must match the primary sandbox offer.",
+      };
+    }
+    orderBumpItems.push({ ...orderBumpOffer, kind: "order_bump" });
+  }
+
+  return {
+    ok: true as const,
+    items: [{ ...primaryOffer, kind: "primary" as const }, ...orderBumpItems],
+    primary: primaryOffer,
+    selectedOrderBumpPriceIds: orderBumpItems.map((item) => item.price.id),
   };
 }
 
@@ -103,18 +201,22 @@ async function parseBody(request: NextRequest): Promise<CheckoutRequestBody> {
 }
 
 function previewResponse(input: {
-  product: CommerceProductRow;
-  price: CommercePriceRow;
+  items: CheckoutItem[];
   origin: string;
   reason: string;
   mode: string;
 }) {
+  const [primaryItem] = input.items;
+
   return NextResponse.json({
     ok: true,
     status: "preview",
     reason: input.reason,
     mode: input.mode,
-    offer: safeOffer(input.product, input.price),
+    offer: safeOffer(primaryItem.product, primaryItem.price, "primary"),
+    lineItems: safeLineItems(input.items),
+    selectedOrderBumpPriceIds: input.items.filter((item) => item.kind === "order_bump").map((item) => item.price.id),
+    totalAmountCents: totalAmountCents(input.items),
     confirmation: {
       required: true,
       text: checkoutConfirmationText,
@@ -167,6 +269,7 @@ async function createOrReadIntent(
     idempotencyKey: string;
     product: CommerceProductRow;
     price: CommercePriceRow;
+    items: CheckoutItem[];
     buyerEmail: string | null;
     mode: string;
     successUrl: string;
@@ -189,7 +292,7 @@ async function createOrReadIntent(
       input.product.id,
       input.price.id,
       input.buyerEmail,
-      input.price.unit_amount_cents,
+      totalAmountCents(input.items),
       input.price.currency,
       input.mode,
       input.successUrl,
@@ -198,7 +301,12 @@ async function createOrReadIntent(
       input.agentClientId,
       JSON.stringify({
         checkout_surface: "sandbox",
-        issue: 34,
+        issue: 99,
+        primary_price_id: input.price.id,
+        selected_order_bump_price_ids: input.items
+          .filter((item) => item.kind === "order_bump")
+          .map((item) => item.price.id),
+        line_items: safeLineItems(input.items),
       }),
     )
     .run();
@@ -232,6 +340,7 @@ async function createStripeSession(input: {
   stripe: Stripe;
   product: CommerceProductRow;
   price: CommercePriceRow;
+  items: CheckoutItem[];
   intent: CheckoutIntentRow;
   idempotencyKey: string;
   successUrl: string;
@@ -241,7 +350,7 @@ async function createStripeSession(input: {
   const session = await input.stripe.checkout.sessions.create(
     {
       mode: checkoutModeForPrice(input.price),
-      line_items: [lineItemForPrice(input.product, input.price)],
+      line_items: input.items.map((item) => lineItemForPrice(item.product, item.price)),
       success_url: appendCheckoutQuery(input.successUrl, input.intent.id),
       cancel_url: input.cancelUrl,
       client_reference_id: input.intent.id,
@@ -250,8 +359,12 @@ async function createStripeSession(input: {
         checkout_intent_id: input.intent.id,
         product_id: input.product.id,
         price_id: input.price.id,
+        selected_order_bump_price_ids: input.items
+          .filter((item) => item.kind === "order_bump")
+          .map((item) => item.price.id)
+          .join(","),
         audit_correlation_id: input.intent.audit_correlation_id ?? "",
-        bumpgrade_issue: "34",
+        bumpgrade_issue: "99",
       },
     },
     { idempotencyKey: input.idempotencyKey },
@@ -270,8 +383,13 @@ async function createStripeSession(input: {
       session.id,
       JSON.stringify({
         checkout_surface: "sandbox",
-        issue: 34,
+        issue: 99,
         stripe_checkout_url: session.url,
+        primary_price_id: input.price.id,
+        selected_order_bump_price_ids: input.items
+          .filter((item) => item.kind === "order_bump")
+          .map((item) => item.price.id),
+        line_items: safeLineItems(input.items),
       }),
       input.intent.id,
     )
@@ -285,6 +403,7 @@ async function createStripeSession(input: {
     metadata: {
       productId: input.product.id,
       priceId: input.price.id,
+      lineItems: safeLineItems(input.items),
       rawStripeIdsRedacted: true,
     },
   });
@@ -306,6 +425,14 @@ export async function GET(request: NextRequest) {
     mode,
     canCreateStripeSession,
     offer: safeOffer(offer.product, offer.price),
+    orderBumps: checkoutOfferStack.orderBumps.map((orderBump) => ({
+      id: orderBump.id,
+      priceId: orderBump.priceId,
+      title: orderBump.title,
+      unitAmountCents: orderBump.unitAmountCents,
+      currency: orderBump.currency,
+    })),
+    supportsOrderBumps: true,
     confirmation: {
       required: true,
       text: checkoutConfirmationText,
@@ -325,8 +452,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const { db, env } = await getRuntime();
   const body = await parseBody(request);
-  const offer = await loadSandboxOffer(db, body.priceId ?? sandboxCheckoutPriceId);
-  if (!offer) return jsonError(404, "sandbox_offer_not_found", "Sandbox checkout offer is not available.");
+  const checkoutSelection = await loadCheckoutItems(db, {
+    primaryPriceId: body.priceId ?? sandboxCheckoutPriceId,
+    orderBumpPriceIds: parseOrderBumpPriceIds(body.orderBumpPriceIds),
+  });
+  if (!checkoutSelection.ok) {
+    return jsonError(checkoutSelection.status, checkoutSelection.code, checkoutSelection.message);
+  }
 
   const mode = stripeModeFromEnv(env);
   const secret = stripeSecretKeyFromEnv(env, mode);
@@ -338,8 +470,7 @@ export async function POST(request: NextRequest) {
 
   if (body.previewOnly || env.APP_ENV === "test" || body.confirmationText !== checkoutConfirmationText) {
     return previewResponse({
-      product: offer.product,
-      price: offer.price,
+      items: checkoutSelection.items,
       origin,
       mode,
       reason: body.previewOnly
@@ -352,8 +483,7 @@ export async function POST(request: NextRequest) {
 
   if (!secret || !hasUsableSandboxSecret(secret)) {
     return previewResponse({
-      product: offer.product,
-      price: offer.price,
+      items: checkoutSelection.items,
       origin,
       mode,
       reason: "missing_or_incomplete_sandbox_secret",
@@ -372,8 +502,9 @@ export async function POST(request: NextRequest) {
   const intent = await createOrReadIntent(db, {
     id: checkoutIntentId,
     idempotencyKey,
-    product: offer.product,
-    price: offer.price,
+    product: checkoutSelection.primary.product,
+    price: checkoutSelection.primary.price,
+    items: checkoutSelection.items,
     buyerEmail,
     mode,
     successUrl,
@@ -396,8 +527,9 @@ export async function POST(request: NextRequest) {
     summary: "Created sandbox checkout intent before calling Stripe.",
     actorId: agentClientId,
     metadata: {
-      productId: offer.product.id,
-      priceId: offer.price.id,
+      productId: checkoutSelection.primary.product.id,
+      priceId: checkoutSelection.primary.price.id,
+      lineItems: safeLineItems(checkoutSelection.items),
       idempotencyKey,
     },
   });
@@ -407,8 +539,9 @@ export async function POST(request: NextRequest) {
     await createStripeSession({
       db,
       stripe,
-      product: offer.product,
-      price: offer.price,
+      product: checkoutSelection.primary.product,
+      price: checkoutSelection.primary.price,
+      items: checkoutSelection.items,
       intent,
       idempotencyKey,
       successUrl,
@@ -421,7 +554,8 @@ export async function POST(request: NextRequest) {
       .bind(
         JSON.stringify({
           checkout_surface: "sandbox",
-          issue: 34,
+          issue: 99,
+          selected_order_bump_price_ids: checkoutSelection.selectedOrderBumpPriceIds,
           stripe_error: error instanceof Error ? error.message.slice(0, 240) : "Unknown Stripe error",
         }),
         intent.id,

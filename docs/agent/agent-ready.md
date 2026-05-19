@@ -113,10 +113,12 @@ seed/create/update/reorder/preview state, not public publishing, checkout
 integration, drag-and-drop editing, deletion, or a direct agent write API.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
-contract for the first seeded primary offer, order bump, upsell, and downsell
-stack. `/offers/indie-launch-stack` is the read-only preview. This proves
-offer-sequence semantics, not live billing, one-click upsell charging,
-fulfillment, order-bump mutation, or agent write capability.
+contract for the first seeded primary offer, constrained order bump, upsell, and
+downsell stack. `/offers/indie-launch-stack` can start a sandbox checkout for
+the primary offer plus seeded order bump after exact confirmation. This proves
+offer-sequence semantics and sandbox Checkout Session start semantics, not live
+billing, one-click upsell charging, fulfillment, price mutation, arbitrary
+order-bump mutation, or agent write capability.
 
 Current product/access boundary: `/products/source-data` is the public-safe read
 contract for seeded downloads, courses, memberships, services, events, bundles,
