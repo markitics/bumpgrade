@@ -22,6 +22,19 @@ type AnalyticsVariantAggregateRow = {
   last_event_at: number | null;
 };
 
+type AnalyticsSourceAggregateRow = {
+  event_definition_id: string;
+  source_route: string;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_content: string | null;
+  utm_term: string | null;
+  referrer_host: string | null;
+  total_events: number;
+  last_event_at: number | null;
+};
+
 type AnalyticsAssignmentAggregateRow = {
   experiment_id: string;
   variant_id: string;
@@ -41,6 +54,7 @@ async function loadEventSummary(db: D1Database | undefined) {
       status: "unavailable",
       aggregateCounts: [],
       aggregateVariantCounts: [],
+      aggregateSourceCounts: [],
       rawRowsIncluded: false,
       privateDataIncluded: false,
     };
@@ -73,11 +87,47 @@ async function loadEventSummary(db: D1Database | undefined) {
        ORDER BY event_definition_id, variant_id`,
     )
     .all<AnalyticsVariantAggregateRow>();
+  const sourceResult = await db
+    .prepare(
+      `SELECT
+        event_definition_id,
+        source_route,
+        json_extract(public_properties_json, '$.utmSource') AS utm_source,
+        json_extract(public_properties_json, '$.utmMedium') AS utm_medium,
+        json_extract(public_properties_json, '$.utmCampaign') AS utm_campaign,
+        json_extract(public_properties_json, '$.utmContent') AS utm_content,
+        json_extract(public_properties_json, '$.utmTerm') AS utm_term,
+        json_extract(public_properties_json, '$.referrerHost') AS referrer_host,
+        COUNT(*) AS total_events,
+        MAX(occurred_at) AS last_event_at
+       FROM analytics_events
+       WHERE event_definition_id = 'event-funnel-page-view'
+         AND (
+          json_extract(public_properties_json, '$.utmSource') IS NOT NULL OR
+          json_extract(public_properties_json, '$.utmMedium') IS NOT NULL OR
+          json_extract(public_properties_json, '$.utmCampaign') IS NOT NULL OR
+          json_extract(public_properties_json, '$.utmContent') IS NOT NULL OR
+          json_extract(public_properties_json, '$.utmTerm') IS NOT NULL OR
+          json_extract(public_properties_json, '$.referrerHost') IS NOT NULL
+         )
+       GROUP BY
+        event_definition_id,
+        source_route,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        utm_content,
+        utm_term,
+        referrer_host
+       ORDER BY total_events DESC, utm_source, utm_campaign`,
+    )
+    .all<AnalyticsSourceAggregateRow>();
 
   return {
     status: "available",
     aggregateCounts: result.results ?? [],
     aggregateVariantCounts: variantResult.results ?? [],
+    aggregateSourceCounts: sourceResult.results ?? [],
     rawRowsIncluded: false,
     privateDataIncluded: false,
   };

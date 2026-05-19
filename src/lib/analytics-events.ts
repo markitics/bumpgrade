@@ -4,11 +4,12 @@ export const analyticsEventCaptureApiRoute = "/api/analytics/events";
 
 export const analyticsFunnelPageViewBeaconIssue = 121;
 export const analyticsFunnelPageViewVariantIssue = 123;
+export const analyticsFunnelPageViewAttributionIssue = 125;
 
 export const analyticsEventCaptureWriteContract = {
   id: "analytics-event-capture-contract",
-  status: "event-capture-and-beacon-ready",
-  issue: analyticsFunnelPageViewBeaconIssue,
+  status: "event-capture-attribution-ready",
+  issue: analyticsFunnelPageViewAttributionIssue,
   parentIssue: 18,
   apiRoute: analyticsEventCaptureApiRoute,
   tables: ["analytics_events", "analytics_event_ingestions"],
@@ -30,15 +31,16 @@ export const analyticsEventCaptureWriteContract = {
     "raw cookies",
     "raw contact identifiers",
     "raw UTM payload",
+    "raw referrer URL",
   ],
   writeBoundary:
-    "Issues #105 and #121 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, and public-safe responses. Cookie assignment, contact-level reporting, arbitrary custom events, campaign attribution mutation, A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
+    "Issues #105, #121, #123, and #125 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, deterministic variant evidence, normalized campaign/source public properties, and public-safe responses. Cookie assignment, contact-level reporting, arbitrary custom events, raw campaign/referrer exposure, A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
 };
 
 export const analyticsFunnelPageViewBeaconContract = {
   id: "analytics-funnel-page-view-beacon-contract",
-  status: "variant-linked-page-view-beacon-ready",
-  issue: analyticsFunnelPageViewVariantIssue,
+  status: "source-attributed-page-view-beacon-ready",
+  issue: analyticsFunnelPageViewAttributionIssue,
   parentIssue: 18,
   sourceRoute: "/funnels/indie-launch-sandbox",
   apiRoute: analyticsEventCaptureApiRoute,
@@ -52,6 +54,12 @@ export const analyticsFunnelPageViewBeaconContract = {
     "funnelId",
     "stepId",
     "variantId",
+    "utmSource",
+    "utmMedium",
+    "utmCampaign",
+    "utmContent",
+    "utmTerm",
+    "referrerHost",
     "eventDefinitionId",
     "sourceRoute",
     "status",
@@ -62,11 +70,13 @@ export const analyticsFunnelPageViewBeaconContract = {
     "raw IP address",
     "raw user agent",
     "raw referrer",
+    "raw URL query string",
+    "raw UTM payload",
     "cookies",
     "contact identifiers",
   ],
   writeBoundary:
-    "Issues #121 and #123 record a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API, and attach deterministic seeded variant evidence when assignment succeeds. It does not create cookies, route A/B traffic, expose raw visitors, assign contact identity, or make automated optimization decisions.",
+    "Issues #121, #123, and #125 record a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API, attach deterministic seeded variant evidence when assignment succeeds, and include normalized UTM/source public properties when present. It does not create cookies, route A/B traffic, expose raw visitors, store full referrer URLs or raw query strings, assign contact identity, or make automated optimization decisions.",
 };
 
 export type AnalyticsEventCaptureDefinition = {
@@ -206,6 +216,34 @@ function safePrimitive(value: unknown): string | number | boolean | null | undef
   return undefined;
 }
 
+const attributionPropertyKeys = new Set(["utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm"]);
+
+function safeAttributionProperty(value: unknown): string | null | undefined {
+  const primitive = safePrimitive(value);
+  if (primitive === undefined) return undefined;
+  if (primitive === null) return null;
+  if (typeof primitive !== "string") return undefined;
+  const normalized = primitive.replace(/\s+/g, " ").slice(0, 120);
+  if (!normalized) return null;
+  if (/:\/\/|[?&#=]/.test(normalized)) return null;
+  return normalized;
+}
+
+function safeReferrerHostProperty(value: unknown): string | null | undefined {
+  const primitive = safePrimitive(value);
+  if (primitive === undefined) return undefined;
+  if (primitive === null) return null;
+  if (typeof primitive !== "string") return undefined;
+
+  try {
+    const candidate = primitive.includes("://") ? new URL(primitive).hostname : primitive.split("/")[0];
+    const host = new URL(`https://${candidate}`).hostname.toLowerCase().slice(0, 120);
+    return /^[a-z0-9.-]+$/.test(host) ? host : null;
+  } catch {
+    return null;
+  }
+}
+
 function safePublicProperties(
   definition: AnalyticsEventCaptureDefinition,
   value: Record<string, unknown> | undefined,
@@ -213,7 +251,12 @@ function safePublicProperties(
   const source = value ?? {};
   const safe: Record<string, string | number | boolean | null> = {};
   for (const key of definition.publicProperties) {
-    const primitive = safePrimitive(source[key]);
+    const primitive =
+      key === "referrerHost"
+        ? safeReferrerHostProperty(source[key])
+        : attributionPropertyKeys.has(key)
+          ? safeAttributionProperty(source[key])
+          : safePrimitive(source[key]);
     if (primitive !== undefined) {
       safe[key] = primitive;
     }

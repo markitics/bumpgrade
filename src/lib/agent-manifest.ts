@@ -321,8 +321,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "analyticsEventIngestionId",
       "analyticsPageViewBeaconId",
       "analyticsEventVariantAggregateId",
+      "analyticsEventSourceAggregateId",
       "experimentAssignmentId",
       "analyticsFunnelConversionReportId",
+      "utmSource",
+      "utmMedium",
+      "utmCampaign",
+      "referrerHost",
       "metricId",
       "funnelStepMetricId",
       "experimentId",
@@ -335,6 +340,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded event taxonomy",
       "Inspect aggregate event counts",
       "Inspect aggregate variant event counts",
+      "Inspect aggregate source attribution counts",
       "Inspect aggregate assignment counts",
       "Inspect aggregate funnel conversion report rows",
       "Inspect metric formulas",
@@ -344,7 +350,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect experiment assignment boundaries",
     ],
     writeBoundary:
-      "Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence, and seeded experiment assignments can be captured with idempotency, source-route validation, and bot/preview suppression; aggregate funnel conversion reports and aggregate variant counts can be read from captured test events. Cookie assignment, contact analytics, custom events, experiment traffic routing, and decision writes require future confirmed-write APIs.",
+      "Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, and seeded experiment assignments can be captured with idempotency, source-route validation, and bot/preview suppression; aggregate funnel conversion reports, aggregate source counts, and aggregate variant counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, custom events, experiment traffic routing, and decision writes require future confirmed-write APIs.",
   },
   {
     id: "read-affiliate-referrals",
@@ -528,21 +534,26 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-analytics-experiments",
     route: "/analytics/source-data",
     resolves:
-      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, aggregate event counts, aggregate variant event counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, metric formulas, experiment variants, assignment rule, and confirmed-write boundary.",
+      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, aggregate event counts, aggregate variant event counts, aggregate source attribution counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, metric formulas, experiment variants, assignment rule, and confirmed-write boundary.",
     stableIds: [
       "analyticsEventId",
       "analyticsEventIngestionId",
       "analyticsPageViewBeaconId",
       "analyticsEventVariantAggregateId",
+      "analyticsEventSourceAggregateId",
       "experimentAssignmentId",
       "analyticsFunnelConversionReportId",
+      "utmSource",
+      "utmMedium",
+      "utmCampaign",
+      "referrerHost",
       "metricId",
       "experimentId",
       "variantId",
       "assignmentRuleId",
     ],
     volatileClaims:
-      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence, seeded assignment, aggregate counts, aggregate variant counts, and aggregate conversion report rows; it is not cookie assignment, traffic routing, contact-level analytics, raw event or assignment exposure, automated decisions, or statistically meaningful proof.",
+      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, aggregate counts, aggregate source counts, aggregate variant counts, and aggregate conversion report rows; it is not cookie assignment, traffic routing, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, automated decisions, or statistically meaningful proof.",
   },
   {
     id: "evidence-affiliate-referrals",
@@ -690,9 +701,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/analytics/source-data",
     purpose:
-      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, aggregate event counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
+      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
     safetyBoundary:
-      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence, deterministic assignment, and aggregate conversion reporting are live; cookie assignment, visitor tracking, contact analytics, experiment traffic routing, custom events, and automated decisions require confirmed-write contracts.",
+      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, and aggregate conversion reporting are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, contact analytics, experiment traffic routing, custom events, and automated decisions require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-affiliate-referrals",

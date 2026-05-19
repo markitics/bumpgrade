@@ -18,6 +18,13 @@ type FunnelPageViewBeaconProps = {
 const anonymousStorageKey = "bumpgrade.analytics.anonymous-session.v1";
 const beaconStoragePrefix = "bumpgrade.analytics.funnel-page-view.v1";
 const assignmentStoragePrefix = "bumpgrade.analytics.assignment.v1";
+const attributionParamMap = [
+  ["utm_source", "utmSource"],
+  ["utm_medium", "utmMedium"],
+  ["utm_campaign", "utmCampaign"],
+  ["utm_content", "utmContent"],
+  ["utm_term", "utmTerm"],
+] as const;
 
 type AssignmentResponse = {
   ok?: boolean;
@@ -56,6 +63,37 @@ function stepForHash(steps: FunnelBeaconStep[]) {
 function shouldSkipBeacon() {
   const params = new URLSearchParams(window.location.search);
   return params.get("bumpgrade_analytics") === "off" || params.get("preview") === "true";
+}
+
+function safeAttributionValue(value: string | null) {
+  if (!value) return null;
+  const normalized = value.trim().replace(/\s+/g, " ").slice(0, 120);
+  if (!normalized || /:\/\/|[?&#=]/.test(normalized)) return null;
+  return normalized;
+}
+
+function safeReferrerHost() {
+  if (!document.referrer) return null;
+  try {
+    const referrerUrl = new URL(document.referrer);
+    if (referrerUrl.hostname === window.location.hostname) return null;
+    return referrerUrl.hostname.toLowerCase().slice(0, 120);
+  } catch {
+    return null;
+  }
+}
+
+function attributionProperties() {
+  const params = new URLSearchParams(window.location.search);
+  const properties: Record<string, string> = {};
+  for (const [paramName, propertyName] of attributionParamMap) {
+    const safeValue = safeAttributionValue(params.get(paramName));
+    if (safeValue) properties[propertyName] = safeValue;
+  }
+
+  const referrerHost = safeReferrerHost();
+  if (referrerHost) properties.referrerHost = referrerHost;
+  return properties;
 }
 
 async function assignVariant(experimentId: string, sourceRoute: string, anonymousId: string) {
@@ -103,6 +141,7 @@ export function FunnelPageViewBeacon({
       const idempotencyKey = sessionValue(`${beaconStoragePrefix}.${funnelId}.${step.stepId}`, "funnel-page-view");
       if (!anonymousId || !idempotencyKey) return;
       const variantId = await assignVariant(experimentId, sourceRoute, anonymousId);
+      const attribution = attributionProperties();
 
       void fetch("/api/analytics/events", {
         method: "POST",
@@ -121,6 +160,7 @@ export function FunnelPageViewBeacon({
             funnelId,
             stepId: step.stepId,
             ...(variantId ? { variantId } : {}),
+            ...attribution,
           },
         }),
       }).catch(() => {
