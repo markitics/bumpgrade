@@ -27,22 +27,14 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const body = [
-    "Bumpgrade sandbox download",
-    `Product: ${result.asset.productTitle}`,
-    `Asset: ${result.asset.assetTitle}`,
-    `Checkout intent: ${result.checkoutIntentId}`,
-    `Entitlement: ${result.entitlementId}`,
-    "",
-    "This is a sandbox placeholder file. No private R2 object key or signed object URL is exposed.",
-  ].join("\n");
-
-  return new NextResponse(body, {
+  return new NextResponse(result.file.body, {
     status: 200,
     headers: {
-      "content-type": "text/plain; charset=utf-8",
-      "content-disposition": `attachment; filename="${result.asset.assetId}.txt"`,
+      "content-type": result.file.contentType,
+      "content-disposition": `attachment; filename="${result.file.fileName}"`,
       "cache-control": "no-store",
+      "content-length": String(result.file.byteLength),
+      "x-bumpgrade-delivery": "private-r2-fixture",
       "x-bumpgrade-redaction": "private-r2-keys=false; signed-urls=false; buyer-email=false",
     },
   });

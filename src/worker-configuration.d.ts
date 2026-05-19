@@ -5,6 +5,7 @@ declare namespace Cloudflare {
     EMAIL?: SendEmail;
     MAIL?: R2Bucket;
     NEXT_INC_CACHE_R2_BUCKET: R2Bucket;
+    PRODUCT_ASSETS?: R2Bucket;
     APP_ENV?: string;
     PUBLIC_SITE_URL?: string;
     BETTER_AUTH_URL?: string;

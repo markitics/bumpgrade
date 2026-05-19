@@ -25,7 +25,7 @@ export function CustomerDownloadTokenButton({
 }) {
   const [state, setState] = useState<DownloadTokenState>({
     status: "idle",
-    message: "Create a short-lived sandbox download token.",
+    message: "Create a short-lived private delivery token.",
     downloadUrl: null,
   });
 
@@ -56,7 +56,7 @@ export function CustomerDownloadTokenButton({
     <div className="download-token-panel">
       {state.downloadUrl ? (
         <a className="secondary-action" href={state.downloadUrl}>
-          Download sandbox file <Download aria-hidden="true" />
+          Download private file <Download aria-hidden="true" />
         </a>
       ) : (
         <button className="secondary-action" type="button" onClick={() => void requestToken()} disabled={state.status === "loading"}>

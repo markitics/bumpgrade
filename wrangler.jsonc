@@ -46,6 +46,10 @@
     {
       "binding": "MAIL",
       "bucket_name": "bumpgrade-mail"
+    },
+    {
+      "binding": "PRODUCT_ASSETS",
+      "bucket_name": "bumpgrade-product-assets"
     }
   ],
   "send_email": [
