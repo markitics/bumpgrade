@@ -180,6 +180,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Read-only product/access source data and preview route from issue #83.",
       "Sandbox webhook-backed entitlement row grants from issue #101.",
       "Owner-gated entitlement and fulfillment inspection from issue #139.",
+      "Customer-safe checkout intent entitlement lookup from issue #141.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -190,9 +191,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #83 adds `/products/source-data` and `/products/indie-launch-library` as the first read-only product/access contract and preview scaffold.",
       "Issue #101 adds idempotent entitlement grants and fulfillment task evidence after paid sandbox checkout webhooks.",
       "Issue #139 adds `/admin/products` owner entitlement inspection and aggregate public redaction flags.",
+      "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
     ],
     agentContract:
-      "Agents may read public product metadata, aggregate entitlement counts, and entitlement grant boundaries; private customer access, signed delivery, revocation, and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, and entitlement grant boundaries; private customer identity, signed delivery, revocation, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

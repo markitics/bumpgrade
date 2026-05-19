@@ -26,6 +26,7 @@ const sourceDataRoutes = [
   "/funnels/source-data",
   "/offers/source-data",
   "/products/source-data",
+  "/api/products/entitlements",
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
   "/mobile-admin/ios/source-data",

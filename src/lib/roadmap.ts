@@ -260,9 +260,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
       "Issue #101 adds idempotent sandbox entitlement rows and fulfillment task evidence from trusted paid checkout webhook events.",
       "Issue #139 adds `/admin/products` owner entitlement inspection and aggregate public redaction flags.",
+      "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
     ],
     nextMilestone:
-      "Add signed download access and customer-facing entitlement inspection without exposing private R2 keys or raw Stripe identifiers.",
+      "Add signed download access without exposing private R2 keys or raw Stripe identifiers.",
   },
   {
     id: "roadmap-email-automation",

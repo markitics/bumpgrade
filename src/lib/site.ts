@@ -158,6 +158,7 @@ export const scaffoldRoutes = [
   "/developers-and-agents",
   "/resources",
   "/pricing",
+  "/products/entitlements",
   "/commerce/checkout/success",
   "/commerce/checkout/cancel",
   "/login",

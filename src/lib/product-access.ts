@@ -302,10 +302,11 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks. Product creation, private asset upload, signed download URLs, protected content, subscription access changes, refunds, revocations, live fulfillment, and direct agent writes require future authenticated confirmed-write APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, and issue #141 can inspect customer-safe checkout-intent entitlement status. Product creation, private asset upload, signed download URLs, protected content, subscription access changes, refunds, revocations, live fulfillment, and direct agent writes require future authenticated confirmed-write APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
+    "/products/entitlements renders checkout-intent-scoped customer entitlement lookup.",
     "/api/stripe/webhook grants idempotent sandbox entitlements after trusted paid checkout evidence.",
     "/agent-docs/source-data lists the product access read contract for future MCP resources.",
   ],
@@ -324,12 +325,18 @@ export const productAccessSourceData = {
   issue: 101,
   parentIssue: 16,
   generatedFrom: "src/lib/product-access.ts",
-  routes: ["/products/source-data", ...productAccessCatalogs.map((catalog) => catalog.previewRoute)],
+  routes: [
+    "/products/source-data",
+    "/products/entitlements",
+    "/api/products/entitlements",
+    ...productAccessCatalogs.map((catalog) => catalog.previewRoute),
+  ],
   stableIds: [
     "productId",
     "assetId",
     "accessRuleId",
     "entitlementTemplateId",
+    "customerProductEntitlementLookupId",
     "subscriptionPlanId",
     "fulfillmentId",
     "agentActionId",
@@ -339,5 +346,5 @@ export const productAccessSourceData = {
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics plus sandbox webhook-backed entitlement row grants. It does not expose private R2 keys, signed URLs, protected content, revocation APIs, live fulfillment, customer portals, or direct agent confirmed-write APIs.",
+    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, and customer-safe checkout-intent entitlement lookup. It does not expose private R2 keys, signed URLs, protected content, revocation APIs, live fulfillment, customer portals, or direct agent confirmed-write APIs.",
 };
