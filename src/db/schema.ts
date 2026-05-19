@@ -238,6 +238,59 @@ export const paymentAuditEvents = sqliteTable(
   }),
 );
 
+export const productEntitlements = sqliteTable(
+  "product_entitlements",
+  {
+    id: text("id").primaryKey(),
+    checkoutIntentId: text("checkout_intent_id").references(() => checkoutIntents.id, { onDelete: "set null" }),
+    sourceStripeEventId: text("source_stripe_event_id").references(() => stripeWebhookEvents.id, { onDelete: "set null" }),
+    productId: text("product_id").notNull(),
+    sourceCommerceProductId: text("source_commerce_product_id").references(() => commerceProducts.id, {
+      onDelete: "set null",
+    }),
+    entitlementTemplateId: text("entitlement_template_id").notNull(),
+    accessRuleId: text("access_rule_id").notNull(),
+    status: text("status").notNull().default("active"),
+    grantKind: text("grant_kind").notNull(),
+    buyerUserId: text("buyer_user_id").references(() => user.id, { onDelete: "set null" }),
+    buyerEmailHash: text("buyer_email_hash"),
+    sourcePriceId: text("source_price_id"),
+    revokedAt: integer("revoked_at", { mode: "timestamp" }),
+    metadataJson: text("metadata_json"),
+    grantedAt: integer("granted_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    checkoutTemplateUnique: uniqueIndex("product_entitlements_checkout_template_unique").on(
+      table.checkoutIntentId,
+      table.productId,
+      table.entitlementTemplateId,
+    ),
+    productStatusIdx: index("product_entitlements_product_status_idx").on(table.productId, table.status),
+    templateStatusIdx: index("product_entitlements_template_status_idx").on(table.entitlementTemplateId, table.status),
+  }),
+);
+
+export const productFulfillmentTasks = sqliteTable(
+  "product_fulfillment_tasks",
+  {
+    id: text("id").primaryKey(),
+    entitlementId: text("entitlement_id").references(() => productEntitlements.id, { onDelete: "cascade" }),
+    checkoutIntentId: text("checkout_intent_id").references(() => checkoutIntents.id, { onDelete: "set null" }),
+    productId: text("product_id").notNull(),
+    status: text("status").notNull().default("queued"),
+    fulfillmentKind: text("fulfillment_kind").notNull(),
+    summary: text("summary").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    entitlementUnique: uniqueIndex("product_fulfillment_tasks_entitlement_unique").on(table.entitlementId),
+    statusCreatedIdx: index("product_fulfillment_tasks_status_created_idx").on(table.status, table.createdAt),
+  }),
+);
+
 export const funnelDrafts = sqliteTable(
   "funnel_drafts",
   {

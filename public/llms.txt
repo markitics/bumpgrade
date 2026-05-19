@@ -105,11 +105,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   bump after exact confirmation. Treat it as sandbox checkout-start evidence, not
   live billing, one-click upsell charging, fulfillment, arbitrary order-bump
   mutation, or a confirmed-write agent API.
-- `/products/source-data` exposes the first read-only product/access catalog
-  with digital download, course, membership, service, event, and bundle records.
-  Treat it as preview/source-data evidence, not private asset access, signed
-  download links, customer entitlements, fulfillment, or a confirmed-write agent
-  API.
+- `/products/source-data` exposes the product/access catalog with digital
+  download, course, membership, service, event, bundle, entitlement template,
+  and sandbox webhook grant records. Trusted paid sandbox webhooks can create
+  idempotent entitlement rows and public-safe fulfillment task evidence. Treat
+  it as grant-boundary evidence, not private asset access, signed download
+  links, authenticated customer entitlement inspection, revocation, live
+  fulfillment, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first read-only audience automation
   workspace with opt-in form, lead magnet, tags, segments, sequence, broadcast
   draft, and automation records. Treat it as preview/source-data evidence, not

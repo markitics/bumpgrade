@@ -18,7 +18,7 @@ export type CommerceDecision = {
   evidence: string[];
 };
 
-export const stripeCommerceUpdatedAt = "2026-05-18";
+export const stripeCommerceUpdatedAt = "2026-05-19";
 
 export const stripeNodeVersion = "22.1.1";
 
@@ -31,7 +31,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, and constrained order-bump checkout start. Live payment rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, and sandbox webhook-backed entitlement grants. Live payment rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -40,10 +40,12 @@ export const stripeCommerceContract = {
   sandboxCheckout: {
     issue: 34,
     orderBumpIssue: 99,
+    entitlementGrantIssue: 101,
     checkoutEndpoint: "/api/commerce/checkout",
     webhookEndpoint: "/api/stripe/webhook",
     createsStripeCheckoutSession: true,
     supportsConstrainedOrderBump: true,
+    grantsSandboxEntitlementsFromPaidWebhook: true,
     liveModeEnabled: false,
   },
   secretNames: [
@@ -231,6 +233,36 @@ export const commerceTables: CommerceTableContract[] = [
     publicSafeFields: ["id", "checkout_intent_id", "event_kind", "actor_kind", "summary", "created_at"],
     serverPrivateFields: ["stripe_event_id", "actor_id", "metadata_json"],
     purpose: "Redacted audit trail for billing-impacting checkout, webhook, and agent actions.",
+  },
+  {
+    table: "product_entitlements",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "checkout_intent_id",
+      "product_id",
+      "entitlement_template_id",
+      "access_rule_id",
+      "status",
+      "grant_kind",
+      "source_price_id",
+      "granted_at",
+    ],
+    serverPrivateFields: [
+      "source_stripe_event_id",
+      "source_commerce_product_id",
+      "buyer_user_id",
+      "buyer_email_hash",
+      "metadata_json",
+    ],
+    purpose: "Idempotent product access grants derived from trusted paid checkout webhook evidence.",
+  },
+  {
+    table: "product_fulfillment_tasks",
+    status: "live",
+    publicSafeFields: ["id", "entitlement_id", "checkout_intent_id", "product_id", "status", "fulfillment_kind", "summary"],
+    serverPrivateFields: ["metadata_json"],
+    purpose: "Public-safe fulfillment queue evidence created with entitlement rows before private delivery exists.",
   },
 ];
 

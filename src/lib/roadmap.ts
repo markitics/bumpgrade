@@ -244,13 +244,14 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, read-only access contract, protected content, access rules, fulfillment state, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
+      "Issue #101 adds idempotent sandbox entitlement rows and fulfillment task evidence from trusted paid checkout webhook events.",
     ],
     nextMilestone:
-      "Build authenticated entitlement writes from trusted checkout or subscription evidence without exposing private asset data.",
+      "Add signed download access and authenticated entitlement inspection without exposing private R2 keys or raw Stripe identifiers.",
   },
   {
     id: "roadmap-email-automation",

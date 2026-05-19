@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { grantEntitlementsForPaidCheckout } from "@/lib/product-entitlements";
 import { redactedStripeEventPayload } from "@/lib/sandbox-checkout";
 import { createStripeClientFromEnv, stripeModeFromEnv } from "@/lib/stripe";
 
@@ -243,6 +244,7 @@ export async function POST(request: NextRequest) {
 
   const processing = await updateCheckoutIntentFromEvent(db, parsed);
   const subscriptionProcessing = await updateSubscriptionFromEvent(db, parsed);
+  const entitlementProcessing = await grantEntitlementsForPaidCheckout(db, parsed);
 
   return NextResponse.json({
     ok: true,
@@ -252,6 +254,8 @@ export async function POST(request: NextRequest) {
     checkoutIntentId: processing.checkoutIntentId,
     checkoutIntentUpdated: processing.updated,
     subscriptionUpdated: subscriptionProcessing.updated,
+    entitlementGrantsCreated: entitlementProcessing.created,
+    entitlementGrantsSkipped: entitlementProcessing.skipped,
     redaction: {
       rawStripeIdsIncluded: false,
     },
