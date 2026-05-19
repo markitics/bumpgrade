@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
 import {
@@ -48,6 +48,7 @@ const routes = [
   { path: "/admin/audience", heading: "Owner access is required" },
   { path: "/admin/funnels", heading: "Owner access is required" },
   { path: "/admin/funnels/funnel-draft-indie-launch-working-copy/preview", heading: "Owner access is required" },
+  { path: "/admin/products", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs", heading: "Bumpgrade is readable by agents" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Agents get public contracts" },
@@ -99,6 +100,66 @@ async function signInOrCreateOwner(page: Page) {
   const email = "m@rkmoriarty.com";
   await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Mark");
   await verifyEmail(page, email);
+}
+
+async function grantSandboxProductEntitlements(request: APIRequestContext, buyerEmail: string) {
+  const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+  const checkout = await request.post("/api/commerce/checkout", {
+    headers: { "x-bumpgrade-test-checkout-write": "allow" },
+    data: {
+      confirmationText: checkoutConfirmationText,
+      orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+      buyerEmail,
+      idempotencyKey: `playwright-product-entitlements-${suffix}`,
+    },
+  });
+  expect(checkout.ok(), await checkout.text()).toBeTruthy();
+  const checkoutPayload = await checkout.json();
+  expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
+
+  const eventId = `evt_bumpgrade_product_inspection_${suffix.replaceAll("-", "_")}`;
+  const event = {
+    id: eventId,
+    object: "event",
+    api_version: "2026-04-22.dahlia",
+    created: Math.floor(Date.now() / 1000),
+    livemode: false,
+    type: "checkout.session.completed",
+    data: {
+      object: {
+        id: "cs_test_redacted_by_route",
+        object: "checkout.session",
+        client_reference_id: checkoutPayload.checkoutIntentId,
+        payment_status: "paid",
+        status: "complete",
+        metadata: {
+          checkout_intent_id: checkoutPayload.checkoutIntentId,
+          product_id: sandboxCheckoutOffer.productId,
+          price_id: sandboxCheckoutOffer.priceId,
+          audit_correlation_id: "audit-playwright-product-inspection",
+        },
+      },
+    },
+  };
+
+  const webhook = await request.post("/api/stripe/webhook", {
+    headers: { "x-bumpgrade-test-webhook": "allow" },
+    data: event,
+  });
+  expect(webhook.ok(), await webhook.text()).toBeTruthy();
+  await expect(webhook.json()).resolves.toEqual(
+    expect.objectContaining({
+      ok: true,
+      duplicate: false,
+      entitlementGrantsCreated: 2,
+    }),
+  );
+
+  return {
+    buyerEmail,
+    eventId,
+    checkoutIntentId: checkoutPayload.checkoutIntentId as string,
+  };
 }
 
 test.describe("Bumpgrade scaffold", () => {
@@ -189,6 +250,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/admin/funnels");
+    expect(sitemapXml).toContain("https://bumpgrade.com/admin/products");
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBeTruthy();
@@ -404,6 +466,20 @@ test.describe("Bumpgrade scaffold", () => {
         tables: expect.arrayContaining(["product_entitlements", "product_fulfillment_tasks"]),
       }),
     );
+    expect(payload.entitlementInspection).toEqual(
+      expect.objectContaining({
+        status: "owner-product-entitlement-inspection-ready",
+        issue: 139,
+        parentIssue: 16,
+        ownerRoute: "/admin/products",
+        redaction: expect.objectContaining({
+          privateBuyerDataIncluded: false,
+          rawBuyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
     expect(payload.grantMappings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -450,6 +526,45 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Launch checklist download")).toBeVisible();
     await expect(page.getByText("Launch course lite")).toBeVisible();
     await expect(page.getByText("Launch membership")).toBeVisible();
+  });
+
+  test("product entitlement inspection exposes aggregate source data and owner rows", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner product inspection is covered once on desktop.");
+
+    const buyerEmail = `product-owner-${Date.now()}@example.com`;
+    const grant = await grantSandboxProductEntitlements(request, buyerEmail);
+
+    const response = await request.get("/products/source-data");
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.entitlementInspection).toEqual(
+      expect.objectContaining({
+        status: "owner-product-entitlement-inspection-ready",
+        issue: 139,
+        ownerRoute: "/admin/products",
+        publicSourceDataRoute: "/products/source-data",
+        redaction: expect.objectContaining({
+          privateBuyerDataIncluded: false,
+          rawBuyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.entitlementInspection.counts.entitlements).toBeGreaterThanOrEqual(2);
+    expect(payload.entitlementInspection.counts.fulfillmentTasks).toBeGreaterThanOrEqual(2);
+    expect(JSON.stringify(payload)).not.toContain(grant.buyerEmail);
+    expect(JSON.stringify(payload)).not.toContain(grant.eventId);
+
+    await signInOrCreateOwner(page);
+    await page.goto("/admin/products");
+    await expect(page.getByRole("heading", { name: /Product entitlement inspection without public buyer leaks/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText(grant.buyerEmail);
+    await expect(page.locator("body")).toContainText("Launch bundle");
+    await expect(page.locator("body")).toContainText("Launch checklist download");
+    await expect(page.locator("body")).toContainText(grant.checkoutIntentId);
+    await expect(page.locator("body")).not.toContainText(grant.eventId);
   });
 
   test("audience automation source data exposes opt-in, tags, sequences, and automation rules", async ({ request, page }) => {
@@ -1987,6 +2102,16 @@ test.describe("Bumpgrade scaffold", () => {
           issueNumbers: [15, 99, 117],
         }),
         expect.objectContaining({
+          id: "journey-publisher-previews-product-access",
+          featureId: "feature-products-access",
+          issueNumbers: [16, 83, 101, 139],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-verifies-sandbox-entitlement-grant",
+          featureId: "feature-products-access",
+          issueNumbers: [16, 83, 99, 101, 139],
+        }),
+        expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
           issueNumbers: [13, 67, 68],
@@ -2205,6 +2330,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-product-access-catalog", route: "/products/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
         expect.objectContaining({ id: "read-audience-automation", route: "/audience/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),

@@ -1301,6 +1301,19 @@ h3 {
   color: #d9ded4;
 }
 
+.content-band:not(.dark-band) .feature-proof-grid div {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--line);
+}
+
+.content-band:not(.dark-band) .feature-proof-grid svg {
+  color: var(--green);
+}
+
+.content-band:not(.dark-band) .feature-proof-grid p {
+  color: var(--muted);
+}
+
 .roadmap-page {
   min-height: calc(100vh - 72px);
 }

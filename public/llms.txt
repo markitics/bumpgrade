@@ -22,6 +22,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded checkout offer preview: https://bumpgrade.com/offers/indie-launch-stack
 - Product access source data: https://bumpgrade.com/products/source-data
 - Seeded product access preview: https://bumpgrade.com/products/indie-launch-library
+- Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
 - Seeded audience opt-in API: https://bumpgrade.com/api/audience/opt-in
@@ -124,9 +125,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - `/products/source-data` exposes the product/access catalog with digital
   download, course, membership, service, event, bundle, entitlement template,
   and sandbox webhook grant records. Trusted paid sandbox webhooks can create
-  idempotent entitlement rows and public-safe fulfillment task evidence. Treat
-  it as grant-boundary evidence, not private asset access, signed download
-  links, authenticated customer entitlement inspection, revocation, live
+  idempotent entitlement rows and public-safe fulfillment task evidence.
+  `/admin/products` is owner-gated and can inspect private entitlement rows,
+  buyer email, checkout state, product and price context, access rules, and
+  queued fulfillment evidence. Public product source-data exposes aggregate
+  entitlement inspection counts and redaction flags only. Treat it as
+  grant-boundary and owner-inspection evidence, not private asset access, signed
+  download links, customer self-service entitlement inspection, revocation, live
   fulfillment, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,

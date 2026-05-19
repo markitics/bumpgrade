@@ -3,6 +3,7 @@ import {
   Bot,
   ChartNoAxesCombined,
   CircleDollarSign,
+  FileArchive,
   FileText,
   GitBranch,
   LayoutDashboard,
@@ -97,6 +98,12 @@ export const adminNavItems: NavItem[] = [
     icon: PanelsTopLeft,
   },
   {
+    label: "Products",
+    href: "/admin/products",
+    description: "Owner-gated product entitlement and fulfillment inspection.",
+    icon: FileArchive,
+  },
+  {
     label: "For Mark",
     href: "/admin/for-mark",
     description: "Non-blocking decisions, risks, and blockers Mark should not miss.",
@@ -159,6 +166,7 @@ export const scaffoldRoutes = [
   "/admin/user-journeys",
   "/admin/funnels",
   "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
+  "/admin/products",
   "/admin/for-mark",
   "/agent-docs",
   "/agent-docs/bumpgrade-agent-surface",
