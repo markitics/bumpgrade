@@ -1,13 +1,14 @@
 # Analytics And Experiments
 
-Issue #87 adds the first read-only analytics and experimentation contract for
-issue #18.
+Issues #87 and #105 add the first analytics and experimentation contract plus
+the first privacy-safe event capture path for issue #18.
 
 ## Live Routes
 
 - `/analytics/source-data`: public-safe JSON for the seeded analytics dashboard.
 - `/analytics/indie-launch-dashboard`: crawlable preview for funnel metrics and
   A/B assignment semantics.
+- `/api/analytics/events`: public POST endpoint for seeded analytics events.
 
 ## Current Contract
 
@@ -19,16 +20,20 @@ The first dashboard includes stable IDs for:
 - experiment definitions;
 - variants;
 - assignment rules.
+- aggregate event counts and seeded event ingestion boundaries.
 
-This slice is intentionally read-only. It does not collect live events, assign
-cookies, expose contact-level analytics, store raw event rows, make automated
-decisions, or prove statistical significance.
+The current write path stores seeded analytics events with source-route
+validation, idempotency, public properties, hashed request evidence, and
+aggregate-only public reporting. It does not assign cookies, expose
+contact-level analytics, expose raw event rows, route experiment traffic, make
+automated decisions, or prove statistical significance.
 
 ## Agent Boundary
 
-Agents may read the source-data route and preview route to understand planned
-analytics and experiment semantics. Any future write that touches event
-ingestion, visitor assignment, tracking cookies, experiment traffic, reporting
-decisions, or revenue claims must require actor identity, privacy review,
-idempotency, bot filtering, stale-state checks, audit correlation, redaction,
-retention limits, and sample-size caveats.
+Agents may read the source-data route, preview route, and event capture
+boundary to understand analytics and experiment semantics. Direct agent
+analytics writes, custom events, campaign attribution mutation, visitor
+assignment, tracking cookies, experiment traffic, reporting decisions, or
+revenue claims require authenticated confirmed-write APIs with actor identity,
+privacy review, idempotency, bot filtering, stale-state checks, audit
+correlation, redaction, retention limits, and sample-size caveats.

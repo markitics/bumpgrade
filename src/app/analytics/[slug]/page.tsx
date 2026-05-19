@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: AnalyticsPageProps): Promise<
 
   return {
     title: `${dashboard.title} Preview`,
-    description: `${dashboard.summary} This is a read-only Bumpgrade analytics scaffold tied to issue #${dashboard.issue}.`,
+    description: `${dashboard.summary} This Bumpgrade analytics scaffold is tied to issue #${dashboard.issue}.`,
     alternates: {
       canonical: `${site.url}${dashboard.previewRoute}`,
     },
@@ -134,8 +134,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <p>Status</p>
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
-            Draft preview only. Event definitions, metric formulas, and experiment assignment rules are public-safe
-            records; raw events, cookies, visitors, contacts, and revenue claims stay disabled until confirmed-write APIs exist.
+            Seeded event capture is live with idempotency and aggregate-only reporting; cookies, contact-level
+            analytics, automated winners, and revenue claims stay disabled until confirmed-write APIs exist.
           </span>
         </aside>
       </section>
@@ -144,7 +144,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Funnel report</p>
-            <h2>Step-level conversion metrics use fixture counts</h2>
+            <h2>Step-level conversion metrics combine fixtures and captured event counts</h2>
           </div>
           <Link href={dashboard.linkedFunnelRoute} className="text-link compact-link">
             Linked funnel
@@ -220,7 +220,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect metric definitions, not track visitors.</h2>
+            <h2>Agents can inspect metric definitions and capture seeded events, not track visitors.</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -232,13 +232,13 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <Database aria-hidden="true" />
             <h3>Source data first</h3>
             <p>
-              <code>/analytics/source-data</code> exposes public-safe events, metric formulas, fixture reports, and
-              experiment definitions.
+              <code>/analytics/source-data</code> exposes public-safe events, metric formulas, fixture reports,
+              aggregate event counts, and experiment definitions.
             </p>
           </div>
           <div>
             <BarChart3 aria-hidden="true" />
-            <h3>No raw events</h3>
+            <h3>No raw event feed</h3>
             <p>IP addresses, user agents, cookies, contact IDs, Stripe IDs, and raw event rows stay out of public data.</p>
           </div>
           <div>

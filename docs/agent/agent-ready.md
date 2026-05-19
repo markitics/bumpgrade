@@ -140,13 +140,15 @@ subscriber capture semantics, not contact import, live email sending,
 unsubscribe management, CRM timeline state, suppression-list mutation, or direct
 agent subscriber write capability.
 
-Current analytics boundary: `/analytics/source-data` is the public-safe read
-contract for seeded event definitions, metric formulas, fixture funnel-step
-reports, A/B test variants, and deterministic assignment rules.
-`/analytics/indie-launch-dashboard` is the read-only preview. This proves
-analytics and experiment semantics, not live event collection, cookie
-assignment, contact-level reporting, raw event storage, automated decisions, or
-statistically meaningful proof.
+Current analytics boundary: `/analytics/source-data` is the public-safe contract
+for seeded event definitions, aggregate event counts, metric formulas, fixture
+funnel-step reports, A/B test variants, deterministic assignment rules, and the
+`/api/analytics/events` write boundary. `/analytics/indie-launch-dashboard` is
+the preview. Seeded analytics events can be captured with idempotency,
+source-route validation, and hashed request evidence. This proves seeded event
+capture semantics, not cookie assignment, contact-level reporting, raw event
+exposure, automated decisions, direct agent analytics writes, or statistically
+meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,

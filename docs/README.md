@@ -31,8 +31,9 @@ then open the relevant shelf for the task.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
   broadcast, automation, consent, and seeded subscriber capture contract from
   issues #85 and #103.
-- `features/analytics-experiments.md`: read-only event, metric, fixture report,
-  variant, and assignment-rule source-data contract from issue #87.
+- `features/analytics-experiments.md`: event, metric, fixture report, variant,
+  assignment-rule, aggregate count, and seeded event capture contract from
+  issues #87 and #105.
 - `features/affiliate-referrals.md`: read-only affiliate program, referral
   link, attribution, commission, payout review, and fraud flag source-data
   contract from issue #89.

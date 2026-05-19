@@ -554,12 +554,29 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "read-contract-ready",
-        issue: 87,
+        status: "event-capture-ready",
+        issue: 105,
         parentIssue: 18,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/analytics/source-data", "/analytics/indie-launch-dashboard"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining(["/analytics/source-data", "/api/analytics/events", "/analytics/indie-launch-dashboard"]),
+    );
+    expect(payload.eventWrites).toEqual(
+      expect.objectContaining({
+        status: "event-capture-ready",
+        issue: 105,
+        apiRoute: "/api/analytics/events",
+        tables: expect.arrayContaining(["analytics_events", "analytics_event_ingestions"]),
+      }),
+    );
+    expect(payload.eventSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+      }),
+    );
     expect(payload.dashboards).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -581,14 +598,133 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Issue #87 is read-only");
-    expect(payload.caveat).toContain("does not collect live events");
+    expect(payload.writeBoundary).toContain("Issue #105 can capture seeded analytics events");
+    expect(payload.caveat).toContain("privacy-safe seeded event capture");
 
     await page.goto("/analytics/indie-launch-dashboard");
     await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Step-level conversion metrics use fixture counts/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step-level conversion metrics combine fixtures and captured event counts/i })).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
+  });
+
+  test("analytics event API validates seeded events and replays idempotent responses", async ({ request }) => {
+    const idempotencyKey = `playwright-analytics-event-${Date.now()}`;
+    const payload = {
+      eventDefinitionId: "event-funnel-page-view",
+      sourceRoute: "/funnels/indie-launch-sandbox",
+      idempotencyKey,
+      anonymousId: "playwright-anonymous-visitor",
+      publicProperties: {
+        route: "/funnels/indie-launch-sandbox",
+        funnelId: "funnel-indie-launch-sandbox",
+        stepId: "funnel-step-indie-launch-opt-in",
+        variantId: "variant-opt-in-outcome-first",
+        fullReferrer: "https://private.example/referrer",
+      },
+    };
+
+    const firstResponse = await request.post("/api/analytics/events", { data: payload });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const firstResult = await firstResponse.json();
+    expect(firstResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        status: "recorded",
+        eventDefinitionId: "event-funnel-page-view",
+        eventKind: "page_view",
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        privateDataIncluded: false,
+        rawRequestDataIncluded: false,
+      }),
+    );
+    expect(firstResult.publicProperties).toEqual(
+      expect.objectContaining({
+        route: "/funnels/indie-launch-sandbox",
+        funnelId: "funnel-indie-launch-sandbox",
+        stepId: "funnel-step-indie-launch-opt-in",
+        variantId: "variant-opt-in-outcome-first",
+      }),
+    );
+    expect(firstResult.publicProperties).not.toHaveProperty("fullReferrer");
+
+    const duplicateResponse = await request.post("/api/analytics/events", { data: payload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicateResult = await duplicateResponse.json();
+    expect(duplicateResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        analyticsEventId: firstResult.analyticsEventId,
+        eventDefinitionId: "event-funnel-page-view",
+      }),
+    );
+
+    const unsupportedEventResponse = await request.post("/api/analytics/events", {
+      data: { ...payload, eventDefinitionId: "event-private-custom", idempotencyKey: `${idempotencyKey}-unsupported` },
+    });
+    expect(unsupportedEventResponse.status()).toBe(400);
+    await expect(unsupportedEventResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_event" }),
+    );
+
+    const unsupportedRouteResponse = await request.post("/api/analytics/events", {
+      data: { ...payload, sourceRoute: "/private-admin", idempotencyKey: `${idempotencyKey}-source` },
+    });
+    expect(unsupportedRouteResponse.status()).toBe(400);
+    await expect(unsupportedRouteResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_source_route" }),
+    );
+
+    const missingIdempotencyResponse = await request.post("/api/analytics/events", {
+      data: { ...payload, idempotencyKey: "" },
+    });
+    expect(missingIdempotencyResponse.status()).toBe(400);
+    await expect(missingIdempotencyResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_required" }),
+    );
+
+    const sourceData = await (await request.get("/analytics/source-data")).json();
+    expect(sourceData.eventSummary.aggregateCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event_definition_id: "event-funnel-page-view",
+          total_events: expect.any(Number),
+        }),
+      ]),
+    );
+  });
+
+  test("audience opt-in records one privacy-safe analytics event across idempotent replay", async ({ request }) => {
+    const countFor = async () => {
+      const response = await request.get("/analytics/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const row = payload.eventSummary.aggregateCounts.find(
+        (candidate: { event_definition_id: string }) =>
+          candidate.event_definition_id === "event-audience-opt-in-created",
+      );
+      return row?.total_events ?? 0;
+    };
+    const beforeCount = await countFor();
+    const idempotencyKey = `playwright-audience-analytics-${Date.now()}`;
+    const optInPayload = {
+      email: `playwright-analytics-${Date.now()}@example.com`,
+      firstName: "Analytics",
+      consent: true,
+      formId: "opt-in-form-indie-launch-waitlist",
+      idempotencyKey,
+    };
+
+    const firstResponse = await request.post("/api/audience/opt-in", { data: optInPayload });
+    expect(firstResponse.ok(), await firstResponse.text()).toBeTruthy();
+    const duplicateResponse = await request.post("/api/audience/opt-in", { data: optInPayload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicatePayload = await duplicateResponse.json();
+    expect(duplicatePayload.duplicate).toBe(true);
+
+    await expect.poll(countFor).toBe(beforeCount + 1);
   });
 
   test("affiliate source data exposes partners, referral links, commissions, and payout review", async ({ request, page }) => {
@@ -715,7 +851,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87],
+          issueNumbers: [18, 87, 105],
+        }),
+        expect.objectContaining({
+          id: "journey-agent-records-privacy-safe-analytics-event",
+          featureId: "feature-analytics-testing",
+          issueNumbers: [18, 87, 105],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
