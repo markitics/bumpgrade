@@ -12,11 +12,15 @@ type AudienceRuntime = {
 
 type CountRow = {
   subscriber_count: number | string | null;
+  unsubscribed_subscriber_count: number | string | null;
   consent_count: number | string | null;
   tag_assignment_count: number | string | null;
   sequence_enrollment_count: number | string | null;
+  suppression_count: number | string | null;
+  active_suppression_count: number | string | null;
   last_subscriber_at: number | string | null;
   last_consent_at: number | string | null;
+  last_suppression_at: number | string | null;
 };
 
 type DimensionCountRow = {
@@ -57,21 +61,28 @@ export type AudienceInspectionSummary = {
   loadError: string | null;
   counts: {
     subscribers: number;
+    unsubscribedSubscribers: number;
     consentEvents: number;
     tagAssignments: number;
     sequenceEnrollments: number;
+    suppressionEntries: number;
+    activeSuppressionEntries: number;
   };
   lastSubscriberAt: string | null;
   lastConsentAt: string | null;
+  lastSuppressionAt: string | null;
   formCounts: AudienceInspectionCount[];
   tagCounts: AudienceInspectionCount[];
   sequenceCounts: AudienceInspectionCount[];
+  suppressionCounts: AudienceInspectionCount[];
   redaction: {
     privateContactDataIncluded: false;
     rawEmailIncluded: false;
     rawNameIncluded: false;
     rawIpIncluded: false;
     rawUserAgentIncluded: false;
+    rawSuppressionHashIncluded: false;
+    suppressionReasonIncluded: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
@@ -148,25 +159,32 @@ function emptySummary(source: AudienceInspectionSummary["source"], loadError: st
     loadError,
     counts: {
       subscribers: 0,
+      unsubscribedSubscribers: 0,
       consentEvents: 0,
       tagAssignments: 0,
       sequenceEnrollments: 0,
+      suppressionEntries: 0,
+      activeSuppressionEntries: 0,
     },
     lastSubscriberAt: null,
     lastConsentAt: null,
+    lastSuppressionAt: null,
     formCounts: [],
     tagCounts: [],
     sequenceCounts: [],
+    suppressionCounts: [],
     redaction: {
       privateContactDataIncluded: false,
       rawEmailIncluded: false,
       rawNameIncluded: false,
       rawIpIncluded: false,
       rawUserAgentIncluded: false,
+      rawSuppressionHashIncluded: false,
+      suppressionReasonIncluded: false,
     },
-    privateFieldsExcluded: ["email", "firstName", "ipHash", "userAgentHash", "metadataJson"],
+    privateFieldsExcluded: ["email", "firstName", "emailHash", "ipHash", "userAgentHash", "suppressionReason", "metadataJson"],
     writeBoundary:
-      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Imports, sends, unsubscribes, CRM notes, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
+      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Issue #167 records unsubscribe/suppression evidence and marks known subscribers unsubscribed without public list-membership leakage. Imports, sends, broadcasts, CRM notes, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
   };
 }
 
@@ -223,11 +241,15 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
       .prepare(
         `SELECT
           (SELECT COUNT(*) FROM audience_subscribers) AS subscriber_count,
+          (SELECT COUNT(*) FROM audience_subscribers WHERE status = 'unsubscribed') AS unsubscribed_subscriber_count,
           (SELECT COUNT(*) FROM audience_consent_events) AS consent_count,
           (SELECT COUNT(*) FROM audience_tag_assignments) AS tag_assignment_count,
           (SELECT COUNT(*) FROM audience_sequence_enrollments) AS sequence_enrollment_count,
+          (SELECT COUNT(*) FROM audience_suppression_entries) AS suppression_count,
+          (SELECT COUNT(*) FROM audience_suppression_entries WHERE status = 'active') AS active_suppression_count,
           (SELECT MAX(created_at) FROM audience_subscribers) AS last_subscriber_at,
-          (SELECT MAX(consented_at) FROM audience_consent_events) AS last_consent_at`,
+          (SELECT MAX(consented_at) FROM audience_consent_events) AS last_consent_at,
+          (SELECT MAX(created_at) FROM audience_suppression_entries) AS last_suppression_at`,
       )
       .first<CountRow>();
 
@@ -255,20 +277,33 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
         ORDER BY total DESC, sequence_id ASC`,
       )
       .all<DimensionCountRow>();
+    const suppressionCounts = await db
+      .prepare(
+        `SELECT suppression_kind AS id, status, COUNT(*) AS total
+        FROM audience_suppression_entries
+        GROUP BY suppression_kind, status
+        ORDER BY total DESC, suppression_kind ASC`,
+      )
+      .all<DimensionCountRow>();
 
     return {
       ...emptySummary("d1", null),
       counts: {
         subscribers: numberValue(counts?.subscriber_count),
+        unsubscribedSubscribers: numberValue(counts?.unsubscribed_subscriber_count),
         consentEvents: numberValue(counts?.consent_count),
         tagAssignments: numberValue(counts?.tag_assignment_count),
         sequenceEnrollments: numberValue(counts?.sequence_enrollment_count),
+        suppressionEntries: numberValue(counts?.suppression_count),
+        activeSuppressionEntries: numberValue(counts?.active_suppression_count),
       },
       lastSubscriberAt: timestampValue(counts?.last_subscriber_at),
       lastConsentAt: timestampValue(counts?.last_consent_at),
+      lastSuppressionAt: timestampValue(counts?.last_suppression_at),
       formCounts: dimensionCounts(formCounts.results ?? []),
       tagCounts: dimensionCounts(tagCounts.results ?? []),
       sequenceCounts: dimensionCounts(sequenceCounts.results ?? []),
+      suppressionCounts: dimensionCounts(suppressionCounts.results ?? []),
     };
   } catch (error) {
     return emptySummary("unavailable", error instanceof Error ? error.message : "Unable to load audience subscriber inspection.");

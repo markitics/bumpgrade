@@ -402,17 +402,36 @@ export const agentReadContracts: AgentReadContract[] = [
       "automationRuleId",
       "broadcastDraftId",
       "consentRecordId",
+      "suppressionEntryId",
       "agentActionId",
     ],
     safeForAgents: [
       "Read seeded opt-in form",
       "Inspect tags and segments",
       "Inspect consent-backed capture boundary",
-      "Inspect aggregate owner-subscriber counts and redaction flags",
+      "Inspect aggregate owner-subscriber and suppression counts with redaction flags",
+      "Inspect the public-safe unsubscribe/suppression write boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent; verified owners can inspect private subscriber rows in /admin/audience; imports, broadcasts, unsubscribes, CRM notes, private exports, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows in /admin/audience; imports, broadcasts, CRM notes, private exports, direct agent subscriber writes, and email sends require future confirmed-write APIs.",
+  },
+  {
+    id: "create-audience-unsubscribe-suppression",
+    title: "Audience unsubscribe suppression",
+    route: "/api/audience/unsubscribe",
+    kind: "api",
+    auth: "public",
+    sourceOfTruth: "D1 table audience_suppression_entries and subscriber status in audience_subscribers",
+    stableIds: ["suppressionEntryId", "idempotencyKey"],
+    safeForAgents: [
+      "Inspect the unsubscribe/suppression confirmation contract",
+      "Record a public-safe unsubscribe preference only for the submitted email",
+      "Confirm responses do not reveal whether the email was already subscribed",
+      "Use idempotency before replaying a preference write",
+    ],
+    writeBoundary:
+      "This public API records hashed unsubscribe/suppression evidence and marks known subscribers unsubscribed without revealing list membership. It does not send email, export subscribers, expose suppression hashes or reasons publicly, or authorize direct agent subscriber management.",
   },
   {
     id: "read-admin-audience-subscribers",
@@ -420,15 +439,15 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/admin/audience",
     kind: "doc",
     auth: "owner-session",
-    sourceOfTruth: "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, and audience_sequence_enrollments",
-    stableIds: ["subscriberId", "subscriberSegmentId", "subscriberTagId", "emailSequenceId", "consentRecordId", "ownerUserId"],
+    sourceOfTruth: "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, audience_sequence_enrollments, and audience_suppression_entries",
+    stableIds: ["subscriberId", "subscriberSegmentId", "subscriberTagId", "emailSequenceId", "consentRecordId", "suppressionEntryId", "ownerUserId"],
     safeForAgents: [
       "Read private subscriber rows only with an owner session",
-      "Inspect consent counts, active tags, source form, and draft sequence enrollment state",
-      "Confirm public source-data redacts email, name, raw IP, raw user agent, and private metadata",
+      "Inspect consent counts, active tags, source form, draft sequence enrollment state, and suppression totals",
+      "Confirm public source-data redacts email, name, suppression hashes, reasons, raw IP, raw user agent, and private metadata",
     ],
     writeBoundary:
-      "This owner page is inspection-only; imports, sends, unsubscribes, broadcasts, CRM notes, suppression changes, private exports, and direct agent subscriber writes require future confirmed-write APIs.",
+      "This owner page is inspection-only; imports, sends, broadcasts, CRM notes, private exports, and direct agent subscriber writes require future confirmed-write APIs.",
   },
   {
     id: "read-analytics-experiments",
@@ -877,9 +896,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, redaction flags, and consent boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, redaction flags, consent boundaries, and unsubscribe boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture and owner-gated subscriber inspection are live; imports, sends, broadcasts, unsubscribe changes, private exports, CRM notes, and direct agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, and owner-gated subscriber inspection are live; imports, sends, broadcasts, private exports, CRM notes, and direct agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",

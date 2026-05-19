@@ -540,6 +540,33 @@ export const audienceSequenceEnrollments = sqliteTable(
   }),
 );
 
+export const audienceSuppressionEntries = sqliteTable(
+  "audience_suppression_entries",
+  {
+    id: text("id").primaryKey(),
+    emailHash: text("email_hash").notNull(),
+    subscriberId: text("subscriber_id").references(() => audienceSubscribers.id, { onDelete: "set null" }),
+    status: text("status").notNull().default("active"),
+    suppressionKind: text("suppression_kind").notNull().default("unsubscribe"),
+    sourceRoute: text("source_route").notNull(),
+    reason: text("reason"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    ipHash: text("ip_hash"),
+    userAgentHash: text("user_agent_hash"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_suppression_entries_idempotency_unique").on(table.idempotencyKey),
+    emailStatusIdx: index("audience_suppression_entries_email_status_idx").on(table.emailHash, table.status),
+    subscriberStatusIdx: index("audience_suppression_entries_subscriber_status_idx").on(
+      table.subscriberId,
+      table.status,
+    ),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {

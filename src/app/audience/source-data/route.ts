@@ -11,8 +11,6 @@ export async function GET() {
 
   return NextResponse.json({
     ...audienceAutomationSourceData,
-    status: subscriberInspection.status,
-    issue: subscriberInspection.issue,
     routes: Array.from(new Set([...audienceAutomationSourceData.routes, subscriberInspection.ownerRoute])),
     subscriberInspection,
   });

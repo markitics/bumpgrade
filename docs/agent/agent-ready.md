@@ -186,15 +186,17 @@ agent write capability.
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,
 email sequences, broadcast drafts, automation rules, the
-`/api/audience/opt-in` write boundary, and aggregate subscriber inspection
-redaction flags. `/audience/indie-launch-waitlist` can capture explicit-consent
-waitlist opt-ins, normalize the submitted email, assign seeded tags, and record
-draft sequence enrollment evidence. `/admin/audience` lets verified owners
-inspect private subscriber rows, consent counts, active tags, and draft sequence
-enrollments from D1. This proves seeded subscriber capture and owner inspection
-semantics, not contact import, live email sending, unsubscribe management, CRM
-timeline state, suppression-list mutation, private export, or direct agent
-subscriber write capability.
+`/api/audience/opt-in` write boundary, the `/api/audience/unsubscribe`
+unsubscribe/suppression boundary, and aggregate subscriber/suppression
+inspection redaction flags. `/audience/indie-launch-waitlist` can capture
+explicit-consent waitlist opt-ins, normalize the submitted email, assign seeded
+tags, record draft sequence enrollment evidence, and record an unsubscribe
+preference without revealing list membership. `/admin/audience` lets verified
+owners inspect private subscriber rows, consent counts, active tags, draft
+sequence enrollments, and suppression totals from D1. This proves seeded
+subscriber capture, unsubscribe evidence, and owner inspection semantics, not
+contact import, live email sending, CRM timeline state, private export,
+suppression-list administration, or direct agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
 for seeded event definitions, aggregate event counts, aggregate source

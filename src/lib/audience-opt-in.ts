@@ -29,7 +29,7 @@ export const audienceOptInWriteContract = {
     "unsubscribe tokens",
   ],
   writeBoundary:
-    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Email sending, imports, unsubscribe management, broadcasts, CRM notes, suppression-list mutation, and direct agent writes require future confirmed-write APIs.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #167 handles public-safe unsubscribe/suppression evidence separately. Email sending, imports, broadcasts, CRM notes, and direct agent writes require future confirmed-write APIs.",
 };
 
 export function normalizeOptInEmail(value: unknown) {

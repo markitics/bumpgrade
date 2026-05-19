@@ -225,6 +225,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Audience automation source data and preview route from issue #85.",
       "Signup forms, lead magnets, subscriber tags, segments, and consent-backed opt-in capture from issue #103.",
       "Owner-gated subscriber, consent, tag, and draft enrollment inspection from issue #137.",
+      "Public-safe unsubscribe and suppression evidence from issue #167.",
       "Campaigns, sequences, broadcasts, and behavior-triggered automations.",
       "CRM-lite contact timelines and opportunity states.",
       "Consent, unsubscribe, and deliverability boundaries.",
@@ -234,10 +235,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #85 adds `/audience/source-data` and `/audience/indie-launch-waitlist` as the first read-only audience automation contract and preview scaffold.",
       "Issue #103 adds a public waitlist opt-in write path that stores normalized subscriber, consent, tag, and draft sequence enrollment evidence without sending email.",
       "Issue #137 adds `/admin/audience` owner inspection and aggregate public subscriber inspection redaction flags.",
+      "Issue #167 adds a public-safe unsubscribe write path that records suppression evidence and marks known subscribers unsubscribed without revealing list membership.",
       "Codex project email tracked separately by issue #10.",
     ],
     agentContract:
-      "Agents may read the public audience contract, aggregate subscriber inspection counts, and opt-in write boundary; direct agent subscriber writes, imports, broadcasts, unsubscribes, private exports, CRM notes, and email sends require future authenticated confirmed-write APIs with confirmation, audience scope, and unsubscribe-safe checks.",
+      "Agents may read the public audience contract, aggregate subscriber and suppression counts, opt-in write boundary, and unsubscribe/suppression write boundary; direct agent subscriber writes, imports, broadcasts, private exports, CRM notes, and email sends require future authenticated confirmed-write APIs with confirmation, audience scope, and unsubscribe-safe checks.",
   },
   {
     id: "feature-analytics-testing",
