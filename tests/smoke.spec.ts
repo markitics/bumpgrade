@@ -1924,17 +1924,17 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-analytics-event",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 121],
+          issueNumbers: [18, 87, 105, 121, 125],
         }),
         expect.objectContaining({
           id: "journey-agent-assigns-privacy-safe-experiment-variant",
