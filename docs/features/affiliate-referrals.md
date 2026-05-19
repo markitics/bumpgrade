@@ -1,8 +1,8 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, and #111 add the first affiliate/referral source-data,
-preview surface, privacy-safe click capture path, and checkout attribution
-evidence path for parent issue #19.
+Issues #89, #109, #111, and #113 add the first affiliate/referral source-data,
+preview surface, privacy-safe click capture path, checkout attribution evidence
+path, and review-only commission ledger path for parent issue #19.
 
 ## Live Public-Safe Routes
 
@@ -15,6 +15,9 @@ evidence path for parent issue #19.
 - `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
 - `/api/commerce/checkout`: sandbox checkout endpoint can attach eligible
   referral click IDs as public-safe attribution evidence.
+- `/api/affiliates/commission-ledger`: confirmed POST endpoint that creates
+  one review-only, non-payable commission ledger row from trusted checkout
+  attribution.
 
 ## Stable IDs
 
@@ -26,6 +29,7 @@ The contract introduces stable IDs for:
 - `referralClickId`
 - `checkoutIntentId`
 - `referralAttributionId`
+- `reviewOnlyCommissionLedgerId`
 - `attributionRuleId`
 - `commissionRuleId`
 - `commissionLedgerId`
@@ -43,14 +47,17 @@ buyer identifiers.
 This slice can capture seeded referral clicks with idempotency, destination
 route validation, hashed request evidence, aggregate-only public reporting, and
 can attach eligible referral clicks to sandbox checkout intents as attribution
-evidence. It proves affiliate/referral click-to-checkout semantics, not payable
+evidence. It can also create review-only commission ledger evidence from a
+trusted sandbox checkout intent with referral attribution. It proves
+affiliate/referral click-to-checkout-to-ledger semantics, not payable
 commissions or payout capability.
 
 Not live in this slice:
 
 - cookie assignment;
 - buyer attribution finalization;
-- commission writes;
+- payable commission writes;
+- owner review or reversal execution;
 - fraud enforcement;
 - payout account storage;
 - tax form collection;
@@ -66,6 +73,6 @@ checks, and owner review before payout.
 
 - `/offers/source-data`: offer IDs used by commission rules.
 - `/analytics/source-data`: purchase/refund event IDs used by ledger fixtures.
-- `/commerce/source-data`: checkout intent, referral attribution evidence, and
-  billing safety patterns.
+- `/commerce/source-data`: checkout intent, referral attribution evidence,
+  review-only commission ledger evidence, and billing safety patterns.
 - `/agent-docs/source-data`: manifest entry for future MCP resources.

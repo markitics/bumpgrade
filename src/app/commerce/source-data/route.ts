@@ -2,6 +2,10 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
 import {
+  affiliateCommissionLedgerContract,
+  loadAffiliateCommissionLedgerSummary,
+} from "@/lib/affiliate-commission-ledger";
+import {
   commerceAgentWriteRules,
   commerceDecisions,
   commerceTables,
@@ -56,6 +60,10 @@ export async function GET() {
     referralAttribution: {
       contract: checkoutReferralAttributionContract,
       summary: await loadCheckoutReferralAttributionSummary(db),
+    },
+    affiliateCommissionLedger: {
+      contract: affiliateCommissionLedgerContract,
+      summary: await loadAffiliateCommissionLedgerSummary(db),
     },
     agentWriteRules: commerceAgentWriteRules,
   });

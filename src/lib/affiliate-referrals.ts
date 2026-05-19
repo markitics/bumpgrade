@@ -1,11 +1,13 @@
 import {
+  affiliateCommissionLedgerApiRoute,
+  affiliateCommissionLedgerContract,
+  affiliateCommissionLedgerUpdatedAt,
+} from "@/lib/affiliate-commission-ledger";
+import {
   referralClickCaptureApiRoute,
   referralClickCaptureWriteContract,
 } from "@/lib/referral-clicks";
-import {
-  checkoutReferralAttributionContract,
-  checkoutReferralAttributionUpdatedAt,
-} from "@/lib/referral-checkout-attribution";
+import { checkoutReferralAttributionContract } from "@/lib/referral-checkout-attribution";
 
 export type AffiliateProgramStatus = "draft";
 export type AffiliatePartnerStatus = "approved" | "review";
@@ -126,23 +128,23 @@ export type AffiliateProgram = {
   validation: string[];
 };
 
-export const affiliateReferralsUpdatedAt = checkoutReferralAttributionUpdatedAt;
+export const affiliateReferralsUpdatedAt = affiliateCommissionLedgerUpdatedAt;
 
 export const affiliateProgram: AffiliateProgram = {
   id: "affiliate-program-indie-launch-partners",
   slug: "indie-launch-partners",
   title: "Indie launch partner program preview",
   status: "draft",
-  issue: 111,
+  issue: 113,
   parentIssue: 19,
   sourceDataRoute: "/affiliates/source-data",
   previewRoute: "/affiliates/indie-launch-partners",
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
-  revisionId: "affiliate-program-revision-indie-launch-2026-05-19-checkout-attribution",
+  revisionId: "affiliate-program-revision-indie-launch-2026-05-19-commission-ledger",
   summary:
-    "An affiliate and referral scaffold for partner links, privacy-safe click capture, checkout attribution evidence, attribution windows, commission rules, review flags, payout readiness, and audit-safe agent access before commissions exist.",
+    "An affiliate and referral scaffold for partner links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, payout readiness, and audit-safe agent access before payable commissions exist.",
   attributionRules: [
     {
       id: "attribution-rule-first-click-30",
@@ -328,12 +330,13 @@ export const affiliateProgram: AffiliateProgram = {
     },
   ],
   writeBoundary:
-    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Cookie assignment, buyer attribution finalization, commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, and partner notifications require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, private-data redaction, refund-window checks, and owner review before payout.",
+    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Issue #113 can create review-only, non-payable commission ledger evidence from trusted checkout attribution. Cookie assignment, buyer attribution finalization, payable commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, partner notifications, owner review, and reversal execution require actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, private-data redaction, refund-window checks, and owner review before payout.",
   validation: [
     "/affiliates/source-data returns seeded programs, partners, links, attribution rules, commission rules, ledger fixtures, payout batches, and review flags.",
     "/affiliates/indie-launch-partners renders the affiliate/referral preview.",
     `${referralClickCaptureApiRoute} stores seeded referral click evidence with idempotency.`,
     "/api/commerce/checkout can attach eligible referral click IDs to sandbox checkout intents as public-safe attribution evidence.",
+    `${affiliateCommissionLedgerApiRoute} can create review-only commission ledger evidence from trusted checkout attribution.`,
     "/agent-docs/source-data lists the affiliate/referral read contract for future MCP resources.",
   ],
 };
@@ -347,14 +350,15 @@ export function getAffiliateProgramBySlug(slug: string) {
 export const affiliateReferralsSourceData = {
   id: "bumpgrade-affiliate-referrals-source-data",
   updatedAt: affiliateReferralsUpdatedAt,
-  status: "checkout-attribution-ready",
-  issue: 111,
+  status: "review-only-commission-ledger-ready",
+  issue: 113,
   parentIssue: 19,
   generatedFrom: "src/lib/affiliate-referrals.ts",
   routes: [
     "/affiliates/source-data",
     referralClickCaptureApiRoute,
     "/api/commerce/checkout",
+    affiliateCommissionLedgerApiRoute,
     ...affiliatePrograms.map((program) => program.previewRoute),
   ],
   stableIds: [
@@ -366,6 +370,7 @@ export const affiliateReferralsSourceData = {
     "attributionRuleId",
     "commissionRuleId",
     "commissionLedgerId",
+    "reviewOnlyCommissionLedgerId",
     "payoutBatchId",
     "reviewFlagId",
     "auditEventId",
@@ -373,8 +378,9 @@ export const affiliateReferralsSourceData = {
   ],
   clickWrites: referralClickCaptureWriteContract,
   checkoutAttribution: checkoutReferralAttributionContract,
+  commissionLedgerWrites: affiliateCommissionLedgerContract,
   writeBoundary: affiliateProgram.writeBoundary,
   programs: affiliatePrograms,
   caveat:
-    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, and checkout attribution evidence. Public source-data may expose aggregate click and checkout attribution counts, but it does not expose raw click rows, assign cookies, finalize buyer attribution, create commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, or provide confirmed-write agent APIs.",
+    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, checkout attribution evidence, and review-only commission ledger evidence. Public source-data may expose aggregate click, checkout attribution, and commission ledger counts, but it does not expose raw rows, assign cookies, finalize buyer attribution, create payable commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, notify partners, or provide direct confirmed-write agent APIs.",
 };

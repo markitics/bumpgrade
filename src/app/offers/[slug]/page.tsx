@@ -112,8 +112,8 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <strong>{sequence.length} offer decisions</strong>
           <span>
             Sandbox checkout start is available for the primary offer and seeded order bump, with optional referral-click
-            evidence. Upsells, downsells, fulfillment, commissions, and live billing stay disabled until confirmed-write
-            contracts exist.
+            evidence and review-only commission ledger evidence. Upsells, downsells, fulfillment, payable commissions,
+            and live billing stay disabled until confirmed-write contracts exist.
           </span>
         </aside>
       </section>
@@ -214,7 +214,10 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Webhook evidence required</h3>
-            <p>Fulfillment, access, commissions, and post-purchase billing depend on trusted webhook state in later slices.</p>
+            <p>
+              Fulfillment, access, payable commissions, and post-purchase billing depend on trusted webhook and owner
+              review state in later slices.
+            </p>
           </div>
         </div>
       </section>

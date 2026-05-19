@@ -199,6 +199,59 @@ export const checkoutReferralAttributions = sqliteTable(
   }),
 );
 
+export const affiliateCommissionLedgerEntries = sqliteTable(
+  "affiliate_commission_ledger_entries",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    checkoutIntentId: text("checkout_intent_id")
+      .notNull()
+      .references(() => checkoutIntents.id, { onDelete: "cascade" }),
+    referralAttributionId: text("referral_attribution_id")
+      .notNull()
+      .references(() => checkoutReferralAttributions.id, { onDelete: "cascade" }),
+    referralClickId: text("referral_click_id")
+      .notNull()
+      .references(() => affiliateReferralClicks.id, { onDelete: "cascade" }),
+    referralLinkId: text("referral_link_id").notNull(),
+    referralCode: text("referral_code").notNull(),
+    partnerId: text("partner_id").notNull(),
+    commissionRuleIdsJson: text("commission_rule_ids_json").notNull(),
+    sourceCheckoutStatus: text("source_checkout_status").notNull(),
+    sourceCheckoutAmountCents: integer("source_checkout_amount_cents").notNull(),
+    commissionCents: integer("commission_cents").notNull(),
+    currency: text("currency").notNull(),
+    ledgerStatus: text("ledger_status").notNull().default("review_only"),
+    reviewStatus: text("review_status").notNull().default("refund_window_open"),
+    payoutStatus: text("payout_status").notNull().default("not_payable"),
+    refundWindowDays: integer("refund_window_days").notNull().default(14),
+    reversibleUntil: integer("reversible_until", { mode: "timestamp" }),
+    auditCorrelationId: text("audit_correlation_id"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("affiliate_commission_ledger_entries_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    checkoutUnique: uniqueIndex("affiliate_commission_ledger_entries_checkout_unique").on(table.checkoutIntentId),
+    partnerTimeIdx: index("affiliate_commission_ledger_entries_partner_time_idx").on(
+      table.partnerId,
+      table.createdAt,
+    ),
+    linkTimeIdx: index("affiliate_commission_ledger_entries_link_time_idx").on(
+      table.referralLinkId,
+      table.createdAt,
+    ),
+    statusIdx: index("affiliate_commission_ledger_entries_status_idx").on(
+      table.ledgerStatus,
+      table.reviewStatus,
+      table.payoutStatus,
+    ),
+  }),
+);
+
 export const billingSubscriptions = sqliteTable(
   "billing_subscriptions",
   {

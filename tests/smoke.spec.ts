@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
+import { affiliateCommissionLedgerConfirmationText } from "../src/lib/affiliate-commission-ledger";
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
@@ -295,8 +296,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: checkoutOfferSourceData.id,
-        status: "checkout-referral-attribution-ready",
-        issue: 111,
+        status: "review-only-commission-ledger-ready",
+        issue: 113,
         parentIssue: 15,
       }),
     );
@@ -333,8 +334,9 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #99 allows a confirmed sandbox Checkout Session start");
     expect(payload.writeBoundary).toContain("Issue #111 allows eligible referral click IDs");
+    expect(payload.writeBoundary).toContain("Issue #113 allows review-only commission ledger evidence");
     expect(payload.caveat).toContain("confirmed sandbox checkout start");
-    expect(payload.caveat).toContain("referral-click attribution evidence");
+    expect(payload.caveat).toContain("review-only commission ledger evidence");
 
     await page.goto("/offers/indie-launch-stack");
     await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
@@ -858,8 +860,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "checkout-attribution-ready",
-        issue: 111,
+        status: "review-only-commission-ledger-ready",
+        issue: 113,
         parentIssue: 19,
       }),
     );
@@ -868,6 +870,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/affiliates/source-data",
         "/api/affiliates/clicks",
         "/api/commerce/checkout",
+        "/api/affiliates/commission-ledger",
         "/affiliates/indie-launch-partners",
       ]),
     );
@@ -901,6 +904,23 @@ test.describe("Bumpgrade scaffold", () => {
         commissionRowsIncluded: false,
       }),
     );
+    expect(payload.commissionLedgerWrites).toEqual(
+      expect.objectContaining({
+        status: "review-only-ledger-ready",
+        issue: 113,
+        apiRoute: "/api/affiliates/commission-ledger",
+        tables: expect.arrayContaining(["affiliate_commission_ledger_entries"]),
+      }),
+    );
+    expect(payload.commissionLedgerSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        payableRowsIncluded: false,
+        payoutRowsIncluded: false,
+      }),
+    );
     expect(payload.programs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -930,7 +950,8 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #109 can capture seeded referral clicks");
     expect(payload.writeBoundary).toContain("Issue #111 can attach validated referral click evidence");
-    expect(payload.caveat).toContain("checkout attribution evidence");
+    expect(payload.writeBoundary).toContain("Issue #113 can create review-only");
+    expect(payload.caveat).toContain("review-only commission ledger evidence");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
@@ -1157,6 +1178,160 @@ test.describe("Bumpgrade scaffold", () => {
     await expect.poll(countFor).toBe(beforeCount + 1);
   });
 
+  test("commission ledger API creates review-only evidence from attributed checkouts", async ({ request }) => {
+    const countFor = async () => {
+      const response = await request.get("/affiliates/source-data");
+      expect(response.ok()).toBeTruthy();
+      const payload = await response.json();
+      const row = payload.commissionLedgerSummary.aggregateCounts.find(
+        (candidate: { referral_link_id: string }) => candidate.referral_link_id === "ref-link-launch-circle-waitlist",
+      );
+      return row?.total_ledgers ?? 0;
+    };
+    const beforeCount = await countFor();
+    const contractResponse = await request.get("/api/affiliates/commission-ledger");
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 113,
+        status: "review-only-ledger-ready",
+        confirmation: expect.objectContaining({ text: affiliateCommissionLedgerConfirmationText }),
+        redaction: expect.objectContaining({
+          payableCommissionCreated: false,
+          payoutCreated: false,
+          taxDataIncluded: false,
+        }),
+      }),
+    );
+
+    const suffix = Date.now();
+    const clickResponse = await request.post("/api/affiliates/clicks", {
+      data: {
+        referralLinkId: "ref-link-launch-circle-waitlist",
+        destinationRoute: "/funnels/indie-launch-sandbox",
+        idempotencyKey: `playwright-commission-click-${suffix}`,
+      },
+    });
+    expect(clickResponse.ok(), await clickResponse.text()).toBeTruthy();
+    const clickResult = await clickResponse.json();
+    const checkoutResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        orderBumpPriceIds: ["price-launch-checklist-bump-usd"],
+        referralClickId: clickResult.referralClickId,
+        idempotencyKey: `playwright-commission-checkout-${suffix}`,
+      },
+    });
+    expect(checkoutResponse.ok(), await checkoutResponse.text()).toBeTruthy();
+    const checkoutResult = await checkoutResponse.json();
+
+    const ledgerPayload = {
+      checkoutIntentId: checkoutResult.checkoutIntentId,
+      confirmationText: affiliateCommissionLedgerConfirmationText,
+      idempotencyKey: `playwright-commission-ledger-${suffix}`,
+    };
+    const ledgerResponse = await request.post("/api/affiliates/commission-ledger", { data: ledgerPayload });
+    expect(ledgerResponse.ok(), await ledgerResponse.text()).toBeTruthy();
+    const ledgerResult = await ledgerResponse.json();
+    expect(ledgerResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "review_only_commission_recorded",
+        duplicate: false,
+        commissionLedger: expect.objectContaining({
+          checkoutIntentId: checkoutResult.checkoutIntentId,
+          referralAttributionId: expect.stringMatching(/^checkout-referral-/),
+          referralClickId: clickResult.referralClickId,
+          referralLinkId: "ref-link-launch-circle-waitlist",
+          partnerId: "affiliate-partner-launch-circle",
+          commissionRuleIds: expect.arrayContaining([
+            "commission-rule-launch-pass-30",
+            "commission-rule-checklist-bump-10",
+          ]),
+          grossSaleCents: 2800,
+          commissionCents: 460,
+          ledgerStatus: "review_only",
+          reviewStatus: "refund_window_open",
+          payoutStatus: "not_payable",
+          payableCommissionCreated: false,
+          payoutCreated: false,
+          taxDataIncluded: false,
+          partnerNotificationSent: false,
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    const duplicateResponse = await request.post("/api/affiliates/commission-ledger", { data: ledgerPayload });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicateResult = await duplicateResponse.json();
+    expect(duplicateResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "review_only_commission_replayed",
+        duplicate: true,
+        commissionLedger: expect.objectContaining({
+          commissionLedgerId: ledgerResult.commissionLedger.commissionLedgerId,
+          payoutStatus: "not_payable",
+        }),
+      }),
+    );
+
+    const sameCheckoutDifferentLedgerResponse = await request.post("/api/affiliates/commission-ledger", {
+      data: { ...ledgerPayload, idempotencyKey: `${ledgerPayload.idempotencyKey}-conflict` },
+    });
+    expect(sameCheckoutDifferentLedgerResponse.status()).toBe(409);
+    await expect(sameCheckoutDifferentLedgerResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "commission_ledger_checkout_conflict" }),
+    );
+
+    const missingCheckoutResponse = await request.post("/api/affiliates/commission-ledger", {
+      data: {
+        checkoutIntentId: "checkout-intent-missing",
+        confirmationText: affiliateCommissionLedgerConfirmationText,
+        idempotencyKey: `${ledgerPayload.idempotencyKey}-missing`,
+      },
+    });
+    expect(missingCheckoutResponse.status()).toBe(400);
+    await expect(missingCheckoutResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "checkout_intent_not_found" }),
+    );
+
+    const unattributedCheckoutResponse = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        confirmationText: checkoutConfirmationText,
+        idempotencyKey: `playwright-commission-unattributed-checkout-${suffix}`,
+      },
+    });
+    expect(unattributedCheckoutResponse.ok(), await unattributedCheckoutResponse.text()).toBeTruthy();
+    const unattributedCheckout = await unattributedCheckoutResponse.json();
+    const unattributedLedgerResponse = await request.post("/api/affiliates/commission-ledger", {
+      data: {
+        checkoutIntentId: unattributedCheckout.checkoutIntentId,
+        confirmationText: affiliateCommissionLedgerConfirmationText,
+        idempotencyKey: `${ledgerPayload.idempotencyKey}-unattributed`,
+      },
+    });
+    expect(unattributedLedgerResponse.status()).toBe(400);
+    await expect(unattributedLedgerResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "checkout_referral_attribution_required" }),
+    );
+
+    const missingConfirmationResponse = await request.post("/api/affiliates/commission-ledger", {
+      data: { ...ledgerPayload, confirmationText: "not confirmed", idempotencyKey: `${ledgerPayload.idempotencyKey}-no-confirm` },
+    });
+    expect(missingConfirmationResponse.status()).toBe(400);
+    await expect(missingConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "commission_ledger_confirmation_required" }),
+    );
+
+    await expect.poll(countFor).toBe(beforeCount + 1);
+  });
+
   test("roadmap source data exposes stable roadmap records", async ({ request }) => {
     const response = await request.get("/roadmap/source-data");
     expect(response.ok()).toBeTruthy();
@@ -1246,7 +1421,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111],
+          issueNumbers: [19, 89, 109, 111, 113],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-referral-click",
@@ -1257,6 +1432,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-agent-attaches-referral-click-to-checkout",
           featureId: "feature-affiliates-referrals",
           issueNumbers: [19, 109, 111],
+        }),
+        expect.objectContaining({
+          id: "journey-agent-creates-review-only-commission-evidence",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 109, 111, 113],
         }),
       ]),
     );
@@ -1316,6 +1496,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "commerce_products" }),
         expect.objectContaining({ table: "checkout_intents" }),
         expect.objectContaining({ table: "checkout_referral_attributions" }),
+        expect.objectContaining({ table: "affiliate_commission_ledger_entries" }),
         expect.objectContaining({ table: "product_entitlements" }),
         expect.objectContaining({ table: "product_fulfillment_tasks" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
@@ -1334,6 +1515,22 @@ test.describe("Bumpgrade scaffold", () => {
           rawRowsIncluded: false,
           privateDataIncluded: false,
           commissionRowsIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.affiliateCommissionLedger).toEqual(
+      expect.objectContaining({
+        contract: expect.objectContaining({
+          status: "review-only-ledger-ready",
+          issue: 113,
+          apiRoute: "/api/affiliates/commission-ledger",
+        }),
+        summary: expect.objectContaining({
+          status: "available",
+          rawRowsIncluded: false,
+          privateDataIncluded: false,
+          payableRowsIncluded: false,
+          payoutRowsIncluded: false,
         }),
       }),
     );
@@ -1385,7 +1582,12 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "read-affiliate-referrals",
-          stableIds: expect.arrayContaining(["referralClickId", "checkoutIntentId", "referralAttributionId"]),
+          stableIds: expect.arrayContaining([
+            "referralClickId",
+            "checkoutIntentId",
+            "referralAttributionId",
+            "reviewOnlyCommissionLedgerId",
+          ]),
         }),
       ]),
     );
