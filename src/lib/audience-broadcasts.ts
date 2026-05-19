@@ -13,6 +13,8 @@ export const audienceBroadcastScheduleIntentIssue = 173;
 export const audienceBroadcastScheduleIntentStatus = "broadcast-schedule-intents-ready";
 export const audienceBroadcastScheduleIntentApiRoute = "/api/admin/audience/broadcasts/schedule-intents";
 export const audienceBroadcastScheduleIntentConfirmationText = "Create dry-run Bumpgrade broadcast schedule intent";
+export const audienceBroadcastPreviewSafetyIssue = 175;
+export const audienceBroadcastPreviewSafetyStatus = "broadcast-preview-safety-ready";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -44,6 +46,19 @@ type ScheduleIntentRow = {
   requested_send_at: string | null;
   idempotency_key: string;
   created_at: number | string;
+};
+
+type PreviewSafetyRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  subject_line: string;
+  preview_text: string;
+  body_outline_json: string;
+  unsubscribe_footer_policy: string;
+  sender_domain_status: string;
+  safety_notes_json: string;
+  updated_at: number | string;
 };
 
 type ReadinessCountRow = {
@@ -160,6 +175,49 @@ export type AudienceBroadcastScheduleIntentSummary = {
   writeBoundary: string;
 };
 
+export type AudienceBroadcastPreviewSafety = {
+  id: string;
+  draftId: string;
+  status: string;
+  subjectLine: string;
+  previewText: string;
+  bodyOutline: string[];
+  unsubscribeFooterRequired: true;
+  unsubscribeFooterPolicy: string;
+  senderDomainStatus: string;
+  safetyNotes: string[];
+  sendQueueRowsCreated: false;
+  providerMessageIdsIncluded: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastPreviewSafetySummary = {
+  id: string;
+  status: typeof audienceBroadcastPreviewSafetyStatus;
+  issue: typeof audienceBroadcastPreviewSafetyIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    previewSafetyRecords: number;
+    unsubscribeFooterRequiredRecords: number;
+    senderDomainsReady: number;
+  };
+  records: AudienceBroadcastPreviewSafety[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    rawRecipientNamesIncluded: false;
+    personalizedBodyIncluded: false;
+    providerMessageIdsIncluded: false;
+    sendQueueRowsCreated: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
 type CreateScheduleIntentInput = {
   draftId?: unknown;
   expectedDraftUpdatedAt?: unknown;
@@ -223,6 +281,16 @@ function parseString(value: unknown) {
 function parseInteger(value: unknown) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function parseJsonStringArray(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
+  } catch {
+    return [];
+  }
 }
 
 function emptySummary(
@@ -322,6 +390,48 @@ function emptyScheduleIntentSummary(
   };
 }
 
+function emptyPreviewSafetySummary(
+  source: AudienceBroadcastPreviewSafetySummary["source"],
+  loadError: string | null,
+): AudienceBroadcastPreviewSafetySummary {
+  return {
+    id: "audience-broadcast-preview-safety-contract",
+    status: audienceBroadcastPreviewSafetyStatus,
+    issue: audienceBroadcastPreviewSafetyIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      previewSafetyRecords: 0,
+      unsubscribeFooterRequiredRecords: 0,
+      senderDomainsReady: 0,
+    },
+    records: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      rawRecipientNamesIncluded: false,
+      personalizedBodyIncluded: false,
+      providerMessageIdsIncluded: false,
+      sendQueueRowsCreated: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "personalizedBody",
+      "subscriberEmailHash",
+      "suppressionHash",
+      "providerMessageId",
+      "sendQueuePayload",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #175 exposes owner-visible broadcast preview and unsubscribe-footer safety metadata before delivery exists. It does not personalize messages, create recipient payloads, enqueue sends, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function mapDraft(row: BroadcastDraftRow, counts: ReadinessCountRow | null): AudienceBroadcastDraftReadiness {
   return {
     id: row.id,
@@ -367,6 +477,24 @@ function publicScheduleIntent(row: ScheduleIntentRow, duplicate: boolean): Audie
     createdAt: timestampValue(row.created_at),
     sendQueueRowsCreated: false,
     providerMessageIdsIncluded: false,
+  };
+}
+
+function publicPreviewSafety(row: PreviewSafetyRow): AudienceBroadcastPreviewSafety {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    subjectLine: row.subject_line,
+    previewText: row.preview_text,
+    bodyOutline: parseJsonStringArray(row.body_outline_json),
+    unsubscribeFooterRequired: true,
+    unsubscribeFooterPolicy: row.unsubscribe_footer_policy,
+    senderDomainStatus: row.sender_domain_status,
+    safetyNotes: parseJsonStringArray(row.safety_notes_json),
+    sendQueueRowsCreated: false,
+    providerMessageIdsIncluded: false,
+    updatedAt: timestampValue(row.updated_at),
   };
 }
 
@@ -515,6 +643,37 @@ export async function getAudienceBroadcastScheduleIntentSummary(): Promise<Audie
     return emptyScheduleIntentSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast schedule intents.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastPreviewSafetySummary(): Promise<AudienceBroadcastPreviewSafetySummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, subject_line, preview_text, body_outline_json,
+          unsubscribe_footer_policy, sender_domain_status, safety_notes_json, updated_at
+        FROM audience_broadcast_preview_safety
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<PreviewSafetyRow>();
+    const records = (rows.results ?? []).map(publicPreviewSafety);
+
+    return {
+      ...emptyPreviewSafetySummary("d1", null),
+      counts: {
+        previewSafetyRecords: records.length,
+        unsubscribeFooterRequiredRecords: records.filter((record) => record.unsubscribeFooterRequired).length,
+        senderDomainsReady: records.filter((record) => record.senderDomainStatus === "ready").length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyPreviewSafetySummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast preview safety.",
     );
   }
 }

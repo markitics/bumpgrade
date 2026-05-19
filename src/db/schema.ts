@@ -652,6 +652,31 @@ export const audienceBroadcastScheduleIntents = sqliteTable(
   }),
 );
 
+export const audienceBroadcastPreviewSafety = sqliteTable(
+  "audience_broadcast_preview_safety",
+  {
+    id: text("id").primaryKey(),
+    draftId: text("draft_id").notNull(),
+    status: text("status").notNull().default("preview_safety_ready"),
+    subjectLine: text("subject_line").notNull(),
+    previewText: text("preview_text").notNull(),
+    bodyOutlineJson: text("body_outline_json").notNull(),
+    unsubscribeFooterPolicy: text("unsubscribe_footer_policy").notNull(),
+    senderDomainStatus: text("sender_domain_status").notNull(),
+    safetyNotesJson: text("safety_notes_json").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    draftStatusIdx: index("audience_broadcast_preview_safety_draft_status_idx").on(table.draftId, table.status),
+    statusUpdatedIdx: index("audience_broadcast_preview_safety_status_updated_idx").on(
+      table.status,
+      table.updatedAt,
+    ),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {
