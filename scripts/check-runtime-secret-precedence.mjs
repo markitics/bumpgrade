@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const stripeSource = readFileSync("src/lib/stripe.ts", "utf8");
 const webhookSource = readFileSync("src/app/api/stripe/webhook/route.ts", "utf8");
+const wranglerConfig = JSON.parse(readFileSync("wrangler.jsonc", "utf8"));
 
 const checks = [
   {
@@ -36,4 +37,10 @@ for (const check of checks) {
   assert.match(check.source, check.pattern, check.name);
 }
 
-console.log(`runtime secret precedence checks passed (${checks.length})`);
+assert.equal(
+  wranglerConfig.vars?.NEXT_PRIVATE_MINIMAL_MODE,
+  "1",
+  "Worker runtime vars keep NEXT_PRIVATE_MINIMAL_MODE enabled for deployed OpenNext routes",
+);
+
+console.log(`runtime secret precedence checks passed (${checks.length + 1})`);

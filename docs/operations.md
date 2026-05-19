@@ -40,10 +40,12 @@ its managed Worker preview. Keep `playwright.config.ts` pointed at
 `preview:worker`, not `preview`, so the test runner does not rebuild while it
 is also driving browser traffic.
 
-The Playwright-managed Worker preview passes
-`--var NEXT_PRIVATE_MINIMAL_MODE:1`. Without that Worker var, local Wrangler can
-try to dynamically require Next's empty `middleware-manifest.json` and return
-500s before application routes run.
+The deployed Worker and Playwright-managed Worker preview both require
+`NEXT_PRIVATE_MINIMAL_MODE=1`. Without that Worker var, Wrangler/Workers can try
+to dynamically require Next's empty `middleware-manifest.json` and return 500s
+before application routes run. Issue #131 records the production rollback that
+made this a deployed Worker config requirement, not just a local preview
+workaround.
 
 ## Codex Email
 
