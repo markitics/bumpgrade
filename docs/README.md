@@ -35,8 +35,9 @@ then open the relevant shelf for the task.
   broadcast, automation, consent, and seeded subscriber capture contract from
   issues #85 and #103.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
-  report, variant, assignment-rule, aggregate count, seeded event capture, and
-  seeded assignment contract from issues #87, #105, #107, and #119.
+  report, variant, assignment-rule, aggregate count, seeded event capture,
+  browser-side page-view beacon, and seeded assignment contract from issues #87,
+  #105, #107, #119, and #121.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, and fraud flag source-data contract
