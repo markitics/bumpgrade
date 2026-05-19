@@ -388,6 +388,14 @@ export const commerceTables: CommerceTableContract[] = [
     serverPrivateFields: ["metadata_json"],
     purpose: "Public-safe fulfillment queue evidence created with entitlement rows before private delivery exists.",
   },
+  {
+    table: "product_asset_uploads",
+    status: "live",
+    publicSafeFields: ["id", "product_id", "asset_id", "file_name", "content_type", "byte_count", "body_sha256", "status"],
+    serverPrivateFields: ["idempotency_key", "actor_user_id", "actor_email_hash", "r2_object_key", "confirmation_text_sha256", "metadata_json"],
+    purpose:
+      "Owner-confirmed private product asset upload records backed by PRODUCT_ASSETS without exposing object keys, signed URLs, upload bodies, or private metadata.",
+  },
 ];
 
 export const commerceAgentWriteRules = [

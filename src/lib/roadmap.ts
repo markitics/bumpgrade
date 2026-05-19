@@ -254,7 +254,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -264,9 +264,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #143 adds one-use download tokens for active file entitlements without exposing private R2 keys or signed object URLs.",
       "Issue #146 adds a seeded private R2-backed fixture delivery path through one-use Bumpgrade tokens.",
       "Issue #147 revalidates current entitlement status, checkout intent linkage, trusted checkout state, and asset scope before token redemption.",
+      "Issue #151 adds owner-confirmed private product asset upload records backed by PRODUCT_ASSETS without exposing object keys, signed URLs, upload bodies, or private metadata.",
     ],
     nextMilestone:
-      "Add arbitrary product asset uploads and protected content delivery while preserving the same token, entitlement, expiry, and redaction boundaries.",
+      "Connect owner-uploaded private assets to customer delivery while preserving the same token, entitlement, expiry, stale-state, and redaction boundaries.",
   },
   {
     id: "roadmap-email-automation",
