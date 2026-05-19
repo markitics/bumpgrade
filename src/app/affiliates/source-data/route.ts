@@ -1,7 +1,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 
-import { loadAffiliateCommissionLedgerSummary } from "@/lib/affiliate-commission-ledger";
+import {
+  affiliateCommissionReviewActionsContract,
+  loadAffiliateCommissionLedgerSummary,
+} from "@/lib/affiliate-commission-ledger";
 import { affiliateReferralsSourceData } from "@/lib/affiliate-referrals";
 import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
 
@@ -62,5 +65,8 @@ export async function GET() {
     clickSummary: await loadClickSummary(db),
     checkoutAttributionSummary: await loadCheckoutReferralAttributionSummary(db),
     commissionLedgerSummary: await loadAffiliateCommissionLedgerSummary(db),
+    commissionReviewActions: {
+      contract: affiliateCommissionReviewActionsContract,
+    },
   });
 }

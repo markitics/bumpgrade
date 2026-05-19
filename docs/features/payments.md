@@ -89,6 +89,21 @@ evidence:
   review or reversal actions, make fraud decisions, collect tax data, notify
   partners, or expose raw request, buyer, payout, or Stripe identifiers.
 
+Issue #115 adds owner-gated review actions for that ledger evidence:
+
+- `POST /api/admin/affiliates/commission-ledger/actions` requires a Better Auth
+  owner session, exact confirmation text, idempotency key, action kind, and
+  expected ledger `updatedAt` stale-state value.
+- Supported action kinds are `mark_reviewed`, `hold_for_review`, and
+  `reverse_evidence`.
+- Actions update only review-only commission evidence and keep payout status
+  `not_payable`.
+- Public source-data exposes aggregate action counts only, not raw actor email,
+  private reasons, buyer identifiers, payout data, tax data, or Stripe IDs.
+- This does not create payout batches, execute Stripe payouts, notify partners,
+  collect tax data, finalize buyer attribution, or enable direct agent review
+  writes.
+
 ## Source Checks
 
 Checked on 2026-05-18:
@@ -157,6 +172,8 @@ commerce tables, and later migrations extend them:
   seeded referral clicks to sandbox checkout intents.
 - `affiliate_commission_ledger_entries`: review-only, non-payable commission
   evidence created from trusted checkout referral attribution.
+- `affiliate_commission_ledger_actions`: owner-gated review, hold, and reversal
+  action evidence for non-payable commission ledger rows.
 - `billing_subscriptions`: Stripe subscription state mirrored into D1.
 - `stripe_webhook_events`: webhook idempotency and redacted event evidence.
 - `payment_audit_events`: public-safe payment state changes and agent/action

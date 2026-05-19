@@ -167,11 +167,13 @@ be captured with idempotency, destination-route validation, and hashed request
 evidence, and eligible clicks can be attached to sandbox checkout intents as
 public-safe attribution evidence. Trusted checkout attribution can create
 review-only commission ledger evidence through
-`/api/affiliates/commission-ledger`. This proves affiliate and referral
-click-to-checkout-to-ledger semantics, not cookie assignment, buyer attribution
-finalization, payable commission state, owner review automation, reversal
-execution, tax collection, fraud enforcement, Stripe payout capability, or
-partner notifications.
+`/api/affiliates/commission-ledger`, and owner sessions can review, hold, or
+reverse that evidence through
+`/api/admin/affiliates/commission-ledger/actions` without creating payout state.
+This proves affiliate and referral click-to-checkout-to-ledger-to-review
+semantics, not cookie assignment, buyer attribution finalization, payable
+commission state, direct agent review writes, tax collection, fraud enforcement,
+Stripe payout capability, or partner notifications.
 
 ## MCP And Tooling
 
@@ -229,10 +231,12 @@ Current commerce boundary: issue #34 exposes a sandbox checkout write path at
 `agentClientId` is present, and the route writes an audit-correlated
 `checkout_intents` record before Stripe is called. Issue #111 can attach
 eligible referral click evidence to the checkout intent. Issue #113 can create
-review-only commission ledger evidence from trusted checkout attribution, but
-payable commissions, payouts, owner review automation, reversal execution, fraud
-decisions, partner notifications, and buyer attribution finalization remain
-disabled. Live billing remains disabled until a later explicit rollout issue.
+review-only commission ledger evidence from trusted checkout attribution. Issue
+#115 lets owner sessions review, hold, or reverse that evidence with exact
+confirmation, idempotency, stale-state checks, and audit correlation, but
+payable commissions, payouts, direct agent review writes, fraud decisions,
+partner notifications, and buyer attribution finalization remain disabled. Live
+billing remains disabled until a later explicit rollout issue.
 
 ## Browser-Agent UX
 

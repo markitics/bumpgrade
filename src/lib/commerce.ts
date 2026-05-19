@@ -1,6 +1,7 @@
 import {
   affiliateCommissionLedgerContract,
   affiliateCommissionLedgerUpdatedAt,
+  affiliateCommissionReviewActionsContract,
 } from "@/lib/affiliate-commission-ledger";
 import {
   checkoutReferralAttributionContract,
@@ -39,7 +40,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, and review-only commission ledger evidence. Live payment and payout rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, and owner review/reversal actions. Live payment and payout rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -59,6 +60,7 @@ export const stripeCommerceContract = {
   },
   referralAttribution: checkoutReferralAttributionContract,
   affiliateCommissionLedger: affiliateCommissionLedgerContract,
+  affiliateCommissionReviewActions: affiliateCommissionReviewActionsContract,
   secretNames: [
     {
       name: "STRIPE_SECRET_KEY_SANDBOX",
@@ -271,6 +273,35 @@ export const commerceTables: CommerceTableContract[] = [
       "Review-only, non-payable commission ledger evidence created from trusted checkout referral attribution before payout workflows exist.",
   },
   {
+    table: "affiliate_commission_ledger_actions",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "commission_ledger_id",
+      "checkout_intent_id",
+      "action_kind",
+      "previous_ledger_status",
+      "next_ledger_status",
+      "previous_review_status",
+      "next_review_status",
+      "next_payout_status",
+      "created_at",
+    ],
+    serverPrivateFields: [
+      "idempotency_key",
+      "actor_user_id",
+      "actor_email",
+      "private reason",
+      "metadata_json",
+      "buyer identifiers",
+      "raw Stripe identifiers",
+      "partner payout accounts",
+      "tax forms",
+    ],
+    purpose:
+      "Owner-gated review, hold, and reversal actions for review-only commission ledger evidence before payout mutation exists.",
+  },
+  {
     table: "stripe_webhook_events",
     status: "live",
     publicSafeFields: ["event_type", "api_version", "livemode", "status", "processed_at"],
@@ -336,6 +367,6 @@ export const commerceAgentWriteRules = [
   "Agents must not create, expire, refund, cancel, upgrade, downgrade, or publish a billing object without explicit confirmation text.",
   "Billing-impacting writes require actor identity, client attribution, idempotency key, audit correlation id, stale-state check, and redacted output.",
   "Model-visible output must not include raw Stripe secret keys, webhook secrets, customer IDs, Checkout Session IDs, PaymentIntent IDs, Subscription IDs, connected-account IDs, or private customer data.",
-  "Referral attribution evidence may link a seeded referral click to a checkout intent, and review-only commission ledger evidence may calculate draft commission amounts, but neither may create payable commissions, payout state, fraud decisions, tax records, or partner notifications.",
+  "Referral attribution evidence may link a seeded referral click to a checkout intent, review-only commission ledger evidence may calculate draft commission amounts, and owner review actions may review, hold, or reverse that evidence, but none may create payable commissions, payout state, fraud decisions, tax records, or partner notifications.",
   "If an event or provider response is ambiguous, record the blocked state and continue with non-billing work instead of guessing.",
 ];

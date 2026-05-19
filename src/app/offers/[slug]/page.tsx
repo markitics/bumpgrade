@@ -112,8 +112,9 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <strong>{sequence.length} offer decisions</strong>
           <span>
             Sandbox checkout start is available for the primary offer and seeded order bump, with optional referral-click
-            evidence and review-only commission ledger evidence. Upsells, downsells, fulfillment, payable commissions,
-            and live billing stay disabled until confirmed-write contracts exist.
+            evidence, review-only commission ledger evidence, and owner review/reversal actions. Upsells, downsells,
+            fulfillment, payable commissions, partner notifications, and live billing stay disabled until confirmed-write
+            contracts exist.
           </span>
         </aside>
       </section>

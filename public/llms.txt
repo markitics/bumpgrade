@@ -145,7 +145,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   referral-click-to-checkout, and review-only ledger source-data evidence, not
   cookie assignment, buyer attribution finalization, payable commission state,
   tax collection, fraud enforcement, Stripe payout capability, partner
-  notification, owner review automation, or a confirmed-write agent API.
+  notification, partner-facing reporting, direct agent review writes, or payable
+  commission execution. Owner sessions can review, hold, or reverse review-only
+  commission evidence through the gated admin action API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -162,11 +164,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Bumpgrade defaults to sandbox mode; `/api/commerce/checkout` can create sandbox
   Checkout Sessions from D1 prices and can attach eligible referral click
   evidence to checkout intents. `/api/affiliates/commission-ledger` can create
-  review-only commission evidence, but live billing, payable commission writes,
-  payout mutation, owner review automation, reversal execution, and partner
-  notification remain disabled. Agents must not start billing-impacting or
-  payout-impacting checkout work without exact confirmation, idempotency, audit
-  correlation, stale-state checks, owner review, and webhook evidence.
+  review-only commission evidence, and
+  `/api/admin/affiliates/commission-ledger/actions` lets owner sessions review,
+  hold, or reverse that evidence without making it payable. Live billing,
+  payable commission writes, payout mutation, direct agent review writes, and
+  partner notification remain disabled. Agents must not start billing-impacting
+  or payout-impacting checkout work without exact confirmation, idempotency,
+  audit correlation, stale-state checks, owner review, and webhook evidence.
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
   `/mobile-admin/source-data`. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in

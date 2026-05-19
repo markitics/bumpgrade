@@ -5,7 +5,9 @@ added the first checkout-offer source-data contract and preview scaffold. Issue
 #99 adds the first confirmed sandbox checkout start path with the seeded primary
 offer and constrained order bump. Issue #111 adds optional referral-click
 attribution evidence on sandbox checkout intents. Issue #113 adds review-only
-commission ledger evidence from trusted checkout attribution.
+commission ledger evidence from trusted checkout attribution. Issue #115 adds
+owner-gated review, hold, and reversal actions for that evidence without payout
+mutation.
 
 Live in this slice:
 
@@ -22,6 +24,8 @@ Live in this slice:
 - `/api/affiliates/commission-ledger`: confirmed write route that can create
   non-payable, review-only commission ledger evidence from a trusted checkout
   intent with referral attribution.
+- `/api/admin/affiliates/commission-ledger/actions`: owner-gated review action
+  route that can review, hold, or reverse that evidence without payout state.
 - Agent manifest entries for reading checkout-offer state and future MCP
   resources.
 
@@ -31,8 +35,8 @@ Not live in this slice:
 - Arbitrary order bump mutation or unapproved bump attachment.
 - One-click upsell or downsell charging.
 - Fulfillment, entitlement, refund, coupon, or customer portal writes.
-- Payable commission writes, payout mutation, fraud decisions, owner review,
-  reversal execution, tax records, and partner notifications.
+- Payable commission writes, payout mutation, fraud decisions, direct agent
+  review writes, tax records, and partner notifications.
 - Agent write tools.
 
 Future checkout-offer writes must require actor identity, exact confirmation,
