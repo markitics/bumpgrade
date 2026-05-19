@@ -567,6 +567,34 @@ export const audienceSuppressionEntries = sqliteTable(
   }),
 );
 
+export const audienceTimelineEntries = sqliteTable(
+  "audience_timeline_entries",
+  {
+    id: text("id").primaryKey(),
+    subscriberId: text("subscriber_id")
+      .notNull()
+      .references(() => audienceSubscribers.id, { onDelete: "cascade" }),
+    entryKind: text("entry_kind").notNull().default("owner_note"),
+    body: text("body").notNull(),
+    bodyHash: text("body_hash").notNull(),
+    status: text("status").notNull().default("active"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_timeline_entries_idempotency_unique").on(table.idempotencyKey),
+    subscriberCreatedIdx: index("audience_timeline_entries_subscriber_created_idx").on(
+      table.subscriberId,
+      table.createdAt,
+    ),
+    kindStatusIdx: index("audience_timeline_entries_kind_status_idx").on(table.entryKind, table.status),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {

@@ -18,9 +18,12 @@ type CountRow = {
   sequence_enrollment_count: number | string | null;
   suppression_count: number | string | null;
   active_suppression_count: number | string | null;
+  timeline_count: number | string | null;
+  active_timeline_count: number | string | null;
   last_subscriber_at: number | string | null;
   last_consent_at: number | string | null;
   last_suppression_at: number | string | null;
+  last_timeline_at: number | string | null;
 };
 
 type DimensionCountRow = {
@@ -42,6 +45,15 @@ type SubscriberRow = {
   last_consented_at: number | string | null;
   tag_ids: string | null;
   sequence_states: string | null;
+};
+
+type TimelineEntryRow = {
+  id: string;
+  subscriber_id: string;
+  entry_kind: string;
+  body: string;
+  status: string;
+  created_at: number | string;
 };
 
 export type AudienceInspectionCount = {
@@ -67,14 +79,18 @@ export type AudienceInspectionSummary = {
     sequenceEnrollments: number;
     suppressionEntries: number;
     activeSuppressionEntries: number;
+    timelineEntries: number;
+    activeTimelineEntries: number;
   };
   lastSubscriberAt: string | null;
   lastConsentAt: string | null;
   lastSuppressionAt: string | null;
+  lastTimelineAt: string | null;
   formCounts: AudienceInspectionCount[];
   tagCounts: AudienceInspectionCount[];
   sequenceCounts: AudienceInspectionCount[];
   suppressionCounts: AudienceInspectionCount[];
+  timelineCounts: AudienceInspectionCount[];
   redaction: {
     privateContactDataIncluded: false;
     rawEmailIncluded: false;
@@ -83,6 +99,8 @@ export type AudienceInspectionSummary = {
     rawUserAgentIncluded: false;
     rawSuppressionHashIncluded: false;
     suppressionReasonIncluded: false;
+    privateTimelineNoteBodiesIncluded: false;
+    timelineActorEmailIncluded: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
@@ -108,6 +126,14 @@ export type AdminAudienceSubscriber = {
     title: string;
     status: string;
     nextStepId: string | null;
+  }>;
+  timelineNoteCount: number;
+  timelineEntries: Array<{
+    id: string;
+    entryKind: string;
+    body: string;
+    status: string;
+    createdAt: string;
   }>;
 };
 
@@ -165,14 +191,18 @@ function emptySummary(source: AudienceInspectionSummary["source"], loadError: st
       sequenceEnrollments: 0,
       suppressionEntries: 0,
       activeSuppressionEntries: 0,
+      timelineEntries: 0,
+      activeTimelineEntries: 0,
     },
     lastSubscriberAt: null,
     lastConsentAt: null,
     lastSuppressionAt: null,
+    lastTimelineAt: null,
     formCounts: [],
     tagCounts: [],
     sequenceCounts: [],
     suppressionCounts: [],
+    timelineCounts: [],
     redaction: {
       privateContactDataIncluded: false,
       rawEmailIncluded: false,
@@ -181,10 +211,22 @@ function emptySummary(source: AudienceInspectionSummary["source"], loadError: st
       rawUserAgentIncluded: false,
       rawSuppressionHashIncluded: false,
       suppressionReasonIncluded: false,
+      privateTimelineNoteBodiesIncluded: false,
+      timelineActorEmailIncluded: false,
     },
-    privateFieldsExcluded: ["email", "firstName", "emailHash", "ipHash", "userAgentHash", "suppressionReason", "metadataJson"],
+    privateFieldsExcluded: [
+      "email",
+      "firstName",
+      "emailHash",
+      "ipHash",
+      "userAgentHash",
+      "suppressionReason",
+      "timelineNoteBody",
+      "timelineActorEmail",
+      "metadataJson",
+    ],
     writeBoundary:
-      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Issue #167 records unsubscribe/suppression evidence and marks known subscribers unsubscribed without public list-membership leakage. Imports, sends, broadcasts, CRM notes, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
+      "Issue #137 exposes owner-gated subscriber inspection and public aggregate source-data. Issue #167 records unsubscribe/suppression evidence and marks known subscribers unsubscribed without public list-membership leakage. Issue #169 lets owners create private CRM timeline notes while public source-data exposes aggregate counts only. Imports, sends, broadcasts, private subscriber exports, and direct agent writes still require future confirmed-write APIs with consent and suppression checks.",
   };
 }
 
@@ -231,6 +273,18 @@ function adminSubscriber(row: SubscriberRow): AdminAudienceSubscriber {
     lastConsentedAt: timestampValue(row.last_consented_at),
     tags: parseTags(row.tag_ids),
     sequences: parseSequences(row.sequence_states),
+    timelineNoteCount: 0,
+    timelineEntries: [],
+  };
+}
+
+function adminTimelineEntry(row: TimelineEntryRow) {
+  return {
+    id: row.id,
+    entryKind: row.entry_kind,
+    body: row.body,
+    status: row.status,
+    createdAt: timestampValue(row.created_at) ?? "Unknown",
   };
 }
 
@@ -247,9 +301,12 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
           (SELECT COUNT(*) FROM audience_sequence_enrollments) AS sequence_enrollment_count,
           (SELECT COUNT(*) FROM audience_suppression_entries) AS suppression_count,
           (SELECT COUNT(*) FROM audience_suppression_entries WHERE status = 'active') AS active_suppression_count,
+          (SELECT COUNT(*) FROM audience_timeline_entries) AS timeline_count,
+          (SELECT COUNT(*) FROM audience_timeline_entries WHERE status = 'active') AS active_timeline_count,
           (SELECT MAX(created_at) FROM audience_subscribers) AS last_subscriber_at,
           (SELECT MAX(consented_at) FROM audience_consent_events) AS last_consent_at,
-          (SELECT MAX(created_at) FROM audience_suppression_entries) AS last_suppression_at`,
+          (SELECT MAX(created_at) FROM audience_suppression_entries) AS last_suppression_at,
+          (SELECT MAX(created_at) FROM audience_timeline_entries) AS last_timeline_at`,
       )
       .first<CountRow>();
 
@@ -285,6 +342,14 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
         ORDER BY total DESC, suppression_kind ASC`,
       )
       .all<DimensionCountRow>();
+    const timelineCounts = await db
+      .prepare(
+        `SELECT entry_kind AS id, status, COUNT(*) AS total
+        FROM audience_timeline_entries
+        GROUP BY entry_kind, status
+        ORDER BY total DESC, entry_kind ASC`,
+      )
+      .all<DimensionCountRow>();
 
     return {
       ...emptySummary("d1", null),
@@ -296,14 +361,18 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
         sequenceEnrollments: numberValue(counts?.sequence_enrollment_count),
         suppressionEntries: numberValue(counts?.suppression_count),
         activeSuppressionEntries: numberValue(counts?.active_suppression_count),
+        timelineEntries: numberValue(counts?.timeline_count),
+        activeTimelineEntries: numberValue(counts?.active_timeline_count),
       },
       lastSubscriberAt: timestampValue(counts?.last_subscriber_at),
       lastConsentAt: timestampValue(counts?.last_consent_at),
       lastSuppressionAt: timestampValue(counts?.last_suppression_at),
+      lastTimelineAt: timestampValue(counts?.last_timeline_at),
       formCounts: dimensionCounts(formCounts.results ?? []),
       tagCounts: dimensionCounts(tagCounts.results ?? []),
       sequenceCounts: dimensionCounts(sequenceCounts.results ?? []),
       suppressionCounts: dimensionCounts(suppressionCounts.results ?? []),
+      timelineCounts: dimensionCounts(timelineCounts.results ?? []),
     };
   } catch (error) {
     return emptySummary("unavailable", error instanceof Error ? error.message : "Unable to load audience subscriber inspection.");
@@ -333,11 +402,37 @@ export async function getAdminAudienceInspectionState(): Promise<AdminAudienceIn
       )
       .all<SubscriberRow>();
 
+    const mappedSubscribers = (subscribers.results ?? []).map(adminSubscriber);
+    const subscriberIds = mappedSubscribers.map((subscriber) => subscriber.id);
+    if (subscriberIds.length > 0) {
+      const placeholders = subscriberIds.map(() => "?").join(",");
+      const timelineRows = await db
+        .prepare(
+          `SELECT id, subscriber_id, entry_kind, body, status, created_at
+          FROM audience_timeline_entries
+          WHERE subscriber_id IN (${placeholders})
+          ORDER BY created_at DESC
+          LIMIT 100`,
+        )
+        .bind(...subscriberIds)
+        .all<TimelineEntryRow>();
+      const timelineBySubscriber = new Map<string, ReturnType<typeof adminTimelineEntry>[]>();
+      for (const row of timelineRows.results ?? []) {
+        const entries = timelineBySubscriber.get(row.subscriber_id) ?? [];
+        entries.push(adminTimelineEntry(row));
+        timelineBySubscriber.set(row.subscriber_id, entries);
+      }
+      for (const subscriber of mappedSubscribers) {
+        subscriber.timelineEntries = timelineBySubscriber.get(subscriber.id) ?? [];
+        subscriber.timelineNoteCount = subscriber.timelineEntries.length;
+      }
+    }
+
     return {
       ...summary,
       privateContactDataIncluded: true,
       rawHashesIncluded: false,
-      subscribers: (subscribers.results ?? []).map(adminSubscriber),
+      subscribers: mappedSubscribers,
     };
   } catch (error) {
     return {
