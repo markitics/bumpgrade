@@ -4,6 +4,7 @@ import { productAccessCatalogs } from "@/lib/product-access";
 
 export const productDownloadTokenIssue = 143;
 export const productDownloadAssetDeliveryIssue = 146;
+export const productDownloadRedemptionRevalidationIssue = 147;
 export const productDownloadTokenStatus = "private-r2-download-delivery-ready";
 export const productDownloadTokenApiRoute = "/api/products/download-tokens";
 export const productDownloadRoutePrefix = "/api/products/downloads";
@@ -36,6 +37,15 @@ type DownloadTokenRow = {
   expires_at: number | string;
   created_at: number | string;
   used_at: number | string | null;
+};
+
+type DownloadTokenRedemptionRow = DownloadTokenRow & {
+  current_entitlement_id: string | null;
+  entitlement_checkout_intent_id: string | null;
+  entitlement_product_id: string | null;
+  entitlement_status: string | null;
+  checkout_row_id: string | null;
+  checkout_status: string | null;
 };
 
 export type ProductDownloadAsset = {
@@ -82,6 +92,7 @@ export const productDownloadTokenSummary = {
   status: productDownloadTokenStatus,
   issue: productDownloadAssetDeliveryIssue,
   followsIssue: productDownloadTokenIssue,
+  redemptionRevalidationIssue: productDownloadRedemptionRevalidationIssue,
   parentIssue: 16,
   apiRoute: productDownloadTokenApiRoute,
   downloadRoutePrefix: productDownloadRoutePrefix,
@@ -98,6 +109,13 @@ export const productDownloadTokenSummary = {
     rawR2KeysIncluded: false,
     signedUrlsIncluded: false,
   },
+  redemptionRevalidation: {
+    entitlementStatus: "active",
+    trustedCheckoutStatuses: ["paid", "completed"],
+    checkoutIntentLinkRequired: true,
+    assetScopeCheckedBeforeRead: true,
+    tokenConsumedAfterPrivateAssetRead: true,
+  },
   redaction: {
     buyerEmailIncluded: false,
     buyerEmailHashIncluded: false,
@@ -107,7 +125,7 @@ export const productDownloadTokenSummary = {
     metadataJsonIncluded: false,
   } satisfies ProductDownloadRedaction,
   writeBoundary:
-    "Issue #146 can create short-lived download tokens for active checkout-linked file entitlements and stream a seeded private R2-backed fixture through Bumpgrade. It does not expose private R2 keys, signed object URLs, protected lessons, buyer identity, revocation, subscription access, arbitrary uploads, or live fulfillment automation.",
+    "Issue #146 can create short-lived download tokens for active checkout-linked file entitlements and stream a seeded private R2-backed fixture through Bumpgrade. Issue #147 revalidates current entitlement status, checkout intent linkage, trusted checkout state, and asset scope before private R2 reads or token consumption. It does not expose private R2 keys, signed object URLs, protected lessons, buyer identity, revocation, subscription access, arbitrary uploads, or live fulfillment automation.",
 };
 
 type PrivateProductAssetFixture = {
@@ -356,9 +374,22 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
   const tokenHash = await sha256(token);
   const { db, productAssets } = await getRuntime();
   const row = await db
-    .prepare("SELECT * FROM product_download_tokens WHERE token_hash = ?")
+    .prepare(
+      `SELECT
+        t.*,
+        e.id AS current_entitlement_id,
+        e.checkout_intent_id AS entitlement_checkout_intent_id,
+        e.product_id AS entitlement_product_id,
+        e.status AS entitlement_status,
+        ci.id AS checkout_row_id,
+        ci.status AS checkout_status
+      FROM product_download_tokens t
+      LEFT JOIN product_entitlements e ON e.id = t.entitlement_id
+      LEFT JOIN checkout_intents ci ON ci.id = t.checkout_intent_id
+      WHERE t.token_hash = ?`,
+    )
     .bind(tokenHash)
-    .first<DownloadTokenRow>();
+    .first<DownloadTokenRedemptionRow>();
 
   if (!row) {
     return { ok: false as const, status: 404, message: "Download token was not found." };
@@ -372,6 +403,17 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
       .bind(row.id)
       .run();
     return { ok: false as const, status: 410, message: "Download token has expired." };
+  }
+  if (
+    !row.current_entitlement_id ||
+    row.entitlement_checkout_intent_id !== row.checkout_intent_id ||
+    row.entitlement_product_id !== row.product_id ||
+    row.entitlement_status !== productDownloadTokenSummary.redemptionRevalidation.entitlementStatus
+  ) {
+    return { ok: false as const, status: 409, message: "Download token entitlement state is no longer eligible." };
+  }
+  if (!row.checkout_row_id || !isTrustedCheckoutStatus(row.checkout_status)) {
+    return { ok: false as const, status: 409, message: "Download token checkout state is no longer eligible." };
   }
 
   const asset = downloadableAssetForProduct(row.product_id);

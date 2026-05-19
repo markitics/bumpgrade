@@ -105,6 +105,48 @@ async function signInOrCreateOwner(page: Page) {
   await verifyEmail(page, email);
 }
 
+async function postCheckoutSessionWebhook(
+  request: APIRequestContext,
+  input: {
+    checkoutIntentId: string;
+    eventId: string;
+    type: "checkout.session.completed" | "checkout.session.expired";
+    paymentStatus?: "paid" | "unpaid";
+    status?: "complete" | "expired";
+  },
+) {
+  const event = {
+    id: input.eventId,
+    object: "event",
+    api_version: "2026-04-22.dahlia",
+    created: Math.floor(Date.now() / 1000),
+    livemode: false,
+    type: input.type,
+    data: {
+      object: {
+        id: "cs_test_redacted_by_route",
+        object: "checkout.session",
+        client_reference_id: input.checkoutIntentId,
+        payment_status: input.paymentStatus ?? "paid",
+        status: input.status ?? "complete",
+        metadata: {
+          checkout_intent_id: input.checkoutIntentId,
+          product_id: sandboxCheckoutOffer.productId,
+          price_id: sandboxCheckoutOffer.priceId,
+          audit_correlation_id: "audit-playwright-product-inspection",
+        },
+      },
+    },
+  };
+
+  const webhook = await request.post("/api/stripe/webhook", {
+    headers: { "x-bumpgrade-test-webhook": "allow" },
+    data: event,
+  });
+  expect(webhook.ok(), await webhook.text()).toBeTruthy();
+  return webhook.json();
+}
+
 async function grantSandboxProductEntitlements(request: APIRequestContext, buyerEmail: string) {
   const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
   const checkout = await request.post("/api/commerce/checkout", {
@@ -121,36 +163,12 @@ async function grantSandboxProductEntitlements(request: APIRequestContext, buyer
   expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
 
   const eventId = `evt_bumpgrade_product_inspection_${suffix.replaceAll("-", "_")}`;
-  const event = {
-    id: eventId,
-    object: "event",
-    api_version: "2026-04-22.dahlia",
-    created: Math.floor(Date.now() / 1000),
-    livemode: false,
+  const webhookPayload = await postCheckoutSessionWebhook(request, {
+    checkoutIntentId: checkoutPayload.checkoutIntentId,
+    eventId,
     type: "checkout.session.completed",
-    data: {
-      object: {
-        id: "cs_test_redacted_by_route",
-        object: "checkout.session",
-        client_reference_id: checkoutPayload.checkoutIntentId,
-        payment_status: "paid",
-        status: "complete",
-        metadata: {
-          checkout_intent_id: checkoutPayload.checkoutIntentId,
-          product_id: sandboxCheckoutOffer.productId,
-          price_id: sandboxCheckoutOffer.priceId,
-          audit_correlation_id: "audit-playwright-product-inspection",
-        },
-      },
-    },
-  };
-
-  const webhook = await request.post("/api/stripe/webhook", {
-    headers: { "x-bumpgrade-test-webhook": "allow" },
-    data: event,
   });
-  expect(webhook.ok(), await webhook.text()).toBeTruthy();
-  await expect(webhook.json()).resolves.toEqual(
+  expect(webhookPayload).toEqual(
     expect.objectContaining({
       ok: true,
       duplicate: false,
@@ -518,6 +536,7 @@ test.describe("Bumpgrade scaffold", () => {
         status: "private-r2-download-delivery-ready",
         issue: 146,
         followsIssue: 143,
+        redemptionRevalidationIssue: 147,
         apiRoute: "/api/products/download-tokens",
         downloadRoutePrefix: "/api/products/downloads",
         privateAssetBucketBinding: "PRODUCT_ASSETS",
@@ -527,6 +546,13 @@ test.describe("Bumpgrade scaffold", () => {
           seededAssetId: "asset-launch-checklist-pdf",
           rawR2KeysIncluded: false,
           signedUrlsIncluded: false,
+        }),
+        redemptionRevalidation: expect.objectContaining({
+          entitlementStatus: "active",
+          trustedCheckoutStatuses: ["paid", "completed"],
+          checkoutIntentLinkRequired: true,
+          assetScopeCheckedBeforeRead: true,
+          tokenConsumedAfterPrivateAssetRead: true,
         }),
         redaction: expect.objectContaining({
           buyerEmailIncluded: false,
@@ -707,6 +733,68 @@ test.describe("Bumpgrade scaffold", () => {
 
     const replay = await request.get(tokenPayload.downloadUrl);
     expect(replay.status()).toBe(410);
+
+    const staleBuyerEmail = `product-stale-token-${Date.now()}@example.com`;
+    const staleGrant = await grantSandboxProductEntitlements(request, staleBuyerEmail);
+    const staleLookup = await request.get(`/api/products/entitlements?checkoutIntentId=${encodeURIComponent(staleGrant.checkoutIntentId)}`);
+    expect(staleLookup.ok(), await staleLookup.text()).toBeTruthy();
+    const stalePayload = await staleLookup.json();
+    const staleDownloadable = stalePayload.entitlements.find(
+      (entitlement: { downloadDelivery?: { available?: boolean } }) => entitlement.downloadDelivery?.available,
+    ) as { id: string } | undefined;
+    expect(staleDownloadable).toEqual(expect.objectContaining({ id: expect.stringMatching(/^entitlement-/) }));
+    if (!staleDownloadable) throw new Error("Expected at least one stale-state test entitlement.");
+
+    const staleToken = await request.post("/api/products/download-tokens", {
+      data: {
+        checkoutIntentId: staleGrant.checkoutIntentId,
+        entitlementId: staleDownloadable.id,
+      },
+    });
+    expect(staleToken.status(), await staleToken.text()).toBe(201);
+    const staleTokenPayload = await staleToken.json();
+
+    const staleEventId = `evt_bumpgrade_product_stale_${Date.now()}`;
+    await postCheckoutSessionWebhook(request, {
+      checkoutIntentId: staleGrant.checkoutIntentId,
+      eventId: staleEventId,
+      type: "checkout.session.expired",
+      paymentStatus: "unpaid",
+      status: "expired",
+    });
+
+    const staleDownload = await request.get(staleTokenPayload.downloadUrl);
+    expect(staleDownload.status()).toBe(409);
+    const staleDownloadPayload = await staleDownload.json();
+    expect(staleDownloadPayload).toEqual(
+      expect.objectContaining({
+        ok: false,
+        message: "Download token checkout state is no longer eligible.",
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
+    const staleDownloadText = JSON.stringify(staleDownloadPayload);
+    expect(staleDownloadText).not.toContain(staleBuyerEmail);
+    expect(staleDownloadText).not.toContain(staleGrant.eventId);
+    expect(staleDownloadText).not.toContain(staleEventId);
+    expect(staleDownloadText).not.toContain("cs_test");
+
+    await postCheckoutSessionWebhook(request, {
+      checkoutIntentId: staleGrant.checkoutIntentId,
+      eventId: `evt_bumpgrade_product_restored_${Date.now()}`,
+      type: "checkout.session.completed",
+    });
+    const restoredDownload = await request.get(staleTokenPayload.downloadUrl);
+    expect(restoredDownload.ok(), await restoredDownload.text()).toBeTruthy();
+    const restoredDownloadText = await restoredDownload.text();
+    expect(restoredDownloadText).toContain("Bumpgrade Launch Checklist");
+    const restoredReplay = await request.get(staleTokenPayload.downloadUrl);
+    expect(restoredReplay.status()).toBe(410);
 
     const payloadText = JSON.stringify(payload);
     expect(payloadText).not.toContain(buyerEmail);
@@ -2304,12 +2392,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
