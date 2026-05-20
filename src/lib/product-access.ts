@@ -67,7 +67,7 @@ export type ProductAccessCatalog = {
   validation: string[];
 };
 
-export const productAccessUpdatedAt = "2026-05-19";
+export const productAccessUpdatedAt = "2026-05-20";
 
 export const productAccessCatalog: ProductAccessCatalog = {
   id: "product-access-catalog-indie-launch",
@@ -82,7 +82,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
   commerceContractRoute: "/commerce/source-data",
   revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, the first private R2-backed fixture delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, and protected content readiness.",
+    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, the first private R2-backed fixture delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",
@@ -304,7 +304,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, and issue #181 exposes protected content readiness without protected body delivery. Product creation, customer delivery of arbitrary uploads, signed object URLs, protected content delivery, subscription access changes, refunds, destructive revocations, live fulfillment automation, and direct unauthenticated agent writes require future APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, issue #181 exposes protected content readiness, and issue #185 returns seeded protected fixture bodies only after checkout-intent, entitlement, product/template scope, and trusted checkout checks. Product creation, customer delivery of arbitrary uploads, signed object URLs, subscription access changes, refunds, destructive revocations, live fulfillment automation, and direct unauthenticated agent writes require future APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
@@ -338,6 +338,7 @@ export const productAccessSourceData = {
     "/api/products/entitlements",
     "/api/products/download-tokens",
     "/api/products/downloads?token={token}",
+    "/api/products/protected-content",
     "/api/admin/products/assets",
     ...productAccessCatalogs.map((catalog) => catalog.previewRoute),
   ],
@@ -360,5 +361,5 @@ export const productAccessSourceData = {
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed small private asset upload records, non-destructive revocation intent readiness, and protected content readiness. It does not expose private R2 keys, signed object URLs, upload bodies, protected content bodies, destructive revocation APIs, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unauthenticated agent writes.",
+    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed small private asset upload records, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, destructive revocation APIs, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unauthenticated agent writes.",
 };

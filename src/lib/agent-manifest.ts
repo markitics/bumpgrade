@@ -304,6 +304,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "productAssetUploadIntentId",
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
+      "productProtectedContentDeliveryId",
       "subscriptionPlanId",
       "fulfillmentId",
       "agentActionId",
@@ -317,11 +318,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover short-lived private R2-backed download-token boundaries",
       "Discover owner-confirmed private asset upload-intent boundaries",
       "Inspect non-destructive revocation intent readiness",
-      "Inspect protected content readiness without protected body delivery",
+      "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows, non-destructive revocation intent readiness, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status and create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, protected body delivery, destructive revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows, non-destructive revocation intent readiness, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -356,6 +357,22 @@ export const agentReadContracts: AgentReadContract[] = [
       "This creates a short-lived token and streams a seeded private R2-backed fixture through Bumpgrade after revalidating current entitlement status, checkout intent linkage, trusted checkout state, and asset scope; protected content, arbitrary asset uploads, destructive revocation, subscription access, and live fulfillment automation require future authenticated confirmed-write APIs.",
   },
   {
+    id: "read-protected-product-content",
+    title: "Protected product content delivery fixture",
+    route: "/api/products/protected-content",
+    kind: "api",
+    auth: "public",
+    sourceOfTruth: "src/lib/product-protected-content.ts",
+    stableIds: ["checkoutIntentId", "productEntitlementId", "productProtectedContentId", "productId", "entitlementTemplateId"],
+    safeForAgents: [
+      "Read a seeded protected course/member fixture only with a known checkout intent and matching active entitlement",
+      "Confirm protected fixture delivery rechecks product/template scope and current paid/completed checkout state",
+      "Confirm buyer identity, raw Stripe IDs, webhook IDs, metadata JSON, R2 keys, signed URLs, arbitrary uploaded content, and progress rows are excluded",
+    ],
+    writeBoundary:
+      "This route returns seeded protected fixture bodies for eligible checkout-linked entitlements only. It is not direct public agent write access, arbitrary private upload delivery, signed object URL access, progress tracking, subscription mutation, destructive revocation, or live fulfillment automation.",
+  },
+  {
     id: "read-admin-product-entitlements",
     title: "Admin product entitlements",
     route: "/admin/products",
@@ -367,11 +384,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read private buyer entitlement rows only with an owner session",
       "Inspect checkout status, product/price context, access rule, and queued fulfillment state",
       "Inspect owner-visible revocation intent readiness without removing access",
-      "Inspect owner-visible protected content readiness without delivering protected bodies",
+      "Inspect owner-visible protected content readiness and which sections are eligible for checkout-scoped fixture delivery",
       "Confirm public source-data redacts buyer email, raw Stripe IDs, hashes, metadata JSON, private R2 keys, and signed URLs",
     ],
     writeBoundary:
-      "This owner page is inspection-only for entitlement rows, revocation intent readiness, and protected content readiness; signed downloads, protected body delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct agent entitlement writes require future confirmed-write APIs.",
+      "This owner page is inspection-only for entitlement rows, revocation intent readiness, and protected content readiness; protected fixture body delivery happens only through checkout-intent scoped customer checks. Signed object URLs, arbitrary uploaded content delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct agent entitlement writes require future confirmed-write APIs.",
   },
   {
     id: "create-owner-product-asset-upload-intent",
@@ -756,7 +773,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, non-destructive revocation intent readiness, protected content readiness, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, non-destructive revocation intent readiness, protected content readiness, checkout-intent-scoped protected fixture delivery, redaction flags, preview route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "productId",
       "assetId",
@@ -768,10 +785,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "productAssetUploadIntentId",
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
+      "productProtectedContentDeliveryId",
       "fulfillmentId",
     ],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-confirmed private asset upload records, non-destructive revocation intent readiness, and protected content readiness; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, protected content delivery, or live fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-confirmed private asset upload records, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped seeded protected fixture delivery; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, subscription access mutation, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",

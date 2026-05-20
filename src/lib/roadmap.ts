@@ -264,7 +264,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, fulfillment task evidence, access rules, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, checkout-intent-scoped protected fixture delivery, fulfillment task evidence, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -276,10 +276,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #147 revalidates current entitlement status, checkout intent linkage, trusted checkout state, and asset scope before token redemption.",
       "Issue #151 adds owner-confirmed private product asset upload records backed by PRODUCT_ASSETS without exposing object keys, signed URLs, upload bodies, or private metadata.",
       "Issue #179 adds owner-visible revocation intent readiness without destructive entitlement mutation.",
-      "Issue #181 adds protected content readiness metadata without protected body delivery.",
+      "Issue #181 adds protected content readiness metadata.",
+      "Issue #185 adds protected fixture delivery only after entitlement, product/template scope, and trusted checkout-state checks.",
     ],
     nextMilestone:
-      "Add protected content delivery only after entitlement, subscription, stale-state, redaction, and audit checks are enforced.",
+      "Extend beyond seeded protected fixtures only after subscription entitlement checks, progress/audit records, real protected storage, and private media redaction stay enforced.",
   },
   {
     id: "roadmap-email-automation",

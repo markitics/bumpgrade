@@ -28,6 +28,7 @@ const sourceDataRoutes = [
   "/products/source-data",
   "/api/products/entitlements",
   "/api/products/download-tokens",
+  "/api/products/protected-content",
   "/agent-docs/source-data",
   "/mobile-admin/source-data",
   "/mobile-admin/dashboard/source-data",

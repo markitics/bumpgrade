@@ -11,8 +11,8 @@ lookup. Issue #143 adds one-use download tokens. Issue #146 adds the
 first seeded private R2-backed fixture delivery path through Bumpgrade. Issue
 #147 adds redemption-time revalidation, issue #151 adds owner-confirmed private
 asset upload intent records, and issue #179 adds non-destructive revocation
-intent readiness. Issue #181 adds protected content readiness metadata without
-protected body delivery.
+intent readiness. Issue #181 adds protected content readiness metadata, and
+issue #185 adds checkout-intent-scoped protected fixture delivery.
 
 Live in this slice:
 
@@ -37,6 +37,10 @@ Live in this slice:
 - `/api/products/downloads?token={token}`: consumes a token once and streams the
   seeded private R2-backed fixture through Bumpgrade after revalidating current
   entitlement and trusted checkout state.
+- `/api/products/protected-content`: returns seeded protected course/member
+  fixture bodies only when the request includes a known checkout intent, a
+  matching active entitlement, and a protected content section id, and the
+  checkout is still paid or completed.
 - `/api/admin/products/assets`: lets verified owners create small private asset
   upload records after exact confirmation, idempotency, and catalog revision
   checks without exposing object keys, signed URLs, or upload bodies.
@@ -44,8 +48,8 @@ Live in this slice:
   for future access removal confirmation, stale-state, and audit checks. These
   records do not remove access or mutate entitlements.
 - `product_protected_content_sections`: owner-visible D1 readiness records for
-  future course/module and member-area delivery. These records do not include or
-  deliver lesson bodies, videos, transcripts, member posts, progress rows,
+  course/module and member-area delivery. Public source-data records do not
+  include lesson bodies, videos, transcripts, member posts, progress rows,
   private R2 keys, or signed URLs.
 - Agent manifest entries for reading product/access state and future MCP
   resources.
@@ -53,9 +57,9 @@ Live in this slice:
 Not live in this slice:
 
 - Private R2 object keys or signed download URLs.
-- Protected course lesson delivery, videos, transcripts, progress records,
-  member posts, customer delivery of arbitrary private R2-backed asset uploads,
-  or live fulfillment delivery.
+- Real protected course lessons, videos, transcripts, progress records, member
+  posts, customer delivery of arbitrary private R2-backed asset uploads, or live
+  fulfillment delivery.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions.
 - Agent write tools for granting, revoking, or delivering product access.
@@ -77,11 +81,12 @@ Public redaction boundary:
   blocked.
 - `/products/source-data` exposes aggregate protected-content readiness counts
   and public-safe access policy text. `/admin/products` can inspect the seeded
-  protected content readiness records, but protected body delivery is still
-  blocked.
+  protected content readiness records. `/api/products/protected-content` can
+  return seeded fixture bodies only after active entitlement, product/template
+  scope, and trusted checkout-state checks.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
-  private R2 object keys, signed URLs, lesson bodies, member posts, transcripts,
-  and progress rows remain server-private.
+  private R2 object keys, signed URLs, real lesson bodies, member posts,
+  transcripts, and progress rows remain server-private.
 
 Future product/access writes must require actor identity, exact confirmation,
 idempotency, stale-state checks, audit correlation, redaction, and trusted
