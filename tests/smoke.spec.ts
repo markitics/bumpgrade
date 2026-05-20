@@ -4514,7 +4514,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           featureId: "feature-stripe-commerce",
-          issueNumbers: [11, 34, 15, 16, 81, 99, 101, 111, 113, 115, 117],
+          issueNumbers: expect.arrayContaining([11, 34, 15, 16, 81, 99, 101, 111, 113, 115, 117]),
         }),
         expect.objectContaining({
           id: "journey-buyer-chooses-post-purchase-offer",
@@ -4625,9 +4625,23 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.proofSummary.totalJourneys).toBe(payload.journeys.length);
-    expect(payload.proofSummary.testedJourneys).toBeGreaterThan(0);
+    expect(payload.proofSummary.testedJourneys).toBe(payload.journeys.length);
+    expect(payload.proofSummary.partialJourneys).toBe(0);
+    expect(payload.proofSummary.blockedJourneys).toBe(0);
+    expect(payload.proofSummary.notRunJourneys).toBe(0);
     expect(payload.proofSummary.screenshotLinks).toBeGreaterThan(0);
     expect(payload.proofSummary.ciLinks).toBeGreaterThan(0);
+    for (const journey of payload.journeys) {
+      expect(journey.proof, journey.id).toEqual(
+        expect.objectContaining({
+          status: "passed",
+          lastTestedAt: expect.any(String),
+        }),
+      );
+      expect(journey.proof.notes, journey.id).not.toEqual(
+        expect.arrayContaining([expect.stringContaining("Default proof is attached")]),
+      );
+    }
     expect(payload.journeys).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -4636,6 +4650,83 @@ test.describe("Bumpgrade scaffold", () => {
             lastTestedAt: expect.any(String),
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-homepage.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-compare-bumpgrade-to-clickfunnels",
+          proof: expect.objectContaining({
+            status: "passed",
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26175118817") }),
+            ]),
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-242-compare.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-mark-reviews-nonblocking-attention",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-73-for-mark-response-channels.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-240-user-journeys-proof-matrix.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-owner-opens-protected-admin",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-9-admin-signed-in-desktop.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-97-auth-aware-nav-for-mark.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-agent-reads-bumpgrade-manifest",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-12-agent-docs-index-desktop.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-checks-mobile-admin",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-157-ios-live-dashboard-hydration.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-157-android-live-dashboard-hydration.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-prospect-evaluates-content-surfaces",
+          proof: expect.objectContaining({
+            status: "passed",
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26175118817") }),
+            ]),
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-242-users.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-242-resources.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-plans-first-checkout",
+          proof: expect.objectContaining({
+            status: "passed",
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26176981405") }),
+            ]),
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-99-checkout-order-bump-start.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-133-checkout-success-desktop.png" }),
             ]),
           }),
         }),
