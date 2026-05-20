@@ -447,12 +447,20 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.features).toHaveLength(featureCatalog.length);
     expect(payload.features[0]).toEqual(expect.objectContaining({ id: expect.any(String), status: expect.any(String) }));
+    expect(payload.features.filter((feature: { status: string }) => feature.status === "pending")).toHaveLength(0);
+    expect(payload.features).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "feature-funnel-builder", status: "launch-preview" }),
+        expect.objectContaining({ id: "feature-checkout-offers", status: "launch-preview" }),
+        expect.objectContaining({ id: "feature-email-automation-crm", status: "launch-preview" }),
+      ]),
+    );
     expect(payload.marketingFeatures).toHaveLength(marketingFeatures.length);
     expect(payload.marketingFeatures).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ slug: "email-campaigns", status: "live", nextStep: expect.objectContaining({ href: "/audience/indie-launch-waitlist" }) }),
         expect.objectContaining({ slug: "order-bump", status: "live", nextStep: expect.objectContaining({ href: "/offers/indie-launch-stack" }) }),
-        expect.objectContaining({ slug: "ai-business-coach", status: "pending", proofRoutes: expect.arrayContaining(["/agent-docs/source-data"]) }),
+        expect.objectContaining({ slug: "ai-business-coach", status: "launch-preview", proofRoutes: expect.arrayContaining(["/agent-docs/source-data"]) }),
       ]),
     );
   });
@@ -5039,6 +5047,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.featureSummary).toEqual(
       expect.objectContaining({
         total: featureCatalog.length,
+        launchPreview: expect.any(Number),
+        pending: 0,
         mobileFeature: expect.objectContaining({ id: "feature-mobile-admin", issue: 13 }),
       }),
     );

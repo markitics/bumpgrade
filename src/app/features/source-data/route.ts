@@ -16,7 +16,7 @@ export function GET() {
     generatedFrom: ["src/lib/feature-catalog.ts", "src/lib/marketing-features.ts"],
     updatedAt: marketingFeaturesUpdatedAt,
     caveat:
-      "Public /features is a customer-facing marketing surface. Only records with status=live should be treated as available Bumpgrade routes or previews. Pending records are roadmap commitments tied to GitHub issues. Billing and provider-send claims require separate production proof.",
+      "Public /features is a customer-facing marketing surface. Records with status=live or status=launch-preview have available Bumpgrade routes, previews, source-data contracts, or owner-gated workflows. Billing, provider-send, payout, destructive-write, private mobile auth, app-store distribution, and direct agent-write claims still require separate production proof.",
     groups: featureGroups,
     features: featureCatalog,
     legacyCatalogUpdatedAt: featureCatalogUpdatedAt,

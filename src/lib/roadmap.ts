@@ -81,7 +81,7 @@ export const roadmapItems: RoadmapItem[] = [
     issue: 6,
     featureId: featureIdFor(6),
     group: "SEO and agent discovery",
-    summary: "Marketing feature hub with live and pending badges, stable feature IDs, issue links, and `/features/source-data`.",
+    summary: "Marketing feature hub with live and launch-preview badges, stable feature IDs, issue links, and `/features/source-data`.",
     publicEvidence: ["PR #26 merged.", "Live edge checks and feature JSON parse checks recorded on PR #26."],
     nextMilestone: "Keep feature records current as product slices move from pending to shipped.",
   },

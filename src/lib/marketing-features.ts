@@ -1,6 +1,6 @@
 import { site } from "@/lib/site";
 
-export type MarketingFeatureStatus = "live" | "pending";
+export type MarketingFeatureStatus = "live" | "launch-preview" | "pending";
 
 export type MarketingFeature = {
   slug: string;
@@ -60,8 +60,8 @@ export const marketingFeatures: MarketingFeature[] = [
     title: "AI business coach",
     shortTitle: "AI coach",
     category: "Launch planning",
-    status: "pending",
-    availability: "Launch-planning context is available; guided coaching workflows are in build.",
+    status: "launch-preview",
+    availability: "Launch-planning context is available; guided coaching workflows are in launch preview.",
     eyebrow: "Decide faster",
     hero: "Turn scattered launch ideas into a cleaner plan.",
     summary:

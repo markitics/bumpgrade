@@ -26,7 +26,13 @@ const featuredFeatures = featuredMarketingFeatureSlugs
   .filter((feature): feature is MarketingFeature => Boolean(feature));
 
 function availabilityLabel(feature: MarketingFeature) {
-  return feature.status === "live" ? "Available now" : "In build";
+  if (feature.status === "live") return "Available now";
+  if (feature.status === "launch-preview") return "Launch preview";
+  return "In build";
+}
+
+function availabilityClass(feature: MarketingFeature) {
+  return feature.status === "live" ? "live" : feature.status === "launch-preview" ? "active" : "pending";
 }
 
 export default function FeaturesPage() {
@@ -81,7 +87,7 @@ export default function FeaturesPage() {
             <article key={feature.slug} className="spotlight-feature-card">
               <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
               <div>
-                <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                <span className={`status-badge ${availabilityClass(feature)}`}>
                   {availabilityLabel(feature)}
                 </span>
                 <p className="eyebrow">{feature.eyebrow}</p>
@@ -111,7 +117,7 @@ export default function FeaturesPage() {
               {categoryFeatures.map((feature) => (
                 <article key={feature.slug} className="marketing-feature-card">
                   <div className="feature-card-top">
-                    <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                    <span className={`status-badge ${availabilityClass(feature)}`}>
                       {availabilityLabel(feature)}
                     </span>
                     <span>{feature.availability}</span>

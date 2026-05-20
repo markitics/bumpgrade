@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+import { type FeatureStatus } from "@/lib/feature-catalog";
 import { roadmapItems } from "@/lib/roadmap";
 
 export type AdminDataSource = "d1" | "fixture" | "mixed";
@@ -54,7 +55,7 @@ export type AdminUserJourney = {
   id: string;
   title: string;
   featureId: string;
-  featureStatus: "live" | "pending";
+  featureStatus: FeatureStatus;
   issueNumbers: number[];
   primaryUser: string;
   userGoal: string;
@@ -157,7 +158,7 @@ type D1JourneyRow = {
   id: string;
   title: string;
   feature_id: string;
-  feature_status: "live" | "pending";
+  feature_status: FeatureStatus;
   issue_numbers_json: string;
   primary_user: string;
   user_goal: string;
@@ -884,7 +885,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-seeded-funnel",
     title: "Publisher previews a seeded draft funnel",
     featureId: "feature-funnel-builder",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [14, 79, 159, 161, 163, 165, 213, 215],
     primaryUser: "Publisher or agent planning the first funnel",
     userGoal:
@@ -932,7 +933,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-seeds-editable-draft-funnel",
     title: "Owner seeds, edits, previews, and publishes a draft funnel",
     featureId: "feature-funnel-builder",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165, 213, 215],
     primaryUser: "Publisher or owner preparing the first launch funnel",
     userGoal: "Create, seed, template-start, or duplicate an owner-gated draft funnel, including webinar and resource page shapes, tune the ordered steps, attach the seeded sandbox checkout offer to a checkout block, preview it privately, then publish it to a public route that can start the linked sandbox checkout after exact confirmation.",
@@ -999,7 +1000,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-checks-mobile-admin",
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [13, 67, 68, 153, 155, 157],
     primaryUser: "Publisher away from desktop",
     userGoal: "Open the future Bumpgrade mobile app to check roadmap, work-log, for-Mark attention, and commerce health without separate mobile-only semantics.",
@@ -1051,7 +1052,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-checkout-offer-stack",
     title: "Publisher previews checkout bump and post-purchase decision stack",
     featureId: "feature-checkout-offers",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [15, 81, 99, 101, 111, 113, 115, 117, 133],
     primaryUser: "Publisher or agent planning checkout revenue lifts",
     userGoal:
@@ -1104,7 +1105,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-buyer-chooses-post-purchase-offer",
     title: "Buyer chooses a post-purchase follow-up offer",
     featureId: "feature-checkout-offers",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [15, 99, 117, 133],
     primaryUser: "Buyer returning from a trusted sandbox checkout",
     userGoal: "Accept or decline a time-boxed upsell/downsell follow-up without triggering a one-click charge.",
@@ -1145,7 +1146,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-product-access",
     title: "Publisher previews product access rules",
     featureId: "feature-products-access",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
     primaryUser: "Publisher or agent planning fulfillment",
     userGoal:
@@ -1221,7 +1222,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-verifies-sandbox-entitlement-grant",
     title: "Publisher verifies sandbox entitlement grant evidence",
     featureId: "feature-products-access",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
     primaryUser: "Publisher or agent validating fulfillment readiness",
     userGoal:
@@ -1297,7 +1298,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-audience-automation",
     title: "Publisher previews audience opt-in automation",
     featureId: "feature-email-automation-crm",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209, 211],
     primaryUser: "Publisher or agent planning list growth",
     userGoal: "Inspect opt-in forms, tags, lead magnets, sequences, broadcasts, automation rules, owner subscriber rows, aggregate suppression evidence, private CRM timeline note counts, broadcast readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, and the live consent/unsubscribe/note boundary before email sends exist.",
@@ -1379,7 +1380,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-visitor-joins-indie-launch-waitlist",
     title: "Visitor joins the indie launch waitlist",
     featureId: "feature-email-automation-crm",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [17, 85, 103, 167],
     primaryUser: "Visitor interested in the launch checklist",
     userGoal: "Submit a normalized email and explicit consent, then receive a safe confirmation that Bumpgrade recorded the opt-in without sending email yet.",
@@ -1420,7 +1421,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-analytics-experiments",
     title: "Publisher previews analytics and experiment reporting",
     featureId: "feature-analytics-testing",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129],
     primaryUser: "Publisher or agent optimizing a launch funnel",
     userGoal:
@@ -1473,7 +1474,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-reads-funnel-conversion-report",
     title: "Publisher reads a funnel conversion report",
     featureId: "feature-analytics-testing",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129],
     primaryUser: "Publisher or agent validating funnel optimization evidence",
     userGoal:
@@ -1516,7 +1517,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-records-privacy-safe-analytics-event",
     title: "Agent records a privacy-safe analytics event",
     featureId: "feature-analytics-testing",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [18, 87, 105, 121, 125],
     primaryUser: "Agent or system integration validating event capture",
     userGoal: "Record a seeded analytics event with idempotency and verify Bumpgrade stores only public-safe fields plus hashed request evidence.",
@@ -1555,7 +1556,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-assigns-privacy-safe-experiment-variant",
     title: "Agent assigns a privacy-safe experiment variant",
     featureId: "feature-analytics-testing",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [18, 87, 105, 107],
     primaryUser: "Agent or system integration validating A/B assignment",
     userGoal:
@@ -1595,7 +1596,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-affiliate-referrals",
     title: "Publisher previews affiliate and referral management",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195],
     primaryUser: "Publisher or agent planning partner growth",
     userGoal:
@@ -1650,7 +1651,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-records-privacy-safe-referral-click",
     title: "Agent records a privacy-safe referral click",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 89, 109],
     primaryUser: "Agent or system integration validating referral tracking",
     userGoal:
@@ -1687,7 +1688,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-attaches-referral-click-to-checkout",
     title: "Agent attaches referral click evidence to checkout",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 109, 111],
     primaryUser: "Agent or system integration validating referral-to-checkout tracking",
     userGoal:
@@ -1726,7 +1727,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-creates-review-only-commission-evidence",
     title: "Agent creates review-only commission evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 109, 111, 113],
     primaryUser: "Agent or system integration validating referral-to-commission tracking",
     userGoal:
@@ -1768,7 +1769,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-reviews-commission-ledger-evidence",
     title: "Owner reviews or reverses commission evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 113, 115],
     primaryUser: "Owner reviewing affiliate commission evidence before payout exists",
     userGoal:
@@ -1808,7 +1809,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-prepares-affiliate-payout-batch",
     title: "Publisher prepares an affiliate payout batch",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "pending",
+    featureStatus: "launch-preview",
     issueNumbers: [19, 113, 115, 193, 195],
     primaryUser: "Publisher reviewing affiliate payout readiness before payable state exists",
     userGoal:

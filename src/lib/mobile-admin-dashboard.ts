@@ -1,7 +1,7 @@
 import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
 import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
-import { featureCatalog, featureCatalogUpdatedAt } from "@/lib/feature-catalog";
+import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
 import { mobileAdminContract, mobileAdminUpdatedAt } from "@/lib/mobile-admin";
@@ -15,7 +15,7 @@ function publicSafeText(value: string) {
   return value.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email-redacted]");
 }
 
-function countByFeatureStatus(status: "live" | "pending") {
+function countByFeatureStatus(status: FeatureStatus) {
   return featureCatalog.filter((feature) => feature.status === status).length;
 }
 
@@ -105,6 +105,7 @@ export async function getMobileAdminDashboardSourceData() {
       updatedAt: featureCatalogUpdatedAt,
       total: featureCatalog.length,
       live: countByFeatureStatus("live"),
+      launchPreview: countByFeatureStatus("launch-preview"),
       pending: countByFeatureStatus("pending"),
       mobileFeature: mobileFeature
         ? {
