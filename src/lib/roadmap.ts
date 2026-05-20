@@ -15,7 +15,7 @@ export type RoadmapItem = {
   markAttention?: string;
 };
 
-export const roadmapUpdatedAt = "2026-05-19";
+export const roadmapUpdatedAt = "2026-05-20";
 
 export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
   {
@@ -292,7 +292,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
@@ -310,10 +310,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #197 adds dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Issue #199 adds sender-domain readiness gates without private DNS credentials, Cloudflare Queue producers, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Issue #201 adds provider-event readiness gates without provider secrets, raw provider payloads, recipient payloads, provider sends, provider responses, or provider message IDs.",
+      "Issue #203 adds provider rate-limit readiness gates without provider secrets, provider limit secrets, raw provider payloads, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add real Cloudflare Queue producers only after sender-domain, provider-event, unsubscribe footer, suppression, provider limits, audit checks, delivery-batch gates, queue-message gates, dispatch preflight boundaries, dispatch-attempt receipts, and provider-response handling stay explicit.",
+      "Add real Cloudflare Queue producers only after sender-domain, provider-event, provider rate-limit, unsubscribe footer, suppression, audit checks, delivery-batch gates, queue-message gates, dispatch preflight boundaries, dispatch-attempt receipts, and provider-response handling stay explicit.",
   },
   {
     id: "roadmap-analytics-testing",

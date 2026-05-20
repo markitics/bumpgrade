@@ -48,6 +48,9 @@ export const audienceBroadcastSenderDomainReadinessUpdatedAt = "2026-05-20";
 export const audienceBroadcastProviderEventReadinessIssue = 201;
 export const audienceBroadcastProviderEventReadinessStatus = "broadcast-provider-event-readiness-ready";
 export const audienceBroadcastProviderEventReadinessUpdatedAt = "2026-05-20";
+export const audienceBroadcastProviderRateLimitReadinessIssue = 203;
+export const audienceBroadcastProviderRateLimitReadinessStatus = "broadcast-provider-rate-limit-readiness-ready";
+export const audienceBroadcastProviderRateLimitReadinessUpdatedAt = "2026-05-20";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -147,6 +150,30 @@ type ProviderEventReadinessRow = {
   raw_provider_payload_storage: string;
   provider_secret_status: string;
   sender_domain_gate_status: string;
+  provider_send_enabled: number | string;
+  cloudflare_queue_producers_enabled: number | string;
+  recipient_payloads_created: number | string;
+  provider_responses_created: number | string;
+  provider_message_ids_created: number | string;
+  raw_provider_payloads_stored: number | string;
+  updated_at: number | string;
+};
+
+type ProviderRateLimitReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  provider_name: string;
+  throttle_window: string;
+  daily_limit_policy: string;
+  burst_limit_policy: string;
+  retry_backoff_policy: string;
+  provider_limit_policy: string;
+  rate_limit_source: string;
+  queue_backpressure_policy: string;
+  audit_correlation_policy: string;
+  sender_domain_gate_status: string;
+  provider_event_gate_status: string;
   provider_send_enabled: number | string;
   cloudflare_queue_producers_enabled: number | string;
   recipient_payloads_created: number | string;
@@ -572,6 +599,67 @@ export type AudienceBroadcastProviderEventReadinessSummary = {
   records: AudienceBroadcastProviderEventReadiness[];
   redaction: {
     providerSecretsIncluded: false;
+    rawProviderPayloadsIncluded: false;
+    providerResponsesIncluded: false;
+    providerMessageIdsIncluded: false;
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    recipientPayloadsIncluded: false;
+    providerSendEnabled: false;
+    cloudflareQueueProducersEnabled: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastProviderRateLimitReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  providerName: string;
+  throttleWindow: string;
+  dailyLimitPolicy: string;
+  burstLimitPolicy: string;
+  retryBackoffPolicy: string;
+  providerLimitPolicy: string;
+  rateLimitSource: string;
+  queueBackpressurePolicy: string;
+  auditCorrelationPolicy: string;
+  senderDomainGateStatus: string;
+  providerEventGateStatus: string;
+  providerSendEnabled: false;
+  cloudflareQueueProducersEnabled: false;
+  recipientPayloadsCreated: false;
+  providerResponsesIncluded: false;
+  providerMessageIdsIncluded: false;
+  rawProviderPayloadsStored: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastProviderRateLimitReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastProviderRateLimitReadinessStatus;
+  issue: typeof audienceBroadcastProviderRateLimitReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    providerRateLimitReadinessRecords: number;
+    throttleWindowRecords: number;
+    retryBackoffPolicyRecords: number;
+    providerSendEnabledRecords: number;
+    cloudflareQueueProducerEnabledRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    providerResponsesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+    rawProviderPayloadsStoredRecords: number;
+  };
+  records: AudienceBroadcastProviderRateLimitReadiness[];
+  redaction: {
+    providerSecretsIncluded: false;
+    providerLimitSecretsIncluded: false;
     rawProviderPayloadsIncluded: false;
     providerResponsesIncluded: false;
     providerMessageIdsIncluded: false;
@@ -1365,6 +1453,61 @@ function emptyProviderEventReadinessSummary(
   };
 }
 
+function emptyProviderRateLimitReadinessSummary(
+  source: AudienceBroadcastProviderRateLimitReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastProviderRateLimitReadinessSummary {
+  return {
+    id: "audience-broadcast-provider-rate-limit-readiness-contract",
+    status: audienceBroadcastProviderRateLimitReadinessStatus,
+    issue: audienceBroadcastProviderRateLimitReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      providerRateLimitReadinessRecords: 0,
+      throttleWindowRecords: 0,
+      retryBackoffPolicyRecords: 0,
+      providerSendEnabledRecords: 0,
+      cloudflareQueueProducerEnabledRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      providerResponsesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+      rawProviderPayloadsStoredRecords: 0,
+    },
+    records: [],
+    redaction: {
+      providerSecretsIncluded: false,
+      providerLimitSecretsIncluded: false,
+      rawProviderPayloadsIncluded: false,
+      providerResponsesIncluded: false,
+      providerMessageIdsIncluded: false,
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      recipientPayloadsIncluded: false,
+      providerSendEnabled: false,
+      cloudflareQueueProducersEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "providerSecret",
+      "providerLimitSecret",
+      "rawProviderPayload",
+      "providerResponse",
+      "providerMessageId",
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "recipientPayload",
+      "suppressionHash",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #203 exposes provider rate-limit readiness metadata for audience broadcasts before any live provider send path exists. It does not expose provider secrets or limit secrets, store raw provider payloads, enable Cloudflare Queue producers, create recipient payloads, send through a provider, create provider responses, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function emptyDeliveryBatchSummary(
   source: AudienceBroadcastDeliveryBatchSummary["source"],
   loadError: string | null,
@@ -1719,6 +1862,34 @@ function publicProviderEventReadiness(row: ProviderEventReadinessRow): AudienceB
     rawProviderPayloadStorage: row.raw_provider_payload_storage,
     providerSecretStatus: row.provider_secret_status,
     senderDomainGateStatus: row.sender_domain_gate_status,
+    providerSendEnabled: false,
+    cloudflareQueueProducersEnabled: false,
+    recipientPayloadsCreated: false,
+    providerResponsesIncluded: false,
+    providerMessageIdsIncluded: false,
+    rawProviderPayloadsStored: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicProviderRateLimitReadiness(
+  row: ProviderRateLimitReadinessRow,
+): AudienceBroadcastProviderRateLimitReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    providerName: row.provider_name,
+    throttleWindow: row.throttle_window,
+    dailyLimitPolicy: row.daily_limit_policy,
+    burstLimitPolicy: row.burst_limit_policy,
+    retryBackoffPolicy: row.retry_backoff_policy,
+    providerLimitPolicy: row.provider_limit_policy,
+    rateLimitSource: row.rate_limit_source,
+    queueBackpressurePolicy: row.queue_backpressure_policy,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    providerEventGateStatus: row.provider_event_gate_status,
     providerSendEnabled: false,
     cloudflareQueueProducersEnabled: false,
     recipientPayloadsCreated: false,
@@ -2275,6 +2446,50 @@ export async function getAudienceBroadcastProviderEventReadinessSummary(): Promi
     return emptyProviderEventReadinessSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast provider-event readiness.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastProviderRateLimitReadinessSummary(): Promise<AudienceBroadcastProviderRateLimitReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, provider_name, throttle_window, daily_limit_policy,
+          burst_limit_policy, retry_backoff_policy, provider_limit_policy, rate_limit_source,
+          queue_backpressure_policy, audit_correlation_policy, sender_domain_gate_status,
+          provider_event_gate_status, provider_send_enabled, cloudflare_queue_producers_enabled,
+          recipient_payloads_created, provider_responses_created, provider_message_ids_created,
+          raw_provider_payloads_stored, updated_at
+        FROM audience_broadcast_provider_rate_limit_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<ProviderRateLimitReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicProviderRateLimitReadiness);
+
+    return {
+      ...emptyProviderRateLimitReadinessSummary("d1", null),
+      counts: {
+        providerRateLimitReadinessRecords: records.length,
+        throttleWindowRecords: records.filter((record) => record.throttleWindow.length > 0).length,
+        retryBackoffPolicyRecords: records.filter((record) => record.retryBackoffPolicy.length > 0).length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        cloudflareQueueProducerEnabledRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_producers_enabled) > 0,
+        ).length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0).length,
+        providerResponsesCreatedRecords: rawRows.filter((row) => numberValue(row.provider_responses_created) > 0).length,
+        providerMessageIdsCreatedRecords: rawRows.filter((row) => numberValue(row.provider_message_ids_created) > 0).length,
+        rawProviderPayloadsStoredRecords: rawRows.filter((row) => numberValue(row.raw_provider_payloads_stored) > 0).length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyProviderRateLimitReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast provider rate-limit readiness.",
     );
   }
 }
