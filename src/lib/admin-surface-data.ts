@@ -276,6 +276,13 @@ const issue225CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26
 const issue226PrUrl = "https://github.com/markitics/bumpgrade/pull/233";
 const issue226CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26168608279";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
+const issue240PrUrl = "https://github.com/markitics/bumpgrade/pull/241";
+const issue240CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26173122434";
+const issue242PrUrl = "https://github.com/markitics/bumpgrade/pull/243";
+const issue242CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26175118817";
+const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
+const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
+const journeyProofRefreshAt = "2026-05-20T17:20:00.000Z";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
   status: "partial",
@@ -296,6 +303,204 @@ const defaultJourneyProof: AdminUserJourneyProof = {
 };
 
 const journeyProofById: Record<string, AdminUserJourneyProof> = {
+  "journey-compare-bumpgrade-to-clickfunnels": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "GitHub Actions CI, merged PR #243, deployed screenshots, and production comparison route smoke.",
+    method: "Comparison hub route smoke, every alternative-page route smoke, source-data inspection, and marketing-copy visible-text scan.",
+    summary:
+      "The comparison journey has current proof for /compare, the ClickFunnels alternative page, competitor-source metadata, and public copy that avoids internal implementation language.",
+    ciLinks: [
+      { label: "PR #243 CI run", url: issue242CiRunUrl, kind: "ci" },
+      { label: "Main CI after PR #243", url: "https://github.com/markitics/bumpgrade/actions/runs/26175761582", kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Compare issue #242 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-242-compare.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Comparison hub", url: "https://bumpgrade.com/compare", kind: "route" },
+      { label: "ClickFunnels alternative", url: "https://bumpgrade.com/compare/clickfunnels-alternative", kind: "route" },
+      { label: "Comparison source data", url: "https://bumpgrade.com/compare/source-data", kind: "source-data" },
+      { label: "PR #243", url: issue242PrUrl, kind: "pr" },
+      { label: "Issue #242", url: "https://github.com/markitics/bumpgrade/issues/242", kind: "issue" },
+    ],
+    notes: [
+      "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
+    ],
+  },
+  "journey-mark-reviews-nonblocking-attention": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "Production source-data routes, merged PRs #241 and #244, and deployed admin/for-Mark screenshots.",
+    method: "For-Mark source-data smoke, admin source-data smoke, user-journey proof summary smoke, and screenshot evidence for response channels.",
+    summary:
+      "Mark-facing attention is now explicit about read-only page behavior, GitHub issue response paths, project email, and durable work-log evidence.",
+    ciLinks: [
+      { label: "PR #241 CI run", url: issue240CiRunUrl, kind: "ci" },
+      { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "For-Mark response channels", url: "https://bumpgrade.com/pr-screenshots/issue-73-for-mark-response-channels.png", kind: "screenshot" },
+      { label: "For-Mark email auth", url: "https://bumpgrade.com/pr-screenshots/issue-61-for-mark-email-auth.png", kind: "screenshot" },
+      { label: "User-journey proof matrix", url: "https://bumpgrade.com/pr-screenshots/issue-240-user-journeys-proof-matrix.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "For-Mark source data", url: "https://bumpgrade.com/admin/for-mark/source-data", kind: "source-data" },
+      { label: "Admin source data", url: "https://bumpgrade.com/admin/source-data", kind: "source-data" },
+      { label: "PR #241", url: issue240PrUrl, kind: "pr" },
+      { label: "PR #244", url: issue244PrUrl, kind: "pr" },
+      { label: "Issue #61", url: "https://github.com/markitics/bumpgrade/issues/61", kind: "issue" },
+      { label: "Issue #73", url: "https://github.com/markitics/bumpgrade/issues/73", kind: "issue" },
+    ],
+    notes: [
+      "/admin/for-mark is intentionally read-only; response choices point to GitHub, project email, or this Codex thread instead of pretending the page accepts direct replies.",
+    ],
+  },
+  "journey-agent-reads-bumpgrade-manifest": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "Production agent-doc routes, GitHub Actions CI, and deployed agent documentation screenshots.",
+    method: "Agent docs route smoke, source-data contract inspection, sitemap discovery, and manifest stable-ID checks.",
+    summary:
+      "Agent-readable Bumpgrade contracts expose source-data routes, action boundaries, feature IDs, roadmap IDs, and write-safety rules without requiring private admin scraping.",
+    ciLinks: [
+      { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Agent docs index", url: "https://bumpgrade.com/pr-screenshots/issue-12-agent-docs-index-desktop.png", kind: "screenshot" },
+      { label: "Agent MCP mobile", url: "https://bumpgrade.com/pr-screenshots/issue-12-agent-mcp-mobile.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Agent docs", url: "https://bumpgrade.com/agent-docs", kind: "route" },
+      { label: "Agent docs source data", url: "https://bumpgrade.com/agent-docs/source-data", kind: "source-data" },
+      { label: "Agent surface", url: "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface", kind: "route" },
+      { label: "Issue #12", url: "https://github.com/markitics/bumpgrade/issues/12", kind: "issue" },
+    ],
+    notes: [
+      "The manifest is public-safe read discovery. Public, billing-impacting, admin, or creator-speech writes still need confirmed-write contracts.",
+    ],
+  },
+  "journey-owner-opens-protected-admin": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "Local authenticated Playwright smoke, GitHub Actions browser journeys, and deployed auth/admin screenshots.",
+    method: "Signed-out admin gate checks, allowlisted owner sign-in journey, verified-email admin access checks, and auth-aware nav screenshot review.",
+    summary:
+      "Owner-protected admin routes have current proof for sign-in, verified owner access, source-data bypass boundaries, and the authenticated nav state.",
+    ciLinks: [
+      { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Signed-in admin", url: "https://bumpgrade.com/pr-screenshots/issue-9-admin-signed-in-desktop.png", kind: "screenshot" },
+      { label: "Admin locked mobile", url: "https://bumpgrade.com/pr-screenshots/issue-9-admin-locked-mobile.png", kind: "screenshot" },
+      { label: "Authenticated admin nav", url: "https://bumpgrade.com/pr-screenshots/issue-70-authenticated-admin-nav.png", kind: "screenshot" },
+      { label: "Auth-aware For Mark nav", url: "https://bumpgrade.com/pr-screenshots/issue-97-auth-aware-nav-for-mark.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Login", url: "https://bumpgrade.com/login", kind: "route" },
+      { label: "Admin roadmap source data", url: "https://bumpgrade.com/admin/roadmap/source-data", kind: "source-data" },
+      { label: "PR #244", url: issue244PrUrl, kind: "pr" },
+      { label: "Issue #9", url: "https://github.com/markitics/bumpgrade/issues/9", kind: "issue" },
+      { label: "Issue #70", url: "https://github.com/markitics/bumpgrade/issues/70", kind: "issue" },
+      { label: "Issue #97", url: "https://github.com/markitics/bumpgrade/issues/97", kind: "issue" },
+    ],
+    notes: [
+      "Public-safe source-data routes remain readable for agents, but browser admin pages require a Better Auth owner session.",
+    ],
+  },
+  "journey-prospect-evaluates-content-surfaces": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "GitHub Actions CI, merged PR #243, deployed screenshots, and production route smoke.",
+    method: "Users/resources/pricing route smoke, content source-data inspection, public visible-text scan, and screenshot review.",
+    summary:
+      "The content surfaces now present Bumpgrade by user outcomes and launch jobs, with pricing and resource routes avoiding internal build language.",
+    ciLinks: [
+      { label: "PR #243 CI run", url: issue242CiRunUrl, kind: "ci" },
+      { label: "Main CI after PR #243", url: "https://github.com/markitics/bumpgrade/actions/runs/26175761582", kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Users issue #242 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-242-users.png", kind: "screenshot" },
+      { label: "Resources issue #242 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-242-resources.png", kind: "screenshot" },
+      { label: "Pricing issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-pricing.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Users", url: "https://bumpgrade.com/users", kind: "route" },
+      { label: "Resources", url: "https://bumpgrade.com/resources", kind: "route" },
+      { label: "Pricing", url: "https://bumpgrade.com/pricing", kind: "route" },
+      { label: "Content source data", url: "https://bumpgrade.com/content/source-data", kind: "source-data" },
+      { label: "PR #243", url: issue242PrUrl, kind: "pr" },
+      { label: "Issue #242", url: "https://github.com/markitics/bumpgrade/issues/242", kind: "issue" },
+    ],
+    notes: [
+      "Pricing remains launch/pilot positioning until Mark confirms the live self-serve checkout rollout in issue #219.",
+    ],
+  },
+  "journey-publisher-checks-mobile-admin": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "Mobile source-data routes, first iOS/Android scaffold evidence, and deployed mobile-admin screenshots.",
+    method: "Mobile admin source-data smoke, dashboard source-data smoke, iOS and Android fixture/live-hydration evidence, and agent-doc link checks.",
+    summary:
+      "Mobile admin has launch proof for read-only dashboard contracts, iOS scaffold hydration, Android scaffold hydration, and shared source-data semantics.",
+    ciLinks: [
+      { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Mobile admin contract desktop", url: "https://bumpgrade.com/pr-screenshots/issue-13-mobile-admin-contract-desktop.png", kind: "screenshot" },
+      { label: "iOS simulator", url: "https://bumpgrade.com/pr-screenshots/issue-67-ios-mobile-admin-simulator.png", kind: "screenshot" },
+      { label: "Android emulator", url: "https://bumpgrade.com/pr-screenshots/issue-68-android-mobile-admin-emulator.png", kind: "screenshot" },
+      { label: "iOS live dashboard hydration", url: "https://bumpgrade.com/pr-screenshots/issue-157-ios-live-dashboard-hydration.png", kind: "screenshot" },
+      { label: "Android live dashboard hydration", url: "https://bumpgrade.com/pr-screenshots/issue-157-android-live-dashboard-hydration.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Mobile admin source data", url: "https://bumpgrade.com/mobile-admin/source-data", kind: "source-data" },
+      { label: "Mobile dashboard source data", url: "https://bumpgrade.com/mobile-admin/dashboard/source-data", kind: "source-data" },
+      { label: "iOS source data", url: "https://bumpgrade.com/mobile-admin/ios/source-data", kind: "source-data" },
+      { label: "Android source data", url: "https://bumpgrade.com/mobile-admin/android/source-data", kind: "source-data" },
+      { label: "Issue #157", url: "https://github.com/markitics/bumpgrade/issues/157", kind: "issue" },
+    ],
+    notes: [
+      "This is read-only launch proof for mobile admin scaffolds and dashboard hydration, not App Store or Play Store distribution.",
+      "Mobile writes, push notifications, and private mobile auth remain future confirmed-write/mobile distribution work.",
+    ],
+  },
+  "journey-publisher-plans-first-checkout": {
+    status: "passed",
+    lastTestedAt: journeyProofRefreshAt,
+    environment: "Sandbox checkout contract evidence, GitHub Actions CI, merged PR #244, deployed screenshots, and production POST-interception smoke.",
+    method: "Commerce source-data inspection, offer route smoke, checkout start smoke, checkout success proof, post-purchase decision proof, and safe production payload interception.",
+    summary:
+      "Publishers can inspect the first paid-offer stack, order bump, post-purchase options, and payment boundaries with current proof; live self-serve checkout remains explicitly gated.",
+    ciLinks: [
+      { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Commerce contract", url: "https://bumpgrade.com/pr-screenshots/issue-11-commerce-contract-desktop.png", kind: "screenshot" },
+      { label: "Sandbox checkout contract", url: "https://bumpgrade.com/pr-screenshots/issue-34-sandbox-checkout-contract-desktop.png", kind: "screenshot" },
+      { label: "Order bump checkout start", url: "https://bumpgrade.com/pr-screenshots/issue-99-checkout-order-bump-start.png", kind: "screenshot" },
+      { label: "Post-purchase offer stack", url: "https://bumpgrade.com/pr-screenshots/issue-117-post-purchase-offer-stack-desktop.png", kind: "screenshot" },
+      { label: "Checkout success", url: "https://bumpgrade.com/pr-screenshots/issue-133-checkout-success-desktop.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Commerce source data", url: "https://bumpgrade.com/commerce/source-data", kind: "source-data" },
+      { label: "Offers source data", url: "https://bumpgrade.com/offers/source-data", kind: "source-data" },
+      { label: "Indie launch offer", url: "https://bumpgrade.com/offers/indie-launch-stack", kind: "route" },
+      { label: "PR #244", url: issue244PrUrl, kind: "pr" },
+      { label: "Issue #219", url: "https://github.com/markitics/bumpgrade/issues/219", kind: "issue" },
+    ],
+    notes: [
+      "Production checkout POST interception in PR #244 verified payload behavior without creating real checkout records.",
+      "Live self-serve checkout is intentionally parked in issue #219 until Mark confirms product, amount, and rollout.",
+    ],
+  },
   "journey-prospect-explores-launch-marketing": {
     status: "passed",
     lastTestedAt: launchProofUpdatedAt,
