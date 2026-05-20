@@ -81,6 +81,17 @@ export type AdminUserJourneyProof = {
   notes: string[];
 };
 
+export type AdminUserJourneyProofSummary = {
+  totalJourneys: number;
+  testedJourneys: number;
+  partialJourneys: number;
+  blockedJourneys: number;
+  notRunJourneys: number;
+  screenshotLinks: number;
+  ciLinks: number;
+  latestTestedAt: string | null;
+};
+
 export type MarkAttentionItem = {
   id: string;
   category: "blocked" | "review" | "fyi";
@@ -117,6 +128,46 @@ export type AdminSurfaceData = {
   userJourneys: AdminUserJourney[];
   attentionItems: MarkAttentionItem[];
 };
+
+export function summarizeUserJourneyProof(userJourneys: AdminUserJourney[]): AdminUserJourneyProofSummary {
+  let latestTimestamp = 0;
+
+  const summary = userJourneys.reduce<AdminUserJourneyProofSummary>(
+    (acc, journey) => {
+      acc.totalJourneys += 1;
+
+      if (journey.proof?.status === "passed") acc.testedJourneys += 1;
+      if (journey.proof?.status === "partial") acc.partialJourneys += 1;
+      if (journey.proof?.status === "blocked") acc.blockedJourneys += 1;
+      if (journey.proof?.status === "not_run") acc.notRunJourneys += 1;
+
+      acc.screenshotLinks += journey.proof?.screenshotLinks.length ?? 0;
+      acc.ciLinks += journey.proof?.ciLinks.length ?? 0;
+
+      if (journey.proof?.lastTestedAt) {
+        const timestamp = Date.parse(journey.proof.lastTestedAt);
+        if (Number.isFinite(timestamp) && timestamp > latestTimestamp) latestTimestamp = timestamp;
+      }
+
+      return acc;
+    },
+    {
+      totalJourneys: 0,
+      testedJourneys: 0,
+      partialJourneys: 0,
+      blockedJourneys: 0,
+      notRunJourneys: 0,
+      screenshotLinks: 0,
+      ciLinks: 0,
+      latestTestedAt: null,
+    },
+  );
+
+  return {
+    ...summary,
+    latestTestedAt: latestTimestamp ? new Date(latestTimestamp).toISOString() : null,
+  };
+}
 
 type D1RoadmapRow = {
   id: string;

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Clock3, Database, ExternalLink, Route } from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock3, Database, ExternalLink, GitBranch, Images, Route } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { getAdminSurfaceData, type AdminLink } from "@/lib/admin-surface-data";
+import { getAdminSurfaceData, summarizeUserJourneyProof, type AdminLink } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
   title: "Admin user journeys",
@@ -36,6 +37,21 @@ function featureStatusClass(status: string) {
   return "planned";
 }
 
+function screenshotSrc(url: string) {
+  if (url.startsWith("/")) return url;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "bumpgrade.com" && parsed.pathname.startsWith("/pr-screenshots/")) {
+      return parsed.pathname;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function linkList(links: AdminLink[] | undefined, emptyLabel: string) {
   if (!links?.length) return <span>{emptyLabel}</span>;
   return (
@@ -52,13 +68,35 @@ function linkList(links: AdminLink[] | undefined, emptyLabel: string) {
   );
 }
 
+function ScreenshotStrip({ links }: { links: AdminLink[] | undefined }) {
+  const screenshotLinks = links?.filter((link) => screenshotSrc(link.url)) ?? [];
+
+  if (!screenshotLinks.length) return <span className="journey-proof-empty">No screenshot thumbnail recorded</span>;
+
+  return (
+    <div className="journey-screenshot-strip">
+      {screenshotLinks.slice(0, 4).map((link) => {
+        const src = screenshotSrc(link.url);
+        if (!src) return null;
+
+        return (
+          <Link key={link.url} href={link.url} className="journey-screenshot-thumb">
+            <Image src={src} alt={`${link.label ?? "Journey proof"} screenshot`} width={220} height={132} unoptimized />
+            <span>{link.label ?? "Screenshot"}</span>
+          </Link>
+        );
+      })}
+      {screenshotLinks.length > 4 ? <span className="journey-screenshot-more">+{screenshotLinks.length - 4}</span> : null}
+    </div>
+  );
+}
+
 export default async function UserJourneysPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/user-journeys" />;
 
   const data = await getAdminSurfaceData();
-  const testedCount = data.userJourneys.filter((journey) => journey.proof?.status === "passed").length;
-  const partialCount = data.userJourneys.filter((journey) => journey.proof?.status === "partial").length;
+  const proofSummary = summarizeUserJourneyProof(data.userJourneys);
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -85,9 +123,85 @@ export default async function UserJourneysPage() {
           <p>{data.source === "fixture" ? "Fixture proof" : "Journey proof"}</p>
           <strong>{data.userJourneys.length} journeys</strong>
           <span>
-            {testedCount} tested, {partialCount} partial. {data.loadError ?? "Every main feature has linked route, issue, screenshot, or validation evidence."}
+            {proofSummary.testedJourneys} tested, {proofSummary.partialJourneys} partial. Latest proof{" "}
+            {formatDateTime(proofSummary.latestTestedAt)}.
           </span>
         </aside>
+      </section>
+
+      <section className="content-band journey-proof-overview-band">
+        <div className="journey-proof-stat-grid">
+          <div className="journey-proof-stat-card">
+            <BadgeCheck aria-hidden="true" />
+            <span>Tested journeys</span>
+            <strong>{proofSummary.testedJourneys}</strong>
+          </div>
+          <div className="journey-proof-stat-card">
+            <Clock3 aria-hidden="true" />
+            <span>Latest proof</span>
+            <strong>{formatDateTime(proofSummary.latestTestedAt)}</strong>
+          </div>
+          <div className="journey-proof-stat-card">
+            <Images aria-hidden="true" />
+            <span>Screenshots</span>
+            <strong>{proofSummary.screenshotLinks}</strong>
+          </div>
+          <div className="journey-proof-stat-card">
+            <GitBranch aria-hidden="true" />
+            <span>CI links</span>
+            <strong>{proofSummary.ciLinks}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band journey-proof-matrix-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Evidence matrix</p>
+            <h2>Last test, screenshots, and CI in one scan</h2>
+          </div>
+        </div>
+        <div className="journey-proof-matrix-shell">
+          <table className="journey-proof-matrix">
+            <thead>
+              <tr>
+                <th>Journey</th>
+                <th>Status</th>
+                <th>Last tested</th>
+                <th>Screenshots</th>
+                <th>CI and validation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.userJourneys.map((journey) => {
+                const proof = journey.proof;
+                return (
+                  <tr key={journey.id}>
+                    <th scope="row">
+                      <span>{journey.title}</span>
+                      <small>{journey.featureId}</small>
+                    </th>
+                    <td>
+                      <span className={`status-badge ${proof?.status === "passed" ? "live" : "pending"}`}>
+                        {proofStatusLabel(proof?.status)}
+                      </span>
+                    </td>
+                    <td>{formatDateTime(proof?.lastTestedAt)}</td>
+                    <td>
+                      <ScreenshotStrip links={proof?.screenshotLinks} />
+                    </td>
+                    <td>
+                      <div className="journey-proof-matrix-links">
+                        {linkList([...(proof?.ciLinks ?? []), ...(proof?.validationLinks ?? [])].slice(0, 5), "No CI or validation link recorded")}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {data.loadError ? <p className="journey-proof-warning">{data.loadError}</p> : null}
       </section>
 
       <section className="content-band">
@@ -153,6 +267,7 @@ export default async function UserJourneysPage() {
                   </div>
                   <div>
                     <strong>Screenshots</strong>
+                    <ScreenshotStrip links={proof?.screenshotLinks} />
                     {linkList(proof?.screenshotLinks, "No screenshot link recorded")}
                   </div>
                   <div>
