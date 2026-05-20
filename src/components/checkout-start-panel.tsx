@@ -75,6 +75,8 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
     setIsSubmitting(true);
     setError(null);
     setResponse(null);
+    const normalizedBuyerEmail = buyerEmail.trim();
+    setBuyerEmail(normalizedBuyerEmail);
 
     try {
       const checkoutResponse = await fetch(stack.checkoutEndpoint, {
@@ -85,7 +87,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
         body: JSON.stringify({
           priceId: stack.primaryOffer.priceId,
           orderBumpPriceIds: selectedOrderBumpPriceIds,
-          buyerEmail: buyerEmail.trim() || undefined,
+          buyerEmail: normalizedBuyerEmail || undefined,
           confirmationText,
           idempotencyKey: `${context?.idempotencyPrefix ?? "bumpgrade-offer"}-${crypto.randomUUID()}`,
           agentClientId: context?.agentClientId ?? "offer-preview-ui",
@@ -115,7 +117,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
         </div>
       </div>
       <div className="checkout-start-grid">
-        <form className="checkout-start-panel" onSubmit={handleSubmit}>
+        <form className="checkout-start-panel" onSubmit={handleSubmit} noValidate>
           <div className="checkout-line-list" aria-label="Sandbox checkout line items">
             <div className="checkout-line-item selected">
               <div>
@@ -154,6 +156,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
               value={buyerEmail}
               placeholder="sandbox-buyer@example.com"
               onChange={(event) => setBuyerEmail(event.target.value)}
+              onBlur={(event) => setBuyerEmail(event.currentTarget.value.trim())}
             />
           </label>
 
