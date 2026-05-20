@@ -392,7 +392,7 @@ export default async function AdminAudiencePage() {
               <article key={record.id} className="roadmap-card active">
                 <div className="roadmap-card-top">
                   <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
-                  <span className="admin-pill">{record.queueName}</span>
+                  <span className="admin-pill">Delivery queue</span>
                 </div>
                 <Send aria-hidden="true" />
                 <h3>Producer binding is readiness-only</h3>
