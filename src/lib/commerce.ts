@@ -40,7 +40,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing post-purchase upsell/downsell decision evidence. Live payment and payout rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, and non-destructive product revocation intent readiness. Live payment and payout rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -395,6 +395,23 @@ export const commerceTables: CommerceTableContract[] = [
     serverPrivateFields: ["idempotency_key", "actor_user_id", "actor_email_hash", "r2_object_key", "confirmation_text_sha256", "metadata_json"],
     purpose:
       "Owner-confirmed private product asset upload records backed by PRODUCT_ASSETS without exposing object keys, signed URLs, upload bodies, or private metadata.",
+  },
+  {
+    table: "product_entitlement_revocation_intents",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "product_id",
+      "entitlement_template_id",
+      "access_rule_id",
+      "status",
+      "intent_kind",
+      "destructive_action_enabled",
+      "entitlement_mutation_enabled",
+    ],
+    serverPrivateFields: ["metadata_json", "future actor identifiers", "future buyer identifiers", "future private reason notes"],
+    purpose:
+      "Owner-visible revocation intent readiness records that document confirmation, stale-state, audit, and non-destructive boundaries before live entitlement removal exists.",
   },
 ];
 

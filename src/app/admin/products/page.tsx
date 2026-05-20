@@ -6,7 +6,9 @@ import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   getAdminProductEntitlementInspectionState,
+  getProductEntitlementRevocationIntentSummary,
   productEntitlementInspectionIssue,
+  productEntitlementRevocationIntentIssue,
 } from "@/lib/product-entitlement-inspection";
 
 export const metadata: Metadata = {
@@ -37,7 +39,10 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const state = await getAdminProductEntitlementInspectionState();
+  const [state, revocationIntents] = await Promise.all([
+    getAdminProductEntitlementInspectionState(),
+    getProductEntitlementRevocationIntentSummary(),
+  ]);
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-products-page">
@@ -47,8 +52,8 @@ export default async function AdminProductsPage() {
           <h1>Product entitlement inspection without public buyer leaks.</h1>
           <p className="lede">
             Owners can inspect paid sandbox entitlement grants, checkout state, product and price context, and queued
-            fulfillment evidence. Public product source-data stays aggregate-only and excludes buyer, Stripe, and private
-            asset fields.
+            fulfillment evidence. Revocation intent readiness is visible before destructive access removal exists. Public
+            product source-data stays aggregate-only and excludes buyer, Stripe, and private asset fields.
           </p>
           <div className="hero-actions">
             <Link href="/products/source-data" className="primary-action">
@@ -92,6 +97,72 @@ export default async function AdminProductsPage() {
             <h3>Checkout coverage</h3>
             <p>{state.counts.checkoutIntentsWithEntitlements} checkout intent{state.counts.checkoutIntentsWithEntitlements === 1 ? "" : "s"} have entitlement evidence.</p>
           </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Revocation intents</h3>
+            <p>
+              {revocationIntents.counts.revocationIntents} dry-run contract
+              {revocationIntents.counts.revocationIntents === 1 ? "" : "s"};{" "}
+              {revocationIntents.counts.entitlementMutationsEnabled} entitlement mutations enabled.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Revocation readiness</p>
+            <h2>Access removal stays blocked until revocation checks are explicit</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${productEntitlementRevocationIntentIssue}`} className="text-link compact-link">
+            Issue #{productEntitlementRevocationIntentIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {revocationIntents.records.length > 0 ? (
+            revocationIntents.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status}</span>
+                  <span className="admin-pill">{record.intentKind.replaceAll("_", " ")}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.productTitle}</h3>
+                <p>{record.revocationPolicy}</p>
+                <div className="roadmap-detail">
+                  <strong>Template</strong>
+                  <span>{record.entitlementTemplateTitle}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Access rule</strong>
+                  <span>{record.accessRuleTitle}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Stale-state check</strong>
+                  <span>{record.staleStatePolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Audit correlation</strong>
+                  <span>{record.auditCorrelationPolicy}</span>
+                </div>
+                <p>
+                  Destructive access removal, entitlement mutation, billing changes, refunds, and private buyer exposure
+                  remain disabled in this slice.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No revocation intent</span>
+                <span className="admin-pill">Issue #{productEntitlementRevocationIntentIssue}</span>
+              </div>
+              <h3>No revocation readiness records</h3>
+              <p>{revocationIntents.loadError ?? "Run the revocation-intent migration to seed access-removal safety metadata."}</p>
+            </article>
+          )}
         </div>
       </section>
 

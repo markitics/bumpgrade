@@ -4,14 +4,20 @@ import { customerProductEntitlementLookupSummary } from "@/lib/customer-product-
 import { getProductAssetUploadIntentSummary } from "@/lib/product-asset-uploads";
 import { productAccessSourceData } from "@/lib/product-access";
 import { productDownloadTokenSummary } from "@/lib/product-download-tokens";
-import { getProductEntitlementInspectionSummary } from "@/lib/product-entitlement-inspection";
+import {
+  getProductEntitlementInspectionSummary,
+  getProductEntitlementRevocationIntentSummary,
+} from "@/lib/product-entitlement-inspection";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const entitlementInspection = await getProductEntitlementInspectionSummary();
-  const ownerAssetUploadIntents = await getProductAssetUploadIntentSummary();
+  const [entitlementInspection, ownerAssetUploadIntents, revocationIntents] = await Promise.all([
+    getProductEntitlementInspectionSummary(),
+    getProductAssetUploadIntentSummary(),
+    getProductEntitlementRevocationIntentSummary(),
+  ]);
 
   return NextResponse.json({
     ...productAccessSourceData,
@@ -19,5 +25,6 @@ export async function GET() {
     customerEntitlementLookup: customerProductEntitlementLookupSummary,
     sandboxDownloadTokens: productDownloadTokenSummary,
     ownerAssetUploadIntents,
+    revocationIntents,
   });
 }
