@@ -7,16 +7,17 @@ import { getCurrentAdminState } from "@/lib/admin-auth";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
   draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
-import { draftFunnelCheckoutLinkingIssue, funnelTemplateLibrary } from "@/lib/funnels";
+import { draftFunnelDuplicationIssue, funnelTemplateLibrary } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
-  description: "Owner-gated D1 draft funnel builder scaffold for Bumpgrade publishers.",
+  description: "Owner-gated draft funnel builder for Bumpgrade publishers.",
 };
 
 export const dynamic = "force-dynamic";
@@ -40,22 +41,22 @@ export default async function AdminFunnelsPage() {
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin funnels</p>
-          <h1>Draft funnel builder backed by D1.</h1>
+          <h1>Draft funnel builder for launch work.</h1>
           <p className="lede">
             Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
-            steps. Exact-confirmed publishing is live for public D1 funnel routes, and owner-confirmed template-to-draft
+            steps. Exact-confirmed publishing is live for public funnel routes, and owner-confirmed template-to-draft
             creation is live for the reusable template library, including webinar and resource page shapes. Owners can
-            also attach the seeded sandbox checkout offer to private draft checkout blocks. Deletion, unpublishing,
-            drag-and-drop layout editing, live webinar integrations, private resource delivery, and direct agent edits
-            still need confirmed-write slices.
+            duplicate private drafts after a revision check and attach the seeded sandbox checkout offer to private draft
+            checkout blocks. Deletion, unpublishing, drag-and-drop layout editing, live webinar integrations, private
+            resource delivery, and direct agent edits still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelCheckoutLinkingIssue}`} className="secondary-action">
-              Issue #{draftFunnelCheckoutLinkingIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelDuplicationIssue}`} className="secondary-action">
+              Issue #{draftFunnelDuplicationIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -194,6 +195,42 @@ export default async function AdminFunnelsPage() {
                   </Link>
                 ) : null}
               </div>
+              <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
+                <input type="hidden" name="mode" value="duplicate" />
+                <input type="hidden" name="draftId" value={draft.id} />
+                <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                <input
+                  type="hidden"
+                  name="idempotencyKey"
+                  value={`duplicate-${draft.id}-${draft.revisionId}-${state.drafts.length}`}
+                />
+                <label>
+                  Duplicate title
+                  <input
+                    name="title"
+                    type="text"
+                    defaultValue={`Copy of ${draft.title}`}
+                    maxLength={120}
+                    disabled={!state.canWrite}
+                  />
+                </label>
+                <label className="admin-step-goal-field">
+                  Duplicate confirmation
+                  <input
+                    name="confirmationText"
+                    type="text"
+                    placeholder={draftFunnelDuplicationConfirmationText}
+                    disabled={!state.canWrite}
+                  />
+                </label>
+                <p>
+                  Creates a new private draft with copied ordered steps and blocks. Checkout links are not copied.
+                </p>
+                <button type="submit" className="secondary-action" disabled={!state.canWrite}>
+                  Duplicate draft
+                  <GitBranch aria-hidden="true" />
+                </button>
+              </form>
               <div className="roadmap-detail">
                 <strong>Draft ID</strong>
                 <span>{draft.id}</span>

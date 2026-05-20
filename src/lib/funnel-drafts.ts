@@ -13,6 +13,8 @@ import type {
 } from "@/lib/funnels";
 import {
   checkoutLinkingCapability,
+  draftFunnelDuplicationCapability,
+  draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
   draftFunnelBuilderIssue,
   draftFunnelBuilderParentIssue,
@@ -109,6 +111,7 @@ const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
 export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
+export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -171,6 +174,19 @@ function draftBlocksForTemplateStep(draftId: string, step: FunnelTemplateStep): 
       title: libraryItem?.title ?? `${kind.replaceAll("_", " ")} block`,
       body: libraryItem?.purpose ?? "Reusable template block.",
       agentEditable: libraryItem?.agentEditable ?? false,
+    };
+  });
+}
+
+function duplicateBlocksForStep(draftId: string, step: DraftFunnelStepRecord): FunnelBlock[] {
+  return step.blocks.map((block, index) => {
+    return {
+      ...block,
+      id: `${draftId}-block-${step.order}-${block.kind}-${index + 1}`,
+      body: block.checkoutLink
+        ? "Checkout-link metadata was intentionally not copied. Review this duplicate and link an offer again before publishing."
+        : block.body,
+      checkoutLink: undefined,
     };
   });
 }
@@ -460,7 +476,7 @@ function insertAuditStatement(
   db: D1Database,
   draft: DraftFunnelRecord,
   identity: AdminIdentity,
-  eventKind: "draft_seeded" | "draft_created" | "draft_updated" | "draft_published",
+  eventKind: "draft_seeded" | "draft_created" | "draft_duplicated" | "draft_updated" | "draft_published",
   idempotencyKey: string,
   summary?: string,
   metadata: Record<string, unknown> = {},
@@ -470,6 +486,8 @@ function insertAuditStatement(
       ? "seeded"
       : eventKind === "draft_created"
         ? "created"
+        : eventKind === "draft_duplicated"
+          ? "duplicated"
         : eventKind === "draft_published"
           ? "published"
           : "updated";
@@ -478,7 +496,9 @@ function insertAuditStatement(
       ? draftFunnelStepEditingIssue
       : eventKind === "draft_published"
         ? draftFunnelPublishingIssue
-        : draft.sourceIssueNumber;
+        : eventKind === "draft_duplicated"
+          ? draftFunnelDuplicationIssue
+          : draft.sourceIssueNumber;
   return db
     .prepare(
       `INSERT INTO funnel_audit_events (
@@ -502,7 +522,7 @@ async function persistDraft(
   db: D1Database,
   draft: DraftFunnelRecord,
   identity: AdminIdentity,
-  eventKind: "draft_seeded" | "draft_created",
+  eventKind: "draft_seeded" | "draft_created" | "draft_duplicated",
   idempotencyKey: string,
   metadata: Record<string, unknown> = {},
 ) {
@@ -631,6 +651,69 @@ export async function createDraftFunnelFromLibraryTemplate(
     templateSourceIssue: template.sourceIssue,
     templateDraftCreationIssue: draftFunnelTemplateCreationIssue,
     draftCreation: template.draftCreation,
+  });
+}
+
+export async function duplicateDraftFunnel(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    title: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelDuplicationConfirmationText) {
+    throw new Error("Exact draft duplication confirmation text is required.");
+  }
+
+  const sourceDraft = await loadDraftFromD1(db, input.draftId);
+  if (!sourceDraft) throw new Error("Draft funnel not found.");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== sourceDraft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before duplicating.");
+  }
+
+  const baseTitle = input.title.trim() || `Copy of ${sourceDraft.title}`;
+  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(baseTitle));
+  const draftId = `funnel-draft-${slug}`;
+  const steps = sourceDraft.steps.map((step) => ({
+    ...step,
+    id: `${draftId}-${step.kind}-${step.order}`,
+    blocks: duplicateBlocksForStep(draftId, step),
+  }));
+  const draft: DraftFunnelRecord = {
+    id: draftId,
+    slug,
+    title: baseTitle.slice(0, 120),
+    status: "draft",
+    summary: `Private duplicate of ${sourceDraft.title}. Checkout-link metadata was intentionally not copied; review and relink offers before publishing.`,
+    sourceIssueNumber: draftFunnelDuplicationIssue,
+    parentIssueNumber: draftFunnelBuilderParentIssue,
+    previewRoute: null,
+    sourceDataRoute: "/funnels/source-data",
+    revisionId: `funnel-draft-revision-${slug}-${new Date().toISOString().slice(0, 10)}`,
+    createdByEmail: identityEmail(identity),
+    ownerUserId: identity.userId,
+    steps,
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  return persistDraft(db, draft, identity, "draft_duplicated", input.idempotencyKey, {
+    draftFunnelDuplicationCapability: draftFunnelDuplicationCapability.id,
+    sourceDraftId: sourceDraft.id,
+    sourceRevisionId: sourceDraft.revisionId,
+    copiedStepCount: sourceDraft.steps.length,
+    copiedBlockCount: sourceDraft.steps.reduce((total, step) => total + step.blocks.length, 0),
+    checkoutLinksCopied: false,
+    publishesDuplicate: false,
+    privateDraftOnly: true,
   });
 }
 

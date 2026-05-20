@@ -217,7 +217,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
@@ -230,9 +230,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #163 adds owner-confirmed checkout-offer linking to private draft checkout blocks.",
       "Issue #165 adds public sandbox checkout start rendering on published funnel checkout blocks with owner-confirmed checkout links.",
       "Issue #213 adds webinar and resource funnel template/block contracts plus D1 step-kind storage readiness.",
+      "Issue #215 adds owner-confirmed private draft duplication with checkout-link metadata stripped by default.",
     ],
     nextMilestone:
-      "Add deletion/archive, unpublishing, drag-and-drop block editing, live webinar integrations, private resource delivery, live checkout rollout, and direct agent-safe edit tools on top of D1 draft funnels.",
+      "Add deletion/archive, unpublishing, drag-and-drop block editing, live webinar integrations, private resource delivery, live checkout rollout, and direct agent-safe edit/duplicate tools on top of D1 draft funnels.",
   },
   {
     id: "roadmap-checkout-offers",
