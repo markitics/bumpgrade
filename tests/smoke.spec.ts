@@ -2946,8 +2946,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "owner-review-actions-ready",
-        issue: 115,
+        status: "partner-reports-ready",
+        issue: 193,
         parentIssue: 19,
       }),
     );
@@ -3006,6 +3006,14 @@ test.describe("Bumpgrade scaffold", () => {
         apiRoute: "/api/admin/affiliates/commission-ledger/actions",
       }),
     );
+    expect(payload.partnerReportContract).toEqual(
+      expect.objectContaining({
+        status: "partner-reports-ready",
+        issue: 193,
+        sourceDataRoute: "/affiliates/source-data",
+        stableIds: expect.arrayContaining(["affiliatePartnerReportId", "affiliatePartnerId"]),
+      }),
+    );
     expect(payload.commissionLedgerSummary).toEqual(
       expect.objectContaining({
         status: "available",
@@ -3016,12 +3024,54 @@ test.describe("Bumpgrade scaffold", () => {
         partnerNotificationsIncluded: false,
       }),
     );
+    expect(payload.partnerReportSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        buyerDataIncluded: false,
+        payoutRowsIncluded: false,
+        taxRowsIncluded: false,
+        stripeIdsIncluded: false,
+        reports: expect.arrayContaining([
+          expect.objectContaining({
+            affiliatePartnerReportId: "affiliate-partner-report-launch-circle",
+            affiliatePartnerId: "affiliate-partner-launch-circle",
+            status: "public_safe_report_ready",
+            issue: 193,
+            totals: expect.objectContaining({
+              totalClicks: expect.any(Number),
+              attributedCheckouts: expect.any(Number),
+              reviewOnlyLedgers: expect.any(Number),
+              totalCommissionCents: expect.any(Number),
+              currency: "USD",
+            }),
+            redaction: expect.objectContaining({
+              buyerDataIncluded: false,
+              rawClickRowsIncluded: false,
+              rawCheckoutRowsIncluded: false,
+              rawActorIdentityIncluded: false,
+              payoutAccountIncluded: false,
+              taxDataIncluded: false,
+              stripeIdsIncluded: false,
+            }),
+          }),
+        ]),
+      }),
+    );
     expect(payload.programs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: affiliateProgram.id,
           slug: affiliateProgram.slug,
           revisionId: affiliateProgram.revisionId,
+          partnerReports: expect.arrayContaining([
+            expect.objectContaining({
+              id: "affiliate-partner-report-launch-circle",
+              partnerId: "affiliate-partner-launch-circle",
+              issue: 193,
+            }),
+          ]),
           partners: expect.arrayContaining([
             expect.objectContaining({ id: "affiliate-partner-launch-circle", status: "approved" }),
             expect.objectContaining({ id: "affiliate-partner-template-studio", status: "review" }),
@@ -3047,11 +3097,15 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #111 can attach validated referral click evidence");
     expect(payload.writeBoundary).toContain("Issue #113 can create review-only");
     expect(payload.writeBoundary).toContain("Issue #115 can apply owner-gated review");
+    expect(payload.writeBoundary).toContain("Issue #193 exposes public-safe partner reports");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
+    expect(payload.caveat).toContain("public-safe partner reports");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only/i })).toBeVisible();
+    await expect(page.getByText("Launch Circle public-safe performance report")).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
   });
@@ -3741,7 +3795,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111, 113, 115],
+          issueNumbers: [19, 89, 109, 111, 113, 115, 193],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-reads-affiliate-partner-reports",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 193],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-referral-click",
@@ -4051,11 +4110,13 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "read-affiliate-referrals",
           stableIds: expect.arrayContaining([
+            "affiliatePartnerReportId",
             "referralClickId",
             "checkoutIntentId",
             "referralAttributionId",
             "reviewOnlyCommissionLedgerId",
           ]),
+          safeForAgents: expect.arrayContaining(["Inspect public-safe partner performance reports"]),
         }),
       ]),
     );

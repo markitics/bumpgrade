@@ -104,6 +104,20 @@ Issue #115 adds owner-gated review actions for that ledger evidence:
   collect tax data, finalize buyer attribution, or enable direct agent review
   writes.
 
+Issue #193 adds public-safe affiliate partner reports:
+
+- `/affiliates/source-data` exposes partner report definitions and aggregate
+  report rows keyed by `affiliatePartnerReportId`.
+- Report rows summarize public-safe clicks, attributed checkouts, review-only
+  ledger evidence, owner review actions, commission evidence totals, and payout
+  readiness caveats by partner.
+- Reports never expose buyer emails, buyer hashes, raw click rows, raw checkout
+  rows, Stripe IDs, tax data, payout accounts, raw actor identity, or private
+  review reasons.
+- This does not create a private partner portal, payable commission state,
+  payout batches, Stripe payouts, fraud decisions, tax collection, partner
+  notification, or direct agent affiliate writes.
+
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 

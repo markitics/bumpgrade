@@ -316,6 +316,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Checkout attribution evidence that links eligible referral clicks to sandbox checkout intents from issue #111.",
       "Review-only commission ledger evidence from trusted checkout attribution from issue #113.",
       "Owner review, hold, and reversal actions for commission evidence from issue #115.",
+      "Public-safe partner performance reports from issue #193.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -327,9 +328,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
       "Issue #113 creates non-payable commission ledger evidence from checkout attribution.",
       "Issue #115 adds owner-gated review/reversal actions without payout mutation.",
+      "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
     ],
     agentContract:
-      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, public-safe partner reports, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, private partner portals, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",

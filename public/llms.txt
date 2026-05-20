@@ -208,14 +208,15 @@ GitHub repo: https://github.com/markitics/bumpgrade
   referrer/query exposure, raw event or assignment exposure, automated
   decisions, direct agent analytics writes, or statistically meaningful proof.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
-  partner records, referral links, aggregate click counts, checkout attribution
-  evidence, aggregate review-only commission ledger counts, attribution rules,
-  commission rules, ledger fixtures, payout review, fraud flags, and the
-  `/api/affiliates/clicks` write boundary. Treat it as seeded click capture,
-  referral-click-to-checkout, and review-only ledger source-data evidence, not
-  cookie assignment, buyer attribution finalization, payable commission state,
-  tax collection, fraud enforcement, Stripe payout capability, partner
-  notification, partner-facing reporting, direct agent review writes, or payable
+  partner records, referral links, public-safe partner reports, aggregate click
+  counts, checkout attribution evidence, aggregate review-only commission ledger
+  counts, attribution rules, commission rules, ledger fixtures, payout review,
+  fraud flags, and the `/api/affiliates/clicks` write boundary. Treat it as
+  seeded click capture, referral-click-to-checkout, review-only ledger evidence,
+  owner review evidence, and aggregate partner report evidence, not cookie
+  assignment, buyer attribution finalization, payable commission state, tax
+  collection, fraud enforcement, Stripe payout capability, partner notification,
+  private partner portal access, direct agent review writes, or payable
   commission execution. Owner sessions can review, hold, or reverse review-only
   commission evidence through the gated admin action API.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,

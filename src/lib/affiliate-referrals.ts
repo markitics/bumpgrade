@@ -1,7 +1,6 @@
 import {
   affiliateCommissionLedgerApiRoute,
   affiliateCommissionLedgerContract,
-  affiliateCommissionLedgerUpdatedAt,
   affiliateCommissionReviewActionsApiRoute,
   affiliateCommissionReviewActionsContract,
 } from "@/lib/affiliate-commission-ledger";
@@ -14,6 +13,7 @@ import { checkoutReferralAttributionContract } from "@/lib/referral-checkout-att
 export type AffiliateProgramStatus = "draft";
 export type AffiliatePartnerStatus = "approved" | "review";
 export type ReferralLinkStatus = "draft" | "review";
+export type AffiliatePartnerReportStatus = "public_safe_report_ready";
 export type AttributionModel = "first_click" | "last_click" | "manual_review";
 export type CommissionKind = "percentage" | "fixed" | "holdback";
 export type CommissionLedgerStatus = "approved_pending_payout" | "review_required" | "reversed";
@@ -104,6 +104,44 @@ export type AffiliateAuditEvent = {
   redaction: string;
 };
 
+export type AffiliatePartnerReport = {
+  id: string;
+  partnerId: string;
+  title: string;
+  status: AffiliatePartnerReportStatus;
+  issue: number;
+  reportingWindow: {
+    id: string;
+    label: string;
+    source: string;
+  };
+  referralLinkIds: string[];
+  sourceRoutes: string[];
+  fixtureMetrics: {
+    fixtureLedgerCount: number;
+    fixtureReviewRequiredCount: number;
+    fixtureReversedCount: number;
+    fixtureCommissionCents: number;
+    currency: "USD";
+    runtimeAggregateFields: string[];
+  };
+  payoutReadiness: {
+    status: "review_required" | "not_payable";
+    caveats: string[];
+  };
+  redaction: {
+    buyerDataIncluded: false;
+    rawClickRowsIncluded: false;
+    rawCheckoutRowsIncluded: false;
+    rawActorIdentityIncluded: false;
+    privateReasonsIncluded: false;
+    payoutAccountIncluded: false;
+    taxDataIncluded: false;
+    stripeIdsIncluded: false;
+  };
+  caveat: string;
+};
+
 export type AffiliateProgram = {
   id: string;
   slug: string;
@@ -122,6 +160,7 @@ export type AffiliateProgram = {
   commissionRules: CommissionRule[];
   partners: AffiliatePartner[];
   referralLinks: ReferralLink[];
+  partnerReports: AffiliatePartnerReport[];
   commissionLedger: CommissionLedgerFixture[];
   payoutBatches: PayoutBatchFixture[];
   reviewFlags: ReviewFlag[];
@@ -130,23 +169,69 @@ export type AffiliateProgram = {
   validation: string[];
 };
 
-export const affiliateReferralsUpdatedAt = affiliateCommissionLedgerUpdatedAt;
+export const affiliateReferralsUpdatedAt = "2026-05-20";
+
+export const affiliatePartnerReportContract = {
+  id: "affiliate-partner-report-contract",
+  status: "partner-reports-ready",
+  issue: 193,
+  parentIssue: 19,
+  relatedIssues: [89, 109, 111, 113, 115],
+  sourceDataRoute: "/affiliates/source-data",
+  previewRoute: "/affiliates/indie-launch-partners",
+  stableIds: [
+    "affiliatePartnerReportId",
+    "affiliatePartnerId",
+    "referralLinkId",
+    "referralClickId",
+    "checkoutIntentId",
+    "reviewOnlyCommissionLedgerId",
+    "commissionReviewActionId",
+  ],
+  publicSafeFields: [
+    "affiliatePartnerReportId",
+    "affiliatePartnerId",
+    "referralLinkIds",
+    "totalClicks",
+    "attributedCheckouts",
+    "reviewOnlyLedgers",
+    "reviewedActions",
+    "heldActions",
+    "reversedActions",
+    "totalCommissionCents",
+    "payoutReadinessStatus",
+    "redactionFlags",
+  ],
+  serverPrivateFields: [
+    "buyer emails",
+    "buyer hashes",
+    "raw click rows",
+    "raw checkout rows",
+    "raw owner actor identity",
+    "private review reasons",
+    "Stripe customer/session identifiers",
+    "partner payout accounts",
+    "tax forms",
+  ],
+  writeBoundary:
+    "Issue #193 exposes public-safe partner report definitions and aggregate report rows. Reports are read-only and cannot finalize buyer attribution, create payable commission state, trigger payouts, notify partners, store payout accounts, collect tax data, enforce fraud decisions, or accept direct agent writes.",
+};
 
 export const affiliateProgram: AffiliateProgram = {
   id: "affiliate-program-indie-launch-partners",
   slug: "indie-launch-partners",
   title: "Indie launch partner program preview",
   status: "draft",
-  issue: 115,
+  issue: 193,
   parentIssue: 19,
   sourceDataRoute: "/affiliates/source-data",
   previewRoute: "/affiliates/indie-launch-partners",
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
-  revisionId: "affiliate-program-revision-indie-launch-2026-05-19-commission-review-actions",
+  revisionId: "affiliate-program-revision-indie-launch-2026-05-20-partner-reports",
   summary:
-    "An affiliate and referral scaffold for partner links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, payout readiness, and audit-safe agent access before payable commissions exist.",
+    "An affiliate and referral scaffold for partner links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, payout readiness, and audit-safe agent access before payable commissions exist.",
   attributionRules: [
     {
       id: "attribution-rule-first-click-30",
@@ -243,6 +328,114 @@ export const affiliateProgram: AffiliateProgram = {
       publicUrlPattern: "https://bumpgrade.com/r/TEMPLATESTUDIO",
     },
   ],
+  partnerReports: [
+    {
+      id: "affiliate-partner-report-launch-circle",
+      partnerId: "affiliate-partner-launch-circle",
+      title: "Launch Circle public-safe performance report",
+      status: "public_safe_report_ready",
+      issue: 193,
+      reportingWindow: {
+        id: "affiliate-report-window-public-safe-all-time",
+        label: "All-time public-safe aggregate",
+        source: "Seeded fixture plus D1 aggregate summaries from click, checkout attribution, ledger, and review-action tables.",
+      },
+      referralLinkIds: ["ref-link-launch-circle-waitlist"],
+      sourceRoutes: [
+        "/affiliates/source-data",
+        referralClickCaptureApiRoute,
+        "/api/commerce/checkout",
+        affiliateCommissionLedgerApiRoute,
+        affiliateCommissionReviewActionsApiRoute,
+      ],
+      fixtureMetrics: {
+        fixtureLedgerCount: 2,
+        fixtureReviewRequiredCount: 0,
+        fixtureReversedCount: 1,
+        fixtureCommissionCents: 2700,
+        currency: "USD",
+        runtimeAggregateFields: [
+          "totalClicks",
+          "attributedCheckouts",
+          "reviewOnlyLedgers",
+          "reviewedActions",
+          "heldActions",
+          "reversedActions",
+        ],
+      },
+      payoutReadiness: {
+        status: "review_required",
+        caveats: [
+          "Refund window and reversal evidence must remain reviewable before payout preparation.",
+          "Partner payout account, tax form, and private notification data are not in public source data.",
+        ],
+      },
+      redaction: {
+        buyerDataIncluded: false,
+        rawClickRowsIncluded: false,
+        rawCheckoutRowsIncluded: false,
+        rawActorIdentityIncluded: false,
+        privateReasonsIncluded: false,
+        payoutAccountIncluded: false,
+        taxDataIncluded: false,
+        stripeIdsIncluded: false,
+      },
+      caveat: "Report totals are public-safe evidence for product semantics, not a payable statement or partner portal.",
+    },
+    {
+      id: "affiliate-partner-report-template-studio",
+      partnerId: "affiliate-partner-template-studio",
+      title: "Template Studio public-safe performance report",
+      status: "public_safe_report_ready",
+      issue: 193,
+      reportingWindow: {
+        id: "affiliate-report-window-public-safe-all-time",
+        label: "All-time public-safe aggregate",
+        source: "Seeded fixture plus D1 aggregate summaries from click, checkout attribution, ledger, and review-action tables.",
+      },
+      referralLinkIds: ["ref-link-template-partner-sales"],
+      sourceRoutes: [
+        "/affiliates/source-data",
+        referralClickCaptureApiRoute,
+        "/api/commerce/checkout",
+        affiliateCommissionLedgerApiRoute,
+        affiliateCommissionReviewActionsApiRoute,
+      ],
+      fixtureMetrics: {
+        fixtureLedgerCount: 1,
+        fixtureReviewRequiredCount: 1,
+        fixtureReversedCount: 0,
+        fixtureCommissionCents: 2700,
+        currency: "USD",
+        runtimeAggregateFields: [
+          "totalClicks",
+          "attributedCheckouts",
+          "reviewOnlyLedgers",
+          "reviewedActions",
+          "heldActions",
+          "reversedActions",
+        ],
+      },
+      payoutReadiness: {
+        status: "not_payable",
+        caveats: [
+          "Partner approval is still in review before reporting can become a partner-facing portal.",
+          "Self-referral review remains a blocker before any payout preparation.",
+        ],
+      },
+      redaction: {
+        buyerDataIncluded: false,
+        rawClickRowsIncluded: false,
+        rawCheckoutRowsIncluded: false,
+        rawActorIdentityIncluded: false,
+        privateReasonsIncluded: false,
+        payoutAccountIncluded: false,
+        taxDataIncluded: false,
+        stripeIdsIncluded: false,
+      },
+      caveat: "Report totals are public-safe evidence for product semantics, not a payable statement or partner portal.",
+    },
+  ],
   commissionLedger: [
     {
       id: "commission-ledger-launch-pass-fixture",
@@ -332,9 +525,10 @@ export const affiliateProgram: AffiliateProgram = {
     },
   ],
   writeBoundary:
-    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Issue #113 can create review-only, non-payable commission ledger evidence from trusted checkout attribution. Issue #115 can apply owner-gated review, hold, or reversal actions to review-only ledger evidence with exact confirmation, idempotency, actor identity, stale-state checks, and audit correlation. Cookie assignment, buyer attribution finalization, payable commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, partner notifications, partner-facing reporting, and direct agent review writes require future confirmed-write APIs.",
+    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Issue #113 can create review-only, non-payable commission ledger evidence from trusted checkout attribution. Issue #115 can apply owner-gated review, hold, or reversal actions to review-only ledger evidence with exact confirmation, idempotency, actor identity, stale-state checks, and audit correlation. Issue #193 exposes public-safe partner reports from aggregate click, checkout attribution, ledger, and review-action evidence. Cookie assignment, buyer attribution finalization, payable commission writes, fraud enforcement, Stripe payout actions, tax collection, payout account storage, partner notifications, private partner portals, and direct agent review writes require future confirmed-write APIs.",
   validation: [
     "/affiliates/source-data returns seeded programs, partners, links, attribution rules, commission rules, ledger fixtures, payout batches, and review flags.",
+    "/affiliates/source-data exposes public-safe partner report definitions and aggregate report rows without buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
     "/affiliates/indie-launch-partners renders the affiliate/referral preview.",
     `${referralClickCaptureApiRoute} stores seeded referral click evidence with idempotency.`,
     "/api/commerce/checkout can attach eligible referral click IDs to sandbox checkout intents as public-safe attribution evidence.",
@@ -353,8 +547,8 @@ export function getAffiliateProgramBySlug(slug: string) {
 export const affiliateReferralsSourceData = {
   id: "bumpgrade-affiliate-referrals-source-data",
   updatedAt: affiliateReferralsUpdatedAt,
-  status: "owner-review-actions-ready",
-  issue: 115,
+  status: "partner-reports-ready",
+  issue: 193,
   parentIssue: 19,
   generatedFrom: "src/lib/affiliate-referrals.ts",
   routes: [
@@ -369,6 +563,7 @@ export const affiliateReferralsSourceData = {
     "affiliateProgramId",
     "affiliatePartnerId",
     "referralLinkId",
+    "affiliatePartnerReportId",
     "referralClickId",
     "checkoutIntentId",
     "attributionRuleId",
@@ -385,8 +580,9 @@ export const affiliateReferralsSourceData = {
   checkoutAttribution: checkoutReferralAttributionContract,
   commissionLedgerWrites: affiliateCommissionLedgerContract,
   commissionReviewActions: affiliateCommissionReviewActionsContract,
+  partnerReportContract: affiliatePartnerReportContract,
   writeBoundary: affiliateProgram.writeBoundary,
   programs: affiliatePrograms,
   caveat:
-    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, checkout attribution evidence, review-only commission ledger evidence, and owner-gated review/reversal actions. Public source-data may expose aggregate click, checkout attribution, commission ledger, and owner action counts, but it does not expose raw rows, actor identity, private review reasons, assign cookies, finalize buyer attribution, create payable commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, notify partners, or provide direct confirmed-write agent APIs.",
+    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, and public-safe partner reports. Public source-data may expose aggregate click, checkout attribution, commission ledger, owner action, and partner report counts, but it does not expose raw rows, actor identity, private review reasons, assign cookies, finalize buyer attribution, create payable commissions, store payout accounts, collect tax forms, trigger Stripe payouts, enforce fraud decisions, notify partners, or provide direct confirmed-write agent APIs.",
 };

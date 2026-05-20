@@ -166,7 +166,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #115 adds owner-gated commission review, hold, and reversal actions without payout mutation.",
     ],
     nextMilestone:
-      "Add partner-facing reports and payout preparation only after owner review/reversal controls stay stable.",
+      "Add payout preparation only after public-safe partner reports and owner review/reversal controls stay stable.",
   },
   {
     id: "roadmap-agent-contracts",
@@ -254,7 +254,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #165 renders the existing sandbox checkout start surface from published linked funnel checkout blocks.",
     ],
     nextMilestone:
-      "Add explicit post-purchase billing contracts and partner-facing reporting only after decision evidence and owner review boundaries stay stable.",
+      "Add explicit post-purchase billing contracts and payout preparation only after decision evidence, public-safe partner reports, and owner review boundaries stay stable.",
   },
   {
     id: "roadmap-products-access",
@@ -343,7 +343,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, attribution boundaries, payout review, and fraud checks.",
+      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, attribution boundaries, payout review, and fraud checks.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
@@ -351,9 +351,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution without making commissions payable.",
       "Issue #115 adds owner-gated review, hold, and reversal actions without creating payout state.",
+      "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
     ],
     nextMilestone:
-      "Add partner-facing reporting and payout batch preparation only after review/reversal state is stable.",
+      "Add payout batch preparation only after public-safe partner reports and review/reversal state stay stable.",
   },
   {
     id: "roadmap-marketing-surfaces",
