@@ -17,6 +17,10 @@ import {
   audienceBroadcastDeliveryQueueMessageConfirmationText,
   audienceBroadcastDeliveryQueueMessageIssue,
   audienceBroadcastDeliveryQueueMessageStatus,
+  audienceBroadcastDispatchPreflightApiRoute,
+  audienceBroadcastDispatchPreflightConfirmationText,
+  audienceBroadcastDispatchPreflightIssue,
+  audienceBroadcastDispatchPreflightStatus,
   audienceBroadcastPreviewSafetyIssue,
   audienceBroadcastPreviewSafetyStatus,
   audienceBroadcastQueueReadinessIssue,
@@ -1711,8 +1715,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceBroadcastDeliveryQueueMessageStatus,
-        issue: audienceBroadcastDeliveryQueueMessageIssue,
+        status: audienceBroadcastDispatchPreflightStatus,
+        issue: audienceBroadcastDispatchPreflightIssue,
         parentIssue: 17,
       }),
     );
@@ -1725,6 +1729,7 @@ test.describe("Bumpgrade scaffold", () => {
         audienceBroadcastScheduleIntentApiRoute,
         audienceBroadcastDeliveryBatchApiRoute,
         audienceBroadcastDeliveryQueueMessageApiRoute,
+        audienceBroadcastDispatchPreflightApiRoute,
         "/audience/indie-launch-waitlist",
         "/admin/audience",
       ]),
@@ -1902,6 +1907,37 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.broadcastDispatchPreflights).toEqual(
+      expect.objectContaining({
+        status: audienceBroadcastDispatchPreflightStatus,
+        issue: audienceBroadcastDispatchPreflightIssue,
+        apiRoute: audienceBroadcastDispatchPreflightApiRoute,
+        ownerRoute: "/admin/audience",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceBroadcastDispatchPreflightConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          dryRunPreflights: expect.any(Number),
+          dryRunMessagesSnapshotted: expect.any(Number),
+          heldRecipientsSnapshotted: expect.any(Number),
+          providerSendEnabledRecords: 0,
+          recipientPayloadsCreatedRecords: 0,
+          cloudflareQueueMessagesCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          actorEmailIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodyIncluded: false,
+          providerMessageIdsIncluded: false,
+          cloudflareQueueMessagesCreated: false,
+          providerSendEnabled: false,
+        }),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforeBroadcastScopedCount = payload.broadcastReadiness.counts.scopedSubscribers;
@@ -2006,6 +2042,7 @@ test.describe("Bumpgrade scaffold", () => {
           broadcastScheduleIntentApiRoute: audienceBroadcastScheduleIntentApiRoute,
           broadcastDeliveryBatchApiRoute: audienceBroadcastDeliveryBatchApiRoute,
           broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
+          broadcastDispatchPreflightApiRoute: audienceBroadcastDispatchPreflightApiRoute,
           broadcastDrafts: expect.arrayContaining([
             expect.objectContaining({ id: "broadcast-draft-launch-window" }),
           ]),
@@ -2056,12 +2093,14 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(afterPayload.broadcastQueueReadiness)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.broadcastDeliveryBatches)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.broadcastDeliveryQueueMessages)).not.toContain("@example.com");
+    expect(JSON.stringify(afterPayload.broadcastDispatchPreflights)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastReadiness)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastPreviewSafety)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastQueueReadiness)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastDeliveryBatches)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastDeliveryQueueMessages)).not.toContain("Browser smoke");
+    expect(JSON.stringify(afterPayload.broadcastDispatchPreflights)).not.toContain("Browser smoke");
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -2260,6 +2299,21 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedQueueMessageResponse.status()).toBe(401);
     await expect(unauthorizedQueueMessageResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedDispatchPreflightResponse = await request.post(audienceBroadcastDispatchPreflightApiRoute, {
+      data: {
+        deliveryQueueMessageId: "broadcast-delivery-queue-messages-not-public",
+        draftId: "broadcast-draft-launch-window",
+        expectedDraftUpdatedAt: "2026-05-19T00:00:00.000Z",
+        expectedReadyRecipientCount: 0,
+        confirmationText: audienceBroadcastDispatchPreflightConfirmationText,
+        idempotencyKey: `${idempotencyKey}-unauthorized-dispatch-preflight`,
+      },
+    });
+    expect(unauthorizedDispatchPreflightResponse.status()).toBe(401);
+    await expect(unauthorizedDispatchPreflightResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
   });
@@ -3657,7 +3711,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
           featureId: "feature-email-automation-crm",
-          issueNumbers: [17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189],
+          issueNumbers: [17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191],
         }),
         expect.objectContaining({
           id: "journey-visitor-joins-indie-launch-waitlist",
@@ -3925,6 +3979,7 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastQueueReadinessId",
             "broadcastDeliveryBatchId",
             "broadcastDeliveryQueueMessageId",
+            "broadcastDispatchPreflightId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect suppression-aware broadcast readiness without recipient exposure",
@@ -3933,6 +3988,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect delivery queue readiness without recipient payloads, queue rows, or provider sends",
             "Inspect delivery-batch dry runs without recipient payloads, queue messages, or provider sends",
             "Inspect delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
+            "Inspect dispatch preflight dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
           ]),
         }),
         expect.objectContaining({
@@ -3960,6 +4016,12 @@ test.describe("Bumpgrade scaffold", () => {
           route: audienceBroadcastDeliveryQueueMessageApiRoute,
           auth: "owner-session",
           stableIds: expect.arrayContaining(["broadcastDeliveryQueueMessageId", "broadcastDeliveryBatchId"]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-broadcast-dispatch-preflight",
+          route: audienceBroadcastDispatchPreflightApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["broadcastDispatchPreflightId", "broadcastDeliveryQueueMessageId"]),
         }),
         expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
@@ -4942,6 +5004,81 @@ test.describe("Bumpgrade scaffold", () => {
         currentReadyRecipientCount: broadcastDraft.readyRecipientCount,
       }),
     );
+    const dispatchPreflightIdempotencyKey = `playwright-broadcast-dispatch-preflight-${Date.now()}`;
+    const dispatchPreflightResponse = await page.request.post(audienceBroadcastDispatchPreflightApiRoute, {
+      data: {
+        deliveryQueueMessageId: queueMessagesPayload.messages.id,
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        confirmationText: audienceBroadcastDispatchPreflightConfirmationText,
+        idempotencyKey: dispatchPreflightIdempotencyKey,
+      },
+    });
+    expect(dispatchPreflightResponse.ok(), await dispatchPreflightResponse.text()).toBeTruthy();
+    const dispatchPreflightPayload = await dispatchPreflightResponse.json();
+    expect(dispatchPreflightPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "broadcast_dispatch_preflight_recorded",
+        duplicate: false,
+        preflight: expect.objectContaining({
+          draftId: broadcastDraft.id,
+          deliveryQueueMessageId: queueMessagesPayload.messages.id,
+          dryRunMessageCount: broadcastDraft.readyRecipientCount,
+          queueMode: "dry_run_contract",
+          providerLimitPolicy: "provider_limit_required_before_live_sends",
+          dispatchMode: "dry_run_preflight_no_cloudflare_queue_dispatch",
+          providerSendEnabled: false,
+          recipientPayloadsCreated: false,
+          cloudflareQueueMessagesCreated: false,
+          providerMessageIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          recipientPayloadsIncluded: false,
+          cloudflareQueueMessagesCreated: false,
+          providerSendEnabled: false,
+        }),
+      }),
+    );
+    const replayDispatchPreflightResponse = await page.request.post(audienceBroadcastDispatchPreflightApiRoute, {
+      data: {
+        deliveryQueueMessageId: queueMessagesPayload.messages.id,
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        confirmationText: audienceBroadcastDispatchPreflightConfirmationText,
+        idempotencyKey: dispatchPreflightIdempotencyKey,
+      },
+    });
+    expect(replayDispatchPreflightResponse.ok(), await replayDispatchPreflightResponse.text()).toBeTruthy();
+    await expect(replayDispatchPreflightResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        preflight: expect.objectContaining({ id: dispatchPreflightPayload.preflight.id }),
+      }),
+    );
+    const staleDispatchPreflightResponse = await page.request.post(audienceBroadcastDispatchPreflightApiRoute, {
+      data: {
+        deliveryQueueMessageId: queueMessagesPayload.messages.id,
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount + 1,
+        confirmationText: audienceBroadcastDispatchPreflightConfirmationText,
+        idempotencyKey: `playwright-broadcast-dispatch-preflight-stale-${Date.now()}`,
+      },
+    });
+    expect(staleDispatchPreflightResponse.status()).toBe(409);
+    await expect(staleDispatchPreflightResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyRecipientCount: broadcastDraft.readyRecipientCount,
+      }),
+    );
     const audienceSourceAfterSchedule = await page.request.get("/audience/source-data");
     expect(audienceSourceAfterSchedule.ok(), await audienceSourceAfterSchedule.text()).toBeTruthy();
     const audienceSourceAfterSchedulePayload = await audienceSourceAfterSchedule.json();
@@ -4959,6 +5096,10 @@ test.describe("Bumpgrade scaffold", () => {
     expect(audienceSourceAfterSchedulePayload.broadcastDeliveryQueueMessages.counts.providerSendEnabledRecords).toBe(0);
     expect(audienceSourceAfterSchedulePayload.broadcastDeliveryQueueMessages.counts.cloudflareQueueMessagesCreatedRecords).toBe(0);
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastDeliveryQueueMessages)).not.toContain(audienceEmail);
+    expect(audienceSourceAfterSchedulePayload.broadcastDispatchPreflights.counts.dryRunPreflights).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.broadcastDispatchPreflights.counts.providerSendEnabledRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastDispatchPreflights.counts.cloudflareQueueMessagesCreatedRecords).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastDispatchPreflights)).not.toContain(audienceEmail);
 
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
@@ -4978,6 +5119,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("button", { name: /Record delivery-batch dry run/i }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue evidence is recorded before Cloudflare dispatch" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record queue-message dry run/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record dispatch preflight/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Provider and queue gates are checked before dispatch" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Draft sends stay blocked until readiness is explicit" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record dry-run schedule intent/i })).toBeVisible();
     await expect(page.getByText("Launch window announcement")).toBeVisible();
