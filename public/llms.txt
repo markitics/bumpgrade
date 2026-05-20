@@ -25,6 +25,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Customer product access lookup: https://bumpgrade.com/products/entitlements
 - Customer product access lookup API: https://bumpgrade.com/api/products/entitlements
 - Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
+- Protected product content API: https://bumpgrade.com/api/products/protected-content
 - Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
@@ -147,18 +148,21 @@ GitHub repo: https://github.com/markitics/bumpgrade
   entitlements, and `/api/products/downloads?token={token}` revalidates current
   entitlement status, checkout intent linkage, trusted checkout state, and asset
   scope before streaming a seeded private R2-backed fixture through Bumpgrade
-  while rejecting replayed or expired tokens. Public
+  while rejecting replayed or expired tokens. `/api/products/protected-content`
+  can return seeded course/member fixture bodies only for a known checkout
+  intent, matching active entitlement, protected content section id, and current
+  paid/completed checkout state. Public
   product source-data exposes aggregate entitlement inspection counts, customer
   lookup contract metadata, download-token contract metadata, owner upload
   intent metadata, non-destructive revocation intent readiness, protected
-  content readiness, and redaction
+  content readiness, protected fixture delivery metadata, and redaction
   flags only. `/api/admin/products/assets` lets verified owners create small
   private asset upload records after exact confirmation, idempotency, and
   catalog revision checks, but those records are not customer-deliverable yet.
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
-  fixture delivery, owner upload-intent, revocation-readiness, and
-  protected-content-readiness evidence, not signed object URLs, customer delivery
-  of arbitrary uploads, protected body delivery, destructive revocation, live
+  fixture delivery, protected fixture delivery, owner upload-intent,
+  revocation-readiness, and protected-content-readiness evidence, not signed
+  object URLs, customer delivery of arbitrary uploads, arbitrary protected body delivery, destructive revocation, live
   fulfillment automation, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,

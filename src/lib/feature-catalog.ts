@@ -195,6 +195,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-confirmed private product asset upload intent records from issue #151.",
       "Owner-visible non-destructive revocation intent readiness from issue #179.",
       "Protected content readiness records from issue #181.",
+      "Checkout-intent-scoped protected fixture delivery from issue #185.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -212,9 +213,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #151 creates owner-confirmed private product asset upload records without exposing object keys, signed URLs, upload bodies, or private metadata.",
       "Issue #179 adds owner-visible revocation intent readiness without destructive entitlement mutation.",
       "Issue #181 adds protected content readiness metadata without lesson, video, transcript, member post, or progress delivery.",
+      "Issue #185 adds seeded protected fixture delivery after active-entitlement, product/template scope, and trusted checkout-state checks.",
     ],
     agentContract:
-      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, non-destructive revocation intent readiness, protected content readiness, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, protected bodies, destructive revocation, customer delivery of arbitrary uploads, and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, non-destructive revocation intent readiness, protected content readiness, checkout-scoped protected fixture delivery boundaries, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, arbitrary protected bodies, destructive revocation, customer delivery of arbitrary uploads, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

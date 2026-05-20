@@ -169,27 +169,32 @@ Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, owner upload intent metadata, non-destructive revocation intent
-readiness, protected content readiness, and redaction flags. `/api/products/download-tokens` can create a
+readiness, protected content readiness, checkout-scoped protected fixture
+delivery metadata, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
 streams a seeded private R2-backed fixture through Bumpgrade while rejecting
-expired or replayed tokens. `/api/admin/products/assets` lets verified owners
+expired or replayed tokens. `/api/products/protected-content` returns seeded
+course/member fixture bodies only when the request includes a known checkout
+intent, a matching active entitlement, and a protected content section id, and
+the checkout state is still paid or completed. `/api/admin/products/assets` lets verified owners
 create small private product asset upload records only after exact confirmation,
 idempotency, and product-catalog revision checks. It stores the body in
 `PRODUCT_ASSETS` under a server-only object key and returns only redacted
 metadata. This proves entitlement grant, owner-inspection, customer-safe lookup,
-private fixture delivery, and owner-confirmed private upload-record semantics,
-not signed object URLs, customer delivery of arbitrary uploads, protected
-content, destructive revocation, live fulfillment automation, or direct
+private fixture delivery, seeded protected fixture delivery, and owner-confirmed private upload-record semantics,
+not signed object URLs, customer delivery of arbitrary uploads, real protected
+media delivery, destructive revocation, live fulfillment automation, or direct
 unauthenticated agent write capability. `product_entitlement_revocation_intents`
 records are inspection-only until future exact-confirmed destructive APIs
 enforce owner identity, idempotency, stale-state checks, reason codes,
 customer-safe notification review, audit correlation, and redaction.
-`product_protected_content_sections` records are inspection-only until future
-delivery APIs enforce active entitlement or subscription state, stale-state
-checks, audit correlation, and redaction before returning lesson bodies, videos,
-transcripts, member posts, progress rows, private R2 objects, or signed URLs.
+`product_protected_content_sections` records expose readiness and seeded fixture
+delivery scope only; future real protected delivery APIs still need active
+entitlement or subscription state, stale-state checks, audit correlation, and
+redaction before returning real lesson bodies, videos, transcripts, member posts,
+progress rows, private R2 objects, or signed URLs.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,

@@ -64,7 +64,13 @@ import {
   productEntitlementRevocationIntentIssue,
   productEntitlementRevocationIntentStatus,
 } from "../src/lib/product-entitlement-inspection";
-import { productProtectedContentIssue, productProtectedContentStatus } from "../src/lib/product-protected-content";
+import {
+  productProtectedContentDeliveryApiRoute,
+  productProtectedContentDeliveryIssue,
+  productProtectedContentDeliveryStatus,
+  productProtectedContentIssue,
+  productProtectedContentStatus,
+} from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -306,6 +312,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/products/entitlements");
     expect(sitemapXml).toContain("https://bumpgrade.com/api/products/entitlements");
     expect(sitemapXml).toContain("https://bumpgrade.com/api/products/download-tokens");
+    expect(sitemapXml).toContain("https://bumpgrade.com/api/products/protected-content");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/audience/indie-launch-waitlist");
     expect(sitemapXml).toContain("https://bumpgrade.com/analytics/source-data");
@@ -779,22 +786,35 @@ test.describe("Bumpgrade scaffold", () => {
           protectedContentItems: expect.any(Number),
           courseItems: expect.any(Number),
           membershipItems: expect.any(Number),
-          deliveryEnabled: 0,
+          deliveryEnabled: 2,
           protectedBodiesIncluded: 0,
+        }),
+        delivery: expect.objectContaining({
+          status: productProtectedContentDeliveryStatus,
+          issue: productProtectedContentDeliveryIssue,
+          apiRoute: productProtectedContentDeliveryApiRoute,
+          authBoundary: "checkout-intent-and-entitlement-bearer-reference",
+          deliveryMode: "seeded-protected-fixture",
+          redaction: expect.objectContaining({
+            protectedBodyIncludedInSourceData: false,
+            buyerEmailIncluded: false,
+            rawStripeIdsIncluded: false,
+            signedUrlsIncluded: false,
+          }),
         }),
         records: expect.arrayContaining([
           expect.objectContaining({
             id: "protected-content-launch-course-module-1",
             productId: "product-launch-course-lite",
             contentKind: "course_module",
-            deliveryEnabled: false,
+            deliveryEnabled: true,
             protectedBodyIncluded: false,
           }),
           expect.objectContaining({
             id: "protected-content-launch-member-area",
             productId: "product-launch-membership",
             contentKind: "member_area",
-            deliveryEnabled: false,
+            deliveryEnabled: true,
             protectedBodyIncluded: false,
           }),
         ]),
@@ -849,10 +869,12 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("issue #151 lets verified owners create small private asset upload records");
     expect(payload.writeBoundary).toContain("issue #179 exposes non-destructive revocation intent readiness");
     expect(payload.writeBoundary).toContain("issue #181 exposes protected content readiness");
+    expect(payload.writeBoundary).toContain("issue #185 returns seeded protected fixture bodies");
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
     expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
     expect(payload.caveat).toContain("non-destructive revocation intent readiness");
     expect(payload.caveat).toContain("protected content readiness");
+    expect(payload.caveat).toContain("checkout-intent-scoped protected fixture delivery");
 
     await page.goto("/products/indie-launch-library");
     await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
@@ -900,6 +922,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.entitlements).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          id: expect.stringMatching(/^entitlement-/),
+          productId: "product-launch-bundle",
           productTitle: "Launch bundle",
           fulfillment: expect.objectContaining({ status: "queued" }),
           downloadDelivery: expect.objectContaining({
@@ -912,6 +936,8 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         }),
         expect.objectContaining({
+          id: expect.stringMatching(/^entitlement-/),
+          productId: "product-launch-checklist-download",
           productTitle: "Launch checklist download",
           fulfillment: expect.objectContaining({ status: "queued" }),
           downloadDelivery: expect.objectContaining({
@@ -925,6 +951,92 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    const bundleEntitlement = payload.entitlements.find(
+      (entitlement: { productId?: string }) => entitlement.productId === "product-launch-bundle",
+    ) as { id: string } | undefined;
+    const downloadOnlyEntitlement = payload.entitlements.find(
+      (entitlement: { productId?: string }) => entitlement.productId === "product-launch-checklist-download",
+    ) as { id: string } | undefined;
+    expect(bundleEntitlement).toEqual(expect.objectContaining({ id: expect.stringMatching(/^entitlement-/) }));
+    expect(downloadOnlyEntitlement).toEqual(expect.objectContaining({ id: expect.stringMatching(/^entitlement-/) }));
+    if (!bundleEntitlement || !downloadOnlyEntitlement) throw new Error("Expected bundle and download entitlements.");
+
+    const protectedContent = await request.get(
+      `${productProtectedContentDeliveryApiRoute}?${new URLSearchParams({
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: bundleEntitlement.id,
+        protectedContentId: "protected-content-launch-course-module-1",
+      }).toString()}`,
+    );
+    expect(protectedContent.status(), await protectedContent.text()).toBe(200);
+    const protectedContentPayload = await protectedContent.json();
+    expect(protectedContentPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productProtectedContentDeliveryStatus,
+        issue: productProtectedContentDeliveryIssue,
+        followsIssue: productProtectedContentIssue,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: bundleEntitlement.id,
+        protectedContent: expect.objectContaining({
+          id: "protected-content-launch-course-module-1",
+          productId: "product-launch-course-lite",
+          title: "Launch course module readiness",
+          contentKind: "course_module",
+          deliveryMode: "seeded-protected-fixture",
+          bodyFormat: "markdown",
+          body: expect.stringContaining("Launch course module fixture"),
+          protectedBodyIncluded: true,
+        }),
+        access: expect.objectContaining({
+          entitlementStatus: "active",
+          checkoutStatus: "paid",
+          entitlementScopeMatched: true,
+          staleStateChecked: true,
+          privateProgressWritten: false,
+        }),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+          sourceStripeEventIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          metadataJsonIncluded: false,
+          protectedBodyIncludedInSourceData: false,
+          progressDataIncluded: false,
+        }),
+      }),
+    );
+    const protectedContentText = JSON.stringify(protectedContentPayload);
+    expect(protectedContentText).not.toContain(buyerEmail);
+    expect(protectedContentText).not.toContain(grant.eventId);
+    expect(protectedContentText).not.toContain("cs_test");
+    expect(protectedContentText).not.toContain("signed_url");
+    expect(protectedContentText).not.toContain("products/fixtures/");
+
+    const mismatchedProtectedContent = await request.get(
+      `${productProtectedContentDeliveryApiRoute}?${new URLSearchParams({
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: downloadOnlyEntitlement.id,
+        protectedContentId: "protected-content-launch-course-module-1",
+      }).toString()}`,
+    );
+    expect(mismatchedProtectedContent.status()).toBe(409);
+    const mismatchedPayload = await mismatchedProtectedContent.json();
+    expect(mismatchedPayload).toEqual(
+      expect.objectContaining({
+        ok: false,
+        status: "not_eligible",
+        issue: productProtectedContentDeliveryIssue,
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
+
     const downloadable = payload.entitlements.find(
       (entitlement: { downloadDelivery?: { available?: boolean } }) => entitlement.downloadDelivery?.available,
     ) as { id: string } | undefined;
@@ -1033,6 +1145,37 @@ test.describe("Bumpgrade scaffold", () => {
     expect(staleDownloadText).not.toContain(staleGrant.eventId);
     expect(staleDownloadText).not.toContain(staleEventId);
     expect(staleDownloadText).not.toContain("cs_test");
+
+    const staleBundleEntitlement = stalePayload.entitlements.find(
+      (entitlement: { productId?: string }) => entitlement.productId === "product-launch-bundle",
+    ) as { id: string } | undefined;
+    expect(staleBundleEntitlement).toEqual(expect.objectContaining({ id: expect.stringMatching(/^entitlement-/) }));
+    if (!staleBundleEntitlement) throw new Error("Expected stale bundle entitlement.");
+    const staleProtectedContent = await request.get(
+      `${productProtectedContentDeliveryApiRoute}?${new URLSearchParams({
+        checkoutIntentId: staleGrant.checkoutIntentId,
+        entitlementId: staleBundleEntitlement.id,
+        protectedContentId: "protected-content-launch-member-area",
+      }).toString()}`,
+    );
+    expect(staleProtectedContent.status()).toBe(409);
+    const staleProtectedPayload = await staleProtectedContent.json();
+    expect(staleProtectedPayload).toEqual(
+      expect.objectContaining({
+        ok: false,
+        status: "not_eligible",
+        issue: productProtectedContentDeliveryIssue,
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
+    const staleProtectedText = JSON.stringify(staleProtectedPayload);
+    expect(staleProtectedText).not.toContain(staleBuyerEmail);
+    expect(staleProtectedText).not.toContain(staleGrant.eventId);
+    expect(staleProtectedText).not.toContain(staleEventId);
 
     await postCheckoutSessionWebhook(request, {
       checkoutIntentId: staleGrant.checkoutIntentId,
@@ -3384,7 +3527,7 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["productEntitlementRevocationIntentId", "productProtectedContentId"]),
           safeForAgents: expect.arrayContaining([
             "Inspect non-destructive revocation intent readiness",
-            "Inspect protected content readiness without protected body delivery",
+            "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
           ]),
         }),
         expect.objectContaining({
@@ -3395,6 +3538,11 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "create-sandbox-product-download-token",
           route: "/api/products/download-tokens",
+          auth: "public",
+        }),
+        expect.objectContaining({
+          id: "read-protected-product-content",
+          route: productProtectedContentDeliveryApiRoute,
           auth: "public",
         }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
