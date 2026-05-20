@@ -42,6 +42,9 @@ export const audienceBroadcastDispatchAttemptApiRoute =
   "/api/admin/audience/broadcasts/dispatch-attempts";
 export const audienceBroadcastDispatchAttemptConfirmationText =
   "Create dry-run Bumpgrade broadcast dispatch attempt";
+export const audienceBroadcastSenderDomainReadinessIssue = 199;
+export const audienceBroadcastSenderDomainReadinessStatus = "broadcast-sender-domain-readiness-ready";
+export const audienceBroadcastSenderDomainReadinessUpdatedAt = "2026-05-20";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -101,6 +104,28 @@ type QueueReadinessRow = {
   audit_correlation_policy: string;
   provider_send_enabled: number | string;
   recipient_payloads_created: number | string;
+  updated_at: number | string;
+};
+
+type SenderDomainReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  domain: string;
+  intended_from_address: string;
+  from_address_policy: string;
+  reply_path_policy: string;
+  bounce_handling_policy: string;
+  spf_alignment_status: string;
+  dkim_alignment_status: string;
+  dmarc_alignment_status: string;
+  sender_domain_gate_status: string;
+  verification_evidence_status: string;
+  provider_send_enabled: number | string;
+  cloudflare_queue_producers_enabled: number | string;
+  recipient_payloads_created: number | string;
+  provider_responses_created: number | string;
+  provider_message_ids_created: number | string;
   updated_at: number | string;
 };
 
@@ -409,6 +434,64 @@ export type AudienceBroadcastQueueReadinessSummary = {
     recipientPayloadsIncluded: false;
     providerMessageIdsIncluded: false;
     sendQueueRowsCreated: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastSenderDomainReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  domain: string;
+  intendedFromAddress: string;
+  fromAddressPolicy: string;
+  replyPathPolicy: string;
+  bounceHandlingPolicy: string;
+  spfAlignmentStatus: string;
+  dkimAlignmentStatus: string;
+  dmarcAlignmentStatus: string;
+  senderDomainGateStatus: string;
+  verificationEvidenceStatus: string;
+  providerSendEnabled: false;
+  cloudflareQueueProducersEnabled: false;
+  recipientPayloadsCreated: false;
+  providerResponsesIncluded: false;
+  providerMessageIdsIncluded: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastSenderDomainReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastSenderDomainReadinessStatus;
+  issue: typeof audienceBroadcastSenderDomainReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    senderDomainReadinessRecords: number;
+    domainsPendingVerification: number;
+    domainsReady: number;
+    providerSendEnabledRecords: number;
+    cloudflareQueueProducerEnabledRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    providerResponsesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+  };
+  records: AudienceBroadcastSenderDomainReadiness[];
+  redaction: {
+    privateDnsCredentialsIncluded: false;
+    rawDnsRecordsIncluded: false;
+    providerSecretsIncluded: false;
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    recipientPayloadsIncluded: false;
+    providerResponsesIncluded: false;
+    providerMessageIdsIncluded: false;
+    providerSendEnabled: false;
+    cloudflareQueueProducersEnabled: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
@@ -1087,6 +1170,59 @@ function emptyQueueReadinessSummary(
   };
 }
 
+function emptySenderDomainReadinessSummary(
+  source: AudienceBroadcastSenderDomainReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastSenderDomainReadinessSummary {
+  return {
+    id: "audience-broadcast-sender-domain-readiness-contract",
+    status: audienceBroadcastSenderDomainReadinessStatus,
+    issue: audienceBroadcastSenderDomainReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      senderDomainReadinessRecords: 0,
+      domainsPendingVerification: 0,
+      domainsReady: 0,
+      providerSendEnabledRecords: 0,
+      cloudflareQueueProducerEnabledRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      providerResponsesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+    },
+    records: [],
+    redaction: {
+      privateDnsCredentialsIncluded: false,
+      rawDnsRecordsIncluded: false,
+      providerSecretsIncluded: false,
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      recipientPayloadsIncluded: false,
+      providerResponsesIncluded: false,
+      providerMessageIdsIncluded: false,
+      providerSendEnabled: false,
+      cloudflareQueueProducersEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "privateDnsCredential",
+      "rawDnsRecordValue",
+      "providerSecret",
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "recipientPayload",
+      "providerResponse",
+      "providerMessageId",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #199 exposes sender-domain readiness metadata for audience broadcasts before any live delivery path exists. It does not verify DNS automatically, expose private DNS credentials, enable Cloudflare Queue producers, create recipient payloads, send through a provider, create provider responses, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function emptyDeliveryBatchSummary(
   source: AudienceBroadcastDeliveryBatchSummary["source"],
   loadError: string | null,
@@ -1396,6 +1532,30 @@ function publicQueueReadiness(row: QueueReadinessRow): AudienceBroadcastQueueRea
     providerSendEnabled: false,
     recipientPayloadsCreated: false,
     sendQueueRowsCreated: false,
+    providerMessageIdsIncluded: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicSenderDomainReadiness(row: SenderDomainReadinessRow): AudienceBroadcastSenderDomainReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    domain: row.domain,
+    intendedFromAddress: row.intended_from_address,
+    fromAddressPolicy: row.from_address_policy,
+    replyPathPolicy: row.reply_path_policy,
+    bounceHandlingPolicy: row.bounce_handling_policy,
+    spfAlignmentStatus: row.spf_alignment_status,
+    dkimAlignmentStatus: row.dkim_alignment_status,
+    dmarcAlignmentStatus: row.dmarc_alignment_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    verificationEvidenceStatus: row.verification_evidence_status,
+    providerSendEnabled: false,
+    cloudflareQueueProducersEnabled: false,
+    recipientPayloadsCreated: false,
+    providerResponsesIncluded: false,
     providerMessageIdsIncluded: false,
     updatedAt: timestampValue(row.updated_at),
   };
@@ -1860,6 +2020,48 @@ export async function getAudienceBroadcastQueueReadinessSummary(): Promise<Audie
     return emptyQueueReadinessSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast queue readiness.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastSenderDomainReadinessSummary(): Promise<AudienceBroadcastSenderDomainReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, domain, intended_from_address, from_address_policy,
+          reply_path_policy, bounce_handling_policy, spf_alignment_status, dkim_alignment_status,
+          dmarc_alignment_status, sender_domain_gate_status, verification_evidence_status,
+          provider_send_enabled, cloudflare_queue_producers_enabled, recipient_payloads_created,
+          provider_responses_created, provider_message_ids_created, updated_at
+        FROM audience_broadcast_sender_domain_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<SenderDomainReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicSenderDomainReadiness);
+
+    return {
+      ...emptySenderDomainReadinessSummary("d1", null),
+      counts: {
+        senderDomainReadinessRecords: records.length,
+        domainsPendingVerification: records.filter((record) => record.status !== "sender_domain_ready").length,
+        domainsReady: records.filter((record) => record.status === "sender_domain_ready").length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        cloudflareQueueProducerEnabledRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_producers_enabled) > 0,
+        ).length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0).length,
+        providerResponsesCreatedRecords: rawRows.filter((row) => numberValue(row.provider_responses_created) > 0).length,
+        providerMessageIdsCreatedRecords: rawRows.filter((row) => numberValue(row.provider_message_ids_created) > 0).length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptySenderDomainReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast sender-domain readiness.",
     );
   }
 }

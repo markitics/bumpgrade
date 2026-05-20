@@ -29,6 +29,7 @@ import {
   audienceBroadcastDeliveryQueueMessageIssue,
   audienceBroadcastDispatchAttemptIssue,
   audienceBroadcastDispatchPreflightIssue,
+  audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
   getAudienceBroadcastDispatchAttemptSummary,
@@ -37,6 +38,7 @@ import {
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
+  getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
@@ -72,6 +74,7 @@ export default async function AdminAudiencePage() {
     broadcastDeliveryQueueMessages,
     broadcastDispatchPreflights,
     broadcastDispatchAttempts,
+    broadcastSenderDomainReadiness,
   ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
@@ -82,6 +85,7 @@ export default async function AdminAudiencePage() {
       getAudienceBroadcastDeliveryQueueMessageSummary(),
       getAudienceBroadcastDispatchPreflightSummary(),
       getAudienceBroadcastDispatchAttemptSummary(),
+      getAudienceBroadcastSenderDomainReadinessSummary(),
     ]);
 
   return (
@@ -96,7 +100,8 @@ export default async function AdminAudiencePage() {
             delivery-batch dry runs, and dry-run queue-message evidence created by audience APIs. Preview safety and
             queue readiness stay visible before delivery exists, and dispatch preflight checks stay dry-run before
             Cloudflare Queue dispatch or provider sends are allowed. Dispatch attempt receipts prove the final handoff
-            stays receipt-only before producers exist. Public source-data stays aggregate-only.
+            stays receipt-only before producers exist, and sender-domain readiness keeps live delivery blocked until
+            SPF/DKIM/DMARC alignment evidence is explicit. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -222,6 +227,15 @@ export default async function AdminAudiencePage() {
               {broadcastDispatchAttempts.counts.dryRunAttempts} attempt
               {broadcastDispatchAttempts.counts.dryRunAttempts === 1 ? "" : "s"} recorded;{" "}
               {broadcastDispatchAttempts.counts.providerResponsesCreatedRecords} provider responses created.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Sender domains</h3>
+            <p>
+              {broadcastSenderDomainReadiness.counts.senderDomainReadinessRecords} readiness record
+              {broadcastSenderDomainReadiness.counts.senderDomainReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastSenderDomainReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
             </p>
           </div>
         </div>
@@ -406,6 +420,70 @@ export default async function AdminAudiencePage() {
               <p>
                 {broadcastQueueReadiness.loadError ??
                   "Run the queue readiness migration to seed delivery queue safety metadata."}
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sender-domain readiness</p>
+            <h2>Sending domains stay blocked before live delivery</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastSenderDomainReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastSenderDomainReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastSenderDomainReadiness.records.length > 0 ? (
+            broadcastSenderDomainReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge pending">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.domain}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.intendedFromAddress}</h3>
+                <p>{record.fromAddressPolicy}</p>
+                <div className="roadmap-detail">
+                  <strong>SPF</strong>
+                  <span>{record.spfAlignmentStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>DKIM</strong>
+                  <span>{record.dkimAlignmentStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>DMARC</strong>
+                  <span>{record.dmarcAlignmentStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Reply path</strong>
+                  <span>{record.replyPathPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Bounce handling</strong>
+                  <span>{record.bounceHandlingPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Provider sends, Cloudflare Queue producers, recipient payloads, provider responses, and provider
+                  message IDs remain disabled until aligned sender evidence exists.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No sender domain</span>
+                <span className="admin-pill">Issue #{audienceBroadcastSenderDomainReadinessIssue}</span>
+              </div>
+              <h3>No sender-domain readiness records</h3>
+              <p>
+                {broadcastSenderDomainReadiness.loadError ??
+                  "Run the sender-domain readiness migration to seed delivery-domain gate metadata."}
               </p>
             </article>
           )}
