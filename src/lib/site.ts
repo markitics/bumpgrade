@@ -158,6 +158,7 @@ export const scaffoldRoutes = [
   "/developers-and-agents",
   "/resources",
   "/pricing",
+  "/account/setup",
   "/products/entitlements",
   "/commerce/checkout/success",
   "/commerce/checkout/cancel",
@@ -181,7 +182,15 @@ export const scaffoldRoutes = [
 export const loginNavItem: NavItem = {
   label: "Log in / sign up",
   href: "/login",
-  description: "Publisher authentication will be wired in the Better Auth slice.",
+  description: "Sign in or create a Bumpgrade publisher account.",
   icon: LogIn,
-  status: "planned",
+  status: "live",
+};
+
+export const accountNavItem: NavItem = {
+  label: "Account",
+  href: "/account/setup",
+  description: "Publisher setup, paid plan status, and Bumpgrade subdomain reservation.",
+  icon: LayoutDashboard,
+  status: "live",
 };

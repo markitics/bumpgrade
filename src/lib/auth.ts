@@ -15,6 +15,26 @@ function compactOrigins(origins: Array<string | undefined>) {
   return Array.from(new Set(origins.filter((origin): origin is string => Boolean(origin))));
 }
 
+function hostFromUrl(value: string | undefined) {
+  if (!value) return null;
+
+  try {
+    return new URL(value).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function betterAuthCookieDomain(authUrl: string) {
+  const configured = getRuntimeEnvValue("BETTER_AUTH_COOKIE_DOMAIN")?.trim().toLowerCase();
+  if (configured) return configured;
+
+  const host = hostFromUrl(authUrl);
+  if (host === "bumpgrade.com" || host === "www.bumpgrade.com") return "bumpgrade.com";
+
+  return null;
+}
+
 export function getRuntimeEnvValue(key: string) {
   const processValue = process.env[key];
   if (processValue) return processValue;
@@ -60,11 +80,20 @@ export function createAuth(db: AppDb | null = getOptionalDb()) {
       siteUrl,
       "https://bumpgrade.com",
       "https://www.bumpgrade.com",
+      "https://*.bumpgrade.com",
       "http://localhost:*",
       "http://127.0.0.1:*",
     ]),
     secret: getBetterAuthSecret(),
     advanced: {
+      ...(betterAuthCookieDomain(authUrl)
+        ? {
+            crossSubDomainCookies: {
+              enabled: true,
+              domain: betterAuthCookieDomain(authUrl) ?? undefined,
+            },
+          }
+        : {}),
       ipAddress: {
         ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"],
       },

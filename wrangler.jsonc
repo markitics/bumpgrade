@@ -14,6 +14,10 @@
     {
       "pattern": "www.bumpgrade.com/*",
       "zone_name": "bumpgrade.com"
+    },
+    {
+      "pattern": "*.bumpgrade.com/*",
+      "zone_name": "bumpgrade.com"
     }
   ],
   "assets": {
@@ -22,6 +26,9 @@
     "run_worker_first": [
       "/",
       "/features",
+      "/features/*",
+      "/account",
+      "/account/*",
       "/compare",
       "/compare/*",
       "/commerce/*",
