@@ -169,7 +169,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-custom-domain-onboarding",
     title: "Custom domain DNS onboarding and verification",
-    status: "active",
+    status: "shipped",
     issue: 223,
     featureId: featureIdFor(9),
     group: "Accounts and domains",
@@ -177,9 +177,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Paid publishers can add an existing custom domain, receive deterministic CNAME instructions, and re-check DNS verification state from account setup without exposing private DNS credentials.",
     publicEvidence: [
       "Issue #223 tracks the custom-domain DNS onboarding slice.",
+      "PR #228 merged and deployed existing-domain DNS onboarding.",
       "`/account/setup` is the signed-in publisher setup surface for custom domains.",
       "`/account/source-data` exposes the public-safe custom-domain DNS contract.",
       "`POST /api/account/publisher/custom-domain` starts onboarding and re-checks DNS for paid, email-confirmed publishers with a default Bumpgrade hostname.",
+      "Cloudflare Worker version `11dc5b0a-468a-44dd-9e8a-3e5769795076` deployed the route, screenshot asset, and wildcard route binding.",
     ],
     nextMilestone: "Add custom-domain auth semantics in issue #224, then domain purchase decisions in issue #225.",
   },
