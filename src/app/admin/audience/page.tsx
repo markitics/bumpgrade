@@ -20,15 +20,18 @@ import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { AdminBroadcastDeliveryBatchForm } from "@/components/admin-broadcast-delivery-batch-form";
 import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broadcast-delivery-queue-message-form";
+import { AdminBroadcastDispatchAttemptForm } from "@/components/admin-broadcast-dispatch-attempt-form";
 import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcast-dispatch-preflight-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   audienceBroadcastDeliveryBatchIssue,
   audienceBroadcastDeliveryQueueMessageIssue,
+  audienceBroadcastDispatchAttemptIssue,
   audienceBroadcastDispatchPreflightIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
+  getAudienceBroadcastDispatchAttemptSummary,
   getAudienceBroadcastDispatchPreflightSummary,
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastQueueReadinessSummary,
@@ -68,6 +71,7 @@ export default async function AdminAudiencePage() {
     broadcastDeliveryBatches,
     broadcastDeliveryQueueMessages,
     broadcastDispatchPreflights,
+    broadcastDispatchAttempts,
   ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
@@ -77,6 +81,7 @@ export default async function AdminAudiencePage() {
       getAudienceBroadcastDeliveryBatchSummary(),
       getAudienceBroadcastDeliveryQueueMessageSummary(),
       getAudienceBroadcastDispatchPreflightSummary(),
+      getAudienceBroadcastDispatchAttemptSummary(),
     ]);
 
   return (
@@ -90,7 +95,8 @@ export default async function AdminAudiencePage() {
             unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, dry-run schedule intents,
             delivery-batch dry runs, and dry-run queue-message evidence created by audience APIs. Preview safety and
             queue readiness stay visible before delivery exists, and dispatch preflight checks stay dry-run before
-            Cloudflare Queue dispatch or provider sends are allowed. Public source-data stays aggregate-only.
+            Cloudflare Queue dispatch or provider sends are allowed. Dispatch attempt receipts prove the final handoff
+            stays receipt-only before producers exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -207,6 +213,15 @@ export default async function AdminAudiencePage() {
               {broadcastDispatchPreflights.counts.dryRunPreflights} preflight
               {broadcastDispatchPreflights.counts.dryRunPreflights === 1 ? "" : "s"} recorded;{" "}
               {broadcastDispatchPreflights.counts.providerSendEnabledRecords} provider-send records enabled.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Dispatch attempts</h3>
+            <p>
+              {broadcastDispatchAttempts.counts.dryRunAttempts} attempt
+              {broadcastDispatchAttempts.counts.dryRunAttempts === 1 ? "" : "s"} recorded;{" "}
+              {broadcastDispatchAttempts.counts.providerResponsesCreatedRecords} provider responses created.
             </p>
           </div>
         </div>
@@ -624,6 +639,12 @@ export default async function AdminAudiencePage() {
                   Cloudflare Queue dispatch, recipient payloads, provider sends, personalized bodies, and provider
                   message IDs remain disabled after this preflight.
                 </p>
+                <AdminBroadcastDispatchAttemptForm
+                  dispatchPreflightId={preflight.id}
+                  draftId={preflight.draftId}
+                  expectedDraftUpdatedAt={preflight.expectedDraftUpdatedAt}
+                  expectedReadyRecipientCount={preflight.expectedReadyRecipientCount}
+                />
               </article>
             ))
           ) : (
@@ -636,6 +657,62 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from a current queue-message dry run after provider-limit, sender-domain, suppression,
                 unsubscribe, audit, and queue-dispatch gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Dispatch attempts</p>
+            <h2>Final handoff receipts stay dry-run before producers exist</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastDispatchAttemptIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastDispatchAttemptIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastDispatchAttempts.latestAttempts.length > 0 ? (
+            broadcastDispatchAttempts.latestAttempts.map((attempt) => (
+              <article key={attempt.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">dispatch attempt</span>
+                  <span className="admin-pill">{attempt.dryRunMessageCount} messages</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>{attempt.queueName}</h3>
+                <p>{attempt.queueProducerMode.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Dispatch preflight</strong>
+                  <span>{attempt.dispatchPreflightId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Dispatch result</strong>
+                  <span>{attempt.dispatchResultStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider responses</strong>
+                  <span>{attempt.providerResponsesIncluded ? "included" : "excluded"}</span>
+                </div>
+                <p className="card-note">
+                  Cloudflare Queue producers, queue payload bodies, recipient payloads, provider sends, provider
+                  responses, and provider message IDs remain disabled after this receipt.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No attempt receipt</span>
+                <span className="admin-pill">Issue #{audienceBroadcastDispatchAttemptIssue}</span>
+              </div>
+              <h3>No dispatch attempt receipts yet</h3>
+              <p>
+                Record one from a current dispatch preflight after queue-producer, provider-response, suppression,
+                unsubscribe, sender-domain, and audit gates are checked.
               </p>
             </article>
           )}
