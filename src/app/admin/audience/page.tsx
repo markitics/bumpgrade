@@ -18,9 +18,12 @@ import {
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
+import { AdminBroadcastDeliveryBatchForm } from "@/components/admin-broadcast-delivery-batch-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
+  audienceBroadcastDeliveryBatchIssue,
+  getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
@@ -50,13 +53,20 @@ export default async function AdminAudiencePage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/audience" />;
 
-  const [state, broadcastReadiness, broadcastScheduleIntents, broadcastPreviewSafety, broadcastQueueReadiness] =
-    await Promise.all([
+  const [
+    state,
+    broadcastReadiness,
+    broadcastScheduleIntents,
+    broadcastPreviewSafety,
+    broadcastQueueReadiness,
+    broadcastDeliveryBatches,
+  ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
       getAudienceBroadcastScheduleIntentSummary(),
       getAudienceBroadcastPreviewSafetySummary(),
       getAudienceBroadcastQueueReadinessSummary(),
+      getAudienceBroadcastDeliveryBatchSummary(),
     ]);
 
   return (
@@ -68,8 +78,8 @@ export default async function AdminAudiencePage() {
           <p className="lede">
             Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
             unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, and dry-run schedule intents
-            created by audience APIs. Preview safety and queue readiness are visible before delivery exists. Public
-            source-data stays aggregate-only.
+            created by audience APIs. Preview safety, queue readiness, and delivery-batch dry runs are visible before
+            delivery exists. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -159,6 +169,15 @@ export default async function AdminAudiencePage() {
               {broadcastQueueReadiness.counts.queueReadinessRecords} queue contract
               {broadcastQueueReadiness.counts.queueReadinessRecords === 1 ? "" : "s"};{" "}
               {broadcastQueueReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Delivery batches</h3>
+            <p>
+              {broadcastDeliveryBatches.counts.deliveryBatches} dry-run batch
+              {broadcastDeliveryBatches.counts.deliveryBatches === 1 ? "" : "es"} recorded;{" "}
+              {broadcastDeliveryBatches.counts.providerSendEnabledBatches} provider-send batches enabled.
             </p>
           </div>
         </div>
@@ -385,6 +404,12 @@ export default async function AdminAudiencePage() {
                   <strong>Recorded</strong>
                   <span>{compactDate(intent.createdAt)}</span>
                 </div>
+                <AdminBroadcastDeliveryBatchForm
+                  scheduleIntentId={intent.id}
+                  draftId={intent.draftId}
+                  expectedDraftUpdatedAt={intent.expectedDraftUpdatedAt}
+                  expectedReadyRecipientCount={intent.readyRecipientCount}
+                />
               </article>
             ))
           ) : (
@@ -396,6 +421,64 @@ export default async function AdminAudiencePage() {
               <h3>No schedule intents yet</h3>
               <p>
                 Record a dry-run intent from the broadcast readiness card after checking the current readiness count.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Delivery-batch dry runs</p>
+            <h2>Batch evidence is recorded before provider sends exist</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastDeliveryBatchIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastDeliveryBatchIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastDeliveryBatches.latestBatches.length > 0 ? (
+            broadcastDeliveryBatches.latestBatches.map((batch) => (
+              <article key={batch.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{batch.status}</span>
+                  <span className="admin-pill">{batch.queueMode.replaceAll("_", " ")}</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>{batch.queueName}</h3>
+                <p>
+                  {batch.readyRecipientCount} ready recipients and {batch.heldRecipientCount} held recipients were
+                  snapshotted after suppression and queue checks.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Schedule intent</strong>
+                  <span>{batch.scheduleIntentId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Unsubscribe footer</strong>
+                  <span>{batch.unsubscribeFooterCheckStatus}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Sender gate</strong>
+                  <span>{batch.senderDomainGateStatus.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Provider sends, recipient payloads, queue messages, personalized bodies, and provider message IDs
+                  remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No batches</span>
+                <span className="admin-pill">Issue #{audienceBroadcastDeliveryBatchIssue}</span>
+              </div>
+              <h3>No delivery-batch dry runs yet</h3>
+              <p>
+                Record one from a current schedule intent after queue readiness and preview safety are present.
               </p>
             </article>
           )}

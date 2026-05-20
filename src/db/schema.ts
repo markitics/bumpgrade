@@ -757,6 +757,45 @@ export const audienceBroadcastQueueReadiness = sqliteTable(
   }),
 );
 
+export const audienceBroadcastDeliveryBatches = sqliteTable(
+  "audience_broadcast_delivery_batches",
+  {
+    id: text("id").primaryKey(),
+    draftId: text("draft_id").notNull(),
+    scheduleIntentId: text("schedule_intent_id").notNull(),
+    status: text("status").notNull().default("delivery_batch_dry_run_recorded"),
+    queueName: text("queue_name").notNull(),
+    queueMode: text("queue_mode").notNull().default("dry_run_contract"),
+    expectedDraftUpdatedAt: text("expected_draft_updated_at").notNull(),
+    readyRecipientCount: integer("ready_recipient_count").notNull().default(0),
+    heldRecipientCount: integer("held_recipient_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    unsubscribeFooterCheckStatus: text("unsubscribe_footer_check_status").notNull(),
+    senderDomainGateStatus: text("sender_domain_gate_status").notNull(),
+    providerSendEnabled: integer("provider_send_enabled", { mode: "boolean" }).notNull().default(false),
+    recipientPayloadsCreated: integer("recipient_payloads_created", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdsCreated: integer("provider_message_ids_created", { mode: "boolean" }).notNull().default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_broadcast_delivery_batches_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    scheduleIntentIdx: index("audience_broadcast_delivery_batches_schedule_intent_idx").on(
+      table.scheduleIntentId,
+    ),
+    draftStatusIdx: index("audience_broadcast_delivery_batches_draft_status_idx").on(
+      table.draftId,
+      table.status,
+    ),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {
