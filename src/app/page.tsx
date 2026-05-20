@@ -50,7 +50,13 @@ const proofPoints = [
 ];
 
 function availabilityLabel(status: string) {
-  return status === "live" ? "Available now" : "In build";
+  if (status === "live") return "Available now";
+  if (status === "launch-preview") return "Launch preview";
+  return "In build";
+}
+
+function availabilityClass(status: string) {
+  return status === "live" ? "live" : status === "launch-preview" ? "active" : "pending";
 }
 
 export default function HomePage() {
@@ -138,7 +144,7 @@ export default function HomePage() {
               <article key={feature.slug} className="launch-feature-card">
                 <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
                 <div>
-                  <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                  <span className={`status-badge ${availabilityClass(feature.status)}`}>
                     {availabilityLabel(feature.status)}
                   </span>
                   <h3>{feature.title}</h3>

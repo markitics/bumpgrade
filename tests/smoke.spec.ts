@@ -340,6 +340,13 @@ test.describe("Bumpgrade scaffold", () => {
     });
   }
 
+  test("homepage feature highlights use launch-preview labels", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /AI business coach/i })).toBeVisible();
+    await expect(page.getByText("Launch preview")).toBeVisible();
+    await expect(page.getByText("In build")).toHaveCount(0);
+  });
+
   test("comparison hub links to every first-wave alternative", async ({ page }) => {
     await page.goto("/compare");
     for (const competitor of competitors) {
