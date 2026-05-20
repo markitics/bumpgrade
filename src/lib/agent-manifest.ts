@@ -1,6 +1,6 @@
 import { site } from "@/lib/site";
 
-export const agentManifestUpdatedAt = "2026-05-19";
+export const agentManifestUpdatedAt = "2026-05-20";
 
 export type AgentReadContract = {
   id: string;
@@ -306,6 +306,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
       "subscriptionPlanId",
+      "subscriptionMembershipAccessId",
       "fulfillmentId",
       "agentActionId",
     ],
@@ -319,10 +320,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover owner-confirmed private asset upload-intent boundaries",
       "Inspect non-destructive revocation intent readiness",
       "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
+      "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows, non-destructive revocation intent readiness, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can inspect private entitlement rows, non-destructive revocation intent readiness, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -339,6 +341,30 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       "This is a read-only checkout-intent-scoped lookup; signed downloads, protected lessons, buyer identity, entitlement mutation, destructive revocation, and live fulfillment require future authenticated confirmed-write APIs.",
+  },
+  {
+    id: "read-subscription-membership-access",
+    title: "Subscription membership access state",
+    route: "/products/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/product-entitlements.ts + D1 billing_subscriptions and product_entitlements",
+    stableIds: [
+      "subscriptionMembershipAccessId",
+      "checkoutIntentId",
+      "productEntitlementId",
+      "subscriptionPlanId",
+      "productId",
+      "entitlementTemplateId",
+    ],
+    safeForAgents: [
+      "Inspect the seeded monthly membership price and access-rule mapping",
+      "Confirm active/trialing Stripe Billing subscription state can activate checkout-linked membership access",
+      "Confirm canceled, unpaid, incomplete_expired, or deleted subscription state pauses membership access",
+      "Confirm buyer identity, raw subscription/customer IDs, webhook IDs, metadata JSON, member posts, private files, Customer Portal URLs, and progress rows are excluded",
+    ],
+    writeBoundary:
+      "This is read-only subscription-backed membership access evidence. It does not create or mutate Stripe subscriptions, open Customer Portal sessions, expose raw Stripe IDs, deliver member posts/files, change pricing, or perform direct agent billing writes.",
   },
   {
     id: "create-sandbox-product-download-token",
