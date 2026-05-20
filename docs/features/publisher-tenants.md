@@ -59,6 +59,16 @@ customer domain rows stay behind authenticated publisher context.
 
 ## Not Included
 
-- Buying domains through Bumpgrade.
+- Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
 - Raw browser-cookie sharing across unrelated custom domains.
+
+## Domain Purchase Policy
+
+Bumpgrade connects domains publishers already own. It does not sell, register,
+renew, transfer, or price domains today.
+
+If Bumpgrade adds registration later, the product needs a registrar/provider
+decision, availability checks, purchase and renewal terms, contact/privacy
+handling, payment/refund policy, and provider failure states before any public
+CTA claims domains can be bought through Bumpgrade.

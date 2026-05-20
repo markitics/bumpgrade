@@ -122,7 +122,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   /api/account/publisher/custom-domain` starts existing-domain onboarding and
   DNS verification state for paid publishers after the default Bumpgrade
   hostname is reserved. Treat it as bring-your-own-domain setup, not domain
-  purchasing. Bumpgrade-hosted subdomains share the central identity session;
+  purchasing. Bumpgrade does not sell, register, renew, transfer, or price
+  domains today. Bumpgrade-hosted subdomains share the central identity session;
   customer-owned domains use the Bumpgrade sign-in handoff and tenant-scoped
   access checks instead of raw cross-domain cookie sharing.
 - `/funnels/source-data` exposes the first funnel/page-builder contract, seeded
