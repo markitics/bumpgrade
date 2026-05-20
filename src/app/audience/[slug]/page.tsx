@@ -132,7 +132,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
             Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, broadcast readiness, preview safety,
-            and dry-run schedule intents are live for the seeded waitlist; email sending stays disabled until confirmed-write APIs exist.
+            dry-run schedule intents, and queue readiness are live for the seeded waitlist; email sending stays disabled
+            until confirmed-write APIs exist.
           </span>
         </aside>
       </section>

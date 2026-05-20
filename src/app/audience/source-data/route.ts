@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { audienceAutomationSourceData } from "@/lib/audience-automation";
 import {
   getAudienceBroadcastPreviewSafetySummary,
+  getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
 } from "@/lib/audience-broadcasts";
@@ -12,11 +13,18 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const [subscriberInspection, broadcastReadiness, broadcastScheduleIntents, broadcastPreviewSafety] = await Promise.all([
+  const [
+    subscriberInspection,
+    broadcastReadiness,
+    broadcastScheduleIntents,
+    broadcastPreviewSafety,
+    broadcastQueueReadiness,
+  ] = await Promise.all([
     getAudienceSubscriberInspectionSummary(),
     getAudienceBroadcastReadinessSummary(),
     getAudienceBroadcastScheduleIntentSummary(),
     getAudienceBroadcastPreviewSafetySummary(),
+    getAudienceBroadcastQueueReadinessSummary(),
   ]);
 
   return NextResponse.json({
@@ -32,5 +40,6 @@ export async function GET() {
     broadcastReadiness,
     broadcastScheduleIntents,
     broadcastPreviewSafety,
+    broadcastQueueReadiness,
   });
 }
