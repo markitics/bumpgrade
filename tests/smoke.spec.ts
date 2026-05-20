@@ -1253,8 +1253,13 @@ test.describe("Bumpgrade scaffold", () => {
         issue: productProtectedContentIssue,
         counts: expect.objectContaining({
           protectedContentItems: expect.any(Number),
-          deliveryEnabled: 0,
+          deliveryEnabled: 2,
           protectedBodiesIncluded: 0,
+        }),
+        delivery: expect.objectContaining({
+          status: productProtectedContentDeliveryStatus,
+          issue: productProtectedContentDeliveryIssue,
+          apiRoute: productProtectedContentDeliveryApiRoute,
         }),
       }),
     );
@@ -3290,12 +3295,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
