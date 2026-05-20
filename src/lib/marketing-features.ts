@@ -61,7 +61,7 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "AI coach",
     category: "Launch planning",
     status: "launch-preview",
-    availability: "Launch-planning context is available; guided coaching workflows are in launch preview.",
+    availability: "Launch-planning context and guided AI review are available for the first invite wave.",
     eyebrow: "Decide faster",
     hero: "Turn scattered launch ideas into a cleaner plan.",
     summary:
@@ -93,7 +93,7 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Landing pages",
     category: "Funnels",
     status: "live",
-    availability: "Public preview routes and published funnel routing are available for the launch preview.",
+    availability: "Public example pages and published funnel routing are available for launch review.",
     eyebrow: "Publish the first page",
     hero: "Give a launch idea a public page, not another private note.",
     summary:
@@ -113,7 +113,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Lead magnet page", "Webinar registration page", "Resource library page", "Sales page"],
     replaces: ["One-off landing page builders", "Static launch docs", "Ad hoc page copy handoffs"],
-    nextStep: { label: "Preview a funnel page", href: "/funnels/indie-launch-sandbox" },
+    nextStep: { label: "Open a landing page example", href: "/funnels/indie-launch-sandbox" },
   },
   {
     slug: "sales-funnels",
@@ -121,14 +121,14 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Funnels",
     category: "Funnels",
     status: "live",
-    availability: "Funnel previews, draft editing, template starts, checkout linking, and public funnel routes are available.",
+    availability: "Funnel examples, draft editing, template starts, checkout linking, and public funnel routes are available.",
     eyebrow: "Connect the path",
     hero: "Move people from first click to the right next offer.",
     summary:
-      "Bumpgrade models launches as ordered funnel steps with reusable templates, checkout links, previews, and publishing controls.",
+      "Bumpgrade models launches as ordered funnel steps with reusable templates, checkout links, review pages, and publishing controls.",
     audience: "Publishers and operators who want one coherent launch path instead of disconnected pages and checkouts.",
     problem: "Landing pages, checkout pages, upsells, and follow-up content often live in separate tools with unclear state.",
-    outcome: "Plan, preview, and publish a sequence your team can review before it changes what customers see.",
+    outcome: "Plan, review, and publish a sequence your team can approve before it changes what customers see.",
     imageUrl: "/marketing/bumpgrade-home-hero.jpg",
     imageAlt: "A publisher founder reviewing a launch dashboard on a laptop.",
     featureIds: ["feature-funnel-builder", "feature-checkout-offers"],
@@ -136,12 +136,12 @@ export const marketingFeatures: MarketingFeature[] = [
     proofRoutes: ["/funnels/indie-launch-sandbox", "/funnels/source-data", "/admin/funnels"],
     benefits: [
       "Use launch, webinar, resource, and checkout handoff templates as reusable starting points.",
-      "Preview private drafts before publishing.",
+      "Review private drafts before publishing.",
       "Keep checkout links and public publishing behind owner confirmation.",
     ],
     useCases: ["Book launch funnel", "Course waitlist", "Paid workshop funnel", "Digital product launch"],
     replaces: ["ClickFunnels page sequences", "Manual page-to-checkout handoffs", "Untracked funnel docs"],
-    nextStep: { label: "Preview a funnel page", href: "/funnels/indie-launch-sandbox" },
+    nextStep: { label: "Open a funnel example", href: "/funnels/indie-launch-sandbox" },
   },
   {
     slug: "email-campaigns",
@@ -170,7 +170,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Launch waitlist", "Lead magnet nurture", "Broadcast preflight", "CRM follow-up notes"],
     replaces: ["Kit list growth workflows", "Spreadsheet-based launch lists", "Untracked broadcast checklists"],
-    nextStep: { label: "Open the waitlist preview", href: "/audience/indie-launch-waitlist" },
+    nextStep: { label: "Open the waitlist", href: "/audience/indie-launch-waitlist" },
   },
   {
     slug: "order-bump",
@@ -178,7 +178,7 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Order bumps",
     category: "Checkout",
     status: "live",
-    availability: "Checkout preview and order-bump flow are available; live customer charging requires verified Stripe setup for the offer.",
+    availability: "Checkout example and order-bump flow are available; live customer charging requires verified Stripe setup for the offer.",
     eyebrow: "Increase order value",
     hero: "Offer the right bump, upsell, or downsell at the moment of purchase.",
     summary:
@@ -186,7 +186,7 @@ export const marketingFeatures: MarketingFeature[] = [
     audience: "Sellers who want better average order value and safer billing flows.",
     problem: "Offer stacks are usually split across checkout builders, payment dashboards, and manual fulfillment notes.",
     outcome:
-      "Preview the full offer ladder, review the checkout path, and keep billing-impacting actions behind exact confirmation and trusted payment state.",
+      "Review the full offer ladder, inspect the checkout path, and keep billing-impacting actions behind exact confirmation and trusted payment state.",
     imageUrl: "/marketing/bumpgrade-home-hero.jpg",
     imageAlt: "A publisher founder reviewing a launch dashboard on a laptop.",
     featureIds: ["feature-checkout-offers"],
@@ -199,7 +199,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Order bump", "Paid offer checkout", "Post-purchase upsell prompt", "Referral-attributed checkout"],
     replaces: ["SamCart checkout paths", "ThriveCart-style bump logic", "Manual checkout notes"],
-    nextStep: { label: "Preview the offer stack", href: "/offers/indie-launch-stack" },
+    nextStep: { label: "Open the offer stack", href: "/offers/indie-launch-stack" },
   },
   {
     slug: "digital-products",
@@ -207,7 +207,7 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Products",
     category: "Commerce",
     status: "live",
-    availability: "Product previews, entitlement lookup, protected delivery, and membership state checks are available.",
+    availability: "Product examples, entitlement lookup, protected delivery, and membership state checks are available.",
     eyebrow: "Deliver the thing",
     hero: "Sell products that can actually grant access afterward.",
     summary:
@@ -227,7 +227,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Download delivery", "Course access", "Membership access", "Bundle fulfillment"],
     replaces: ["Kajabi product access pieces", "Manual download links", "Spreadsheet entitlement tracking"],
-    nextStep: { label: "Preview product access", href: "/products/indie-launch-library" },
+    nextStep: { label: "Open product access", href: "/products/indie-launch-library" },
   },
   {
     slug: "ad-tracking",
@@ -255,7 +255,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["UTM tracking", "A/B test readouts", "Launch conversion review", "Traffic-source comparison"],
     replaces: ["Manual UTM spreadsheets", "Disconnected analytics dashboards", "Guesswork after ads run"],
-    nextStep: { label: "Open analytics preview", href: "/analytics/indie-launch-dashboard" },
+    nextStep: { label: "Open analytics dashboard", href: "/analytics/indie-launch-dashboard" },
   },
   {
     slug: "audience-crm",
@@ -283,7 +283,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Lead follow-up", "Segment review", "Campaign readiness", "Suppression audit"],
     replaces: ["Lightweight CRM spreadsheets", "Disconnected tag notes", "Manual suppression checks"],
-    nextStep: { label: "Open the waitlist preview", href: "/audience/indie-launch-waitlist" },
+    nextStep: { label: "Open the waitlist", href: "/audience/indie-launch-waitlist" },
   },
   {
     slug: "affiliate-referrals",
@@ -312,7 +312,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Affiliate launch", "Referral partner program", "Commission review", "Payout readiness"],
     replaces: ["Manual affiliate spreadsheets", "Unreviewed payout exports", "Attribution screenshots"],
-    nextStep: { label: "Preview partner program", href: "/affiliates/indie-launch-partners" },
+    nextStep: { label: "Open partner program", href: "/affiliates/indie-launch-partners" },
   },
   {
     slug: "webinars-and-resources",
@@ -320,7 +320,7 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Webinars",
     category: "Funnels",
     status: "live",
-    availability: "Webinar and resource funnel templates are available as launch-preview page shapes.",
+    availability: "Webinar and resource funnel templates are available for first-wave launch pages.",
     eyebrow: "Teach before selling",
     hero: "Use education, resources, and events as part of the launch path.",
     summary:
@@ -340,7 +340,7 @@ export const marketingFeatures: MarketingFeature[] = [
     ],
     useCases: ["Webinar registration", "Replay funnel", "Resource library", "Educational sales path"],
     replaces: ["Standalone webinar pages", "Resource portals disconnected from checkout", "One-off event copy"],
-    nextStep: { label: "Preview webinar funnel", href: "/funnels/indie-launch-sandbox" },
+    nextStep: { label: "Open webinar funnel", href: "/funnels/indie-launch-sandbox" },
   },
 ];
 

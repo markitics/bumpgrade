@@ -79,7 +79,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           <h1>Choose the Bumpgrade subdomain for your launch workspace.</h1>
           <p className="lede">
             Every paid publisher account starts with a default {publisherDefaultDomain} subdomain. Use it for launch
-            previews, customer paths, and early buyer access before adding your own domain.
+            examples, customer paths, and early buyer access before adding your own domain.
           </p>
           <div className="hero-actions">
             <Link href="/pricing" className="primary-action">

@@ -25,7 +25,7 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     title: "ClickFunnels migration worksheet",
     summary: "A practical checklist for moving a sales funnel, checkout path, email follow-up, and offer stack into Bumpgrade.",
     label: "Migration worksheet",
-    cta: "Preview direction",
+    cta: "Open worksheet",
   },
   "resource-launch-playbook": {
     title: "Offer launch playbook",

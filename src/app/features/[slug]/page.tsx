@@ -39,13 +39,24 @@ export async function generateMetadata({ params }: FeaturePageProps): Promise<Me
 }
 
 function availabilityLabel(status: string) {
-  if (status === "live") return "Available now";
-  if (status === "launch-preview") return "Launch preview";
+  if (status === "live" || status === "launch-preview") return "Available now";
   return "In build";
 }
 
 function availabilityClass(status: string) {
   return status === "live" ? "live" : status === "launch-preview" ? "active" : "pending";
+}
+
+function exampleRouteLabel(route: string) {
+  if (route.startsWith("/funnels/")) return "Open funnel example";
+  if (route.startsWith("/offers/")) return "Open offer stack";
+  if (route.startsWith("/products/")) return "Open product access";
+  if (route.startsWith("/audience/")) return "Open waitlist";
+  if (route.startsWith("/analytics/")) return "Open analytics dashboard";
+  if (route.startsWith("/affiliates/")) return "Open partner program";
+  if (route.startsWith("/agent-docs")) return "Open AI helper notes";
+  if (route.startsWith("/compare")) return "Open comparison hub";
+  return "Open example";
 }
 
 export default async function MarketingFeaturePage({ params }: FeaturePageProps) {
@@ -171,7 +182,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
             <ul>
               {relatedExampleRoutes.map((route) => (
                 <li key={route}>
-                  <Link href={route}>{route}</Link>
+                  <Link href={route}>{exampleRouteLabel(route)}</Link>
                 </li>
               ))}
             </ul>

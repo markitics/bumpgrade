@@ -26,8 +26,7 @@ const featuredFeatures = featuredMarketingFeatureSlugs
   .filter((feature): feature is MarketingFeature => Boolean(feature));
 
 function availabilityLabel(feature: MarketingFeature) {
-  if (feature.status === "live") return "Available now";
-  if (feature.status === "launch-preview") return "Launch preview";
+  if (feature.status === "live" || feature.status === "launch-preview") return "Available now";
   return "In build";
 }
 

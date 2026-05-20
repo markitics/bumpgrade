@@ -340,17 +340,28 @@ test.describe("Bumpgrade scaffold", () => {
     });
   }
 
-  test("homepage feature highlights use launch-preview labels", async ({ page }) => {
+  test("homepage feature highlights use customer-facing availability labels", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /AI business coach/i })).toBeVisible();
-    await expect(page.getByText("Launch preview")).toBeVisible();
+    await expect(page.getByText("Available now").first()).toBeVisible();
+    await expect(page.getByText("Launch preview")).toHaveCount(0);
     await expect(page.getByText("In build")).toHaveCount(0);
   });
 
   test("public launch pages avoid internal build language", async ({ page }) => {
-    const internalTerms = /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned)\b|source-data/i;
+    const internalTerms = /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox)\b|source-data|launch-preview/i;
 
-    const publicCopyRoutes = ["/compare", ...competitors.map((competitor) => `/compare/${competitor.slug}`), "/users", "/resources", "/account/setup"];
+    const publicCopyRoutes = [
+      "/",
+      "/features",
+      ...marketingFeatures.map((feature) => `/features/${feature.slug}`),
+      "/compare",
+      ...competitors.map((competitor) => `/compare/${competitor.slug}`),
+      "/users",
+      "/resources",
+      "/pricing",
+      "/account/setup",
+    ];
 
     for (const path of publicCopyRoutes) {
       await page.goto(path);
