@@ -10,6 +10,7 @@ import {
   getAudienceBroadcastProviderEventReadinessSummary,
   getAudienceBroadcastProviderRateLimitReadinessSummary,
   getAudienceBroadcastProviderResponseReadinessSummary,
+  getAudienceBroadcastQueueProducerReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
@@ -37,6 +38,7 @@ export async function GET() {
     broadcastProviderRateLimitReadiness,
     broadcastProviderResponseReadiness,
     broadcastSendPayloadReadiness,
+    broadcastQueueProducerReadiness,
   ] = await Promise.all([
     getAudienceSubscriberInspectionSummary(),
     getAudienceBroadcastReadinessSummary(),
@@ -52,6 +54,7 @@ export async function GET() {
     getAudienceBroadcastProviderRateLimitReadinessSummary(),
     getAudienceBroadcastProviderResponseReadinessSummary(),
     getAudienceBroadcastSendPayloadReadinessSummary(),
+    getAudienceBroadcastQueueProducerReadinessSummary(),
   ]);
 
   return NextResponse.json({
@@ -81,5 +84,6 @@ export async function GET() {
     broadcastProviderRateLimitReadiness,
     broadcastProviderResponseReadiness,
     broadcastSendPayloadReadiness,
+    broadcastQueueProducerReadiness,
   });
 }

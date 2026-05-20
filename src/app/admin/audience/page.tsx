@@ -33,6 +33,7 @@ import {
   audienceBroadcastProviderEventReadinessIssue,
   audienceBroadcastProviderRateLimitReadinessIssue,
   audienceBroadcastProviderResponseReadinessIssue,
+  audienceBroadcastQueueProducerReadinessIssue,
   audienceBroadcastSendPayloadReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
@@ -43,6 +44,7 @@ import {
   getAudienceBroadcastProviderEventReadinessSummary,
   getAudienceBroadcastProviderRateLimitReadinessSummary,
   getAudienceBroadcastProviderResponseReadinessSummary,
+  getAudienceBroadcastQueueProducerReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
@@ -88,6 +90,7 @@ export default async function AdminAudiencePage() {
     broadcastProviderRateLimitReadiness,
     broadcastProviderResponseReadiness,
     broadcastSendPayloadReadiness,
+    broadcastQueueProducerReadiness,
   ] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
@@ -103,6 +106,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastProviderRateLimitReadinessSummary(),
     getAudienceBroadcastProviderResponseReadinessSummary(),
     getAudienceBroadcastSendPayloadReadinessSummary(),
+    getAudienceBroadcastQueueProducerReadinessSummary(),
   ]);
 
   return (
@@ -123,7 +127,8 @@ export default async function AdminAudiencePage() {
             backpressure explicit before live sends. Provider response readiness keeps accepted, transient failure, and
             permanent failure handling explicit before response capture exists. Send-payload readiness keeps recipient
             identity, personalization, unsubscribe-footer, and audit boundaries explicit before payload creation exists.
-            Public source-data stays aggregate-only.
+            Queue producer readiness keeps the Cloudflare binding, payload dependency, idempotency, consumer, and audit
+            gates explicit before any producer is enabled. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -296,6 +301,15 @@ export default async function AdminAudiencePage() {
               {broadcastSendPayloadReadiness.counts.recipientPayloadsCreatedRecords} recipient payloads created.
             </p>
           </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Queue producers</h3>
+            <p>
+              {broadcastQueueProducerReadiness.counts.queueProducerReadinessRecords} producer-readiness record
+              {broadcastQueueProducerReadiness.counts.queueProducerReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastQueueProducerReadiness.counts.cloudflareQueueProducerEnabledRecords} producers enabled.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -362,6 +376,66 @@ export default async function AdminAudiencePage() {
       </section>
 
       <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Queue producer readiness</p>
+            <h2>Queue producers remain disabled until handoff gates pass</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastQueueProducerReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastQueueProducerReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastQueueProducerReadiness.records.length > 0 ? (
+            broadcastQueueProducerReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.queueName}</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>Producer binding is readiness-only</h3>
+                <p>{record.producerGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Binding</strong>
+                  <span>{record.producerBinding}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Payload dependency</strong>
+                  <span>{record.payloadDependencyStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Consumer dependency</strong>
+                  <span>{record.consumerDependencyStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Idempotency</strong>
+                  <span>{record.idempotencyPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Cloudflare Queue producers, Queue messages, queue payload bodies, recipient payloads, provider sends,
+                  provider responses, and provider message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No producer readiness</span>
+                <span className="admin-pill">Issue #{audienceBroadcastQueueProducerReadinessIssue}</span>
+              </div>
+              <h3>No Queue producer readiness records</h3>
+              <p>
+                {broadcastQueueProducerReadiness.loadError ??
+                  "Run the Queue producer readiness migration to seed producer-boundary metadata."}
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Provider response readiness</p>
