@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
-import { ArrowRight, BadgeCheck, Database, Globe2, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Database, Globe2, LockKeyhole, RefreshCw, ShieldCheck } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import {
   getOptionalPublisherTenantD1,
   loadPublisherAccountState,
   publisherDefaultDomain,
+  publisherCustomDomainConfirmationText,
   publisherSubdomainConfirmationText,
   type PublisherSessionUser,
 } from "@/lib/publisher-tenants";
@@ -27,6 +28,9 @@ export const revalidate = 0;
 type AccountSetupPageProps = {
   searchParams?: Promise<{
     reserved?: string;
+    customDomain?: string;
+    customDomainPending?: string;
+    customDomainVerified?: string;
     error?: string;
   }>;
 };
@@ -54,12 +58,18 @@ function randomIdempotencyKey() {
   return `publisher-subdomain-reservation-${random}`;
 }
 
+function randomCustomDomainIdempotencyKey() {
+  const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `publisher-custom-domain-${random}`;
+}
+
 export default async function AccountSetupPage({ searchParams }: AccountSetupPageProps) {
   const params = await searchParams;
   const user = await getSessionUser();
   const db = await getOptionalPublisherTenantD1();
   const state = await loadPublisherAccountState(db, user);
   const reservation = state.reservation;
+  const customDomains = state.customDomains;
 
   return (
     <main className="account-setup-page">
@@ -69,7 +79,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           <h1>Choose the Bumpgrade subdomain for your launch workspace.</h1>
           <p className="lede">
             Every paid publisher account starts with a default {publisherDefaultDomain} subdomain. Use it for launch
-            previews, customer paths, and agent-readable proof before adding a custom domain.
+            previews, customer paths, and agent-readable proof before adding your own domain.
           </p>
           <div className="hero-actions">
             <Link href="/pricing" className="primary-action">
@@ -184,6 +194,98 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </p>
           <button type="submit" className="primary-action" disabled={!state.canReserveSubdomain}>
             Reserve subdomain
+            <LockKeyhole aria-hidden="true" />
+          </button>
+        </form>
+      </section>
+
+      <section className="content-band">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Custom domain</p>
+            <h2>Bring an existing domain when you are ready.</h2>
+          </div>
+          <p>
+            Add a domain you already own, copy the DNS record Bumpgrade gives you, and re-check verification from this
+            page. Buying domains through Bumpgrade is a separate launch slice.
+          </p>
+        </div>
+
+        {params?.customDomain ? <p className="account-success">Added DNS instructions for {params.customDomain}.</p> : null}
+        {params?.customDomainPending ? (
+          <p className="auth-error">DNS is still pending for {params.customDomainPending}. Check the CNAME record and try again.</p>
+        ) : null}
+        {params?.customDomainVerified ? (
+          <p className="account-success">Verified DNS for {params.customDomainVerified}. SSL activation is the next tracked state.</p>
+        ) : null}
+
+        <div className="custom-domain-list">
+          {customDomains.length ? (
+            customDomains.map((customDomain) => (
+              <article className="account-setup-card custom-domain-card" key={customDomain.id}>
+                <Globe2 aria-hidden="true" />
+                <p className="eyebrow">Existing domain</p>
+                <h3>{customDomain.domainName}</h3>
+                <p>
+                  Status: <strong>{customDomain.status.replaceAll("_", " ")}</strong>. SSL:{" "}
+                  <strong>{customDomain.sslStatus.replaceAll("_", " ")}</strong>.
+                </p>
+                <dl className="dns-record-list">
+                  <div>
+                    <dt>Type</dt>
+                    <dd>{customDomain.dnsInstruction.recordType}</dd>
+                  </div>
+                  <div>
+                    <dt>Name</dt>
+                    <dd>{customDomain.dnsInstruction.recordName}</dd>
+                  </div>
+                  <div>
+                    <dt>Value</dt>
+                    <dd>{customDomain.dnsInstruction.recordValue}</dd>
+                  </div>
+                </dl>
+                <p>{customDomain.failureReason ?? customDomain.dnsInstruction.propagation}</p>
+                <form action="/api/account/publisher/custom-domain" method="post" className="inline-domain-form">
+                  <input type="hidden" name="return" value="form" />
+                  <input type="hidden" name="mode" value="verify" />
+                  <input type="hidden" name="customDomainId" value={customDomain.id} />
+                  <button type="submit" className="secondary-action">
+                    Re-check DNS
+                    <RefreshCw aria-hidden="true" />
+                  </button>
+                </form>
+              </article>
+            ))
+          ) : (
+            <article className="account-setup-card custom-domain-card">
+              <Globe2 aria-hidden="true" />
+              <p className="eyebrow">Existing domain</p>
+              <h3>No custom domain yet</h3>
+              <p>{state.customDomainMessage}</p>
+            </article>
+          )}
+        </div>
+
+        <form action="/api/account/publisher/custom-domain" method="post" className="subdomain-reservation-form">
+          <input type="hidden" name="idempotencyKey" value={randomCustomDomainIdempotencyKey()} />
+          <input type="hidden" name="confirmationText" value={publisherCustomDomainConfirmationText} />
+          <label htmlFor="publisher-custom-domain">Existing domain</label>
+          <div className="subdomain-input-row">
+            <input
+              id="publisher-custom-domain"
+              name="domainName"
+              type="text"
+              placeholder="www.example.com"
+              disabled={!state.canAddCustomDomain}
+              required
+            />
+            <span>CNAME</span>
+          </div>
+          <p>
+            Bumpgrade will show a CNAME target and verification state. You keep control of DNS at your domain host.
+          </p>
+          <button type="submit" className="primary-action" disabled={!state.canAddCustomDomain}>
+            Add custom domain
             <LockKeyhole aria-hidden="true" />
           </button>
         </form>
