@@ -17,6 +17,10 @@ export const audienceBroadcastPreviewSafetyIssue = 175;
 export const audienceBroadcastPreviewSafetyStatus = "broadcast-preview-safety-ready";
 export const audienceBroadcastQueueReadinessIssue = 177;
 export const audienceBroadcastQueueReadinessStatus = "broadcast-queue-readiness-ready";
+export const audienceBroadcastDeliveryBatchIssue = 183;
+export const audienceBroadcastDeliveryBatchStatus = "broadcast-delivery-batch-dry-run-ready";
+export const audienceBroadcastDeliveryBatchApiRoute = "/api/admin/audience/broadcasts/delivery-batches";
+export const audienceBroadcastDeliveryBatchConfirmationText = "Create dry-run Bumpgrade broadcast delivery batch";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -77,6 +81,26 @@ type QueueReadinessRow = {
   provider_send_enabled: number | string;
   recipient_payloads_created: number | string;
   updated_at: number | string;
+};
+
+type DeliveryBatchRow = {
+  id: string;
+  draft_id: string;
+  schedule_intent_id: string;
+  status: string;
+  queue_name: string;
+  queue_mode: string;
+  expected_draft_updated_at: string;
+  ready_recipient_count: number | string;
+  held_recipient_count: number | string;
+  active_suppression_count: number | string;
+  unsubscribe_footer_check_status: string;
+  sender_domain_gate_status: string;
+  provider_send_enabled: number | string;
+  recipient_payloads_created: number | string;
+  provider_message_ids_created: number | string;
+  idempotency_key: string;
+  created_at: number | string;
 };
 
 type ReadinessCountRow = {
@@ -282,11 +306,81 @@ export type AudienceBroadcastQueueReadinessSummary = {
   writeBoundary: string;
 };
 
+export type AudienceBroadcastDeliveryBatch = {
+  id: string;
+  draftId: string;
+  scheduleIntentId: string;
+  status: string;
+  queueName: string;
+  queueMode: string;
+  expectedDraftUpdatedAt: string;
+  readyRecipientCount: number;
+  heldRecipientCount: number;
+  activeSuppressionCount: number;
+  unsubscribeFooterCheckStatus: string;
+  senderDomainGateStatus: string;
+  duplicate: boolean;
+  providerSendEnabled: false;
+  recipientPayloadsCreated: false;
+  sendQueueRowsCreated: false;
+  providerMessageIdsIncluded: false;
+  createdAt: string | null;
+};
+
+export type AudienceBroadcastDeliveryBatchSummary = {
+  id: string;
+  status: typeof audienceBroadcastDeliveryBatchStatus;
+  issue: typeof audienceBroadcastDeliveryBatchIssue;
+  parentIssue: 17;
+  apiRoute: typeof audienceBroadcastDeliveryBatchApiRoute;
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  confirmation: {
+    required: true;
+    text: typeof audienceBroadcastDeliveryBatchConfirmationText;
+  };
+  counts: {
+    deliveryBatches: number;
+    dryRunBatches: number;
+    readyRecipientsBatched: number;
+    heldRecipientsSnapshotted: number;
+    activeSuppressionsSnapshotted: number;
+    providerSendEnabledBatches: number;
+    recipientPayloadsCreatedBatches: number;
+    providerMessageIdsCreatedBatches: number;
+  };
+  latestBatches: AudienceBroadcastDeliveryBatch[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    rawRecipientNamesIncluded: false;
+    actorEmailIncluded: false;
+    suppressionHashesIncluded: false;
+    recipientPayloadsIncluded: false;
+    personalizedBodyIncluded: false;
+    providerMessageIdsIncluded: false;
+    sendQueueRowsCreated: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
 type CreateScheduleIntentInput = {
   draftId?: unknown;
   expectedDraftUpdatedAt?: unknown;
   expectedReadyRecipientCount?: unknown;
   requestedSendAt?: unknown;
+  confirmationText?: unknown;
+  idempotencyKey?: string | null;
+  actor: AdminIdentity;
+};
+
+type CreateDeliveryBatchInput = {
+  scheduleIntentId?: unknown;
+  draftId?: unknown;
+  expectedDraftUpdatedAt?: unknown;
+  expectedReadyRecipientCount?: unknown;
   confirmationText?: unknown;
   idempotencyKey?: string | null;
   actor: AdminIdentity;
@@ -312,6 +406,35 @@ type CreateScheduleIntentResult =
         | "intent_not_created";
       message: string;
       redaction: AudienceBroadcastScheduleIntentSummary["redaction"];
+      currentDraftUpdatedAt?: string | null;
+      currentReadyRecipientCount?: number;
+    };
+
+type CreateDeliveryBatchResult =
+  | {
+      ok: true;
+      status: "broadcast_delivery_batch_recorded" | "broadcast_delivery_batch_replayed";
+      duplicate: boolean;
+      batch: AudienceBroadcastDeliveryBatch;
+      redaction: AudienceBroadcastDeliveryBatchSummary["redaction"];
+    }
+  | {
+      ok: false;
+      status:
+        | "invalid_request"
+        | "confirmation_required"
+        | "schedule_intent_not_found"
+        | "broadcast_draft_not_found"
+        | "readiness_unavailable"
+        | "queue_readiness_unavailable"
+        | "preview_safety_unavailable"
+        | "stale_draft_revision"
+        | "stale_readiness_count"
+        | "queue_gate_not_ready"
+        | "preview_safety_not_ready"
+        | "batch_not_created";
+      message: string;
+      redaction: AudienceBroadcastDeliveryBatchSummary["redaction"];
       currentDraftUpdatedAt?: string | null;
       currentReadyRecipientCount?: number;
     };
@@ -539,6 +662,62 @@ function emptyQueueReadinessSummary(
   };
 }
 
+function emptyDeliveryBatchSummary(
+  source: AudienceBroadcastDeliveryBatchSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastDeliveryBatchSummary {
+  return {
+    id: "audience-broadcast-delivery-batch-contract",
+    status: audienceBroadcastDeliveryBatchStatus,
+    issue: audienceBroadcastDeliveryBatchIssue,
+    parentIssue: 17,
+    apiRoute: audienceBroadcastDeliveryBatchApiRoute,
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    confirmation: {
+      required: true,
+      text: audienceBroadcastDeliveryBatchConfirmationText,
+    },
+    counts: {
+      deliveryBatches: 0,
+      dryRunBatches: 0,
+      readyRecipientsBatched: 0,
+      heldRecipientsSnapshotted: 0,
+      activeSuppressionsSnapshotted: 0,
+      providerSendEnabledBatches: 0,
+      recipientPayloadsCreatedBatches: 0,
+      providerMessageIdsCreatedBatches: 0,
+    },
+    latestBatches: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      rawRecipientNamesIncluded: false,
+      actorEmailIncluded: false,
+      suppressionHashesIncluded: false,
+      recipientPayloadsIncluded: false,
+      personalizedBodyIncluded: false,
+      providerMessageIdsIncluded: false,
+      sendQueueRowsCreated: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "suppressionHash",
+      "actorEmail",
+      "recipientPayload",
+      "providerMessageId",
+      "sendQueuePayload",
+      "personalizedBody",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #183 lets verified owners record a suppression-checked broadcast delivery-batch dry run after exact confirmation, idempotency, schedule-intent, draft revision, readiness count, preview safety, and queue readiness checks. It does not create recipient payloads, queue messages, provider sends, provider message IDs, private exports, or public agent broadcast writes.",
+  };
+}
+
 function mapDraft(row: BroadcastDraftRow, counts: ReadinessCountRow | null): AudienceBroadcastDraftReadiness {
   return {
     id: row.id,
@@ -625,6 +804,29 @@ function publicQueueReadiness(row: QueueReadinessRow): AudienceBroadcastQueueRea
   };
 }
 
+function publicDeliveryBatch(row: DeliveryBatchRow, duplicate: boolean): AudienceBroadcastDeliveryBatch {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    scheduleIntentId: row.schedule_intent_id,
+    status: row.status,
+    queueName: row.queue_name,
+    queueMode: row.queue_mode,
+    expectedDraftUpdatedAt: row.expected_draft_updated_at,
+    readyRecipientCount: numberValue(row.ready_recipient_count),
+    heldRecipientCount: numberValue(row.held_recipient_count),
+    activeSuppressionCount: numberValue(row.active_suppression_count),
+    unsubscribeFooterCheckStatus: row.unsubscribe_footer_check_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    duplicate,
+    providerSendEnabled: false,
+    recipientPayloadsCreated: false,
+    sendQueueRowsCreated: false,
+    providerMessageIdsIncluded: false,
+    createdAt: timestampValue(row.created_at),
+  };
+}
+
 async function findScheduleIntentByIdempotency(db: D1Database, idempotencyKey: string) {
   return db
     .prepare(
@@ -636,6 +838,34 @@ async function findScheduleIntentByIdempotency(db: D1Database, idempotencyKey: s
     )
     .bind(idempotencyKey)
     .first<ScheduleIntentRow>();
+}
+
+async function findScheduleIntentById(db: D1Database, scheduleIntentId: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, draft_id, status, schedule_kind, expected_draft_updated_at, ready_recipient_count,
+        held_recipient_count, active_suppression_count, requested_send_at, idempotency_key, created_at
+      FROM audience_broadcast_schedule_intents
+      WHERE id = ?`,
+    )
+    .bind(scheduleIntentId)
+    .first<ScheduleIntentRow>();
+}
+
+async function findDeliveryBatchByIdempotency(db: D1Database, idempotencyKey: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, draft_id, schedule_intent_id, status, queue_name, queue_mode, expected_draft_updated_at,
+        ready_recipient_count, held_recipient_count, active_suppression_count,
+        unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+        recipient_payloads_created, provider_message_ids_created, idempotency_key, created_at
+      FROM audience_broadcast_delivery_batches
+      WHERE idempotency_key = ?`,
+    )
+    .bind(idempotencyKey)
+    .first<DeliveryBatchRow>();
 }
 
 export async function getAudienceBroadcastReadinessSummary(): Promise<AudienceBroadcastReadinessSummary> {
@@ -839,6 +1069,67 @@ export async function getAudienceBroadcastQueueReadinessSummary(): Promise<Audie
   }
 }
 
+export async function getAudienceBroadcastDeliveryBatchSummary(): Promise<AudienceBroadcastDeliveryBatchSummary> {
+  try {
+    const { db } = await getRuntime();
+    const counts = await db
+      .prepare(
+        `SELECT
+          COUNT(*) AS delivery_batch_count,
+          SUM(CASE WHEN queue_mode = 'dry_run_contract' THEN 1 ELSE 0 END) AS dry_run_batch_count,
+          COALESCE(SUM(ready_recipient_count), 0) AS ready_recipient_count,
+          COALESCE(SUM(held_recipient_count), 0) AS held_recipient_count,
+          COALESCE(SUM(active_suppression_count), 0) AS active_suppression_count,
+          SUM(CASE WHEN provider_send_enabled > 0 THEN 1 ELSE 0 END) AS provider_send_enabled_count,
+          SUM(CASE WHEN recipient_payloads_created > 0 THEN 1 ELSE 0 END) AS recipient_payloads_created_count,
+          SUM(CASE WHEN provider_message_ids_created > 0 THEN 1 ELSE 0 END) AS provider_message_ids_created_count
+        FROM audience_broadcast_delivery_batches`,
+      )
+      .first<{
+        delivery_batch_count: number | string | null;
+        dry_run_batch_count: number | string | null;
+        ready_recipient_count: number | string | null;
+        held_recipient_count: number | string | null;
+        active_suppression_count: number | string | null;
+        provider_send_enabled_count: number | string | null;
+        recipient_payloads_created_count: number | string | null;
+        provider_message_ids_created_count: number | string | null;
+      }>();
+    const latest = await db
+      .prepare(
+        `SELECT
+          id, draft_id, schedule_intent_id, status, queue_name, queue_mode, expected_draft_updated_at,
+          ready_recipient_count, held_recipient_count, active_suppression_count,
+          unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+          recipient_payloads_created, provider_message_ids_created, idempotency_key, created_at
+        FROM audience_broadcast_delivery_batches
+        ORDER BY created_at DESC
+        LIMIT 10`,
+      )
+      .all<DeliveryBatchRow>();
+
+    return {
+      ...emptyDeliveryBatchSummary("d1", null),
+      counts: {
+        deliveryBatches: numberValue(counts?.delivery_batch_count),
+        dryRunBatches: numberValue(counts?.dry_run_batch_count),
+        readyRecipientsBatched: numberValue(counts?.ready_recipient_count),
+        heldRecipientsSnapshotted: numberValue(counts?.held_recipient_count),
+        activeSuppressionsSnapshotted: numberValue(counts?.active_suppression_count),
+        providerSendEnabledBatches: numberValue(counts?.provider_send_enabled_count),
+        recipientPayloadsCreatedBatches: numberValue(counts?.recipient_payloads_created_count),
+        providerMessageIdsCreatedBatches: numberValue(counts?.provider_message_ids_created_count),
+      },
+      latestBatches: (latest.results ?? []).map((row) => publicDeliveryBatch(row, false)),
+    };
+  } catch (error) {
+    return emptyDeliveryBatchSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast delivery batches.",
+    );
+  }
+}
+
 export async function createAudienceBroadcastScheduleIntent(input: CreateScheduleIntentInput): Promise<CreateScheduleIntentResult> {
   const redaction = emptyScheduleIntentSummary("d1", null).redaction;
   const draftId = parseString(input.draftId);
@@ -961,6 +1252,199 @@ export async function createAudienceBroadcastScheduleIntent(input: CreateSchedul
     status: "broadcast_schedule_intent_recorded",
     duplicate: false,
     intent: publicScheduleIntent(intent, false),
+    redaction,
+  };
+}
+
+export async function createAudienceBroadcastDeliveryBatch(input: CreateDeliveryBatchInput): Promise<CreateDeliveryBatchResult> {
+  const redaction = emptyDeliveryBatchSummary("d1", null).redaction;
+  const scheduleIntentId = parseString(input.scheduleIntentId);
+  const draftId = parseString(input.draftId);
+  const expectedDraftUpdatedAt = parseString(input.expectedDraftUpdatedAt);
+  const expectedReadyRecipientCount = parseInteger(input.expectedReadyRecipientCount);
+  const idempotencyKey = input.idempotencyKey?.trim() || null;
+
+  if (!scheduleIntentId || !draftId || !expectedDraftUpdatedAt || expectedReadyRecipientCount === null || !idempotencyKey) {
+    return {
+      ok: false,
+      status: "invalid_request",
+      message: "A schedule intent ID, draft ID, expected draft updated time, expected readiness count, and idempotency key are required.",
+      redaction,
+    };
+  }
+
+  if (input.confirmationText !== audienceBroadcastDeliveryBatchConfirmationText) {
+    return {
+      ok: false,
+      status: "confirmation_required",
+      message: "Exact confirmation text is required before recording a broadcast delivery batch dry run.",
+      redaction,
+    };
+  }
+
+  const { db } = await getRuntime();
+  const existing = await findDeliveryBatchByIdempotency(db, idempotencyKey);
+  if (existing) {
+    return {
+      ok: true,
+      status: "broadcast_delivery_batch_replayed",
+      duplicate: true,
+      batch: publicDeliveryBatch(existing, true),
+      redaction,
+    };
+  }
+
+  const scheduleIntent = await findScheduleIntentById(db, scheduleIntentId);
+  if (!scheduleIntent || scheduleIntent.status !== "dry_run_recorded" || scheduleIntent.draft_id !== draftId) {
+    return {
+      ok: false,
+      status: "schedule_intent_not_found",
+      message: "A current dry-run schedule intent for this broadcast draft is required before a delivery batch can be recorded.",
+      redaction,
+    };
+  }
+
+  const readiness = await getAudienceBroadcastReadinessSummary();
+  if (readiness.source !== "d1") {
+    return {
+      ok: false,
+      status: "readiness_unavailable",
+      message: readiness.loadError ?? "Broadcast readiness is unavailable.",
+      redaction,
+    };
+  }
+
+  const draft = readiness.drafts.find((candidate) => candidate.id === draftId);
+  if (!draft) {
+    return {
+      ok: false,
+      status: "broadcast_draft_not_found",
+      message: "The broadcast draft could not be found.",
+      redaction,
+    };
+  }
+
+  if (draft.updatedAt !== expectedDraftUpdatedAt || scheduleIntent.expected_draft_updated_at !== expectedDraftUpdatedAt) {
+    return {
+      ok: false,
+      status: "stale_draft_revision",
+      message: "The broadcast draft changed before the delivery batch dry run was recorded.",
+      redaction,
+      currentDraftUpdatedAt: draft.updatedAt,
+    };
+  }
+
+  if (
+    draft.readyRecipientCount !== expectedReadyRecipientCount ||
+    numberValue(scheduleIntent.ready_recipient_count) !== expectedReadyRecipientCount
+  ) {
+    return {
+      ok: false,
+      status: "stale_readiness_count",
+      message: "Broadcast readiness changed before the delivery batch dry run was recorded.",
+      redaction,
+      currentReadyRecipientCount: draft.readyRecipientCount,
+    };
+  }
+
+  const previewSafety = await getAudienceBroadcastPreviewSafetySummary();
+  if (previewSafety.source !== "d1") {
+    return {
+      ok: false,
+      status: "preview_safety_unavailable",
+      message: previewSafety.loadError ?? "Broadcast preview safety is unavailable.",
+      redaction,
+    };
+  }
+  const previewRecord = previewSafety.records.find((record) => record.draftId === draftId);
+  if (!previewRecord || !previewRecord.unsubscribeFooterRequired) {
+    return {
+      ok: false,
+      status: "preview_safety_not_ready",
+      message: "Preview safety and unsubscribe footer checks must exist before a delivery batch dry run.",
+      redaction,
+    };
+  }
+
+  const queueReadiness = await getAudienceBroadcastQueueReadinessSummary();
+  if (queueReadiness.source !== "d1") {
+    return {
+      ok: false,
+      status: "queue_readiness_unavailable",
+      message: queueReadiness.loadError ?? "Broadcast queue readiness is unavailable.",
+      redaction,
+    };
+  }
+  const queueRecord = queueReadiness.records.find((record) => record.draftId === draftId);
+  if (
+    !queueRecord ||
+    queueRecord.queueMode !== "dry_run_contract" ||
+    queueRecord.providerSendEnabled ||
+    queueRecord.recipientPayloadsCreated
+  ) {
+    return {
+      ok: false,
+      status: "queue_gate_not_ready",
+      message: "Queue readiness must stay in dry-run mode without provider sends or recipient payloads before batch recording.",
+      redaction,
+    };
+  }
+
+  const batchId = `broadcast-delivery-batch-${crypto.randomUUID()}`;
+  await db
+    .prepare(
+      `INSERT INTO audience_broadcast_delivery_batches (
+        id, draft_id, schedule_intent_id, status, queue_name, queue_mode, expected_draft_updated_at,
+        ready_recipient_count, held_recipient_count, active_suppression_count,
+        unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+        recipient_payloads_created, provider_message_ids_created, idempotency_key,
+        actor_user_id, actor_email, metadata_json, created_at, updated_at
+      ) VALUES (?, ?, ?, 'delivery_batch_dry_run_recorded', ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, ?, ?, ?, ?, unixepoch(), unixepoch())`,
+    )
+    .bind(
+      batchId,
+      draft.id,
+      scheduleIntent.id,
+      queueRecord.queueName,
+      queueRecord.queueMode,
+      expectedDraftUpdatedAt,
+      draft.readyRecipientCount,
+      heldRecipientCount(draft),
+      readiness.counts.activeSuppressionEntries,
+      previewRecord.unsubscribeFooterPolicy,
+      queueRecord.senderDomainGate,
+      idempotencyKey,
+      input.actor.userId,
+      input.actor.email,
+      JSON.stringify({
+        issue: audienceBroadcastDeliveryBatchIssue,
+        scheduleIntentId: scheduleIntent.id,
+        previewSafetyId: previewRecord.id,
+        queueReadinessId: queueRecord.id,
+        providerSendEnabled: false,
+        recipientPayloadsCreated: false,
+        sendQueueRowsCreated: false,
+        providerMessageIdsIncluded: false,
+        privateContactDataIncluded: false,
+      }),
+    )
+    .run();
+
+  const batch = await findDeliveryBatchByIdempotency(db, idempotencyKey);
+  if (!batch) {
+    return {
+      ok: false,
+      status: "batch_not_created",
+      message: "The broadcast delivery batch dry run could not be saved.",
+      redaction,
+    };
+  }
+
+  return {
+    ok: true,
+    status: "broadcast_delivery_batch_recorded",
+    duplicate: false,
+    batch: publicDeliveryBatch(batch, false),
     redaction,
   };
 }
