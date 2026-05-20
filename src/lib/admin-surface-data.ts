@@ -216,8 +216,8 @@ const issue222BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-222-paid-publisher-subdomains";
 const issue223BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-223-custom-domain-dns";
-const issue224BranchActionsUrl =
-  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-224-cross-subdomain-auth";
+const issue224PrUrl = "https://github.com/markitics/bumpgrade/pull/230";
+const issue224CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26164091138";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -324,19 +324,20 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
   },
   "journey-customer-uses-one-login-across-bumpgrade-subdomains": {
-    status: "partial",
+    status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local contract tests plus GitHub Actions CI linked from the issue #224 branch query.",
-    method: "Better Auth configuration assertions, account source-data inspection, and route smoke tests.",
+    environment: "Local contract tests, GitHub Actions CI, and production source-data smoke after Worker version cd663146-20c5-4899-a43f-5faec8c720a5.",
+    method: "Better Auth configuration assertions, account source-data inspection, GitHub Actions browser journeys, and production route smoke tests.",
     summary:
       "The production auth contract uses the bumpgrade.com cookie domain and *.bumpgrade.com trusted origin so Bumpgrade-hosted publisher subdomains share identity while tenant access stays scoped.",
     ciLinks: [
-      { label: "Issue #224 branch CI", url: issue224BranchActionsUrl, kind: "ci" },
+      { label: "PR #230 CI run", url: issue224CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [],
     validationLinks: [
       { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "PR #230", url: issue224PrUrl, kind: "pr" },
       { label: "Issue #224", url: "https://github.com/markitics/bumpgrade/issues/224", kind: "issue" },
     ],
     notes: [

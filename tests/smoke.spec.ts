@@ -4332,7 +4332,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "shipped", issue: 222 }),
         expect.objectContaining({ id: "roadmap-custom-domain-onboarding", status: "shipped", issue: 223 }),
-        expect.objectContaining({ id: "roadmap-cross-subdomain-customer-auth", status: "active", issue: 224 }),
+        expect.objectContaining({ id: "roadmap-cross-subdomain-customer-auth", status: "shipped", issue: 224 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
@@ -4419,10 +4419,10 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-better-auth",
           issueNumbers: expect.arrayContaining([221, 222, 223, 224]),
           proof: expect.objectContaining({
-            status: "partial",
+            status: "passed",
             lastTestedAt: expect.any(String),
             ciLinks: expect.arrayContaining([
-              expect.objectContaining({ url: expect.stringContaining("issue-224-cross-subdomain-auth") }),
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26164091138") }),
             ]),
             notes: expect.arrayContaining([
               expect.stringContaining("screenshot was not attached"),
