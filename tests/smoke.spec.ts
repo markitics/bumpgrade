@@ -4294,7 +4294,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "shipped", issue: 222 }),
-        expect.objectContaining({ id: "roadmap-custom-domain-onboarding", status: "active", issue: 223 }),
+        expect.objectContaining({ id: "roadmap-custom-domain-onboarding", status: "shipped", issue: 223 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
