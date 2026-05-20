@@ -5,6 +5,7 @@ import {
   CalendarClock,
   Database,
   FileText,
+  Gauge,
   ListChecks,
   MailCheck,
   MailX,
@@ -30,6 +31,7 @@ import {
   audienceBroadcastDispatchAttemptIssue,
   audienceBroadcastDispatchPreflightIssue,
   audienceBroadcastProviderEventReadinessIssue,
+  audienceBroadcastProviderRateLimitReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
@@ -37,6 +39,7 @@ import {
   getAudienceBroadcastDispatchPreflightSummary,
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastProviderEventReadinessSummary,
+  getAudienceBroadcastProviderRateLimitReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
@@ -78,6 +81,7 @@ export default async function AdminAudiencePage() {
     broadcastDispatchAttempts,
     broadcastSenderDomainReadiness,
     broadcastProviderEventReadiness,
+    broadcastProviderRateLimitReadiness,
   ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
@@ -90,6 +94,7 @@ export default async function AdminAudiencePage() {
       getAudienceBroadcastDispatchAttemptSummary(),
       getAudienceBroadcastSenderDomainReadinessSummary(),
       getAudienceBroadcastProviderEventReadinessSummary(),
+      getAudienceBroadcastProviderRateLimitReadinessSummary(),
     ]);
 
   return (
@@ -106,7 +111,8 @@ export default async function AdminAudiencePage() {
             Cloudflare Queue dispatch or provider sends are allowed. Dispatch attempt receipts prove the final handoff
             stays receipt-only before producers exist, and sender-domain readiness keeps live delivery blocked until
             SPF/DKIM/DMARC alignment evidence is explicit. Provider-event readiness keeps bounces and complaints
-            redacted before provider webhooks exist. Public source-data stays aggregate-only.
+            redacted before provider webhooks exist. Provider rate-limit readiness keeps throttles, retries, and
+            backpressure explicit before live sends. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -252,6 +258,75 @@ export default async function AdminAudiencePage() {
               {broadcastProviderEventReadiness.counts.rawProviderPayloadsStoredRecords} raw payloads stored.
             </p>
           </div>
+          <div>
+            <Gauge aria-hidden="true" />
+            <h3>Provider limits</h3>
+            <p>
+              {broadcastProviderRateLimitReadiness.counts.providerRateLimitReadinessRecords} rate-limit contract
+              {broadcastProviderRateLimitReadiness.counts.providerRateLimitReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastProviderRateLimitReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Provider rate-limit readiness</p>
+            <h2>Provider throttles stay explicit before live sends</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastProviderRateLimitReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastProviderRateLimitReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastProviderRateLimitReadiness.records.length > 0 ? (
+            broadcastProviderRateLimitReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.providerName.replaceAll("_", " ")}</span>
+                </div>
+                <Gauge aria-hidden="true" />
+                <h3>{record.throttleWindow.replaceAll("_", " ")}</h3>
+                <p>{record.providerLimitPolicy.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Daily limit</strong>
+                  <span>{record.dailyLimitPolicy.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Burst limit</strong>
+                  <span>{record.burstLimitPolicy.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Retry/backoff</strong>
+                  <span>{record.retryBackoffPolicy.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue backpressure</strong>
+                  <span>{record.queueBackpressurePolicy.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Provider sends, provider limit secrets, raw provider payloads, provider responses, provider message IDs,
+                  recipient payloads, and Cloudflare Queue producers remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No provider limits</span>
+                <span className="admin-pill">Issue #{audienceBroadcastProviderRateLimitReadinessIssue}</span>
+              </div>
+              <h3>No provider rate-limit readiness records</h3>
+              <p>
+                {broadcastProviderRateLimitReadiness.loadError ??
+                  "Run the provider rate-limit readiness migration to seed throttle and backoff metadata."}
+              </p>
+            </article>
+          )}
         </div>
       </section>
 

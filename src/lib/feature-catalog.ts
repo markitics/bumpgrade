@@ -13,7 +13,7 @@ export type FeatureRecord = {
   agentContract: string;
 };
 
-export const featureCatalogUpdatedAt = "2026-05-19";
+export const featureCatalogUpdatedAt = "2026-05-20";
 
 export const featureCatalog: FeatureRecord[] = [
   {
@@ -245,6 +245,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-confirmed dispatch attempt receipts from issue #197.",
       "Sender-domain readiness gates from issue #199.",
       "Provider-event readiness gates from issue #201.",
+      "Provider rate-limit readiness gates from issue #203.",
       "Campaigns, sequences, broadcasts, and behavior-triggered automations.",
       "CRM-lite contact timelines and opportunity states.",
       "Consent, unsubscribe, and deliverability boundaries.",
@@ -266,10 +267,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #197 adds dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Issue #199 adds sender-domain readiness gates without private DNS credentials, Cloudflare Queue producers, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Issue #201 adds provider-event readiness gates without provider secrets, raw provider payloads, recipient payloads, provider sends, provider responses, or provider message IDs.",
+      "Issue #203 adds provider rate-limit readiness gates without provider secrets, provider limit secrets, raw provider payloads, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Codex project email tracked separately by issue #10.",
     ],
     agentContract:
-      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, preview safety, queue readiness, delivery-batch, queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, and provider-event readiness counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, owner schedule-intent metadata, owner delivery-batch metadata, owner queue-message metadata, owner dispatch-preflight metadata, and owner dispatch-attempt receipt metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, queue payload bodies, provider responses, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, sender-domain safety, provider-event safety, queue safety, and provider limits.",
+      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, preview safety, queue readiness, delivery-batch, queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, provider-event readiness, and provider rate-limit readiness counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, owner schedule-intent metadata, owner delivery-batch metadata, owner queue-message metadata, owner dispatch-preflight metadata, and owner dispatch-attempt receipt metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, queue payload bodies, provider responses, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, sender-domain safety, provider-event safety, provider rate-limit safety, queue safety, and provider limits.",
   },
   {
     id: "feature-analytics-testing",
