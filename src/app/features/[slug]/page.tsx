@@ -39,7 +39,13 @@ export async function generateMetadata({ params }: FeaturePageProps): Promise<Me
 }
 
 function availabilityLabel(status: string) {
-  return status === "live" ? "Available now" : "In build";
+  if (status === "live") return "Available now";
+  if (status === "launch-preview") return "Launch preview";
+  return "In build";
+}
+
+function availabilityClass(status: string) {
+  return status === "live" ? "live" : status === "launch-preview" ? "active" : "pending";
 }
 
 export default async function MarketingFeaturePage({ params }: FeaturePageProps) {
@@ -66,7 +72,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
     offers: {
       "@type": "Offer",
       url: `${site.url}/pricing`,
-      availability: feature.status === "live" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+      availability: feature.status === "pending" ? "https://schema.org/PreOrder" : "https://schema.org/InStock",
     },
   };
 
@@ -93,7 +99,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
         <aside className="feature-detail-media">
           <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} priority unoptimized />
           <div>
-            <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+            <span className={`status-badge ${availabilityClass(feature.status)}`}>
               {availabilityLabel(feature.status)}
             </span>
             <strong>{feature.title}</strong>

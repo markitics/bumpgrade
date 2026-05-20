@@ -30,6 +30,12 @@ function proofStatusLabel(status: string | undefined) {
   return "Partial";
 }
 
+function featureStatusClass(status: string) {
+  if (status === "live") return "shipped";
+  if (status === "launch-preview") return "active";
+  return "planned";
+}
+
 function linkList(links: AdminLink[] | undefined, emptyLabel: string) {
   if (!links?.length) return <span>{emptyLabel}</span>;
   return (
@@ -97,7 +103,9 @@ export default async function UserJourneysPage() {
             return (
               <article key={journey.id} className="admin-surface-card journey-proof-card">
                 <div className="roadmap-card-top">
-                  <span className={`status-badge ${journey.featureStatus === "live" ? "shipped" : "planned"}`}>{journey.featureStatus}</span>
+                  <span className={`status-badge ${featureStatusClass(journey.featureStatus)}`}>
+                    {journey.featureStatus.replaceAll("-", " ")}
+                  </span>
                   <span className={`status-badge ${proof?.status === "passed" ? "live" : "pending"}`}>
                     {proofStatusLabel(proof?.status)}
                   </span>

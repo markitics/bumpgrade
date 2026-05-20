@@ -1,4 +1,4 @@
-export type FeatureStatus = "live" | "pending";
+export type FeatureStatus = "live" | "launch-preview" | "pending";
 
 export type FeatureRecord = {
   id: string;
@@ -67,10 +67,10 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 6,
     summary:
-      "Public `/features` surface with live and pending badges, stable feature IDs, GitHub issue links, screenshots, and `/features/source-data` JSON.",
+      "Public `/features` surface with live and launch-preview badges, stable feature IDs, GitHub issue links, screenshots, and `/features/source-data` JSON.",
     audience: "Prospects and agents who need to distinguish deployed Bumpgrade surfaces from roadmap targets.",
     expectedCapabilities: [
-      "Live and pending feature badges.",
+      "Live and launch-preview feature badges.",
       "Feature records with stable IDs, groups, issues, evidence, and agent-contract notes.",
       "Agent-readable JSON at `/features/source-data`.",
       "Sitemap and llms.txt discovery.",
@@ -80,7 +80,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Live smoke checks returned HTTP 200 for `/features`, `/features/source-data`, and screenshots.",
     ],
     agentContract:
-      "Agents may treat live feature records as deployed and must treat pending records as roadmap targets until their issue evidence changes.",
+      "Agents may treat live feature records as deployed product surfaces. Launch-preview records have shipped routes, previews, source-data, or owner-gated workflows, but their agent contracts still name any billing, sending, payout, destructive, mobile distribution, or direct-agent-write limits.",
   },
   {
     id: "feature-public-roadmap",
@@ -108,7 +108,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-funnel-builder",
     title: "Funnel and page builder",
     group: "Funnels and pages",
-    status: "pending",
+    status: "launch-preview",
     issue: 14,
     summary:
       "Multi-step funnels, opt-in pages, sales pages, templates, publishing, and page state that agents can inspect safely.",
@@ -151,7 +151,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-checkout-offers",
     title: "Checkout, order bumps, upsells, and downsells",
     group: "Checkout and offers",
-    status: "pending",
+    status: "launch-preview",
     issue: 15,
     summary:
       "Stripe-backed checkout flows with offer ladders, bumps, one-click upsells, downsells, subscriptions, and audit trails.",
@@ -183,7 +183,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-products-access",
     title: "Products, downloads, courses, memberships, and subscriptions",
     group: "Products and access",
-    status: "pending",
+    status: "launch-preview",
     issue: 16,
     summary:
       "Digital products, course structures, download delivery, membership access, fulfillment state, and recurring subscriptions.",
@@ -228,7 +228,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-email-automation-crm",
     title: "Email marketing, list growth, automations, and CRM-lite",
     group: "Growth system",
-    status: "pending",
+    status: "launch-preview",
     issue: 17,
     summary:
       "Forms, subscribers, tags, campaigns, automations, lifecycle events, and lightweight contact/opportunity tracking.",
@@ -289,7 +289,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-analytics-testing",
     title: "Analytics, A/B testing, and conversion tracking",
     group: "Optimization",
-    status: "pending",
+    status: "launch-preview",
     issue: 18,
     summary:
       "Conversion events, funnel analytics, checkout metrics, experiments, UTM tracking, and source-linked reporting.",
@@ -325,7 +325,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-affiliates-referrals",
     title: "Affiliate and referral management",
     group: "Growth system",
-    status: "pending",
+    status: "launch-preview",
     issue: 19,
     summary:
       "Referral links, affiliate partners, commission rules, attribution, public-safe payout preparation, and partner performance reporting.",
@@ -493,7 +493,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-mobile-admin",
     title: "Publisher admin apps for iOS and Android",
     group: "Mobile",
-    status: "pending",
+    status: "launch-preview",
     issue: 13,
     summary:
       "Shared mobile-admin contract and planned native iOS/Android app slices for monitoring launches, offers, work logs, and agent handoffs on mobile.",
