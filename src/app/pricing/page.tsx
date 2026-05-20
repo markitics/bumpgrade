@@ -25,6 +25,7 @@ const launchPlans = [
       "Feature, funnel, offer, product, audience, analytics, and affiliate previews",
       "Source-data routes for agents and launch review",
       "Bumpgrade subdomain reservation after the paid launch-pilot gate is active",
+      "Existing-domain DNS instructions after the default hostname is reserved",
       "Owner-reviewed setup before live customer payments",
     ],
   },
@@ -38,6 +39,7 @@ const launchPlans = [
     features: [
       "Funnel and checkout path mapped to your launch",
       "Default Bumpgrade subdomain for your publisher workspace",
+      "Bring-your-own-domain setup with CNAME verification state",
       "Email, CRM, and follow-up readiness review",
       "Stripe payment setup reviewed before live charges",
     ],
@@ -61,6 +63,11 @@ const paymentOptions = [
   {
     title: "Bumpgrade subdomain",
     body: "Paid publishers can reserve a default hostname such as your-name.bumpgrade.com from account setup before adding a custom domain.",
+    icon: Globe2,
+  },
+  {
+    title: "Existing domain",
+    body: "Paid publishers can add a domain they already own, copy Bumpgrade's CNAME target, and re-check DNS before activation.",
     icon: Globe2,
   },
   {

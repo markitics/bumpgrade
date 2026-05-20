@@ -132,6 +132,10 @@ Issue #9 added the first Better Auth foundation:
   account source data at `/account/source-data`, and
   `POST /api/account/publisher/subdomain` for paid-gated
   `*.bumpgrade.com` reservation.
+- Issue #223 adds existing-domain onboarding through
+  `POST /api/account/publisher/custom-domain`. Paid publishers can copy the
+  required CNAME target, `custom-domains.bumpgrade.com`, and re-check DNS
+  verification state without exposing private DNS credentials.
 - Production Better Auth trusts `https://*.bumpgrade.com` and uses the
   `bumpgrade.com` cookie domain so one login can work across the root app and
   default Bumpgrade publisher subdomains.

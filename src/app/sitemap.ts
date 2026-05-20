@@ -23,6 +23,7 @@ const sourceDataRoutes = [
   "/content/source-data",
   "/account/source-data",
   "/api/account/publisher/subdomain",
+  "/api/account/publisher/custom-domain",
   "/affiliates/source-data",
   "/audience/source-data",
   "/analytics/source-data",

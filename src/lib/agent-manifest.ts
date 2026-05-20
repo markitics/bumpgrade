@@ -1,5 +1,5 @@
 import { site } from "@/lib/site";
-import { publisherTenantIssue, publisherTenantParentIssue } from "@/lib/publisher-tenants";
+import { publisherCustomDomainIssue, publisherTenantIssue, publisherTenantParentIssue } from "@/lib/publisher-tenants";
 
 export const agentManifestUpdatedAt = "2026-05-20";
 
@@ -206,20 +206,27 @@ export const agentReadContracts: AgentReadContract[] = [
   },
   {
     id: "read-publisher-account-setup",
-    title: "Publisher account and Bumpgrade subdomain setup",
+    title: "Publisher account, subdomain, and custom-domain setup",
     route: "/account/source-data",
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/publisher-tenants.ts and D1 publisher tenant tables",
-    stableIds: ["publisherTenantId", "publisherSubdomainReservationId", "publisherPlanEntitlementId", "issue"],
+    stableIds: [
+      "publisherTenantId",
+      "publisherSubdomainReservationId",
+      "publisherCustomDomainId",
+      "publisherPlanEntitlementId",
+      "issue",
+    ],
     safeForAgents: [
       "Read paid-plan gate requirements",
       "Read default Bumpgrade subdomain reservation policy",
+      "Read custom-domain DNS instruction and verification policy",
       "Read cross-subdomain auth configuration",
-      "Distinguish Bumpgrade subdomains from custom-domain and domain-purchase work",
+      "Distinguish Bumpgrade subdomains, existing custom domains, and domain-purchase work",
     ],
     writeBoundary:
-      "Subdomain reservation requires a signed-in, email-confirmed publisher with active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redacted outputs; custom-domain and domain-purchase writes are separate issue slices.",
+      "Subdomain reservation and custom-domain onboarding require a signed-in, email-confirmed publisher with active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redacted outputs; buying domains is a separate issue slice.",
   },
   {
     id: "read-funnel-contract",
@@ -859,10 +866,16 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-publisher-account-setup",
     route: "/account/source-data",
     resolves:
-      "Paid publisher tenant setup, Bumpgrade subdomain reservation rules, D1 table boundaries, cross-subdomain auth configuration, and custom-domain/domain-purchase exclusions.",
-    stableIds: ["publisherTenantId", "publisherSubdomainReservationId", "publisherPlanEntitlementId", "issue"],
+      "Paid publisher tenant setup, Bumpgrade subdomain reservation rules, custom-domain DNS onboarding, D1 table boundaries, cross-subdomain auth configuration, and domain-purchase exclusions.",
+    stableIds: [
+      "publisherTenantId",
+      "publisherSubdomainReservationId",
+      "publisherCustomDomainId",
+      "publisherPlanEntitlementId",
+      "issue",
+    ],
     volatileClaims:
-      "Default Bumpgrade subdomain reservation is live for paid or launch-pilot accounts; custom-domain DNS verification and buying domains through Bumpgrade require issues #223 and #225.",
+      `Default Bumpgrade subdomain reservation and existing-domain DNS onboarding are live for paid or launch-pilot accounts; buying domains through Bumpgrade requires issue #225.`,
   },
   {
     id: "evidence-funnels",
@@ -1184,9 +1197,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://publisher-account",
     status: "ready-contract",
     backedBy: "/account/source-data",
-    purpose: `Expose paid publisher tenant and Bumpgrade subdomain setup from issues #${publisherTenantParentIssue} and #${publisherTenantIssue}.`,
+    purpose: `Expose paid publisher tenant, Bumpgrade subdomain setup, and custom-domain DNS onboarding from issues #${publisherTenantParentIssue}, #${publisherTenantIssue}, and #${publisherCustomDomainIssue}.`,
     safetyBoundary:
-      "Read-only MCP resource for setup policy; reserving a subdomain requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redaction.",
+      "Read-only MCP resource for setup policy; reserving a subdomain or starting custom-domain onboarding requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, DNS verification state, and redaction.",
   },
   {
     id: "mcp-tool-propose-update",

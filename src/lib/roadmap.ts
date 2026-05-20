@@ -150,7 +150,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-paid-publisher-subdomains",
     title: "Paid publisher tenants and Bumpgrade subdomains",
-    status: "active",
+    status: "shipped",
     issue: 222,
     featureId: featureIdFor(9),
     group: "Accounts and domains",
@@ -164,7 +164,24 @@ export const roadmapItems: RoadmapItem[] = [
       "Better Auth is configured with the `https://*.bumpgrade.com` trusted origin pattern and `bumpgrade.com` cross-subdomain cookie domain in production.",
     ],
     nextMilestone:
-      "Add custom-domain DNS guidance and verification state in issue #223, then decide and implement the domain purchase path in issue #225.",
+      "Use the paid-gated account and default subdomain foundation as the base for custom-domain DNS onboarding, domain purchase, and publisher site auth.",
+  },
+  {
+    id: "roadmap-custom-domain-onboarding",
+    title: "Custom domain DNS onboarding and verification",
+    status: "active",
+    issue: 223,
+    featureId: featureIdFor(9),
+    group: "Accounts and domains",
+    summary:
+      "Paid publishers can add an existing custom domain, receive deterministic CNAME instructions, and re-check DNS verification state from account setup without exposing private DNS credentials.",
+    publicEvidence: [
+      "Issue #223 tracks the custom-domain DNS onboarding slice.",
+      "`/account/setup` is the signed-in publisher setup surface for custom domains.",
+      "`/account/source-data` exposes the public-safe custom-domain DNS contract.",
+      "`POST /api/account/publisher/custom-domain` starts onboarding and re-checks DNS for paid, email-confirmed publishers with a default Bumpgrade hostname.",
+    ],
+    nextMilestone: "Add custom-domain auth semantics in issue #224, then domain purchase decisions in issue #225.",
   },
   {
     id: "roadmap-stripe-commerce",
