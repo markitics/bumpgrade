@@ -209,7 +209,7 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
-const launchProofUpdatedAt = "2026-05-20T13:42:45.000Z";
+const launchProofUpdatedAt = "2026-05-20T14:31:00.000Z";
 const issue217PrUrl = "https://github.com/markitics/bumpgrade/pull/218";
 const issue217CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26155451076";
 const issue222PrUrl = "https://github.com/markitics/bumpgrade/pull/227";
@@ -221,6 +221,8 @@ const issue224PrUrl = "https://github.com/markitics/bumpgrade/pull/230";
 const issue224CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26164091138";
 const issue225PrUrl = "https://github.com/markitics/bumpgrade/pull/232";
 const issue225CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26166024751";
+const issue226PrUrl = "https://github.com/markitics/bumpgrade/pull/233";
+const issue226CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26168608279";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -245,22 +247,26 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-prospect-explores-launch-marketing": {
     status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local launch branch, GitHub Actions CI, merged PR #218, and deployed screenshot evidence.",
-    method: "Public route smoke tests, sitemap checks, feature source-data checks, and launch screenshots.",
-    summary: "Homepage, feature index, feature detail, pricing, and source-data routes have route and screenshot proof for the invite wave.",
+    environment: "Local launch branch, GitHub Actions CI, merged PRs #218 and #233, deployed screenshots, and production route smoke.",
+    method: "Public route smoke tests, sitemap checks, feature source-data checks, production visible-text smoke, and launch screenshots.",
+    summary: "Homepage, feature index, feature detail, pricing, account setup, and source-data routes have route, CI, and screenshot proof for the invite wave.",
     ciLinks: [
       { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
+      { label: "PR #233 CI run", url: issue226CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
-      { label: "Homepage launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-homepage.png", kind: "screenshot" },
-      { label: "Features launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-features.png", kind: "screenshot" },
-      { label: "Pricing launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png", kind: "screenshot" },
+      { label: "Homepage issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-homepage.png", kind: "screenshot" },
+      { label: "Features issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-features.png", kind: "screenshot" },
+      { label: "Order bump issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-order-bump.png", kind: "screenshot" },
     ],
     validationLinks: [
       { label: "Feature source data", url: "https://bumpgrade.com/features/source-data", kind: "source-data" },
       { label: "PR #218", url: issue217PrUrl, kind: "pr" },
+      { label: "PR #233", url: issue226PrUrl, kind: "pr" },
       { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
+      { label: "Issue #226", url: "https://github.com/markitics/bumpgrade/issues/226", kind: "issue" },
+      { label: "Issue #234", url: "https://github.com/markitics/bumpgrade/issues/234", kind: "issue" },
     ],
     notes: ["This proof is for launch marketing readiness; feature-specific billing and provider-send claims still require their own evidence."],
   },
@@ -273,17 +279,21 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ciLinks: [
       { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
       { label: "PR #232 CI run", url: issue225CiRunUrl, kind: "ci" },
+      { label: "PR #233 CI run", url: issue226CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
-      { label: "Pricing launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png", kind: "screenshot" },
+      { label: "Pricing issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-pricing.png", kind: "screenshot" },
+      { label: "Account setup issue #226 screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-226-account-setup.png", kind: "screenshot" },
     ],
     validationLinks: [
       { label: "Commerce source data", url: "https://bumpgrade.com/commerce/source-data", kind: "source-data" },
       { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
       { label: "PR #232", url: issue225PrUrl, kind: "pr" },
+      { label: "PR #233", url: issue226PrUrl, kind: "pr" },
       { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
       { label: "Issue #226", url: "https://github.com/markitics/bumpgrade/issues/226", kind: "issue" },
+      { label: "Issue #234", url: "https://github.com/markitics/bumpgrade/issues/234", kind: "issue" },
     ],
     notes: [
       "Bumpgrade pilot payment can be handled through a confirmed payment path, but customer-facing publisher checkout remains offer-specific.",
@@ -563,7 +573,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect explores Bumpgrade launch features",
     featureId: "feature-public-feature-catalog",
     featureStatus: "live",
-    issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217, 226],
+    issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217, 226, 234],
     primaryUser: "Publisher invited to try Bumpgrade",
     userGoal: "Understand what Bumpgrade can do for a launch without needing to decode project management notes.",
     sourceEvidence: [
@@ -591,6 +601,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     validation: [
       "Issue #217 adds launch marketing pages, dedicated feature routes, sitemap entries, screenshots, and CI wiring.",
       "Issue #226 removes internal status-board language from public launch copy and refreshes pricing/domain readiness proof.",
+      "Issue #234 refreshes launch user-journey proof with the latest PR #233 CI and issue #226 screenshot links.",
       "Playwright smoke tests cover homepage, /features, dedicated feature pages, /pricing, and source-data routes.",
     ],
     proof: createJourneyProof("journey-prospect-explores-launch-marketing", "feature-public-feature-catalog"),
@@ -710,7 +721,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect reviews launch pricing and payment options",
     featureId: "feature-resources-use-cases-pricing",
     featureStatus: "live",
-    issueNumbers: [20, 46, 217, 222, 223, 225, 226],
+    issueNumbers: [20, 46, 217, 222, 223, 225, 226, 234],
     primaryUser: "Publisher deciding whether to request Bumpgrade access",
     userGoal: "Understand how early access, paid pilots, and live payment handling work before inviting buyers.",
     sourceEvidence: [
@@ -737,6 +748,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #217 rewrites pricing as launch-facing copy.",
       "Issue #225 clarifies the domain purchase policy.",
       "Issue #226 refreshes launch signup and pricing copy for paid domain readiness.",
+      "Issue #234 refreshes pricing user-journey proof with the latest PR #233 CI and issue #226 screenshot links.",
       "The pricing page links to human contact paths instead of an unverified live checkout button.",
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),

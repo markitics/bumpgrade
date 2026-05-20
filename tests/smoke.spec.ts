@@ -4408,27 +4408,31 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-prospect-explores-launch-marketing",
           featureId: "feature-public-feature-catalog",
-          issueNumbers: expect.arrayContaining([217]),
+          issueNumbers: expect.arrayContaining([217, 226, 234]),
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
-            ciLinks: expect.arrayContaining([expect.objectContaining({ url: expect.stringContaining("github.com/markitics/bumpgrade/actions") })]),
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26168608279") }),
+            ]),
             screenshotLinks: expect.arrayContaining([
-              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-features.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-features.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-order-bump.png" }),
             ]),
           }),
         }),
         expect.objectContaining({
           id: "journey-prospect-reviews-launch-pricing",
           featureId: "feature-resources-use-cases-pricing",
-          issueNumbers: expect.arrayContaining([217]),
+          issueNumbers: expect.arrayContaining([217, 226, 234]),
           proof: expect.objectContaining({
             status: "passed",
             ciLinks: expect.arrayContaining([
-              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26166024751") }),
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26168608279") }),
             ]),
             screenshotLinks: expect.arrayContaining([
-              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-pricing.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-account-setup.png" }),
             ]),
           }),
         }),
