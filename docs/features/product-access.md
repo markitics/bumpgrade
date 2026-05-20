@@ -12,7 +12,9 @@ first seeded private R2-backed fixture delivery path through Bumpgrade. Issue
 #147 adds redemption-time revalidation, issue #151 adds owner-confirmed private
 asset upload intent records, and issue #179 adds non-destructive revocation
 intent readiness. Issue #181 adds protected content readiness metadata, and
-issue #185 adds checkout-intent-scoped protected fixture delivery.
+issue #185 adds checkout-intent-scoped protected fixture delivery. Issue #187
+adds subscription-backed membership entitlement state from trusted Stripe
+Billing webhooks.
 
 Live in this slice:
 
@@ -41,6 +43,11 @@ Live in this slice:
   fixture bodies only when the request includes a known checkout intent, a
   matching active entitlement, and a protected content section id, and the
   checkout is still paid or completed.
+- `billing_subscriptions` plus `product_entitlements`: trusted
+  `customer.subscription.created`, `customer.subscription.updated`, and
+  `customer.subscription.deleted` webhooks mirror Stripe Billing state and sync
+  checkout-linked membership access while the subscription is active or
+  trialing.
 - `/api/admin/products/assets`: lets verified owners create small private asset
   upload records after exact confirmation, idempotency, and catalog revision
   checks without exposing object keys, signed URLs, or upload bodies.
@@ -61,7 +68,9 @@ Not live in this slice:
   posts, customer delivery of arbitrary private R2-backed asset uploads, or live
   fulfillment delivery.
 - Subscription access changes, refunds, destructive revocations, or customer
-  portal actions.
+  portal actions. The issue #187 fixture can activate or pause one seeded
+  checkout-linked membership entitlement from trusted subscription state, but it
+  does not expose self-service subscription management or live fulfillment.
 - Agent write tools for granting, revoking, or delivering product access.
 
 Public redaction boundary:
@@ -84,9 +93,13 @@ Public redaction boundary:
   protected content readiness records. `/api/products/protected-content` can
   return seeded fixture bodies only after active entitlement, product/template
   scope, and trusted checkout-state checks.
+- `/products/source-data` exposes aggregate subscription-backed membership
+  access counts and public-safe policy text. `/api/products/entitlements` can
+  show checkout-linked membership entitlement state after trusted Billing events
+  without exposing raw Stripe subscription or customer IDs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   private R2 object keys, signed URLs, real lesson bodies, member posts,
-  transcripts, and progress rows remain server-private.
+  transcripts, Customer Portal URLs, and progress rows remain server-private.
 
 Future product/access writes must require actor identity, exact confirmation,
 idempotency, stale-state checks, audit correlation, redaction, and trusted

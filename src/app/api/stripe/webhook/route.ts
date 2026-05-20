@@ -2,7 +2,12 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-import { grantEntitlementsForPaidCheckout } from "@/lib/product-entitlements";
+import {
+  grantEntitlementsForPaidCheckout,
+  subscriptionCheckoutIntentIdFromObject,
+  subscriptionMembershipStripeMetadataPriceKey,
+  syncMembershipEntitlementForSubscription,
+} from "@/lib/product-entitlements";
 import { redactedStripeEventPayload } from "@/lib/sandbox-checkout";
 import { createStripeClientFromEnv, stripeModeFromEnv } from "@/lib/stripe";
 
@@ -145,6 +150,7 @@ async function updateCheckoutIntentFromEvent(db: D1Database, event: Stripe.Event
 }
 
 type StripeSubscriptionEventObject = Stripe.Subscription & {
+  metadata?: Record<string, string> | null;
   current_period_start?: number | null;
   current_period_end?: number | null;
   cancel_at_period_end?: boolean | null;
@@ -170,20 +176,34 @@ async function updateSubscriptionFromEvent(db: D1Database, event: Stripe.Event) 
   const subscription = event.data.object as StripeSubscriptionEventObject;
   const stripeSubscriptionId = subscription.id;
   const stripePriceId = subscription.items?.data?.[0]?.price?.id ?? null;
-  const matchedPrice = stripePriceId
+  const internalPriceId = subscription.metadata?.[subscriptionMembershipStripeMetadataPriceKey] ?? subscription.metadata?.price_id ?? null;
+  const matchedPrice = internalPriceId
     ? await db
-        .prepare("SELECT id, product_id FROM commerce_prices WHERE stripe_price_id = ?")
-        .bind(stripePriceId)
+        .prepare("SELECT id, product_id FROM commerce_prices WHERE id = ?")
+        .bind(internalPriceId)
         .first<{ id: string; product_id: string }>()
+    : stripePriceId
+      ? await db
+          .prepare("SELECT id, product_id FROM commerce_prices WHERE stripe_price_id = ?")
+          .bind(stripePriceId)
+          .first<{ id: string; product_id: string }>()
+      : null;
+  const checkoutIntentId = subscriptionCheckoutIntentIdFromObject(subscription);
+  const checkoutIntent = checkoutIntentId
+    ? await db
+        .prepare("SELECT buyer_email FROM checkout_intents WHERE id = ?")
+        .bind(checkoutIntentId)
+        .first<{ buyer_email: string | null }>()
     : null;
 
   await db
     .prepare(
       `INSERT INTO billing_subscriptions (
-        id, product_id, price_id, status, stripe_customer_id, stripe_subscription_id, stripe_price_id,
+        id, buyer_email, product_id, price_id, status, stripe_customer_id, stripe_subscription_id, stripe_price_id,
         current_period_start, current_period_end, cancel_at_period_end, metadata_json, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch(), unixepoch())
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch(), unixepoch())
       ON CONFLICT(stripe_subscription_id) DO UPDATE SET
+        buyer_email=COALESCE(excluded.buyer_email, billing_subscriptions.buyer_email),
         product_id=excluded.product_id,
         price_id=excluded.price_id,
         status=excluded.status,
@@ -197,6 +217,7 @@ async function updateSubscriptionFromEvent(db: D1Database, event: Stripe.Event) 
     )
     .bind(
       `billing-subscription-${crypto.randomUUID()}`,
+      checkoutIntent?.buyer_email ?? null,
       matchedPrice?.product_id ?? null,
       matchedPrice?.id ?? null,
       subscription.status,
@@ -206,7 +227,13 @@ async function updateSubscriptionFromEvent(db: D1Database, event: Stripe.Event) 
       subscription.current_period_start ?? null,
       subscription.current_period_end ?? null,
       subscription.cancel_at_period_end ? 1 : 0,
-      JSON.stringify({ eventType: event.type, rawStripeIdsRedacted: true }),
+      JSON.stringify({
+        eventType: event.type,
+        issue: 187,
+        checkoutIntentLinked: Boolean(checkoutIntentId),
+        matchedInternalPrice: Boolean(matchedPrice),
+        rawStripeIdsRedacted: true,
+      }),
     )
     .run();
 
@@ -245,6 +272,7 @@ export async function POST(request: NextRequest) {
   const processing = await updateCheckoutIntentFromEvent(db, parsed);
   const subscriptionProcessing = await updateSubscriptionFromEvent(db, parsed);
   const entitlementProcessing = await grantEntitlementsForPaidCheckout(db, parsed);
+  const membershipAccessProcessing = await syncMembershipEntitlementForSubscription(db, parsed);
 
   return NextResponse.json({
     ok: true,
@@ -256,6 +284,9 @@ export async function POST(request: NextRequest) {
     subscriptionUpdated: subscriptionProcessing.updated,
     entitlementGrantsCreated: entitlementProcessing.created,
     entitlementGrantsSkipped: entitlementProcessing.skipped,
+    membershipEntitlementUpdated: membershipAccessProcessing.updated,
+    membershipEntitlementStatus: membershipAccessProcessing.status,
+    membershipEntitlementId: membershipAccessProcessing.entitlementId,
     redaction: {
       rawStripeIdsIncluded: false,
     },

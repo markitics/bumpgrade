@@ -1,4 +1,9 @@
-import { entitlementGrantMappings, entitlementWriteContract } from "@/lib/product-entitlements";
+import {
+  entitlementGrantMappings,
+  entitlementWriteContract,
+  subscriptionMembershipAccessContract,
+  subscriptionMembershipGrantMapping,
+} from "@/lib/product-entitlements";
 
 export type ProductAccessCatalogStatus = "draft";
 export type ProductKind = "digital_download" | "course" | "membership" | "coaching_service" | "event_webinar" | "bundle";
@@ -82,7 +87,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
   commerceContractRoute: "/commerce/source-data",
   revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, the first private R2-backed fixture delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
+    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, subscription-backed membership access, the first private R2-backed fixture delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",
@@ -304,7 +309,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, issue #181 exposes protected content readiness, and issue #185 returns seeded protected fixture bodies only after checkout-intent, entitlement, product/template scope, and trusted checkout checks. Product creation, customer delivery of arbitrary uploads, signed object URLs, subscription access changes, refunds, destructive revocations, live fulfillment automation, and direct unauthenticated agent writes require future APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, issue #181 exposes protected content readiness, issue #185 returns seeded protected fixture bodies only after checkout-intent, entitlement, product/template scope, and trusted checkout checks, and issue #187 syncs checkout-linked membership entitlement state from trusted Stripe Billing subscription events. Product creation, customer delivery of arbitrary uploads, signed object URLs, refunds, Customer Portal actions, destructive revocations, live fulfillment automation, and direct unauthenticated agent writes require future APIs.",
   validation: [
     "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
     "/products/indie-launch-library renders the product/access preview.",
@@ -314,6 +319,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
     "/api/admin/products/assets lets verified owners create small private R2-backed asset upload records without exposing private object keys, signed URLs, or upload bodies.",
     "Revocation intent readiness is inspectable without entitlement mutation, access removal, raw buyer exposure, or billing changes.",
     "Protected content readiness is inspectable without lesson bodies, member posts, progress rows, private R2 keys, signed URLs, or customer delivery.",
+    "Subscription-backed membership access is inspectable without raw Stripe subscription/customer IDs, buyer identity, member posts, private files, or Customer Portal URLs.",
     "/api/stripe/webhook grants idempotent sandbox entitlements after trusted paid checkout evidence.",
     "/agent-docs/source-data lists the product access read contract for future MCP resources.",
   ],
@@ -328,8 +334,8 @@ export function getProductAccessCatalogBySlug(slug: string) {
 export const productAccessSourceData = {
   id: "bumpgrade-product-access-source-data",
   updatedAt: productAccessUpdatedAt,
-  status: "protected-product-content-readiness-ready",
-  issue: 181,
+  status: "subscription-membership-entitlement-ready",
+  issue: 187,
   parentIssue: 16,
   generatedFrom: "src/lib/product-access.ts",
   routes: [
@@ -358,8 +364,10 @@ export const productAccessSourceData = {
   ],
   entitlementWrites: entitlementWriteContract,
   grantMappings: entitlementGrantMappings,
+  subscriptionMembershipAccess: subscriptionMembershipAccessContract,
+  subscriptionMembershipGrantMapping,
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed small private asset upload records, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, destructive revocation APIs, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unauthenticated agent writes.",
+    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, subscription-backed membership entitlement state, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed small private asset upload records, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, raw Stripe subscription/customer IDs, destructive revocation APIs, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unauthenticated agent writes.",
 };

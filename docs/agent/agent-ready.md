@@ -170,7 +170,7 @@ URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, owner upload intent metadata, non-destructive revocation intent
 readiness, protected content readiness, checkout-scoped protected fixture
-delivery metadata, and redaction flags. `/api/products/download-tokens` can create a
+delivery metadata, subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
@@ -184,8 +184,8 @@ idempotency, and product-catalog revision checks. It stores the body in
 `PRODUCT_ASSETS` under a server-only object key and returns only redacted
 metadata. This proves entitlement grant, owner-inspection, customer-safe lookup,
 private fixture delivery, seeded protected fixture delivery, and owner-confirmed private upload-record semantics,
-not signed object URLs, customer delivery of arbitrary uploads, real protected
-media delivery, destructive revocation, live fulfillment automation, or direct
+and subscription-backed membership access state, not signed object URLs, customer delivery of arbitrary uploads, real protected
+media delivery, destructive revocation, Customer Portal actions, live fulfillment automation, or direct
 unauthenticated agent write capability. `product_entitlement_revocation_intents`
 records are inspection-only until future exact-confirmed destructive APIs
 enforce owner identity, idempotency, stale-state checks, reason codes,
@@ -194,7 +194,11 @@ customer-safe notification review, audit correlation, and redaction.
 delivery scope only; future real protected delivery APIs still need active
 entitlement or subscription state, stale-state checks, audit correlation, and
 redaction before returning real lesson bodies, videos, transcripts, member posts,
-progress rows, private R2 objects, or signed URLs.
+progress rows, private R2 objects, or signed URLs. Issue #187 lets trusted
+Stripe Billing subscription webhooks activate or pause a checkout-linked seeded
+membership entitlement while keeping raw subscription/customer IDs, buyer hashes,
+Customer Portal URLs, member posts, private files, and progress data out of
+public source-data.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,

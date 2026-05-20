@@ -155,15 +155,17 @@ GitHub repo: https://github.com/markitics/bumpgrade
   product source-data exposes aggregate entitlement inspection counts, customer
   lookup contract metadata, download-token contract metadata, owner upload
   intent metadata, non-destructive revocation intent readiness, protected
-  content readiness, protected fixture delivery metadata, and redaction
+  content readiness, protected fixture delivery metadata, subscription-backed
+  membership access metadata, and redaction
   flags only. `/api/admin/products/assets` lets verified owners create small
   private asset upload records after exact confirmation, idempotency, and
   catalog revision checks, but those records are not customer-deliverable yet.
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
   fixture delivery, protected fixture delivery, owner upload-intent,
-  revocation-readiness, and protected-content-readiness evidence, not signed
+  revocation-readiness, protected-content-readiness, and subscription-membership
+  access evidence, not signed
   object URLs, customer delivery of arbitrary uploads, arbitrary protected body delivery, destructive revocation, live
-  fulfillment automation, or a confirmed-write agent API.
+  fulfillment automation, Customer Portal actions, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression
