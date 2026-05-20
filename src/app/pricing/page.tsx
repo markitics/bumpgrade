@@ -18,15 +18,15 @@ const launchPlans = [
     name: "Launch preview",
     label: "For the first invite wave",
     price: "Start with an invite",
-    description: "Use Bumpgrade to plan and preview the first funnel, offer stack, audience path, product access, and proof surfaces for a real launch.",
+    description: "Use Bumpgrade to plan and preview the first funnel, offer stack, audience path, and product access for a real launch.",
     cta: "Request launch access",
     href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access",
     features: [
       "Feature, funnel, offer, product, audience, analytics, and affiliate previews",
-      "Source-data routes for agents and launch review",
+      "Launch review links for your team and AI helpers",
       "Bumpgrade subdomain reservation after the paid launch-pilot gate is active",
       "Existing-domain DNS instructions after the default hostname is reserved",
-      "Owner-reviewed setup before live customer payments",
+      "Reviewed setup before customer-facing payments are enabled",
     ],
   },
   {
@@ -49,13 +49,13 @@ const launchPlans = [
     name: "Operator stack",
     label: "For teams and agencies",
     price: "Concierge setup",
-    description: "For operators who want repeatable launch systems, partner tracking, reporting, and agent-readable project proof across multiple offers.",
+    description: "For operators who want repeatable launch systems, partner tracking, reporting, and AI-assisted review across multiple offers.",
     cta: "Discuss operator setup",
     href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20operator%20setup",
     features: [
       "Reusable funnel and offer structures",
       "Affiliate and attribution review surfaces",
-      "Launch journey proof, screenshots, and validation notes",
+      "Launch journey review links, screenshots, and validation notes",
     ],
   },
 ];
@@ -77,13 +77,13 @@ const paymentOptions = [
     icon: Globe2,
   },
   {
-    title: "Card payments",
-    body: "Live customer charges are intended to run through Stripe-hosted payment pages once the live checkout smoke path is verified for the specific offer.",
+    title: "Pilot payments",
+    body: "Bumpgrade pilot fees can be handled through a confirmed payment path while customer-facing checkout is verified separately for each offer.",
     icon: CreditCard,
   },
   {
     title: "Stripe invoices",
-    body: "Paid pilots can be handled by a Stripe invoice when that is the safer way to confirm scope before enabling self-serve checkout.",
+    body: "Paid pilots can use a Stripe invoice when that is the cleanest way to confirm package, scope, and account entitlement before a larger rollout.",
     icon: CircleDollarSign,
   },
   {
@@ -101,7 +101,7 @@ export default function PricingPage() {
           <p className="eyebrow">Bumpgrade pricing</p>
           <h1>Launch pricing for publishers ready to try the whole growth stack.</h1>
           <p className="lede">
-            Bumpgrade is opening with invite-based access so each early publisher gets the right funnel, checkout, email, product, and analytics path before real customer payments are turned on.
+            Bumpgrade is opening with invite-based access so each early publisher gets the right funnel, checkout, email, product, analytics, subdomain, and domain plan before inviting buyers.
           </p>
           <div className="hero-actions">
             <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access" className="primary-action">
@@ -118,7 +118,7 @@ export default function PricingPage() {
           <BadgeCheck aria-hidden="true" />
           <strong>Ready for invite conversations</strong>
           <p>
-            The launch site shows the feature set, proof paths, and paid account setup. Self-serve checkout opens only after the live Stripe path is tested for the specific offer.
+            The launch site shows the feature set, paid account setup, and domain path. Customer-facing checkout for a publisher offer opens after the live Stripe path is verified for that offer.
           </p>
         </aside>
       </section>

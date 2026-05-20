@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Database, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, HeartHandshake, Sparkles } from "lucide-react";
 
 import {
   featuredMarketingFeatureSlugs,
   getMarketingFeature,
   marketingFeatureCategories,
   marketingFeatures,
-  marketingFeaturesUpdatedAt,
   type MarketingFeature,
 } from "@/lib/marketing-features";
 import { site } from "@/lib/site";
@@ -26,8 +25,9 @@ const featuredFeatures = featuredMarketingFeatureSlugs
   .map((slug) => getMarketingFeature(slug))
   .filter((feature): feature is MarketingFeature => Boolean(feature));
 
-const liveCount = marketingFeatures.filter((feature) => feature.status === "live").length;
-const pendingCount = marketingFeatures.filter((feature) => feature.status === "pending").length;
+function availabilityLabel(feature: MarketingFeature) {
+  return feature.status === "live" ? "Available now" : "In build";
+}
 
 export default function FeaturesPage() {
   return (
@@ -37,27 +37,33 @@ export default function FeaturesPage() {
           <p className="eyebrow">Bumpgrade features</p>
           <h1>Everything a publisher needs to launch, sell, deliver, and improve an offer.</h1>
           <p className="lede">
-            Bumpgrade brings together the core jobs people usually split across ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics tools. Each feature links to proof routes, issue evidence, and a deeper page.
+            Bumpgrade brings together the core jobs people usually split across ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics tools. Start with the launch workflow, then dig into the feature pages that match your offer.
           </p>
           <div className="hero-actions">
             <Link href="/pricing" className="primary-action">
               See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/features/source-data" className="secondary-action">
-              Feature source data
-              <Database aria-hidden="true" />
+            <Link href="/compare" className="secondary-action">
+              Compare alternatives
+              <BadgeCheck aria-hidden="true" />
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Feature launch status">
-          <Sparkles aria-hidden="true" />
-          <p>Launch snapshot</p>
-          <strong>{liveCount} live</strong>
-          <span>
-            {pendingCount} pending feature record. Updated {marketingFeaturesUpdatedAt}. Live means a route or preview exists; billing and provider-send claims still require their own production proof.
-          </span>
-        </aside>
+        <div className="launch-hero-media">
+          <Image
+            src="/marketing/bumpgrade-home-hero.jpg"
+            alt="A publisher founder planning a launch from a laptop."
+            width={932}
+            height={632}
+            priority
+            unoptimized
+          />
+          <div className="hero-media-overlay">
+            <strong>From idea to paid offer</strong>
+            <span>Pages, checkout, email, delivery, analytics, and next-step guidance in one workflow.</span>
+          </div>
+        </div>
       </section>
 
       <section className="content-band marketing-outcome-band">
@@ -67,7 +73,7 @@ export default function FeaturesPage() {
             <h2>The main things Bumpgrade can do for a launch.</h2>
           </div>
           <p>
-            These are customer-facing jobs, not implementation details. The deeper pages explain the use case, current availability, and where the supporting proof lives.
+            These are customer-facing jobs. The deeper pages explain the problem, outcome, use cases, and how each feature fits into a real launch.
           </p>
         </div>
         <div className="spotlight-feature-grid">
@@ -75,7 +81,9 @@ export default function FeaturesPage() {
             <article key={feature.slug} className="spotlight-feature-card">
               <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
               <div>
-                <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                  {availabilityLabel(feature)}
+                </span>
                 <p className="eyebrow">{feature.eyebrow}</p>
                 <h3>{feature.title}</h3>
                 <p>{feature.outcome}</p>
@@ -103,7 +111,9 @@ export default function FeaturesPage() {
               {categoryFeatures.map((feature) => (
                 <article key={feature.slug} className="marketing-feature-card">
                   <div className="feature-card-top">
-                    <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                    <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                      {availabilityLabel(feature)}
+                    </span>
                     <span>{feature.availability}</span>
                   </div>
                   <h3>{feature.title}</h3>
@@ -126,8 +136,8 @@ export default function FeaturesPage() {
       <section className="content-band dark-band marketing-trust-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Proof-backed claims</p>
-            <h2>Every feature page links back to source data, issues, and current boundaries.</h2>
+            <p className="eyebrow">Why it feels different</p>
+            <h2>One launch workflow instead of a stack of disconnected tools.</h2>
           </div>
           <Link href="/compare" className="secondary-action">
             Compare alternatives
@@ -136,19 +146,19 @@ export default function FeaturesPage() {
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Agent-readable</h3>
-            <p>Feature records are mirrored at `/features/source-data` for agents, SEO, and future MCP tools.</p>
+            <HeartHandshake aria-hidden="true" />
+            <h3>Built around the launch</h3>
+            <p>Plan the page, offer, checkout, email, delivery, and measurement path together.</p>
           </div>
           <div>
             <BadgeCheck aria-hidden="true" />
-            <h3>Live vs pending</h3>
-            <p>Live badges require a working route or preview. Pending badges stay tied to issue evidence.</p>
+            <h3>Honest availability</h3>
+            <p>Each page says what is available now and what still needs review before customer money or messages move.</p>
           </div>
           <div>
             <Sparkles aria-hidden="true" />
-            <h3>Dedicated pages</h3>
-            <p>Feature details live at `/features/[feature]`, including email campaigns, order bumps, landing pages, analytics, and AI help.</p>
+            <h3>Dedicated feature pages</h3>
+            <p>Each main capability has a deeper page for email campaigns, order bumps, landing pages, analytics, and AI help.</p>
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Database, GitBranch, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, Link2, Sparkles } from "lucide-react";
 
 import { getMarketingFeature, marketingFeatures, marketingFeatureUrl } from "@/lib/marketing-features";
 import { site } from "@/lib/site";
@@ -38,6 +38,10 @@ export async function generateMetadata({ params }: FeaturePageProps): Promise<Me
   };
 }
 
+function availabilityLabel(status: string) {
+  return status === "live" ? "Available now" : "In build";
+}
+
 export default async function MarketingFeaturePage({ params }: FeaturePageProps) {
   const { slug } = await params;
   const feature = getMarketingFeature(slug);
@@ -45,6 +49,11 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
   if (!feature) {
     notFound();
   }
+
+  const visibleExampleRoutes = feature.proofRoutes.filter(
+    (route) => !route.includes("/source-data") && !route.startsWith("/admin"),
+  );
+  const relatedExampleRoutes = visibleExampleRoutes.length ? visibleExampleRoutes : [feature.nextStep.href];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -84,7 +93,9 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
         <aside className="feature-detail-media">
           <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} priority unoptimized />
           <div>
-            <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+            <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+              {availabilityLabel(feature.status)}
+            </span>
             <strong>{feature.title}</strong>
             <p>{feature.availability}</p>
           </div>
@@ -139,30 +150,30 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
       <section className="content-band dark-band feature-proof-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Evidence</p>
-            <h2>Proof routes and implementation trail.</h2>
+            <p className="eyebrow">See it in Bumpgrade</p>
+            <h2>Open the related examples and decide whether this fits your launch.</h2>
           </div>
-          <Link href="/features/source-data" className="secondary-action">
-            Feature JSON
-            <Database aria-hidden="true" />
+          <Link href="/pricing" className="secondary-action">
+            Plan launch access
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="linked-record-grid">
           <article>
-            <GitBranch aria-hidden="true" />
-            <h3>Issues</h3>
-            <p>{feature.issueIds.map((issue) => `#${issue}`).join(", ")}</p>
-          </article>
-          <article>
-            <Database aria-hidden="true" />
-            <h3>Proof routes</h3>
+            <Link2 aria-hidden="true" />
+            <h3>Related examples</h3>
             <ul>
-              {feature.proofRoutes.map((route) => (
+              {relatedExampleRoutes.map((route) => (
                 <li key={route}>
                   <Link href={route}>{route}</Link>
                 </li>
               ))}
             </ul>
+          </article>
+          <article>
+            <BadgeCheck aria-hidden="true" />
+            <h3>Availability</h3>
+            <p>{feature.availability}</p>
           </article>
           <article>
             <Sparkles aria-hidden="true" />

@@ -42,6 +42,19 @@ export type PlannedPricingTrack = {
   issueNumbers: number[];
 };
 
+export type LaunchSignupPolicy = {
+  id: string;
+  status: ContentSurfaceStatus;
+  issueNumbers: number[];
+  summary: string;
+  defaultSubdomain: string;
+  customDomain: string;
+  domainPurchase: string;
+  payments: string[];
+  customerCheckout: string;
+  evidenceRoutes: string[];
+};
+
 export const contentSurfacesUpdatedAt = "2026-05-20";
 
 export const audienceSegments: AudienceSegment[] = [
@@ -244,6 +257,28 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
   },
 ];
 
+export const launchSignupPolicy: LaunchSignupPolicy = {
+  id: "launch-signup-paid-domain-readiness",
+  status: "live",
+  issueNumbers: [217, 222, 223, 225, 226],
+  summary:
+    "Bumpgrade launch access is invite-based while paid publisher accounts, default subdomains, existing-domain setup, and customer-facing payment paths are verified per offer.",
+  defaultSubdomain:
+    "A publisher can reserve a default *.bumpgrade.com hostname after a paid plan or launch-pilot entitlement is active.",
+  customDomain:
+    "Paid publishers can connect a domain they already own after reserving the default Bumpgrade hostname; Bumpgrade shows the CNAME target and verification state.",
+  domainPurchase:
+    "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
+  payments: [
+    "Bumpgrade pilot fees can use a confirmed payment path such as a Stripe invoice.",
+    "Billing-impacting publisher-offer checkout is enabled only after the live Stripe path is verified for that offer.",
+    "No public self-serve live checkout button should appear without linked smoke evidence.",
+  ],
+  customerCheckout:
+    "Customer-facing checkout is offer-specific: the sandbox flow is proven, while live-mode customer charges require a separate live Stripe smoke before launch copy may claim they are active.",
+  evidenceRoutes: ["/pricing", "/account/setup", "/account/source-data", "/commerce/source-data", "/admin/user-journeys/source-data"],
+};
+
 export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
@@ -253,6 +288,7 @@ export const contentSourceData = {
   resourceHubItems,
   pricingPrinciples,
   plannedPricingTracks,
+  launchSignupPolicy,
   caveat:
     "This source data describes public content surfaces. It does not turn planned product features, live billing, or confirmed-write agent tools into shipped capabilities.",
 };

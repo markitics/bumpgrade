@@ -491,6 +491,21 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    expect(payload.launchSignupPolicy).toEqual(
+      expect.objectContaining({
+        id: "launch-signup-paid-domain-readiness",
+        status: "live",
+        issueNumbers: expect.arrayContaining([222, 223, 225, 226]),
+        defaultSubdomain: expect.stringContaining("paid plan or launch-pilot entitlement"),
+        customDomain: expect.stringContaining("domain they already own"),
+        domainPurchase: expect.stringContaining("does not sell, register, renew, transfer, price, or check availability"),
+        payments: expect.arrayContaining([
+          expect.stringContaining("Stripe invoice"),
+          expect.stringContaining("live Stripe path is verified"),
+        ]),
+        evidenceRoutes: expect.arrayContaining(["/pricing", "/account/setup", "/account/source-data"]),
+      }),
+    );
     expect(payload.caveat).toContain("does not turn planned product features");
   });
 
@@ -4395,7 +4410,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-public-feature-catalog",
           issueNumbers: expect.arrayContaining([217]),
           proof: expect.objectContaining({
-            status: "partial",
+            status: "passed",
             lastTestedAt: expect.any(String),
             ciLinks: expect.arrayContaining([expect.objectContaining({ url: expect.stringContaining("github.com/markitics/bumpgrade/actions") })]),
             screenshotLinks: expect.arrayContaining([
@@ -4408,7 +4423,10 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-resources-use-cases-pricing",
           issueNumbers: expect.arrayContaining([217]),
           proof: expect.objectContaining({
-            status: "partial",
+            status: "passed",
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26166024751") }),
+            ]),
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png" }),
             ]),
@@ -4421,6 +4439,9 @@ test.describe("Bumpgrade scaffold", () => {
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26160043319") }),
+            ]),
           }),
         }),
         expect.objectContaining({
@@ -4430,6 +4451,9 @@ test.describe("Bumpgrade scaffold", () => {
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("/actions/runs/26166024751") }),
+            ]),
           }),
         }),
         expect.objectContaining({
