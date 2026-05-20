@@ -218,6 +218,7 @@ boundary, the owner-gated
 boundary, the owner-gated
 `/api/admin/audience/broadcasts/dispatch-attempts` dry-run dispatch attempt
 boundary,
+sender-domain readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
@@ -237,11 +238,14 @@ message IDs, and record dispatch preflight evidence without Cloudflare Queue
 dispatch, recipient payloads, provider sends, or provider message IDs, and
 record dispatch attempt receipts without Cloudflare Queue producers, queue
 payload bodies, recipient payloads, provider sends, provider responses, or
-provider message IDs. This proves seeded subscriber capture, unsubscribe
+provider message IDs, and inspect sender-domain readiness without private DNS
+credentials, raw DNS records, provider secrets, queue producers, recipient
+payloads, provider sends, provider responses, or provider message IDs. This
+proves seeded subscriber capture, unsubscribe
 evidence, owner inspection, private owner-note semantics, aggregate broadcast
 readiness, owner-confirmed dry-run schedule intent semantics, preview safety
 semantics, queue readiness semantics, delivery-batch dry-run semantics, and
-queue-message, dispatch-preflight, and dispatch-attempt dry-run semantics, not contact import, live email sending, live
+queue-message, dispatch-preflight, dispatch-attempt, and sender-domain readiness semantics, not contact import, live email sending, live
 Cloudflare Queue dispatch, recipient payloads, CRM
 automation, private export, suppression-list administration, or direct agent
 subscriber write capability.

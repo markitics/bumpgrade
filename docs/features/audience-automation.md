@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, and #197 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, and #199 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, and dispatch attempt receipts for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, and sender-domain readiness gates for issue #17.
 
 ## Live Routes
 
@@ -50,6 +50,7 @@ The first workspace includes stable IDs for:
 - owner-confirmed delivery queue message dry-run boundaries;
 - owner-confirmed dispatch preflight dry-run boundaries;
 - owner-confirmed dispatch attempt receipt boundaries;
+- sender-domain readiness boundaries;
 - public-safe aggregate subscriber, suppression, and timeline inspection counts and
   redaction flags.
 
@@ -90,23 +91,28 @@ dispatch attempt path records owner-confirmed aggregate queue-producer,
 provider-response, and final handoff receipt evidence from the current dispatch
 preflight record while still creating no Cloudflare Queue messages, queue
 payload bodies, recipient payloads, provider sends, provider responses, or
-provider message IDs. The
+provider message IDs. The sender-domain readiness path records the intended
+From address, SPF/DKIM/DMARC alignment state, reply-path policy, bounce-handling
+policy, and verification evidence status while still creating no Cloudflare Queue
+producers, recipient payloads, provider sends, provider responses, or provider
+message IDs. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
-note bodies, actor emails, recipient payloads, provider message IDs, provider
-responses, Cloudflare Queue message bodies, send queue payloads, raw IP/user-agent evidence, and
-private metadata remain excluded from public agent-readable JSON.
+note bodies, actor emails, private DNS credentials, raw DNS records, provider
+secrets, recipient payloads, provider message IDs, provider responses,
+Cloudflare Queue message bodies, send queue payloads, raw IP/user-agent evidence,
+and private metadata remain excluded from public agent-readable JSON.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
 state, including aggregate suppression counts, broadcast readiness counts, and
-schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, and the unsubscribe write boundary.
+schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, and the unsubscribe write boundary.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
 intents. They can also inspect preview/footer safety and queue readiness and
-record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, and dispatch attempt receipts without sending. Direct agent subscriber
+record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, and dispatch attempt receipts without sending. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Direct agent subscriber
 writes, imports, real email sends, CRM automation, private
 exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
