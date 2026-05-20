@@ -510,6 +510,7 @@ test.describe("Bumpgrade scaffold", () => {
         accountSetup: "/account/setup",
         accountSourceData: "/account/source-data",
         reserveSubdomainApi: "/api/account/publisher/subdomain",
+        customDomainApi: "/api/account/publisher/custom-domain",
       }),
     );
     expect(payload.subdomainPolicy).toEqual(
@@ -525,6 +526,19 @@ test.describe("Bumpgrade scaffold", () => {
         status: "configured",
         cookieDomain: "bumpgrade.com",
         trustedOriginPattern: "https://*.bumpgrade.com",
+      }),
+    );
+    expect(payload.customDomainPolicy).toEqual(
+      expect.objectContaining({
+        status: "live",
+        issue: 223,
+        paidPlanRequired: true,
+        defaultBumpgradeHostnameRequiredFirst: true,
+        dnsInstruction: expect.objectContaining({
+          recordType: "CNAME",
+          recordValue: "custom-domains.bumpgrade.com",
+        }),
+        statuses: expect.arrayContaining(["pending_dns", "dns_verified", "ssl_pending", "active"]),
       }),
     );
     expect(payload.notIncludedYet).toEqual(expect.arrayContaining(["Buying domains through Bumpgrade."]));
@@ -4279,7 +4293,8 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
-        expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "active", issue: 222 }),
+        expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "shipped", issue: 222 }),
+        expect.objectContaining({ id: "roadmap-custom-domain-onboarding", status: "active", issue: 223 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
@@ -4347,6 +4362,15 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-publisher-reserves-bumpgrade-subdomain",
           featureId: "feature-better-auth",
           issueNumbers: expect.arrayContaining([221, 222]),
+          proof: expect.objectContaining({
+            status: "passed",
+            lastTestedAt: expect.any(String),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-connects-custom-domain",
+          featureId: "feature-better-auth",
+          issueNumbers: expect.arrayContaining([221, 222, 223]),
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
@@ -4611,7 +4635,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-publisher-account-setup",
           route: "/account/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["publisherTenantId", "publisherSubdomainReservationId"]),
+          stableIds: expect.arrayContaining([
+            "publisherTenantId",
+            "publisherSubdomainReservationId",
+            "publisherCustomDomainId",
+          ]),
         }),
         expect.objectContaining({
           id: "read-funnel-contract",
@@ -6586,6 +6614,143 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/account/setup");
     await expect(page.getByRole("heading", { name: /Choose the Bumpgrade subdomain/i })).toBeVisible();
     await expect(page.getByText("Paid plan required")).toBeVisible();
+  });
+
+  test("paid publisher can add and verify an existing custom domain", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `custom-domain-publisher-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Custom Domain Publisher");
+    await verifyEmail(page, email);
+
+    const subdomain = `domain-${suffix}`.slice(0, 50);
+    const subdomainReservation = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json", "x-bumpgrade-test-plan": "allow" },
+      form: {
+        return: "json",
+        subdomain,
+        idempotencyKey: `playwright-custom-domain-subdomain-${suffix}`,
+      },
+    });
+    expect(subdomainReservation.ok(), await subdomainReservation.text()).toBeTruthy();
+
+    const domainName = `www.publisher-${suffix}.com`;
+    const customDomain = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        mode: "start",
+        domain: domainName,
+        idempotencyKey: `playwright-custom-domain-${suffix}`,
+      },
+    });
+    expect(customDomain.ok(), await customDomain.text()).toBeTruthy();
+    const customDomainPayload = await customDomain.json();
+    expect(customDomainPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 223,
+        idempotent: false,
+        customDomain: expect.objectContaining({
+          domainName,
+          normalizedDomain: domainName,
+          status: "pending_dns",
+          dnsInstruction: expect.objectContaining({
+            recordType: "CNAME",
+            recordName: domainName,
+            recordValue: "custom-domains.bumpgrade.com",
+            expectedValue: "custom-domains.bumpgrade.com",
+          }),
+          sourceIssueNumber: 223,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        mode: "start",
+        domainName,
+        idempotencyKey: `playwright-custom-domain-${suffix}`,
+      },
+    });
+    expect(replay.ok(), await replay.text()).toBeTruthy();
+    const replayPayload = await replay.json();
+    expect(replayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        idempotent: true,
+        customDomain: expect.objectContaining({ normalizedDomain: domainName }),
+      }),
+    );
+
+    const rejectedBumpgradeDomain = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        mode: "start",
+        domainName: "demo.bumpgrade.com",
+        idempotencyKey: `playwright-custom-domain-bumpgrade-${suffix}`,
+      },
+    });
+    expect(rejectedBumpgradeDomain.status()).toBe(400);
+    expect(await rejectedBumpgradeDomain.json()).toEqual(
+      expect.objectContaining({ code: "CUSTOM_DOMAIN_BUMPGRADE_HOSTNAME" }),
+    );
+
+    const verification = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json", "x-bumpgrade-test-dns": "verified" },
+      data: {
+        return: "json",
+        mode: "verify",
+        customDomainId: customDomainPayload.customDomain.id,
+      },
+    });
+    expect(verification.ok(), await verification.text()).toBeTruthy();
+    const verificationPayload = await verification.json();
+    expect(verificationPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 223,
+        verified: true,
+        customDomain: expect.objectContaining({
+          id: customDomainPayload.customDomain.id,
+          status: "dns_verified",
+          sslStatus: "pending",
+          failureReason: null,
+        }),
+      }),
+    );
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: domainName })).toBeVisible();
+    await expect(page.getByText("custom-domains.bumpgrade.com")).toBeVisible();
+    await expect(page.getByRole("article").filter({ hasText: domainName })).toContainText("dns verified");
+  });
+
+  test("unpaid publisher cannot add a custom domain", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `free-custom-domain-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Free Custom Domain");
+    await verifyEmail(page, email);
+
+    const response = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        mode: "start",
+        domainName: `www.free-${suffix}.com`,
+        idempotencyKey: `playwright-unpaid-custom-domain-${suffix}`,
+      },
+    });
+    expect(response.status()).toBe(402);
+    expect(await response.json()).toEqual(expect.objectContaining({ code: "PAID_PLAN_REQUIRED", issue: 223 }));
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: /Bring an existing domain/i })).toBeVisible();
+    await expect(page.getByText("A paid plan or launch-pilot entitlement is required before adding a custom domain.")).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

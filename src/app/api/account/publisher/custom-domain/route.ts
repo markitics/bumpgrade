@@ -4,8 +4,9 @@ import { createAuth, getAppEnv } from "@/lib/auth";
 import {
   getPublisherTenantD1OrThrow,
   PublisherTenantError,
-  reservePublisherSubdomain,
+  startPublisherCustomDomain,
   type PublisherSessionUser,
+  verifyPublisherCustomDomain,
 } from "@/lib/publisher-tenants";
 
 export const dynamic = "force-dynamic";
@@ -83,29 +84,6 @@ function redirectWithError(request: NextRequest, message: string) {
   return NextResponse.redirect(redirect, { status: 303 });
 }
 
-async function maybeGrantTestPlanEntitlement(db: D1Database, user: PublisherSessionUser, request: NextRequest) {
-  if (getAppEnv() !== "test" || request.headers.get("x-bumpgrade-test-plan") !== "allow") return;
-
-  await db
-    .prepare(
-      `INSERT INTO publisher_plan_entitlements (
-        id, owner_user_id, owner_email, status, source, plan_slug, starts_at, metadata_json, created_at, updated_at
-      ) VALUES (?, ?, ?, 'active', 'playwright_test_plan', 'publisher-test-plan', unixepoch(), ?, unixepoch(), unixepoch())
-      ON CONFLICT(id) DO UPDATE SET
-        owner_user_id = excluded.owner_user_id,
-        owner_email = excluded.owner_email,
-        status = excluded.status,
-        updated_at = unixepoch()`,
-    )
-    .bind(
-      `publisher-plan-entitlement-playwright-${user.id}`,
-      user.id,
-      user.email.trim().toLowerCase(),
-      JSON.stringify({ sourceIssueNumber: 222, testOnly: true }),
-    )
-    .run();
-}
-
 export async function POST(request: NextRequest) {
   const payload = await readPayload(request);
   const json = wantsJson(request, payload);
@@ -121,32 +99,52 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = await getPublisherTenantD1OrThrow();
-    await maybeGrantTestPlanEntitlement(db, user, request);
-    const result = await reservePublisherSubdomain(db, user, {
-      subdomain: payloadValue(payload, "subdomain"),
+    const mode = payloadValue(payload, "mode") || "start";
+
+    if (mode === "verify") {
+      const result = await verifyPublisherCustomDomain(db, user, {
+        customDomainId: payloadValue(payload, "customDomainId"),
+        testDnsVerified: getAppEnv() === "test" && request.headers.get("x-bumpgrade-test-dns") === "verified",
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: 223,
+          customDomain: result.customDomain,
+          verified: result.verified,
+        });
+      }
+
+      const redirect = new URL("/account/setup", request.url);
+      redirect.searchParams.set(result.verified ? "customDomainVerified" : "customDomainPending", result.customDomain.domainName);
+      return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    const result = await startPublisherCustomDomain(db, user, {
+      domainName: payloadValue(payload, "domainName") || payloadValue(payload, "domain"),
       idempotencyKey: payloadValue(payload, "idempotencyKey"),
     });
 
     if (json) {
       return NextResponse.json({
         ok: true,
-        issue: 222,
-        tenant: result.tenant,
-        reservation: result.reservation,
+        issue: 223,
+        customDomain: result.customDomain,
         idempotent: result.idempotent,
       });
     }
 
     const redirect = new URL("/account/setup", request.url);
-    redirect.searchParams.set("reserved", result.reservation.fullHostname);
+    redirect.searchParams.set("customDomain", result.customDomain.domainName);
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {
     const status = error instanceof PublisherTenantError ? error.status : 503;
-    const message = error instanceof Error ? error.message : "Unable to reserve that Bumpgrade subdomain.";
-    const code = error instanceof PublisherTenantError ? error.code : "SUBDOMAIN_RESERVATION_FAILED";
+    const message = error instanceof Error ? error.message : "Unable to update that custom domain.";
+    const code = error instanceof PublisherTenantError ? error.code : "CUSTOM_DOMAIN_UPDATE_FAILED";
 
     if (json) {
-      return NextResponse.json({ ok: false, error: message, code, issue: 222 }, { status });
+      return NextResponse.json({ ok: false, error: message, code, issue: 223 }, { status });
     }
 
     return redirectWithError(request, message);

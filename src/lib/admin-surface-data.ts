@@ -214,6 +214,8 @@ const issue217BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-217-launch-marketing-readiness";
 const issue222BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-222-paid-publisher-subdomains";
+const issue223BranchActionsUrl =
+  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-223-custom-domain-dns";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -293,9 +295,28 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #222", url: "https://github.com/markitics/bumpgrade/issues/222", kind: "issue" },
     ],
     notes: [
-      "Custom-domain DNS verification and domain purchase are separate launch-readiness slices.",
-      "Screenshot URL becomes live after the PR screenshot reaches production.",
+      "Custom-domain DNS verification is tracked separately in issue #223.",
+      "Domain purchase is tracked separately in issue #225.",
     ],
+  },
+  "journey-publisher-connects-custom-domain": {
+    status: "passed",
+    lastTestedAt: launchProofUpdatedAt,
+    environment: "Local launch branch plus GitHub Actions CI linked from the issue #223 branch query.",
+    method: "Account setup route smoke test, source-data inspection, and authenticated custom-domain API checks.",
+    summary: "Existing custom-domain onboarding shows deterministic CNAME instructions and redacted verification state.",
+    ciLinks: [
+      { label: "Issue #223 branch CI", url: issue223BranchActionsUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Account setup screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-223-custom-domain-setup.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "Issue #223", url: "https://github.com/markitics/bumpgrade/issues/223", kind: "issue" },
+    ],
+    notes: ["Buying domains through Bumpgrade remains separate in issue #225."],
   },
 };
 
@@ -713,6 +734,51 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     proof: createJourneyProof("journey-publisher-reserves-bumpgrade-subdomain", "feature-better-auth"),
     sortOrder: 44,
+    updatedAt: null,
+  },
+  {
+    id: "journey-publisher-connects-custom-domain",
+    title: "Publisher connects an existing custom domain",
+    featureId: "feature-better-auth",
+    featureStatus: "live",
+    issueNumbers: [9, 221, 222, 223],
+    primaryUser: "Paid publisher who already controls a domain",
+    userGoal:
+      "Add an existing domain to a Bumpgrade tenant, copy the required DNS record, and see whether DNS has been verified before activation.",
+    sourceEvidence: [
+      "https://bumpgrade.com/account/setup",
+      "https://bumpgrade.com/account/source-data",
+      "https://github.com/markitics/bumpgrade/issues/221",
+      "https://github.com/markitics/bumpgrade/issues/223",
+    ],
+    happyPath: [
+      "Create or sign into a Bumpgrade publisher account.",
+      "Confirm the account email.",
+      "Activate a paid plan or launch-pilot entitlement.",
+      "Reserve the default Bumpgrade subdomain first.",
+      "Open /account/setup and enter the existing domain.",
+      "Copy the CNAME record name and target shown by Bumpgrade.",
+      "Click re-check DNS after the record is created at the domain host.",
+      "See pending DNS or verified DNS state without exposing private provider credentials.",
+    ],
+    edgeCases: [
+      "Signed-out users must sign in first.",
+      "Unverified users must confirm email first.",
+      "Free or unpaid accounts cannot add a custom domain.",
+      "A default Bumpgrade hostname is required before custom-domain onboarding.",
+      "Bumpgrade-owned domains such as bumpgrade.com are rejected here.",
+      "Domains already claimed by another tenant return a conflict.",
+      "DNS verification can be pending while records propagate.",
+      "SSL and final custom-hostname activation remain visible as state, not hidden implementation detail.",
+    ],
+    agentAccess:
+      "Agents can read /account/source-data and inspect the custom-domain DNS contract. Custom-domain writes require authenticated user context, paid-plan checks, idempotency, audit correlation, redaction, and explicit DNS verification state.",
+    validation: [
+      "Playwright covers /account/setup rendering, /account/source-data, paid custom-domain onboarding, idempotent replay, DNS verification transition, invalid Bumpgrade-owned domain rejection, and unpaid account rejection.",
+      "Issue #223 records the D1 migration, API, account setup UI, DNS instruction, and redacted source-data contract.",
+    ],
+    proof: createJourneyProof("journey-publisher-connects-custom-domain", "feature-better-auth"),
+    sortOrder: 45,
     updatedAt: null,
   },
   {

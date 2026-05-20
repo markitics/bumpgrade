@@ -2744,6 +2744,52 @@ h3 {
   align-self: end;
 }
 
+.custom-domain-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.custom-domain-card {
+  min-height: 0;
+}
+
+.dns-record-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.dns-record-list div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+}
+
+.dns-record-list dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.dns-record-list dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.inline-domain-form {
+  display: block;
+}
+
 .account-success {
   margin: 18px 0 0;
   padding: 12px;
@@ -3027,7 +3073,8 @@ h3 {
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
-  .account-setup-grid {
+  .account-setup-grid,
+  .custom-domain-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3123,6 +3170,7 @@ h3 {
   .linked-record-grid,
   .launch-proof-grid,
   .account-setup-grid,
+  .custom-domain-list,
   .workflow-step-strip {
     grid-template-columns: 1fr;
   }
@@ -3135,6 +3183,10 @@ h3 {
     min-height: 38px;
     padding-top: 8px;
     border-top: 1px solid var(--line);
+  }
+
+  .dns-record-list div {
+    grid-template-columns: 1fr;
   }
 
   .launch-hero-media img,

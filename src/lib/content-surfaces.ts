@@ -218,10 +218,11 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
       "Email/list growth",
       "Basic analytics",
       "Paid-gated Bumpgrade subdomain reservation",
+      "Existing-domain DNS instructions and verification state",
     ],
     notYetClaimed:
-      "Published price amounts, plan limits, custom-domain verification, domain purchase, and live self-serve billing availability are separate launch slices.",
-    issueNumbers: [14, 15, 16, 17, 18, 20, 222],
+      "Published price amounts, plan limits, domain purchase, and live self-serve billing availability are separate launch slices.",
+    issueNumbers: [14, 15, 16, 17, 18, 20, 222, 223],
   },
   {
     id: "pricing-track-growth",
