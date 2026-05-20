@@ -25,14 +25,59 @@ function hostFromUrl(value: string | undefined) {
   }
 }
 
-function betterAuthCookieDomain(authUrl: string) {
-  const configured = getRuntimeEnvValue("BETTER_AUTH_COOKIE_DOMAIN")?.trim().toLowerCase();
+export type BetterAuthSessionBoundary = {
+  authUrl: string;
+  siteUrl: string | null;
+  trustedOrigins: string[];
+  cookieDomain: string | null;
+  crossSubDomainCookiesEnabled: boolean;
+  bumpgradeHostedSubdomainsShareLogin: boolean;
+  customDomainsCanShareCookieDirectly: boolean;
+  customDomainAuthStrategy: string;
+  isolationBoundary: string;
+};
+
+export function betterAuthCookieDomain(authUrl: string, configuredCookieDomain = getRuntimeEnvValue("BETTER_AUTH_COOKIE_DOMAIN")) {
+  const configured = configuredCookieDomain?.trim().toLowerCase().replace(/^\./, "");
   if (configured) return configured;
 
   const host = hostFromUrl(authUrl);
   if (host === "bumpgrade.com" || host === "www.bumpgrade.com") return "bumpgrade.com";
 
   return null;
+}
+
+export function describeBetterAuthSessionBoundary(input?: {
+  authUrl?: string;
+  siteUrl?: string | null;
+  cookieDomain?: string | null;
+}): BetterAuthSessionBoundary {
+  const siteUrl = input?.siteUrl ?? getRuntimeEnvValue("PUBLIC_SITE_URL") ?? null;
+  const authUrl = input?.authUrl ?? getRuntimeEnvValue("BETTER_AUTH_URL") ?? siteUrl ?? "http://localhost:3000";
+  const cookieDomain = betterAuthCookieDomain(authUrl, input?.cookieDomain ?? undefined);
+  const trustedOrigins = compactOrigins([
+    authUrl,
+    siteUrl ?? undefined,
+    "https://bumpgrade.com",
+    "https://www.bumpgrade.com",
+    "https://*.bumpgrade.com",
+    "http://localhost:*",
+    "http://127.0.0.1:*",
+  ]);
+
+  return {
+    authUrl,
+    siteUrl,
+    trustedOrigins,
+    cookieDomain,
+    crossSubDomainCookiesEnabled: Boolean(cookieDomain),
+    bumpgradeHostedSubdomainsShareLogin: cookieDomain === "bumpgrade.com",
+    customDomainsCanShareCookieDirectly: false,
+    customDomainAuthStrategy:
+      "Use the central bumpgrade.com auth session for identity and return to the custom domain after tenant lookup; do not try to set bumpgrade.com cookies on unrelated publisher-owned domains.",
+    isolationBoundary:
+      "The shared session proves identity only. Every publisher-site read or write must still resolve the requested hostname to a tenant and enforce tenant-scoped entitlements before returning private data.",
+  };
 }
 
 export function getRuntimeEnvValue(key: string) {
@@ -66,6 +111,7 @@ export function getBetterAuthSecret() {
 export function createAuth(db: AppDb | null = getOptionalDb()) {
   const siteUrl = getRuntimeEnvValue("PUBLIC_SITE_URL");
   const authUrl = getRuntimeEnvValue("BETTER_AUTH_URL") ?? siteUrl ?? "http://localhost:3000";
+  const sessionBoundary = describeBetterAuthSessionBoundary({ authUrl, siteUrl });
   const appEnv = getAppEnv();
 
   if (!db && appEnv === "production") {
@@ -75,22 +121,14 @@ export function createAuth(db: AppDb | null = getOptionalDb()) {
   return betterAuth({
     appName: "Bumpgrade",
     baseURL: authUrl,
-    trustedOrigins: compactOrigins([
-      authUrl,
-      siteUrl,
-      "https://bumpgrade.com",
-      "https://www.bumpgrade.com",
-      "https://*.bumpgrade.com",
-      "http://localhost:*",
-      "http://127.0.0.1:*",
-    ]),
+    trustedOrigins: sessionBoundary.trustedOrigins,
     secret: getBetterAuthSecret(),
     advanced: {
-      ...(betterAuthCookieDomain(authUrl)
+      ...(sessionBoundary.cookieDomain
         ? {
             crossSubDomainCookies: {
               enabled: true,
-              domain: betterAuthCookieDomain(authUrl) ?? undefined,
+              domain: sessionBoundary.cookieDomain,
             },
           }
         : {}),

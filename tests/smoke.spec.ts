@@ -54,6 +54,7 @@ import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
+import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
@@ -524,8 +525,25 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.crossSubdomainAuth).toEqual(
       expect.objectContaining({
         status: "configured",
+        issue: 224,
         cookieDomain: "bumpgrade.com",
         trustedOriginPattern: "https://*.bumpgrade.com",
+        trustedOrigins: expect.arrayContaining(["https://*.bumpgrade.com"]),
+        crossSubDomainCookiesEnabled: true,
+        bumpgradeHostedSubdomainsShareLogin: true,
+      }),
+    );
+    expect(payload.customerAuthPolicy).toEqual(
+      expect.objectContaining({
+        status: "configured",
+        issue: 224,
+        sharedIdentityProvider: "https://bumpgrade.com",
+        appliesTo: expect.arrayContaining(["bumpgrade.com", "*.bumpgrade.com"]),
+        customDomains: expect.objectContaining({
+          canShareBumpgradeCookieDirectly: false,
+          behavior: expect.stringContaining("login handoff"),
+        }),
+        adminBoundary: expect.stringContaining("Owner/admin sessions remain allowlisted"),
       }),
     );
     expect(payload.customDomainPolicy).toEqual(
@@ -542,6 +560,25 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.notIncludedYet).toEqual(expect.arrayContaining(["Buying domains through Bumpgrade."]));
+  });
+
+  test("Better Auth production session boundary is explicit about subdomains and custom domains", () => {
+    const boundary = describeBetterAuthSessionBoundary({
+      authUrl: "https://bumpgrade.com",
+      siteUrl: "https://bumpgrade.com",
+    });
+
+    expect(boundary).toEqual(
+      expect.objectContaining({
+        cookieDomain: "bumpgrade.com",
+        crossSubDomainCookiesEnabled: true,
+        bumpgradeHostedSubdomainsShareLogin: true,
+        customDomainsCanShareCookieDirectly: false,
+      }),
+    );
+    expect(boundary.trustedOrigins).toEqual(expect.arrayContaining(["https://bumpgrade.com", "https://*.bumpgrade.com"]));
+    expect(boundary.customDomainAuthStrategy).toContain("central bumpgrade.com auth session");
+    expect(boundary.isolationBoundary).toContain("shared session proves identity only");
   });
 
   test("funnel source data exposes a seeded three-step draft funnel", async ({ request, page }) => {
@@ -4295,6 +4332,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
         expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "shipped", issue: 222 }),
         expect.objectContaining({ id: "roadmap-custom-domain-onboarding", status: "shipped", issue: 223 }),
+        expect.objectContaining({ id: "roadmap-cross-subdomain-customer-auth", status: "active", issue: 224 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
@@ -4374,6 +4412,21 @@ test.describe("Bumpgrade scaffold", () => {
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-customer-uses-one-login-across-bumpgrade-subdomains",
+          featureId: "feature-better-auth",
+          issueNumbers: expect.arrayContaining([221, 222, 223, 224]),
+          proof: expect.objectContaining({
+            status: "partial",
+            lastTestedAt: expect.any(String),
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: expect.stringContaining("issue-224-cross-subdomain-auth") }),
+            ]),
+            notes: expect.arrayContaining([
+              expect.stringContaining("screenshot was not attached"),
+            ]),
           }),
         }),
         expect.objectContaining({
@@ -4639,6 +4692,10 @@ test.describe("Bumpgrade scaffold", () => {
             "publisherTenantId",
             "publisherSubdomainReservationId",
             "publisherCustomDomainId",
+            "publisherAuthBoundaryId",
+          ]),
+          safeForAgents: expect.arrayContaining([
+            "Read cross-subdomain auth configuration and custom-domain login boundary",
           ]),
         }),
         expect.objectContaining({

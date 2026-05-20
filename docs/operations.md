@@ -139,6 +139,13 @@ Issue #9 added the first Better Auth foundation:
 - Production Better Auth trusts `https://*.bumpgrade.com` and uses the
   `bumpgrade.com` cookie domain so one login can work across the root app and
   default Bumpgrade publisher subdomains.
+- Issue #224 defines the publisher-site auth boundary: the shared
+  `bumpgrade.com` session proves identity across Bumpgrade-hosted subdomains,
+  but every publisher-site request must still resolve the hostname to a tenant
+  and enforce tenant-scoped checkout, entitlement, membership, or admin access.
+  Custom domains cannot receive the `bumpgrade.com` browser cookie directly;
+  use the central Bumpgrade login handoff and return URL instead of promising
+  raw cross-domain cookie sharing.
 
 Required production configuration:
 
