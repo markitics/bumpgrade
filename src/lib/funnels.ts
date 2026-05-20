@@ -121,7 +121,7 @@ export const editableDraftCapability = {
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
   auth: "owner-session",
   safeForPublicAgents: [
-    "Read that editable D1-backed draft funnels exist behind owner auth.",
+    "Read that editable owner-gated draft funnels exist behind owner auth.",
     "Read that owner sessions can update and reorder draft funnel steps.",
     "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Read that owner sessions can publish a D1 draft to a stable public funnel route after exact confirmation.",

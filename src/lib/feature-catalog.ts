@@ -18,22 +18,22 @@ export const featureCatalogUpdatedAt = "2026-05-20";
 export const featureCatalog: FeatureRecord[] = [
   {
     id: "feature-cloudflare-foundation",
-    title: "Cloudflare app foundation",
+    title: "Launch app foundation",
     group: "Platform",
     status: "live",
     issue: 4,
     summary:
-      "Next/OpenNext Worker foundation with core public routes, admin placeholders, D1 binding, R2 cache binding, and deployed Worker routes.",
-    audience: "Agents and Mark need a stable base to keep shipping issue slices without local-only setup.",
+      "Core public routes, admin placeholders, screenshots, smoke coverage, and deployed paths for the first Bumpgrade launch surfaces.",
+    audience: "Agents and Mark need a stable launch base with route proof instead of local-only setup.",
     expectedCapabilities: [
-      "Cloudflare Worker route for bumpgrade.com and www.bumpgrade.com.",
-      "D1 database binding and R2 incremental cache binding.",
+      "Live route for bumpgrade.com and www.bumpgrade.com.",
+      "Persistent app state and cache bindings for launch surfaces.",
       "Responsive top navigation and shell routes.",
       "Playwright smoke coverage for desktop and mobile route rendering.",
     ],
     evidence: [
       "Issue #4 closed by PR #23.",
-      "Cloudflare Worker deployment succeeded after DNS records were configured.",
+      "Deployment succeeded after DNS records were configured.",
     ],
     agentContract:
       "Agents can treat the app shell and route map as live, but not infer business functionality beyond the shell.",
@@ -55,7 +55,7 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Issue #5 closed by PR #25.",
-      "Live Cloudflare smoke checks returned HTTP 200 for comparison routes and screenshots.",
+      "Live smoke checks returned HTTP 200 for comparison routes and screenshots.",
     ],
     agentContract:
       "Agents may cite comparison source IDs and URLs, but must refresh sources before making pricing or volatile feature-availability claims.",
@@ -77,7 +77,7 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Issue #6 closed by PR #26.",
-      "Live Cloudflare smoke checks returned HTTP 200 for `/features`, `/features/source-data`, and screenshots.",
+      "Live smoke checks returned HTTP 200 for `/features`, `/features/source-data`, and screenshots.",
     ],
     agentContract:
       "Agents may treat live feature records as deployed and must treat pending records as roadmap targets until their issue evidence changes.",
@@ -95,7 +95,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Roadmap lanes derived from tracked feature and issue records.",
       "Public-safe blocker notes and next milestones.",
       "Agent-readable JSON at `/roadmap/source-data`.",
-      "Admin roadmap and For Mark placeholders that mirror current public-safe state until D1-backed records ship.",
+      "Admin roadmap and For Mark placeholders that mirror current public-safe state until owner-backed records ship.",
     ],
     evidence: [
       "Issue #7 owns this feature slice.",
@@ -360,7 +360,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 8,
     summary:
-      "D1-backed admin surfaces for roadmap status, work logs, user journeys, blockers, owner notes, and durable project memory.",
+      "Owner-backed admin surfaces for roadmap status, work logs, user journeys, blockers, owner notes, and durable project memory.",
     audience: "Mark and future agents coordinating parallel work.",
     expectedCapabilities: [
       "Roadmap lanes with issue and PR links.",
@@ -409,7 +409,7 @@ export const featureCatalog: FeatureRecord[] = [
     audience: "Publishers, admins, and agents needing permission-aware access.",
     expectedCapabilities: [
       "Email/password auth flow.",
-      "D1-backed auth tables.",
+      "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
       "Role and permission model for future agent actions.",

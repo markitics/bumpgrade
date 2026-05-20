@@ -1,116 +1,121 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Database, GitBranch, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, Database, Sparkles } from "lucide-react";
 
-import { featureCatalog, featureCatalogUpdatedAt, featureGroups, featuresByGroup } from "@/lib/feature-catalog";
+import {
+  featuredMarketingFeatureSlugs,
+  getMarketingFeature,
+  marketingFeatureCategories,
+  marketingFeatures,
+  marketingFeaturesUpdatedAt,
+  type MarketingFeature,
+} from "@/lib/marketing-features";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "Bumpgrade feature catalog with live and pending badges across funnels, checkout, products, automations, analytics, admin, and agent-ready workflows.",
+    "Bumpgrade feature overview for publishers: funnels, checkout, email campaigns, products, analytics, affiliates, and AI-assisted launch planning.",
   alternates: {
     canonical: `${site.url}/features`,
   },
 };
 
-const liveCount = featureCatalog.filter((feature) => feature.status === "live").length;
-const pendingCount = featureCatalog.filter((feature) => feature.status === "pending").length;
+const featuredFeatures = featuredMarketingFeatureSlugs
+  .map((slug) => getMarketingFeature(slug))
+  .filter((feature): feature is MarketingFeature => Boolean(feature));
+
+const liveCount = marketingFeatures.filter((feature) => feature.status === "live").length;
+const pendingCount = marketingFeatures.filter((feature) => feature.status === "pending").length;
 
 export default function FeaturesPage() {
   return (
-    <main className="features-page">
-      <section className="feature-hero">
+    <main className="marketing-features-page">
+      <section className="marketing-features-hero">
         <div>
-          <p className="eyebrow">bumpgrade.com/features</p>
-          <h1>Aspirational feature catalog, with live and pending evidence.</h1>
+          <p className="eyebrow">Bumpgrade features</p>
+          <h1>Everything a publisher needs to launch, sell, deliver, and improve an offer.</h1>
           <p className="lede">
-            Bumpgrade is being built toward a ClickFunnels, SamCart, Kit, Shopify, Kajabi, and
-            ThriveCart-shaped operating system for indiepreneurs. This page keeps the promise honest:
-            live means deployed, pending means tracked by a roadmap issue.
+            Bumpgrade brings together the core jobs people usually split across ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics tools. Each feature links to proof routes, issue evidence, and a deeper page.
           </p>
           <div className="hero-actions">
-            <Link href="/roadmap" className="primary-action">
-              Public roadmap
+            <Link href="/pricing" className="primary-action">
+              See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link href="/features/source-data" className="secondary-action">
-              Feature JSON
+              Feature source data
               <Database aria-hidden="true" />
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Feature catalog status">
+        <aside className="feature-status-panel" aria-label="Feature launch status">
           <Sparkles aria-hidden="true" />
-          <p>Status snapshot</p>
+          <p>Launch snapshot</p>
           <strong>{liveCount} live</strong>
           <span>
-            {pendingCount} pending feature records. Last updated {featureCatalogUpdatedAt}. Pending items link to
-            GitHub issues instead of making shipped claims.
+            {pendingCount} pending feature record. Updated {marketingFeaturesUpdatedAt}. Live means a route or preview exists; billing and provider-send claims still require their own production proof.
           </span>
         </aside>
       </section>
 
-      <section className="content-band alternate">
-        <div className="feature-section-heading">
+      <section className="content-band marketing-outcome-band">
+        <div className="split-heading">
           <div>
-            <p className="eyebrow">Current proof</p>
-            <h2>What is actually live today</h2>
+            <p className="eyebrow">Featured workflows</p>
+            <h2>The main things Bumpgrade can do for a launch.</h2>
           </div>
+          <p>
+            These are customer-facing jobs, not implementation details. The deeper pages explain the use case, current availability, and where the supporting proof lives.
+          </p>
         </div>
-        <div className="live-feature-grid">
-          {featureCatalog
-            .filter((feature) => feature.status === "live")
-            .map((feature) => (
-              <article key={feature.id} className="feature-card live-feature-card">
-                <div className="feature-card-top">
-                  <span className="status-badge live">Live</span>
-                  <Link href={`https://github.com/markitics/bumpgrade/issues/${feature.issue}`}>Issue #{feature.issue}</Link>
-                </div>
+        <div className="spotlight-feature-grid">
+          {featuredFeatures.map((feature) => (
+            <article key={feature.slug} className="spotlight-feature-card">
+              <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
+              <div>
+                <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                <p className="eyebrow">{feature.eyebrow}</p>
                 <h3>{feature.title}</h3>
-                <p>{feature.summary}</p>
-                <ul>
-                  {feature.evidence.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+                <p>{feature.outcome}</p>
+                <Link href={`/features/${feature.slug}`} className="text-link">
+                  Learn more
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 
-      {featureGroups.map((group) => {
-        const groupFeatures = featuresByGroup(group).filter((feature) => feature.status === "pending");
-
-        if (groupFeatures.length === 0) {
-          return null;
-        }
-
+      {marketingFeatureCategories.map((category) => {
+        const categoryFeatures = marketingFeatures.filter((feature) => feature.category === category);
         return (
-          <section key={group} className="content-band">
+          <section key={category} className="content-band">
             <div className="feature-section-heading">
               <div>
-                <p className="eyebrow">Pending</p>
-                <h2>{group}</h2>
+                <p className="eyebrow">Feature group</p>
+                <h2>{category}</h2>
               </div>
             </div>
-            <div className="feature-grid">
-              {groupFeatures.map((feature) => (
-                <article key={feature.id} className="feature-card">
+            <div className="marketing-feature-grid">
+              {categoryFeatures.map((feature) => (
+                <article key={feature.slug} className="marketing-feature-card">
                   <div className="feature-card-top">
-                    <span className="status-badge pending">Pending</span>
-                    <Link href={`https://github.com/markitics/bumpgrade/issues/${feature.issue}`}>Issue #{feature.issue}</Link>
+                    <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                    <span>{feature.availability}</span>
                   </div>
                   <h3>{feature.title}</h3>
                   <p>{feature.summary}</p>
                   <div className="feature-detail">
-                    <strong>Audience</strong>
+                    <strong>Best for</strong>
                     <span>{feature.audience}</span>
                   </div>
-                  <div className="feature-detail">
-                    <strong>Agent contract</strong>
-                    <span>{feature.agentContract}</span>
-                  </div>
+                  <Link href={`/features/${feature.slug}`} className="text-link compact-link">
+                    Learn more
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
                 </article>
               ))}
             </div>
@@ -118,32 +123,32 @@ export default function FeaturesPage() {
         );
       })}
 
-      <section className="content-band dark-band">
-        <div className="feature-section-heading">
+      <section className="content-band dark-band marketing-trust-band">
+        <div className="split-heading">
           <div>
-            <p className="eyebrow">Agent-readable</p>
-            <h2>Every feature gets a stable ID and evidence trail.</h2>
+            <p className="eyebrow">Proof-backed claims</p>
+            <h2>Every feature page links back to source data, issues, and current boundaries.</h2>
           </div>
-          <Link href="/features/source-data" className="text-link compact-link">
-            Source data
-            <Database aria-hidden="true" />
+          <Link href="/compare" className="secondary-action">
+            Compare alternatives
+            <BadgeCheck aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <GitBranch aria-hidden="true" />
-            <h3>Issue-linked roadmap</h3>
-            <p>Each pending feature points to the GitHub issue that owns implementation instead of making vague promises.</p>
+            <Database aria-hidden="true" />
+            <h3>Agent-readable</h3>
+            <p>Feature records are mirrored at `/features/source-data` for agents, SEO, and future MCP tools.</p>
           </div>
           <div>
-            <Database aria-hidden="true" />
-            <h3>JSON mirror</h3>
-            <p>The same feature records are exposed at `/features/source-data` for agents, manifests, and future MCP resources.</p>
+            <BadgeCheck aria-hidden="true" />
+            <h3>Live vs pending</h3>
+            <p>Live badges require a working route or preview. Pending badges stay tied to issue evidence.</p>
           </div>
           <div>
             <Sparkles aria-hidden="true" />
-            <h3>Live means deployed</h3>
-            <p>Only deployed, validated slices use the live badge. Everything else stays pending until evidence changes.</p>
+            <h3>Dedicated pages</h3>
+            <p>Feature details live at `/features/[feature]`, including email campaigns, order bumps, landing pages, analytics, and AI help.</p>
           </div>
         </div>
       </section>

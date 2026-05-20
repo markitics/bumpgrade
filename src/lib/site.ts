@@ -23,7 +23,7 @@ export const site = {
   url: "https://bumpgrade.com",
   repo: "https://github.com/markitics/bumpgrade",
   description:
-    "A Cloudflare-first funnel, checkout, commerce, marketing, and agent-ready platform for indiepreneurs and small publishers.",
+    "A funnel, checkout, email, product delivery, analytics, and AI-assisted growth platform for publishers launching paid offers.",
 };
 
 export type NavItem = {
@@ -38,9 +38,9 @@ export const topNavItems: NavItem[] = [
   {
     label: "Features",
     href: "/features",
-    description: "Funnel builder, checkout, products, automations, analytics, and agent surfaces.",
+    description: "Funnel builder, checkout, products, email, analytics, affiliates, and AI-assisted launch planning.",
     icon: Sparkles,
-    status: "planned",
+    status: "live",
   },
   {
     label: "Users",
@@ -66,7 +66,7 @@ export const topNavItems: NavItem[] = [
   {
     label: "Pricing",
     href: "/pricing",
-    description: "Pricing direction for publishers, products, payments, and agent workflows.",
+    description: "Launch pricing and payment options for publishers trying Bumpgrade.",
     icon: CircleDollarSign,
     status: "live",
   },
@@ -94,7 +94,7 @@ export const adminNavItems: NavItem[] = [
   {
     label: "Draft funnels",
     href: "/admin/funnels",
-    description: "Owner-gated D1 draft funnel creation and ordered step records.",
+    description: "Owner-gated draft funnel creation and ordered step records.",
     icon: PanelsTopLeft,
   },
   {
@@ -138,7 +138,7 @@ export const featurePillars = [
   },
   {
     title: "Admin and agents",
-    body: "D1-backed roadmap, work-log, journeys, for-Mark attention, public docs, manifests, and MCP path.",
+    body: "Owner roadmap, work-log, journeys, for-Mark attention, public docs, manifests, and MCP path.",
     icon: LayoutDashboard,
     issue: "#8",
   },

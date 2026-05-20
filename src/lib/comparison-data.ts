@@ -237,7 +237,7 @@ export const comparisonHubRows: ComparisonRow[] = [
   {
     area: "Funnels and landing pages",
     incumbent: "ClickFunnels, Systeme.io, Kartra, and Leadpages emphasize page and funnel creation.",
-    bumpgradePlan: "Bumpgrade will start with funnel/page authoring that is source-grounded, agent-readable, and Cloudflare-native.",
+    bumpgradePlan: "Bumpgrade starts with funnel/page authoring that is source-grounded, agent-readable, and connected to checkout and audience workflows.",
   },
   {
     area: "Checkout and revenue optimization",
@@ -272,7 +272,7 @@ export const competitors: Competitor[] = [
     summary:
       "ClickFunnels is the principal target and the main ClickFunnels alternative page for Bumpgrade because it frames the online business as a funnel that connects traffic, sales, upsells, courses, community, email, CRM, analytics, and affiliate growth.",
     alternativePosition:
-      "Bumpgrade should be the ClickFunnels competitor for publishers who want those same funnel and revenue surfaces to become inspectable by agents, backed by Cloudflare primitives, and explicit about what is live versus planned.",
+      "Bumpgrade should be the ClickFunnels competitor for publishers who want those same funnel and revenue surfaces to become inspectable by agents, tied to source evidence, and explicit about what is live versus planned.",
     sourceId: "source-clickfunnels-home",
     sourceUrl: "https://www.clickfunnels.com/",
     sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
@@ -288,12 +288,12 @@ export const competitors: Competitor[] = [
       "funnel builder alternative",
     ],
     searchIntent:
-      "Compare ClickFunnels with a planned Cloudflare-first publisher growth OS that keeps funnel, checkout, email, course, CRM, affiliate, analytics, and agent-readiness claims tied to sources and roadmap evidence.",
+      "Compare ClickFunnels with a publisher growth system that keeps funnel, checkout, email, course, CRM, affiliate, analytics, and agent-readiness claims tied to sources and roadmap evidence.",
     faqs: [
       {
         question: "Is Bumpgrade a ClickFunnels alternative today?",
         answer:
-          "Bumpgrade is an early Cloudflare-first project, so this page marks ClickFunnels-style funnel, checkout, email, course, CRM, analytics, and affiliate capabilities as roadmap targets unless a linked issue or PR shows they have shipped.",
+          "Bumpgrade is in launch preview, so this page marks ClickFunnels-style funnel, checkout, email, course, CRM, analytics, and affiliate capabilities as roadmap targets unless a linked issue or PR shows they have shipped.",
       },
       {
         question: "What makes this ClickFunnels competitors page different?",
@@ -354,7 +354,7 @@ export const competitors: Competitor[] = [
         {
           label: "Bumpgrade roadmap",
           href: "/roadmap",
-          description: "The public status map that separates shipped Cloudflare foundation work from planned parity features.",
+          description: "The public status map that separates shipped product work from planned parity features.",
         },
         {
           label: "Developers and agents",
@@ -516,7 +516,7 @@ export const competitors: Competitor[] = [
     slug: "kajabi-alternative",
     category: "Knowledge commerce platform",
     bestFor: "Experts selling courses, coaching, memberships, newsletters, downloads, podcasts, payments, and marketing automations.",
-    headline: "Bumpgrade vs Kajabi: expertise commerce with Cloudflare and agent evidence.",
+    headline: "Bumpgrade vs Kajabi: expertise commerce with agent-readable evidence.",
     summary:
       "Kajabi is a polished all-in-one system for experts who monetize knowledge through products, payments, pages, funnels, automations, and communities.",
     alternativePosition:
@@ -541,7 +541,7 @@ export const competitors: Competitor[] = [
       {
         area: "All-in-one promise",
         incumbent: "Kajabi emphasizes replacing scattered tools with one connected system.",
-        bumpgradePlan: "Bumpgrade will use the same connected-system goal, with Cloudflare infrastructure and public/admin evidence surfaces.",
+        bumpgradePlan: "Bumpgrade will use the same connected-system goal, with public and owner-visible evidence surfaces.",
       },
       {
         area: "Mobile/admin",
@@ -616,7 +616,7 @@ export const competitors: Competitor[] = [
       {
         area: "Breadth",
         incumbent: "Systeme.io covers many indiepreneur needs in one place.",
-        bumpgradePlan: "Bumpgrade will pursue similar breadth through issue-sliced Cloudflare features and public roadmap state.",
+        bumpgradePlan: "Bumpgrade will pursue similar breadth through issue-sliced features and public roadmap state.",
       },
       {
         area: "Integrated list/funnel",

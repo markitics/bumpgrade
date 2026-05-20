@@ -7,7 +7,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Bumpgrade | Cloudflare-first funnel and checkout platform",
+    default: "Bumpgrade | Funnel, checkout, email, and growth platform",
     template: "%s | Bumpgrade",
   },
   description: site.description,

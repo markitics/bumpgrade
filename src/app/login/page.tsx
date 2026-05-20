@@ -36,10 +36,9 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <section className="route-hero">
         <div>
           <p className="eyebrow">Account access</p>
-          <h1>Publisher login is backed by Better Auth.</h1>
+          <h1>Publisher login for Bumpgrade accounts.</h1>
           <p className="lede">
-            Bumpgrade now stores accounts and sessions in Cloudflare D1. Owner-only admin access uses the
-            allowlist gate while publisher features are built out.
+            Sign in or create an account to reach owner-only launch tools as they become available.
           </p>
         </div>
         <div className="route-status-panel">
