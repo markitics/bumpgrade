@@ -57,6 +57,7 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
 import { featureCatalog } from "../src/lib/feature-catalog";
+import { marketingFeatures } from "../src/lib/marketing-features";
 import {
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelPublishConfirmationText,
@@ -109,14 +110,18 @@ import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
 const routes = [
-  { path: "/", heading: "Funnels, checkout, commerce, and agents" },
-  { path: "/features", heading: "Aspirational feature catalog" },
+  { path: "/", heading: "Launch offers with funnels" },
+  { path: "/features", heading: "Everything a publisher needs" },
+  { path: "/features/email-campaigns", heading: "Capture subscribers and prepare campaigns" },
+  { path: "/features/order-bump", heading: "Offer the right bump" },
+  { path: "/features/ai-business-coach", heading: "Turn scattered launch ideas" },
+  { path: "/features/simple-landing-page", heading: "Give a launch idea a public page" },
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
-  { path: "/pricing", heading: "Pricing direction" },
+  { path: "/pricing", heading: "Launch pricing" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
@@ -126,7 +131,7 @@ const routes = [
   { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program preview" },
   { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
-  { path: "/login", heading: "Publisher login is backed by Better Auth" },
+  { path: "/login", heading: "Publisher login for Bumpgrade accounts" },
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
@@ -390,6 +395,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemap.ok()).toBeTruthy();
     const sitemapXml = await sitemap.text();
     expect(sitemapXml).toContain("https://bumpgrade.com/compare");
+    expect(sitemapXml).toContain("https://bumpgrade.com/features/email-campaigns");
+    expect(sitemapXml).toContain("https://bumpgrade.com/features/order-bump");
+    expect(sitemapXml).toContain("https://bumpgrade.com/features/ai-business-coach");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
@@ -432,6 +440,14 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.features).toHaveLength(featureCatalog.length);
     expect(payload.features[0]).toEqual(expect.objectContaining({ id: expect.any(String), status: expect.any(String) }));
+    expect(payload.marketingFeatures).toHaveLength(marketingFeatures.length);
+    expect(payload.marketingFeatures).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ slug: "email-campaigns", status: "live", nextStep: expect.objectContaining({ href: "/audience/indie-launch-waitlist" }) }),
+        expect.objectContaining({ slug: "order-bump", status: "live", nextStep: expect.objectContaining({ href: "/offers/indie-launch-stack" }) }),
+        expect.objectContaining({ slug: "ai-business-coach", status: "pending", proofRoutes: expect.arrayContaining(["/agent-docs/source-data"]) }),
+      ]),
+    );
   });
 
   test("content source data exposes use cases, resources, and pricing caveats", async ({ request }) => {
@@ -4238,6 +4254,30 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.userJourneys).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({
+          id: "journey-prospect-explores-launch-marketing",
+          featureId: "feature-public-feature-catalog",
+          issueNumbers: expect.arrayContaining([217]),
+          proof: expect.objectContaining({
+            status: "partial",
+            lastTestedAt: expect.any(String),
+            ciLinks: expect.arrayContaining([expect.objectContaining({ url: expect.stringContaining("github.com/markitics/bumpgrade/actions") })]),
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-features.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-prospect-reviews-launch-pricing",
+          featureId: "feature-resources-use-cases-pricing",
+          issueNumbers: expect.arrayContaining([217]),
+          proof: expect.objectContaining({
+            status: "partial",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png" }),
+            ]),
+          }),
+        }),
         expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           featureId: "feature-stripe-commerce",
