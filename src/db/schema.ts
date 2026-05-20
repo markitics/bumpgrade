@@ -447,6 +447,36 @@ export const productFulfillmentTasks = sqliteTable(
   }),
 );
 
+export const productEntitlementRevocationIntents = sqliteTable(
+  "product_entitlement_revocation_intents",
+  {
+    id: text("id").primaryKey(),
+    productId: text("product_id").notNull(),
+    entitlementTemplateId: text("entitlement_template_id").notNull(),
+    accessRuleId: text("access_rule_id").notNull(),
+    status: text("status").notNull().default("revocation_intent_ready"),
+    intentKind: text("intent_kind").notNull().default("owner_confirmed_dry_run"),
+    revocationPolicy: text("revocation_policy").notNull(),
+    staleStatePolicy: text("stale_state_policy").notNull(),
+    auditCorrelationPolicy: text("audit_correlation_policy").notNull(),
+    destructiveActionEnabled: integer("destructive_action_enabled", { mode: "boolean" }).notNull().default(false),
+    entitlementMutationEnabled: integer("entitlement_mutation_enabled", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    productStatusIdx: index("product_entitlement_revocation_intents_product_status_idx").on(
+      table.productId,
+      table.status,
+    ),
+    templateStatusIdx: index("product_entitlement_revocation_intents_template_status_idx").on(
+      table.entitlementTemplateId,
+      table.status,
+    ),
+  }),
+);
+
 export const audienceSubscribers = sqliteTable(
   "audience_subscribers",
   {

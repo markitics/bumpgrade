@@ -6,6 +6,8 @@ import { productAccessCatalogs } from "@/lib/product-access";
 export const productEntitlementInspectionIssue = 139;
 export const productEntitlementInspectionStatus = "owner-product-entitlement-inspection-ready";
 export const productEntitlementInspectionOwnerRoute = "/admin/products";
+export const productEntitlementRevocationIntentIssue = 179;
+export const productEntitlementRevocationIntentStatus = "owner-product-revocation-intents-ready";
 
 type ProductRuntime = {
   db: D1Database;
@@ -60,6 +62,21 @@ type EntitlementRow = {
   raw_stripe_reference_available: number | string | null;
 };
 
+type RevocationIntentRow = {
+  id: string;
+  product_id: string;
+  entitlement_template_id: string;
+  access_rule_id: string;
+  status: string;
+  intent_kind: string;
+  revocation_policy: string;
+  stale_state_policy: string;
+  audit_correlation_policy: string;
+  destructive_action_enabled: number | string;
+  entitlement_mutation_enabled: number | string;
+  updated_at: number | string;
+};
+
 export type ProductEntitlementInspectionCount = {
   id: string;
   status: string;
@@ -95,6 +112,52 @@ export type ProductEntitlementInspectionSummary = {
     rawR2KeysIncluded: false;
     signedUrlsIncluded: false;
     metadataJsonIncluded: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type ProductEntitlementRevocationIntent = {
+  id: string;
+  productId: string;
+  productTitle: string;
+  entitlementTemplateId: string;
+  entitlementTemplateTitle: string;
+  accessRuleId: string;
+  accessRuleTitle: string;
+  status: string;
+  intentKind: string;
+  revocationPolicy: string;
+  staleStatePolicy: string;
+  auditCorrelationPolicy: string;
+  destructiveActionEnabled: boolean;
+  entitlementMutationEnabled: boolean;
+  updatedAt: string | null;
+};
+
+export type ProductEntitlementRevocationIntentSummary = {
+  id: string;
+  status: typeof productEntitlementRevocationIntentStatus;
+  issue: typeof productEntitlementRevocationIntentIssue;
+  parentIssue: 16;
+  ownerRoute: typeof productEntitlementInspectionOwnerRoute;
+  publicSourceDataRoute: "/products/source-data";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    revocationIntents: number;
+    dryRunIntents: number;
+    destructiveActionsEnabled: number;
+    entitlementMutationsEnabled: number;
+  };
+  records: ProductEntitlementRevocationIntent[];
+  redaction: {
+    privateBuyerDataIncluded: false;
+    rawBuyerEmailIncluded: false;
+    actorEmailIncluded: false;
+    rawStripeIdsIncluded: false;
+    entitlementMutationEnabled: false;
+    destructiveActionEnabled: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
@@ -256,6 +319,76 @@ function emptySummary(
   };
 }
 
+function emptyRevocationIntentSummary(
+  source: ProductEntitlementRevocationIntentSummary["source"],
+  loadError: string | null,
+): ProductEntitlementRevocationIntentSummary {
+  return {
+    id: "product-entitlement-revocation-intent-contract",
+    status: productEntitlementRevocationIntentStatus,
+    issue: productEntitlementRevocationIntentIssue,
+    parentIssue: 16,
+    ownerRoute: productEntitlementInspectionOwnerRoute,
+    publicSourceDataRoute: "/products/source-data",
+    source,
+    loadError,
+    counts: {
+      revocationIntents: 0,
+      dryRunIntents: 0,
+      destructiveActionsEnabled: 0,
+      entitlementMutationsEnabled: 0,
+    },
+    records: [],
+    redaction: {
+      privateBuyerDataIncluded: false,
+      rawBuyerEmailIncluded: false,
+      actorEmailIncluded: false,
+      rawStripeIdsIncluded: false,
+      entitlementMutationEnabled: false,
+      destructiveActionEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "buyerEmail",
+      "buyerEmailHash",
+      "actorEmail",
+      "stripeCheckoutSessionId",
+      "stripePaymentIntentId",
+      "stripeSubscriptionId",
+      "metadataJson",
+      "privateReasonNote",
+    ],
+    writeBoundary:
+      "Issue #179 exposes non-destructive product entitlement revocation intent readiness. It does not revoke access, mutate entitlements, expose buyer data, change billing, issue refunds, or authorize direct agent revocation writes.",
+  };
+}
+
+function publicRevocationIntent(row: RevocationIntentRow): ProductEntitlementRevocationIntent {
+  const products = productById();
+  const templates = templateById();
+  const accessRules = accessRuleById();
+  const product = products.get(row.product_id);
+  const template = templates.get(row.entitlement_template_id);
+  const accessRule = accessRules.get(row.access_rule_id);
+
+  return {
+    id: row.id,
+    productId: row.product_id,
+    productTitle: product?.title ?? row.product_id,
+    entitlementTemplateId: row.entitlement_template_id,
+    entitlementTemplateTitle: template?.title ?? row.entitlement_template_id,
+    accessRuleId: row.access_rule_id,
+    accessRuleTitle: accessRule?.title ?? row.access_rule_id,
+    status: row.status,
+    intentKind: row.intent_kind,
+    revocationPolicy: row.revocation_policy,
+    staleStatePolicy: row.stale_state_policy,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    destructiveActionEnabled: booleanValue(row.destructive_action_enabled),
+    entitlementMutationEnabled: booleanValue(row.entitlement_mutation_enabled),
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
 function adminEntitlement(row: EntitlementRow): AdminProductEntitlement {
   const products = productById();
   const templates = templateById();
@@ -364,6 +497,40 @@ export async function getProductEntitlementInspectionSummary(): Promise<ProductE
     return emptySummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load product entitlement inspection.",
+    );
+  }
+}
+
+export async function getProductEntitlementRevocationIntentSummary(): Promise<ProductEntitlementRevocationIntentSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, product_id, entitlement_template_id, access_rule_id, status, intent_kind,
+          revocation_policy, stale_state_policy, audit_correlation_policy,
+          destructive_action_enabled, entitlement_mutation_enabled, updated_at
+        FROM product_entitlement_revocation_intents
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<RevocationIntentRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicRevocationIntent);
+
+    return {
+      ...emptyRevocationIntentSummary("d1", null),
+      counts: {
+        revocationIntents: records.length,
+        dryRunIntents: records.filter((record) => record.intentKind === "owner_confirmed_dry_run").length,
+        destructiveActionsEnabled: rawRows.filter((row) => booleanValue(row.destructive_action_enabled)).length,
+        entitlementMutationsEnabled: rawRows.filter((row) => booleanValue(row.entitlement_mutation_enabled)).length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyRevocationIntentSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load product entitlement revocation intents.",
     );
   }
 }

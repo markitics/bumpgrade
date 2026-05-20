@@ -264,7 +264,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, fulfillment task evidence, protected content planning, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -275,9 +275,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #146 adds a seeded private R2-backed fixture delivery path through one-use Bumpgrade tokens.",
       "Issue #147 revalidates current entitlement status, checkout intent linkage, trusted checkout state, and asset scope before token redemption.",
       "Issue #151 adds owner-confirmed private product asset upload records backed by PRODUCT_ASSETS without exposing object keys, signed URLs, upload bodies, or private metadata.",
+      "Issue #179 adds owner-visible revocation intent readiness without destructive entitlement mutation.",
     ],
     nextMilestone:
-      "Connect owner-uploaded private assets to customer delivery while preserving the same token, entitlement, expiry, stale-state, and redaction boundaries.",
+      "Add destructive revocation only after owner confirmation, stale-state checks, customer-safe notification review, refunds/disputes policy, and audit correlation are enforced.",
   },
   {
     id: "roadmap-email-automation",

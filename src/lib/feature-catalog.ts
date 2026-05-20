@@ -193,6 +193,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Seeded private R2-backed fixture delivery through Bumpgrade from issue #146.",
       "Redemption-time current entitlement and trusted checkout state revalidation from issue #147.",
       "Owner-confirmed private product asset upload intent records from issue #151.",
+      "Owner-visible non-destructive revocation intent readiness from issue #179.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -208,9 +209,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #146 streams a seeded private R2-backed fixture through Bumpgrade without exposing private object keys or signed URLs.",
       "Issue #147 rejects stale redemption when current entitlement or trusted checkout state is no longer eligible.",
       "Issue #151 creates owner-confirmed private product asset upload records without exposing object keys, signed URLs, upload bodies, or private metadata.",
+      "Issue #179 adds owner-visible revocation intent readiness without destructive entitlement mutation.",
     ],
     agentContract:
-      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, revocation, customer delivery of arbitrary uploads, and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, non-destructive revocation intent readiness, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, destructive revocation, customer delivery of arbitrary uploads, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

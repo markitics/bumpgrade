@@ -149,10 +149,15 @@ GitHub repo: https://github.com/markitics/bumpgrade
   scope before streaming a seeded private R2-backed fixture through Bumpgrade
   while rejecting replayed or expired tokens. Public
   product source-data exposes aggregate entitlement inspection counts, customer
-  lookup contract metadata, download-token contract metadata, and redaction
-  flags only. Treat it as grant-boundary, owner-inspection, customer-safe lookup,
-  and private fixture delivery evidence, not signed object URLs, arbitrary asset
-  uploads, revocation, live fulfillment automation, or a confirmed-write agent API.
+  lookup contract metadata, download-token contract metadata, owner upload
+  intent metadata, non-destructive revocation intent readiness, and redaction
+  flags only. `/api/admin/products/assets` lets verified owners create small
+  private asset upload records after exact confirmation, idempotency, and
+  catalog revision checks, but those records are not customer-deliverable yet.
+  Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
+  fixture delivery, owner upload-intent, and revocation-readiness evidence, not
+  signed object URLs, customer delivery of arbitrary uploads, destructive
+  revocation, live fulfillment automation, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression
