@@ -1,6 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-import { entitlementGrantMappings } from "@/lib/product-entitlements";
+import { productEntitlementLookupMappings } from "@/lib/product-entitlements";
 import { productAccessCatalogs } from "@/lib/product-access";
 import { downloadableAssetForProduct, productDownloadTokenApiRoute } from "@/lib/product-download-tokens";
 
@@ -170,7 +170,9 @@ function accessRuleById() {
 
 function mappingByTemplateAndPrice() {
   return new Map(
-    entitlementGrantMappings.map((mapping) => [`${mapping.entitlementTemplateId}:${mapping.sourcePriceId}`, mapping] as const),
+    productEntitlementLookupMappings.map(
+      (mapping) => [`${mapping.entitlementTemplateId}:${mapping.sourcePriceId}`, mapping] as const,
+    ),
   );
 }
 
@@ -196,7 +198,7 @@ const privateFieldsExcluded = [
 ];
 
 const writeBoundary =
-  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. Issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, and issue #147 revalidates current entitlement and trusted checkout state at redemption. Private R2 keys, signed URLs, protected lessons, private buyer data, entitlement mutation, revocation, arbitrary asset uploads, and live fulfillment automation remain future authenticated confirmed-write APIs.";
+  "Issue #141 exposes a checkout-intent-scoped customer entitlement lookup with product, access-rule, and fulfillment status only. Issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state at redemption, and issue #187 can show subscription-backed membership entitlement state after trusted Stripe Billing events. Private R2 keys, signed URLs, protected lessons, private buyer data, entitlement mutation, revocation, arbitrary asset uploads, Customer Portal actions, and live fulfillment automation remain future authenticated confirmed-write APIs.";
 
 export const customerProductEntitlementLookupSummary: CustomerProductEntitlementLookupSummary = {
   id: "customer-product-entitlement-lookup-contract",

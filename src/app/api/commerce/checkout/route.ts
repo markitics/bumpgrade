@@ -25,6 +25,10 @@ import {
   type CommerceProductRow,
 } from "@/lib/sandbox-checkout";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
+import {
+  subscriptionMembershipStripeMetadataCheckoutKey,
+  subscriptionMembershipStripeMetadataPriceKey,
+} from "@/lib/product-entitlements";
 import { createStripeClient, stripeModeFromEnv, stripeSecretKeyFromEnv } from "@/lib/stripe";
 
 type CheckoutRequestBody = {
@@ -439,14 +443,28 @@ async function createStripeSession(input: {
   cancelUrl: string;
   buyerEmail: string | null;
 }) {
+  const checkoutMode = checkoutModeForPrice(input.price);
+  const subscriptionData =
+    checkoutMode === "subscription"
+      ? {
+          metadata: {
+            [subscriptionMembershipStripeMetadataCheckoutKey]: input.intent.id,
+            [subscriptionMembershipStripeMetadataPriceKey]: input.price.id,
+            product_id: input.product.id,
+            audit_correlation_id: input.intent.audit_correlation_id ?? "",
+            bumpgrade_issue: "187",
+          },
+        }
+      : undefined;
   const session = await input.stripe.checkout.sessions.create(
     {
-      mode: checkoutModeForPrice(input.price),
+      mode: checkoutMode,
       line_items: input.items.map((item) => lineItemForPrice(item.product, item.price)),
       success_url: appendCheckoutQuery(input.successUrl, input.intent.id),
       cancel_url: input.cancelUrl,
       client_reference_id: input.intent.id,
       customer_email: input.buyerEmail ?? undefined,
+      subscription_data: subscriptionData,
       metadata: {
         checkout_intent_id: input.intent.id,
         product_id: input.product.id,
