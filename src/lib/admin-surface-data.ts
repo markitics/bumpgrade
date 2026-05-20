@@ -209,15 +209,18 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
-const launchProofUpdatedAt = "2026-05-20T11:25:00.000Z";
-const issue217BranchActionsUrl =
-  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-217-launch-marketing-readiness";
-const issue222BranchActionsUrl =
-  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-222-paid-publisher-subdomains";
-const issue223BranchActionsUrl =
-  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-223-custom-domain-dns";
+const launchProofUpdatedAt = "2026-05-20T13:42:45.000Z";
+const issue217PrUrl = "https://github.com/markitics/bumpgrade/pull/218";
+const issue217CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26155451076";
+const issue222PrUrl = "https://github.com/markitics/bumpgrade/pull/227";
+const issue222CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26160043319";
+const issue223PrUrl = "https://github.com/markitics/bumpgrade/pull/228";
+const issue223LivePrUrl = "https://github.com/markitics/bumpgrade/pull/229";
+const issue223CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26162614936";
 const issue224PrUrl = "https://github.com/markitics/bumpgrade/pull/230";
 const issue224CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26164091138";
+const issue225PrUrl = "https://github.com/markitics/bumpgrade/pull/232";
+const issue225CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26166024751";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -240,13 +243,13 @@ const defaultJourneyProof: AdminUserJourneyProof = {
 
 const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-prospect-explores-launch-marketing": {
-    status: "partial",
+    status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local launch branch plus planned GitHub Actions CI on the issue #217 branch.",
+    environment: "Local launch branch, GitHub Actions CI, merged PR #218, and deployed screenshot evidence.",
     method: "Public route smoke tests, sitemap checks, feature source-data checks, and launch screenshots.",
-    summary: "Launch marketing, feature detail, pricing, and source-data routes are being validated in issue #217.",
+    summary: "Homepage, feature index, feature detail, pricing, and source-data routes have route and screenshot proof for the invite wave.",
     ciLinks: [
-      { label: "Issue #217 branch CI", url: issue217BranchActionsUrl, kind: "ci" },
+      { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
@@ -256,18 +259,20 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Feature source data", url: "https://bumpgrade.com/features/source-data", kind: "source-data" },
+      { label: "PR #218", url: issue217PrUrl, kind: "pr" },
       { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
     ],
-    notes: ["CI URLs are stable now; the first run appears after this branch is pushed."],
+    notes: ["This proof is for launch marketing readiness; feature-specific billing and provider-send claims still require their own evidence."],
   },
   "journey-prospect-reviews-launch-pricing": {
-    status: "partial",
+    status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local launch branch plus planned GitHub Actions CI on the issue #217 branch.",
-    method: "Pricing route smoke test, content review, and commerce boundary inspection.",
-    summary: "Pricing is launch-facing and lists payment options without exposing an unverified live checkout button.",
+    environment: "Local launch branch, GitHub Actions CI, merged launch PRs, and production route smoke.",
+    method: "Pricing route smoke test, content review, commerce boundary inspection, account setup source-data inspection, and domain-policy proof.",
+    summary: "Pricing explains invite access, paid pilots, Bumpgrade subdomains, existing-domain setup, no domain purchase, and live-checkout boundaries without exposing an unverified checkout button.",
     ciLinks: [
-      { label: "Issue #217 branch CI", url: issue217BranchActionsUrl, kind: "ci" },
+      { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
+      { label: "PR #232 CI run", url: issue225CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
@@ -275,18 +280,24 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Commerce source data", url: "https://bumpgrade.com/commerce/source-data", kind: "source-data" },
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "PR #232", url: issue225PrUrl, kind: "pr" },
       { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
+      { label: "Issue #226", url: "https://github.com/markitics/bumpgrade/issues/226", kind: "issue" },
     ],
-    notes: ["Live self-serve checkout remains gated until live Stripe smoke proof is available."],
+    notes: [
+      "Bumpgrade pilot payment can be handled through a confirmed payment path, but customer-facing publisher checkout remains offer-specific.",
+      "Live self-serve customer checkout remains gated until live Stripe smoke proof is available for the specific offer.",
+    ],
   },
   "journey-publisher-reserves-bumpgrade-subdomain": {
     status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local launch branch plus GitHub Actions CI linked from the issue #222 branch query.",
+    environment: "Local launch branch, GitHub Actions CI, merged PR #227, and production source-data smoke.",
     method: "Full Playwright browser suite, account setup route smoke test, source-data inspection, and authenticated API reservation checks.",
-    summary: "Paid publisher tenant setup and Bumpgrade subdomain reservation passed the local browser suite in issue #222.",
+    summary: "Paid publisher tenant setup and Bumpgrade subdomain reservation passed local and GitHub validation.",
     ciLinks: [
-      { label: "Issue #222 branch CI", url: issue222BranchActionsUrl, kind: "ci" },
+      { label: "PR #227 CI run", url: issue222CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
@@ -294,6 +305,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "PR #227", url: issue222PrUrl, kind: "pr" },
       { label: "Issue #222", url: "https://github.com/markitics/bumpgrade/issues/222", kind: "issue" },
     ],
     notes: [
@@ -304,11 +316,12 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-publisher-connects-custom-domain": {
     status: "passed",
     lastTestedAt: launchProofUpdatedAt,
-    environment: "Local launch branch plus GitHub Actions CI linked from the issue #223 branch query.",
+    environment: "Local launch branch, GitHub Actions CI, merged PRs #228, #229, and #232, and production source-data smoke.",
     method: "Account setup route smoke test, source-data inspection, and authenticated custom-domain API checks.",
-    summary: "Existing custom-domain onboarding shows deterministic CNAME instructions and redacted verification state.",
+    summary: "Existing custom-domain onboarding shows deterministic CNAME instructions, redacted verification state, and the no-domain-purchase launch policy.",
     ciLinks: [
-      { label: "Issue #223 branch CI", url: issue223BranchActionsUrl, kind: "ci" },
+      { label: "PR #229 CI run", url: issue223CiRunUrl, kind: "ci" },
+      { label: "PR #232 CI run", url: issue225CiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
@@ -316,6 +329,9 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "PR #228", url: issue223PrUrl, kind: "pr" },
+      { label: "PR #229", url: issue223LivePrUrl, kind: "pr" },
+      { label: "PR #232", url: issue225PrUrl, kind: "pr" },
       { label: "Issue #223", url: "https://github.com/markitics/bumpgrade/issues/223", kind: "issue" },
     ],
     notes: [
@@ -547,7 +563,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect explores Bumpgrade launch features",
     featureId: "feature-public-feature-catalog",
     featureStatus: "live",
-    issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217],
+    issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217, 226],
     primaryUser: "Publisher invited to try Bumpgrade",
     userGoal: "Understand what Bumpgrade can do for a launch without needing to decode project management notes.",
     sourceEvidence: [
@@ -562,7 +578,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Open the homepage and understand Bumpgrade as a publisher launch system.",
       "Open /features to see customer-facing feature groups organized by launch job.",
       "Open a dedicated feature page such as /features/email-campaigns or /features/order-bump.",
-      "Follow proof routes for the feature preview, source data, or issue evidence.",
+      "Follow feature examples or related launch previews when the feature fits the offer.",
       "Open /pricing to understand invite access and payment options.",
     ],
     edgeCases: [
@@ -574,6 +590,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /features/source-data and feature detail pages; public copy changes still need issue evidence, route proof, or source-data support.",
     validation: [
       "Issue #217 adds launch marketing pages, dedicated feature routes, sitemap entries, screenshots, and CI wiring.",
+      "Issue #226 removes internal status-board language from public launch copy and refreshes pricing/domain readiness proof.",
       "Playwright smoke tests cover homepage, /features, dedicated feature pages, /pricing, and source-data routes.",
     ],
     proof: createJourneyProof("journey-prospect-explores-launch-marketing", "feature-public-feature-catalog"),
@@ -693,7 +710,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect reviews launch pricing and payment options",
     featureId: "feature-resources-use-cases-pricing",
     featureStatus: "live",
-    issueNumbers: [20, 46, 217],
+    issueNumbers: [20, 46, 217, 222, 223, 225, 226],
     primaryUser: "Publisher deciding whether to request Bumpgrade access",
     userGoal: "Understand how early access, paid pilots, and live payment handling work before inviting buyers.",
     sourceEvidence: [
@@ -705,18 +722,21 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Open /pricing.",
       "Read launch preview, publisher pilot, and operator stack options.",
-      "Review payment option language for card payments, Stripe invoices, and manual approval.",
+      "Review payment option language for pilot payments, Stripe invoices, subdomains, custom domains, and manual approval.",
       "Use the access CTA when ready to discuss the first live offer.",
     ],
     edgeCases: [
       "No self-serve live checkout button should appear until live checkout smoke proof is linked.",
       "Pricing should not invent fixed plan amounts before the launch wave confirms packaging.",
       "Sandbox checkout proof is not the same as live-mode product payment proof.",
+      "Bumpgrade connects domains customers already own; it does not sell, register, renew, transfer, or price domains today.",
     ],
     agentAccess:
       "Agents can read /pricing and /content/source-data, but billing-impacting recommendations must cite /commerce/source-data and current Stripe proof.",
     validation: [
       "Issue #217 rewrites pricing as launch-facing copy.",
+      "Issue #225 clarifies the domain purchase policy.",
+      "Issue #226 refreshes launch signup and pricing copy for paid domain readiness.",
       "The pricing page links to human contact paths instead of an unverified live checkout button.",
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
