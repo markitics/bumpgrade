@@ -242,6 +242,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-confirmed delivery-batch dry runs from issue #183.",
       "Owner-confirmed dry-run queue-message evidence from issue #189.",
       "Owner-confirmed dispatch preflight dry runs from issue #191.",
+      "Owner-confirmed dispatch attempt receipts from issue #197.",
       "Campaigns, sequences, broadcasts, and behavior-triggered automations.",
       "CRM-lite contact timelines and opportunity states.",
       "Consent, unsubscribe, and deliverability boundaries.",
@@ -260,10 +261,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #183 adds delivery-batch dry runs without recipient payloads, queue messages, or provider sends.",
       "Issue #189 adds delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs.",
       "Issue #191 adds dispatch preflight dry runs without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs.",
+      "Issue #197 adds dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Codex project email tracked separately by issue #10.",
     ],
     agentContract:
-      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, preview safety, queue readiness, delivery-batch, queue-message, and dispatch-preflight counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, owner schedule-intent metadata, owner delivery-batch metadata, owner queue-message metadata, and owner dispatch-preflight metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, Cloudflare Queue dispatch, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, queue safety, and provider limits.",
+      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, preview safety, queue readiness, delivery-batch, queue-message, dispatch-preflight, and dispatch-attempt counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, owner schedule-intent metadata, owner delivery-batch metadata, owner queue-message metadata, owner dispatch-preflight metadata, and owner dispatch-attempt receipt metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, Cloudflare Queue dispatch, queue payload bodies, provider responses, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, queue safety, and provider limits.",
   },
   {
     id: "feature-analytics-testing",
