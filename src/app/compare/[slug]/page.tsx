@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: CompareAlternativePageProps):
     title: competitor.metaTitle ?? `${competitor.name} Alternative`,
     description:
       competitor.metaDescription ??
-      `${competitor.name} alternative page for Bumpgrade, with sourced competitor notes and explicit planned Bumpgrade feature status.`,
+      `${competitor.name} alternative page for Bumpgrade, with competitor notes and practical launch-platform positioning.`,
     alternates: {
       canonical: `${site.url}/compare/${competitor.slug}`,
     },
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: CompareAlternativePageProps):
       title: competitor.metaTitle ?? `${competitor.name} Alternative`,
       description:
         competitor.metaDescription ??
-        `${competitor.name} alternative page for Bumpgrade, with sourced competitor notes and explicit planned Bumpgrade feature status.`,
+        `${competitor.name} alternative page for Bumpgrade, with competitor notes and practical launch-platform positioning.`,
       url: `${site.url}/compare/${competitor.slug}`,
       type: "article",
     },
@@ -105,8 +105,8 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
           <h1>{competitor.headline}</h1>
           <p className="lede">{competitor.alternativePosition}</p>
           <div className="hero-actions">
-            <Link href="/roadmap" className="primary-action">
-              View roadmap
+            <Link href="/features" className="primary-action">
+              See features
               <ArrowRight aria-hidden="true" />
             </Link>
             <a href={competitor.sourceUrl} className="secondary-action">
@@ -127,11 +127,11 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
         <section className="content-band">
           <div className="compare-section-heading">
             <div>
-              <p className="eyebrow">Search intent</p>
-              <h2>{competitor.name} alternative keywords this page covers</h2>
+              <p className="eyebrow">Buyer research</p>
+              <h2>What buyers usually mean by {competitor.name} alternative</h2>
             </div>
-            <Link href="/compare/source-data" className="text-link compact-link">
-              Source data
+            <Link href="/compare" className="text-link compact-link">
+              All comparisons
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -165,7 +165,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
             <div className="comparison-table-row comparison-table-head" role="row">
               <div role="columnheader">Capability cluster</div>
               <div role="columnheader">Official-source ClickFunnels surface</div>
-              <div role="columnheader">Bumpgrade roadmap link</div>
+              <div role="columnheader">Bumpgrade approach</div>
             </div>
             {competitor.deepDive.checklist.map((row) => (
               <div key={row.area} className="comparison-table-row" role="row">
@@ -195,14 +195,14 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
       <section className="content-band alternate">
         <div className="compare-section-heading">
           <div>
-            <p className="eyebrow">Sourced notes</p>
-            <h2>What the official source supports</h2>
+            <p className="eyebrow">Competitor notes</p>
+            <h2>What {competitor.name} emphasizes</h2>
           </div>
           {sources.length ? (
             <div className="source-link-list" aria-label={`${competitor.name} source evidence`}>
               {sources.map((source) => (
                 <a key={source.id} href={source.url} className="text-link compact-link">
-                  {source.id}
+                  {source.label}
                   <ExternalLink aria-hidden="true" />
                 </a>
               ))}
@@ -223,14 +223,14 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
         <div className="compare-section-heading">
           <div>
             <p className="eyebrow">Comparison matrix</p>
-            <h2>Where Bumpgrade has to earn parity</h2>
+            <h2>How the decision compares</h2>
           </div>
         </div>
         <div className="comparison-table" role="table" aria-label={`${competitor.name} alternative matrix`}>
           <div className="comparison-table-row comparison-table-head" role="row">
             <div role="columnheader">Area</div>
             <div role="columnheader">{competitor.name}</div>
-            <div role="columnheader">Bumpgrade target</div>
+            <div role="columnheader">Bumpgrade approach</div>
           </div>
           {competitor.rows.map((row) => (
             <div key={row.area} className="comparison-table-row" role="row">
@@ -247,14 +247,14 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
       <section className="content-band dark-band">
         <div className="compare-section-heading">
           <div>
-            <p className="eyebrow">Not shipped yet</p>
-            <h2>Roadmap gaps this comparison creates</h2>
+            <p className="eyebrow">Switching notes</p>
+            <h2>What to decide before replacing {competitor.name}</h2>
           </div>
         </div>
         <div className="gap-list">
           {competitor.gapsToAddress.map((gap) => (
             <div key={gap} className="gap-row">
-              <span aria-hidden="true">Planned</span>
+              <span aria-hidden="true">Decide</span>
               <p>{gap}</p>
             </div>
           ))}

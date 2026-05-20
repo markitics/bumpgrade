@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, GitCompareArrows, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpen, GitCompareArrows, ShieldCheck } from "lucide-react";
 
 import {
   comparisonHubRows,
@@ -14,14 +14,14 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "ClickFunnels Alternatives and Competitors for Indiepreneurs",
   description:
-    "Compare ClickFunnels alternatives and competitors for indiepreneurs, including Bumpgrade's funnel, checkout, email, commerce, and agent-ready launch platform.",
+    "Compare ClickFunnels alternatives and competitors for indiepreneurs, including Bumpgrade's funnel, checkout, email, commerce, and AI-assisted launch platform.",
   alternates: {
     canonical: `${site.url}/compare`,
   },
   openGraph: {
     title: "ClickFunnels alternatives and indiepreneur platform comparisons",
     description:
-      "A source-grounded comparison hub for ClickFunnels, Kit, Shopify, SamCart, Kajabi, Podia, Systeme.io, Kartra, ThriveCart, and Bumpgrade roadmap targets.",
+      "A practical comparison hub for ClickFunnels, Kit, Shopify, SamCart, Kajabi, Podia, Systeme.io, Kartra, ThriveCart, and Bumpgrade.",
     url: `${site.url}/compare`,
     type: "website",
   },
@@ -59,33 +59,33 @@ export default function ComparePage() {
           <h1>Compare ClickFunnels competitors and indiepreneur platforms.</h1>
           <p className="lede">
             Bumpgrade is the launch system for publishers who want funnel, checkout, email, product, analytics,
-            and AI-assist workflows to connect. Every comparison keeps public claims tied to source evidence,
-            feature pages, and current proof.
+            and AI-assist workflows to connect. Use this hub to see where Bumpgrade can replace a stack of specialist
+            tools and where a dedicated platform still makes sense.
           </p>
           <div className="hero-actions">
             <Link href="/features" className="primary-action">
               See features
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/compare/source-data" className="secondary-action">
-              Agent JSON
-              <Database aria-hidden="true" />
+            <Link href="/compare/clickfunnels-alternative" className="secondary-action">
+              Compare ClickFunnels
+              <BookOpen aria-hidden="true" />
             </Link>
           </div>
         </div>
         <aside className="compare-scorecard" aria-label="Comparison status">
           <GitCompareArrows aria-hidden="true" />
-          <p>Source pass</p>
+          <p>Comparison set</p>
           <strong>{competitors.length} alternatives</strong>
-          <span>Official source pages rechecked {comparisonRetrievedAt}. Bumpgrade capabilities are marked as planned until shipped.</span>
+          <span>Alternative pages reviewed {comparisonRetrievedAt}. Start with the platform you already know.</span>
         </aside>
       </section>
 
       <section className="content-band">
         <div className="compare-section-heading">
           <div>
-            <p className="eyebrow">Search intent</p>
-            <h2>SEO targets stay visible and source-linked.</h2>
+            <p className="eyebrow">Buyer research</p>
+            <h2>Start with the question your current tool raises.</h2>
           </div>
           <Link href="/compare/clickfunnels-alternative" className="text-link compact-link">
             ClickFunnels page
@@ -114,8 +114,8 @@ export default function ComparePage() {
             <p className="eyebrow">Compare by platform</p>
             <h2>First-wave alternative pages</h2>
           </div>
-          <Link href="/roadmap" className="text-link compact-link">
-            Roadmap
+          <Link href="/features" className="text-link compact-link">
+            Feature overview
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -145,7 +145,7 @@ export default function ComparePage() {
           <div className="comparison-table-row comparison-table-head" role="row">
             <div role="columnheader">Area</div>
             <div role="columnheader">What incumbents cover</div>
-            <div role="columnheader">Bumpgrade target</div>
+            <div role="columnheader">Bumpgrade approach</div>
           </div>
           {comparisonHubRows.map((row) => (
             <div key={row.area} className="comparison-table-row" role="row">
@@ -161,8 +161,8 @@ export default function ComparePage() {
 
       <section className="content-band dark-band">
         <div className="section-heading">
-          <p className="eyebrow">Evidence rules</p>
-          <h2>Comparison pages are marketing, but the evidence contract is product.</h2>
+          <p className="eyebrow">How to choose</p>
+          <h2>Compare the job you need done, not just the logo on the tool.</h2>
         </div>
         <div className="principle-grid">
           {comparisonPrinciples.map((principle) => (

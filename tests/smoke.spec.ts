@@ -347,6 +347,26 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("In build")).toHaveCount(0);
   });
 
+  test("public launch pages avoid internal build language", async ({ page }) => {
+    const internalTerms = /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned)\b|source-data/i;
+
+    const publicCopyRoutes = ["/compare", ...competitors.map((competitor) => `/compare/${competitor.slug}`), "/users", "/resources", "/account/setup"];
+
+    for (const path of publicCopyRoutes) {
+      await page.goto(path);
+      const visibleText = await page.locator("body").innerText();
+      expect(visibleText).not.toMatch(internalTerms);
+    }
+
+    await page.goto("/users");
+    await expect(page.getByText("Best for").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "See launch pricing" })).toBeVisible();
+
+    await page.goto("/resources");
+    await expect(page.getByText("Available now").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Request a guide" })).toBeVisible();
+  });
+
   test("comparison hub links to every first-wave alternative", async ({ page }) => {
     await page.goto("/compare");
     for (const competitor of competitors) {
