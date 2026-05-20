@@ -33,6 +33,8 @@ import {
   audienceBroadcastProviderRateLimitReadinessStatus,
   audienceBroadcastProviderResponseReadinessIssue,
   audienceBroadcastProviderResponseReadinessStatus,
+  audienceBroadcastQueueConsumerReadinessIssue,
+  audienceBroadcastQueueConsumerReadinessStatus,
   audienceBroadcastQueueProducerReadinessIssue,
   audienceBroadcastQueueProducerReadinessStatus,
   audienceBroadcastQueueReadinessIssue,
@@ -1731,8 +1733,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceBroadcastQueueProducerReadinessStatus,
-        issue: audienceBroadcastQueueProducerReadinessIssue,
+        status: audienceBroadcastQueueConsumerReadinessStatus,
+        issue: audienceBroadcastQueueConsumerReadinessIssue,
         parentIssue: 17,
       }),
     );
@@ -2116,6 +2118,63 @@ test.describe("Bumpgrade scaffold", () => {
             queuePayloadBodiesCreated: false,
             recipientPayloadsCreated: false,
             personalizedBodiesCreated: false,
+            providerSendEnabled: false,
+            providerResponsesIncluded: false,
+            providerMessageIdsIncluded: false,
+            rawPayloadBodiesStored: false,
+          }),
+        ]),
+      }),
+    );
+    expect(payload.broadcastQueueConsumerReadiness).toEqual(
+      expect.objectContaining({
+        status: audienceBroadcastQueueConsumerReadinessStatus,
+        issue: audienceBroadcastQueueConsumerReadinessIssue,
+        counts: expect.objectContaining({
+          queueConsumerReadinessRecords: expect.any(Number),
+          dryRunConsumerContracts: expect.any(Number),
+          cloudflareQueueConsumerEnabledRecords: 0,
+          cloudflareQueueMessagesConsumedRecords: 0,
+          cloudflareQueueMessagesAckedRecords: 0,
+          queueRetryRecordsCreatedRecords: 0,
+          queueDeadLetterRecordsCreatedRecords: 0,
+          queuePayloadBodiesReadRecords: 0,
+          recipientPayloadsCreatedRecords: 0,
+          providerSendEnabledRecords: 0,
+          providerResponsesCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+          rawPayloadBodiesStoredRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          queuePayloadBodiesIncluded: false,
+          queueConsumerAckRowsIncluded: false,
+          queueRetryRowsIncluded: false,
+          queueDeadLetterRowsIncluded: false,
+          recipientPayloadsIncluded: false,
+          rawPayloadBodiesIncluded: false,
+          providerSecretsIncluded: false,
+          providerResponsesIncluded: false,
+          providerMessageIdsIncluded: false,
+          cloudflareQueueConsumersEnabled: false,
+          cloudflareQueueMessagesConsumed: false,
+          cloudflareQueueMessagesAcked: false,
+          providerSendEnabled: false,
+        }),
+        records: expect.arrayContaining([
+          expect.objectContaining({
+            id: "broadcast-queue-consumer-readiness-launch-window",
+            draftId: "broadcast-draft-launch-window",
+            queueName: "audience-broadcast-delivery",
+            consumerName: "bumpgrade-audience-broadcast-delivery-consumer",
+            cloudflareQueueConsumersEnabled: false,
+            cloudflareQueueMessagesConsumed: false,
+            cloudflareQueueMessagesAcked: false,
+            queueRetryRecordsCreated: false,
+            queueDeadLetterRecordsCreated: false,
+            queuePayloadBodiesRead: false,
+            recipientPayloadsCreated: false,
             providerSendEnabled: false,
             providerResponsesIncluded: false,
             providerMessageIdsIncluded: false,
@@ -4166,6 +4225,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
+            211,
           ],
         }),
         expect.objectContaining({
@@ -4452,6 +4512,7 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastProviderResponseReadinessId",
             "broadcastSendPayloadReadinessId",
             "broadcastQueueProducerReadinessId",
+            "broadcastQueueConsumerReadinessId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect suppression-aware broadcast readiness without recipient exposure",
@@ -4468,6 +4529,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect provider response readiness without provider secrets, raw response bodies, provider responses, or provider message IDs",
             "Inspect send-payload readiness without recipient payloads, personalized bodies, raw payload bodies, queue producers, or provider sends",
             "Inspect Queue producer readiness without Queue messages, queue payload bodies, recipient payloads, or provider sends",
+            "Inspect Queue consumer readiness without Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, or provider sends",
           ]),
         }),
         expect.objectContaining({
@@ -5724,6 +5786,39 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastQueueProducerReadiness)).not.toContain(
       audienceEmail,
     );
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.queueConsumerReadinessRecords,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.cloudflareQueueConsumerEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.cloudflareQueueMessagesConsumedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.cloudflareQueueMessagesAckedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.queueRetryRecordsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.queueDeadLetterRecordsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.queuePayloadBodiesReadRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.recipientPayloadsCreatedRecords,
+    ).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.providerSendEnabledRecords).toBe(
+      0,
+    );
+    expect(
+      audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness.counts.providerResponsesCreatedRecords,
+    ).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastQueueConsumerReadiness)).not.toContain(
+      audienceEmail,
+    );
 
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
@@ -5739,10 +5834,13 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Provider responses", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Send payloads", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue producers", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Queue consumers", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payload body creation is still blocked" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue producers remain disabled until handoff gates pass" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Producer binding is readiness-only" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Queue consumers stay disabled until ack and retry gates pass" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Consumer handoff is readiness-only" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preview copy stays separate from delivery" })).toBeVisible();
     await expect(page.getByText("Your Bumpgrade launch window is ready to preview")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue gates are visible before producers exist" })).toBeVisible();
