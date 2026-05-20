@@ -29,12 +29,14 @@ import {
   audienceBroadcastDeliveryQueueMessageIssue,
   audienceBroadcastDispatchAttemptIssue,
   audienceBroadcastDispatchPreflightIssue,
+  audienceBroadcastProviderEventReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
   getAudienceBroadcastDispatchAttemptSummary,
   getAudienceBroadcastDispatchPreflightSummary,
   getAudienceBroadcastPreviewSafetySummary,
+  getAudienceBroadcastProviderEventReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
@@ -75,6 +77,7 @@ export default async function AdminAudiencePage() {
     broadcastDispatchPreflights,
     broadcastDispatchAttempts,
     broadcastSenderDomainReadiness,
+    broadcastProviderEventReadiness,
   ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
@@ -86,6 +89,7 @@ export default async function AdminAudiencePage() {
       getAudienceBroadcastDispatchPreflightSummary(),
       getAudienceBroadcastDispatchAttemptSummary(),
       getAudienceBroadcastSenderDomainReadinessSummary(),
+      getAudienceBroadcastProviderEventReadinessSummary(),
     ]);
 
   return (
@@ -101,7 +105,8 @@ export default async function AdminAudiencePage() {
             queue readiness stay visible before delivery exists, and dispatch preflight checks stay dry-run before
             Cloudflare Queue dispatch or provider sends are allowed. Dispatch attempt receipts prove the final handoff
             stays receipt-only before producers exist, and sender-domain readiness keeps live delivery blocked until
-            SPF/DKIM/DMARC alignment evidence is explicit. Public source-data stays aggregate-only.
+            SPF/DKIM/DMARC alignment evidence is explicit. Provider-event readiness keeps bounces and complaints
+            redacted before provider webhooks exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -238,6 +243,15 @@ export default async function AdminAudiencePage() {
               {broadcastSenderDomainReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
             </p>
           </div>
+          <div>
+            <MailX aria-hidden="true" />
+            <h3>Provider events</h3>
+            <p>
+              {broadcastProviderEventReadiness.counts.providerEventReadinessRecords} event-readiness record
+              {broadcastProviderEventReadiness.counts.providerEventReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastProviderEventReadiness.counts.rawProviderPayloadsStoredRecords} raw payloads stored.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -362,6 +376,66 @@ export default async function AdminAudiencePage() {
               </div>
               <h3>No preview safety records</h3>
               <p>{broadcastPreviewSafety.loadError ?? "Run the preview safety migration to seed the broadcast preview."}</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Provider-event readiness</p>
+            <h2>Provider events stay redacted before live sends</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastProviderEventReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastProviderEventReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastProviderEventReadiness.records.length > 0 ? (
+            broadcastProviderEventReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.providerName.replaceAll("_", " ")}</span>
+                </div>
+                <MailX aria-hidden="true" />
+                <h3>{record.eventKinds.join(", ")}</h3>
+                <p>{record.providerEventBoundary}</p>
+                <div className="roadmap-detail">
+                  <strong>Bounces</strong>
+                  <span>{record.bounceHandlingPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Complaints</strong>
+                  <span>{record.complaintHandlingPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Suppression updates</strong>
+                  <span>{record.suppressionUpdatePolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Payload storage</strong>
+                  <span>{record.rawProviderPayloadStorage.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Provider sends, provider webhooks, raw provider payloads, provider responses, provider message IDs,
+                  recipient payloads, and Cloudflare Queue producers remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No provider events</span>
+                <span className="admin-pill">Issue #{audienceBroadcastProviderEventReadinessIssue}</span>
+              </div>
+              <h3>No provider-event readiness records</h3>
+              <p>
+                {broadcastProviderEventReadiness.loadError ??
+                  "Run the provider-event readiness migration to seed bounce and complaint handling metadata."}
+              </p>
             </article>
           )}
         </div>

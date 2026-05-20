@@ -45,6 +45,9 @@ export const audienceBroadcastDispatchAttemptConfirmationText =
 export const audienceBroadcastSenderDomainReadinessIssue = 199;
 export const audienceBroadcastSenderDomainReadinessStatus = "broadcast-sender-domain-readiness-ready";
 export const audienceBroadcastSenderDomainReadinessUpdatedAt = "2026-05-20";
+export const audienceBroadcastProviderEventReadinessIssue = 201;
+export const audienceBroadcastProviderEventReadinessStatus = "broadcast-provider-event-readiness-ready";
+export const audienceBroadcastProviderEventReadinessUpdatedAt = "2026-05-20";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -126,6 +129,30 @@ type SenderDomainReadinessRow = {
   recipient_payloads_created: number | string;
   provider_responses_created: number | string;
   provider_message_ids_created: number | string;
+  updated_at: number | string;
+};
+
+type ProviderEventReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  provider_name: string;
+  event_kinds_json: string;
+  provider_event_boundary: string;
+  bounce_handling_policy: string;
+  complaint_handling_policy: string;
+  delivery_event_policy: string;
+  suppression_update_policy: string;
+  audit_correlation_policy: string;
+  raw_provider_payload_storage: string;
+  provider_secret_status: string;
+  sender_domain_gate_status: string;
+  provider_send_enabled: number | string;
+  cloudflare_queue_producers_enabled: number | string;
+  recipient_payloads_created: number | string;
+  provider_responses_created: number | string;
+  provider_message_ids_created: number | string;
+  raw_provider_payloads_stored: number | string;
   updated_at: number | string;
 };
 
@@ -490,6 +517,67 @@ export type AudienceBroadcastSenderDomainReadinessSummary = {
     recipientPayloadsIncluded: false;
     providerResponsesIncluded: false;
     providerMessageIdsIncluded: false;
+    providerSendEnabled: false;
+    cloudflareQueueProducersEnabled: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastProviderEventReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  providerName: string;
+  eventKinds: string[];
+  providerEventBoundary: string;
+  bounceHandlingPolicy: string;
+  complaintHandlingPolicy: string;
+  deliveryEventPolicy: string;
+  suppressionUpdatePolicy: string;
+  auditCorrelationPolicy: string;
+  rawProviderPayloadStorage: string;
+  providerSecretStatus: string;
+  senderDomainGateStatus: string;
+  providerSendEnabled: false;
+  cloudflareQueueProducersEnabled: false;
+  recipientPayloadsCreated: false;
+  providerResponsesIncluded: false;
+  providerMessageIdsIncluded: false;
+  rawProviderPayloadsStored: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastProviderEventReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastProviderEventReadinessStatus;
+  issue: typeof audienceBroadcastProviderEventReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    providerEventReadinessRecords: number;
+    bounceEventReadinessRecords: number;
+    complaintEventReadinessRecords: number;
+    deliveryEventReadinessRecords: number;
+    providerSendEnabledRecords: number;
+    cloudflareQueueProducerEnabledRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    providerResponsesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+    rawProviderPayloadsStoredRecords: number;
+  };
+  records: AudienceBroadcastProviderEventReadiness[];
+  redaction: {
+    providerSecretsIncluded: false;
+    rawProviderPayloadsIncluded: false;
+    providerResponsesIncluded: false;
+    providerMessageIdsIncluded: false;
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    recipientPayloadsIncluded: false;
     providerSendEnabled: false;
     cloudflareQueueProducersEnabled: false;
   };
@@ -1223,6 +1311,60 @@ function emptySenderDomainReadinessSummary(
   };
 }
 
+function emptyProviderEventReadinessSummary(
+  source: AudienceBroadcastProviderEventReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastProviderEventReadinessSummary {
+  return {
+    id: "audience-broadcast-provider-event-readiness-contract",
+    status: audienceBroadcastProviderEventReadinessStatus,
+    issue: audienceBroadcastProviderEventReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      providerEventReadinessRecords: 0,
+      bounceEventReadinessRecords: 0,
+      complaintEventReadinessRecords: 0,
+      deliveryEventReadinessRecords: 0,
+      providerSendEnabledRecords: 0,
+      cloudflareQueueProducerEnabledRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      providerResponsesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+      rawProviderPayloadsStoredRecords: 0,
+    },
+    records: [],
+    redaction: {
+      providerSecretsIncluded: false,
+      rawProviderPayloadsIncluded: false,
+      providerResponsesIncluded: false,
+      providerMessageIdsIncluded: false,
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      recipientPayloadsIncluded: false,
+      providerSendEnabled: false,
+      cloudflareQueueProducersEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "providerSecret",
+      "rawProviderPayload",
+      "providerResponse",
+      "providerMessageId",
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "recipientPayload",
+      "suppressionHash",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #201 exposes provider-event readiness metadata for audience broadcasts before any live provider webhook or send path exists. It does not store raw provider payloads, expose provider secrets, enable Cloudflare Queue producers, create recipient payloads, send through a provider, create provider responses, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function emptyDeliveryBatchSummary(
   source: AudienceBroadcastDeliveryBatchSummary["source"],
   loadError: string | null,
@@ -1557,6 +1699,32 @@ function publicSenderDomainReadiness(row: SenderDomainReadinessRow): AudienceBro
     recipientPayloadsCreated: false,
     providerResponsesIncluded: false,
     providerMessageIdsIncluded: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicProviderEventReadiness(row: ProviderEventReadinessRow): AudienceBroadcastProviderEventReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    providerName: row.provider_name,
+    eventKinds: parseJsonStringArray(row.event_kinds_json),
+    providerEventBoundary: row.provider_event_boundary,
+    bounceHandlingPolicy: row.bounce_handling_policy,
+    complaintHandlingPolicy: row.complaint_handling_policy,
+    deliveryEventPolicy: row.delivery_event_policy,
+    suppressionUpdatePolicy: row.suppression_update_policy,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    rawProviderPayloadStorage: row.raw_provider_payload_storage,
+    providerSecretStatus: row.provider_secret_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    providerSendEnabled: false,
+    cloudflareQueueProducersEnabled: false,
+    recipientPayloadsCreated: false,
+    providerResponsesIncluded: false,
+    providerMessageIdsIncluded: false,
+    rawProviderPayloadsStored: false,
     updatedAt: timestampValue(row.updated_at),
   };
 }
@@ -2062,6 +2230,51 @@ export async function getAudienceBroadcastSenderDomainReadinessSummary(): Promis
     return emptySenderDomainReadinessSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast sender-domain readiness.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastProviderEventReadinessSummary(): Promise<AudienceBroadcastProviderEventReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, provider_name, event_kinds_json, provider_event_boundary,
+          bounce_handling_policy, complaint_handling_policy, delivery_event_policy,
+          suppression_update_policy, audit_correlation_policy, raw_provider_payload_storage,
+          provider_secret_status, sender_domain_gate_status, provider_send_enabled,
+          cloudflare_queue_producers_enabled, recipient_payloads_created, provider_responses_created,
+          provider_message_ids_created, raw_provider_payloads_stored, updated_at
+        FROM audience_broadcast_provider_event_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<ProviderEventReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicProviderEventReadiness);
+
+    return {
+      ...emptyProviderEventReadinessSummary("d1", null),
+      counts: {
+        providerEventReadinessRecords: records.length,
+        bounceEventReadinessRecords: records.filter((record) => record.eventKinds.includes("bounce")).length,
+        complaintEventReadinessRecords: records.filter((record) => record.eventKinds.includes("complaint")).length,
+        deliveryEventReadinessRecords: records.filter((record) => record.eventKinds.includes("delivered")).length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        cloudflareQueueProducerEnabledRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_producers_enabled) > 0,
+        ).length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0).length,
+        providerResponsesCreatedRecords: rawRows.filter((row) => numberValue(row.provider_responses_created) > 0).length,
+        providerMessageIdsCreatedRecords: rawRows.filter((row) => numberValue(row.provider_message_ids_created) > 0).length,
+        rawProviderPayloadsStoredRecords: rawRows.filter((row) => numberValue(row.raw_provider_payloads_stored) > 0).length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyProviderEventReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast provider-event readiness.",
     );
   }
 }
