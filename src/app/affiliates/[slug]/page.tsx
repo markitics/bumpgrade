@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BadgeDollarSign, Database, Handshake, Link2, Scale, ShieldCheck, UserCheck } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeDollarSign,
+  ChartNoAxesCombined,
+  Database,
+  Handshake,
+  Link2,
+  Scale,
+  ShieldCheck,
+  UserCheck,
+} from "lucide-react";
 
 import {
   affiliatePrograms,
   getAffiliateProgramBySlug,
+  type AffiliatePartnerReport,
   type CommissionLedgerFixture,
   type ReferralLink,
 } from "@/lib/affiliate-referrals";
@@ -84,6 +95,28 @@ function LedgerCard({ ledger }: { ledger: CommissionLedgerFixture }) {
   );
 }
 
+function PartnerReportCard({ report }: { report: AffiliatePartnerReport }) {
+  return (
+    <article className="feature-card compact-content-card">
+      <div className="feature-card-top">
+        <span className="status-badge live">Report</span>
+        <span className="admin-pill">{report.fixtureMetrics.fixtureLedgerCount} ledger rows</span>
+      </div>
+      <ChartNoAxesCombined aria-hidden="true" />
+      <h3>{report.title}</h3>
+      <p>{report.payoutReadiness.caveats.join(" ")}</p>
+      <div className="feature-detail">
+        <strong>Fixture commission evidence</strong>
+        <span>{formatMoney(report.fixtureMetrics.fixtureCommissionCents)} public-safe total</span>
+      </div>
+      <div className="feature-detail">
+        <strong>Runtime fields</strong>
+        <span>{report.fixtureMetrics.runtimeAggregateFields.slice(0, 4).join(", ")}</span>
+      </div>
+    </article>
+  );
+}
+
 export default async function AffiliateProgramPage({ params }: AffiliatePageProps) {
   const { slug } = await params;
   const program = getAffiliateProgramBySlug(slug);
@@ -135,8 +168,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <strong>{program.partners.length} partner records</strong>
           <span>
             Referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger
-            evidence, owner review/reversal actions, and payout review states are public-safe records; cookies, buyers,
-            tax forms, partner notifications, and payout accounts stay disabled.
+            evidence, owner review/reversal actions, public-safe partner reports, and payout review states are public-safe
+            records; cookies, buyers, tax forms, partner notifications, and payout accounts stay disabled.
           </span>
         </aside>
       </section>
@@ -207,6 +240,24 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
       <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Partner reports</p>
+            <h2>Partner performance reporting stays aggregate-only before payout prep</h2>
+          </div>
+          <Link href="/affiliates/source-data" className="text-link compact-link">
+            Report source data
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-grid">
+          {program.partnerReports.map((report) => (
+            <PartnerReportCard key={report.id} report={report} />
+          ))}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Commission ledger</p>
             <h2>Review-only commission evidence stays reversible before payout</h2>
           </div>
@@ -222,7 +273,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         </div>
       </section>
 
-      <section className="content-band">
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Payout review</p>
@@ -270,7 +321,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             <h3>Source data first</h3>
             <p>
               <code>/affiliates/source-data</code> exposes public-safe partners, links, aggregate click and checkout
-              attribution counts, rules, ledger fixtures, payout batches, review flags, and audit events.
+              attribution counts, rules, partner reports, ledger fixtures, payout batches, review flags, and audit events.
             </p>
           </div>
           <div>
