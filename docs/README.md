@@ -34,9 +34,10 @@ then open the relevant shelf for the task.
 - `features/audience-automation.md`: opt-in, lead magnet, tag, sequence,
   broadcast, automation, consent, seeded subscriber capture, owner subscriber
   inspection, suppression, CRM notes, broadcast readiness, preview safety,
-  queue readiness, delivery-batch, queue-message, and dispatch-preflight
+  queue readiness, delivery-batch, queue-message, dispatch-preflight, and
+  dispatch-attempt
   contracts from issues #85, #103, #137, #167, #169, #171, #173, #175, #177,
-  #183, #189, and #191.
+  #183, #189, #191, and #197.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,
