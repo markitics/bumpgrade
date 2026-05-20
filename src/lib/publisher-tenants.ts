@@ -3,6 +3,13 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 export type PublisherPlanEntitlementStatus = "active" | "inactive" | "expired";
 export type PublisherTenantStatus = "active" | "suspended";
 export type PublisherSubdomainReservationStatus = "active" | "reserved" | "released";
+export type PublisherCustomDomainStatus =
+  | "pending_dns"
+  | "dns_verified"
+  | "ssl_pending"
+  | "active"
+  | "failed"
+  | "disabled";
 export type PublisherAccountStateKind = "signed_out" | "ready" | "unverified" | "unpaid" | "unavailable";
 
 export type PublisherSessionUser = {
@@ -51,14 +58,43 @@ export type PublisherSubdomainReservation = {
   updatedAt: string | null;
 };
 
+export type PublisherCustomDomain = {
+  id: string;
+  tenantId: string;
+  ownerUserId: string | null;
+  ownerEmail: string;
+  domainName: string;
+  normalizedDomain: string;
+  status: PublisherCustomDomainStatus;
+  dnsInstruction: PublisherDnsInstruction;
+  dnsLastCheckedAt: string | null;
+  dnsVerifiedAt: string | null;
+  sslStatus: string;
+  failureReason: string | null;
+  sourceIssueNumber: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type PublisherDnsInstruction = {
+  recordType: "CNAME";
+  recordName: string;
+  recordValue: string;
+  expectedValue: string;
+  propagation: string;
+};
+
 export type PublisherAccountState = {
   kind: PublisherAccountStateKind;
   user: PublisherSessionUser | null;
   entitlement: PublisherPlanEntitlement | null;
   tenant: PublisherTenant | null;
   reservation: PublisherSubdomainReservation | null;
+  customDomains: PublisherCustomDomain[];
   canReserveSubdomain: boolean;
+  canAddCustomDomain: boolean;
   message: string;
+  customDomainMessage: string;
   source: "d1" | "session" | "none";
 };
 
@@ -101,9 +137,40 @@ type PublisherSubdomainReservationRow = {
   updated_at: number | null;
 };
 
+type PublisherCustomDomainRow = {
+  id: string;
+  tenant_id: string;
+  owner_user_id: string | null;
+  owner_email: string;
+  domain_name: string;
+  normalized_domain: string;
+  status: PublisherCustomDomainStatus;
+  dns_record_type: "CNAME";
+  dns_record_name: string;
+  dns_record_value: string;
+  dns_expected_value: string;
+  dns_last_checked_at: number | null;
+  dns_verified_at: number | null;
+  ssl_status: string;
+  failure_reason: string | null;
+  source_issue_number: number;
+  created_at: number | null;
+  updated_at: number | null;
+};
+
 type ReservePublisherSubdomainInput = {
   subdomain: string;
   idempotencyKey: string;
+};
+
+type StartPublisherCustomDomainInput = {
+  domainName: string;
+  idempotencyKey: string;
+};
+
+type VerifyPublisherCustomDomainInput = {
+  customDomainId: string;
+  testDnsVerified?: boolean;
 };
 
 export class PublisherTenantError extends Error {
@@ -119,13 +186,17 @@ export class PublisherTenantError extends Error {
 }
 
 export const publisherTenantIssue = 222;
+export const publisherCustomDomainIssue = 223;
 export const publisherTenantParentIssue = 221;
 export const publisherTenantUpdatedAt = "2026-05-20";
 export const publisherSubdomainApiRoute = "/api/account/publisher/subdomain";
+export const publisherCustomDomainApiRoute = "/api/account/publisher/custom-domain";
 export const publisherAccountSetupRoute = "/account/setup";
 export const publisherAccountSourceDataRoute = "/account/source-data";
 export const publisherDefaultDomain = "bumpgrade.com";
+export const publisherCustomDomainTarget = "custom-domains.bumpgrade.com";
 export const publisherSubdomainConfirmationText = "Reserve this Bumpgrade subdomain for my paid publisher account";
+export const publisherCustomDomainConfirmationText = "Connect this existing domain to my paid Bumpgrade account";
 
 const reservedSubdomains = new Set([
   "account",
@@ -224,6 +295,33 @@ function reservationFromRow(
   };
 }
 
+function customDomainFromRow(row: PublisherCustomDomainRow | null | undefined): PublisherCustomDomain | null {
+  if (!row) return null;
+  return {
+    id: row.id,
+    tenantId: row.tenant_id,
+    ownerUserId: row.owner_user_id,
+    ownerEmail: row.owner_email,
+    domainName: row.domain_name,
+    normalizedDomain: row.normalized_domain,
+    status: row.status,
+    dnsInstruction: {
+      recordType: row.dns_record_type,
+      recordName: row.dns_record_name,
+      recordValue: row.dns_record_value,
+      expectedValue: row.dns_expected_value,
+      propagation: "DNS changes often appear within minutes, but some domain hosts can take up to 24 hours.",
+    },
+    dnsLastCheckedAt: isoFromSeconds(row.dns_last_checked_at),
+    dnsVerifiedAt: isoFromSeconds(row.dns_verified_at),
+    sslStatus: row.ssl_status,
+    failureReason: row.failure_reason,
+    sourceIssueNumber: row.source_issue_number,
+    createdAt: isoFromSeconds(row.created_at),
+    updatedAt: isoFromSeconds(row.updated_at),
+  };
+}
+
 export function normalizePublisherSubdomain(input: string) {
   const subdomain = input.trim().toLowerCase();
 
@@ -272,6 +370,78 @@ export function normalizePublisherSubdomain(input: string) {
   }
 
   return { ok: true as const, subdomain, fullHostname: `${subdomain}.${publisherDefaultDomain}` };
+}
+
+export function normalizePublisherCustomDomain(input: string) {
+  const withoutProtocol = input.trim().toLowerCase().replace(/^https?:\/\//, "");
+  const domain = withoutProtocol.split("/")[0]?.split("?")[0]?.split("#")[0]?.split(":")[0]?.replace(/\.$/, "") ?? "";
+
+  if (!domain) {
+    return { ok: false as const, code: "CUSTOM_DOMAIN_REQUIRED", error: "Enter the domain you want to connect." };
+  }
+
+  if (domain.includes("*")) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_WILDCARD",
+      error: "Enter one specific hostname, not a wildcard domain.",
+    };
+  }
+
+  if (domain === publisherDefaultDomain || domain.endsWith(`.${publisherDefaultDomain}`)) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_BUMPGRADE_HOSTNAME",
+      error: "Use the Bumpgrade subdomain setup for bumpgrade.com hostnames.",
+    };
+  }
+
+  if (domain.length > 253 || !domain.includes(".")) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_FORMAT",
+      error: "Enter a real domain or subdomain, for example www.example.com.",
+    };
+  }
+
+  const labels = domain.split(".");
+  if (labels.some((label) => !label || label.length > 63 || label.startsWith("-") || label.endsWith("-"))) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_LABEL",
+      error: "Domain labels cannot be empty, too long, or start or end with a hyphen.",
+    };
+  }
+
+  if (!labels.every((label) => /^[a-z0-9-]+$/.test(label))) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_CHARACTERS",
+      error: "Use only letters, numbers, hyphens, and dots in the domain.",
+    };
+  }
+
+  const tld = labels[labels.length - 1] ?? "";
+  if (!/^[a-z]{2,63}$/.test(tld)) {
+    return {
+      ok: false as const,
+      code: "CUSTOM_DOMAIN_TLD",
+      error: "The domain must end with a valid text top-level domain.",
+    };
+  }
+
+  return {
+    ok: true as const,
+    domainName: domain,
+    normalizedDomain: domain,
+    dnsInstruction: {
+      recordType: "CNAME" as const,
+      recordName: domain,
+      recordValue: publisherCustomDomainTarget,
+      expectedValue: publisherCustomDomainTarget,
+      propagation: "DNS changes often appear within minutes, but some domain hosts can take up to 24 hours.",
+    },
+  };
 }
 
 export async function getOptionalPublisherTenantD1() {
@@ -359,6 +529,47 @@ async function loadReservationByIdempotencyKey(db: D1Database, idempotencyKey: s
     .first<PublisherSubdomainReservationRow>();
 
   return reservationFromRow(row);
+}
+
+async function loadCustomDomainsForTenant(db: D1Database, tenantId: string) {
+  const result = await db
+    .prepare(
+      `SELECT *
+       FROM publisher_custom_domains
+       WHERE tenant_id = ? AND status != 'disabled'
+       ORDER BY updated_at DESC, created_at DESC`,
+    )
+    .bind(tenantId)
+    .all<PublisherCustomDomainRow>();
+
+  return (result.results ?? []).map(customDomainFromRow).filter((domain): domain is PublisherCustomDomain => Boolean(domain));
+}
+
+async function loadCustomDomainById(db: D1Database, customDomainId: string) {
+  const row = await db
+    .prepare("SELECT * FROM publisher_custom_domains WHERE id = ? LIMIT 1")
+    .bind(customDomainId)
+    .first<PublisherCustomDomainRow>();
+
+  return customDomainFromRow(row);
+}
+
+async function loadCustomDomainByNormalizedDomain(db: D1Database, normalizedDomain: string) {
+  const row = await db
+    .prepare("SELECT * FROM publisher_custom_domains WHERE normalized_domain = ? AND status != 'disabled' LIMIT 1")
+    .bind(normalizedDomain)
+    .first<PublisherCustomDomainRow>();
+
+  return customDomainFromRow(row);
+}
+
+async function loadCustomDomainByIdempotencyKey(db: D1Database, idempotencyKey: string) {
+  const row = await db
+    .prepare("SELECT * FROM publisher_custom_domains WHERE idempotency_key = ? LIMIT 1")
+    .bind(idempotencyKey)
+    .first<PublisherCustomDomainRow>();
+
+  return customDomainFromRow(row);
 }
 
 async function upsertTenant(db: D1Database, user: PublisherSessionUser, entitlement: PublisherPlanEntitlement) {
@@ -475,8 +686,11 @@ export async function loadPublisherAccountState(
       entitlement: null,
       tenant: null,
       reservation: null,
+      customDomains: [],
       canReserveSubdomain: false,
+      canAddCustomDomain: false,
       message: "Sign in or create a publisher account before reserving a Bumpgrade subdomain.",
+      customDomainMessage: "Sign in before adding a custom domain.",
       source: "none",
     };
   }
@@ -488,8 +702,11 @@ export async function loadPublisherAccountState(
       entitlement: null,
       tenant: null,
       reservation: null,
+      customDomains: [],
       canReserveSubdomain: false,
+      canAddCustomDomain: false,
       message: "Confirm your email before reserving a Bumpgrade subdomain.",
+      customDomainMessage: "Confirm your email before adding a custom domain.",
       source: "session",
     };
   }
@@ -501,28 +718,35 @@ export async function loadPublisherAccountState(
       entitlement: null,
       tenant: null,
       reservation: null,
+      customDomains: [],
       canReserveSubdomain: false,
+      canAddCustomDomain: false,
       message: "Publisher account storage is unavailable in this runtime.",
+      customDomainMessage: "Custom-domain storage is unavailable in this runtime.",
       source: "none",
     };
   }
 
   const entitlement = await loadActivePlanEntitlement(db, user);
+  const tenant = await loadTenant(db, user);
+  const reservation = tenant ? await loadReservationForTenant(db, tenant.id) : null;
+  const customDomains = tenant ? await loadCustomDomainsForTenant(db, tenant.id) : [];
+
   if (!entitlement) {
     return {
       kind: "unpaid",
       user,
       entitlement: null,
-      tenant: await loadTenant(db, user),
+      tenant,
       reservation: null,
+      customDomains,
       canReserveSubdomain: false,
+      canAddCustomDomain: false,
       message: "A paid plan or launch-pilot entitlement is required before choosing a Bumpgrade subdomain.",
+      customDomainMessage: "A paid plan or launch-pilot entitlement is required before adding a custom domain.",
       source: "d1",
     };
   }
-
-  const tenant = await loadTenant(db, user);
-  const reservation = tenant ? await loadReservationForTenant(db, tenant.id) : null;
 
   return {
     kind: "ready",
@@ -530,10 +754,18 @@ export async function loadPublisherAccountState(
     entitlement,
     tenant,
     reservation,
+    customDomains,
     canReserveSubdomain: !reservation,
+    canAddCustomDomain: Boolean(tenant && reservation),
     message: reservation
       ? `${reservation.fullHostname} is reserved for this publisher account.`
       : "This paid publisher account can reserve a Bumpgrade subdomain.",
+    customDomainMessage:
+      tenant && reservation
+        ? customDomains.length
+          ? "Custom-domain onboarding is available for this publisher account."
+          : "This paid publisher account can add an existing custom domain."
+        : "Reserve the default Bumpgrade hostname before adding a custom domain.",
     source: "d1",
   };
 }
@@ -552,15 +784,6 @@ export async function reservePublisherSubdomain(
     throw new PublisherTenantError("An idempotency key is required.", 400, "IDEMPOTENCY_REQUIRED");
   }
 
-  const existingForIdempotency = await loadReservationByIdempotencyKey(db, idempotencyKey);
-  if (existingForIdempotency) {
-    return {
-      tenant: (await loadTenant(db, user)) ?? null,
-      reservation: existingForIdempotency,
-      idempotent: true,
-    };
-  }
-
   const normalized = normalizePublisherSubdomain(input.subdomain);
   if (!normalized.ok) {
     throw new PublisherTenantError(normalized.error, 400, normalized.code);
@@ -576,6 +799,19 @@ export async function reservePublisherSubdomain(
   }
 
   const tenant = await upsertTenant(db, user, entitlement);
+  const existingForIdempotency = await loadReservationByIdempotencyKey(db, idempotencyKey);
+  if (existingForIdempotency) {
+    if (existingForIdempotency.tenantId !== tenant.id) {
+      throw new PublisherTenantError("That idempotency key is already used.", 409, "IDEMPOTENCY_CONFLICT");
+    }
+
+    return {
+      tenant,
+      reservation: existingForIdempotency,
+      idempotent: true,
+    };
+  }
+
   const existingForTenant = await loadReservationForTenant(db, tenant.id);
   if (existingForTenant) {
     if (existingForTenant.subdomain === normalized.subdomain) {
@@ -665,6 +901,232 @@ export async function reservePublisherSubdomain(
   };
 }
 
+async function requirePaidTenantWithDefaultHostname(db: D1Database, user: PublisherSessionUser) {
+  if (!user.emailVerified) {
+    throw new PublisherTenantError("Confirm your email before adding a custom domain.", 403, "EMAIL_UNVERIFIED");
+  }
+
+  const entitlement = await loadActivePlanEntitlement(db, user);
+  if (!entitlement) {
+    throw new PublisherTenantError(
+      "Choose a paid plan or activate a launch pilot before adding a custom domain.",
+      402,
+      "PAID_PLAN_REQUIRED",
+    );
+  }
+
+  const tenant = await loadTenant(db, user);
+  if (!tenant) {
+    throw new PublisherTenantError(
+      "Reserve the default Bumpgrade hostname before adding a custom domain.",
+      409,
+      "DEFAULT_SUBDOMAIN_REQUIRED",
+    );
+  }
+
+  const reservation = await loadReservationForTenant(db, tenant.id);
+  if (!reservation) {
+    throw new PublisherTenantError(
+      "Reserve the default Bumpgrade hostname before adding a custom domain.",
+      409,
+      "DEFAULT_SUBDOMAIN_REQUIRED",
+    );
+  }
+
+  return { entitlement, tenant, reservation };
+}
+
+export async function startPublisherCustomDomain(
+  db: D1Database,
+  user: PublisherSessionUser,
+  input: StartPublisherCustomDomainInput,
+) {
+  const idempotencyKey = input.idempotencyKey.trim();
+  if (!idempotencyKey) {
+    throw new PublisherTenantError("An idempotency key is required.", 400, "IDEMPOTENCY_REQUIRED");
+  }
+
+  const { tenant } = await requirePaidTenantWithDefaultHostname(db, user);
+  const existingForIdempotency = await loadCustomDomainByIdempotencyKey(db, idempotencyKey);
+  if (existingForIdempotency) {
+    if (existingForIdempotency.tenantId !== tenant.id) {
+      throw new PublisherTenantError("That idempotency key is already used.", 409, "IDEMPOTENCY_CONFLICT");
+    }
+
+    return { customDomain: existingForIdempotency, idempotent: true };
+  }
+
+  const normalized = normalizePublisherCustomDomain(input.domainName);
+  if (!normalized.ok) {
+    throw new PublisherTenantError(normalized.error, 400, normalized.code);
+  }
+
+  const existingForDomain = await loadCustomDomainByNormalizedDomain(db, normalized.normalizedDomain);
+  if (existingForDomain) {
+    if (existingForDomain.tenantId === tenant.id) {
+      return { customDomain: existingForDomain, idempotent: false };
+    }
+
+    throw new PublisherTenantError(
+      `${normalized.domainName} is already attached to another Bumpgrade publisher account.`,
+      409,
+      "CUSTOM_DOMAIN_TAKEN",
+    );
+  }
+
+  const customDomain: PublisherCustomDomain = {
+    id: runtimeId("publisher-custom-domain"),
+    tenantId: tenant.id,
+    ownerUserId: user.id,
+    ownerEmail: normalizeEmail(user.email),
+    domainName: normalized.domainName,
+    normalizedDomain: normalized.normalizedDomain,
+    status: "pending_dns",
+    dnsInstruction: normalized.dnsInstruction,
+    dnsLastCheckedAt: null,
+    dnsVerifiedAt: null,
+    sslStatus: "not_requested",
+    failureReason: null,
+    sourceIssueNumber: publisherCustomDomainIssue,
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  await db
+    .prepare(
+      `INSERT INTO publisher_custom_domains (
+        id, tenant_id, owner_user_id, owner_email, domain_name, normalized_domain,
+        status, dns_record_type, dns_record_name, dns_record_value, dns_expected_value,
+        ssl_status, idempotency_key, source_issue_number, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch(), unixepoch())`,
+    )
+    .bind(
+      customDomain.id,
+      customDomain.tenantId,
+      customDomain.ownerUserId,
+      customDomain.ownerEmail,
+      customDomain.domainName,
+      customDomain.normalizedDomain,
+      customDomain.status,
+      customDomain.dnsInstruction.recordType,
+      customDomain.dnsInstruction.recordName,
+      customDomain.dnsInstruction.recordValue,
+      customDomain.dnsInstruction.expectedValue,
+      customDomain.sslStatus,
+      idempotencyKey,
+      customDomain.sourceIssueNumber,
+    )
+    .run();
+
+  await writeTenantAuditEvent(db, {
+    tenantId: tenant.id,
+    user,
+    eventKind: "custom_domain_started",
+    summary: `Started custom-domain onboarding for ${customDomain.normalizedDomain}.`,
+    idempotencyKey,
+    metadata: {
+      customDomainId: customDomain.id,
+      normalizedDomain: customDomain.normalizedDomain,
+      dnsRecordType: customDomain.dnsInstruction.recordType,
+      dnsRecordName: customDomain.dnsInstruction.recordName,
+      dnsRecordValue: customDomain.dnsInstruction.recordValue,
+      sourceIssueNumber: publisherCustomDomainIssue,
+    },
+  });
+
+  return { customDomain, idempotent: false };
+}
+
+async function dnsCnamePointsToExpectedValue(domainName: string, expectedValue: string) {
+  const response = await fetch(
+    `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domainName)}&type=CNAME`,
+    {
+      headers: { accept: "application/dns-json" },
+    },
+  ).catch(() => null);
+
+  if (!response?.ok) return { verified: false, observedCount: 0 };
+
+  const payload = (await response.json().catch(() => null)) as
+    | { Answer?: Array<{ data?: string; type?: number }> }
+    | null;
+  const expected = expectedValue.toLowerCase().replace(/\.$/, "");
+  const observed = (payload?.Answer ?? [])
+    .map((answer) => answer.data?.toLowerCase().replace(/\.$/, "") ?? "")
+    .filter(Boolean);
+
+  return {
+    verified: observed.some((value) => value === expected),
+    observedCount: observed.length,
+  };
+}
+
+export async function verifyPublisherCustomDomain(
+  db: D1Database,
+  user: PublisherSessionUser,
+  input: VerifyPublisherCustomDomainInput,
+) {
+  const { tenant } = await requirePaidTenantWithDefaultHostname(db, user);
+  const customDomain = await loadCustomDomainById(db, input.customDomainId.trim());
+
+  if (!customDomain || customDomain.tenantId !== tenant.id) {
+    throw new PublisherTenantError("Custom domain not found for this publisher account.", 404, "CUSTOM_DOMAIN_NOT_FOUND");
+  }
+
+  const dnsCheck = input.testDnsVerified
+    ? { verified: true, observedCount: 1 }
+    : await dnsCnamePointsToExpectedValue(customDomain.normalizedDomain, customDomain.dnsInstruction.expectedValue);
+
+  const status: PublisherCustomDomainStatus = dnsCheck.verified ? "dns_verified" : "pending_dns";
+  const sslStatus = dnsCheck.verified ? "pending" : "not_requested";
+  const failureReason = dnsCheck.verified
+    ? null
+    : `Bumpgrade could not yet see a CNAME record pointing to ${customDomain.dnsInstruction.expectedValue}.`;
+
+  await db
+    .prepare(
+      `UPDATE publisher_custom_domains
+       SET status = ?,
+           dns_last_checked_at = unixepoch(),
+           dns_verified_at = CASE WHEN ? = 'dns_verified' THEN COALESCE(dns_verified_at, unixepoch()) ELSE dns_verified_at END,
+           ssl_status = ?,
+           failure_reason = ?,
+           updated_at = unixepoch()
+       WHERE id = ?`,
+    )
+    .bind(status, status, sslStatus, failureReason, customDomain.id)
+    .run();
+
+  await writeTenantAuditEvent(db, {
+    tenantId: tenant.id,
+    user,
+    eventKind: dnsCheck.verified ? "custom_domain_dns_verified" : "custom_domain_dns_pending",
+    summary: dnsCheck.verified
+      ? `Verified DNS for custom domain ${customDomain.normalizedDomain}.`
+      : `DNS is still pending for custom domain ${customDomain.normalizedDomain}.`,
+    idempotencyKey: `custom-domain-verify-${customDomain.id}-${Date.now()}`,
+    metadata: {
+      customDomainId: customDomain.id,
+      normalizedDomain: customDomain.normalizedDomain,
+      status,
+      observedRecordCount: dnsCheck.observedCount,
+      sourceIssueNumber: publisherCustomDomainIssue,
+    },
+  });
+
+  return {
+    customDomain: {
+      ...customDomain,
+      status,
+      dnsLastCheckedAt: new Date().toISOString(),
+      dnsVerifiedAt: dnsCheck.verified ? customDomain.dnsVerifiedAt ?? new Date().toISOString() : customDomain.dnsVerifiedAt,
+      sslStatus,
+      failureReason,
+    },
+    verified: dnsCheck.verified,
+  };
+}
+
 export const publisherTenantSourceData = {
   id: "publisher-tenant-subdomain-contract",
   status: "live",
@@ -675,6 +1137,7 @@ export const publisherTenantSourceData = {
     accountSetup: publisherAccountSetupRoute,
     accountSourceData: publisherAccountSourceDataRoute,
     reserveSubdomainApi: publisherSubdomainApiRoute,
+    customDomainApi: publisherCustomDomainApiRoute,
   },
   tables: [
     {
@@ -694,6 +1157,21 @@ export const publisherTenantSourceData = {
       purpose: "Unique default `*.bumpgrade.com` hostname reservation with idempotency and audit correlation.",
       publicSafeFields: ["subdomain", "full_hostname", "status", "source_issue_number"],
       privateFields: ["owner_user_id", "owner_email", "idempotency_key"],
+    },
+    {
+      name: "publisher_custom_domains",
+      purpose: "Existing-domain onboarding with deterministic DNS instructions, verification state, SSL state, idempotency, and redaction.",
+      publicSafeFields: [
+        "status",
+        "dns_record_type",
+        "dns_record_name",
+        "dns_record_value",
+        "dns_last_checked_at",
+        "dns_verified_at",
+        "ssl_status",
+        "source_issue_number",
+      ],
+      privateFields: ["tenant_id", "owner_user_id", "owner_email", "domain_name", "normalized_domain", "idempotency_key"],
     },
     {
       name: "publisher_tenant_audit_events",
@@ -717,9 +1195,24 @@ export const publisherTenantSourceData = {
     caveat:
       "Custom-domain authentication still needs the custom-domain onboarding slice because browser cookies cannot span unrelated customer-owned domains.",
   },
+  customDomainPolicy: {
+    status: "live",
+    issue: publisherCustomDomainIssue,
+    paidPlanRequired: true,
+    emailVerificationRequired: true,
+    defaultBumpgradeHostnameRequiredFirst: true,
+    dnsInstruction: {
+      recordType: "CNAME",
+      recordName: "the publisher-owned hostname, for example www.example.com",
+      recordValue: publisherCustomDomainTarget,
+      expectedValue: publisherCustomDomainTarget,
+    },
+    statuses: ["pending_dns", "dns_verified", "ssl_pending", "active", "failed", "disabled"],
+    redaction:
+      "Public source data exposes policy, routes, and DNS instruction shape; private customer domain rows require authenticated publisher context.",
+  },
   notIncludedYet: [
     "Buying domains through Bumpgrade.",
-    "Custom-domain DNS verification and certificate readiness.",
     "Publisher site editor parity for arbitrary pages on the reserved hostname.",
     "Customer auth across unrelated custom domains.",
   ],

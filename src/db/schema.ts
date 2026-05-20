@@ -1153,6 +1153,43 @@ export const publisherSubdomainReservations = sqliteTable(
   }),
 );
 
+export const publisherCustomDomains = sqliteTable(
+  "publisher_custom_domains",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => publisherTenants.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    ownerEmail: text("owner_email").notNull(),
+    domainName: text("domain_name").notNull(),
+    normalizedDomain: text("normalized_domain").notNull(),
+    status: text("status").notNull().default("pending_dns"),
+    dnsRecordType: text("dns_record_type").notNull().default("CNAME"),
+    dnsRecordName: text("dns_record_name").notNull(),
+    dnsRecordValue: text("dns_record_value").notNull(),
+    dnsExpectedValue: text("dns_expected_value").notNull(),
+    dnsLastCheckedAt: integer("dns_last_checked_at", { mode: "timestamp" }),
+    dnsVerifiedAt: integer("dns_verified_at", { mode: "timestamp" }),
+    sslStatus: text("ssl_status").notNull().default("not_requested"),
+    failureReason: text("failure_reason"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    sourceIssueNumber: integer("source_issue_number").notNull().default(223),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    normalizedDomainUnique: uniqueIndex("publisher_custom_domains_normalized_domain_unique").on(table.normalizedDomain),
+    idempotencyUnique: uniqueIndex("publisher_custom_domains_idempotency_unique").on(table.idempotencyKey),
+    tenantStatusIdx: index("publisher_custom_domains_tenant_status_idx").on(
+      table.tenantId,
+      table.status,
+      table.updatedAt,
+    ),
+  }),
+);
+
 export const publisherTenantAuditEvents = sqliteTable(
   "publisher_tenant_audit_events",
   {
