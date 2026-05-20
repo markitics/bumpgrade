@@ -33,6 +33,7 @@ import {
   audienceBroadcastProviderEventReadinessIssue,
   audienceBroadcastProviderRateLimitReadinessIssue,
   audienceBroadcastProviderResponseReadinessIssue,
+  audienceBroadcastSendPayloadReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
@@ -45,6 +46,7 @@ import {
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
+  getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
@@ -85,6 +87,7 @@ export default async function AdminAudiencePage() {
     broadcastProviderEventReadiness,
     broadcastProviderRateLimitReadiness,
     broadcastProviderResponseReadiness,
+    broadcastSendPayloadReadiness,
   ] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
@@ -99,6 +102,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastProviderEventReadinessSummary(),
     getAudienceBroadcastProviderRateLimitReadinessSummary(),
     getAudienceBroadcastProviderResponseReadinessSummary(),
+    getAudienceBroadcastSendPayloadReadinessSummary(),
   ]);
 
   return (
@@ -117,7 +121,9 @@ export default async function AdminAudiencePage() {
             SPF/DKIM/DMARC alignment evidence is explicit. Provider-event readiness keeps bounces and complaints
             redacted before provider webhooks exist. Provider rate-limit readiness keeps throttles, retries, and
             backpressure explicit before live sends. Provider response readiness keeps accepted, transient failure, and
-            permanent failure handling explicit before response capture exists. Public source-data stays aggregate-only.
+            permanent failure handling explicit before response capture exists. Send-payload readiness keeps recipient
+            identity, personalization, unsubscribe-footer, and audit boundaries explicit before payload creation exists.
+            Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -281,6 +287,77 @@ export default async function AdminAudiencePage() {
               {broadcastProviderResponseReadiness.counts.providerResponsesCreatedRecords} provider responses created.
             </p>
           </div>
+          <div>
+            <FileText aria-hidden="true" />
+            <h3>Send payloads</h3>
+            <p>
+              {broadcastSendPayloadReadiness.counts.sendPayloadReadinessRecords} payload-readiness record
+              {broadcastSendPayloadReadiness.counts.sendPayloadReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastSendPayloadReadiness.counts.recipientPayloadsCreatedRecords} recipient payloads created.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Send-payload readiness</p>
+            <h2>Recipient payloads stay disabled before Queue producers</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastSendPayloadReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastSendPayloadReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastSendPayloadReadiness.records.length > 0 ? (
+            broadcastSendPayloadReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.payloadScope.length} payload gates</span>
+                </div>
+                <FileText aria-hidden="true" />
+                <h3>Payload body creation is still blocked</h3>
+                <p>{record.personalizationBoundary}</p>
+                <div className="roadmap-detail">
+                  <strong>Recipient identity</strong>
+                  <span>{record.recipientIdentityPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Unsubscribe footer</strong>
+                  <span>{record.unsubscribeFooterPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Consent/suppression</strong>
+                  <span>
+                    {record.consentRecheckPolicy} {record.suppressionRecheckPolicy}
+                  </span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Payload storage</strong>
+                  <span>{record.payloadBodyStorage.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Recipient payloads, personalized bodies, raw payload bodies, Cloudflare Queue producers, provider
+                  sends, provider responses, and provider message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No send payloads</span>
+                <span className="admin-pill">Issue #{audienceBroadcastSendPayloadReadinessIssue}</span>
+              </div>
+              <h3>No send-payload readiness records</h3>
+              <p>
+                {broadcastSendPayloadReadiness.loadError ??
+                  "Run the send-payload readiness migration to seed payload-boundary metadata."}
+              </p>
+            </article>
+          )}
         </div>
       </section>
 
