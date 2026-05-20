@@ -477,6 +477,31 @@ export const productEntitlementRevocationIntents = sqliteTable(
   }),
 );
 
+export const productProtectedContentSections = sqliteTable(
+  "product_protected_content_sections",
+  {
+    id: text("id").primaryKey(),
+    productId: text("product_id").notNull(),
+    assetId: text("asset_id").notNull(),
+    entitlementTemplateId: text("entitlement_template_id").notNull(),
+    status: text("status").notNull().default("protected_content_ready"),
+    contentKind: text("content_kind").notNull(),
+    title: text("title").notNull(),
+    publicSummary: text("public_summary").notNull(),
+    accessPolicy: text("access_policy").notNull(),
+    privateContentBoundary: text("private_content_boundary").notNull(),
+    deliveryEnabled: integer("delivery_enabled", { mode: "boolean" }).notNull().default(false),
+    protectedBodyIncluded: integer("protected_body_included", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    productStatusIdx: index("product_protected_content_sections_product_status_idx").on(table.productId, table.status),
+    kindStatusIdx: index("product_protected_content_sections_kind_status_idx").on(table.contentKind, table.status),
+  }),
+);
+
 export const audienceSubscribers = sqliteTable(
   "audience_subscribers",
   {

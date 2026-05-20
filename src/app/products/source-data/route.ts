@@ -8,15 +8,17 @@ import {
   getProductEntitlementInspectionSummary,
   getProductEntitlementRevocationIntentSummary,
 } from "@/lib/product-entitlement-inspection";
+import { getProductProtectedContentSummary } from "@/lib/product-protected-content";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const [entitlementInspection, ownerAssetUploadIntents, revocationIntents] = await Promise.all([
+  const [entitlementInspection, ownerAssetUploadIntents, revocationIntents, protectedContent] = await Promise.all([
     getProductEntitlementInspectionSummary(),
     getProductAssetUploadIntentSummary(),
     getProductEntitlementRevocationIntentSummary(),
+    getProductProtectedContentSummary(),
   ]);
 
   return NextResponse.json({
@@ -26,5 +28,6 @@ export async function GET() {
     sandboxDownloadTokens: productDownloadTokenSummary,
     ownerAssetUploadIntents,
     revocationIntents,
+    protectedContent,
   });
 }

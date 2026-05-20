@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, FileArchive, KeyRound, ListChecks, ShieldCheck, ShoppingCart } from "lucide-react";
+import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, ListChecks, ShieldCheck, ShoppingCart } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -10,6 +10,7 @@ import {
   productEntitlementInspectionIssue,
   productEntitlementRevocationIntentIssue,
 } from "@/lib/product-entitlement-inspection";
+import { getProductProtectedContentSummary, productProtectedContentIssue } from "@/lib/product-protected-content";
 
 export const metadata: Metadata = {
   title: "Admin products",
@@ -39,9 +40,10 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const [state, revocationIntents] = await Promise.all([
+  const [state, revocationIntents, protectedContent] = await Promise.all([
     getAdminProductEntitlementInspectionState(),
     getProductEntitlementRevocationIntentSummary(),
+    getProductProtectedContentSummary(),
   ]);
 
   return (
@@ -53,7 +55,8 @@ export default async function AdminProductsPage() {
           <p className="lede">
             Owners can inspect paid sandbox entitlement grants, checkout state, product and price context, and queued
             fulfillment evidence. Revocation intent readiness is visible before destructive access removal exists. Public
-            product source-data stays aggregate-only and excludes buyer, Stripe, and private asset fields.
+            protected-content readiness is visible before lesson or member-area delivery exists. Public product source-data
+            stays aggregate-only and excludes buyer, Stripe, and private asset fields.
           </p>
           <div className="hero-actions">
             <Link href="/products/source-data" className="primary-action">
@@ -104,6 +107,15 @@ export default async function AdminProductsPage() {
               {revocationIntents.counts.revocationIntents} dry-run contract
               {revocationIntents.counts.revocationIntents === 1 ? "" : "s"};{" "}
               {revocationIntents.counts.entitlementMutationsEnabled} entitlement mutations enabled.
+            </p>
+          </div>
+          <div>
+            <BookOpen aria-hidden="true" />
+            <h3>Protected content</h3>
+            <p>
+              {protectedContent.counts.protectedContentItems} readiness record
+              {protectedContent.counts.protectedContentItems === 1 ? "" : "s"};{" "}
+              {protectedContent.counts.deliveryEnabled} delivery paths enabled.
             </p>
           </div>
         </div>
@@ -161,6 +173,63 @@ export default async function AdminProductsPage() {
               </div>
               <h3>No revocation readiness records</h3>
               <p>{revocationIntents.loadError ?? "Run the revocation-intent migration to seed access-removal safety metadata."}</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Protected content readiness</p>
+            <h2>Lesson and member delivery stays blocked until entitlement checks are live</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${productProtectedContentIssue}`} className="text-link compact-link">
+            Issue #{productProtectedContentIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {protectedContent.records.length > 0 ? (
+            protectedContent.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status}</span>
+                  <span className="admin-pill">{record.contentKind.replaceAll("_", " ")}</span>
+                </div>
+                <BookOpen aria-hidden="true" />
+                <h3>{record.title}</h3>
+                <p>{record.publicSummary}</p>
+                <div className="roadmap-detail">
+                  <strong>Product</strong>
+                  <span>{record.productTitle}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Asset</strong>
+                  <span>{record.assetTitle}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Access policy</strong>
+                  <span>{record.accessPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Private boundary</strong>
+                  <span>{record.privateContentBoundary}</span>
+                </div>
+                <p>
+                  Protected body delivery, progress writes, private R2 keys, signed URLs, and customer delivery remain
+                  disabled in this slice.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No protected content</span>
+                <span className="admin-pill">Issue #{productProtectedContentIssue}</span>
+              </div>
+              <h3>No protected content readiness records</h3>
+              <p>{protectedContent.loadError ?? "Run the protected-content migration to seed course and member-area readiness metadata."}</p>
             </article>
           )}
         </div>
