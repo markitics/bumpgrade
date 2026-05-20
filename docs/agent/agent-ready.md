@@ -221,6 +221,7 @@ boundary,
 sender-domain readiness records,
 provider-event readiness records,
 provider rate-limit readiness records,
+provider response readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
@@ -246,12 +247,14 @@ payloads, provider sends, provider responses, or provider message IDs, and
 inspect provider-event readiness without provider secrets, raw provider payloads,
 provider responses, or provider message IDs, and inspect provider rate-limit
 readiness without provider secrets, provider limit secrets, raw provider
-payloads, provider responses, or provider message IDs. This
+payloads, provider responses, or provider message IDs, and inspect provider
+response readiness without provider secrets, raw response bodies, provider
+responses, or provider message IDs. This
 proves seeded subscriber capture, unsubscribe
 evidence, owner inspection, private owner-note semantics, aggregate broadcast
 readiness, owner-confirmed dry-run schedule intent semantics, preview safety
 semantics, queue readiness semantics, delivery-batch dry-run semantics, and
-queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, provider-event readiness, and provider rate-limit readiness semantics, not contact import, live email sending, live
+queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, provider-event readiness, provider rate-limit readiness, and provider response readiness semantics, not contact import, live email sending, live
 Cloudflare Queue dispatch, recipient payloads, CRM
 automation, private export, suppression-list administration, or direct agent
 subscriber write capability.
