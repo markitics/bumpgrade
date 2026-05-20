@@ -210,11 +210,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, aggregate click
   counts, checkout attribution evidence, aggregate review-only commission ledger
-  counts, attribution rules, commission rules, ledger fixtures, payout review,
-  fraud flags, and the `/api/affiliates/clicks` write boundary. Treat it as
+  counts, read-only payout preparation, attribution rules, commission rules,
+  ledger fixtures, payout review, fraud flags, and the `/api/affiliates/clicks`
+  write boundary. Treat it as
   seeded click capture, referral-click-to-checkout, review-only ledger evidence,
-  owner review evidence, and aggregate partner report evidence, not cookie
-  assignment, buyer attribution finalization, payable commission state, tax
+  owner review evidence, aggregate partner report evidence, and payout
+  preparation checklist evidence, not cookie assignment, buyer attribution
+  finalization, payable commission state, payout account storage, tax
   collection, fraud enforcement, Stripe payout capability, partner notification,
   private partner portal access, direct agent review writes, or payable
   commission execution. Owner sessions can review, hold, or reverse review-only
@@ -237,11 +239,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   evidence to checkout intents. `/api/affiliates/commission-ledger` can create
   review-only commission evidence, and
   `/api/admin/affiliates/commission-ledger/actions` lets owner sessions review,
-  hold, or reverse that evidence without making it payable. Live billing,
-  payable commission writes, payout mutation, direct agent review writes, and
-  partner notification remain disabled. Agents must not start billing-impacting
-  or payout-impacting checkout work without exact confirmation, idempotency,
-  audit correlation, stale-state checks, owner review, and webhook evidence.
+  hold, or reverse that evidence without making it payable. `/affiliates/source-data`
+  exposes read-only payout preparation rows, but live billing, payable
+  commission writes, payout mutation, direct agent review writes, payout account
+  storage, tax collection, and partner notification remain disabled. Agents must
+  not start billing-impacting or payout-impacting checkout work without exact
+  confirmation, idempotency, audit correlation, stale-state checks, owner review,
+  and webhook evidence.
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
   `/mobile-admin/source-data`. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in

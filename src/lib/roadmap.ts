@@ -155,7 +155,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(11),
     group: "Payments",
     summary:
-      "Stripe mode-specific secrets are stored in Cloudflare, Checkout Sessions are the first payment surface, and D1 commerce/audit tables now include optional referral-click attribution evidence, review-only commission ledger evidence, and owner review/reversal actions before live payment or payout code.",
+      "Stripe mode-specific secrets are stored in Cloudflare, Checkout Sessions are the first payment surface, and D1 commerce/audit tables now include optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, and read-only payout preparation before live payment or payout code.",
     publicEvidence: [
       "Issue #11 owns this Stripe architecture slice.",
       "Cloudflare now stores mode-specific Stripe secret names without repo secret values.",
@@ -164,9 +164,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #111 adds checkout referral attribution evidence without commission or payout mutation.",
       "Issue #113 creates review-only commission ledger evidence without payout mutation.",
       "Issue #115 adds owner-gated commission review, hold, and reversal actions without payout mutation.",
+      "Issue #195 adds affiliate payout preparation as read-only readiness evidence without Stripe payouts.",
     ],
     nextMilestone:
-      "Add payout preparation only after public-safe partner reports and owner review/reversal controls stay stable.",
+      "Add private payout account, tax, and partner notification contracts only after read-only payout preparation stays stable.",
   },
   {
     id: "roadmap-agent-contracts",
@@ -343,7 +344,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, attribution boundaries, payout review, and fraud checks.",
+      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, attribution boundaries, payout review, and fraud checks.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
@@ -352,9 +353,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution without making commissions payable.",
       "Issue #115 adds owner-gated review, hold, and reversal actions without creating payout state.",
       "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
+      "Issue #195 adds read-only payout preparation without Stripe payouts, payout account storage, tax collection, partner notifications, payable commission finalization, or direct agent writes.",
     ],
     nextMilestone:
-      "Add payout batch preparation only after public-safe partner reports and review/reversal state stay stable.",
+      "Add private payout account, tax, partner notification, and fraud-review contracts only after read-only payout preparation stays stable.",
   },
   {
     id: "roadmap-marketing-surfaces",

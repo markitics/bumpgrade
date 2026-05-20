@@ -118,6 +118,20 @@ Issue #193 adds public-safe affiliate partner reports:
   payout batches, Stripe payouts, fraud decisions, tax collection, partner
   notification, or direct agent affiliate writes.
 
+Issue #195 adds read-only affiliate payout preparation:
+
+- `/affiliates/source-data` exposes payout preparation rows keyed by
+  `payoutPreparationId` and linked to seeded `payoutBatchId` values.
+- Preparation rows summarize eligible, blocked, and reversed fixture ledger IDs,
+  readiness checklist items, partner report links, aggregate review action
+  evidence, and public-safe commission totals.
+- Preparation rows never expose buyer data, raw ledger rows, raw actor identity,
+  private review reasons, payout accounts, tax forms, Stripe payout or transfer
+  IDs, or partner notification payloads.
+- This does not create payable commissions, payout batches for execution,
+  Stripe payouts, partner statements, tax collection, payout account storage,
+  partner notifications, fraud decisions, or direct agent affiliate writes.
+
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 

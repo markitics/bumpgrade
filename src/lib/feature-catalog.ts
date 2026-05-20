@@ -308,7 +308,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "pending",
     issue: 19,
     summary:
-      "Referral links, affiliate partners, commission rules, attribution, payouts, and partner performance reporting.",
+      "Referral links, affiliate partners, commission rules, attribution, public-safe payout preparation, and partner performance reporting.",
     audience: "Publishers who grow through partners, creators, and audience referrals.",
     expectedCapabilities: [
       "Affiliate/referral source data and preview route from issue #89.",
@@ -317,6 +317,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Review-only commission ledger evidence from trusted checkout attribution from issue #113.",
       "Owner review, hold, and reversal actions for commission evidence from issue #115.",
       "Public-safe partner performance reports from issue #193.",
+      "Read-only payout batch preparation and readiness checklists from issue #195.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -329,9 +330,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #113 creates non-payable commission ledger evidence from checkout attribution.",
       "Issue #115 adds owner-gated review/reversal actions without payout mutation.",
       "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
+      "Issue #195 adds read-only payout preparation without Stripe payouts, tax data, payout accounts, partner notifications, payable commission finalization, or direct agent writes.",
     ],
     agentContract:
-      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, public-safe partner reports, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, private partner portals, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, public-safe partner reports, read-only payout preparation checklists, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, private partner portals, fraud decisions, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",
