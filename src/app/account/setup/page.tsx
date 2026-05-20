@@ -108,7 +108,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </div>
           <p>
             Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan or
-            launch-pilot entitlement. Reserved names like admin, api, www, login, pricing, and features stay unavailable.
+            launch-pilot entitlement. System names like api, www, login, pricing, and features stay unavailable.
           </p>
         </div>
 

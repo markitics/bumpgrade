@@ -181,16 +181,16 @@ export const competitorSources: CompetitorSource[] = [
 
 export const comparisonPrinciples = [
   {
-    title: "Current claims stay sourced",
-    body: "Competitor capability notes come from official product pages rechecked on 2026-05-18.",
+    title: "Compare what buyers can actually use",
+    body: "Each competitor note starts with the official product pages rechecked on 2026-05-18.",
   },
   {
-    title: "Bumpgrade claims stay explicit",
-    body: "Until a feature ships, Bumpgrade copy says planned, target, or roadmap instead of pretending the product is live.",
+    title: "Choose the stack shape",
+    body: "Use the hub to decide whether you need a specialist tool or one connected launch system.",
   },
   {
-    title: "Agent readers get the same evidence",
-    body: "The page content, source IDs, retrieval date, and JSON endpoint all point at the same data records.",
+    title: "Start from the buyer journey",
+    body: "Funnels, checkout, products, email, analytics, and AI help should work around the same offer.",
   },
 ];
 
@@ -201,9 +201,9 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     primaryKeyword: "ClickFunnels alternative",
     supportingKeywords: ["ClickFunnels alternatives", "ClickFunnels competitor", "sites like ClickFunnels"],
     intent:
-      "A buyer already knows ClickFunnels and wants a source-grounded alternative path for funnels, checkout, email, courses, CRM, and agent-readable operations.",
+      "A buyer already knows ClickFunnels and wants an alternative path for funnels, checkout, email, courses, CRM, and AI-assisted operations.",
     evidenceSourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
-    caveat: "Bumpgrade must describe parity targets as planned until the linked roadmap issues ship.",
+    caveat: "Best when the buyer wants the launch path, offer, checkout, and follow-up to stay connected.",
   },
   {
     id: "seo-clickfunnels-competitors",
@@ -211,9 +211,9 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     primaryKeyword: "ClickFunnels competitors",
     supportingKeywords: ["funnel builder competitors", "sales funnel platform comparison", "ClickFunnels vs alternatives"],
     intent:
-      "A buyer is comparing the funnel-builder category and needs the main competitor capabilities mapped to Bumpgrade roadmap slices.",
+      "A buyer is comparing the funnel-builder category and wants to understand which tools own the full launch journey.",
     evidenceSourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing", "source-shopify-compare"],
-    caveat: "The page can cite official ClickFunnels capabilities and Bumpgrade roadmap state, not unsupported performance or pricing claims.",
+    caveat: "Use current vendor pages for volatile pricing or packaging decisions before switching tools.",
   },
   {
     id: "seo-indiepreneur-platform-compare",
@@ -221,7 +221,7 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
     primaryKeyword: "indiepreneur platform comparison",
     supportingKeywords: ["creator commerce platform comparison", "funnel checkout email platform", "publisher growth OS"],
     intent:
-      "A founder wants one comparison hub for funnel, checkout, email, course, community, affiliate, analytics, and agent-ready platform decisions.",
+      "A founder wants one comparison hub for funnel, checkout, email, course, community, affiliate, analytics, and AI-assisted platform decisions.",
     evidenceSourceIds: [
       "source-shopify-compare",
       "source-clickfunnels-home",
@@ -229,7 +229,7 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
       "source-samcart-checkout",
       "source-kit-home",
     ],
-    caveat: "The hub should help choose a product direction while keeping Bumpgrade's not-yet-shipped features labeled as roadmap work.",
+    caveat: "The hub helps choose a product direction by focusing on buyer outcomes instead of tool-category jargon.",
   },
 ];
 
@@ -237,27 +237,27 @@ export const comparisonHubRows: ComparisonRow[] = [
   {
     area: "Funnels and landing pages",
     incumbent: "ClickFunnels, Systeme.io, Kartra, and Leadpages emphasize page and funnel creation.",
-    bumpgradePlan: "Bumpgrade starts with funnel/page authoring that is source-grounded, agent-readable, and connected to checkout and audience workflows.",
+    bumpgradePlan: "Bumpgrade connects landing pages and funnel steps to checkout, products, email follow-up, and audience workflows.",
   },
   {
     area: "Checkout and revenue optimization",
     incumbent: "SamCart and ThriveCart focus heavily on checkout, bumps, upsells, subscriptions, affiliates, and revenue reporting.",
-    bumpgradePlan: "Bumpgrade will make checkout, bumps, upsells, subscriptions, and audit trails first-class Stripe-backed objects.",
+    bumpgradePlan: "Bumpgrade treats checkout, bumps, upsells, subscriptions, and audit trails as part of the same offer path.",
   },
   {
     area: "Creator email and automation",
     incumbent: "Kit, Systeme.io, Kartra, Kajabi, and Podia cover email, automation, and list growth from different angles.",
-    bumpgradePlan: "Bumpgrade will treat email and automation as part of the offer lifecycle, not a disconnected broadcast tool.",
+    bumpgradePlan: "Bumpgrade treats email and automation as part of the offer lifecycle, not a disconnected broadcast tool.",
   },
   {
     area: "Products, courses, and memberships",
     incumbent: "Kajabi, Podia, Teachable, ClickFunnels, Systeme.io, and ThriveCart all speak to digital products or learning delivery.",
-    bumpgradePlan: "Bumpgrade will model products, access, fulfillment, and subscriptions with stable IDs agents can inspect.",
+    bumpgradePlan: "Bumpgrade keeps products, access, fulfillment, and subscriptions attached to the buyer record.",
   },
   {
-    area: "Agent readiness",
+    area: "AI assistance",
     incumbent: "Most comparison targets optimize for human dashboards first; some expose developer APIs or newer agent hooks.",
-    bumpgradePlan: "Bumpgrade will publish public docs, manifests, source evidence, APIs, and future MCP resources from the start.",
+    bumpgradePlan: "Bumpgrade keeps launch context readable enough for AI helpers to summarize, suggest, and prepare changes.",
   },
 ];
 
@@ -272,13 +272,13 @@ export const competitors: Competitor[] = [
     summary:
       "ClickFunnels is the principal target and the main ClickFunnels alternative page for Bumpgrade because it frames the online business as a funnel that connects traffic, sales, upsells, courses, community, email, CRM, analytics, and affiliate growth.",
     alternativePosition:
-      "Bumpgrade should be the ClickFunnels competitor for publishers who want those same funnel and revenue surfaces to become inspectable by agents, tied to source evidence, and explicit about what is live versus planned.",
+      "Bumpgrade is for publishers who want those same funnel and revenue surfaces connected to products, customers, follow-up, reporting, and practical AI help.",
     sourceId: "source-clickfunnels-home",
     sourceUrl: "https://www.clickfunnels.com/",
     sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
     metaTitle: "ClickFunnels Alternative and Competitors for Indiepreneurs",
     metaDescription:
-      "A source-grounded ClickFunnels alternative and competitors page for indiepreneurs comparing funnels, checkout, email, courses, CRM, analytics, affiliates, and agent-ready operations.",
+      "A ClickFunnels alternative and competitors page for indiepreneurs comparing funnels, checkout, email, courses, CRM, analytics, affiliates, and AI-assisted operations.",
     seoKeywords: [
       "ClickFunnels alternative",
       "ClickFunnels alternatives",
@@ -288,56 +288,56 @@ export const competitors: Competitor[] = [
       "funnel builder alternative",
     ],
     searchIntent:
-      "Compare ClickFunnels with a publisher growth system that keeps funnel, checkout, email, course, CRM, affiliate, analytics, and agent-readiness claims tied to sources and roadmap evidence.",
+      "Compare ClickFunnels with a publisher growth system that connects funnel, checkout, email, course, CRM, affiliate, analytics, and AI-assisted launch work.",
     faqs: [
       {
         question: "Is Bumpgrade a ClickFunnels alternative today?",
         answer:
-          "Bumpgrade is in launch preview, so this page marks ClickFunnels-style funnel, checkout, email, course, CRM, analytics, and affiliate capabilities as roadmap targets unless a linked issue or PR shows they have shipped.",
+          "Bumpgrade is launching as a connected publisher growth system for funnels, checkout, email, products, analytics, and AI-assisted operations.",
       },
       {
         question: "What makes this ClickFunnels competitors page different?",
         answer:
-          "The comparison is built from official source notes, Bumpgrade roadmap issues, public source-data, and explicit caveats so agents and humans can see what is sourced, planned, or already live.",
+          "The comparison focuses on the buyer journey: attract the right people, sell the first offer, increase order value, deliver access, and follow up.",
       },
     ],
     deepDive: {
       title: "How Bumpgrade maps the ClickFunnels competitors category",
       paragraphs: [
         "ClickFunnels is the closest reference point because its public product surface combines funnel pages, checkout, upsells, courses, community, store, email, CRM, analytics, payments, affiliate tooling, API, and webhooks into one online-business platform.",
-        "For Bumpgrade, the SEO page is not just a marketing page. It is a product map: each capability cluster should resolve to a roadmap issue, public source data, and eventually a server-side contract that an agent can inspect without scraping private dashboard state.",
-        "That makes the core search promise narrower and more accountable than a generic ClickFunnels alternative claim. Bumpgrade is aiming at the same indiepreneur outcome, while keeping live-versus-planned status visible until each feature has shipped.",
+        "For Bumpgrade, the comparison starts from the publisher's work: shape the offer, publish a page, take payment, deliver access, and learn what to improve next.",
+        "That makes the core search promise narrower than a generic ClickFunnels alternative claim. Bumpgrade is aimed at the same indiepreneur outcome with a simpler connected launch path.",
       ],
       checklist: [
         {
           area: "Funnel and page builder",
           incumbent:
             "ClickFunnels presents funnels, a drag-and-drop editor, landing pages, surveys, countdown funnels, content pages, websites, and FunnelHubs as funnel entry points.",
-          bumpgradePlan: "Bumpgrade's funnel and page builder MVP is tracked in #14 and should expose funnel/page records to future agents.",
+          bumpgradePlan: "Bumpgrade keeps pages and funnel steps attached to the offer, checkout path, subscribers, and launch analytics.",
         },
         {
           area: "Checkout, bumps, and upsells",
           incumbent:
             "ClickFunnels positions Smart Checkout around checkout pages and describes sell or upsell stages with order forms, checkout, one-click upsells, one-time offers, and order bumps.",
-          bumpgradePlan: "Bumpgrade has Stripe commerce architecture in #11 and tracks checkout, order bumps, upsells, downsells, and subscriptions in #15.",
+          bumpgradePlan: "Bumpgrade connects checkout, order bumps, upsells, subscriptions, and post-purchase paths to the same offer record.",
         },
         {
           area: "Email, CRM, and automation",
           incumbent:
             "ClickFunnels groups CRM, email marketing, automations, message hub, appointments, opportunities, two-way messaging, SMS, and email inside the broader funnel model.",
-          bumpgradePlan: "Bumpgrade tracks email marketing, list growth, CRM-lite, and automations in #17, with source-linked objects rather than disconnected broadcast state.",
+          bumpgradePlan: "Bumpgrade ties email marketing, list growth, CRM-lite notes, and automations to offer and customer events.",
         },
         {
           area: "Courses, memberships, and community",
           incumbent:
             "ClickFunnels lists courses, membership areas, community groups, email sequences, and repeat-stage product delivery as part of the funnel lifecycle.",
-          bumpgradePlan: "Bumpgrade tracks products, downloads, courses, memberships, access rules, and subscriptions in #16.",
+          bumpgradePlan: "Bumpgrade keeps products, downloads, courses, memberships, access rules, and subscriptions in the same buyer journey.",
         },
         {
           area: "Optimization, affiliates, and agent contracts",
           incumbent:
             "ClickFunnels lists A/B testing, analytics, discounts, payments, affiliate center, API, and webhooks among the platform surface area.",
-          bumpgradePlan: "Bumpgrade tracks analytics and testing in #18, affiliate/referral management in #19, and agent-readable docs, manifests, APIs, and MCP in #12.",
+          bumpgradePlan: "Bumpgrade connects testing, analytics, discounts, payments, affiliate referrals, and AI assistance to the launch record.",
         },
       ],
       relatedLinks: [
@@ -352,9 +352,9 @@ export const competitors: Competitor[] = [
           description: "Email-first comparison for buyers focused on newsletters, automations, and creator audience workflows.",
         },
         {
-          label: "Bumpgrade roadmap",
-          href: "/roadmap",
-          description: "The public status map that separates shipped product work from planned parity features.",
+          label: "Bumpgrade features",
+          href: "/features",
+          description: "The feature overview for pages, checkout, products, email, analytics, and AI assistance.",
         },
         {
           label: "Developers and agents",
@@ -368,25 +368,25 @@ export const competitors: Competitor[] = [
       "The homepage describes the funnel mindset across attract, sell, upsell, ascend, and repeat stages.",
     ],
     gapsToAddress: [
-      "Actual funnel builder, editor, templates, and publishing are tracked in #14.",
-      "Checkout, bumps, upsells, and subscriptions are tracked in #15.",
-      "Email, automations, CRM-lite, and analytics are tracked in #17 and #18.",
+      "Use Bumpgrade when your funnel, checkout, email, product delivery, and reporting need to stay connected.",
+      "Use a specialist checkout tool when you only need checkout optimization around an otherwise separate stack.",
+      "Use a specialist email tool when the newsletter is the center of gravity and the offer system is simple.",
     ],
     rows: [
       {
         area: "Funnel model",
         incumbent: "ClickFunnels leads with funnel stages and conversion-oriented pages.",
-        bumpgradePlan: "Bumpgrade will represent funnels as durable objects that humans and agents can inspect, test, and update safely.",
+        bumpgradePlan: "Bumpgrade represents funnels as offer paths that humans and AI helpers can inspect, test, and improve.",
       },
       {
         area: "Revenue expansion",
         incumbent: "ClickFunnels includes checkout, upsell, discounts, payments, and affiliate center surfaces.",
-        bumpgradePlan: "Bumpgrade will build Stripe-backed order bumps, upsells, subscriptions, and affiliate tracking as separate issue slices.",
+        bumpgradePlan: "Bumpgrade connects order bumps, upsells, subscriptions, discounts, payments, and affiliate tracking to the offer.",
       },
       {
-        area: "Agent posture",
+        area: "AI help",
         incumbent: "ClickFunnels is a mature human product surface.",
-        bumpgradePlan: "Bumpgrade will add public source evidence and future MCP/API access as part of product parity, not as an afterthought.",
+        bumpgradePlan: "Bumpgrade keeps enough structured context for AI helpers to explain the launch and prepare safe changes.",
       },
     ],
   },
@@ -400,7 +400,7 @@ export const competitors: Competitor[] = [
     summary:
       "Kit is a strong creator-email platform with automation, creator audience segments, commerce, paid newsletters, and recommendations.",
     alternativePosition:
-      "Bumpgrade should respect Kit's creator focus while extending the system into checkout, products, funnels, admin evidence, and agent-readable commerce workflows.",
+      "Bumpgrade keeps Kit's creator focus but extends the workflow into checkout, products, funnels, customer context, and AI-assisted launch work.",
     sourceId: "source-kit-home",
     sourceUrl: "https://kit.com/",
     evidence: [
@@ -408,20 +408,20 @@ export const competitors: Competitor[] = [
       "Kit explicitly frames itself around creators, including artists, authors, bloggers, coaches, course creators, musicians, newsletter creators, podcasters, and YouTubers.",
     ],
     gapsToAddress: [
-      "List growth, email marketing, CRM-lite, and automations are tracked in #17.",
-      "Products, downloads, courses, and subscriptions are tracked in #16.",
-      "Agent source evidence and manifests are tracked in #12.",
+      "Use Bumpgrade when the email list needs to connect directly to an offer, checkout path, and product access.",
+      "Use Kit when email publishing and creator newsletters are the main job.",
+      "Use both carefully when the newsletter should stay separate from checkout and product delivery.",
     ],
     rows: [
       {
         area: "Email system",
         incumbent: "Kit is centered on creator email, automation, paid newsletters, and recommendations.",
-        bumpgradePlan: "Bumpgrade will connect email to funnel steps, offers, product access, checkout events, and agent-safe source evidence.",
+        bumpgradePlan: "Bumpgrade connects email to funnel steps, offers, product access, checkout events, and customer context.",
       },
       {
         area: "Commerce depth",
         incumbent: "Kit includes creator commerce, but the public positioning is email-first.",
-        bumpgradePlan: "Bumpgrade will make checkout, order bumps, upsells, products, and subscriptions core objects.",
+        bumpgradePlan: "Bumpgrade makes checkout, order bumps, upsells, products, and subscriptions part of the launch system.",
       },
       {
         area: "Use case",
@@ -440,7 +440,7 @@ export const competitors: Competitor[] = [
     summary:
       "Shopify is the reference point for a confident comparison hub: broad, structured, and focused on the buyer's platform decision.",
     alternativePosition:
-      "Bumpgrade should not pretend to be Shopify-scale commerce. It should target indiepreneur offers, funnels, checkout, digital products, automations, and agent-native operations.",
+      "Bumpgrade is not trying to be Shopify-scale commerce. It targets indiepreneur offers, funnels, checkout, digital products, automations, and AI-assisted operations.",
     sourceId: "source-shopify-compare",
     sourceUrl: "https://www.shopify.com/compare",
     evidence: [
@@ -448,25 +448,25 @@ export const competitors: Competitor[] = [
       "The structure uses broad buyer guidance rather than narrow feature-by-feature takedowns.",
     ],
     gapsToAddress: [
-      "Overall compare hub tone is delivered in #5.",
-      "Pricing and packaging surface is tracked in #20.",
-      "Developer and agent surfaces are tracked in #12 and #20.",
+      "Use Bumpgrade for audience-led offers, digital products, and simple launch paths.",
+      "Use Shopify when you need a mature general retail commerce platform.",
+      "Use the comparison hub to decide whether the store or the offer is the center of gravity.",
     ],
     rows: [
       {
         area: "Commerce scope",
         incumbent: "Shopify is a mature general commerce platform for merchants.",
-        bumpgradePlan: "Bumpgrade will target publisher funnels, digital offers, checkout optimization, subscriptions, and content-led commerce.",
+        bumpgradePlan: "Bumpgrade targets publisher funnels, digital offers, checkout optimization, subscriptions, and content-led commerce.",
       },
       {
         area: "Comparison style",
         incumbent: "Shopify's hub helps buyers compare platform categories clearly.",
-        bumpgradePlan: "Bumpgrade uses the same clear buyer posture while citing official sources and roadmap status.",
+        bumpgradePlan: "Bumpgrade uses the same clear buyer posture while focusing on publisher launch jobs.",
       },
       {
-        area: "Agent surface",
+        area: "AI surface",
         incumbent: "Shopify has a large ecosystem and developer surface.",
-        bumpgradePlan: "Bumpgrade will keep source evidence, roadmap state, and admin work logs public or admin-safe from the first build.",
+        bumpgradePlan: "Bumpgrade keeps offer, customer, checkout, and product context readable enough for AI helpers.",
       },
     ],
   },
@@ -480,7 +480,7 @@ export const competitors: Competitor[] = [
     summary:
       "SamCart focuses the buying moment: checkout customization, order bumps, one-click upsells, subscriptions, courses, reporting, and payment tooling.",
     alternativePosition:
-      "Bumpgrade should match the revenue-expansion path while making each checkout, offer, bump, and upsell source-grounded and safe for agent workflows.",
+      "Bumpgrade matches the revenue-expansion path while keeping checkout, offers, bumps, upsells, products, and follow-up in one workflow.",
     sourceId: "source-samcart-checkout",
     sourceUrl: "https://www.samcart.com/checkout",
     evidence: [
@@ -488,25 +488,25 @@ export const competitors: Competitor[] = [
       "SamCart's feature lists include checkout, order bumps and add-ons, payment options, payment processors, reporting, sales pages, subscriptions, and courses app.",
     ],
     gapsToAddress: [
-      "Checkout, order bump, upsell, and downsell MVP is tracked in #15.",
-      "Products, courses, memberships, and subscriptions model is tracked in #16.",
-      "Analytics and conversion tracking are tracked in #18.",
+      "Use Bumpgrade when checkout should stay connected to the funnel, email list, product access, and launch reporting.",
+      "Use SamCart when checkout optimization is the center of the business system.",
+      "Use the comparison to decide whether revenue expansion or the full buyer journey is the bigger constraint.",
     ],
     rows: [
       {
         area: "Checkout",
         incumbent: "SamCart is checkout-first and emphasizes average-order-value expansion.",
-        bumpgradePlan: "Bumpgrade will make checkout and revenue expansion core, but tied to funnels, products, source evidence, and admin audit trails.",
+        bumpgradePlan: "Bumpgrade makes checkout and revenue expansion core, but ties them to funnels, products, and follow-up.",
       },
       {
         area: "Offer paths",
         incumbent: "SamCart highlights bumps, one-click upsells, subscriptions, and reporting.",
-        bumpgradePlan: "Bumpgrade will model bumps, upsells, downsells, subscriptions, and follow-up actions as explicit objects.",
+        bumpgradePlan: "Bumpgrade models bumps, upsells, downsells, subscriptions, and follow-up actions around the same offer.",
       },
       {
-        area: "Agent fit",
+        area: "AI fit",
         incumbent: "SamCart is optimized for sellers using a dashboard.",
-        bumpgradePlan: "Bumpgrade will add confirmed-write contracts so agents can propose checkout changes without silent destructive edits.",
+        bumpgradePlan: "Bumpgrade keeps checkout context clear enough for AI helpers to suggest changes without hiding risk.",
       },
     ],
   },
@@ -516,11 +516,11 @@ export const competitors: Competitor[] = [
     slug: "kajabi-alternative",
     category: "Knowledge commerce platform",
     bestFor: "Experts selling courses, coaching, memberships, newsletters, downloads, podcasts, payments, and marketing automations.",
-    headline: "Bumpgrade vs Kajabi: expertise commerce with agent-readable evidence.",
+    headline: "Bumpgrade vs Kajabi: expertise commerce with launch context.",
     summary:
       "Kajabi is a polished all-in-one system for experts who monetize knowledge through products, payments, pages, funnels, automations, and communities.",
     alternativePosition:
-      "Bumpgrade should compete for experts who want transparent roadmap state, direct source evidence, agent-ready operations, and smaller issue-sliced product evolution.",
+      "Bumpgrade is for experts who want pages, checkout, products, email, and buyer context to stay connected as the offer evolves.",
     sourceId: "source-kajabi-home",
     sourceUrl: "https://www.kajabi.com/",
     evidence: [
@@ -528,25 +528,25 @@ export const competitors: Competitor[] = [
       "Kajabi positions itself as an all-in-one connected system for expert-led businesses.",
     ],
     gapsToAddress: [
-      "Products, downloads, courses, memberships, and subscriptions are tracked in #16.",
-      "Funnel and page builder MVP is tracked in #14.",
-      "Publisher admin apps are tracked in #13.",
+      "Use Bumpgrade when the first offer matters more than building a full academy from day one.",
+      "Use Kajabi when courses, communities, and expert-led content are already the whole business.",
+      "Use the comparison to decide whether simplicity or a mature knowledge-commerce suite matters more right now.",
     ],
     rows: [
       {
         area: "Knowledge products",
         incumbent: "Kajabi is strong for courses, coaching, memberships, and expert businesses.",
-        bumpgradePlan: "Bumpgrade will support knowledge products with explicit access, billing, delivery, and agent-readable IDs.",
+        bumpgradePlan: "Bumpgrade supports knowledge products with access, billing, delivery, and customer context tied together.",
       },
       {
         area: "All-in-one promise",
         incumbent: "Kajabi emphasizes replacing scattered tools with one connected system.",
-        bumpgradePlan: "Bumpgrade will use the same connected-system goal, with public and owner-visible evidence surfaces.",
+        bumpgradePlan: "Bumpgrade uses the same connected-system goal with a launch-first workflow for small teams.",
       },
       {
-        area: "Mobile/admin",
+        area: "Mobile visibility",
         incumbent: "Kajabi promotes a branded mobile app experience.",
-        bumpgradePlan: "Bumpgrade's publisher admin app plan is tracked separately for iOS and Android in #13.",
+        bumpgradePlan: "Bumpgrade gives publishers a mobile-readable view of launch, checkout, product, and customer state.",
       },
     ],
   },
@@ -556,11 +556,11 @@ export const competitors: Competitor[] = [
     slug: "podia-alternative",
     category: "Creator website and digital products",
     bestFor: "Creators who want a friendly bundle for websites, courses, downloads, coaching, webinars, checkout, affiliates, and email.",
-    headline: "Bumpgrade vs Podia: creator simplicity plus agent-native growth operations.",
+    headline: "Bumpgrade vs Podia: creator simplicity plus connected growth operations.",
     summary:
       "Podia positions itself as an all-in-one creator platform for websites, blogs, landing pages, digital products, checkout, affiliates, and email marketing.",
     alternativePosition:
-      "Bumpgrade should preserve that low-friction creator feel while adding source-linked comparisons, admin work logs, and direct agent-readable business objects.",
+      "Bumpgrade preserves that low-friction creator feel while connecting offers, checkout, products, email, reporting, and AI-assisted operations.",
     sourceId: "source-podia-courses",
     sourceUrl: "https://www.podia.com/online-courses",
     evidence: [
@@ -568,25 +568,25 @@ export const competitors: Competitor[] = [
       "The FAQ lists website, blog, landing pages, courses, coaching, downloads, webinars, checkout cart, online store, affiliates, and email marketing.",
     ],
     gapsToAddress: [
-      "Products and course/membership model is tracked in #16.",
-      "Resources and use-case surfaces are tracked in #20.",
-      "Admin user journeys are tracked in #8.",
+      "Use Bumpgrade when the offer, checkout, product access, and follow-up should be shaped together.",
+      "Use Podia when creator-friendly websites and digital-product delivery are already enough.",
+      "Use the comparison to decide whether your next constraint is simplicity or connected launch operations.",
     ],
     rows: [
       {
         area: "Creator friendliness",
         incumbent: "Podia is approachable for creators who want less tool wiring.",
-        bumpgradePlan: "Bumpgrade should keep setup lightweight while exposing enough structure for agents and future APIs.",
+        bumpgradePlan: "Bumpgrade keeps setup lightweight while preserving enough structure for future AI and API help.",
       },
       {
         area: "Digital products",
         incumbent: "Podia supports courses, coaching, downloads, webinars, checkout, affiliates, and email.",
-        bumpgradePlan: "Bumpgrade will build those as durable product, offer, checkout, and automation records.",
+        bumpgradePlan: "Bumpgrade keeps products, offers, checkout, and automation records connected.",
       },
       {
-        area: "Evidence",
+        area: "Launch clarity",
         incumbent: "Podia is a mature human-facing product.",
-        bumpgradePlan: "Bumpgrade will make source evidence and roadmap status part of the public product from day one.",
+        bumpgradePlan: "Bumpgrade keeps launch context visible so publishers can see what to improve next.",
       },
     ],
   },
@@ -600,7 +600,7 @@ export const competitors: Competitor[] = [
     summary:
       "Systeme.io is a broad all-in-one competitor that combines sales funnels, email marketing, automation, courses, affiliate management, websites, communities, booking, SMS, and pipelines.",
     alternativePosition:
-      "Bumpgrade should compete on breadth over time, but differentiate by making each feature state, evidence source, and agent write contract explicit.",
+      "Bumpgrade competes on breadth by connecting each offer, funnel, checkout, email, product, affiliate, and analytics step around the same launch.",
     sourceId: "source-systeme-features",
     sourceUrl: "https://systeme.io/features",
     evidence: [
@@ -608,25 +608,25 @@ export const competitors: Competitor[] = [
       "The page says the email list is integrated into sales funnels and websites.",
     ],
     gapsToAddress: [
-      "Funnel builder is tracked in #14.",
-      "Email and automations are tracked in #17.",
-      "Affiliate/referral management is tracked in #19.",
+      "Use Bumpgrade when you want the launch path and buyer context to drive the system.",
+      "Use Systeme.io when low-cost all-in-one breadth is the most important constraint.",
+      "Use the comparison to decide whether integrated scope or launch-specific context matters more.",
     ],
     rows: [
       {
         area: "Breadth",
         incumbent: "Systeme.io covers many indiepreneur needs in one place.",
-        bumpgradePlan: "Bumpgrade will pursue similar breadth through issue-sliced features and public roadmap state.",
+        bumpgradePlan: "Bumpgrade pursues similar breadth through a publisher-specific launch workflow.",
       },
       {
         area: "Integrated list/funnel",
         incumbent: "Systeme.io emphasizes email lists integrated with funnels and websites.",
-        bumpgradePlan: "Bumpgrade will connect list events to offers, checkout, products, subscriptions, and agent-readable workflows.",
+        bumpgradePlan: "Bumpgrade connects list events to offers, checkout, products, subscriptions, and AI-assisted workflows.",
       },
       {
-        area: "Roadmap honesty",
+        area: "Launch clarity",
         incumbent: "Systeme.io has a mature feature set.",
-        bumpgradePlan: "Bumpgrade will mark planned versus live capabilities until parity is actually shipped.",
+        bumpgradePlan: "Bumpgrade keeps the publisher focused on what helps the next launch earn revenue.",
       },
     ],
   },
@@ -648,20 +648,20 @@ export const competitors: Competitor[] = [
       "The homepage groups the journey into creating pages/video/memberships and marketing with lead captures, campaigns, funnels, email or SMS, and checkouts.",
     ],
     gapsToAddress: [
-      "Funnel/page builder is tracked in #14.",
-      "Email, automations, and CRM-lite are tracked in #17.",
-      "Affiliate management is tracked in #19.",
+      "Use Bumpgrade when launch pages, leads, checkout, follow-up, and customer access should stay connected.",
+      "Use Kartra when you need a mature marketing suite with video, webinars, memberships, and campaign depth.",
+      "Use the comparison to decide whether campaign breadth or launch clarity is the bigger constraint.",
     ],
     rows: [
       {
         area: "Marketing suite",
         incumbent: "Kartra covers campaigns, pages, funnels, leads, email/SMS, checkout, affiliates, video, and webinars.",
-        bumpgradePlan: "Bumpgrade will model those workflows as connected records that can be audited and exposed safely to agents.",
+        bumpgradePlan: "Bumpgrade models those workflows as connected records around offers, buyers, and follow-up.",
       },
       {
         area: "Creator operations",
         incumbent: "Kartra speaks to building and marketing inside a unified suite.",
-        bumpgradePlan: "Bumpgrade will tie marketing actions to roadmap, source evidence, and work-log surfaces so future agents can recover context.",
+        bumpgradePlan: "Bumpgrade ties marketing actions to launch context so future AI helpers can recover the why behind changes.",
       },
       {
         area: "Implementation risk",
@@ -676,11 +676,11 @@ export const competitors: Competitor[] = [
     slug: "thrivecart-alternative",
     category: "Checkout, revenue optimization, and LMS",
     bestFor: "Sellers focused on checkout, payment options, order bumps, upsells/downsells, subscriptions, affiliates, fulfillment, LMS, and revenue intelligence.",
-    headline: "Bumpgrade vs ThriveCart: checkout optimization with roadmap and agent visibility.",
+    headline: "Bumpgrade vs ThriveCart: checkout optimization with launch visibility.",
     summary:
       "ThriveCart is a checkout and revenue-growth platform with strong emphasis on order bumps, upsells, subscriptions, affiliates, fulfillment, LMS, revenue intelligence, and integrations.",
     alternativePosition:
-      "Bumpgrade should compete by turning those revenue surfaces into Stripe-backed, agent-readable commerce records rather than isolated dashboard actions.",
+      "Bumpgrade turns those revenue surfaces into connected commerce records instead of isolated dashboard actions.",
     sourceId: "source-thrivecart-features",
     sourceUrl: "https://thrivecart.com/features/",
     evidence: [
@@ -688,25 +688,25 @@ export const competitors: Competitor[] = [
       "The page frames ThriveCart as a revenue growth engine for boosting sales, converting customers, automating tasks, tracking performance, and selling courses.",
     ],
     gapsToAddress: [
-      "Checkout, order bump, upsell, and downsell MVP is tracked in #15.",
-      "Products, downloads, courses, memberships, and subscriptions are tracked in #16.",
-      "Analytics and A/B testing are tracked in #18.",
+      "Use Bumpgrade when checkout should connect to funnel, product delivery, subscribers, affiliates, and analytics.",
+      "Use ThriveCart when checkout and revenue optimization are the main system.",
+      "Use the comparison to decide whether the checkout or the full launch path is the center of gravity.",
     ],
     rows: [
       {
         area: "Revenue optimization",
         incumbent: "ThriveCart emphasizes checkout, bumps, upsells, downsells, subscriptions, and revenue reporting.",
-        bumpgradePlan: "Bumpgrade will build these as explicit commerce and funnel records with audit and source metadata.",
+        bumpgradePlan: "Bumpgrade builds these as commerce and funnel records connected to the buyer journey.",
       },
       {
         area: "Learning delivery",
         incumbent: "ThriveCart includes LMS and course/membership-related features.",
-        bumpgradePlan: "Bumpgrade's product and access model will include courses, memberships, downloads, and subscriptions.",
+        bumpgradePlan: "Bumpgrade's product and access model includes courses, memberships, downloads, and subscriptions.",
       },
       {
-        area: "Agent controls",
+        area: "AI controls",
         incumbent: "ThriveCart is strong at seller dashboard workflows.",
-        bumpgradePlan: "Bumpgrade will require confirmation, idempotency, and stale-state checks for future agent writes.",
+        bumpgradePlan: "Bumpgrade keeps commerce changes explicit so AI-assisted edits can be reviewed before they affect buyers.",
       },
     ],
   },

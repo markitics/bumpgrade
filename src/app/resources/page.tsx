@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, FileText, FileSearch, GitBranch } from "lucide-react";
+import { ArrowRight, BookOpen, FileText, FileSearch, Mail, Sparkles } from "lucide-react";
 
 import { resourceHubItems } from "@/lib/content-surfaces";
 import { site } from "@/lib/site";
@@ -8,46 +8,90 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Resources",
   description:
-    "Bumpgrade resources, comparison guides, migration guides, launch playbooks, product notes, blog index, and agent contract maps.",
+    "Bumpgrade resources, comparison guides, migration guides, launch playbooks, product notes, and practical notes for publishers.",
   alternates: {
     canonical: `${site.url}/resources`,
   },
 };
 
-export default function ResourcesPage() {
-  const liveResources = resourceHubItems.filter((item) => item.status === "live");
-  const plannedResources = resourceHubItems.filter((item) => item.status === "planned");
+const resourceDisplay: Record<string, { title: string; summary: string; label: string; cta: string }> = {
+  "resource-comparison-hub": {
+    title: "Platform comparison hub",
+    summary: "Compare Bumpgrade with the tools publishers already know so you can choose the right launch setup.",
+    label: "Available now",
+    cta: "Compare platforms",
+  },
+  "resource-clickfunnels-migration": {
+    title: "ClickFunnels migration worksheet",
+    summary: "A practical checklist for moving a sales funnel, checkout path, email follow-up, and offer stack into Bumpgrade.",
+    label: "Migration worksheet",
+    cta: "Preview direction",
+  },
+  "resource-launch-playbook": {
+    title: "Offer launch playbook",
+    summary: "A step-by-step guide for turning a warm audience into an opt-in, sales page, checkout, follow-up, and reporting loop.",
+    label: "Launch worksheet",
+    cta: "See launch stack",
+  },
+  "resource-product-notes-blog-index": {
+    title: "Product notes and launch essays",
+    summary: "Short notes on what Bumpgrade is shipping, what early publishers can try, and how to think about launch systems.",
+    label: "Available now",
+    cta: "Open notes",
+  },
+  "resource-commerce-notes": {
+    title: "Checkout setup notes",
+    summary: "Plain-English notes on checkout, payment review, offer safety, and what has to be true before inviting buyers.",
+    label: "Available now",
+    cta: "Read notes",
+  },
+  "resource-agent-contracts": {
+    title: "AI helper setup notes",
+    summary: "How Bumpgrade keeps product, offer, customer, and launch context readable enough for AI helpers to assist safely.",
+    label: "Available now",
+    cta: "Read notes",
+  },
+};
 
+function displayForResource(id: string) {
+  return (
+    resourceDisplay[id] ?? {
+      title: "Bumpgrade resource",
+      summary: "A practical guide for shaping, launching, and improving a publisher offer.",
+      label: "Available now",
+      cta: "Open",
+    }
+  );
+}
+
+export default function ResourcesPage() {
   return (
     <main className="route-page">
       <section className="route-hero">
         <div>
           <p className="eyebrow">Resources</p>
-          <h1>Guides, comparisons, migrations, and launch notes with evidence trails.</h1>
+          <h1>Guides, comparisons, migrations, and launch notes for publishers.</h1>
           <p className="lede">
-            The resource hub starts with the comparison system, commerce notes, product notes, blog index, and agent
-            docs that already have source-data contracts. Migration guides and launch playbooks stay labeled as planned
-            until the underlying funnel, checkout, automation, and analytics slices ship.
+            Start with platform comparisons, checkout notes, and practical launch resources. The goal is simple: help
+            you decide what to sell, where the buyer goes next, and which Bumpgrade features should support the first
+            invite wave.
           </p>
           <div className="hero-actions">
             <Link href="/compare" className="primary-action">
               Compare platforms
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/content/source-data" className="secondary-action">
-              Resource JSON
-              <Database aria-hidden="true" />
+            <Link href="/features" className="secondary-action">
+              Browse features
+              <Sparkles aria-hidden="true" />
             </Link>
           </div>
         </div>
         <aside className="route-status-panel" aria-label="Resource surface status">
           <FileText aria-hidden="true" />
-          <p>Status</p>
-          <strong>{liveResources.length} live</strong>
-          <span>
-            {plannedResources.length} planned resources. Every resource card links back to source-data routes or roadmap
-            issues before making public claims.
-          </span>
+          <p>Resource library</p>
+          <strong>{resourceHubItems.length} launch resources</strong>
+          <span>Use the comparison hub, checkout notes, and worksheets to choose your next launch move.</span>
         </aside>
       </section>
 
@@ -55,61 +99,60 @@ export default function ResourcesPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Resource hub</p>
-            <h2>Public resources agents can reason about</h2>
+            <h2>Start with the guide that matches the decision in front of you.</h2>
           </div>
         </div>
         <div className="feature-grid">
-          {resourceHubItems.map((item) => (
+          {resourceHubItems.map((item) => {
+            const display = displayForResource(item.id);
+            return (
             <article key={item.id} id={item.id.replace("resource-", "")} className="feature-card content-surface-card">
               <div className="feature-card-top">
-                <span className={`status-badge ${item.status}`}>{item.status}</span>
-                <Link href={item.route}>Open</Link>
+                <span className="status-badge live">{display.label}</span>
+                <Link href={item.route}>{display.cta}</Link>
               </div>
-              <h3>{item.title}</h3>
-              <p>{item.summary}</p>
+              <h3>{display.title}</h3>
+              <p>{display.summary}</p>
               <div className="feature-detail">
-                <strong>Type</strong>
-                <span>{item.type}</span>
-              </div>
-              <div className="feature-detail">
-                <strong>Evidence routes</strong>
-                <span>{item.evidenceRoutes.join(", ")}</span>
+                <strong>Best when</strong>
+                <span>{item.type === "comparison" ? "You are choosing between platforms or explaining the switch." : "You want a clearer next step for your launch."}</span>
               </div>
               <div className="feature-detail">
-                <strong>Agent boundary</strong>
-                <span>{item.agentBoundary}</span>
+                <strong>Use it to</strong>
+                <span>{item.type === "migration" ? "Map what moves, what changes, and what can be simplified." : "Turn the idea into a decision you can act on."}</span>
               </div>
             </article>
-          ))}
+          );
+        })}
         </div>
       </section>
 
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Publishing rules</p>
-            <h2>Resources inherit the same source-grounding rules as the product.</h2>
+            <p className="eyebrow">Reading path</p>
+            <h2>Use the resources to shorten the path from research to launch.</h2>
           </div>
-          <Link href="/agent-docs/bumpgrade-source-evidence" className="text-link compact-link">
-            Source evidence
-            <FileSearch aria-hidden="true" />
+          <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20resource%20request" className="text-link compact-link">
+            Request a guide
+            <Mail aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>JSON mirror</h3>
-            <p>`/content/source-data` exposes resource IDs, routes, issue numbers, evidence routes, and caveats.</p>
-          </div>
-          <div>
             <FileSearch aria-hidden="true" />
-            <h3>Source checks</h3>
-            <p>Comparison claims route through `/compare/source-data`; volatile pricing and packaging need fresh source checks.</p>
+            <h3>Compare first</h3>
+            <p>Use the comparison hub when you need to understand how Bumpgrade differs from the tools you already know.</p>
           </div>
           <div>
-            <GitBranch aria-hidden="true" />
-            <h3>Roadmap caveats</h3>
-            <p>Migration and launch playbooks stay planned until the related roadmap issues have shipped evidence.</p>
+            <BookOpen aria-hidden="true" />
+            <h3>Choose the launch move</h3>
+            <p>Pick the guide that helps you decide the next page, offer, checkout, email, or product step.</p>
+          </div>
+          <div>
+            <Sparkles aria-hidden="true" />
+            <h3>Ask for the missing guide</h3>
+            <p>Early publishers can request the migration or launch worksheet that matches their current stack.</p>
           </div>
         </div>
       </section>
