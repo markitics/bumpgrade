@@ -36,9 +36,9 @@ then open the relevant shelf for the task.
   inspection, suppression, CRM notes, broadcast readiness, preview safety,
   queue readiness, delivery-batch, queue-message, dispatch-preflight, and
   dispatch-attempt, sender-domain readiness, provider-event readiness,
-  provider rate-limit readiness, provider response readiness
+  provider rate-limit readiness, provider response readiness, send-payload readiness
   contracts from issues #85, #103, #137, #167, #169, #171, #173, #175, #177,
-  #183, #189, #191, #197, #199, #201, #203, and #205.
+  #183, #189, #191, #197, #199, #201, #203, #205, and #207.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,
