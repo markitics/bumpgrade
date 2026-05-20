@@ -40,7 +40,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, and non-destructive product revocation intent readiness. Live payment and payout rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, non-destructive product revocation intent readiness, and protected content readiness. Live payment and payout rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -412,6 +412,25 @@ export const commerceTables: CommerceTableContract[] = [
     serverPrivateFields: ["metadata_json", "future actor identifiers", "future buyer identifiers", "future private reason notes"],
     purpose:
       "Owner-visible revocation intent readiness records that document confirmation, stale-state, audit, and non-destructive boundaries before live entitlement removal exists.",
+  },
+  {
+    table: "product_protected_content_sections",
+    status: "live",
+    publicSafeFields: [
+      "id",
+      "product_id",
+      "asset_id",
+      "entitlement_template_id",
+      "status",
+      "content_kind",
+      "title",
+      "public_summary",
+      "delivery_enabled",
+      "protected_body_included",
+    ],
+    serverPrivateFields: ["metadata_json", "lesson bodies", "member post bodies", "progress rows", "private R2 object keys", "signed URLs"],
+    purpose:
+      "Protected content readiness metadata for future course and member-area delivery without exposing protected bodies or enabling customer delivery.",
   },
 ];
 

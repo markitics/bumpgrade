@@ -56,7 +56,7 @@ Issue #101 connects paid sandbox checkout evidence to product access:
   bump.
 - Matching `product_fulfillment_tasks` rows are queued as public-safe evidence.
 - Private R2 keys, signed URLs, authenticated customer entitlement inspection,
-  destructive revocation, live fulfillment, and direct agent writes still
+  protected content delivery, destructive revocation, live fulfillment, and direct agent writes still
   require future confirmed-write APIs.
 
 Issue #111 connects privacy-safe referral click evidence to sandbox checkout

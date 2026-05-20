@@ -128,12 +128,15 @@ The page reads:
 - `product_entitlements`
 - `product_fulfillment_tasks`
 - `product_entitlement_revocation_intents`
+- `product_protected_content_sections`
 - `checkout_intents`
 - `commerce_products`
 - `commerce_prices`
 
 Verified owners can inspect buyer email, checkout status, product/price context,
 access rules, queued fulfillment evidence, and revocation intent readiness.
+Issue #181 also lets owners inspect protected content readiness without
+delivering protected bodies.
 Public agents should read
 `/products/source-data` for aggregate counts and redaction flags, not scrape or
 infer private buyer rows. Issue #141 adds `/products/entitlements` and
@@ -145,8 +148,10 @@ Bumpgrade without exposing object keys or signed URLs. Issue #147 revalidates
 current entitlement status, checkout intent linkage, trusted checkout state, and
 asset scope before token redemption. Issue #151 records owner-confirmed private
 asset upload intents without customer delivery. Issue #179 records
-non-destructive revocation intent readiness. Protected content, arbitrary asset
-delivery, destructive revocation,
+non-destructive revocation intent readiness. Issue #181 records protected
+content readiness without lesson bodies, member posts, progress rows, private R2
+keys, or signed URLs. Protected content delivery, arbitrary asset delivery,
+destructive revocation,
 subscription access changes, refunds, customer portals, and direct agent
 entitlement writes still need future confirmed-write APIs.
 
