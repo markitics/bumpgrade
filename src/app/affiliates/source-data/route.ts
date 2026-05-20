@@ -9,6 +9,7 @@ import {
   affiliatePrograms,
   affiliateReferralsSourceData,
   type AffiliatePartnerReport,
+  type PayoutBatchFixture,
 } from "@/lib/affiliate-referrals";
 import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
 
@@ -125,6 +126,16 @@ function includesReportLink(report: AffiliatePartnerReport, row: { partner_id: s
   return row.partner_id === report.partnerId && report.referralLinkIds.includes(row.referral_link_id);
 }
 
+function batchLedgerFixtures(batch: PayoutBatchFixture) {
+  const fixtureIds = new Set([...batch.ledgerIds, ...batch.reversedLedgerIds]);
+  return affiliatePrograms.flatMap((program) => program.commissionLedger).filter((ledger) => fixtureIds.has(ledger.id));
+}
+
+function includesBatchLink(batch: PayoutBatchFixture, row: { referral_link_id: string }) {
+  const referralLinkIds = new Set(batchLedgerFixtures(batch).map((ledger) => ledger.referralLinkId));
+  return referralLinkIds.has(row.referral_link_id);
+}
+
 function latestTimestamp(values: Array<number | null | undefined>) {
   const timestamps = values.filter((value): value is number => typeof value === "number" && value > 0);
   return timestamps.length > 0 ? Math.max(...timestamps) : null;
@@ -214,6 +225,97 @@ function buildPartnerReportSummary(input: {
   };
 }
 
+function buildPayoutPreparationSummary(input: {
+  commissionLedgerSummary: Awaited<ReturnType<typeof loadAffiliateCommissionLedgerSummary>>;
+  partnerReviewActionSummary: Awaited<ReturnType<typeof loadPartnerReviewActionSummary>>;
+}) {
+  const batches = affiliatePrograms.flatMap((program) =>
+    program.payoutBatches.map((batch) => {
+      const ledgerRows = input.commissionLedgerSummary.aggregateCounts.filter((row) => includesBatchLink(batch, row));
+      const actionRows = input.partnerReviewActionSummary.aggregateCounts.filter((row) => includesBatchLink(batch, row));
+
+      const reviewedActions = actionRows
+        .filter((row) => row.action_kind === "mark_reviewed")
+        .reduce((sum, row) => sum + row.total_actions, 0);
+      const heldActions = actionRows
+        .filter((row) => row.action_kind === "hold_for_review")
+        .reduce((sum, row) => sum + row.total_actions, 0);
+      const reversedActions = actionRows
+        .filter((row) => row.action_kind === "reverse_evidence")
+        .reduce((sum, row) => sum + row.total_actions, 0);
+
+      return {
+        payoutPreparationId: batch.preparationId,
+        payoutBatchId: batch.id,
+        status: batch.status,
+        issue: batch.issue,
+        partnerReportIds: batch.partnerReportIds,
+        eligibleLedgerIds: batch.eligibleLedgerIds,
+        blockedLedgerIds: batch.blockedLedgerIds,
+        reversedLedgerIds: batch.reversedLedgerIds,
+        readinessChecklist: batch.readinessChecklist,
+        reviewBeforePayout: batch.reviewBeforePayout,
+        sourceRoutes: batch.sourceRoutes,
+        totals: {
+          eligibleFixtureLedgers: batch.eligibleLedgerIds.length,
+          blockedFixtureLedgers: batch.blockedLedgerIds.length,
+          reversedFixtureLedgers: batch.reversedLedgerIds.length,
+          runtimeReviewOnlyLedgers: ledgerRows.reduce((sum, row) => sum + row.total_ledgers, 0),
+          runtimeReviewedLedgers: ledgerRows
+            .filter((row) => row.review_status === "owner_reviewed")
+            .reduce((sum, row) => sum + row.total_ledgers, 0),
+          runtimeReviewRequiredLedgers: ledgerRows
+            .filter((row) => row.review_status === "refund_window_open" || row.review_status === "owner_hold")
+            .reduce((sum, row) => sum + row.total_ledgers, 0),
+          runtimeReversedLedgers: ledgerRows
+            .filter((row) => row.ledger_status === "reversed" || row.review_status === "owner_reversed")
+            .reduce((sum, row) => sum + row.total_ledgers, 0),
+          reviewedActions,
+          heldActions,
+          reversedActions,
+          fixtureTotalCommissionCents: batch.totalCommissionCents,
+          runtimeTotalCommissionCents: ledgerRows.reduce((sum, row) => sum + row.total_commission_cents, 0),
+          currency: batch.currency,
+        },
+        execution: {
+          payableCommissionCreated: false,
+          stripePayoutCreated: false,
+          stripeTransferCreated: false,
+          payoutAccountStored: false,
+          taxDataCollected: false,
+          partnerNotificationSent: false,
+          directAgentWriteAccepted: false,
+        },
+        lastActivityAt: latestTimestamp([
+          ...ledgerRows.map((row) => row.last_created_at),
+          ...actionRows.map((row) => row.last_created_at),
+        ]),
+        redaction: batch.redaction,
+        caveat: batch.caveat,
+      };
+    }),
+  );
+
+  return {
+    status:
+      input.commissionLedgerSummary.status === "available" || input.partnerReviewActionSummary.status === "available"
+        ? "available"
+        : "unavailable",
+    batches,
+    rawRowsIncluded: false,
+    privateDataIncluded: false,
+    buyerDataIncluded: false,
+    rawLedgerRowsIncluded: false,
+    rawActorIdentityIncluded: false,
+    privateReasonsIncluded: false,
+    payoutRowsIncluded: false,
+    payoutAccountsIncluded: false,
+    taxRowsIncluded: false,
+    stripeIdsIncluded: false,
+    partnerNotificationsIncluded: false,
+  };
+}
+
 export async function GET() {
   const db = await getDb();
   const [clickSummary, checkoutAttributionSummary, commissionLedgerSummary, partnerReviewActionSummary] =
@@ -236,6 +338,10 @@ export async function GET() {
     partnerReportSummary: buildPartnerReportSummary({
       clickSummary,
       checkoutAttributionSummary,
+      commissionLedgerSummary,
+      partnerReviewActionSummary,
+    }),
+    payoutPreparationSummary: buildPayoutPreparationSummary({
       commissionLedgerSummary,
       partnerReviewActionSummary,
     }),

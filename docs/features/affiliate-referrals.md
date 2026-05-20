@@ -1,17 +1,18 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, and #193 add the first
+Issues #89, #109, #111, #113, #115, #193, and #195 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
-owner review/reversal action boundary, and public-safe partner report contract
-for parent issue #19.
+owner review/reversal action boundary, public-safe partner report contract, and
+read-only payout preparation contract for parent issue #19.
 
 ## Live Public-Safe Routes
 
 - `/affiliates/source-data`: JSON contract for seeded affiliate programs,
   partner records, referral links, attribution rules, commission rules,
   public-safe partner reports, commission ledger fixtures, payout batches,
-  review flags, audit events, and write boundaries.
+  read-only payout preparation, review flags, audit events, and write
+  boundaries.
 - `/affiliates/indie-launch-partners`: semantic preview of the same fixture
   program for humans and browser agents.
 - `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
@@ -25,6 +26,9 @@ for parent issue #19.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
+- `/affiliates/source-data.payoutPreparationSummary`: aggregate payout
+  preparation rows for eligible, blocked, and reversed fixture ledgers,
+  readiness checklist items, review action counts, and redaction flags.
 
 ## Stable IDs
 
@@ -33,6 +37,7 @@ The contract introduces stable IDs for:
 - `affiliateProgramId`
 - `affiliatePartnerId`
 - `affiliatePartnerReportId`
+- `payoutPreparationId`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -61,9 +66,14 @@ trusted sandbox checkout intent with referral attribution, and an owner session
 can review, hold, or reverse that evidence without making it payable. It also
 exposes public-safe partner reports that aggregate click, attribution,
 review-only ledger, and owner review action evidence without private buyer,
-payout, tax, Stripe, raw click, raw checkout, or private actor fields. It proves
-affiliate/referral click-to-checkout-to-ledger-to-review-to-report semantics,
-not payable commissions or payout capability.
+payout, tax, Stripe, raw click, raw checkout, or private actor fields. Issue
+#195 adds read-only payout preparation rows and checklist blockers that link
+partner reports, ledger fixtures, owner review evidence, and refund-window
+caveats without payout accounts, tax forms, Stripe payout IDs, partner
+notification payloads, raw ledger rows, private actor identity, or private
+review reasons. It proves affiliate/referral
+click-to-checkout-to-ledger-to-review-to-report-to-preparation semantics, not
+payable commissions or payout capability.
 
 Not live in this slice:
 
@@ -71,6 +81,7 @@ Not live in this slice:
 - buyer attribution finalization;
 - payable commission writes;
 - direct agent review writes;
+- payout batch execution;
 - fraud enforcement;
 - payout account storage;
 - tax form collection;

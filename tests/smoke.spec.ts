@@ -2946,8 +2946,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "partner-reports-ready",
-        issue: 193,
+        status: "payout-preparation-ready",
+        issue: 195,
         parentIssue: 19,
       }),
     );
@@ -3014,6 +3014,14 @@ test.describe("Bumpgrade scaffold", () => {
         stableIds: expect.arrayContaining(["affiliatePartnerReportId", "affiliatePartnerId"]),
       }),
     );
+    expect(payload.payoutPreparationContract).toEqual(
+      expect.objectContaining({
+        status: "payout-preparation-ready",
+        issue: 195,
+        sourceDataRoute: "/affiliates/source-data",
+        stableIds: expect.arrayContaining(["payoutPreparationId", "payoutBatchId", "affiliatePartnerReportId"]),
+      }),
+    );
     expect(payload.commissionLedgerSummary).toEqual(
       expect.objectContaining({
         status: "available",
@@ -3059,6 +3067,60 @@ test.describe("Bumpgrade scaffold", () => {
         ]),
       }),
     );
+    expect(payload.payoutPreparationSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        buyerDataIncluded: false,
+        rawLedgerRowsIncluded: false,
+        rawActorIdentityIncluded: false,
+        payoutRowsIncluded: false,
+        payoutAccountsIncluded: false,
+        taxRowsIncluded: false,
+        stripeIdsIncluded: false,
+        partnerNotificationsIncluded: false,
+        batches: expect.arrayContaining([
+          expect.objectContaining({
+            payoutPreparationId: "payout-preparation-indie-launch-may-preview",
+            payoutBatchId: "payout-batch-indie-launch-may-preview",
+            status: "review_required",
+            issue: 195,
+            partnerReportIds: expect.arrayContaining(["affiliate-partner-report-launch-circle"]),
+            eligibleLedgerIds: expect.arrayContaining(["commission-ledger-launch-pass-fixture"]),
+            blockedLedgerIds: expect.arrayContaining(["commission-ledger-self-referral-review"]),
+            reversedLedgerIds: expect.arrayContaining(["commission-ledger-refund-reversal"]),
+            readinessChecklist: expect.arrayContaining([
+              expect.objectContaining({ id: "payout-prep-check-private-payout-data", status: "external_required" }),
+            ]),
+            totals: expect.objectContaining({
+              eligibleFixtureLedgers: 1,
+              blockedFixtureLedgers: 1,
+              reversedFixtureLedgers: 1,
+              fixtureTotalCommissionCents: 2700,
+              runtimeTotalCommissionCents: expect.any(Number),
+              currency: "USD",
+            }),
+            execution: expect.objectContaining({
+              payableCommissionCreated: false,
+              stripePayoutCreated: false,
+              payoutAccountStored: false,
+              taxDataCollected: false,
+              partnerNotificationSent: false,
+            }),
+            redaction: expect.objectContaining({
+              buyerDataIncluded: false,
+              rawLedgerRowsIncluded: false,
+              rawActorIdentityIncluded: false,
+              payoutAccountIncluded: false,
+              taxDataIncluded: false,
+              stripeIdsIncluded: false,
+              partnerNotificationIncluded: false,
+            }),
+          }),
+        ]),
+      }),
+    );
     expect(payload.programs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -3088,7 +3150,12 @@ test.describe("Bumpgrade scaffold", () => {
             expect.objectContaining({ id: "commission-ledger-self-referral-review", status: "review_required" }),
           ]),
           payoutBatches: expect.arrayContaining([
-            expect.objectContaining({ id: "payout-batch-indie-launch-may-preview", status: "review_required" }),
+            expect.objectContaining({
+              id: "payout-batch-indie-launch-may-preview",
+              preparationId: "payout-preparation-indie-launch-may-preview",
+              status: "review_required",
+              issue: 195,
+            }),
           ]),
         }),
       ]),
@@ -3098,14 +3165,18 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #113 can create review-only");
     expect(payload.writeBoundary).toContain("Issue #115 can apply owner-gated review");
     expect(payload.writeBoundary).toContain("Issue #193 exposes public-safe partner reports");
+    expect(payload.writeBoundary).toContain("Issue #195 exposes read-only payout preparation");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
     expect(payload.caveat).toContain("public-safe partner reports");
+    expect(payload.caveat).toContain("read-only payout preparation");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Payout preparation stays read-only/i })).toBeVisible();
     await expect(page.getByText("Launch Circle public-safe performance report")).toBeVisible();
+    await expect(page.getByText("payout-preparation-indie-launch-may-preview")).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
   });
@@ -3795,12 +3866,17 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111, 113, 115, 193],
+          issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-affiliate-partner-reports",
           featureId: "feature-affiliates-referrals",
           issueNumbers: [19, 193],
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-prepares-affiliate-payout-batch",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 113, 115, 193, 195],
         }),
         expect.objectContaining({
           id: "journey-agent-records-privacy-safe-referral-click",
@@ -4111,12 +4187,16 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-affiliate-referrals",
           stableIds: expect.arrayContaining([
             "affiliatePartnerReportId",
+            "payoutPreparationId",
             "referralClickId",
             "checkoutIntentId",
             "referralAttributionId",
             "reviewOnlyCommissionLedgerId",
           ]),
-          safeForAgents: expect.arrayContaining(["Inspect public-safe partner performance reports"]),
+          safeForAgents: expect.arrayContaining([
+            "Inspect public-safe partner performance reports",
+            "Inspect read-only payout preparation checklists",
+          ]),
         }),
       ]),
     );

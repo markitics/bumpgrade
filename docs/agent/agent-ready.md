@@ -48,6 +48,8 @@ Recommended stable concepts:
   provider metadata.
 - `subscriptionPlanId`: stable id for pricing/billing plans.
 - `affiliateProgramId`: stable id for affiliate/referral programs.
+- `affiliatePartnerReportId`: stable id for public-safe partner performance reports.
+- `payoutPreparationId`: stable id for read-only affiliate payout preparation rows.
 - `referralLinkId`: stable id for partner referral links and attribution.
 - `commissionRuleId`: stable id for commission terms.
 - `commissionLedgerId`: stable id for auditable commission fixtures or records.
@@ -266,8 +268,8 @@ Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
 attribution evidence, aggregate review-only commission ledger counts,
-attribution rules, commission rules, ledger fixtures, payout review, fraud
-flags, and the
+read-only payout preparation, attribution rules, commission rules, ledger
+fixtures, payout review, fraud flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -280,11 +282,15 @@ reverse that evidence through
 Issue #193 adds partner report definitions and aggregate report rows for clicks,
 attributed checkouts, review-only ledgers, owner review actions, and payout
 readiness caveats without exposing buyer, payout, tax, Stripe, raw click, raw
-checkout, or private actor fields. This proves affiliate and referral
-click-to-checkout-to-ledger-to-review-to-report semantics, not cookie assignment,
-buyer attribution finalization, payable commission state, direct agent review
-writes, tax collection, fraud enforcement, Stripe payout capability, private
-partner portal access, or partner notifications.
+checkout, or private actor fields. Issue #195 adds read-only payout preparation
+rows and readiness checklists without payout accounts, tax forms, Stripe payout
+identifiers, partner notification payloads, raw ledger rows, private actor
+identity, or private reasons. This proves affiliate and referral
+click-to-checkout-to-ledger-to-review-to-report-to-preparation semantics, not
+cookie assignment, buyer attribution finalization, payable commission state,
+direct agent review writes, payout execution, tax collection, fraud enforcement,
+Stripe payout capability, private partner portal access, or partner
+notifications.
 
 ## MCP And Tooling
 
@@ -302,7 +308,8 @@ Useful first MCP resources/tools:
 - Read redacted commerce product, price, checkout-intent, webhook, subscription,
   and audit records once the public-safe contracts exist.
 - Read redacted affiliate/referral programs, referral links, commission rules,
-  payout review, and fraud flag records once the public-safe contracts exist.
+  partner reports, payout preparation, payout review, and fraud flag records once
+  the public-safe contracts exist.
 - Read owner-gated draft funnel state only with an owner session, and keep
   private draft copy out of public source-data.
 - Draft a feature, journey, comparison, or funnel update from validated source

@@ -18,6 +18,7 @@ import {
   getAffiliateProgramBySlug,
   type AffiliatePartnerReport,
   type CommissionLedgerFixture,
+  type PayoutBatchFixture,
   type ReferralLink,
 } from "@/lib/affiliate-referrals";
 import { site } from "@/lib/site";
@@ -117,6 +118,32 @@ function PartnerReportCard({ report }: { report: AffiliatePartnerReport }) {
   );
 }
 
+function PayoutPreparationCard({ batch }: { batch: PayoutBatchFixture }) {
+  const blockedCount = batch.readinessChecklist.filter((item) => item.status !== "passed").length;
+
+  return (
+    <article className="roadmap-card">
+      <div className="roadmap-card-top">
+        <span className="status-badge pending">Preparation</span>
+        <span className="admin-pill">{blockedCount} blockers</span>
+      </div>
+      <ShieldCheck aria-hidden="true" />
+      <h3>{batch.preparationId}</h3>
+      <p>{batch.caveat}</p>
+      <div className="roadmap-detail">
+        <strong>Eligible fixture evidence</strong>
+        <span>
+          {batch.eligibleLedgerIds.length} ledger, {formatMoney(batch.totalCommissionCents)} public-safe total
+        </span>
+      </div>
+      <div className="roadmap-detail">
+        <strong>Blocked before payout prep</strong>
+        <span>{batch.reviewBeforePayout.join(" ")}</span>
+      </div>
+    </article>
+  );
+}
+
 export default async function AffiliateProgramPage({ params }: AffiliatePageProps) {
   const { slug } = await params;
   const program = getAffiliateProgramBySlug(slug);
@@ -168,8 +195,9 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <strong>{program.partners.length} partner records</strong>
           <span>
             Referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger
-            evidence, owner review/reversal actions, public-safe partner reports, and payout review states are public-safe
-            records; cookies, buyers, tax forms, partner notifications, and payout accounts stay disabled.
+            evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, and payout
+            review states are public-safe records; cookies, buyers, tax forms, partner notifications, Stripe payouts, and
+            payout accounts stay disabled.
           </span>
         </aside>
       </section>
@@ -277,19 +305,11 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Payout review</p>
-            <h2>Nothing pays out until refund windows and review flags are resolved</h2>
+            <h2>Payout preparation stays read-only until refund windows and review flags are resolved</h2>
           </div>
         </div>
         <div className="roadmap-grid">
-          <article className="roadmap-card">
-            <div className="roadmap-card-top">
-              <span className="status-badge pending">{payoutBatch.status.replaceAll("_", " ")}</span>
-              <span className="admin-pill">{formatMoney(payoutBatch.totalCommissionCents)}</span>
-            </div>
-            <ShieldCheck aria-hidden="true" />
-            <h3>{payoutBatch.id}</h3>
-            <p>{payoutBatch.reviewBeforePayout.join(" ")}</p>
-          </article>
+          <PayoutPreparationCard batch={payoutBatch} />
           {program.reviewFlags.map((flag) => (
             <article key={flag.id} className="roadmap-card">
               <div className="roadmap-card-top">
@@ -321,7 +341,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             <h3>Source data first</h3>
             <p>
               <code>/affiliates/source-data</code> exposes public-safe partners, links, aggregate click and checkout
-              attribution counts, rules, partner reports, ledger fixtures, payout batches, review flags, and audit events.
+              attribution counts, rules, partner reports, ledger fixtures, read-only payout preparation, review flags, and audit events.
             </p>
           </div>
           <div>
