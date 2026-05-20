@@ -21,6 +21,13 @@ export const audienceBroadcastDeliveryBatchIssue = 183;
 export const audienceBroadcastDeliveryBatchStatus = "broadcast-delivery-batch-dry-run-ready";
 export const audienceBroadcastDeliveryBatchApiRoute = "/api/admin/audience/broadcasts/delivery-batches";
 export const audienceBroadcastDeliveryBatchConfirmationText = "Create dry-run Bumpgrade broadcast delivery batch";
+export const audienceBroadcastDeliveryQueueMessageIssue = 189;
+export const audienceBroadcastDeliveryQueueMessageStatus = "broadcast-delivery-queue-messages-dry-run-ready";
+export const audienceBroadcastDeliveryQueueMessageUpdatedAt = "2026-05-20";
+export const audienceBroadcastDeliveryQueueMessageApiRoute =
+  "/api/admin/audience/broadcasts/delivery-queue-messages";
+export const audienceBroadcastDeliveryQueueMessageConfirmationText =
+  "Create dry-run Bumpgrade broadcast delivery queue messages";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -98,6 +105,31 @@ type DeliveryBatchRow = {
   sender_domain_gate_status: string;
   provider_send_enabled: number | string;
   recipient_payloads_created: number | string;
+  provider_message_ids_created: number | string;
+  idempotency_key: string;
+  created_at: number | string;
+};
+
+type DeliveryQueueMessageRow = {
+  id: string;
+  draft_id: string;
+  delivery_batch_id: string;
+  schedule_intent_id: string;
+  status: string;
+  queue_name: string;
+  queue_mode: string;
+  expected_draft_updated_at: string;
+  expected_ready_recipient_count: number | string;
+  dry_run_message_count: number | string;
+  held_recipient_count: number | string;
+  active_suppression_count: number | string;
+  retry_policy: string;
+  dispatch_policy: string;
+  unsubscribe_footer_check_status: string;
+  sender_domain_gate_status: string;
+  provider_send_enabled: number | string;
+  recipient_payloads_created: number | string;
+  cloudflare_queue_messages_created: number | string;
   provider_message_ids_created: number | string;
   idempotency_key: string;
   created_at: number | string;
@@ -366,6 +398,70 @@ export type AudienceBroadcastDeliveryBatchSummary = {
   writeBoundary: string;
 };
 
+export type AudienceBroadcastDeliveryQueueMessage = {
+  id: string;
+  draftId: string;
+  deliveryBatchId: string;
+  scheduleIntentId: string;
+  status: string;
+  queueName: string;
+  queueMode: string;
+  expectedDraftUpdatedAt: string;
+  expectedReadyRecipientCount: number;
+  dryRunMessageCount: number;
+  heldRecipientCount: number;
+  activeSuppressionCount: number;
+  retryPolicy: string;
+  dispatchPolicy: string;
+  unsubscribeFooterCheckStatus: string;
+  senderDomainGateStatus: string;
+  duplicate: boolean;
+  providerSendEnabled: false;
+  recipientPayloadsCreated: false;
+  cloudflareQueueMessagesCreated: false;
+  providerMessageIdsIncluded: false;
+  createdAt: string | null;
+};
+
+export type AudienceBroadcastDeliveryQueueMessageSummary = {
+  id: string;
+  status: typeof audienceBroadcastDeliveryQueueMessageStatus;
+  issue: typeof audienceBroadcastDeliveryQueueMessageIssue;
+  parentIssue: 17;
+  apiRoute: typeof audienceBroadcastDeliveryQueueMessageApiRoute;
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  confirmation: {
+    required: true;
+    text: typeof audienceBroadcastDeliveryQueueMessageConfirmationText;
+  };
+  counts: {
+    dryRunRecords: number;
+    dryRunMessagesSnapshotted: number;
+    heldRecipientsSnapshotted: number;
+    providerSendEnabledRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    cloudflareQueueMessagesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+  };
+  latestMessages: AudienceBroadcastDeliveryQueueMessage[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    rawRecipientNamesIncluded: false;
+    actorEmailIncluded: false;
+    suppressionHashesIncluded: false;
+    recipientPayloadsIncluded: false;
+    personalizedBodyIncluded: false;
+    providerMessageIdsIncluded: false;
+    cloudflareQueueMessagesCreated: false;
+    providerSendEnabled: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
 type CreateScheduleIntentInput = {
   draftId?: unknown;
   expectedDraftUpdatedAt?: unknown;
@@ -378,6 +474,16 @@ type CreateScheduleIntentInput = {
 
 type CreateDeliveryBatchInput = {
   scheduleIntentId?: unknown;
+  draftId?: unknown;
+  expectedDraftUpdatedAt?: unknown;
+  expectedReadyRecipientCount?: unknown;
+  confirmationText?: unknown;
+  idempotencyKey?: string | null;
+  actor: AdminIdentity;
+};
+
+type CreateDeliveryQueueMessagesInput = {
+  deliveryBatchId?: unknown;
   draftId?: unknown;
   expectedDraftUpdatedAt?: unknown;
   expectedReadyRecipientCount?: unknown;
@@ -435,6 +541,33 @@ type CreateDeliveryBatchResult =
         | "batch_not_created";
       message: string;
       redaction: AudienceBroadcastDeliveryBatchSummary["redaction"];
+      currentDraftUpdatedAt?: string | null;
+      currentReadyRecipientCount?: number;
+    };
+
+type CreateDeliveryQueueMessagesResult =
+  | {
+      ok: true;
+      status: "broadcast_delivery_queue_messages_recorded" | "broadcast_delivery_queue_messages_replayed";
+      duplicate: boolean;
+      messages: AudienceBroadcastDeliveryQueueMessage;
+      redaction: AudienceBroadcastDeliveryQueueMessageSummary["redaction"];
+    }
+  | {
+      ok: false;
+      status:
+        | "invalid_request"
+        | "confirmation_required"
+        | "delivery_batch_not_found"
+        | "broadcast_draft_not_found"
+        | "readiness_unavailable"
+        | "queue_readiness_unavailable"
+        | "stale_draft_revision"
+        | "stale_readiness_count"
+        | "queue_gate_not_ready"
+        | "queue_messages_not_created";
+      message: string;
+      redaction: AudienceBroadcastDeliveryQueueMessageSummary["redaction"];
       currentDraftUpdatedAt?: string | null;
       currentReadyRecipientCount?: number;
     };
@@ -718,6 +851,62 @@ function emptyDeliveryBatchSummary(
   };
 }
 
+function emptyDeliveryQueueMessageSummary(
+  source: AudienceBroadcastDeliveryQueueMessageSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastDeliveryQueueMessageSummary {
+  return {
+    id: "audience-broadcast-delivery-queue-message-contract",
+    status: audienceBroadcastDeliveryQueueMessageStatus,
+    issue: audienceBroadcastDeliveryQueueMessageIssue,
+    parentIssue: 17,
+    apiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    confirmation: {
+      required: true,
+      text: audienceBroadcastDeliveryQueueMessageConfirmationText,
+    },
+    counts: {
+      dryRunRecords: 0,
+      dryRunMessagesSnapshotted: 0,
+      heldRecipientsSnapshotted: 0,
+      providerSendEnabledRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      cloudflareQueueMessagesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+    },
+    latestMessages: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      rawRecipientNamesIncluded: false,
+      actorEmailIncluded: false,
+      suppressionHashesIncluded: false,
+      recipientPayloadsIncluded: false,
+      personalizedBodyIncluded: false,
+      providerMessageIdsIncluded: false,
+      cloudflareQueueMessagesCreated: false,
+      providerSendEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "suppressionHash",
+      "actorEmail",
+      "recipientPayload",
+      "providerMessageId",
+      "personalizedBody",
+      "cloudflareQueueMessageBody",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #189 lets verified owners record aggregate delivery queue message dry-run evidence from a current delivery batch after exact confirmation, idempotency, draft revision, readiness count, and dry-run queue gates. It does not create Cloudflare Queue messages, recipient payloads, provider sends, provider message IDs, private exports, or public agent broadcast writes.",
+  };
+}
+
 function mapDraft(row: BroadcastDraftRow, counts: ReadinessCountRow | null): AudienceBroadcastDraftReadiness {
   return {
     id: row.id,
@@ -827,6 +1016,36 @@ function publicDeliveryBatch(row: DeliveryBatchRow, duplicate: boolean): Audienc
   };
 }
 
+function publicDeliveryQueueMessage(
+  row: DeliveryQueueMessageRow,
+  duplicate: boolean,
+): AudienceBroadcastDeliveryQueueMessage {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    deliveryBatchId: row.delivery_batch_id,
+    scheduleIntentId: row.schedule_intent_id,
+    status: row.status,
+    queueName: row.queue_name,
+    queueMode: row.queue_mode,
+    expectedDraftUpdatedAt: row.expected_draft_updated_at,
+    expectedReadyRecipientCount: numberValue(row.expected_ready_recipient_count),
+    dryRunMessageCount: numberValue(row.dry_run_message_count),
+    heldRecipientCount: numberValue(row.held_recipient_count),
+    activeSuppressionCount: numberValue(row.active_suppression_count),
+    retryPolicy: row.retry_policy,
+    dispatchPolicy: row.dispatch_policy,
+    unsubscribeFooterCheckStatus: row.unsubscribe_footer_check_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    duplicate,
+    providerSendEnabled: false,
+    recipientPayloadsCreated: false,
+    cloudflareQueueMessagesCreated: false,
+    providerMessageIdsIncluded: false,
+    createdAt: timestampValue(row.created_at),
+  };
+}
+
 async function findScheduleIntentByIdempotency(db: D1Database, idempotencyKey: string) {
   return db
     .prepare(
@@ -866,6 +1085,38 @@ async function findDeliveryBatchByIdempotency(db: D1Database, idempotencyKey: st
     )
     .bind(idempotencyKey)
     .first<DeliveryBatchRow>();
+}
+
+async function findDeliveryBatchById(db: D1Database, deliveryBatchId: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, draft_id, schedule_intent_id, status, queue_name, queue_mode, expected_draft_updated_at,
+        ready_recipient_count, held_recipient_count, active_suppression_count,
+        unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+        recipient_payloads_created, provider_message_ids_created, idempotency_key, created_at
+      FROM audience_broadcast_delivery_batches
+      WHERE id = ?`,
+    )
+    .bind(deliveryBatchId)
+    .first<DeliveryBatchRow>();
+}
+
+async function findDeliveryQueueMessageByIdempotency(db: D1Database, idempotencyKey: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, draft_id, delivery_batch_id, schedule_intent_id, status, queue_name, queue_mode,
+        expected_draft_updated_at, expected_ready_recipient_count, dry_run_message_count,
+        held_recipient_count, active_suppression_count, retry_policy, dispatch_policy,
+        unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+        recipient_payloads_created, cloudflare_queue_messages_created, provider_message_ids_created,
+        idempotency_key, created_at
+      FROM audience_broadcast_delivery_queue_messages
+      WHERE idempotency_key = ?`,
+    )
+    .bind(idempotencyKey)
+    .first<DeliveryQueueMessageRow>();
 }
 
 export async function getAudienceBroadcastReadinessSummary(): Promise<AudienceBroadcastReadinessSummary> {
@@ -1126,6 +1377,66 @@ export async function getAudienceBroadcastDeliveryBatchSummary(): Promise<Audien
     return emptyDeliveryBatchSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast delivery batches.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastDeliveryQueueMessageSummary(): Promise<AudienceBroadcastDeliveryQueueMessageSummary> {
+  try {
+    const { db } = await getRuntime();
+    const counts = await db
+      .prepare(
+        `SELECT
+          COUNT(*) AS dry_run_record_count,
+          COALESCE(SUM(dry_run_message_count), 0) AS dry_run_message_count,
+          COALESCE(SUM(held_recipient_count), 0) AS held_recipient_count,
+          SUM(CASE WHEN provider_send_enabled > 0 THEN 1 ELSE 0 END) AS provider_send_enabled_count,
+          SUM(CASE WHEN recipient_payloads_created > 0 THEN 1 ELSE 0 END) AS recipient_payloads_created_count,
+          SUM(CASE WHEN cloudflare_queue_messages_created > 0 THEN 1 ELSE 0 END) AS cloudflare_queue_messages_created_count,
+          SUM(CASE WHEN provider_message_ids_created > 0 THEN 1 ELSE 0 END) AS provider_message_ids_created_count
+        FROM audience_broadcast_delivery_queue_messages`,
+      )
+      .first<{
+        dry_run_record_count: number | string | null;
+        dry_run_message_count: number | string | null;
+        held_recipient_count: number | string | null;
+        provider_send_enabled_count: number | string | null;
+        recipient_payloads_created_count: number | string | null;
+        cloudflare_queue_messages_created_count: number | string | null;
+        provider_message_ids_created_count: number | string | null;
+      }>();
+    const latest = await db
+      .prepare(
+        `SELECT
+          id, draft_id, delivery_batch_id, schedule_intent_id, status, queue_name, queue_mode,
+          expected_draft_updated_at, expected_ready_recipient_count, dry_run_message_count,
+          held_recipient_count, active_suppression_count, retry_policy, dispatch_policy,
+          unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+          recipient_payloads_created, cloudflare_queue_messages_created, provider_message_ids_created,
+          idempotency_key, created_at
+        FROM audience_broadcast_delivery_queue_messages
+        ORDER BY created_at DESC
+        LIMIT 10`,
+      )
+      .all<DeliveryQueueMessageRow>();
+
+    return {
+      ...emptyDeliveryQueueMessageSummary("d1", null),
+      counts: {
+        dryRunRecords: numberValue(counts?.dry_run_record_count),
+        dryRunMessagesSnapshotted: numberValue(counts?.dry_run_message_count),
+        heldRecipientsSnapshotted: numberValue(counts?.held_recipient_count),
+        providerSendEnabledRecords: numberValue(counts?.provider_send_enabled_count),
+        recipientPayloadsCreatedRecords: numberValue(counts?.recipient_payloads_created_count),
+        cloudflareQueueMessagesCreatedRecords: numberValue(counts?.cloudflare_queue_messages_created_count),
+        providerMessageIdsCreatedRecords: numberValue(counts?.provider_message_ids_created_count),
+      },
+      latestMessages: (latest.results ?? []).map((row) => publicDeliveryQueueMessage(row, false)),
+    };
+  } catch (error) {
+    return emptyDeliveryQueueMessageSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast delivery queue messages.",
     );
   }
 }
@@ -1445,6 +1756,198 @@ export async function createAudienceBroadcastDeliveryBatch(input: CreateDelivery
     status: "broadcast_delivery_batch_recorded",
     duplicate: false,
     batch: publicDeliveryBatch(batch, false),
+    redaction,
+  };
+}
+
+export async function createAudienceBroadcastDeliveryQueueMessages(
+  input: CreateDeliveryQueueMessagesInput,
+): Promise<CreateDeliveryQueueMessagesResult> {
+  const redaction = emptyDeliveryQueueMessageSummary("d1", null).redaction;
+  const deliveryBatchId = parseString(input.deliveryBatchId);
+  const draftId = parseString(input.draftId);
+  const expectedDraftUpdatedAt = parseString(input.expectedDraftUpdatedAt);
+  const expectedReadyRecipientCount = parseInteger(input.expectedReadyRecipientCount);
+  const idempotencyKey = input.idempotencyKey?.trim() || null;
+
+  if (!deliveryBatchId || !draftId || !expectedDraftUpdatedAt || expectedReadyRecipientCount === null || !idempotencyKey) {
+    return {
+      ok: false,
+      status: "invalid_request",
+      message: "A delivery batch ID, draft ID, expected draft updated time, expected readiness count, and idempotency key are required.",
+      redaction,
+    };
+  }
+
+  if (input.confirmationText !== audienceBroadcastDeliveryQueueMessageConfirmationText) {
+    return {
+      ok: false,
+      status: "confirmation_required",
+      message: "Exact confirmation text is required before recording dry-run broadcast delivery queue messages.",
+      redaction,
+    };
+  }
+
+  const { db } = await getRuntime();
+  const existing = await findDeliveryQueueMessageByIdempotency(db, idempotencyKey);
+  if (existing) {
+    return {
+      ok: true,
+      status: "broadcast_delivery_queue_messages_replayed",
+      duplicate: true,
+      messages: publicDeliveryQueueMessage(existing, true),
+      redaction,
+    };
+  }
+
+  const batch = await findDeliveryBatchById(db, deliveryBatchId);
+  if (!batch || batch.status !== "delivery_batch_dry_run_recorded" || batch.draft_id !== draftId) {
+    return {
+      ok: false,
+      status: "delivery_batch_not_found",
+      message: "A current dry-run delivery batch for this broadcast draft is required before queue message evidence can be recorded.",
+      redaction,
+    };
+  }
+
+  if (
+    batch.queue_mode !== "dry_run_contract" ||
+    numberValue(batch.provider_send_enabled) > 0 ||
+    numberValue(batch.recipient_payloads_created) > 0 ||
+    numberValue(batch.provider_message_ids_created) > 0
+  ) {
+    return {
+      ok: false,
+      status: "queue_gate_not_ready",
+      message: "Delivery batch queue gates must stay in dry-run mode without provider sends, recipient payloads, or provider message IDs.",
+      redaction,
+    };
+  }
+
+  const readiness = await getAudienceBroadcastReadinessSummary();
+  if (readiness.source !== "d1") {
+    return {
+      ok: false,
+      status: "readiness_unavailable",
+      message: readiness.loadError ?? "Broadcast readiness is unavailable.",
+      redaction,
+    };
+  }
+
+  const draft = readiness.drafts.find((candidate) => candidate.id === draftId);
+  if (!draft) {
+    return {
+      ok: false,
+      status: "broadcast_draft_not_found",
+      message: "The broadcast draft could not be found.",
+      redaction,
+    };
+  }
+
+  if (draft.updatedAt !== expectedDraftUpdatedAt || batch.expected_draft_updated_at !== expectedDraftUpdatedAt) {
+    return {
+      ok: false,
+      status: "stale_draft_revision",
+      message: "The broadcast draft changed before dry-run queue message evidence was recorded.",
+      redaction,
+      currentDraftUpdatedAt: draft.updatedAt,
+    };
+  }
+
+  if (draft.readyRecipientCount !== expectedReadyRecipientCount || numberValue(batch.ready_recipient_count) !== expectedReadyRecipientCount) {
+    return {
+      ok: false,
+      status: "stale_readiness_count",
+      message: "Broadcast readiness changed before dry-run queue message evidence was recorded.",
+      redaction,
+      currentReadyRecipientCount: draft.readyRecipientCount,
+    };
+  }
+
+  const queueReadiness = await getAudienceBroadcastQueueReadinessSummary();
+  if (queueReadiness.source !== "d1") {
+    return {
+      ok: false,
+      status: "queue_readiness_unavailable",
+      message: queueReadiness.loadError ?? "Broadcast queue readiness is unavailable.",
+      redaction,
+    };
+  }
+  const queueRecord = queueReadiness.records.find((record) => record.draftId === draftId && record.queueName === batch.queue_name);
+  if (
+    !queueRecord ||
+    queueRecord.queueMode !== "dry_run_contract" ||
+    queueRecord.providerSendEnabled ||
+    queueRecord.recipientPayloadsCreated
+  ) {
+    return {
+      ok: false,
+      status: "queue_gate_not_ready",
+      message: "Queue readiness must stay in dry-run mode without provider sends or recipient payloads before queue message evidence is recorded.",
+      redaction,
+    };
+  }
+
+  const messagesId = `broadcast-delivery-queue-messages-${crypto.randomUUID()}`;
+  await db
+    .prepare(
+      `INSERT INTO audience_broadcast_delivery_queue_messages (
+        id, draft_id, delivery_batch_id, schedule_intent_id, status, queue_name, queue_mode,
+        expected_draft_updated_at, expected_ready_recipient_count, dry_run_message_count,
+        held_recipient_count, active_suppression_count, retry_policy, dispatch_policy,
+        unsubscribe_footer_check_status, sender_domain_gate_status, provider_send_enabled,
+        recipient_payloads_created, cloudflare_queue_messages_created, provider_message_ids_created,
+        idempotency_key, actor_user_id, actor_email, metadata_json, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, 'delivery_queue_messages_dry_run_recorded', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?, unixepoch(), unixepoch())`,
+    )
+    .bind(
+      messagesId,
+      draft.id,
+      batch.id,
+      batch.schedule_intent_id,
+      queueRecord.queueName,
+      queueRecord.queueMode,
+      expectedDraftUpdatedAt,
+      draft.readyRecipientCount,
+      draft.readyRecipientCount,
+      heldRecipientCount(draft),
+      readiness.counts.activeSuppressionEntries,
+      queueRecord.retryPolicy,
+      "dry_run_d1_evidence_only_no_cloudflare_queue_dispatch",
+      batch.unsubscribe_footer_check_status,
+      batch.sender_domain_gate_status,
+      idempotencyKey,
+      input.actor.userId,
+      input.actor.email,
+      JSON.stringify({
+        issue: audienceBroadcastDeliveryQueueMessageIssue,
+        deliveryBatchId: batch.id,
+        scheduleIntentId: batch.schedule_intent_id,
+        queueReadinessId: queueRecord.id,
+        providerSendEnabled: false,
+        recipientPayloadsCreated: false,
+        cloudflareQueueMessagesCreated: false,
+        providerMessageIdsIncluded: false,
+        privateContactDataIncluded: false,
+      }),
+    )
+    .run();
+
+  const messages = await findDeliveryQueueMessageByIdempotency(db, idempotencyKey);
+  if (!messages) {
+    return {
+      ok: false,
+      status: "queue_messages_not_created",
+      message: "The broadcast delivery queue message dry run could not be saved.",
+      redaction,
+    };
+  }
+
+  return {
+    ok: true,
+    status: "broadcast_delivery_queue_messages_recorded",
+    duplicate: false,
+    messages: publicDeliveryQueueMessage(messages, false),
     redaction,
   };
 }

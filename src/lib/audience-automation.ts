@@ -1,8 +1,9 @@
 import {
   audienceBroadcastDeliveryBatchApiRoute,
-  audienceBroadcastDeliveryBatchIssue,
-  audienceBroadcastDeliveryBatchStatus,
-  audienceBroadcastReadinessUpdatedAt,
+  audienceBroadcastDeliveryQueueMessageApiRoute,
+  audienceBroadcastDeliveryQueueMessageIssue,
+  audienceBroadcastDeliveryQueueMessageStatus,
+  audienceBroadcastDeliveryQueueMessageUpdatedAt,
   audienceBroadcastScheduleIntentApiRoute,
 } from "@/lib/audience-broadcasts";
 import { audienceCrmTimelineApiRoute, audienceCrmTimelineWriteContract } from "@/lib/audience-crm";
@@ -128,18 +129,19 @@ export type AudienceAutomationWorkspace = {
   crmTimeline: typeof audienceCrmTimelineWriteContract;
   broadcastScheduleIntentApiRoute: typeof audienceBroadcastScheduleIntentApiRoute;
   broadcastDeliveryBatchApiRoute: typeof audienceBroadcastDeliveryBatchApiRoute;
+  broadcastDeliveryQueueMessageApiRoute: typeof audienceBroadcastDeliveryQueueMessageApiRoute;
   writeBoundary: string;
   validation: string[];
 };
 
-export const audienceAutomationUpdatedAt = audienceBroadcastReadinessUpdatedAt;
+export const audienceAutomationUpdatedAt = audienceBroadcastDeliveryQueueMessageUpdatedAt;
 
 export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   id: "audience-automation-workspace-indie-launch",
   slug: "indie-launch-waitlist",
   title: "Indie launch waitlist and nurture preview",
   status: "draft",
-  issue: audienceBroadcastDeliveryBatchIssue,
+  issue: audienceBroadcastDeliveryQueueMessageIssue,
   parentIssue: 17,
   sourceDataRoute: "/audience/source-data",
   previewRoute: "/audience/indie-launch-waitlist",
@@ -148,7 +150,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   linkedProductRoute: "/products/indie-launch-library",
   revisionId: "audience-automation-revision-indie-launch-2026-05-19",
   summary:
-    "An audience and automation scaffold with live consent-backed opt-in capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline notes, suppression-aware broadcast draft readiness, preview/footer safety, queue readiness, and delivery-batch dry runs for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
+    "An audience and automation scaffold with live consent-backed opt-in capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline notes, suppression-aware broadcast draft readiness, preview/footer safety, queue readiness, delivery-batch dry runs, and dry-run queue-message evidence for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
   segments: [
     {
       id: "segment-indie-launch-waitlist",
@@ -318,8 +320,9 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   crmTimeline: audienceCrmTimelineWriteContract,
   broadcastScheduleIntentApiRoute: audienceBroadcastScheduleIntentApiRoute,
   broadcastDeliveryBatchApiRoute: audienceBroadcastDeliveryBatchApiRoute,
+  broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
   writeBoundary:
-    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Issue #167 can record unsubscribe/suppression evidence and mark known subscribers unsubscribed without revealing list membership. Issue #169 can create owner-only CRM timeline notes with exact confirmation, idempotency, and expected subscriber-status checks. Issue #171 can inspect suppression-aware broadcast draft readiness without creating send queues. Issue #173 can record owner-confirmed dry-run broadcast schedule intents with idempotency, exact confirmation, draft revision checks, and expected readiness counts while still creating no send queue rows. Issue #175 can inspect broadcast preview and unsubscribe-footer safety without personalized bodies or provider sends. Issue #177 can inspect delivery queue readiness metadata without queue producers, recipient payloads, or provider sends. Issue #183 can record owner-confirmed delivery-batch dry runs after schedule-intent, queue, preview, suppression, and stale-state checks while still creating no recipient payloads, queue messages, or provider sends. Imports, real email sends, private exports, CRM automation, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, unsubscribe footers, sender-domain safety, queue safety, and provider limits.",
+    "Issue #103 can capture explicit-consent opt-ins, normalize subscriber email, assign seeded tags, and record draft sequence enrollment evidence. Issue #137 can inspect private subscriber rows behind owner auth and expose aggregate public redaction flags. Issue #167 can record unsubscribe/suppression evidence and mark known subscribers unsubscribed without revealing list membership. Issue #169 can create owner-only CRM timeline notes with exact confirmation, idempotency, and expected subscriber-status checks. Issue #171 can inspect suppression-aware broadcast draft readiness without creating send queues. Issue #173 can record owner-confirmed dry-run broadcast schedule intents with idempotency, exact confirmation, draft revision checks, and expected readiness counts while still creating no send queue rows. Issue #175 can inspect broadcast preview and unsubscribe-footer safety without personalized bodies or provider sends. Issue #177 can inspect delivery queue readiness metadata without queue producers, recipient payloads, or provider sends. Issue #183 can record owner-confirmed delivery-batch dry runs after schedule-intent, queue, preview, suppression, and stale-state checks while still creating no recipient payloads, queue messages, or provider sends. Issue #189 can record owner-confirmed dry-run queue-message evidence from a delivery batch without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs. Imports, real email sends, private exports, CRM automation, and direct agent writes require actor identity, explicit consent or lawful basis, idempotency, audit correlation, stale-state checks, redaction, suppression-list checks, unsubscribe footers, sender-domain safety, queue safety, and provider limits.",
   validation: [
     "/audience/source-data returns seeded audience segments, forms, tags, sequences, automations, and write boundaries.",
     "/audience/indie-launch-waitlist renders the opt-in and nurture preview.",
@@ -331,6 +334,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     "Broadcast preview safety is stored from D1 without personalized bodies, recipient payloads, send queue rows, or provider message IDs.",
     "Broadcast delivery queue readiness is stored from D1 without queue producer rows, recipient payloads, provider sends, or provider message IDs.",
     "/api/admin/audience/broadcasts/delivery-batches stores owner-confirmed delivery-batch dry runs without recipient payloads, queue messages, provider sends, or provider message IDs.",
+    "/api/admin/audience/broadcasts/delivery-queue-messages stores owner-confirmed dry-run queue-message evidence without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs.",
     "/agent-docs/source-data lists the audience automation read contract for future MCP resources.",
   ],
 };
@@ -344,8 +348,8 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: audienceBroadcastDeliveryBatchStatus,
-  issue: audienceBroadcastDeliveryBatchIssue,
+  status: audienceBroadcastDeliveryQueueMessageStatus,
+  issue: audienceBroadcastDeliveryQueueMessageIssue,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
   routes: [
@@ -355,6 +359,7 @@ export const audienceAutomationSourceData = {
     audienceCrmTimelineApiRoute,
     audienceBroadcastScheduleIntentApiRoute,
     audienceBroadcastDeliveryBatchApiRoute,
+    audienceBroadcastDeliveryQueueMessageApiRoute,
     "/admin/audience",
     ...audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute),
   ],
@@ -376,6 +381,7 @@ export const audienceAutomationSourceData = {
     "broadcastPreviewSafetyId",
     "broadcastQueueReadinessId",
     "broadcastDeliveryBatchId",
+    "broadcastDeliveryQueueMessageId",
     "agentActionId",
   ],
   optInWrites: audienceOptInWriteContract,
@@ -384,5 +390,5 @@ export const audienceAutomationSourceData = {
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, broadcast preview/footer safety evidence, delivery queue readiness evidence, delivery-batch dry-run evidence, and aggregate owner-inspection evidence. It does not import contacts, send email, create send queue rows or messages, create recipient payloads, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, broadcast preview/footer safety evidence, delivery queue readiness evidence, delivery-batch dry-run evidence, dry-run queue-message evidence, and aggregate owner-inspection evidence. It does not import contacts, send email, dispatch Cloudflare Queue messages, create recipient payloads, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
 };
