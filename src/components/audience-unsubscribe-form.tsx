@@ -31,6 +31,10 @@ export function AudienceUnsubscribeForm() {
     setIsSubmitting(true);
     setError(null);
     setResponse(null);
+    const normalizedEmail = email.trim();
+    const normalizedReason = reason.trim();
+    setEmail(normalizedEmail);
+    setReason(normalizedReason);
 
     try {
       const unsubscribeResponse = await fetch(audienceUnsubscribeApiRoute, {
@@ -39,8 +43,8 @@ export function AudienceUnsubscribeForm() {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          reason,
+          email: normalizedEmail,
+          reason: normalizedReason,
           idempotencyKey: `audience-unsubscribe-${crypto.randomUUID()}`,
         }),
       });
@@ -58,7 +62,7 @@ export function AudienceUnsubscribeForm() {
   }
 
   return (
-    <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience unsubscribe" onSubmit={handleSubmit}>
+    <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience unsubscribe" onSubmit={handleSubmit} noValidate>
       <div>
         <span className="status-badge planned">Suppression</span>
         <h3>Record an unsubscribe preference</h3>
@@ -73,6 +77,7 @@ export function AudienceUnsubscribeForm() {
           inputMode="email"
           placeholder="publisher@example.com"
           onChange={(event) => setEmail(event.target.value)}
+          onBlur={(event) => setEmail(event.currentTarget.value.trim())}
         />
       </label>
       <label className="checkout-field">
@@ -82,6 +87,7 @@ export function AudienceUnsubscribeForm() {
           value={reason}
           placeholder="No longer interested"
           onChange={(event) => setReason(event.target.value)}
+          onBlur={(event) => setReason(event.currentTarget.value.trim())}
         />
       </label>
       <button type="submit" className="secondary-action" disabled={isSubmitting}>

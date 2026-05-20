@@ -2678,11 +2678,12 @@ test.describe("Bumpgrade scaffold", () => {
 
     const browserEmail = `playwright-waitlist-${Date.now()}@example.com`;
     const optInForm = page.getByRole("form", { name: "Audience opt-in" });
-    await optInForm.getByLabel("Email address").fill(browserEmail);
-    await optInForm.getByLabel("First name, optional").fill("Playwright");
+    await optInForm.getByLabel("Email address").fill(` ${browserEmail} `);
+    await optInForm.getByLabel("First name, optional").fill("  Playwright  ");
     await optInForm.getByLabel(/I want the launch checklist/i).check();
     await optInForm.getByRole("button", { name: /Join waitlist/i }).click();
     await expect(page.getByText("Waitlist opt-in saved")).toBeVisible();
+    await expect(page.getByText(browserEmail)).toBeVisible();
     await expect(page.getByText("Email delivery remains disabled")).toBeVisible();
 
     const unsubscribeForm = page.getByRole("form", { name: "Audience unsubscribe" });
@@ -6696,6 +6697,28 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(publishedSource.privateDraftsIncluded).toBe(false);
     expect(publishedSource.rawOwnerDataIncluded).toBe(false);
+  });
+
+  test("publisher auth form trims email whitespace before submit", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth form trimming is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `trimmed-publisher-${suffix}@example.com`;
+
+    await page.goto("/login?callbackURL=/account/setup");
+    await page.getByRole("button", { name: "Sign up" }).click();
+    const authForm = page.locator("form.auth-form");
+    await authForm.getByLabel("Name").fill("  Trimmed Publisher  ");
+    await authForm.getByLabel("Email").fill(` ${email} `);
+    await authForm.getByLabel("Password").fill("BumpgradeLocal123!");
+    const signUpRequestPromise = page.waitForRequest(
+      (request) => request.method() === "POST" && request.url().includes("/api/auth/sign-up/email"),
+    );
+    await authForm.getByRole("button", { name: "Create account" }).click();
+    const signUpRequest = await signUpRequestPromise;
+    const signUpPayload = signUpRequest.postDataJSON() as { email?: string; name?: string };
+
+    expect(signUpPayload.email).toBe(email);
+    expect(signUpPayload.name).toBe("Trimmed Publisher");
   });
 
   test("paid publisher can reserve a Bumpgrade subdomain idempotently", async ({ page }, testInfo) => {

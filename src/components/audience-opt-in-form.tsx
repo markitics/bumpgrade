@@ -35,6 +35,10 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
     setIsSubmitting(true);
     setError(null);
     setResponse(null);
+    const normalizedEmail = email.trim();
+    const normalizedFirstName = firstName.trim();
+    setEmail(normalizedEmail);
+    setFirstName(normalizedFirstName);
 
     try {
       const optInResponse = await fetch(audienceOptInApiRoute, {
@@ -43,8 +47,8 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          firstName,
+          email: normalizedEmail,
+          firstName: normalizedFirstName,
           consent,
           formId,
           idempotencyKey: `audience-opt-in-${crypto.randomUUID()}`,
@@ -64,7 +68,7 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
   }
 
   return (
-    <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience opt-in" onSubmit={handleSubmit}>
+    <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience opt-in" onSubmit={handleSubmit} noValidate>
       <label className="checkout-field">
         Email address
         <input
@@ -74,6 +78,7 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           inputMode="email"
           placeholder="publisher@example.com"
           onChange={(event) => setEmail(event.target.value)}
+          onBlur={(event) => setEmail(event.currentTarget.value.trim())}
         />
       </label>
       <label className="checkout-field">
@@ -84,6 +89,7 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           autoComplete="given-name"
           placeholder="Mark"
           onChange={(event) => setFirstName(event.target.value)}
+          onBlur={(event) => setFirstName(event.currentTarget.value.trim())}
         />
       </label>
       <label className="audience-consent-row">

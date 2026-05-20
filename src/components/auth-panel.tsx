@@ -49,17 +49,21 @@ export function AuthPanel({ initialState, initialMode = "sign-in", nextPath }: A
     event.preventDefault();
     setIsSubmitting(true);
     setFormError(null);
+    const normalizedEmail = email.trim();
+    const normalizedName = name.trim();
+    setEmail(normalizedEmail);
+    setName(normalizedName);
 
     const response =
       mode === "sign-up"
         ? await authClient.signUp.email({
-            email,
+            email: normalizedEmail,
             password,
-            name: name || email,
+            name: normalizedName || normalizedEmail,
             callbackURL,
           })
         : await authClient.signIn.email({
-            email,
+            email: normalizedEmail,
             password,
             callbackURL,
           });
@@ -95,7 +99,7 @@ export function AuthPanel({ initialState, initialMode = "sign-in", nextPath }: A
             Sign up
           </button>
         </div>
-        <form className="auth-form" onSubmit={submit}>
+        <form className="auth-form" onSubmit={submit} noValidate>
           <p>{helperText}</p>
           {mode === "sign-up" ? (
             <label>
@@ -112,6 +116,7 @@ export function AuthPanel({ initialState, initialMode = "sign-in", nextPath }: A
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              onBlur={(event) => setEmail(event.currentTarget.value.trim())}
             />
           </label>
           <label>
