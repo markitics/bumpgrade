@@ -1,6 +1,6 @@
 export type FunnelStatus = "draft" | "published";
-export type FunnelStepKind = "opt_in" | "sales" | "checkout" | "upsell" | "thank_you";
-export type FunnelBlockKind = "hero" | "benefits" | "proof" | "cta" | "checkout" | "delivery";
+export type FunnelStepKind = "opt_in" | "sales" | "checkout" | "upsell" | "webinar" | "resource" | "thank_you";
+export type FunnelBlockKind = "hero" | "benefits" | "proof" | "cta" | "checkout" | "delivery" | "webinar" | "resource";
 
 export type FunnelBlock = {
   id: string;
@@ -92,7 +92,7 @@ export type FunnelCheckoutLink = {
   linkedAt: string | null;
 };
 
-export const funnelsUpdatedAt = "2026-05-19";
+export const funnelsUpdatedAt = "2026-05-20";
 export const draftFunnelBuilderIssue = 91;
 export const draftFunnelStepEditingIssue = 93;
 export const draftFunnelPreviewIssue = 95;
@@ -101,10 +101,11 @@ export const funnelTemplateLibraryIssue = 159;
 export const draftFunnelTemplateCreationIssue = 161;
 export const draftFunnelCheckoutLinkingIssue = 163;
 export const publicFunnelCheckoutStartIssue = 165;
+export const funnelWebinarResourceTemplateIssue = 213;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, template-to-draft creation, step editing, step reordering, private preview, exact-confirmed public publishing of D1 draft funnels, and exact-confirmed checkout-offer linking on private draft steps. Deleting, archiving, unpublishing, drag-and-drop visual editing, direct agent template creation, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, step editing, step reordering, private preview, exact-confirmed public publishing of D1 draft funnels, and exact-confirmed checkout-offer linking on private draft steps. Deleting, archiving, unpublishing, drag-and-drop visual editing, direct agent template creation, direct webinar scheduling, private resource delivery, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -125,14 +126,17 @@ export const editableDraftCapability = {
     "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Read that owner sessions can publish a D1 draft to a stable public funnel route after exact confirmation.",
     "Read that owner sessions can attach the seeded sandbox checkout offer to a private draft step after exact confirmation.",
+    "Read that owner sessions can create private webinar and resource funnel drafts from reusable templates after exact confirmation.",
     "Read that published linked checkout blocks can render the existing sandbox checkout start surface.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91, #93, #95, #135, #163, and #165 before claiming editable, publishable, checkout-linkable, or public checkout-start capability.",
+    "Cite issues #91, #93, #95, #135, #163, #165, and #213 before claiming editable, publishable, checkout-linkable, public checkout-start, webinar-template, or resource-template capability.",
   ],
   notYetLive: [
     "Drag-and-drop layout editing",
     "Deletion/archive workflows",
     "Unpublishing workflows",
+    "Live webinar scheduling or replay hosting",
+    "Private resource delivery",
     "Agent-initiated edits without owner confirmation",
   ],
   writeBoundary: draftFunnelBuilderWriteBoundary,
@@ -290,6 +294,34 @@ export const funnelTemplateLibrary: FunnelTemplate[] = [
     ],
   },
   {
+    id: "template-webinar-registration-replay",
+    title: "Webinar registration and replay funnel",
+    audience: "Publishers running live workshops, launch webinars, trainings, or recorded replay campaigns.",
+    goal: "Collect registrations, explain the session promise, and route attendees to replay/resource follow-up without scheduling or hosting media yet.",
+    recommendedFor: ["webinar", "workshop", "training", "launch event"],
+    sourceIssue: funnelWebinarResourceTemplateIssue,
+    draftCreation: "owner-session-confirmed-write",
+    steps: [
+      { order: 1, kind: "webinar", title: "Registration and agenda", requiredBlockKinds: ["hero", "webinar", "proof", "cta"] },
+      { order: 2, kind: "resource", title: "Replay and resources", requiredBlockKinds: ["hero", "resource", "delivery", "cta"] },
+      { order: 3, kind: "thank_you", title: "Follow-up confirmation", requiredBlockKinds: ["hero", "delivery", "cta"] },
+    ],
+  },
+  {
+    id: "template-resource-library-opt-in",
+    title: "Resource library opt-in funnel",
+    audience: "Newsletter publishers and educators packaging guides, templates, checklists, and launch resources.",
+    goal: "Present a public resource promise, capture consent, and set fulfillment expectations without exposing private files or R2 keys.",
+    recommendedFor: ["lead magnet", "resource hub", "template library", "buyer onboarding"],
+    sourceIssue: funnelWebinarResourceTemplateIssue,
+    draftCreation: "owner-session-confirmed-write",
+    steps: [
+      { order: 1, kind: "resource", title: "Resource library overview", requiredBlockKinds: ["hero", "resource", "benefits", "cta"] },
+      { order: 2, kind: "opt_in", title: "Access request", requiredBlockKinds: ["hero", "benefits", "cta"] },
+      { order: 3, kind: "thank_you", title: "Access expectation", requiredBlockKinds: ["hero", "delivery", "cta"] },
+    ],
+  },
+  {
     id: "template-post-purchase-offer",
     title: "Post-purchase offer path",
     audience: "Publishers testing non-billing upsell or downsell messaging after trusted checkout state.",
@@ -352,6 +384,24 @@ export const funnelBlockLibrary: FunnelBlockLibraryItem[] = [
     writeBoundary: "Do not expose private asset URLs, R2 keys, signed URLs, or buyer records.",
   },
   {
+    id: "block-template-webinar",
+    kind: "webinar",
+    title: "Webinar agenda and access",
+    purpose: "Describe session topic, timing, speaker promise, replay expectation, and access boundary without creating calendar or webinar provider state.",
+    agentEditable: true,
+    safeInputs: ["webinar title", "agenda bullets", "approved speaker notes", "replay availability"],
+    writeBoundary: "Scheduling, reminders, attendance tracking, and live-room links require future confirmed-write integrations.",
+  },
+  {
+    id: "block-template-resource",
+    kind: "resource",
+    title: "Resource library promise",
+    purpose: "List public-safe resources, formats, and access expectations without exposing private files, object keys, or signed URLs.",
+    agentEditable: true,
+    safeInputs: ["resource titles", "format labels", "approved public summaries", "delivery route"],
+    writeBoundary: "Private file delivery, R2 object selection, signed URLs, and entitlement checks require future product/access contracts.",
+  },
+  {
     id: "block-template-cta",
     kind: "cta",
     title: "Primary call to action",
@@ -375,9 +425,37 @@ export const templateDraftCreationCapability = {
   safeForPublicAgents: [
     "Read that reusable funnel templates can become private drafts only behind owner auth.",
     "Read that template creation uses explicit confirmation and idempotency.",
+    "Read that webinar and resource templates create private drafts through the same owner-session confirmed path.",
     "Distinguish owner-gated template-to-draft creation from direct unauthenticated agent writes.",
   ],
   notYetLive: ["Direct agent template creation", "Public publishing from a template without owner review"],
+};
+
+export const webinarResourceTemplateCapability = {
+  id: "webinar-resource-funnel-template-contract",
+  status: "owner-session-template-ready",
+  issue: funnelWebinarResourceTemplateIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  createEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  stepKinds: ["webinar", "resource"] as FunnelStepKind[],
+  blockKinds: ["webinar", "resource"] as FunnelBlockKind[],
+  safeForPublicAgents: [
+    "Read webinar and resource funnel templates with stable template IDs and issue evidence.",
+    "Read that owner sessions can turn those templates into private D1 draft funnels after exact confirmation.",
+    "Distinguish webinar/resource page scaffolds from live webinar scheduling, replay hosting, private downloads, or entitlement delivery.",
+  ],
+  notYetLive: [
+    "Live webinar scheduling",
+    "Calendar, room, or replay provider integrations",
+    "Private resource asset delivery",
+    "Agent-initiated webinar or resource draft creation without owner confirmation",
+  ],
+  writeBoundary:
+    "Issue #213 adds public-safe webinar and resource page shapes to the reusable template/block library and the owner-session template-to-draft path. It does not create webinar provider state, calendar events, reminder sequences, replay hosting, private files, signed URLs, entitlements, or direct public agent writes.",
 };
 
 export const checkoutLinkingCapability = {
@@ -444,8 +522,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "public-funnel-checkout-start-ready",
-  issue: publicFunnelCheckoutStartIssue,
+  status: "webinar-resource-template-ready",
+  issue: funnelWebinarResourceTemplateIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", "/api/commerce/checkout", ...seededFunnels.map((funnel) => funnel.previewRoute)],
@@ -457,6 +535,7 @@ export const funnelSourceData = {
     "funnelTemplateId",
     "funnelBlockTemplateId",
     "funnelCheckoutLinkId",
+    "funnelWebinarResourceTemplateId",
     "funnelRevisionId",
     "funnelDraftId",
     "funnelAuditEventId",
@@ -468,6 +547,7 @@ export const funnelSourceData = {
   writeBoundary: seededFunnel.writeBoundary,
   editableDraftCapability,
   templateDraftCreationCapability,
+  webinarResourceTemplateCapability,
   checkoutLinkingCapability,
   publicFunnelCheckoutStartCapability,
   templateLibraryIssue: funnelTemplateLibraryIssue,
@@ -475,5 +555,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records, owner-session confirmed template-to-draft creation, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, drag-and-drop visual building, deletion/unpublishing, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, deletion/unpublishing, and unconfirmed agent-write APIs are not live.",
 };

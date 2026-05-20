@@ -69,6 +69,7 @@ import {
   publicFunnelCheckoutStartCapability,
   seededFunnel,
   templateDraftCreationCapability,
+  webinarResourceTemplateCapability,
 } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
@@ -477,8 +478,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "public-funnel-checkout-start-ready",
-        issue: 165,
+        status: "webinar-resource-template-ready",
+        issue: 213,
         parentIssue: 14,
       }),
     );
@@ -527,6 +528,20 @@ test.describe("Bumpgrade scaffold", () => {
         liveBillingEnabled: false,
       }),
     );
+    expect(payload.webinarResourceTemplateCapability).toEqual(
+      expect.objectContaining({
+        id: webinarResourceTemplateCapability.id,
+        status: "owner-session-template-ready",
+        issue: 213,
+        adminRoute: "/admin/funnels",
+        createEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        stepKinds: expect.arrayContaining(["webinar", "resource"]),
+        blockKinds: expect.arrayContaining(["webinar", "resource"]),
+      }),
+    );
     expect(payload.publicFunnelCheckoutStartCapability).toEqual(
       expect.objectContaining({
         id: publicFunnelCheckoutStartCapability.id,
@@ -549,6 +564,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelTemplateId",
         "funnelBlockTemplateId",
         "funnelCheckoutLinkId",
+        "funnelWebinarResourceTemplateId",
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
@@ -566,6 +582,20 @@ test.describe("Bumpgrade scaffold", () => {
             expect.objectContaining({ order: 3, kind: "thank_you" }),
           ]),
         }),
+        expect.objectContaining({
+          id: "template-webinar-registration-replay",
+          title: "Webinar registration and replay funnel",
+          sourceIssue: 213,
+          steps: expect.arrayContaining([
+            expect.objectContaining({ order: 1, kind: "webinar" }),
+            expect.objectContaining({ order: 2, kind: "resource" }),
+          ]),
+        }),
+        expect.objectContaining({
+          id: "template-resource-library-opt-in",
+          title: "Resource library opt-in funnel",
+          sourceIssue: 213,
+        }),
       ]),
     );
     expect(payload.blockLibrary).toEqual(
@@ -579,6 +609,16 @@ test.describe("Bumpgrade scaffold", () => {
           id: "block-template-checkout",
           kind: "checkout",
           agentEditable: false,
+        }),
+        expect.objectContaining({
+          id: "block-template-webinar",
+          kind: "webinar",
+          agentEditable: true,
+        }),
+        expect.objectContaining({
+          id: "block-template-resource",
+          kind: "resource",
+          agentEditable: true,
         }),
       ]),
     );
@@ -601,14 +641,17 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("exact-confirmed public publishing");
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
+    expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Three-step launch funnel scaffold/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Reusable funnel shapes before template writes exist/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reusable funnel shapes for private draft starts/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Reusable page blocks with write boundaries/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Launch sales funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Webinar registration and replay funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Resource library promise/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Checkout handoff/i }).last()).toBeVisible();
     await expect(page.locator("#warm-list-opt-in")).toContainText("Warm list opt-in");
     await expect(page.locator("#offer-sales-page")).toContainText("Offer sales page");
@@ -4448,7 +4491,13 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
-        expect.objectContaining({ id: "read-funnel-contract", route: "/funnels/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-funnel-contract",
+          route: "/funnels/source-data",
+          auth: "public",
+          stableIds: expect.arrayContaining(["funnelWebinarResourceTemplateId"]),
+          safeForAgents: expect.arrayContaining(["Discover webinar and resource page-shape templates from issue #213"]),
+        }),
         expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
@@ -5942,6 +5991,43 @@ test.describe("Bumpgrade scaffold", () => {
     expect(templateDraftReplay.ok(), await templateDraftReplay.text()).toBeTruthy();
     const templateDraftReplayPayload = await templateDraftReplay.json();
     expect(templateDraftReplayPayload.draft.id).toBe(templateDraftPayload.draft.id);
+
+    const webinarDraftResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-webinar-registration-replay",
+        title: `Webinar resource template draft ${Date.now()}`,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: `playwright-webinar-template-draft-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(webinarDraftResponse.ok(), await webinarDraftResponse.text()).toBeTruthy();
+    const webinarDraftPayload = await webinarDraftResponse.json();
+    expect(webinarDraftPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "create-from-template",
+        draft: expect.objectContaining({
+          parentIssueNumber: 14,
+          steps: expect.arrayContaining([
+            expect.objectContaining({
+              order: 1,
+              kind: "webinar",
+              title: "Registration and agenda",
+              blocks: expect.arrayContaining([expect.objectContaining({ kind: "webinar" })]),
+            }),
+            expect.objectContaining({
+              order: 2,
+              kind: "resource",
+              title: "Replay and resources",
+              blocks: expect.arrayContaining([expect.objectContaining({ kind: "resource" })]),
+            }),
+          ]),
+        }),
+      }),
+    );
 
     const checkoutLinkIdempotencyKey = `playwright-checkout-link-${Date.now()}`;
     const checkoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {

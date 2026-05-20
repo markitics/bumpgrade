@@ -201,7 +201,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Template library</p>
-            <h2>Reusable funnel shapes before template writes exist</h2>
+            <h2>Reusable funnel shapes for private draft starts</h2>
           </div>
           <Link href="/funnels/source-data" className="text-link compact-link">
             Template JSON
