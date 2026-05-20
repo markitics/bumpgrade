@@ -188,7 +188,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-cross-subdomain-customer-auth",
     title: "Customer login across Bumpgrade-hosted publisher sites",
-    status: "active",
+    status: "shipped",
     issue: 224,
     featureId: featureIdFor(9),
     group: "Accounts and domains",
@@ -196,11 +196,13 @@ export const roadmapItems: RoadmapItem[] = [
       "Bumpgrade-hosted publisher subdomains share the central Better Auth identity session while tenant access remains scoped per hostname, checkout, entitlement, and membership state.",
     publicEvidence: [
       "Issue #224 tracks the publisher-site auth boundary.",
+      "PR #230 merged and deployed the cross-subdomain customer auth contract.",
       "`/account/source-data` exposes the Bumpgrade-subdomain session-sharing contract and custom-domain caveat.",
       "Production Better Auth uses the `bumpgrade.com` cookie domain and `https://*.bumpgrade.com` trusted origin pattern.",
       "Custom domains cannot receive the `bumpgrade.com` browser cookie directly, so they use a central Bumpgrade login handoff before returning to tenant-scoped access checks.",
+      "Cloudflare Worker version `cd663146-20c5-4899-a43f-5faec8c720a5` deployed the account source-data and Better Auth boundary update.",
     ],
-    nextMilestone: "Validate the contract in Playwright, deploy the source-data update, then move to domain purchase decisions in issue #225.",
+    nextMilestone: "Decide and expose the domain-purchase path in issue #225, then align pricing/signup copy in issue #226.",
   },
   {
     id: "roadmap-stripe-commerce",
