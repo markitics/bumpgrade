@@ -530,7 +530,7 @@ export async function seedEditableFunnelDraft(db: D1Database, identity: AdminIde
     title: "Indie launch working draft",
     status: "draft",
     summary:
-      "D1-backed working copy seeded from the indie launch sandbox funnel. It can be inspected by the owner before granular editing, preview generation, and publishing ship.",
+      "Owner-gated working copy seeded from the indie launch sandbox funnel. It can be inspected by the owner before granular editing, preview generation, and publishing ship.",
     sourceIssueNumber: draftFunnelBuilderIssue,
     parentIssueNumber: draftFunnelBuilderParentIssue,
     previewRoute: null,
@@ -573,7 +573,7 @@ export async function createDraftFunnelFromTemplate(
     title: baseTitle.slice(0, 120),
     status: "draft",
     summary:
-      "D1-backed editable draft funnel created from the default three-step opt-in, sales, and thank-you template.",
+      "Owner-gated editable draft funnel created from the default three-step opt-in, sales, and thank-you template.",
     sourceIssueNumber: draftFunnelBuilderIssue,
     parentIssueNumber: draftFunnelBuilderParentIssue,
     previewRoute: null,
@@ -612,7 +612,7 @@ export async function createDraftFunnelFromLibraryTemplate(
     slug,
     title: baseTitle.slice(0, 120),
     status: "draft",
-    summary: `D1-backed private draft created from the ${template.title} template. ${template.goal}`,
+    summary: `Owner-gated private draft created from the ${template.title} template. ${template.goal}`,
     sourceIssueNumber: draftFunnelTemplateCreationIssue,
     parentIssueNumber: draftFunnelBuilderParentIssue,
     previewRoute: null,

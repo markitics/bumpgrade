@@ -6,6 +6,7 @@ import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
 import { seededFunnels } from "@/lib/funnels";
+import { marketingFeatures } from "@/lib/marketing-features";
 import { productAccessCatalogs } from "@/lib/product-access";
 import { scaffoldRoutes, site } from "@/lib/site";
 
@@ -46,10 +47,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const audienceRoutes = audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute);
   const analyticsRoutes = analyticsDashboards.map((dashboard) => dashboard.previewRoute);
   const affiliateRoutes = affiliatePrograms.map((program) => program.previewRoute);
+  const marketingFeatureRoutes = marketingFeatures.map((feature) => `/features/${feature.slug}`);
   return [
     "",
     ...scaffoldRoutes,
     ...sourceDataRoutes,
+    ...marketingFeatureRoutes,
     ...comparisonRoutes,
     ...funnelRoutes,
     ...offerRoutes,

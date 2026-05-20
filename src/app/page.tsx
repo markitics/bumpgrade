@@ -1,132 +1,197 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Cloud, FileText, GitBranch, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BarChart3,
+  Bot,
+  CheckCircle2,
+  Mail,
+  PanelsTopLeft,
+  ShoppingCart,
+  Sparkles,
+} from "lucide-react";
 
-import { adminNavItems, featurePillars, firstWaveCompetitors, scaffoldRoutes } from "@/lib/site";
+import { featuredMarketingFeatureSlugs, getMarketingFeature, marketingFeatures } from "@/lib/marketing-features";
 
-const launchLanes = [
-  { label: "Compare", href: "/compare", status: "Issue #5", body: "Hub and nine alternative pages with source-linked claims." },
-  { label: "Features", href: "/features", status: "Issue #6", body: "Aspirational feature catalog with pending badges and issue links." },
-  { label: "Roadmap", href: "/roadmap", status: "Issue #7", body: "Public view of the main launch roadmap." },
-  { label: "Admin", href: "/admin/roadmap", status: "Issue #8", body: "D1-backed roadmap, work log, journeys, and for-Mark surface." },
+const featuredFeatures = featuredMarketingFeatureSlugs.map((slug) => getMarketingFeature(slug)).filter(Boolean);
+
+const launchOutcomes = [
+  {
+    label: "Build the path",
+    title: "Landing pages and funnels",
+    body: "Start with page and funnel shapes for lead magnets, sales pages, webinars, resources, checkout handoffs, and thank-you steps.",
+    icon: PanelsTopLeft,
+  },
+  {
+    label: "Sell the offer",
+    title: "Checkout, bumps, and products",
+    body: "Model the offer ladder, start sandbox checkout paths, and connect purchases to product access and follow-up decisions.",
+    icon: ShoppingCart,
+  },
+  {
+    label: "Grow the audience",
+    title: "Email, CRM, and partners",
+    body: "Capture subscribers, inspect consent, prepare campaigns, record CRM notes, and track referral partner evidence.",
+    icon: Mail,
+  },
+  {
+    label: "Improve the launch",
+    title: "Analytics and AI assistance",
+    body: "Use source attribution, experiment evidence, and agent-readable contracts to understand what worked and what to do next.",
+    icon: Bot,
+  },
+];
+
+const proofPoints = [
+  "Public feature pages and source data are available now.",
+  "Funnels, checkout, products, audience, analytics, and affiliate previews are linked from the launch site.",
+  "Billing-impacting actions stay behind confirmation and trusted checkout evidence.",
 ];
 
 export default function HomePage() {
   return (
-    <main>
-      <section className="home-hero">
-        <div className="hero-copy">
-          <p className="eyebrow">Bumpgrade launch foundation</p>
-          <h1>Funnels, checkout, commerce, and agents in one Cloudflare-native system.</h1>
+    <main className="launch-home">
+      <section className="launch-hero">
+        <div className="launch-hero-copy">
+          <p className="eyebrow">Bumpgrade for publisher launches</p>
+          <h1>Launch offers with funnels, checkout, email, products, analytics, and AI help in one place.</h1>
           <p className="lede">
-            Bumpgrade is being built for indiepreneurs and small publishers who want ClickFunnels, SamCart, Kit, and Shopify-style selling power without stitching the whole stack together.
+            Bumpgrade helps publishers turn expertise into paid offers: capture demand, present the right product, add a checkout bump, deliver access, follow up with the audience, and learn what moved buyers.
           </p>
           <div className="hero-actions">
-            <Link href="/compare" className="primary-action">
-              Compare the stack
+            <Link href="/features" className="primary-action">
+              Explore features
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/roadmap" className="secondary-action">
-              View roadmap
-              <GitBranch aria-hidden="true" />
+            <Link href="/pricing" className="secondary-action">
+              See launch pricing
+              <BadgeCheck aria-hidden="true" />
             </Link>
           </div>
-        </div>
-
-        <div className="product-preview" aria-label="Bumpgrade launch board preview">
-          <div className="preview-toolbar">
-            <span>Launch board</span>
-            <strong>Planned</strong>
-          </div>
-          <div className="preview-grid">
-            {launchLanes.map((lane) => (
-              <Link key={lane.href} href={lane.href} className="preview-card">
-                <span>{lane.status}</span>
-                <h2>{lane.label}</h2>
-                <p>{lane.body}</p>
-              </Link>
+          <div className="hero-proof-strip" aria-label="Launch readiness proof">
+            {proofPoints.map((point) => (
+              <span key={point}>
+                <CheckCircle2 aria-hidden="true" />
+                {point}
+              </span>
             ))}
           </div>
         </div>
+        <div className="launch-hero-media">
+          <Image
+            src="/marketing/bumpgrade-home-hero.jpg"
+            alt="A publisher founder reviewing a launch dashboard on a laptop."
+            width={932}
+            height={632}
+            priority
+            unoptimized
+          />
+          <div className="hero-media-overlay">
+            <strong>Offer launch stack</strong>
+            <span>Funnel, checkout, email, product access, analytics, and agent-ready proof.</span>
+          </div>
+        </div>
       </section>
 
-      <section className="content-band">
-        <div className="section-heading">
-          <p className="eyebrow">First-wave parity map</p>
-          <h2>Built around the tools publishers already compare.</h2>
+      <section className="content-band launch-outcome-band">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">What it does</p>
+            <h2>One launch path from first click to follow-up.</h2>
+          </div>
+          <p>
+            Bumpgrade gives publishers a concrete path to present an offer, collect demand, take payment safely, deliver access, and learn what moved buyers.
+          </p>
         </div>
-        <div className="competitor-strip">
-          {firstWaveCompetitors.map((competitor) => (
-            <span key={competitor}>{competitor}</span>
-          ))}
-        </div>
-      </section>
-
-      <section className="content-band alternate">
-        <div className="section-heading">
-          <p className="eyebrow">Core pillars</p>
-          <h2>Feature groups become issue-backed slices.</h2>
-        </div>
-        <div className="pillar-grid">
-          {featurePillars.map((pillar) => (
-            <article key={pillar.title} className="pillar-card">
-              <pillar.icon aria-hidden="true" />
-              <p>{pillar.issue}</p>
-              <h3>{pillar.title}</h3>
-              <span>{pillar.body}</span>
+        <div className="launch-outcome-grid">
+          {launchOutcomes.map((item) => (
+            <article key={item.title} className="launch-outcome-card">
+              <item.icon aria-hidden="true" />
+              <span>{item.label}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="content-band">
-        <div className="section-heading">
-          <p className="eyebrow">Admin and agent-ready by default</p>
-          <h2>The project state is a product surface, not private chat state.</h2>
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Feature highlights</p>
+            <h2>Built around the jobs publishers actually need done.</h2>
+          </div>
+          <Link href="/features" className="text-link compact-link">
+            View all features
+            <Sparkles aria-hidden="true" />
+          </Link>
         </div>
-        <div className="admin-grid">
-          {adminNavItems.map((item) => (
-            <Link key={item.href} href={item.href} className="admin-link-card">
-              <item.icon aria-hidden="true" />
-              <h3>{item.label}</h3>
-              <p>{item.description}</p>
-            </Link>
+        <div className="launch-feature-grid">
+          {featuredFeatures.map((feature) => {
+            if (!feature) return null;
+            return (
+              <article key={feature.slug} className="launch-feature-card">
+                <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
+                <div>
+                  <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.summary}</p>
+                  <Link href={`/features/${feature.slug}`} className="text-link">
+                    Learn more
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="content-band launch-workflow-band">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Launch workflow</p>
+            <h2>Replace the glued-together stack.</h2>
+          </div>
+          <p>
+            Bumpgrade pulls the ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics jobs into one source-readable launch system.
+          </p>
+        </div>
+        <div className="workflow-step-strip">
+          {["Plan", "Page", "Checkout", "Deliver", "Follow up", "Optimize"].map((step, index) => (
+            <div key={step}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{step}</strong>
+            </div>
           ))}
         </div>
       </section>
 
-      <section className="content-band dark-band">
-        <div className="section-heading">
-          <p className="eyebrow">Cloudflare foundation</p>
-          <h2>Route shell is live in source, persistence and auth are next.</h2>
-        </div>
-        <div className="status-list">
+      <section className="content-band dark-band launch-proof-band">
+        <div className="split-heading">
           <div>
-            <Cloud aria-hidden="true" />
-            <p>D1 bumpgrade-prod and R2 bumpgrade-opennext-cache are configured for the Worker.</p>
+            <p className="eyebrow">Ready for the first invite wave</p>
+            <h2>Follow working launch paths from the first page to customer follow-up.</h2>
+          </div>
+          <Link href="/admin/user-journeys" className="secondary-action">
+            Journey proof
+            <BarChart3 aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="launch-proof-grid">
+          <div>
+            <strong>Feature pages</strong>
+            <span>{marketingFeatures.length} launch features with dedicated pages, proof routes, and issue evidence.</span>
           </div>
           <div>
-            <ShieldCheck aria-hidden="true" />
-            <p>Better Auth, Codex email, and Stripe are tracked in dedicated follow-up issues.</p>
+            <strong>Customer paths</strong>
+            <span>Funnels, offers, products, audience, analytics, and affiliates route to live previews or source data.</span>
           </div>
           <div>
-            <FileText aria-hidden="true" />
-            <p>Public llms.txt, docs, and route placeholders keep future agents oriented.</p>
+            <strong>Safety boundaries</strong>
+            <span>Live billing and provider sends are only claimed once their production evidence is verified.</span>
           </div>
-        </div>
-      </section>
-
-      <section className="content-band">
-        <div className="section-heading">
-          <p className="eyebrow">Routes scaffolded</p>
-          <h2>Enough structure to let feature branches stay small.</h2>
-        </div>
-        <div className="route-list">
-          {scaffoldRoutes.map((route) => (
-            <span key={route}>
-              <CheckCircle2 aria-hidden="true" />
-              {route}
-            </span>
-          ))}
         </div>
       </section>
     </main>

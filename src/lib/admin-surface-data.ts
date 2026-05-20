@@ -63,8 +63,21 @@ export type AdminUserJourney = {
   edgeCases: string[];
   agentAccess: string;
   validation: string[];
+  proof?: AdminUserJourneyProof;
   sortOrder: number;
   updatedAt: string | null;
+};
+
+export type AdminUserJourneyProof = {
+  status: "passed" | "partial" | "blocked" | "not_run";
+  lastTestedAt: string | null;
+  environment: string;
+  method: string;
+  summary: string;
+  ciLinks: AdminLink[];
+  screenshotLinks: AdminLink[];
+  validationLinks: AdminLink[];
+  notes: string[];
 };
 
 export type MarkAttentionItem = {
@@ -196,6 +209,179 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
+const launchProofUpdatedAt = "2026-05-20T09:41:40.000Z";
+const issue217BranchActionsUrl =
+  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-217-launch-marketing-readiness";
+const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
+
+const defaultJourneyProof: AdminUserJourneyProof = {
+  status: "partial",
+  lastTestedAt: null,
+  environment: "Bumpgrade production or local preview, depending on the linked evidence.",
+  method: "Route smoke, source-data inspection, and issue-linked screenshot review.",
+  summary: "Historical route evidence exists; this journey should be retested when its feature changes.",
+  ciLinks: [
+    { label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" },
+  ],
+  screenshotLinks: [
+    { label: "PR screenshots index", url: "https://bumpgrade.com/pr-screenshots/issue-6-features-desktop.png", kind: "screenshot" },
+  ],
+  validationLinks: [
+    { label: "Admin user journeys source data", url: "https://bumpgrade.com/admin/user-journeys/source-data", kind: "source-data" },
+  ],
+  notes: ["Default proof is attached when a journey does not have a more specific proof bundle yet."],
+};
+
+const journeyProofById: Record<string, AdminUserJourneyProof> = {
+  "journey-prospect-explores-launch-marketing": {
+    status: "partial",
+    lastTestedAt: launchProofUpdatedAt,
+    environment: "Local launch branch plus planned GitHub Actions CI on the issue #217 branch.",
+    method: "Public route smoke tests, sitemap checks, feature source-data checks, and launch screenshots.",
+    summary: "Launch marketing, feature detail, pricing, and source-data routes are being validated in issue #217.",
+    ciLinks: [
+      { label: "Issue #217 branch CI", url: issue217BranchActionsUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Homepage launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-homepage.png", kind: "screenshot" },
+      { label: "Features launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-features.png", kind: "screenshot" },
+      { label: "Pricing launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Feature source data", url: "https://bumpgrade.com/features/source-data", kind: "source-data" },
+      { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
+    ],
+    notes: ["CI URLs are stable now; the first run appears after this branch is pushed."],
+  },
+  "journey-prospect-reviews-launch-pricing": {
+    status: "partial",
+    lastTestedAt: launchProofUpdatedAt,
+    environment: "Local launch branch plus planned GitHub Actions CI on the issue #217 branch.",
+    method: "Pricing route smoke test, content review, and commerce boundary inspection.",
+    summary: "Pricing is launch-facing and lists payment options without exposing an unverified live checkout button.",
+    ciLinks: [
+      { label: "Issue #217 branch CI", url: issue217BranchActionsUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Pricing launch screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Commerce source data", url: "https://bumpgrade.com/commerce/source-data", kind: "source-data" },
+      { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
+    ],
+    notes: ["Live self-serve checkout remains gated until live Stripe smoke proof is available."],
+  },
+};
+
+const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
+  "feature-funnel-builder": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T18:10:00.000Z",
+    environment: "Production screenshot and source-data evidence from funnel feature issues.",
+    method: "Route smoke, owner-gated admin preview, and screenshot evidence.",
+    summary: "Funnel previews, template library, draft admin, publishing, checkout linking, and webinar/resource shapes have screenshot evidence.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "Funnel template library", url: "https://bumpgrade.com/pr-screenshots/issue-159-funnel-template-library.png", kind: "screenshot" },
+      { label: "Template draft admin", url: "https://bumpgrade.com/pr-screenshots/issue-161-template-draft-admin.png", kind: "screenshot" },
+      { label: "Webinar and resource funnels", url: "https://bumpgrade.com/pr-screenshots/issue-213-webinar-resource-funnels.png", kind: "screenshot" },
+    ],
+    validationLinks: [{ label: "Funnels source data", url: "https://bumpgrade.com/funnels/source-data", kind: "source-data" }],
+    notes: ["Live billing, deletion, unpublishing, and direct public agent edits remain outside this proof."],
+  },
+  "feature-checkout-offers": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T16:30:00.000Z",
+    environment: "Production screenshot and sandbox checkout contract evidence.",
+    method: "Sandbox checkout start, checkout success, order bump, and post-purchase source-data validation.",
+    summary: "Sandbox checkout, order bump, referral attribution, and post-purchase decision evidence are proven; live mode is not enabled.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "Order bump checkout start", url: "https://bumpgrade.com/pr-screenshots/issue-99-checkout-order-bump-start.png", kind: "screenshot" },
+      { label: "Checkout success", url: "https://bumpgrade.com/pr-screenshots/issue-133-checkout-success-desktop.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Offers source data", url: "https://bumpgrade.com/offers/source-data", kind: "source-data" },
+      { label: "Commerce source data", url: "https://bumpgrade.com/commerce/source-data", kind: "source-data" },
+    ],
+    notes: ["This proof intentionally separates sandbox checkout from live product payment readiness."],
+  },
+  "feature-products-access": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T18:00:00.000Z",
+    environment: "Production screenshot and product/access source-data evidence.",
+    method: "Product preview, entitlement lookup, download token, protected content, and owner inspection smoke evidence.",
+    summary: "Product access, entitlement lookup, protected fixture delivery, and membership state have route and screenshot proof.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "R2 delivery", url: "https://bumpgrade.com/pr-screenshots/issue-146-r2-delivery-desktop.png", kind: "screenshot" },
+      { label: "Customer entitlements", url: "https://bumpgrade.com/pr-screenshots/issue-141-customer-entitlements-desktop.png", kind: "screenshot" },
+    ],
+    validationLinks: [{ label: "Products source data", url: "https://bumpgrade.com/products/source-data", kind: "source-data" }],
+    notes: ["Customer delivery of arbitrary private uploads still needs a later confirmed rollout."],
+  },
+  "feature-email-automation-crm": {
+    status: "passed",
+    lastTestedAt: "2026-05-20T08:17:44.000Z",
+    environment: "Production screenshot and audience automation source-data evidence.",
+    method: "Opt-in, suppression, CRM note, broadcast readiness, queue, provider, and dispatch readiness route checks.",
+    summary: "Audience capture and campaign readiness surfaces have broad screenshot proof; real provider sends remain gated.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "Audience opt-in", url: "https://bumpgrade.com/pr-screenshots/issue-103-audience-opt-in.png", kind: "screenshot" },
+      { label: "Broadcast readiness", url: "https://bumpgrade.com/pr-screenshots/issue-171-broadcast-readiness.png", kind: "screenshot" },
+      { label: "Queue consumer readiness", url: "https://bumpgrade.com/pr-screenshots/issue-211-audience-queue-consumer-readiness.png", kind: "screenshot" },
+    ],
+    validationLinks: [{ label: "Audience source data", url: "https://bumpgrade.com/audience/source-data", kind: "source-data" }],
+    notes: ["Provider sends and queue consumption are not claimed as live customer email delivery."],
+  },
+  "feature-analytics-testing": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T18:05:00.000Z",
+    environment: "Production screenshot and analytics source-data evidence.",
+    method: "Analytics event, page-view beacon, source attribution, variant, and time-window route checks.",
+    summary: "Analytics preview, aggregate conversion reporting, source attribution, and time windows have screenshot proof.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "Analytics time windows", url: "https://bumpgrade.com/pr-screenshots/issue-129-analytics-time-windows-desktop.png", kind: "screenshot" },
+      { label: "Source attribution", url: "https://bumpgrade.com/pr-screenshots/issue-127-dashboard-source-attribution-desktop.png", kind: "screenshot" },
+    ],
+    validationLinks: [{ label: "Analytics source data", url: "https://bumpgrade.com/analytics/source-data", kind: "source-data" }],
+    notes: ["Reports are aggregate and public-safe; raw visitor data is not exposed."],
+  },
+  "feature-affiliates-referrals": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T18:08:00.000Z",
+    environment: "Production screenshot and affiliate/referral source-data evidence.",
+    method: "Referral click, checkout attribution, commission ledger, review action, partner report, and payout-prep route checks.",
+    summary: "Referral and affiliate evidence surfaces are proven; payout mutation remains owner-reviewed and future-gated.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [
+      { label: "Affiliate payout prep", url: "https://bumpgrade.com/pr-screenshots/issue-195-affiliate-payout-prep.png", kind: "screenshot" },
+      { label: "Commission review", url: "https://bumpgrade.com/pr-screenshots/issue-115-commission-review-affiliates-desktop.png", kind: "screenshot" },
+    ],
+    validationLinks: [{ label: "Affiliates source data", url: "https://bumpgrade.com/affiliates/source-data", kind: "source-data" }],
+    notes: ["Payable commissions and live payouts remain outside the current proof."],
+  },
+  "feature-public-roadmap": {
+    status: "passed",
+    lastTestedAt: "2026-05-18T09:45:51.000Z",
+    environment: "Production route smoke and screenshot evidence from roadmap/admin issue work.",
+    method: "Roadmap route and source-data smoke checks.",
+    summary: "Roadmap source data and public roadmap have route proof; this proof now links into journey records.",
+    ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
+    screenshotLinks: [{ label: "Roadmap desktop", url: "https://bumpgrade.com/pr-screenshots/issue-7-roadmap-desktop.png", kind: "screenshot" }],
+    validationLinks: [{ label: "Roadmap source data", url: "https://bumpgrade.com/roadmap/source-data", kind: "source-data" }],
+    notes: ["Public roadmap is for status; product marketing now belongs on /features and /."],
+  },
+};
+
+function createJourneyProof(journeyId: string, featureId: string): AdminUserJourneyProof {
+  return journeyProofById[journeyId] ?? journeyProofByFeatureId[featureId] ?? defaultJourneyProof;
+}
+
 function mapRoadmapStatus(status: string): AdminRoadmapStatus {
   if (status === "shipped") return "live";
   if (status === "next" || status === "planned") return "pending";
@@ -220,6 +406,47 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
   {
+    id: "work-log-2026-05-20-launch-marketing-readiness",
+    title: "Prepared launch marketing and journey proof surfaces",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-launch-readiness",
+    promptFromMark:
+      "Mark asked to make the public homepage, features, feature detail pages, pricing, and user-journey proof feel ready before inviting people to try Bumpgrade.",
+    githubIssues: [{ number: 217, url: "https://github.com/markitics/bumpgrade/issues/217" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/",
+      "https://bumpgrade.com/features",
+      "https://bumpgrade.com/features/email-campaigns",
+      "https://bumpgrade.com/features/order-bump",
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/features/source-data",
+    ],
+    roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
+    userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys", "https://bumpgrade.com/admin/user-journeys/source-data"],
+    documentationUpdated: [".github/workflows/ci.yml", "docs/pr-screenshots/issue-217-homepage.png"],
+    validation: [
+      "npm run lint",
+      "npm run typecheck",
+      "npm run test:runtime-secrets",
+      "npm run build",
+      "npm run cf:build",
+      "npm run test:browser",
+    ],
+    flagsAttention:
+      "Live self-serve checkout is still not claimed until the production Stripe path has a linked live smoke test. The Documents checkout stayed blocked by macOS TCC in this running Codex process, so this branch was built from /tmp/bumpgrade-launch.",
+    firstPromptAt: "2026-05-20T08:18:39.622Z",
+    completedAt: "2026-05-20T09:41:40.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/pr-screenshots/issue-217-homepage.png",
+      "https://bumpgrade.com/pr-screenshots/issue-217-features.png",
+      "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png",
+      "https://bumpgrade.com/pr-screenshots/issue-217-admin-user-journeys.png",
+    ],
+    prCommentUrl: null,
+  },
+  {
     id: "work-log-2026-05-18-public-roadmap",
     title: "Shipped public roadmap and source data",
     agentName: "Codex",
@@ -243,6 +470,44 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
 
 const fallbackUserJourneys: AdminUserJourney[] = [
   {
+    id: "journey-prospect-explores-launch-marketing",
+    title: "Prospect explores Bumpgrade launch features",
+    featureId: "feature-public-feature-catalog",
+    featureStatus: "live",
+    issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217],
+    primaryUser: "Publisher invited to try Bumpgrade",
+    userGoal: "Understand what Bumpgrade can do for a launch without needing to decode project management notes.",
+    sourceEvidence: [
+      "https://bumpgrade.com/",
+      "https://bumpgrade.com/features",
+      "https://bumpgrade.com/features/email-campaigns",
+      "https://bumpgrade.com/features/order-bump",
+      "https://bumpgrade.com/features/source-data",
+      "https://github.com/markitics/bumpgrade/issues/217",
+    ],
+    happyPath: [
+      "Open the homepage and understand Bumpgrade as a publisher launch system.",
+      "Open /features to see customer-facing feature groups organized by launch job.",
+      "Open a dedicated feature page such as /features/email-campaigns or /features/order-bump.",
+      "Follow proof routes for the feature preview, source data, or issue evidence.",
+      "Open /pricing to understand invite access and payment options.",
+    ],
+    edgeCases: [
+      "Live billing must not be promoted until live Stripe smoke evidence is linked.",
+      "Feature pages must distinguish launch-preview availability from planned parity work.",
+      "Admin and implementation details should not be the public marketing story.",
+    ],
+    agentAccess:
+      "Agents can read /features/source-data and feature detail pages; public copy changes still need issue evidence, route proof, or source-data support.",
+    validation: [
+      "Issue #217 adds launch marketing pages, dedicated feature routes, sitemap entries, screenshots, and CI wiring.",
+      "Playwright smoke tests cover homepage, /features, dedicated feature pages, /pricing, and source-data routes.",
+    ],
+    proof: createJourneyProof("journey-prospect-explores-launch-marketing", "feature-public-feature-catalog"),
+    sortOrder: 8,
+    updatedAt: null,
+  },
+  {
     id: "journey-read-public-roadmap-source-data",
     title: "Read public roadmap source data",
     featureId: "feature-public-roadmap",
@@ -255,6 +520,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     edgeCases: ["D1 may be unavailable locally, so pages can show fixture fallback.", "Private admin notes must not leak into public roadmap JSON."],
     agentAccess: "Agents can read the public-safe source data; writes must use approved D1 scripts or future confirmed APIs.",
     validation: ["/roadmap/source-data live smoke returned 200 JSON.", "Playwright test asserts stable roadmap records."],
+    proof: createJourneyProof("journey-read-public-roadmap-source-data", "feature-public-roadmap"),
     sortOrder: 20,
     updatedAt: null,
   },
@@ -291,6 +557,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Playwright covers /agent-docs pages and /agent-docs/source-data.",
       "The manifest exposes stable read contract IDs, evidence route IDs, MCP plan IDs, and write-safety rules.",
     ],
+    proof: createJourneyProof("journey-agent-reads-bumpgrade-manifest", "feature-agent-ready-contracts"),
     sortOrder: 38,
     updatedAt: null,
   },
@@ -307,6 +574,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     edgeCases: ["Cloudflare Email Sending may reject account confirmation mail and must return an actionable browser error.", "Recent verification sends hold a 120 second resend cooldown.", "Agent-readable source-data routes stay public-safe and should not carry private notes or secrets."],
     agentAccess: "Agents can read public-safe source-data routes, but browser admin pages require a Better Auth owner session and must not be scraped as a bypass.",
     validation: ["Playwright covers signed-out admin gates, verified owner sign-in, and unverified owner resend/cooldown copy.", "D1 migration creates Better Auth storage and account verification email event tables."],
+    proof: createJourneyProof("journey-owner-opens-protected-admin", "feature-better-auth"),
     sortOrder: 35,
     updatedAt: null,
   },
@@ -343,7 +611,43 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Playwright covers /users, /resources, /pricing, /content/source-data, sitemap discovery, and agent manifest read-contract discovery.",
       "Issue #20 updates public route metadata and source-data contracts.",
     ],
+    proof: createJourneyProof("journey-prospect-evaluates-content-surfaces", "feature-resources-use-cases-pricing"),
     sortOrder: 44,
+    updatedAt: null,
+  },
+  {
+    id: "journey-prospect-reviews-launch-pricing",
+    title: "Prospect reviews launch pricing and payment options",
+    featureId: "feature-resources-use-cases-pricing",
+    featureStatus: "live",
+    issueNumbers: [20, 46, 217],
+    primaryUser: "Publisher deciding whether to request Bumpgrade access",
+    userGoal: "Understand how early access, paid pilots, and live payment handling work before inviting buyers.",
+    sourceEvidence: [
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/commerce/source-data",
+      "https://github.com/markitics/bumpgrade/issues/46",
+      "https://github.com/markitics/bumpgrade/issues/217",
+    ],
+    happyPath: [
+      "Open /pricing.",
+      "Read launch preview, publisher pilot, and operator stack options.",
+      "Review payment option language for card payments, Stripe invoices, and manual approval.",
+      "Use the access CTA when ready to discuss the first live offer.",
+    ],
+    edgeCases: [
+      "No self-serve live checkout button should appear until live checkout smoke proof is linked.",
+      "Pricing should not invent fixed plan amounts before the launch wave confirms packaging.",
+      "Sandbox checkout proof is not the same as live-mode product payment proof.",
+    ],
+    agentAccess:
+      "Agents can read /pricing and /content/source-data, but billing-impacting recommendations must cite /commerce/source-data and current Stripe proof.",
+    validation: [
+      "Issue #217 rewrites pricing as launch-facing copy.",
+      "The pricing page links to human contact paths instead of an unverified live checkout button.",
+    ],
+    proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
+    sortOrder: 43,
     updatedAt: null,
   },
   {
@@ -399,7 +703,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureStatus: "pending",
     issueNumbers: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165, 213],
     primaryUser: "Publisher or owner preparing the first launch funnel",
-    userGoal: "Create, seed, or template-start a D1-backed draft funnel, including webinar and resource page shapes, tune the ordered steps, attach the seeded sandbox checkout offer to a checkout block, preview it privately, then publish it to a public route that can start the linked sandbox checkout after exact confirmation.",
+    userGoal: "Create, seed, or template-start an owner-gated draft funnel, including webinar and resource page shapes, tune the ordered steps, attach the seeded sandbox checkout offer to a checkout block, preview it privately, then publish it to a public route that can start the linked sandbox checkout after exact confirmation.",
     sourceEvidence: [
       "https://bumpgrade.com/admin/funnels",
       "https://bumpgrade.com/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
@@ -442,7 +746,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read public /funnels/source-data, seeded funnel routes, reusable templates including webinar/resource page shapes, checkout-link capability metadata, public funnel checkout-start capability metadata, and published D1 funnel routes. Owner-session UI may create from templates, edit, link checkout offers, preview, and publish private draft steps with actor identity, confirmation, idempotency, audit correlation, stale-state checks, and redaction; direct agent edit tools are still planned.",
     validation: [
       "Playwright covers the owner-gated /admin/funnels surface, webinar/resource template records, template-to-draft create path, checkout-link create path, idempotent replay, stale checkout-link rejection, seed/update/reorder/publish POST paths, stale publish rejection, private draft preview, public D1 funnel route rendering, public linked-checkout start rendering, /funnels/source-data capability metadata, and agent manifest discovery.",
-      "Issue #91 records the first D1-backed draft funnel builder scaffold.",
+      "Issue #91 records the first owner-gated draft funnel builder scaffold.",
       "Issue #93 records the first step edit and reorder controls.",
       "Issue #95 records the first owner-gated private draft preview route.",
       "Issue #135 records the first exact-confirmed D1 draft publishing path.",
@@ -1541,9 +1845,25 @@ function journeyFromRow(row: D1JourneyRow): AdminUserJourney {
     edgeCases: parseJson<string[]>(row.edge_cases_json, []),
     agentAccess: row.agent_access,
     validation: parseJson<string[]>(row.validation_json, []),
+    proof: createJourneyProof(row.id, row.feature_id),
     sortOrder: row.sort_order,
     updatedAt: isoFromSeconds(row.updated_at),
   };
+}
+
+function journeyWithProof(journey: AdminUserJourney): AdminUserJourney {
+  return {
+    ...journey,
+    proof: journey.proof ?? createJourneyProof(journey.id, journey.featureId),
+  };
+}
+
+function mergeJourneysWithFixtureProof(primaryJourneys: AdminUserJourney[]) {
+  const seen = new Set(primaryJourneys.map((journey) => journey.id));
+  const missingFixtureJourneys = fallbackUserJourneys.filter((journey) => !seen.has(journey.id));
+  return [...primaryJourneys, ...missingFixtureJourneys]
+    .map(journeyWithProof)
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.title.localeCompare(right.title));
 }
 
 function attentionFromRow(row: D1AttentionRow): MarkAttentionItem {
@@ -1590,7 +1910,7 @@ function fallbackData(loadError: string | null): AdminSurfaceData {
     loadError,
     roadmapItems: fallbackRoadmapItems,
     workLogEntries: fallbackWorkLogEntries,
-    userJourneys: fallbackUserJourneys,
+    userJourneys: fallbackUserJourneys.map(journeyWithProof),
     attentionItems: fallbackAttentionItems.map(attentionWithResponseChannels),
   };
 }
@@ -1619,17 +1939,19 @@ export async function getAdminSurfaceData(): Promise<AdminSurfaceData> {
 
     const hasAnyD1Rows = roadmapRows.length + workRows.length + journeyRows.length + attentionRows.length > 0;
     const hasCoreD1Rows = roadmapRows.length > 0 && workRows.length > 0 && journeyRows.length > 0;
+    const d1Journeys = journeyRows.map(journeyFromRow);
+    const userJourneys = journeyRows.length ? mergeJourneysWithFixtureProof(d1Journeys) : fallbackUserJourneys.map(journeyWithProof);
 
     if (!hasAnyD1Rows) {
       return fallbackData("D1 admin tables are reachable but empty, so fixture records are shown.");
     }
 
     return {
-      source: hasCoreD1Rows ? "d1" : "mixed",
+      source: hasCoreD1Rows && userJourneys.length === d1Journeys.length ? "d1" : "mixed",
       loadError: null,
       roadmapItems: roadmapRows.length ? roadmapRows.map(roadmapFromRow) : fallbackRoadmapItems,
       workLogEntries: workRows.length ? workRows.map(workLogFromRow) : fallbackWorkLogEntries,
-      userJourneys: journeyRows.length ? journeyRows.map(journeyFromRow) : fallbackUserJourneys,
+      userJourneys,
       attentionItems: attentionRows.map(attentionFromRow).map(attentionWithResponseChannels),
     };
   } catch (error) {

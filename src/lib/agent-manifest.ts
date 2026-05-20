@@ -1187,7 +1187,7 @@ export const boilerplateBaselineEvidence: BoilerplateBaselineEvidence = {
   sourceBranch: "new-project-codex-boilerplate",
   sourcePath: "docs/new-project-codex-boilerplate",
   adoptedShape: [
-    "AGENTS.md is adapted with Bumpgrade project constants, Cloudflare-first stack, required product surfaces, and Bumpgrade Codex email identity.",
+    "AGENTS.md is adapted with Bumpgrade project constants, project stack, required product surfaces, and Bumpgrade Codex email identity.",
     "docs/working-agreements.md carries the issue/branch/PR, screenshot, validation, work-log, and Mark-attention workflow.",
     "docs/agent/* carries admin-surface, agent-ready, screenshot, work-log, and user-journey rules.",
     "docs/keep-working/* carries the repo-tracked goal-runner and status-update skills.",

@@ -56,7 +56,7 @@ export default function UsersPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Segments</p>
-            <h2>Who Bumpgrade is being built for</h2>
+            <h2>Who Bumpgrade helps</h2>
           </div>
         </div>
         <div className="feature-grid">
@@ -108,7 +108,7 @@ export default function UsersPage() {
           <div>
             <Route aria-hidden="true" />
             <h3>Journey alignment</h3>
-            <p>Admin user journeys remain the durable place for end-to-end paths and validation evidence.</p>
+            <p>User journeys keep end-to-end paths and validation evidence connected to the feature promises.</p>
           </div>
           <div>
             <Users aria-hidden="true" />

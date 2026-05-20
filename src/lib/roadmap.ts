@@ -41,7 +41,7 @@ export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; descrip
   {
     status: "planned",
     label: "Planned",
-    description: "Aspirational parity work with an issue, but not active yet.",
+    description: "Tracked parity work with an issue, but not active yet.",
   },
 ];
 
@@ -54,13 +54,13 @@ function featureIdFor(issue: number) {
 export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-cloudflare-foundation",
-    title: "Cloudflare app foundation",
+    title: "Launch app foundation",
     status: "shipped",
     issue: 4,
     featureId: featureIdFor(4),
     group: "Platform",
-    summary: "Next/OpenNext Worker app, D1 binding, R2 cache binding, DNS, core routes, screenshots, and deploy path.",
-    publicEvidence: ["PR #23 merged.", "Cloudflare deployment and live route smoke checks recorded on PR #23."],
+    summary: "Core public routes, admin shell, screenshots, and deployment path for the first Bumpgrade launch surfaces.",
+    publicEvidence: ["PR #23 merged.", "Live route smoke checks recorded on PR #23."],
     nextMilestone: "Keep using this as the base for every issue slice.",
   },
   {
@@ -81,7 +81,7 @@ export const roadmapItems: RoadmapItem[] = [
     issue: 6,
     featureId: featureIdFor(6),
     group: "SEO and agent discovery",
-    summary: "Aspirational `/features` page with live and pending badges, stable feature IDs, issue links, and `/features/source-data`.",
+    summary: "Marketing feature hub with live and pending badges, stable feature IDs, issue links, and `/features/source-data`.",
     publicEvidence: ["PR #26 merged.", "Live edge checks and feature JSON parse checks recorded on PR #26."],
     nextMilestone: "Keep feature records current as product slices move from pending to shipped.",
   },
@@ -97,7 +97,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #7 owns this feature slice.",
       "PR #27 carries the source, screenshots, validation, and deploy evidence for this issue.",
     ],
-    nextMilestone: "Replace shared static records with D1-backed admin state in #8.",
+    nextMilestone: "Replace shared static records with owner-backed admin state in #8.",
   },
   {
     id: "roadmap-codex-email",
@@ -120,7 +120,7 @@ export const roadmapItems: RoadmapItem[] = [
   },
   {
     id: "roadmap-admin-surfaces",
-    title: "D1-backed admin roadmap, work log, journeys, and for-Mark surfaces",
+    title: "Owner-backed admin roadmap, work log, journeys, and for-Mark surfaces",
     status: "shipped",
     issue: 8,
     featureId: featureIdFor(8),
@@ -139,7 +139,7 @@ export const roadmapItems: RoadmapItem[] = [
     issue: 9,
     featureId: featureIdFor(9),
     group: "Accounts",
-    summary: "Better Auth email/password accounts, D1-backed sessions, API routes, login/signup UI, and owner-gated admin pages.",
+    summary: "Better Auth email/password accounts, account sessions, API routes, login/signup UI, and owner-gated admin pages.",
     publicEvidence: [
       "Issue #9 owns the Better Auth foundation slice.",
       "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation.",
@@ -217,7 +217,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, D1-backed editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",

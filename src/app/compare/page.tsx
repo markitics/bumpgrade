@@ -14,7 +14,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "ClickFunnels Alternatives and Competitors for Indiepreneurs",
   description:
-    "Compare ClickFunnels alternatives and competitors for indiepreneurs, including Bumpgrade's planned Cloudflare-first funnel, checkout, email, commerce, and agent-ready platform.",
+    "Compare ClickFunnels alternatives and competitors for indiepreneurs, including Bumpgrade's funnel, checkout, email, commerce, and agent-ready launch platform.",
   alternates: {
     canonical: `${site.url}/compare`,
   },
@@ -58,13 +58,13 @@ export default function ComparePage() {
           <p className="eyebrow">ClickFunnels alternatives</p>
           <h1>Compare ClickFunnels competitors and indiepreneur platforms.</h1>
           <p className="lede">
-            Bumpgrade is being built toward ClickFunnels, SamCart, Kit, Shopify, and knowledge-commerce parity,
-            but with one extra constraint for every comparison: public claims need sources, planned features need
-            roadmap trails, and future agents need stable contracts instead of hidden dashboard scraping.
+            Bumpgrade is the launch system for publishers who want funnel, checkout, email, product, analytics,
+            and AI-assist workflows to connect. Every comparison keeps public claims tied to source evidence,
+            feature pages, and current proof.
           </p>
           <div className="hero-actions">
             <Link href="/features" className="primary-action">
-              See planned features
+              See features
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link href="/compare/source-data" className="secondary-action">

@@ -1,140 +1,171 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CircleDollarSign, Database, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, CircleDollarSign, CreditCard, Mail, ShieldCheck, Sparkles } from "lucide-react";
 
-import { plannedPricingTracks, pricingPrinciples } from "@/lib/content-surfaces";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Pricing Direction",
+  title: "Pricing",
   description:
-    "Bumpgrade pricing direction for publishers, products, payments, and agent workflows without premature live billing claims.",
+    "Bumpgrade launch pricing for publishers who want funnels, checkout, email, products, analytics, and AI-assisted growth in one launch system.",
   alternates: {
     canonical: `${site.url}/pricing`,
   },
 };
 
-function lastIssueNumber(issueNumbers: number[]) {
-  return issueNumbers[issueNumbers.length - 1] ?? 20;
-}
+const launchPlans = [
+  {
+    name: "Launch preview",
+    label: "For the first invite wave",
+    price: "Start with an invite",
+    description: "Use Bumpgrade to plan and preview the first funnel, offer stack, audience path, product access, and proof surfaces for a real launch.",
+    cta: "Request launch access",
+    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access",
+    features: [
+      "Feature, funnel, offer, product, audience, analytics, and affiliate previews",
+      "Source-data routes for agents and launch review",
+      "Owner-reviewed setup before live customer payments",
+    ],
+  },
+  {
+    name: "Publisher pilot",
+    label: "For active sellers",
+    price: "Paid pilot",
+    description: "For publishers bringing a live offer, list, product, or paid workshop into Bumpgrade with checkout and fulfillment review.",
+    cta: "Plan a pilot",
+    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20publisher%20pilot",
+    features: [
+      "Funnel and checkout path mapped to your launch",
+      "Email, CRM, and follow-up readiness review",
+      "Stripe payment setup reviewed before live charges",
+    ],
+  },
+  {
+    name: "Operator stack",
+    label: "For teams and agencies",
+    price: "Concierge setup",
+    description: "For operators who want repeatable launch systems, partner tracking, reporting, and agent-readable project proof across multiple offers.",
+    cta: "Discuss operator setup",
+    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20operator%20setup",
+    features: [
+      "Reusable funnel and offer structures",
+      "Affiliate and attribution review surfaces",
+      "Launch journey proof, screenshots, and validation notes",
+    ],
+  },
+];
+
+const paymentOptions = [
+  {
+    title: "Card payments",
+    body: "Live customer charges are intended to run through Stripe-hosted payment pages once the live checkout smoke path is verified for the specific offer.",
+    icon: CreditCard,
+  },
+  {
+    title: "Stripe invoices",
+    body: "Paid pilots can be handled by a Stripe invoice when that is the safer way to confirm scope before enabling self-serve checkout.",
+    icon: CircleDollarSign,
+  },
+  {
+    title: "Manual approval for launch offers",
+    body: "Billing-impacting actions stay reviewed and confirmed. That keeps early customers from seeing an unverified payment path.",
+    icon: ShieldCheck,
+  },
+];
 
 export default function PricingPage() {
   return (
-    <main className="route-page">
-      <section className="route-hero">
+    <main className="pricing-page">
+      <section className="pricing-hero">
         <div>
-          <p className="eyebrow">Pricing</p>
-          <h1>Pricing direction without premature billing claims.</h1>
+          <p className="eyebrow">Bumpgrade pricing</p>
+          <h1>Launch pricing for publishers ready to try the whole growth stack.</h1>
           <p className="lede">
-            Bumpgrade can explain how pricing will likely map to publishers, growth workflows, and agent-enabled
-            operations. It does not publish plan amounts, limits, trials, or live subscription availability until the
-            billing rollout has source evidence.
+            Bumpgrade is opening with invite-based access so each early publisher gets the right funnel, checkout, email, product, and analytics path before real customer payments are turned on.
           </p>
           <div className="hero-actions">
-            <Link href="/commerce/source-data" className="primary-action">
-              Commerce contract
+            <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access" className="primary-action">
+              Request access
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/content/source-data" className="secondary-action">
-              Pricing JSON
-              <Database aria-hidden="true" />
+            <Link href="/features" className="secondary-action">
+              Review features
+              <Sparkles aria-hidden="true" />
             </Link>
           </div>
         </div>
-        <aside className="route-status-panel" aria-label="Pricing surface status">
-          <CircleDollarSign aria-hidden="true" />
-          <p>Status</p>
-          <strong>Direction only</strong>
-          <span>
-            Sandbox commerce architecture is live, but customer billing, plan names, price points, and package limits
-            remain unclaimed until a separate rollout ships.
-          </span>
+        <aside className="pricing-note">
+          <BadgeCheck aria-hidden="true" />
+          <strong>Ready for invite conversations</strong>
+          <p>
+            The launch site shows the feature set and proof paths. Self-serve checkout opens only after the live Stripe path is tested for the specific offer.
+          </p>
         </aside>
       </section>
 
       <section className="content-band alternate">
-        <div className="feature-section-heading">
+        <div className="split-heading">
           <div>
-            <p className="eyebrow">Principles</p>
-            <h2>What the pricing page can safely say now</h2>
+            <p className="eyebrow">Launch packages</p>
+            <h2>Choose the level of help around your first offer.</h2>
           </div>
+          <p>Exact pricing is confirmed during the invite or pilot conversation so the first wave gets the right package instead of a generic plan grid.</p>
         </div>
-        <div className="feature-grid">
-          {pricingPrinciples.map((principle) => (
-            <article key={principle.id} className="feature-card content-surface-card compact-content-card">
-              <div className="feature-card-top">
-                <span className={`status-badge ${principle.status}`}>{principle.status}</span>
-              </div>
-              <h3>{principle.title}</h3>
-              <p>{principle.summary}</p>
-              <div className="feature-detail">
-                <strong>Evidence routes</strong>
-                <span>{principle.evidenceRoutes.join(", ")}</span>
-              </div>
+        <div className="pricing-card-grid">
+          {launchPlans.map((plan) => (
+            <article key={plan.name} className="pricing-card">
+              <span>{plan.label}</span>
+              <h3>{plan.name}</h3>
+              <strong>{plan.price}</strong>
+              <p>{plan.description}</p>
+              <ul>
+                {plan.features.map((feature) => (
+                  <li key={feature}>
+                    <BadgeCheck aria-hidden="true" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+              <Link href={plan.href} className="primary-action">
+                {plan.cta}
+                <ArrowRight aria-hidden="true" />
+              </Link>
             </article>
           ))}
         </div>
       </section>
 
       <section className="content-band">
-        <div className="feature-section-heading">
+        <div className="split-heading">
           <div>
-            <p className="eyebrow">Planned tracks</p>
-            <h2>Packaging hypotheses tied to roadmap issues</h2>
+            <p className="eyebrow">Payment options</p>
+            <h2>How live payments should be handled during launch.</h2>
           </div>
+          <p>
+            The customer-facing promise is simple: no surprise charges, no unverified checkout path, and clear confirmation before payment.
+          </p>
         </div>
-        <div className="feature-grid">
-          {plannedPricingTracks.map((track) => (
-            <article key={track.id} className="feature-card content-surface-card">
-              <div className="feature-card-top">
-                <span className={`status-badge ${track.status}`}>{track.status}</span>
-                <Link href={`https://github.com/markitics/bumpgrade/issues/${lastIssueNumber(track.issueNumbers)}`}>
-                  Issue #{lastIssueNumber(track.issueNumbers)}
-                </Link>
-              </div>
-              <h3>{track.title}</h3>
-              <p>{track.intendedFor}</p>
-              <ul>
-                {track.includes.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <div className="feature-detail">
-                <strong>Not yet claimed</strong>
-                <span>{track.notYetClaimed}</span>
-              </div>
+        <div className="payment-option-grid">
+          {paymentOptions.map((option) => (
+            <article key={option.title} className="payment-option-card">
+              <option.icon aria-hidden="true" />
+              <h3>{option.title}</h3>
+              <p>{option.body}</p>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="content-band dark-band">
-        <div className="feature-section-heading">
+      <section className="content-band dark-band pricing-cta-band">
+        <div className="split-heading">
           <div>
-            <p className="eyebrow">Billing safety</p>
-            <h2>Agent-started billing stays behind confirmed-write rules.</h2>
+            <p className="eyebrow">First wave</p>
+            <h2>Bring the offer. Bumpgrade helps shape the path.</h2>
           </div>
-          <Link href="/agent-docs/bumpgrade-commerce-contract" className="text-link compact-link">
-            Commerce docs
-            <ShieldCheck aria-hidden="true" />
+          <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access" className="secondary-action">
+            Contact Bumpgrade
+            <Mail aria-hidden="true" />
           </Link>
-        </div>
-        <div className="feature-proof-grid">
-          <div>
-            <CircleDollarSign aria-hidden="true" />
-            <h3>No live plan claims</h3>
-            <p>The pricing surface describes direction only until plan amounts, limits, and subscriptions are explicitly shipped.</p>
-          </div>
-          <div>
-            <Database aria-hidden="true" />
-            <h3>Commerce source data</h3>
-            <p>`/commerce/source-data` exposes the redacted sandbox checkout architecture and billing safety rules.</p>
-          </div>
-          <div>
-            <ShieldCheck aria-hidden="true" />
-            <h3>Confirmation required</h3>
-            <p>Billing-impacting agent actions need exact confirmation, idempotency, stale-state checks, audit correlation, and redaction.</p>
-          </div>
         </div>
       </section>
     </main>
