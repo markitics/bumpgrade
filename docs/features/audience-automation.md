@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, and #209 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, and #211 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, and send-payload readiness gates, plus Queue producer readiness gates for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, and Queue consumer readiness gates for issue #17.
 
 ## Live Routes
 
@@ -26,7 +26,7 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, preview/foo
   endpoint for dispatch attempt receipt evidence.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
   enrollment inspection plus suppression totals, private note context, and
-  broadcast readiness, schedule intent context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, and Queue producer readiness context.
+  broadcast readiness, schedule intent context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, Queue producer readiness context, and Queue consumer readiness context.
 
 ## Current Contract
 
@@ -56,6 +56,7 @@ The first workspace includes stable IDs for:
 - provider response readiness boundaries;
 - send-payload readiness boundaries;
 - Queue producer readiness boundaries;
+- Queue consumer readiness boundaries;
 - public-safe aggregate subscriber, suppression, and timeline inspection counts and
   redaction flags.
 
@@ -116,12 +117,12 @@ records payload scope, recipient identity, unsubscribe footer,
 consent/suppression recheck, personalization token, payload body storage, and
 audit-correlation policies while still creating no recipient payloads,
 personalized bodies, raw payload bodies, provider sends, provider responses, or
-provider message IDs. The Queue producer readiness path records binding, producer mode, payload dependency, consumer dependency, idempotency, audit-correlation, and backpressure policies while still enabling no Cloudflare Queue producers, Queue messages, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs. The
+provider message IDs. The Queue producer readiness path records binding, producer mode, payload dependency, consumer dependency, idempotency, audit-correlation, and backpressure policies while still enabling no Cloudflare Queue producers, Queue messages, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs. The Queue consumer readiness path records consumer mode, producer dependency, payload dependency, ack, retry, dead-letter, idempotency, audit-correlation, and provider-handoff policies while still enabling no Cloudflare Queue consumers, Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, provider sends, provider responses, or provider message IDs. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
 note bodies, actor emails, private DNS credentials, raw DNS records, provider
 secrets, provider limit secrets, raw provider payloads, raw provider response bodies, recipient payloads, personalized bodies, raw payload bodies, provider message IDs, provider responses,
-Cloudflare Queue message bodies, send queue payloads, raw IP/user-agent evidence,
+Cloudflare Queue message bodies, Queue consumer ack/retry/dead-letter rows, send queue payloads, raw IP/user-agent evidence,
 and private metadata remain excluded from public agent-readable JSON.
 
 ## Agent Boundary
@@ -129,16 +130,16 @@ and private metadata remain excluded from public agent-readable JSON.
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
 state, including aggregate suppression counts, broadcast readiness counts, and
-schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, and the unsubscribe write boundary.
+schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, and the unsubscribe write boundary.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
 intents. They can also inspect preview/footer safety and queue readiness and
-record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, and dispatch attempt receipts without sending. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Provider-event readiness stays read-only until future provider webhooks can normalize events, update suppression state, redact raw payloads, and preserve audit correlation. Provider rate-limit readiness stays read-only until future provider setup can enforce throttle windows, retry budgets, and queue backpressure. Provider response readiness stays read-only until future provider send handling can capture response classes without raw bodies. Send-payload readiness stays read-only until future Queue producers create recipient payloads with consent, suppression, unsubscribe footer, and audit gates. Queue producer readiness stays read-only until future producer and consumer flows can enforce idempotency, backpressure, payload, and audit gates. Direct agent subscriber
+record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, and dispatch attempt receipts without sending. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Provider-event readiness stays read-only until future provider webhooks can normalize events, update suppression state, redact raw payloads, and preserve audit correlation. Provider rate-limit readiness stays read-only until future provider setup can enforce throttle windows, retry budgets, and queue backpressure. Provider response readiness stays read-only until future provider send handling can capture response classes without raw bodies. Send-payload readiness stays read-only until future Queue producers create recipient payloads with consent, suppression, unsubscribe footer, and audit gates. Queue producer readiness stays read-only until future producer and consumer flows can enforce idempotency, backpressure, payload, and audit gates. Queue consumer readiness stays read-only until future consumers can enforce ack, retry, dead-letter, provider handoff, payload, and audit gates. Direct agent subscriber
 writes, imports, real email sends, CRM automation, private
 exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
 idempotency, audit correlation, stale-state checks, redaction, suppression-list
-checks, unsubscribe footer validation, provider limits, sender-domain safety, provider-event safety, provider rate-limit safety, provider response safety, send-payload safety, Queue producer safety, and queue safety.
+checks, unsubscribe footer validation, provider limits, sender-domain safety, provider-event safety, provider rate-limit safety, provider response safety, send-payload safety, Queue producer safety, Queue consumer safety, and queue safety.
 
 Codex project email in issue #10 is separate from customer or publisher email
 automation in issue #17.

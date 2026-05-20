@@ -60,6 +60,9 @@ export const audienceBroadcastSendPayloadReadinessUpdatedAt = "2026-05-20";
 export const audienceBroadcastQueueProducerReadinessIssue = 209;
 export const audienceBroadcastQueueProducerReadinessStatus = "broadcast-queue-producer-readiness-ready";
 export const audienceBroadcastQueueProducerReadinessUpdatedAt = "2026-05-20";
+export const audienceBroadcastQueueConsumerReadinessIssue = 211;
+export const audienceBroadcastQueueConsumerReadinessStatus = "broadcast-queue-consumer-readiness-ready";
+export const audienceBroadcastQueueConsumerReadinessUpdatedAt = "2026-05-20";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -268,6 +271,42 @@ type QueueProducerReadinessRow = {
   queue_payload_bodies_created: number | string;
   recipient_payloads_created: number | string;
   personalized_bodies_created: number | string;
+  provider_send_enabled: number | string;
+  provider_responses_created: number | string;
+  provider_message_ids_created: number | string;
+  raw_payload_bodies_stored: number | string;
+  updated_at: number | string;
+};
+
+type QueueConsumerReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  queue_name: string;
+  consumer_name: string;
+  consumer_mode: string;
+  consumer_gate_status: string;
+  producer_dependency_status: string;
+  payload_dependency_status: string;
+  ack_policy: string;
+  retry_policy: string;
+  dead_letter_policy: string;
+  idempotency_policy: string;
+  audit_correlation_policy: string;
+  provider_handoff_policy: string;
+  queue_producer_gate_status: string;
+  send_payload_gate_status: string;
+  sender_domain_gate_status: string;
+  provider_event_gate_status: string;
+  provider_rate_limit_gate_status: string;
+  provider_response_gate_status: string;
+  cloudflare_queue_consumers_enabled: number | string;
+  cloudflare_queue_messages_consumed: number | string;
+  cloudflare_queue_messages_acked: number | string;
+  queue_retry_records_created: number | string;
+  queue_dead_letter_records_created: number | string;
+  queue_payload_bodies_read: number | string;
+  recipient_payloads_created: number | string;
   provider_send_enabled: number | string;
   provider_responses_created: number | string;
   provider_message_ids_created: number | string;
@@ -960,6 +999,88 @@ export type AudienceBroadcastQueueProducerReadinessSummary = {
     providerMessageIdsIncluded: false;
     cloudflareQueueProducersEnabled: false;
     cloudflareQueueMessagesCreated: false;
+    providerSendEnabled: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastQueueConsumerReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  queueName: string;
+  consumerName: string;
+  consumerMode: string;
+  consumerGateStatus: string;
+  producerDependencyStatus: string;
+  payloadDependencyStatus: string;
+  ackPolicy: string;
+  retryPolicy: string;
+  deadLetterPolicy: string;
+  idempotencyPolicy: string;
+  auditCorrelationPolicy: string;
+  providerHandoffPolicy: string;
+  queueProducerGateStatus: string;
+  sendPayloadGateStatus: string;
+  senderDomainGateStatus: string;
+  providerEventGateStatus: string;
+  providerRateLimitGateStatus: string;
+  providerResponseGateStatus: string;
+  cloudflareQueueConsumersEnabled: false;
+  cloudflareQueueMessagesConsumed: false;
+  cloudflareQueueMessagesAcked: false;
+  queueRetryRecordsCreated: false;
+  queueDeadLetterRecordsCreated: false;
+  queuePayloadBodiesRead: false;
+  recipientPayloadsCreated: false;
+  providerSendEnabled: false;
+  providerResponsesIncluded: false;
+  providerMessageIdsIncluded: false;
+  rawPayloadBodiesStored: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastQueueConsumerReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastQueueConsumerReadinessStatus;
+  issue: typeof audienceBroadcastQueueConsumerReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    queueConsumerReadinessRecords: number;
+    dryRunConsumerContracts: number;
+    cloudflareQueueConsumerEnabledRecords: number;
+    cloudflareQueueMessagesConsumedRecords: number;
+    cloudflareQueueMessagesAckedRecords: number;
+    queueRetryRecordsCreatedRecords: number;
+    queueDeadLetterRecordsCreatedRecords: number;
+    queuePayloadBodiesReadRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    providerSendEnabledRecords: number;
+    providerResponsesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+    rawPayloadBodiesStoredRecords: number;
+  };
+  records: AudienceBroadcastQueueConsumerReadiness[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    queuePayloadBodiesIncluded: false;
+    queueConsumerAckRowsIncluded: false;
+    queueRetryRowsIncluded: false;
+    queueDeadLetterRowsIncluded: false;
+    recipientPayloadsIncluded: false;
+    rawPayloadBodiesIncluded: false;
+    providerSecretsIncluded: false;
+    providerResponsesIncluded: false;
+    providerMessageIdsIncluded: false;
+    cloudflareQueueConsumersEnabled: false;
+    cloudflareQueueMessagesConsumed: false;
+    cloudflareQueueMessagesAcked: false;
     providerSendEnabled: false;
   };
   privateFieldsExcluded: string[];
@@ -1974,6 +2095,73 @@ function emptyQueueProducerReadinessSummary(
   };
 }
 
+function emptyQueueConsumerReadinessSummary(
+  source: AudienceBroadcastQueueConsumerReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastQueueConsumerReadinessSummary {
+  return {
+    id: "audience-broadcast-queue-consumer-readiness-contract",
+    status: audienceBroadcastQueueConsumerReadinessStatus,
+    issue: audienceBroadcastQueueConsumerReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      queueConsumerReadinessRecords: 0,
+      dryRunConsumerContracts: 0,
+      cloudflareQueueConsumerEnabledRecords: 0,
+      cloudflareQueueMessagesConsumedRecords: 0,
+      cloudflareQueueMessagesAckedRecords: 0,
+      queueRetryRecordsCreatedRecords: 0,
+      queueDeadLetterRecordsCreatedRecords: 0,
+      queuePayloadBodiesReadRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      providerSendEnabledRecords: 0,
+      providerResponsesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+      rawPayloadBodiesStoredRecords: 0,
+    },
+    records: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      queuePayloadBodiesIncluded: false,
+      queueConsumerAckRowsIncluded: false,
+      queueRetryRowsIncluded: false,
+      queueDeadLetterRowsIncluded: false,
+      recipientPayloadsIncluded: false,
+      rawPayloadBodiesIncluded: false,
+      providerSecretsIncluded: false,
+      providerResponsesIncluded: false,
+      providerMessageIdsIncluded: false,
+      cloudflareQueueConsumersEnabled: false,
+      cloudflareQueueMessagesConsumed: false,
+      cloudflareQueueMessagesAcked: false,
+      providerSendEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "queueMessageBody",
+      "queuePayloadBody",
+      "queueConsumerAckRow",
+      "queueRetryRow",
+      "queueDeadLetterRow",
+      "recipientPayload",
+      "rawPayloadBody",
+      "providerSecret",
+      "providerResponse",
+      "providerMessageId",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #211 exposes Queue consumer readiness metadata for audience broadcasts before any live Cloudflare Queue consumer path exists. It does not enable consumers, consume or ack Queue messages, create retry or dead-letter rows, read queue payload bodies, create recipient payloads, store raw payload bodies, send through a provider, create provider responses, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function emptyDeliveryBatchSummary(
   source: AudienceBroadcastDeliveryBatchSummary["source"],
   loadError: string | null,
@@ -2449,6 +2637,44 @@ function publicQueueProducerReadiness(row: QueueProducerReadinessRow): AudienceB
     queuePayloadBodiesCreated: false,
     recipientPayloadsCreated: false,
     personalizedBodiesCreated: false,
+    providerSendEnabled: false,
+    providerResponsesIncluded: false,
+    providerMessageIdsIncluded: false,
+    rawPayloadBodiesStored: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicQueueConsumerReadiness(row: QueueConsumerReadinessRow): AudienceBroadcastQueueConsumerReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    queueName: row.queue_name,
+    consumerName: row.consumer_name,
+    consumerMode: row.consumer_mode,
+    consumerGateStatus: row.consumer_gate_status,
+    producerDependencyStatus: row.producer_dependency_status,
+    payloadDependencyStatus: row.payload_dependency_status,
+    ackPolicy: row.ack_policy,
+    retryPolicy: row.retry_policy,
+    deadLetterPolicy: row.dead_letter_policy,
+    idempotencyPolicy: row.idempotency_policy,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    providerHandoffPolicy: row.provider_handoff_policy,
+    queueProducerGateStatus: row.queue_producer_gate_status,
+    sendPayloadGateStatus: row.send_payload_gate_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    providerEventGateStatus: row.provider_event_gate_status,
+    providerRateLimitGateStatus: row.provider_rate_limit_gate_status,
+    providerResponseGateStatus: row.provider_response_gate_status,
+    cloudflareQueueConsumersEnabled: false,
+    cloudflareQueueMessagesConsumed: false,
+    cloudflareQueueMessagesAcked: false,
+    queueRetryRecordsCreated: false,
+    queueDeadLetterRecordsCreated: false,
+    queuePayloadBodiesRead: false,
+    recipientPayloadsCreated: false,
     providerSendEnabled: false,
     providerResponsesIncluded: false,
     providerMessageIdsIncluded: false,
@@ -3201,6 +3427,72 @@ export async function getAudienceBroadcastQueueProducerReadinessSummary(): Promi
     return emptyQueueProducerReadinessSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast Queue producer readiness.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastQueueConsumerReadinessSummary(): Promise<AudienceBroadcastQueueConsumerReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, queue_name, consumer_name, consumer_mode,
+          consumer_gate_status, producer_dependency_status, payload_dependency_status,
+          ack_policy, retry_policy, dead_letter_policy, idempotency_policy,
+          audit_correlation_policy, provider_handoff_policy, queue_producer_gate_status,
+          send_payload_gate_status, sender_domain_gate_status, provider_event_gate_status,
+          provider_rate_limit_gate_status, provider_response_gate_status,
+          cloudflare_queue_consumers_enabled, cloudflare_queue_messages_consumed,
+          cloudflare_queue_messages_acked, queue_retry_records_created,
+          queue_dead_letter_records_created, queue_payload_bodies_read,
+          recipient_payloads_created, provider_send_enabled, provider_responses_created,
+          provider_message_ids_created, raw_payload_bodies_stored, updated_at
+        FROM audience_broadcast_queue_consumer_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<QueueConsumerReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicQueueConsumerReadiness);
+
+    return {
+      ...emptyQueueConsumerReadinessSummary("d1", null),
+      counts: {
+        queueConsumerReadinessRecords: records.length,
+        dryRunConsumerContracts: records.filter((record) => record.consumerMode.includes("dry_run")).length,
+        cloudflareQueueConsumerEnabledRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_consumers_enabled) > 0,
+        ).length,
+        cloudflareQueueMessagesConsumedRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_messages_consumed) > 0,
+        ).length,
+        cloudflareQueueMessagesAckedRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_messages_acked) > 0,
+        ).length,
+        queueRetryRecordsCreatedRecords: rawRows.filter(
+          (row) => numberValue(row.queue_retry_records_created) > 0,
+        ).length,
+        queueDeadLetterRecordsCreatedRecords: rawRows.filter(
+          (row) => numberValue(row.queue_dead_letter_records_created) > 0,
+        ).length,
+        queuePayloadBodiesReadRecords: rawRows.filter((row) => numberValue(row.queue_payload_bodies_read) > 0)
+          .length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0)
+          .length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        providerResponsesCreatedRecords: rawRows.filter((row) => numberValue(row.provider_responses_created) > 0)
+          .length,
+        providerMessageIdsCreatedRecords: rawRows.filter((row) => numberValue(row.provider_message_ids_created) > 0)
+          .length,
+        rawPayloadBodiesStoredRecords: rawRows.filter((row) => numberValue(row.raw_payload_bodies_stored) > 0)
+          .length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyQueueConsumerReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast Queue consumer readiness.",
     );
   }
 }

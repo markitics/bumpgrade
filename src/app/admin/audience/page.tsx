@@ -33,6 +33,7 @@ import {
   audienceBroadcastProviderEventReadinessIssue,
   audienceBroadcastProviderRateLimitReadinessIssue,
   audienceBroadcastProviderResponseReadinessIssue,
+  audienceBroadcastQueueConsumerReadinessIssue,
   audienceBroadcastQueueProducerReadinessIssue,
   audienceBroadcastSendPayloadReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
@@ -44,6 +45,7 @@ import {
   getAudienceBroadcastProviderEventReadinessSummary,
   getAudienceBroadcastProviderRateLimitReadinessSummary,
   getAudienceBroadcastProviderResponseReadinessSummary,
+  getAudienceBroadcastQueueConsumerReadinessSummary,
   getAudienceBroadcastQueueProducerReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
@@ -91,6 +93,7 @@ export default async function AdminAudiencePage() {
     broadcastProviderResponseReadiness,
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
+    broadcastQueueConsumerReadiness,
   ] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
@@ -107,6 +110,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastProviderResponseReadinessSummary(),
     getAudienceBroadcastSendPayloadReadinessSummary(),
     getAudienceBroadcastQueueProducerReadinessSummary(),
+    getAudienceBroadcastQueueConsumerReadinessSummary(),
   ]);
 
   return (
@@ -128,7 +132,9 @@ export default async function AdminAudiencePage() {
             permanent failure handling explicit before response capture exists. Send-payload readiness keeps recipient
             identity, personalization, unsubscribe-footer, and audit boundaries explicit before payload creation exists.
             Queue producer readiness keeps the Cloudflare binding, payload dependency, idempotency, consumer, and audit
-            gates explicit before any producer is enabled. Public source-data stays aggregate-only.
+            gates explicit before any producer is enabled. Queue consumer readiness keeps ack, retry, dead-letter,
+            idempotency, and provider-handoff gates explicit before any consumer is enabled. Public source-data stays
+            aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -310,6 +316,15 @@ export default async function AdminAudiencePage() {
               {broadcastQueueProducerReadiness.counts.cloudflareQueueProducerEnabledRecords} producers enabled.
             </p>
           </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Queue consumers</h3>
+            <p>
+              {broadcastQueueConsumerReadiness.counts.queueConsumerReadinessRecords} consumer-readiness record
+              {broadcastQueueConsumerReadiness.counts.queueConsumerReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastQueueConsumerReadiness.counts.cloudflareQueueConsumerEnabledRecords} consumers enabled.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -429,6 +444,73 @@ export default async function AdminAudiencePage() {
               <p>
                 {broadcastQueueProducerReadiness.loadError ??
                   "Run the Queue producer readiness migration to seed producer-boundary metadata."}
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Queue consumer readiness</p>
+            <h2>Queue consumers stay disabled until ack and retry gates pass</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastQueueConsumerReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastQueueConsumerReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastQueueConsumerReadiness.records.length > 0 ? (
+            broadcastQueueConsumerReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">Delivery queue</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>Consumer handoff is readiness-only</h3>
+                <p>{record.consumerGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Consumer</strong>
+                  <span>{record.consumerName}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Producer dependency</strong>
+                  <span>{record.producerDependencyStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Ack policy</strong>
+                  <span>{record.ackPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Retry and dead letter</strong>
+                  <span>
+                    {record.retryPolicy} {record.deadLetterPolicy}
+                  </span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider handoff</strong>
+                  <span>{record.providerHandoffPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Cloudflare Queue consumers, Queue message consumption, acks, retry and dead-letter rows, queue
+                  payload reads, recipient payloads, provider sends, provider responses, and provider message IDs remain
+                  disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No consumer readiness</span>
+                <span className="admin-pill">Issue #{audienceBroadcastQueueConsumerReadinessIssue}</span>
+              </div>
+              <h3>No Queue consumer readiness records</h3>
+              <p>
+                {broadcastQueueConsumerReadiness.loadError ??
+                  "Run the Queue consumer readiness migration to seed consumer-boundary metadata."}
               </p>
             </article>
           )}
