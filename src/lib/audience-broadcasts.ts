@@ -57,6 +57,9 @@ export const audienceBroadcastProviderResponseReadinessUpdatedAt = "2026-05-20";
 export const audienceBroadcastSendPayloadReadinessIssue = 207;
 export const audienceBroadcastSendPayloadReadinessStatus = "broadcast-send-payload-readiness-ready";
 export const audienceBroadcastSendPayloadReadinessUpdatedAt = "2026-05-20";
+export const audienceBroadcastQueueProducerReadinessIssue = 209;
+export const audienceBroadcastQueueProducerReadinessStatus = "broadcast-queue-producer-readiness-ready";
+export const audienceBroadcastQueueProducerReadinessUpdatedAt = "2026-05-20";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -233,6 +236,36 @@ type SendPayloadReadinessRow = {
   provider_rate_limit_gate_status: string;
   provider_response_gate_status: string;
   cloudflare_queue_producers_enabled: number | string;
+  recipient_payloads_created: number | string;
+  personalized_bodies_created: number | string;
+  provider_send_enabled: number | string;
+  provider_responses_created: number | string;
+  provider_message_ids_created: number | string;
+  raw_payload_bodies_stored: number | string;
+  updated_at: number | string;
+};
+
+type QueueProducerReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  queue_name: string;
+  producer_binding: string;
+  producer_mode: string;
+  producer_gate_status: string;
+  payload_dependency_status: string;
+  consumer_dependency_status: string;
+  idempotency_policy: string;
+  audit_correlation_policy: string;
+  retry_backpressure_policy: string;
+  send_payload_gate_status: string;
+  sender_domain_gate_status: string;
+  provider_event_gate_status: string;
+  provider_rate_limit_gate_status: string;
+  provider_response_gate_status: string;
+  cloudflare_queue_producers_enabled: number | string;
+  cloudflare_queue_messages_created: number | string;
+  queue_payload_bodies_created: number | string;
   recipient_payloads_created: number | string;
   personalized_bodies_created: number | string;
   provider_send_enabled: number | string;
@@ -856,6 +889,77 @@ export type AudienceBroadcastSendPayloadReadinessSummary = {
     providerResponsesIncluded: false;
     providerMessageIdsIncluded: false;
     cloudflareQueueProducersEnabled: false;
+    providerSendEnabled: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastQueueProducerReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  queueName: string;
+  producerBinding: string;
+  producerMode: string;
+  producerGateStatus: string;
+  payloadDependencyStatus: string;
+  consumerDependencyStatus: string;
+  idempotencyPolicy: string;
+  auditCorrelationPolicy: string;
+  retryBackpressurePolicy: string;
+  sendPayloadGateStatus: string;
+  senderDomainGateStatus: string;
+  providerEventGateStatus: string;
+  providerRateLimitGateStatus: string;
+  providerResponseGateStatus: string;
+  cloudflareQueueProducersEnabled: false;
+  cloudflareQueueMessagesCreated: false;
+  queuePayloadBodiesCreated: false;
+  recipientPayloadsCreated: false;
+  personalizedBodiesCreated: false;
+  providerSendEnabled: false;
+  providerResponsesIncluded: false;
+  providerMessageIdsIncluded: false;
+  rawPayloadBodiesStored: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastQueueProducerReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastQueueProducerReadinessStatus;
+  issue: typeof audienceBroadcastQueueProducerReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    queueProducerReadinessRecords: number;
+    dryRunProducerContracts: number;
+    cloudflareQueueProducerEnabledRecords: number;
+    cloudflareQueueMessagesCreatedRecords: number;
+    queuePayloadBodiesCreatedRecords: number;
+    recipientPayloadsCreatedRecords: number;
+    personalizedBodiesCreatedRecords: number;
+    providerSendEnabledRecords: number;
+    providerResponsesCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+    rawPayloadBodiesStoredRecords: number;
+  };
+  records: AudienceBroadcastQueueProducerReadiness[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    queuePayloadBodiesIncluded: false;
+    recipientPayloadsIncluded: false;
+    personalizedBodiesIncluded: false;
+    rawPayloadBodiesIncluded: false;
+    providerSecretsIncluded: false;
+    providerResponsesIncluded: false;
+    providerMessageIdsIncluded: false;
+    cloudflareQueueProducersEnabled: false;
+    cloudflareQueueMessagesCreated: false;
     providerSendEnabled: false;
   };
   privateFieldsExcluded: string[];
@@ -1810,6 +1914,66 @@ function emptySendPayloadReadinessSummary(
   };
 }
 
+function emptyQueueProducerReadinessSummary(
+  source: AudienceBroadcastQueueProducerReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastQueueProducerReadinessSummary {
+  return {
+    id: "audience-broadcast-queue-producer-readiness-contract",
+    status: audienceBroadcastQueueProducerReadinessStatus,
+    issue: audienceBroadcastQueueProducerReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      queueProducerReadinessRecords: 0,
+      dryRunProducerContracts: 0,
+      cloudflareQueueProducerEnabledRecords: 0,
+      cloudflareQueueMessagesCreatedRecords: 0,
+      queuePayloadBodiesCreatedRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+      personalizedBodiesCreatedRecords: 0,
+      providerSendEnabledRecords: 0,
+      providerResponsesCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+      rawPayloadBodiesStoredRecords: 0,
+    },
+    records: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      queuePayloadBodiesIncluded: false,
+      recipientPayloadsIncluded: false,
+      personalizedBodiesIncluded: false,
+      rawPayloadBodiesIncluded: false,
+      providerSecretsIncluded: false,
+      providerResponsesIncluded: false,
+      providerMessageIdsIncluded: false,
+      cloudflareQueueProducersEnabled: false,
+      cloudflareQueueMessagesCreated: false,
+      providerSendEnabled: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "queueMessageBody",
+      "queuePayloadBody",
+      "recipientPayload",
+      "personalizedBody",
+      "rawPayloadBody",
+      "providerSecret",
+      "providerResponse",
+      "providerMessageId",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #209 exposes Queue producer readiness metadata for audience broadcasts before any live Cloudflare Queue producer path exists. It does not enable producers, create Queue messages, create queue payload bodies, create recipient payloads, create personalized bodies, store raw payload bodies, send through a provider, create provider responses, create provider message IDs, expose private recipients, or authorize public agent broadcast writes.",
+  };
+}
+
 function emptyDeliveryBatchSummary(
   source: AudienceBroadcastDeliveryBatchSummary["source"],
   loadError: string | null,
@@ -2251,6 +2415,38 @@ function publicSendPayloadReadiness(row: SendPayloadReadinessRow): AudienceBroad
     providerRateLimitGateStatus: row.provider_rate_limit_gate_status,
     providerResponseGateStatus: row.provider_response_gate_status,
     cloudflareQueueProducersEnabled: false,
+    recipientPayloadsCreated: false,
+    personalizedBodiesCreated: false,
+    providerSendEnabled: false,
+    providerResponsesIncluded: false,
+    providerMessageIdsIncluded: false,
+    rawPayloadBodiesStored: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicQueueProducerReadiness(row: QueueProducerReadinessRow): AudienceBroadcastQueueProducerReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    queueName: row.queue_name,
+    producerBinding: row.producer_binding,
+    producerMode: row.producer_mode,
+    producerGateStatus: row.producer_gate_status,
+    payloadDependencyStatus: row.payload_dependency_status,
+    consumerDependencyStatus: row.consumer_dependency_status,
+    idempotencyPolicy: row.idempotency_policy,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    retryBackpressurePolicy: row.retry_backpressure_policy,
+    sendPayloadGateStatus: row.send_payload_gate_status,
+    senderDomainGateStatus: row.sender_domain_gate_status,
+    providerEventGateStatus: row.provider_event_gate_status,
+    providerRateLimitGateStatus: row.provider_rate_limit_gate_status,
+    providerResponseGateStatus: row.provider_response_gate_status,
+    cloudflareQueueProducersEnabled: false,
+    cloudflareQueueMessagesCreated: false,
+    queuePayloadBodiesCreated: false,
     recipientPayloadsCreated: false,
     personalizedBodiesCreated: false,
     providerSendEnabled: false,
@@ -2947,6 +3143,64 @@ export async function getAudienceBroadcastSendPayloadReadinessSummary(): Promise
     return emptySendPayloadReadinessSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast send payload readiness.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastQueueProducerReadinessSummary(): Promise<AudienceBroadcastQueueProducerReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, queue_name, producer_binding, producer_mode,
+          producer_gate_status, payload_dependency_status, consumer_dependency_status,
+          idempotency_policy, audit_correlation_policy, retry_backpressure_policy,
+          send_payload_gate_status, sender_domain_gate_status, provider_event_gate_status,
+          provider_rate_limit_gate_status, provider_response_gate_status,
+          cloudflare_queue_producers_enabled, cloudflare_queue_messages_created,
+          queue_payload_bodies_created, recipient_payloads_created, personalized_bodies_created,
+          provider_send_enabled, provider_responses_created, provider_message_ids_created,
+          raw_payload_bodies_stored, updated_at
+        FROM audience_broadcast_queue_producer_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<QueueProducerReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicQueueProducerReadiness);
+
+    return {
+      ...emptyQueueProducerReadinessSummary("d1", null),
+      counts: {
+        queueProducerReadinessRecords: records.length,
+        dryRunProducerContracts: records.filter((record) => record.producerMode.includes("dry_run")).length,
+        cloudflareQueueProducerEnabledRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_producers_enabled) > 0,
+        ).length,
+        cloudflareQueueMessagesCreatedRecords: rawRows.filter(
+          (row) => numberValue(row.cloudflare_queue_messages_created) > 0,
+        ).length,
+        queuePayloadBodiesCreatedRecords: rawRows.filter(
+          (row) => numberValue(row.queue_payload_bodies_created) > 0,
+        ).length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0)
+          .length,
+        personalizedBodiesCreatedRecords: rawRows.filter((row) => numberValue(row.personalized_bodies_created) > 0)
+          .length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        providerResponsesCreatedRecords: rawRows.filter((row) => numberValue(row.provider_responses_created) > 0)
+          .length,
+        providerMessageIdsCreatedRecords: rawRows.filter((row) => numberValue(row.provider_message_ids_created) > 0)
+          .length,
+        rawPayloadBodiesStoredRecords: rawRows.filter((row) => numberValue(row.raw_payload_bodies_stored) > 0)
+          .length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyQueueProducerReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast Queue producer readiness.",
     );
   }
 }
