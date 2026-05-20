@@ -190,7 +190,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </div>
           <p>
             Use lowercase letters, numbers, and hyphens. Custom domains and domain purchase are separate setup paths
-            after the default Bumpgrade hostname is reserved.
+            after the default Bumpgrade hostname is reserved; Bumpgrade does not sell or register domains today.
           </p>
           <button type="submit" className="primary-action" disabled={!state.canReserveSubdomain}>
             Reserve subdomain
@@ -242,7 +242,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </div>
           <p>
             Add a domain you already own, copy the DNS record Bumpgrade gives you, and re-check verification from this
-            page. Buying domains through Bumpgrade is a separate launch slice.
+            page. Bumpgrade does not sell, register, renew, or transfer domains today.
           </p>
         </div>
 

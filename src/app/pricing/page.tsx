@@ -40,6 +40,7 @@ const launchPlans = [
       "Funnel and checkout path mapped to your launch",
       "Default Bumpgrade subdomain for your publisher workspace",
       "Bring-your-own-domain setup with CNAME verification state",
+      "Connect a domain you already own; domain purchase is not sold by Bumpgrade yet",
       "Email, CRM, and follow-up readiness review",
       "Stripe payment setup reviewed before live charges",
     ],
@@ -68,6 +69,11 @@ const paymentOptions = [
   {
     title: "Existing domain",
     body: "Paid publishers can add a domain they already own, copy Bumpgrade's CNAME target, and re-check DNS before activation.",
+    icon: Globe2,
+  },
+  {
+    title: "Domain purchase",
+    body: "Bumpgrade does not sell or register domains today. Use your paid Bumpgrade subdomain, or connect a domain you already own.",
     icon: Globe2,
   },
   {

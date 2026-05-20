@@ -550,6 +550,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         status: "live",
         issue: 223,
+        domainRequirement: expect.stringContaining("does not sell or register domains"),
         paidPlanRequired: true,
         defaultBumpgradeHostnameRequiredFirst: true,
         dnsInstruction: expect.objectContaining({
@@ -559,7 +560,24 @@ test.describe("Bumpgrade scaffold", () => {
         statuses: expect.arrayContaining(["pending_dns", "dns_verified", "ssl_pending", "active"]),
       }),
     );
-    expect(payload.notIncludedYet).toEqual(expect.arrayContaining(["Buying domains through Bumpgrade."]));
+    expect(payload.domainPurchasePolicy).toEqual(
+      expect.objectContaining({
+        status: "not_offered_yet",
+        issue: 225,
+        currentLaunchAnswer: expect.stringContaining("does not sell, register, renew, or transfer domains today"),
+        whatWorksToday: expect.arrayContaining([
+          expect.stringContaining("reserve a default *.bumpgrade.com hostname"),
+          expect.stringContaining("connect an existing custom domain"),
+        ]),
+        notClaimed: expect.arrayContaining([
+          expect.stringContaining("Domain registration"),
+          expect.stringContaining("Registrar pricing"),
+        ]),
+      }),
+    );
+    expect(payload.notIncludedYet).toEqual(
+      expect.arrayContaining(["Buying, registering, renewing, or transferring domains through Bumpgrade."]),
+    );
   });
 
   test("Better Auth production session boundary is explicit about subdomains and custom domains", () => {
@@ -4696,7 +4714,9 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           safeForAgents: expect.arrayContaining([
             "Read cross-subdomain auth configuration and custom-domain login boundary",
+            "Distinguish Bumpgrade subdomains, existing custom domains, and the current no-domain-purchase policy",
           ]),
+          writeBoundary: expect.stringContaining("does not sell, register, renew, transfer, or price domains today"),
         }),
         expect.objectContaining({
           id: "read-funnel-contract",

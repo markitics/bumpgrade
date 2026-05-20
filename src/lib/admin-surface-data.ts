@@ -320,7 +320,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     notes: [
       "Custom-domain login semantics are documented in issue #224.",
-      "Buying domains through Bumpgrade remains separate in issue #225.",
+      "Issue #225 documents the launch policy: Bumpgrade connects domains users already own but does not sell or register domains today.",
     ],
   },
   "journey-customer-uses-one-login-across-bumpgrade-subdomains": {
@@ -752,7 +752,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Free or unpaid accounts cannot reserve a Bumpgrade subdomain.",
       "Reserved platform names such as admin, api, www, login, pricing, and features are blocked.",
       "A subdomain already reserved by another tenant returns a conflict.",
-      "Custom domains and buying domains are tracked separately and should not be claimed as live from this journey.",
+      "Custom domains are tracked separately; buying, registering, renewing, or transferring domains through Bumpgrade should not be claimed as live.",
     ],
     agentAccess:
       "Agents can read /account/source-data and inspect the tenant/subdomain contract. Public or delegated agent writes still require authenticated user context, idempotency, audit correlation, redaction, and paid-plan checks.",
@@ -798,6 +798,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Domains already claimed by another tenant return a conflict.",
       "DNS verification can be pending while records propagate.",
       "SSL and final custom-hostname activation remain visible as state, not hidden implementation detail.",
+      "Domain purchase, transfer, renewal, registrar pricing, and TLD availability are not offered by Bumpgrade today.",
     ],
     agentAccess:
       "Agents can read /account/source-data and inspect the custom-domain DNS contract. Custom-domain writes require authenticated user context, paid-plan checks, idempotency, audit correlation, redaction, and explicit DNS verification state.",

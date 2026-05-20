@@ -190,6 +190,7 @@ export class PublisherTenantError extends Error {
 export const publisherTenantIssue = 222;
 export const publisherCustomDomainIssue = 223;
 export const publisherCustomerAuthIssue = 224;
+export const publisherDomainPurchaseIssue = 225;
 export const publisherTenantParentIssue = 221;
 export const publisherTenantUpdatedAt = "2026-05-20";
 export const publisherSubdomainApiRoute = "/api/account/publisher/subdomain";
@@ -1229,6 +1230,7 @@ export const publisherTenantSourceData = {
   customDomainPolicy: {
     status: "live",
     issue: publisherCustomDomainIssue,
+    domainRequirement: "Bring an existing domain you already own; Bumpgrade does not sell or register domains today.",
     paidPlanRequired: true,
     emailVerificationRequired: true,
     defaultBumpgradeHostnameRequiredFirst: true,
@@ -1242,8 +1244,25 @@ export const publisherTenantSourceData = {
     redaction:
       "Public source data exposes policy, routes, and DNS instruction shape; private customer domain rows require authenticated publisher context.",
   },
+  domainPurchasePolicy: {
+    status: "not_offered_yet",
+    issue: publisherDomainPurchaseIssue,
+    currentLaunchAnswer:
+      "No. Bumpgrade does not sell, register, renew, or transfer domains today. Use a paid Bumpgrade subdomain or connect a domain you already own.",
+    whatWorksToday: [
+      "Paid publishers can reserve a default *.bumpgrade.com hostname.",
+      "Paid publishers can connect an existing custom domain with Bumpgrade DNS instructions and verification state.",
+    ],
+    notClaimed: [
+      "Domain search or availability checks.",
+      "Domain registration, transfer, renewal, privacy, contact, or refund handling.",
+      "Registrar pricing, supported TLD inventory, or registrar-of-record status.",
+    ],
+    futurePath:
+      "If Bumpgrade adds registration later, it needs a registrar/provider decision, availability checks, purchase and renewal terms, contact/privacy handling, payment/refund policy, and provider failure states before any public CTA claims domains can be bought through Bumpgrade.",
+  },
   notIncludedYet: [
-    "Buying domains through Bumpgrade.",
+    "Buying, registering, renewing, or transferring domains through Bumpgrade.",
     "Publisher site editor parity for arbitrary pages on the reserved hostname.",
     "Raw browser-cookie sharing across unrelated custom domains.",
   ],
