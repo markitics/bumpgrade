@@ -229,6 +229,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-gated CRM timeline notes from issue #169.",
       "Suppression-aware broadcast draft readiness from issue #171.",
       "Owner-confirmed dry-run broadcast schedule intents from issue #173.",
+      "Delivery queue readiness contracts from issue #177.",
       "Broadcast preview and unsubscribe-footer safety records from issue #175.",
       "Campaigns, sequences, broadcasts, and behavior-triggered automations.",
       "CRM-lite contact timelines and opportunity states.",
@@ -244,10 +245,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #171 adds broadcast readiness counts that exclude unsubscribed, suppressed, and missing-consent rows without creating send queues.",
       "Issue #173 adds owner-confirmed dry-run broadcast schedule intents without recipient payloads, send queues, or provider message IDs.",
       "Issue #175 adds preview and unsubscribe-footer safety records without personalized bodies, send queues, or provider message IDs.",
+      "Issue #177 adds delivery queue readiness metadata without queue producers, recipient payloads, or provider sends.",
       "Codex project email tracked separately by issue #10.",
     ],
     agentContract:
-      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, and preview safety counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, and owner schedule-intent contract metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, and unsubscribe-safe checks.",
+      "Agents may read the public audience contract, aggregate subscriber, suppression, timeline, broadcast readiness, dry-run schedule intent, preview safety, and queue readiness counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, and owner schedule-intent contract metadata; direct public agent subscriber writes, imports, real sends, private exports, CRM automation, and provider delivery require future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, and queue safety.",
   },
   {
     id: "feature-analytics-testing",

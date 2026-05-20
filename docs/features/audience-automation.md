@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, and #175 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, and #177 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, and preview/footer safety for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, and queue readiness for issue #17.
 
 ## Live Routes
 
@@ -18,7 +18,7 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, and preview
   for dry-run broadcast schedule intents.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
   enrollment inspection plus suppression totals, private note context, and
-  broadcast readiness, schedule intent context, and preview safety context.
+  broadcast readiness, schedule intent context, preview safety context, and queue readiness context.
 
 ## Current Contract
 
@@ -37,6 +37,7 @@ The first workspace includes stable IDs for:
 - suppression-aware broadcast readiness boundaries;
 - owner-confirmed dry-run schedule intent boundaries;
 - broadcast preview and unsubscribe-footer safety boundaries;
+- delivery queue readiness boundaries;
 - public-safe aggregate subscriber, suppression, and timeline inspection counts and
   redaction flags.
 
@@ -58,10 +59,13 @@ idempotency, the expected draft revision, and expected readiness count while
 still creating no recipient payloads, send queue rows, or provider message IDs. The
 preview safety path stores subject, preview text, body outline, unsubscribe
 footer policy, and sender-domain caveat without personalized body text. The
+queue readiness path stores queue name, dry-run mode, retry policy, suppression
+check policy, unsubscribe footer gate, sender-domain gate, and audit correlation
+policy without queue producers, recipient payloads, or provider sends. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
-note bodies, actor emails, provider message IDs, send queue payloads, raw
-IP/user-agent evidence, and private metadata remain excluded from public
+note bodies, actor emails, recipient payloads, provider message IDs, send queue
+payloads, raw IP/user-agent evidence, and private metadata remain excluded from public
 agent-readable JSON.
 
 ## Agent Boundary
@@ -69,15 +73,15 @@ agent-readable JSON.
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
 state, including aggregate suppression counts, broadcast readiness counts, and
-schedule intent counts, plus preview safety and the unsubscribe write boundary.
+schedule intent counts, plus preview safety, queue readiness, and the unsubscribe write boundary.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
-intents. They can also inspect preview/footer safety without sending. Direct agent subscriber
+intents. They can also inspect preview/footer safety and queue readiness without sending. Direct agent subscriber
 writes, imports, real email sends, CRM automation, private
 exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
 idempotency, audit correlation, stale-state checks, redaction, suppression-list
-checks, unsubscribe footer validation, provider limits, and sender-domain safety.
+checks, unsubscribe footer validation, provider limits, sender-domain safety, and queue safety.
 
 Codex project email in issue #10 is separate from customer or publisher email
 automation in issue #17.
