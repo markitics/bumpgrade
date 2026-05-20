@@ -521,8 +521,8 @@ export default async function AdminAudiencePage() {
             broadcastDeliveryQueueMessages.latestMessages.map((message) => (
               <article key={message.id} className="roadmap-card active">
                 <div className="roadmap-card-top">
-                  <span className="status-badge active">{message.status}</span>
-                  <span className="admin-pill">{message.dryRunMessageCount} dry-run messages</span>
+                  <span className="status-badge active">dry-run evidence</span>
+                  <span className="admin-pill">{message.dryRunMessageCount} messages</span>
                 </div>
                 <ListChecks aria-hidden="true" />
                 <h3>{message.queueName}</h3>
