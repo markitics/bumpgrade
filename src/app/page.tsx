@@ -26,7 +26,7 @@ const launchOutcomes = [
   {
     label: "Sell the offer",
     title: "Checkout, bumps, and products",
-    body: "Model the offer ladder, start sandbox checkout paths, and connect purchases to product access and follow-up decisions.",
+    body: "Shape the offer ladder, add checkout bumps, and connect purchases to product access and follow-up decisions.",
     icon: ShoppingCart,
   },
   {
@@ -38,16 +38,20 @@ const launchOutcomes = [
   {
     label: "Improve the launch",
     title: "Analytics and AI assistance",
-    body: "Use source attribution, experiment evidence, and agent-readable contracts to understand what worked and what to do next.",
+    body: "Use source attribution, experiment results, and guided launch context to understand what worked and what to do next.",
     icon: Bot,
   },
 ];
 
 const proofPoints = [
-  "Public feature pages and source data are available now.",
-  "Funnels, checkout, products, audience, analytics, and affiliate previews are linked from the launch site.",
-  "Billing-impacting actions stay behind confirmation and trusted checkout evidence.",
+  "Feature examples and pricing are ready for first invite conversations.",
+  "Funnels, checkout previews, products, audience, analytics, and partner tracking are connected.",
+  "Customer payments and sends stay reviewed until each live path is verified.",
 ];
+
+function availabilityLabel(status: string) {
+  return status === "live" ? "Available now" : "In build";
+}
 
 export default function HomePage() {
   return (
@@ -89,7 +93,7 @@ export default function HomePage() {
           />
           <div className="hero-media-overlay">
             <strong>Offer launch stack</strong>
-            <span>Funnel, checkout, email, product access, analytics, and agent-ready proof.</span>
+            <span>Funnel, checkout, email, product access, analytics, and launch guidance.</span>
           </div>
         </div>
       </section>
@@ -134,7 +138,9 @@ export default function HomePage() {
               <article key={feature.slug} className="launch-feature-card">
                 <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
                 <div>
-                  <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>{feature.status}</span>
+                  <span className={`status-badge ${feature.status === "live" ? "live" : "pending"}`}>
+                    {availabilityLabel(feature.status)}
+                  </span>
                   <h3>{feature.title}</h3>
                   <p>{feature.summary}</p>
                   <Link href={`/features/${feature.slug}`} className="text-link">
@@ -155,7 +161,7 @@ export default function HomePage() {
             <h2>Replace the glued-together stack.</h2>
           </div>
           <p>
-            Bumpgrade pulls the ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics jobs into one source-readable launch system.
+            Bumpgrade pulls the ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics jobs into one launch workflow.
           </p>
         </div>
         <div className="workflow-step-strip">
@@ -174,19 +180,19 @@ export default function HomePage() {
             <p className="eyebrow">Ready for the first invite wave</p>
             <h2>Follow working launch paths from the first page to customer follow-up.</h2>
           </div>
-          <Link href="/admin/user-journeys" className="secondary-action">
-            Journey proof
+          <Link href="/pricing" className="secondary-action">
+            Request access
             <BarChart3 aria-hidden="true" />
           </Link>
         </div>
         <div className="launch-proof-grid">
           <div>
             <strong>Feature pages</strong>
-            <span>{marketingFeatures.length} launch features with dedicated pages, proof routes, and issue evidence.</span>
+            <span>{marketingFeatures.length} launch features with dedicated pages, examples, and setup notes.</span>
           </div>
           <div>
             <strong>Customer paths</strong>
-            <span>Funnels, offers, products, audience, analytics, and affiliates route to live previews or source data.</span>
+            <span>Funnels, offers, products, audience, analytics, and affiliates route to visible launch examples.</span>
           </div>
           <div>
             <strong>Safety boundaries</strong>

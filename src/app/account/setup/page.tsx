@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
-import { ArrowRight, BadgeCheck, Database, Globe2, LockKeyhole, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Globe2, LockKeyhole, RefreshCw, ShieldCheck } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import {
@@ -79,16 +79,16 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           <h1>Choose the Bumpgrade subdomain for your launch workspace.</h1>
           <p className="lede">
             Every paid publisher account starts with a default {publisherDefaultDomain} subdomain. Use it for launch
-            previews, customer paths, and agent-readable proof before adding your own domain.
+            previews, customer paths, and early buyer access before adding your own domain.
           </p>
           <div className="hero-actions">
             <Link href="/pricing" className="primary-action">
               Review paid plans
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/account/source-data" className="secondary-action">
-              Account source data
-              <Database aria-hidden="true" />
+            <Link href="#custom-domain" className="secondary-action">
+              Domain setup
+              <Globe2 aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
             <h2>One account across Bumpgrade-hosted sites.</h2>
           </div>
           <p>
-            Customers who sign in on Bumpgrade can move between paid publisher sites on {publisherDefaultDomain}
+            Customers who sign in on Bumpgrade can move between paid publisher sites on {publisherDefaultDomain}{" "}
             without creating a separate login for every publisher subdomain. Private products, memberships, and
             customer records still stay scoped to the publisher site that sold them.
           </p>
@@ -234,7 +234,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
         </div>
       </section>
 
-      <section className="content-band">
+      <section className="content-band" id="custom-domain">
         <div className="split-heading">
           <div>
             <p className="eyebrow">Custom domain</p>
