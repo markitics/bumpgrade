@@ -677,6 +677,31 @@ export const audienceBroadcastPreviewSafety = sqliteTable(
   }),
 );
 
+export const audienceBroadcastQueueReadiness = sqliteTable(
+  "audience_broadcast_queue_readiness",
+  {
+    id: text("id").primaryKey(),
+    draftId: text("draft_id").notNull(),
+    status: text("status").notNull().default("queue_readiness_ready"),
+    queueName: text("queue_name").notNull(),
+    queueMode: text("queue_mode").notNull().default("dry_run_contract"),
+    retryPolicy: text("retry_policy").notNull(),
+    suppressionCheckPolicy: text("suppression_check_policy").notNull(),
+    unsubscribeFooterCheckPolicy: text("unsubscribe_footer_check_policy").notNull(),
+    senderDomainGate: text("sender_domain_gate").notNull(),
+    auditCorrelationPolicy: text("audit_correlation_policy").notNull(),
+    providerSendEnabled: integer("provider_send_enabled", { mode: "boolean" }).notNull().default(false),
+    recipientPayloadsCreated: integer("recipient_payloads_created", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    draftStatusIdx: index("audience_broadcast_queue_readiness_draft_status_idx").on(table.draftId, table.status),
+    modeUpdatedIdx: index("audience_broadcast_queue_readiness_mode_updated_idx").on(table.queueMode, table.updatedAt),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {

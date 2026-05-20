@@ -15,6 +15,8 @@ export const audienceBroadcastScheduleIntentApiRoute = "/api/admin/audience/broa
 export const audienceBroadcastScheduleIntentConfirmationText = "Create dry-run Bumpgrade broadcast schedule intent";
 export const audienceBroadcastPreviewSafetyIssue = 175;
 export const audienceBroadcastPreviewSafetyStatus = "broadcast-preview-safety-ready";
+export const audienceBroadcastQueueReadinessIssue = 177;
+export const audienceBroadcastQueueReadinessStatus = "broadcast-queue-readiness-ready";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -58,6 +60,22 @@ type PreviewSafetyRow = {
   unsubscribe_footer_policy: string;
   sender_domain_status: string;
   safety_notes_json: string;
+  updated_at: number | string;
+};
+
+type QueueReadinessRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  queue_name: string;
+  queue_mode: string;
+  retry_policy: string;
+  suppression_check_policy: string;
+  unsubscribe_footer_check_policy: string;
+  sender_domain_gate: string;
+  audit_correlation_policy: string;
+  provider_send_enabled: number | string;
+  recipient_payloads_created: number | string;
   updated_at: number | string;
 };
 
@@ -211,6 +229,52 @@ export type AudienceBroadcastPreviewSafetySummary = {
     rawRecipientEmailsIncluded: false;
     rawRecipientNamesIncluded: false;
     personalizedBodyIncluded: false;
+    providerMessageIdsIncluded: false;
+    sendQueueRowsCreated: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
+export type AudienceBroadcastQueueReadiness = {
+  id: string;
+  draftId: string;
+  status: string;
+  queueName: string;
+  queueMode: string;
+  retryPolicy: string;
+  suppressionCheckPolicy: string;
+  unsubscribeFooterCheckPolicy: string;
+  senderDomainGate: string;
+  auditCorrelationPolicy: string;
+  providerSendEnabled: false;
+  recipientPayloadsCreated: false;
+  sendQueueRowsCreated: false;
+  providerMessageIdsIncluded: false;
+  updatedAt: string | null;
+};
+
+export type AudienceBroadcastQueueReadinessSummary = {
+  id: string;
+  status: typeof audienceBroadcastQueueReadinessStatus;
+  issue: typeof audienceBroadcastQueueReadinessIssue;
+  parentIssue: 17;
+  publicSourceDataRoute: "/audience/source-data";
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  counts: {
+    queueReadinessRecords: number;
+    dryRunQueues: number;
+    providerSendEnabledRecords: number;
+    recipientPayloadsCreatedRecords: number;
+  };
+  records: AudienceBroadcastQueueReadiness[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    rawRecipientNamesIncluded: false;
+    recipientPayloadsIncluded: false;
     providerMessageIdsIncluded: false;
     sendQueueRowsCreated: false;
   };
@@ -432,6 +496,49 @@ function emptyPreviewSafetySummary(
   };
 }
 
+function emptyQueueReadinessSummary(
+  source: AudienceBroadcastQueueReadinessSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastQueueReadinessSummary {
+  return {
+    id: "audience-broadcast-queue-readiness-contract",
+    status: audienceBroadcastQueueReadinessStatus,
+    issue: audienceBroadcastQueueReadinessIssue,
+    parentIssue: 17,
+    publicSourceDataRoute: "/audience/source-data",
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    counts: {
+      queueReadinessRecords: 0,
+      dryRunQueues: 0,
+      providerSendEnabledRecords: 0,
+      recipientPayloadsCreatedRecords: 0,
+    },
+    records: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      rawRecipientNamesIncluded: false,
+      recipientPayloadsIncluded: false,
+      providerMessageIdsIncluded: false,
+      sendQueueRowsCreated: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientName",
+      "subscriberEmailHash",
+      "suppressionHash",
+      "recipientPayload",
+      "providerMessageId",
+      "sendQueuePayload",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #177 exposes broadcast delivery queue readiness metadata before producer or consumer code exists. It does not create queue rows, recipient payloads, provider message IDs, private exports, or public agent broadcast writes.",
+  };
+}
+
 function mapDraft(row: BroadcastDraftRow, counts: ReadinessCountRow | null): AudienceBroadcastDraftReadiness {
   return {
     id: row.id,
@@ -492,6 +599,26 @@ function publicPreviewSafety(row: PreviewSafetyRow): AudienceBroadcastPreviewSaf
     unsubscribeFooterPolicy: row.unsubscribe_footer_policy,
     senderDomainStatus: row.sender_domain_status,
     safetyNotes: parseJsonStringArray(row.safety_notes_json),
+    sendQueueRowsCreated: false,
+    providerMessageIdsIncluded: false,
+    updatedAt: timestampValue(row.updated_at),
+  };
+}
+
+function publicQueueReadiness(row: QueueReadinessRow): AudienceBroadcastQueueReadiness {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    queueName: row.queue_name,
+    queueMode: row.queue_mode,
+    retryPolicy: row.retry_policy,
+    suppressionCheckPolicy: row.suppression_check_policy,
+    unsubscribeFooterCheckPolicy: row.unsubscribe_footer_check_policy,
+    senderDomainGate: row.sender_domain_gate,
+    auditCorrelationPolicy: row.audit_correlation_policy,
+    providerSendEnabled: false,
+    recipientPayloadsCreated: false,
     sendQueueRowsCreated: false,
     providerMessageIdsIncluded: false,
     updatedAt: timestampValue(row.updated_at),
@@ -674,6 +801,40 @@ export async function getAudienceBroadcastPreviewSafetySummary(): Promise<Audien
     return emptyPreviewSafetySummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast preview safety.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastQueueReadinessSummary(): Promise<AudienceBroadcastQueueReadinessSummary> {
+  try {
+    const { db } = await getRuntime();
+    const rows = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, queue_name, queue_mode, retry_policy, suppression_check_policy,
+          unsubscribe_footer_check_policy, sender_domain_gate, audit_correlation_policy,
+          provider_send_enabled, recipient_payloads_created, updated_at
+        FROM audience_broadcast_queue_readiness
+        ORDER BY updated_at DESC, id ASC`,
+      )
+      .all<QueueReadinessRow>();
+    const rawRows = rows.results ?? [];
+    const records = rawRows.map(publicQueueReadiness);
+
+    return {
+      ...emptyQueueReadinessSummary("d1", null),
+      counts: {
+        queueReadinessRecords: records.length,
+        dryRunQueues: records.filter((record) => record.queueMode === "dry_run_contract").length,
+        providerSendEnabledRecords: rawRows.filter((row) => numberValue(row.provider_send_enabled) > 0).length,
+        recipientPayloadsCreatedRecords: rawRows.filter((row) => numberValue(row.recipient_payloads_created) > 0).length,
+      },
+      records,
+    };
+  } catch (error) {
+    return emptyQueueReadinessSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast queue readiness.",
     );
   }
 }

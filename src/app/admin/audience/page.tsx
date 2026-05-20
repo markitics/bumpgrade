@@ -5,6 +5,7 @@ import {
   CalendarClock,
   Database,
   FileText,
+  ListChecks,
   MailCheck,
   MailX,
   NotebookPen,
@@ -21,6 +22,7 @@ import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-s
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   getAudienceBroadcastPreviewSafetySummary,
+  getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
 } from "@/lib/audience-broadcasts";
@@ -48,12 +50,14 @@ export default async function AdminAudiencePage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/audience" />;
 
-  const [state, broadcastReadiness, broadcastScheduleIntents, broadcastPreviewSafety] = await Promise.all([
-    getAdminAudienceInspectionState(),
-    getAudienceBroadcastReadinessSummary(),
-    getAudienceBroadcastScheduleIntentSummary(),
-    getAudienceBroadcastPreviewSafetySummary(),
-  ]);
+  const [state, broadcastReadiness, broadcastScheduleIntents, broadcastPreviewSafety, broadcastQueueReadiness] =
+    await Promise.all([
+      getAdminAudienceInspectionState(),
+      getAudienceBroadcastReadinessSummary(),
+      getAudienceBroadcastScheduleIntentSummary(),
+      getAudienceBroadcastPreviewSafetySummary(),
+      getAudienceBroadcastQueueReadinessSummary(),
+    ]);
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-audience-page">
@@ -64,7 +68,8 @@ export default async function AdminAudiencePage() {
           <p className="lede">
             Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
             unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, and dry-run schedule intents
-            created by audience APIs. Public source-data stays aggregate-only.
+            created by audience APIs. Preview safety and queue readiness are visible before delivery exists. Public
+            source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -145,6 +150,15 @@ export default async function AdminAudiencePage() {
               {broadcastPreviewSafety.counts.previewSafetyRecords} preview record
               {broadcastPreviewSafety.counts.previewSafetyRecords === 1 ? "" : "s"};{" "}
               {broadcastPreviewSafety.counts.unsubscribeFooterRequiredRecords} require unsubscribe footer checks.
+            </p>
+          </div>
+          <div>
+            <ListChecks aria-hidden="true" />
+            <h3>Queue readiness</h3>
+            <p>
+              {broadcastQueueReadiness.counts.queueReadinessRecords} queue contract
+              {broadcastQueueReadiness.counts.queueReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastQueueReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
             </p>
           </div>
         </div>
@@ -271,6 +285,65 @@ export default async function AdminAudiencePage() {
               </div>
               <h3>No preview safety records</h3>
               <p>{broadcastPreviewSafety.loadError ?? "Run the preview safety migration to seed the broadcast preview."}</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Delivery queue readiness</p>
+            <h2>Queue gates are visible before producers exist</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/177" className="text-link compact-link">
+            Issue #177
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastQueueReadiness.records.length > 0 ? (
+            broadcastQueueReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status}</span>
+                  <span className="admin-pill">{record.queueMode.replaceAll("_", " ")}</span>
+                </div>
+                <ListChecks aria-hidden="true" />
+                <h3>{record.queueName}</h3>
+                <p>{record.retryPolicy}</p>
+                <div className="roadmap-detail">
+                  <strong>Suppression check</strong>
+                  <span>{record.suppressionCheckPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Unsubscribe footer</strong>
+                  <span>{record.unsubscribeFooterCheckPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Sender gate</strong>
+                  <span>{record.senderDomainGate.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Audit correlation</strong>
+                  <span>{record.auditCorrelationPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Provider sends, recipient payloads, queue rows, and provider message IDs remain disabled in this slice.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No queue contract</span>
+                <span className="admin-pill">Issue #177</span>
+              </div>
+              <h3>No queue readiness records</h3>
+              <p>
+                {broadcastQueueReadiness.loadError ??
+                  "Run the queue readiness migration to seed delivery queue safety metadata."}
+              </p>
             </article>
           )}
         </div>
