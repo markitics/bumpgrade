@@ -4587,6 +4587,41 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("admin user journeys source data exposes launch proof summary", async ({ request }) => {
+    const response = await request.get("/admin/user-journeys/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.id).toBe("bumpgrade-admin-user-journeys-source-data");
+    expect(["d1", "fixture", "mixed"]).toContain(payload.source);
+    expect(payload.proofSummary).toEqual(
+      expect.objectContaining({
+        totalJourneys: expect.any(Number),
+        testedJourneys: expect.any(Number),
+        partialJourneys: expect.any(Number),
+        screenshotLinks: expect.any(Number),
+        ciLinks: expect.any(Number),
+        latestTestedAt: expect.any(String),
+      }),
+    );
+    expect(payload.proofSummary.totalJourneys).toBe(payload.journeys.length);
+    expect(payload.proofSummary.testedJourneys).toBeGreaterThan(0);
+    expect(payload.proofSummary.screenshotLinks).toBeGreaterThan(0);
+    expect(payload.proofSummary.ciLinks).toBeGreaterThan(0);
+    expect(payload.journeys).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "journey-prospect-explores-launch-marketing",
+          proof: expect.objectContaining({
+            lastTestedAt: expect.any(String),
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-226-homepage.png" }),
+            ]),
+          }),
+        }),
+      ]),
+    );
+  });
+
   test("For Mark source data exposes explicit response channels", async ({ request }) => {
     const response = await request.get("/admin/for-mark/source-data");
     expect(response.ok()).toBeTruthy();
@@ -5596,6 +5631,13 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/admin/for-mark");
     await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
     await expect(page.locator("header.site-header").getByRole("link", { name: "Log in / sign up", exact: true })).toHaveCount(0);
+
+    await page.goto("/admin/user-journeys");
+    await expect(page.getByRole("heading", { name: /Launch proof for the paths people will actually try/i })).toBeVisible();
+    await expect(page.getByText("Evidence matrix")).toBeVisible();
+    await expect(page.getByText("Latest proof", { exact: true })).toBeVisible();
+    await expect(page.locator(".journey-screenshot-thumb").first()).toBeVisible();
+    await expect(page.locator(".journey-proof-matrix").getByRole("link", { name: /CI workflow/i }).first()).toBeVisible();
 
     const audienceEmail = `owner-audience-${Date.now()}@example.com`;
     const audienceOptInResponse = await page.request.post("/api/audience/opt-in", {
