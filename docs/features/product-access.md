@@ -11,7 +11,8 @@ lookup. Issue #143 adds one-use download tokens. Issue #146 adds the
 first seeded private R2-backed fixture delivery path through Bumpgrade. Issue
 #147 adds redemption-time revalidation, issue #151 adds owner-confirmed private
 asset upload intent records, and issue #179 adds non-destructive revocation
-intent readiness.
+intent readiness. Issue #181 adds protected content readiness metadata without
+protected body delivery.
 
 Live in this slice:
 
@@ -42,15 +43,19 @@ Live in this slice:
 - `product_entitlement_revocation_intents`: owner-visible D1 readiness records
   for future access removal confirmation, stale-state, and audit checks. These
   records do not remove access or mutate entitlements.
+- `product_protected_content_sections`: owner-visible D1 readiness records for
+  future course/module and member-area delivery. These records do not include or
+  deliver lesson bodies, videos, transcripts, member posts, progress rows,
+  private R2 keys, or signed URLs.
 - Agent manifest entries for reading product/access state and future MCP
   resources.
 
 Not live in this slice:
 
 - Private R2 object keys or signed download URLs.
-- Protected course lessons, videos, transcripts, progress records, member posts,
-  customer delivery of arbitrary private R2-backed asset uploads, or live
-  fulfillment delivery.
+- Protected course lesson delivery, videos, transcripts, progress records,
+  member posts, customer delivery of arbitrary private R2-backed asset uploads,
+  or live fulfillment delivery.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions.
 - Agent write tools for granting, revoking, or delivering product access.
@@ -70,8 +75,13 @@ Public redaction boundary:
   public-safe policy text. `/admin/products` can inspect the seeded revocation
   readiness record for owner review, but destructive access removal is still
   blocked.
+- `/products/source-data` exposes aggregate protected-content readiness counts
+  and public-safe access policy text. `/admin/products` can inspect the seeded
+  protected content readiness records, but protected body delivery is still
+  blocked.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
-  private R2 object keys, and signed URLs remain server-private.
+  private R2 object keys, signed URLs, lesson bodies, member posts, transcripts,
+  and progress rows remain server-private.
 
 Future product/access writes must require actor identity, exact confirmation,
 idempotency, stale-state checks, audit correlation, redaction, and trusted

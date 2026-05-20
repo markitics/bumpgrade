@@ -169,7 +169,7 @@ Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, owner upload intent metadata, non-destructive revocation intent
-readiness, and redaction flags. `/api/products/download-tokens` can create a
+readiness, protected content readiness, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
@@ -186,6 +186,10 @@ unauthenticated agent write capability. `product_entitlement_revocation_intents`
 records are inspection-only until future exact-confirmed destructive APIs
 enforce owner identity, idempotency, stale-state checks, reason codes,
 customer-safe notification review, audit correlation, and redaction.
+`product_protected_content_sections` records are inspection-only until future
+delivery APIs enforce active entitlement or subscription state, stale-state
+checks, audit correlation, and redaction before returning lesson bodies, videos,
+transcripts, member posts, progress rows, private R2 objects, or signed URLs.
 
 Current audience automation boundary: `/audience/source-data` is the public-safe
 contract for seeded opt-in forms, lead magnets, subscriber segments, tags,

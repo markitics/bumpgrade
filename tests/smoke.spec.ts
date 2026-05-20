@@ -60,6 +60,7 @@ import {
   productEntitlementRevocationIntentIssue,
   productEntitlementRevocationIntentStatus,
 } from "../src/lib/product-entitlement-inspection";
+import { productProtectedContentIssue, productProtectedContentStatus } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -606,8 +607,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "owner-product-revocation-intents-ready",
-        issue: 179,
+        status: "protected-product-content-readiness-ready",
+        issue: 181,
         parentIssue: 16,
       }),
     );
@@ -763,6 +764,46 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.protectedContent).toEqual(
+      expect.objectContaining({
+        id: "product-protected-content-readiness-contract",
+        status: productProtectedContentStatus,
+        issue: productProtectedContentIssue,
+        parentIssue: 16,
+        ownerRoute: "/admin/products",
+        counts: expect.objectContaining({
+          protectedContentItems: expect.any(Number),
+          courseItems: expect.any(Number),
+          membershipItems: expect.any(Number),
+          deliveryEnabled: 0,
+          protectedBodiesIncluded: 0,
+        }),
+        records: expect.arrayContaining([
+          expect.objectContaining({
+            id: "protected-content-launch-course-module-1",
+            productId: "product-launch-course-lite",
+            contentKind: "course_module",
+            deliveryEnabled: false,
+            protectedBodyIncluded: false,
+          }),
+          expect.objectContaining({
+            id: "protected-content-launch-member-area",
+            productId: "product-launch-membership",
+            contentKind: "member_area",
+            deliveryEnabled: false,
+            protectedBodyIncluded: false,
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          privateContentBodiesIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          buyerDataIncluded: false,
+          progressDataIncluded: false,
+          deliveryEnabled: false,
+        }),
+      }),
+    );
     expect(payload.grantMappings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -803,9 +844,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #101 can grant idempotent sandbox product entitlement rows");
     expect(payload.writeBoundary).toContain("issue #151 lets verified owners create small private asset upload records");
     expect(payload.writeBoundary).toContain("issue #179 exposes non-destructive revocation intent readiness");
+    expect(payload.writeBoundary).toContain("issue #181 exposes protected content readiness");
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
     expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
     expect(payload.caveat).toContain("non-destructive revocation intent readiness");
+    expect(payload.caveat).toContain("protected content readiness");
 
     await page.goto("/products/indie-launch-library");
     await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
@@ -1057,6 +1100,18 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.revocationIntents.counts.revocationIntents).toBeGreaterThanOrEqual(1);
+    expect(payload.protectedContent).toEqual(
+      expect.objectContaining({
+        status: productProtectedContentStatus,
+        issue: productProtectedContentIssue,
+        counts: expect.objectContaining({
+          protectedContentItems: expect.any(Number),
+          deliveryEnabled: 0,
+          protectedBodiesIncluded: 0,
+        }),
+      }),
+    );
+    expect(payload.protectedContent.counts.protectedContentItems).toBeGreaterThanOrEqual(2);
     expect(JSON.stringify(payload)).not.toContain(grant.buyerEmail);
     expect(JSON.stringify(payload)).not.toContain(grant.eventId);
 
@@ -1066,6 +1121,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Access removal stays blocked until revocation checks are explicit/i })).toBeVisible();
     await expect(page.locator("body")).toContainText("Revocation intents");
     await expect(page.locator("body")).toContainText("owner confirmed dry run");
+    await expect(page.getByRole("heading", { name: /Lesson and member delivery stays blocked until entitlement checks are live/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText("Launch course module readiness");
+    await expect(page.locator("body")).toContainText("Launch member area readiness");
     await expect(page.locator("body")).toContainText(grant.buyerEmail);
     await expect(page.locator("body")).toContainText("Launch bundle");
     await expect(page.locator("body")).toContainText("Launch checklist download");
@@ -3050,12 +3108,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -3184,6 +3242,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ table: "product_fulfillment_tasks" }),
         expect.objectContaining({ table: "product_asset_uploads" }),
         expect.objectContaining({ table: "product_entitlement_revocation_intents" }),
+        expect.objectContaining({ table: "product_protected_content_sections" }),
         expect.objectContaining({ table: "stripe_webhook_events" }),
         expect.objectContaining({ table: "payment_audit_events" }),
       ]),
@@ -3283,8 +3342,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-product-access-catalog",
           route: "/products/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["productEntitlementRevocationIntentId"]),
-          safeForAgents: expect.arrayContaining(["Inspect non-destructive revocation intent readiness"]),
+          stableIds: expect.arrayContaining(["productEntitlementRevocationIntentId", "productProtectedContentId"]),
+          safeForAgents: expect.arrayContaining([
+            "Inspect non-destructive revocation intent readiness",
+            "Inspect protected content readiness without protected body delivery",
+          ]),
         }),
         expect.objectContaining({
           id: "read-customer-product-entitlements",

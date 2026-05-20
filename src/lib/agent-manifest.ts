@@ -292,7 +292,7 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth:
-      "src/lib/product-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts",
+      "src/lib/product-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts + src/lib/product-protected-content.ts",
     stableIds: [
       "productId",
       "assetId",
@@ -303,6 +303,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "productDownloadTokenId",
       "productAssetUploadIntentId",
       "productEntitlementRevocationIntentId",
+      "productProtectedContentId",
       "subscriptionPlanId",
       "fulfillmentId",
       "agentActionId",
@@ -316,10 +317,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover short-lived private R2-backed download-token boundaries",
       "Discover owner-confirmed private asset upload-intent boundaries",
       "Inspect non-destructive revocation intent readiness",
+      "Inspect protected content readiness without protected body delivery",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows and non-destructive revocation intent readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status and create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; verified owners can inspect private entitlement rows, non-destructive revocation intent readiness, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status and create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks; product creation, customer delivery of arbitrary uploads, signed object URLs, protected body delivery, destructive revocation, live fulfillment automation, subscription access, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -359,16 +361,17 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/admin/products",
     kind: "doc",
     auth: "owner-session",
-    sourceOfTruth: "D1 tables product_entitlements, product_fulfillment_tasks, product_entitlement_revocation_intents, checkout_intents, commerce_products, and commerce_prices",
-    stableIds: ["productId", "entitlementTemplateId", "productEntitlementId", "productEntitlementRevocationIntentId", "fulfillmentTaskId", "checkoutIntentId", "ownerUserId"],
+    sourceOfTruth: "D1 tables product_entitlements, product_fulfillment_tasks, product_entitlement_revocation_intents, product_protected_content_sections, checkout_intents, commerce_products, and commerce_prices",
+    stableIds: ["productId", "entitlementTemplateId", "productEntitlementId", "productEntitlementRevocationIntentId", "productProtectedContentId", "fulfillmentTaskId", "checkoutIntentId", "ownerUserId"],
     safeForAgents: [
       "Read private buyer entitlement rows only with an owner session",
       "Inspect checkout status, product/price context, access rule, and queued fulfillment state",
       "Inspect owner-visible revocation intent readiness without removing access",
+      "Inspect owner-visible protected content readiness without delivering protected bodies",
       "Confirm public source-data redacts buyer email, raw Stripe IDs, hashes, metadata JSON, private R2 keys, and signed URLs",
     ],
     writeBoundary:
-      "This owner page is inspection-only for entitlement rows and revocation intent readiness; signed downloads, protected content, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct agent entitlement writes require future confirmed-write APIs.",
+      "This owner page is inspection-only for entitlement rows, revocation intent readiness, and protected content readiness; signed downloads, protected body delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct agent entitlement writes require future confirmed-write APIs.",
   },
   {
     id: "create-owner-product-asset-upload-intent",
@@ -734,7 +737,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, non-destructive revocation intent readiness, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, non-destructive revocation intent readiness, protected content readiness, redaction flags, preview route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "productId",
       "assetId",
@@ -745,10 +748,11 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "productDownloadTokenId",
       "productAssetUploadIntentId",
       "productEntitlementRevocationIntentId",
+      "productProtectedContentId",
       "fulfillmentId",
     ],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-confirmed private asset upload records, and non-destructive revocation intent readiness; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, protected content, or live fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-confirmed private asset upload records, non-destructive revocation intent readiness, and protected content readiness; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, protected content delivery, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",
@@ -937,9 +941,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, non-destructive revocation intent readiness, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, non-destructive revocation intent readiness, protected content readiness, and fulfillment boundaries.",
     safetyBoundary:
-      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Revocation intents are inspection-only until future exact-confirmed destructive APIs enforce stale-state, reason, notification, and audit checks; customer delivery of arbitrary uploads, subscription access changes, destructive revocation, and fulfillment actions remain unavailable.",
+      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Revocation and protected-content records are inspection-only until future exact-confirmed destructive or delivery APIs enforce entitlement, subscription, stale-state, reason, notification, audit, and redaction checks; customer delivery of arbitrary uploads, protected body delivery, subscription access changes, destructive revocation, and fulfillment actions remain unavailable.",
   },
   {
     id: "mcp-tool-create-product-asset-upload-intent",
