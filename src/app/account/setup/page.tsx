@@ -202,6 +202,41 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
       <section className="content-band">
         <div className="split-heading">
           <div>
+            <p className="eyebrow">Customer login</p>
+            <h2>One account across Bumpgrade-hosted sites.</h2>
+          </div>
+          <p>
+            Customers who sign in on Bumpgrade can move between paid publisher sites on {publisherDefaultDomain}
+            without creating a separate login for every publisher subdomain. Private products, memberships, and
+            customer records still stay scoped to the publisher site that sold them.
+          </p>
+        </div>
+
+        <div className="account-setup-grid">
+          <article className="account-setup-card">
+            <LockKeyhole aria-hidden="true" />
+            <p className="eyebrow">Bumpgrade subdomains</p>
+            <h3>Shared login</h3>
+            <p>
+              A customer can use the same Bumpgrade account across hostnames like studio.{publisherDefaultDomain} and
+              courses.{publisherDefaultDomain}, while each site keeps its own access rules.
+            </p>
+          </article>
+          <article className="account-setup-card">
+            <Globe2 aria-hidden="true" />
+            <p className="eyebrow">Custom domains</p>
+            <h3>Central sign-in handoff</h3>
+            <p>
+              Domains you already own use the Bumpgrade account handoff for identity, then return customers to the
+              custom domain with tenant-specific access checks.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="split-heading">
+          <div>
             <p className="eyebrow">Custom domain</p>
             <h2>Bring an existing domain when you are ready.</h2>
           </div>

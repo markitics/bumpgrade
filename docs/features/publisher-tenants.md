@@ -1,6 +1,7 @@
 # Publisher Tenants And Bumpgrade Subdomains
 
-Issue #222 adds the first paid publisher tenant setup path.
+Issues #221-#224 add the first paid publisher tenant setup path, domain
+onboarding, and auth-boundary contract.
 
 ## Live Slice
 
@@ -31,9 +32,16 @@ Better Auth is configured to trust `https://*.bumpgrade.com` and to use the
 `bumpgrade.com` cookie domain in production, so one login can work across
 `bumpgrade.com`, `a.bumpgrade.com`, and `b.bumpgrade.com`.
 
+That shared session proves identity only. Publisher-site reads and writes still
+need to resolve the requested hostname to a tenant and check checkout,
+entitlement, membership, or owner/admin permission before returning private
+data.
+
 Custom domains are different: browser cookies cannot span unrelated
-customer-owned domains. DNS onboarding is live, but custom-domain customer auth
-semantics need the follow-up auth slice.
+customer-owned domains. Existing-domain DNS onboarding is live, and issue #224
+documents the launch behavior: custom domains use the central Bumpgrade sign-in
+handoff for identity, then return to the custom domain for tenant-scoped access
+checks. Do not claim raw cookie sharing across arbitrary custom domains.
 
 ## Existing Domains
 
@@ -53,4 +61,4 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Customer auth across arbitrary custom domains.
+- Raw browser-cookie sharing across unrelated custom domains.

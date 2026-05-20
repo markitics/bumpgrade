@@ -216,6 +216,8 @@ const issue222BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-222-paid-publisher-subdomains";
 const issue223BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-223-custom-domain-dns";
+const issue224BranchActionsUrl =
+  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-224-cross-subdomain-auth";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -316,7 +318,32 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
       { label: "Issue #223", url: "https://github.com/markitics/bumpgrade/issues/223", kind: "issue" },
     ],
-    notes: ["Buying domains through Bumpgrade remains separate in issue #225."],
+    notes: [
+      "Custom-domain login semantics are documented in issue #224.",
+      "Buying domains through Bumpgrade remains separate in issue #225.",
+    ],
+  },
+  "journey-customer-uses-one-login-across-bumpgrade-subdomains": {
+    status: "partial",
+    lastTestedAt: launchProofUpdatedAt,
+    environment: "Local contract tests plus GitHub Actions CI linked from the issue #224 branch query.",
+    method: "Better Auth configuration assertions, account source-data inspection, and route smoke tests.",
+    summary:
+      "The production auth contract uses the bumpgrade.com cookie domain and *.bumpgrade.com trusted origin so Bumpgrade-hosted publisher subdomains share identity while tenant access stays scoped.",
+    ciLinks: [
+      { label: "Issue #224 branch CI", url: issue224BranchActionsUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [],
+    validationLinks: [
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "Issue #224", url: "https://github.com/markitics/bumpgrade/issues/224", kind: "issue" },
+    ],
+    notes: [
+      "Localhost cannot prove production browser cookie sharing for bumpgrade.com, so tests assert the production Better Auth boundary and production smoke verifies source-data after deploy.",
+      "Custom domains use a central Bumpgrade sign-in handoff instead of raw cross-domain cookie sharing.",
+      "A local account setup screenshot was not attached because the in-app browser rejected the localhost capture target.",
+    ],
   },
 };
 
@@ -779,6 +806,44 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     proof: createJourneyProof("journey-publisher-connects-custom-domain", "feature-better-auth"),
     sortOrder: 45,
+    updatedAt: null,
+  },
+  {
+    id: "journey-customer-uses-one-login-across-bumpgrade-subdomains",
+    title: "Customer uses one login across Bumpgrade-hosted publisher sites",
+    featureId: "feature-better-auth",
+    featureStatus: "live",
+    issueNumbers: [9, 221, 222, 223, 224],
+    primaryUser: "Customer buying from multiple Bumpgrade-hosted publishers",
+    userGoal:
+      "Use one Bumpgrade identity session across publisher subdomains while each publisher site keeps its own access and entitlement checks.",
+    sourceEvidence: [
+      "https://bumpgrade.com/account/source-data",
+      "https://github.com/markitics/bumpgrade/issues/221",
+      "https://github.com/markitics/bumpgrade/issues/224",
+    ],
+    happyPath: [
+      "Customer signs into the central Bumpgrade account session.",
+      "Customer opens a paid publisher site on a.bumpgrade.com.",
+      "Customer later opens another paid publisher site on b.bumpgrade.com without creating a second identity login.",
+      "Each site resolves its hostname to the correct publisher tenant before showing protected products, memberships, or customer content.",
+      "If the publisher uses a custom domain, Bumpgrade uses the central sign-in handoff and returns the customer to the custom domain for tenant-scoped access checks.",
+    ],
+    edgeCases: [
+      "A shared identity session must not grant access to products or memberships sold by a different publisher.",
+      "A shared identity session must not grant owner/admin access.",
+      "Unrelated customer-owned domains cannot receive the bumpgrade.com browser cookie directly.",
+      "Localhost smoke tests cannot prove bumpgrade.com browser cookie sharing; production smoke should verify the deployed source-data contract.",
+    ],
+    agentAccess:
+      "Agents can read /account/source-data for the session boundary. They must not infer cross-tenant customer access from a shared identity session.",
+    validation: [
+      "Playwright asserts the production Better Auth cookie-domain and trusted-origin contract.",
+      "Playwright asserts /account/source-data exposes the Bumpgrade-subdomain and custom-domain auth boundary.",
+      "Issue #224 records the explicit launch behavior and custom-domain limitation.",
+    ],
+    proof: createJourneyProof("journey-customer-uses-one-login-across-bumpgrade-subdomains", "feature-better-auth"),
+    sortOrder: 46,
     updatedAt: null,
   },
   {

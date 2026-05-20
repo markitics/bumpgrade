@@ -1,5 +1,10 @@
 import { site } from "@/lib/site";
-import { publisherCustomDomainIssue, publisherTenantIssue, publisherTenantParentIssue } from "@/lib/publisher-tenants";
+import {
+  publisherCustomDomainIssue,
+  publisherCustomerAuthIssue,
+  publisherTenantIssue,
+  publisherTenantParentIssue,
+} from "@/lib/publisher-tenants";
 
 export const agentManifestUpdatedAt = "2026-05-20";
 
@@ -216,13 +221,14 @@ export const agentReadContracts: AgentReadContract[] = [
       "publisherSubdomainReservationId",
       "publisherCustomDomainId",
       "publisherPlanEntitlementId",
+      "publisherAuthBoundaryId",
       "issue",
     ],
     safeForAgents: [
       "Read paid-plan gate requirements",
       "Read default Bumpgrade subdomain reservation policy",
       "Read custom-domain DNS instruction and verification policy",
-      "Read cross-subdomain auth configuration",
+      "Read cross-subdomain auth configuration and custom-domain login boundary",
       "Distinguish Bumpgrade subdomains, existing custom domains, and domain-purchase work",
     ],
     writeBoundary:
@@ -875,7 +881,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "issue",
     ],
     volatileClaims:
-      `Default Bumpgrade subdomain reservation and existing-domain DNS onboarding are live for paid or launch-pilot accounts; buying domains through Bumpgrade requires issue #225.`,
+      `Default Bumpgrade subdomain reservation and existing-domain DNS onboarding are live for paid or launch-pilot accounts; Bumpgrade-hosted subdomains share the central identity session, custom domains use a Bumpgrade login handoff, and buying domains through Bumpgrade requires issue #225.`,
   },
   {
     id: "evidence-funnels",
@@ -1197,9 +1203,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://publisher-account",
     status: "ready-contract",
     backedBy: "/account/source-data",
-    purpose: `Expose paid publisher tenant, Bumpgrade subdomain setup, and custom-domain DNS onboarding from issues #${publisherTenantParentIssue}, #${publisherTenantIssue}, and #${publisherCustomDomainIssue}.`,
+    purpose: `Expose paid publisher tenant, Bumpgrade subdomain setup, custom-domain DNS onboarding, and publisher-site auth boundaries from issues #${publisherTenantParentIssue}, #${publisherTenantIssue}, #${publisherCustomDomainIssue}, and #${publisherCustomerAuthIssue}.`,
     safetyBoundary:
-      "Read-only MCP resource for setup policy; reserving a subdomain or starting custom-domain onboarding requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, DNS verification state, and redaction.",
+      "Read-only MCP resource for setup policy; reserving a subdomain or starting custom-domain onboarding requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, DNS verification state, and redaction. Shared Bumpgrade identity never bypasses tenant-scoped access checks.",
   },
   {
     id: "mcp-tool-propose-update",

@@ -115,14 +115,16 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - `/account/source-data` exposes paid publisher tenant setup, default
   `*.bumpgrade.com` subdomain reservation policy, existing custom-domain DNS
   onboarding policy, D1 table boundaries, and cross-subdomain Better Auth
-  configuration from issues #221, #222, and #223.
+  configuration from issues #221, #222, #223, and #224.
   `POST /api/account/publisher/subdomain` requires a signed-in,
   email-confirmed publisher with an active paid-plan or launch-pilot
   entitlement, plus idempotency and audit correlation. `POST
   /api/account/publisher/custom-domain` starts existing-domain onboarding and
   DNS verification state for paid publishers after the default Bumpgrade
   hostname is reserved. Treat it as bring-your-own-domain setup, not domain
-  purchasing or customer auth across unrelated custom domains.
+  purchasing. Bumpgrade-hosted subdomains share the central identity session;
+  customer-owned domains use the Bumpgrade sign-in handoff and tenant-scoped
+  access checks instead of raw cross-domain cookie sharing.
 - `/funnels/source-data` exposes the first funnel/page-builder contract, seeded
   public preview, reusable funnel templates, block-template records, and
   owner-session editable draft capability from issues #91, #93, #95, #135,

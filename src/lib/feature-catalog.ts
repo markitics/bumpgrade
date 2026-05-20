@@ -418,6 +418,7 @@ export const featureCatalog: FeatureRecord[] = [
       "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
       "Existing-domain onboarding with deterministic CNAME instructions and DNS verification state.",
       "Better Auth cookie configuration for one login across bumpgrade.com subdomains.",
+      "Custom-domain login boundary that uses a central Bumpgrade sign-in handoff rather than raw cross-domain cookie sharing.",
       "Role and permission model for future agent actions.",
     ],
     evidence: [
@@ -426,6 +427,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
       "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
       "Issue #223 adds existing custom-domain onboarding, DNS instructions, and redacted verification state.",
+      "Issue #224 documents and tests the publisher-site auth boundary for Bumpgrade subdomains and custom domains.",
     ],
     agentContract:
       "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; tenant, subdomain, and custom-domain writes require signed-in publisher context, paid-plan checks, idempotency, audit correlation, DNS verification state, and redaction.",

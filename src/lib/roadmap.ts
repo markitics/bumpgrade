@@ -186,6 +186,23 @@ export const roadmapItems: RoadmapItem[] = [
     nextMilestone: "Add custom-domain auth semantics in issue #224, then domain purchase decisions in issue #225.",
   },
   {
+    id: "roadmap-cross-subdomain-customer-auth",
+    title: "Customer login across Bumpgrade-hosted publisher sites",
+    status: "active",
+    issue: 224,
+    featureId: featureIdFor(9),
+    group: "Accounts and domains",
+    summary:
+      "Bumpgrade-hosted publisher subdomains share the central Better Auth identity session while tenant access remains scoped per hostname, checkout, entitlement, and membership state.",
+    publicEvidence: [
+      "Issue #224 tracks the publisher-site auth boundary.",
+      "`/account/source-data` exposes the Bumpgrade-subdomain session-sharing contract and custom-domain caveat.",
+      "Production Better Auth uses the `bumpgrade.com` cookie domain and `https://*.bumpgrade.com` trusted origin pattern.",
+      "Custom domains cannot receive the `bumpgrade.com` browser cookie directly, so they use a central Bumpgrade login handoff before returning to tenant-scoped access checks.",
+    ],
+    nextMilestone: "Validate the contract in Playwright, deploy the source-data update, then move to domain purchase decisions in issue #225.",
+  },
+  {
     id: "roadmap-stripe-commerce",
     title: "Stripe payments and checkout architecture",
     status: "shipped",

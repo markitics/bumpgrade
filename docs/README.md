@@ -60,8 +60,8 @@ then open the relevant shelf for the task.
   source-data now includes `/mobile-admin/dashboard/source-data`,
   `/mobile-admin/ios/source-data`, and `/mobile-admin/android/source-data`.
 - `features/publisher-tenants.md`: paid publisher tenant setup, default
-  Bumpgrade subdomain reservation, and cross-subdomain auth boundary from issue
-  #222.
+  Bumpgrade subdomain reservation, existing-domain DNS onboarding, and
+  publisher-site auth boundary from issues #221-#224.
 - `decision-log.md`: durable technical decisions that future agents should not
   rediscover from chat.
 - `keep-working/README.md`: how to use the repo-tracked `goal-runner` and

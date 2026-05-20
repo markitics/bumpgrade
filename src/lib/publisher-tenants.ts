@@ -1,5 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+import { describeBetterAuthSessionBoundary } from "@/lib/auth";
+
 export type PublisherPlanEntitlementStatus = "active" | "inactive" | "expired";
 export type PublisherTenantStatus = "active" | "suspended";
 export type PublisherSubdomainReservationStatus = "active" | "reserved" | "released";
@@ -187,6 +189,7 @@ export class PublisherTenantError extends Error {
 
 export const publisherTenantIssue = 222;
 export const publisherCustomDomainIssue = 223;
+export const publisherCustomerAuthIssue = 224;
 export const publisherTenantParentIssue = 221;
 export const publisherTenantUpdatedAt = "2026-05-20";
 export const publisherSubdomainApiRoute = "/api/account/publisher/subdomain";
@@ -197,6 +200,10 @@ export const publisherDefaultDomain = "bumpgrade.com";
 export const publisherCustomDomainTarget = "custom-domains.bumpgrade.com";
 export const publisherSubdomainConfirmationText = "Reserve this Bumpgrade subdomain for my paid publisher account";
 export const publisherCustomDomainConfirmationText = "Connect this existing domain to my paid Bumpgrade account";
+export const publisherHostedAuthBoundary = describeBetterAuthSessionBoundary({
+  authUrl: `https://${publisherDefaultDomain}`,
+  siteUrl: `https://${publisherDefaultDomain}`,
+});
 
 const reservedSubdomains = new Set([
   "account",
@@ -1189,11 +1196,35 @@ export const publisherTenantSourceData = {
   },
   crossSubdomainAuth: {
     status: "configured",
-    cookieDomain: publisherDefaultDomain,
+    issue: publisherCustomerAuthIssue,
+    cookieDomain: publisherHostedAuthBoundary.cookieDomain,
     trustedOriginPattern: "https://*.bumpgrade.com",
-    goal: "One Better Auth login should apply across bumpgrade.com and paid publisher subdomains such as a.bumpgrade.com and b.bumpgrade.com.",
-    caveat:
-      "Custom-domain authentication still needs the custom-domain onboarding slice because browser cookies cannot span unrelated customer-owned domains.",
+    trustedOrigins: publisherHostedAuthBoundary.trustedOrigins,
+    crossSubDomainCookiesEnabled: publisherHostedAuthBoundary.crossSubDomainCookiesEnabled,
+    bumpgradeHostedSubdomainsShareLogin: publisherHostedAuthBoundary.bumpgradeHostedSubdomainsShareLogin,
+    goal: "One Better Auth identity session applies across bumpgrade.com and paid publisher subdomains such as a.bumpgrade.com and b.bumpgrade.com.",
+    tenantIsolation: publisherHostedAuthBoundary.isolationBoundary,
+    localTestBoundary:
+      "Localhost cannot prove browser cookie sharing for bumpgrade.com. Tests assert the production Better Auth cookie-domain and trusted-origin contract, then production smoke reads this source-data route after deploy.",
+  },
+  customerAuthPolicy: {
+    status: "configured",
+    issue: publisherCustomerAuthIssue,
+    sharedIdentityProvider: "https://bumpgrade.com",
+    appliesTo: ["bumpgrade.com", "*.bumpgrade.com"],
+    endUserPromise:
+      "Customers using Bumpgrade-hosted publisher sites should not need a second login when moving between paid publisher subdomains on bumpgrade.com.",
+    publisherSiteRule:
+      "A shared identity session is not shared data access. Every request still resolves the hostname to the publisher tenant and checks checkout, entitlement, or membership state before returning customer content.",
+    customDomains: {
+      canShareBumpgradeCookieDirectly: publisherHostedAuthBoundary.customDomainsCanShareCookieDirectly,
+      behavior:
+        "Customer-owned custom domains cannot receive a bumpgrade.com browser cookie directly. Bumpgrade should use a central bumpgrade.com login handoff and return URL for identity, then enforce tenant-scoped access on the custom domain.",
+      launchCopy:
+        "Existing-domain DNS onboarding is live. Custom-domain customer login uses the Bumpgrade account handoff instead of promising raw cookie sharing across unrelated domains.",
+    },
+    adminBoundary:
+      "Owner/admin sessions remain allowlisted and owner-gated; shared publisher-site identity must not grant admin access.",
   },
   customDomainPolicy: {
     status: "live",
@@ -1214,6 +1245,6 @@ export const publisherTenantSourceData = {
   notIncludedYet: [
     "Buying domains through Bumpgrade.",
     "Publisher site editor parity for arbitrary pages on the reserved hostname.",
-    "Customer auth across unrelated custom domains.",
+    "Raw browser-cookie sharing across unrelated custom domains.",
   ],
 };
