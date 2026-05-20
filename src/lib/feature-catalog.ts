@@ -123,8 +123,9 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-confirmed template-to-draft creation from issue #161.",
       "Owner-confirmed checkout-offer linking on private draft steps from issue #163.",
       "Public sandbox checkout start rendering on published linked checkout blocks from issue #165.",
-      "Funnel steps for opt-in, sales, checkout, upsell, downsell, thank-you, and nurture paths.",
-      "Reusable template and block metadata, preview state, and publishing controls.",
+      "Webinar and resource funnel template/page-block contracts from issue #213.",
+      "Funnel steps for opt-in, sales, checkout, upsell, webinar, resource, thank-you, and future nurture paths.",
+      "Reusable template and block metadata for opt-ins, sales pages, checkout handoffs, webinars, resources, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
       "Agent-safe draft proposals before public page changes.",
     ],
@@ -139,9 +140,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #161 lets verified owners create private D1 drafts from reusable templates after exact confirmation and idempotency.",
       "Issue #163 lets verified owners attach the seeded sandbox checkout offer to private draft checkout blocks after exact confirmation, idempotency, and a fresh revision check.",
       "Issue #165 lets published funnel routes render the existing sandbox checkout start panel when a checkout block carries owner-confirmed checkoutLink metadata.",
+      "Issue #213 adds webinar/resource funnel templates, page-block metadata, admin step-kind options, and D1 step-kind storage readiness.",
     ],
     agentContract:
-      "Agents may read reusable template, block-template, checkout-link, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, update, reorder, link checkout offers, preview, and publish private draft funnel steps with confirmation and stale-state checks; published linked checkout blocks can render the sandbox checkout start surface, while future direct agent writes must require confirmation before creating drafts directly, editing creator-speech, linking billing-sensitive offers, or publishing public funnel pages.",
+      "Agents may read reusable template, block-template, webinar/resource template, checkout-link, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, update, reorder, link checkout offers, preview, and publish private draft funnel steps with confirmation and stale-state checks; published linked checkout blocks can render the sandbox checkout start surface, while future direct agent writes must require confirmation before creating drafts directly, editing creator-speech, linking billing-sensitive offers, scheduling webinars, delivering private resources, or publishing public funnel pages.",
   },
   {
     id: "feature-checkout-offers",

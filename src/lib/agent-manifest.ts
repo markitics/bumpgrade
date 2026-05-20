@@ -217,6 +217,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "funnelTemplateId",
       "funnelBlockTemplateId",
       "funnelCheckoutLinkId",
+      "funnelWebinarResourceTemplateId",
       "funnelRevisionId",
       "funnelDraftId",
       "funnelAuditEventId",
@@ -233,10 +234,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover owner-session template-to-draft creation from issue #161",
       "Discover owner-session checkout-offer linking from issue #163",
       "Discover public linked-checkout start rendering from issue #165",
-      "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, #135, #163, and #165",
+      "Discover webinar and resource page-shape templates from issue #213",
+      "Discover owner-session editable draft, private preview, and exact-confirmed publish capability from issues #91, #93, #95, #135, #163, #165, and #213",
     ],
     writeBoundary:
-      "Owner-session seed/create/template-create/update/reorder/checkout-link draft writes, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface. Direct agent template creation, block editing, direct agent checkout linking, deletion, unpublishing, live billing, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/template-create/update/reorder/checkout-link draft writes, including webinar/resource template-to-draft creation, private draft preview, and exact-confirmed public publishing exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface. Direct agent template creation, block editing, direct agent checkout linking, deletion, unpublishing, live billing, live webinar scheduling, private resource delivery, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -250,12 +252,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read private draft funnel rows only with an owner session",
       "Preview private draft funnel state only with an owner session",
       "Create private drafts from reusable templates only with an owner session, exact confirmation, and idempotency",
+      "Create private webinar/resource template drafts only as page-shape records, not as live scheduling or private asset delivery",
       "Attach the seeded sandbox checkout offer to private checkout blocks only with an owner session, exact confirmation, idempotency, and a fresh revision ID",
       "Publish a draft only through owner-session UI with exact confirmation, idempotency, and a fresh revision ID",
       "Check audit metadata before acting on draft state",
     ],
     writeBoundary:
-      "The POST endpoint can seed, create, create from templates, update, reorder, checkout-link, and publish private draft steps for an authenticated owner; private preview is owner-gated; deletion, unpublishing, direct agent template creation, and direct agent edits are not live.",
+      "The POST endpoint can seed, create, create from templates including webinar/resource page shapes, update, reorder, checkout-link, and publish private draft steps for an authenticated owner; private preview is owner-gated; deletion, unpublishing, live webinar scheduling, private resource delivery, direct agent template creation, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -834,7 +837,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, reusable funnel templates, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, public funnel checkout-start capability, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+      "Seeded funnel, ordered steps, page blocks, reusable funnel templates including webinar/resource page shapes, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, public funnel checkout-start capability, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
     stableIds: [
       "funnelId",
       "funnelStepId",
@@ -842,6 +845,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "funnelTemplateId",
       "funnelBlockTemplateId",
       "funnelCheckoutLinkId",
+      "funnelWebinarResourceTemplateId",
       "funnelRevisionId",
       "funnelDraftId",
       "funnelAuditEventId",
@@ -850,7 +854,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "offerId",
     ],
     volatileClaims:
-      "The public funnel contract exposes template and block-template records plus owner-gated template-create, checkout-link, editable draft, publish capability metadata, and public sandbox checkout-start rendering metadata; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking, live billing, unpublishing, or unconfirmed agent edits.",
+      "The public funnel contract exposes template and block-template records, webinar/resource page-shape records, owner-gated template-create, checkout-link, editable draft, publish capability metadata, and public sandbox checkout-start rendering metadata; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking, live billing, live webinar scheduling, private resource delivery, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -1054,9 +1058,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates, block templates, checkout-link capability, public funnel checkout-start capability, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates including webinar/resource page shapes, block templates, checkout-link capability, public funnel checkout-start capability, revision IDs, owner-gated draft capability, and write-safety boundaries.",
     safetyBoundary:
-      "Public resource stays read-only; published linked checkout blocks can render the sandbox checkout start surface, and owner-session draft create/seed/template-create/update/reorder/checkout-link, private preview, and exact-confirmed publish exist in admin UI. Direct agent template creation, block editing, direct agent checkout-link, live billing, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
+      "Public resource stays read-only; published linked checkout blocks can render the sandbox checkout start surface, and owner-session draft create/seed/template-create/update/reorder/checkout-link, webinar/resource template-to-draft, private preview, and exact-confirmed publish exist in admin UI. Direct agent template creation, block editing, direct agent checkout-link, live billing, live webinar scheduling, private resource delivery, unpublish/delete, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-funnel-draft",

@@ -44,8 +44,9 @@ export default async function AdminFunnelsPage() {
           <p className="lede">
             Owners can seed, create, edit, and reorder private draft funnels with ordered opt-in, sales, and thank-you
             steps. Exact-confirmed publishing is live for public D1 funnel routes, and owner-confirmed template-to-draft
-            creation is live for the reusable template library. Owners can also attach the seeded sandbox checkout offer
-            to private draft checkout blocks. Deletion, unpublishing, drag-and-drop layout editing, and direct agent edits
+            creation is live for the reusable template library, including webinar and resource page shapes. Owners can
+            also attach the seeded sandbox checkout offer to private draft checkout blocks. Deletion, unpublishing,
+            drag-and-drop layout editing, live webinar integrations, private resource delivery, and direct agent edits
             still need confirmed-write slices.
           </p>
           <div className="hero-actions">
@@ -261,6 +262,8 @@ export default async function AdminFunnelsPage() {
                           <option value="sales">Sales</option>
                           <option value="checkout">Checkout</option>
                           <option value="upsell">Upsell</option>
+                          <option value="webinar">Webinar</option>
+                          <option value="resource">Resource</option>
                           <option value="thank_you">Thank-you</option>
                         </select>
                       </label>
