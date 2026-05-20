@@ -46,8 +46,8 @@ then open the relevant shelf for the task.
   aggregate source/conversion windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
-  review, owner review/reversal actions, and fraud flag source-data contract
-  from issues #89, #109, #111, #113, and #115.
+  review, owner review/reversal actions, public-safe partner reports, and fraud
+  flag source-data contract from issues #89, #109, #111, #113, #115, and #193.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

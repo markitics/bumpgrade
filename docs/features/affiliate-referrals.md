@@ -1,16 +1,17 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, and #115 add the first affiliate/referral
-source-data, preview surface, privacy-safe click capture path, checkout
-attribution evidence path, review-only commission ledger path, and owner
-review/reversal action boundary for parent issue #19.
+Issues #89, #109, #111, #113, #115, and #193 add the first
+affiliate/referral source-data, preview surface, privacy-safe click capture
+path, checkout attribution evidence path, review-only commission ledger path,
+owner review/reversal action boundary, and public-safe partner report contract
+for parent issue #19.
 
 ## Live Public-Safe Routes
 
 - `/affiliates/source-data`: JSON contract for seeded affiliate programs,
   partner records, referral links, attribution rules, commission rules,
-  commission ledger fixtures, payout batches, review flags, audit events, and
-  write boundaries.
+  public-safe partner reports, commission ledger fixtures, payout batches,
+  review flags, audit events, and write boundaries.
 - `/affiliates/indie-launch-partners`: semantic preview of the same fixture
   program for humans and browser agents.
 - `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
@@ -21,6 +22,9 @@ review/reversal action boundary for parent issue #19.
   attribution.
 - `/api/admin/affiliates/commission-ledger/actions`: owner-gated POST endpoint
   for review, hold, and reversal actions on review-only commission evidence.
+- `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
+  for clicks, attributed checkouts, review-only ledgers, owner review actions,
+  commission evidence totals, payout-readiness caveats, and redaction flags.
 
 ## Stable IDs
 
@@ -28,6 +32,7 @@ The contract introduces stable IDs for:
 
 - `affiliateProgramId`
 - `affiliatePartnerId`
+- `affiliatePartnerReportId`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -53,9 +58,12 @@ route validation, hashed request evidence, aggregate-only public reporting, and
 can attach eligible referral clicks to sandbox checkout intents as attribution
 evidence. It can also create review-only commission ledger evidence from a
 trusted sandbox checkout intent with referral attribution, and an owner session
-can review, hold, or reverse that evidence without making it payable. It proves
-affiliate/referral click-to-checkout-to-ledger-to-review semantics, not payable
-commissions or payout capability.
+can review, hold, or reverse that evidence without making it payable. It also
+exposes public-safe partner reports that aggregate click, attribution,
+review-only ledger, and owner review action evidence without private buyer,
+payout, tax, Stripe, raw click, raw checkout, or private actor fields. It proves
+affiliate/referral click-to-checkout-to-ledger-to-review-to-report semantics,
+not payable commissions or payout capability.
 
 Not live in this slice:
 
@@ -67,6 +75,7 @@ Not live in this slice:
 - payout account storage;
 - tax form collection;
 - Stripe payout actions;
+- private partner portals;
 - partner notifications;
 - confirmed-write agent APIs.
 

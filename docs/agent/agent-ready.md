@@ -264,9 +264,10 @@ direct agent analytics writes, or statistically meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
-referral links, aggregate click counts, checkout attribution evidence,
-aggregate review-only commission ledger counts, attribution rules, commission
-rules, ledger fixtures, payout review, fraud flags, and the
+referral links, public-safe partner reports, aggregate click counts, checkout
+attribution evidence, aggregate review-only commission ledger counts,
+attribution rules, commission rules, ledger fixtures, payout review, fraud
+flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -276,10 +277,14 @@ review-only commission ledger evidence through
 `/api/affiliates/commission-ledger`, and owner sessions can review, hold, or
 reverse that evidence through
 `/api/admin/affiliates/commission-ledger/actions` without creating payout state.
-This proves affiliate and referral click-to-checkout-to-ledger-to-review
-semantics, not cookie assignment, buyer attribution finalization, payable
-commission state, direct agent review writes, tax collection, fraud enforcement,
-Stripe payout capability, or partner notifications.
+Issue #193 adds partner report definitions and aggregate report rows for clicks,
+attributed checkouts, review-only ledgers, owner review actions, and payout
+readiness caveats without exposing buyer, payout, tax, Stripe, raw click, raw
+checkout, or private actor fields. This proves affiliate and referral
+click-to-checkout-to-ledger-to-review-to-report semantics, not cookie assignment,
+buyer attribution finalization, payable commission state, direct agent review
+writes, tax collection, fraud enforcement, Stripe payout capability, private
+partner portal access, or partner notifications.
 
 ## MCP And Tooling
 
