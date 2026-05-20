@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { audienceAutomationSourceData } from "@/lib/audience-automation";
 import {
   getAudienceBroadcastDeliveryBatchSummary,
+  getAudienceBroadcastDeliveryQueueMessageSummary,
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
@@ -21,6 +22,7 @@ export async function GET() {
     broadcastPreviewSafety,
     broadcastQueueReadiness,
     broadcastDeliveryBatches,
+    broadcastDeliveryQueueMessages,
   ] = await Promise.all([
     getAudienceSubscriberInspectionSummary(),
     getAudienceBroadcastReadinessSummary(),
@@ -28,6 +30,7 @@ export async function GET() {
     getAudienceBroadcastPreviewSafetySummary(),
     getAudienceBroadcastQueueReadinessSummary(),
     getAudienceBroadcastDeliveryBatchSummary(),
+    getAudienceBroadcastDeliveryQueueMessageSummary(),
   ]);
 
   return NextResponse.json({
@@ -38,6 +41,7 @@ export async function GET() {
         subscriberInspection.ownerRoute,
         broadcastScheduleIntents.apiRoute,
         broadcastDeliveryBatches.apiRoute,
+        broadcastDeliveryQueueMessages.apiRoute,
       ]),
     ),
     subscriberInspection,
@@ -46,5 +50,6 @@ export async function GET() {
     broadcastPreviewSafety,
     broadcastQueueReadiness,
     broadcastDeliveryBatches,
+    broadcastDeliveryQueueMessages,
   });
 }

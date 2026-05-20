@@ -459,6 +459,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "broadcastPreviewSafetyId",
       "broadcastQueueReadinessId",
       "broadcastDeliveryBatchId",
+      "broadcastDeliveryQueueMessageId",
     ],
     safeForAgents: [
       "Read seeded opt-in form",
@@ -470,12 +471,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect broadcast preview and unsubscribe-footer safety without personalized body or recipient exposure",
       "Inspect delivery queue readiness without recipient payloads, queue rows, or provider sends",
       "Inspect delivery-batch dry runs without recipient payloads, queue messages, or provider sends",
+      "Inspect delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
       "Inspect the public-safe unsubscribe/suppression write boundary",
       "Inspect the owner-only CRM timeline note boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, and delivery-batch dry runs, and record dry-run schedule intents and delivery batches in /admin/audience; imports, real email delivery, private exports, direct agent subscriber writes, send queues, recipient payloads, and provider message IDs require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, and queue-message dry runs, and record dry-run schedule intents, delivery batches, and queue-message evidence in /admin/audience; imports, real email delivery, private exports, direct agent subscriber writes, Cloudflare Queue dispatch, recipient payloads, and provider message IDs require future confirmed-write APIs.",
   },
   {
     id: "create-owner-broadcast-schedule-intent",
@@ -510,6 +512,23 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       "This owner-session API records aggregate delivery-batch dry-run metadata only. It does not send email, create recipient payloads, enqueue provider messages, create provider message IDs, expose recipients, authorize public agent writes, or bypass future sender-domain, suppression, unsubscribe footer, provider-limit, and audit requirements.",
+  },
+  {
+    id: "create-owner-broadcast-delivery-queue-messages",
+    title: "Owner broadcast delivery queue message dry run",
+    route: "/api/admin/audience/broadcasts/delivery-queue-messages",
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables audience_broadcast_delivery_queue_messages, audience_broadcast_delivery_batches, audience_broadcast_drafts, and audience_broadcast_queue_readiness",
+    stableIds: ["broadcastDeliveryQueueMessageId", "broadcastDeliveryBatchId", "broadcastDraftId", "ownerUserId", "idempotencyKey", "expectedDraftUpdatedAt"],
+    safeForAgents: [
+      "Inspect the owner-only queue-message dry-run contract",
+      "Create dry-run queue-message evidence only with an owner session and exact confirmation",
+      "Use delivery batch, draft revision, expected readiness count, queue readiness, and idempotency checks before recording queue-message evidence",
+      "Confirm responses omit actor email, recipient email, recipient names, suppression hashes, recipient payloads, Cloudflare Queue message bodies, personalized bodies, and provider message IDs",
+    ],
+    writeBoundary:
+      "This owner-session API records aggregate queue-message dry-run metadata only. It does not send email, dispatch Cloudflare Queue messages, create recipient payloads, create provider message IDs, expose recipients, authorize public agent writes, or bypass future sender-domain, suppression, unsubscribe footer, provider-limit, dispatch, and audit requirements.",
   },
   {
     id: "create-audience-unsubscribe-suppression",
@@ -821,7 +840,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-audience-automation",
     route: "/audience/source-data",
     resolves:
-      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, broadcast readiness, dry-run schedule intent counts, broadcast preview safety, queue readiness, delivery-batch dry runs, and confirmed-write boundary.",
+      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, broadcast readiness, dry-run schedule intent counts, broadcast preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, and confirmed-write boundary.",
     stableIds: [
       "subscriberSegmentId",
       "subscriberId",
@@ -835,9 +854,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "broadcastPreviewSafetyId",
       "broadcastQueueReadinessId",
       "broadcastDeliveryBatchId",
+      "broadcastDeliveryQueueMessageId",
     ],
     volatileClaims:
-      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, and delivery-batch dry runs; it is not contact import, live email sending, private export, send queue creation, recipient payload creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
+      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, delivery-batch dry runs, and queue-message dry runs; it is not contact import, live email sending, private export, Cloudflare Queue dispatch, recipient payload creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
   },
   {
     id: "evidence-analytics-experiments",
@@ -1024,9 +1044,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run schedule intent counts, preview/footer safety records, queue readiness records, delivery-batch dry runs, redaction flags, consent boundaries, unsubscribe boundaries, owner-note boundaries, and owner schedule/delivery-batch boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run schedule intent counts, preview/footer safety records, queue readiness records, delivery-batch dry runs, queue-message dry runs, redaction flags, consent boundaries, unsubscribe boundaries, owner-note boundaries, and owner schedule/delivery-batch/queue-message boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, read-only broadcast readiness, preview/footer safety, queue readiness, owner-confirmed dry-run schedule intents, and owner-confirmed delivery-batch dry runs are live; imports, real sends, send queues, recipient payloads, private exports, CRM automation, and direct public agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, read-only broadcast readiness, preview/footer safety, queue readiness, owner-confirmed dry-run schedule intents, owner-confirmed delivery-batch dry runs, and owner-confirmed queue-message dry runs are live; imports, real sends, Cloudflare Queue dispatch, recipient payloads, private exports, CRM automation, and direct public agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",

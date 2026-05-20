@@ -209,6 +209,9 @@ CRM note boundary, the owner-gated
 `/api/admin/audience/broadcasts/schedule-intents` dry-run schedule intent
 boundary, the owner-gated
 `/api/admin/audience/broadcasts/delivery-batches` dry-run batch boundary,
+the owner-gated
+`/api/admin/audience/broadcasts/delivery-queue-messages` dry-run queue-message
+boundary,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
@@ -222,10 +225,14 @@ broadcast readiness from D1, plus record dry-run schedule intents without
 recipient payloads, inspect preview/footer safety and queue readiness without
 personalized bodies, queue rows, or provider sends, and record
 delivery-batch dry runs without recipient payloads, queue messages, provider
-sends, or provider message IDs. This proves seeded subscriber capture, unsubscribe
+sends, or provider message IDs, and record dry-run queue-message evidence without
+Cloudflare Queue dispatch, recipient payloads, provider sends, or provider
+message IDs. This proves seeded subscriber capture, unsubscribe
 evidence, owner inspection, private owner-note semantics, aggregate broadcast
 readiness, owner-confirmed dry-run schedule intent semantics, preview safety
-semantics, queue readiness semantics, and delivery-batch dry-run semantics, not contact import, live email sending, send queues, recipient payloads, CRM
+semantics, queue readiness semantics, delivery-batch dry-run semantics, and
+queue-message dry-run semantics, not contact import, live email sending, live
+Cloudflare Queue dispatch, recipient payloads, CRM
 automation, private export, suppression-list administration, or direct agent
 subscriber write capability.
 

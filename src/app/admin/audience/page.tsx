@@ -19,11 +19,14 @@ import {
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { AdminBroadcastDeliveryBatchForm } from "@/components/admin-broadcast-delivery-batch-form";
+import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broadcast-delivery-queue-message-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   audienceBroadcastDeliveryBatchIssue,
+  audienceBroadcastDeliveryQueueMessageIssue,
   getAudienceBroadcastDeliveryBatchSummary,
+  getAudienceBroadcastDeliveryQueueMessageSummary,
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
@@ -60,6 +63,7 @@ export default async function AdminAudiencePage() {
     broadcastPreviewSafety,
     broadcastQueueReadiness,
     broadcastDeliveryBatches,
+    broadcastDeliveryQueueMessages,
   ] = await Promise.all([
       getAdminAudienceInspectionState(),
       getAudienceBroadcastReadinessSummary(),
@@ -67,6 +71,7 @@ export default async function AdminAudiencePage() {
       getAudienceBroadcastPreviewSafetySummary(),
       getAudienceBroadcastQueueReadinessSummary(),
       getAudienceBroadcastDeliveryBatchSummary(),
+      getAudienceBroadcastDeliveryQueueMessageSummary(),
     ]);
 
   return (
@@ -77,9 +82,9 @@ export default async function AdminAudiencePage() {
           <h1>Subscriber inspection without public contact leaks.</h1>
           <p className="lede">
             Owners can inspect the consent-backed waitlist subscribers, active tags, draft sequence enrollments,
-            unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, and dry-run schedule intents
-            created by audience APIs. Preview safety, queue readiness, and delivery-batch dry runs are visible before
-            delivery exists. Public source-data stays aggregate-only.
+            unsubscribe suppression totals, private CRM timeline notes, broadcast readiness, dry-run schedule intents,
+            delivery-batch dry runs, and dry-run queue-message evidence created by audience APIs. Preview safety and
+            queue readiness stay visible before delivery exists. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -178,6 +183,15 @@ export default async function AdminAudiencePage() {
               {broadcastDeliveryBatches.counts.deliveryBatches} dry-run batch
               {broadcastDeliveryBatches.counts.deliveryBatches === 1 ? "" : "es"} recorded;{" "}
               {broadcastDeliveryBatches.counts.providerSendEnabledBatches} provider-send batches enabled.
+            </p>
+          </div>
+          <div>
+            <ListChecks aria-hidden="true" />
+            <h3>Queue messages</h3>
+            <p>
+              {broadcastDeliveryQueueMessages.counts.dryRunRecords} dry-run record
+              {broadcastDeliveryQueueMessages.counts.dryRunRecords === 1 ? "" : "s"};{" "}
+              {broadcastDeliveryQueueMessages.counts.cloudflareQueueMessagesCreatedRecords} Cloudflare Queue dispatches.
             </p>
           </div>
         </div>
@@ -468,6 +482,12 @@ export default async function AdminAudiencePage() {
                   Provider sends, recipient payloads, queue messages, personalized bodies, and provider message IDs
                   remain disabled.
                 </p>
+                <AdminBroadcastDeliveryQueueMessageForm
+                  deliveryBatchId={batch.id}
+                  draftId={batch.draftId}
+                  expectedDraftUpdatedAt={batch.expectedDraftUpdatedAt}
+                  expectedReadyRecipientCount={batch.readyRecipientCount}
+                />
               </article>
             ))
           ) : (
@@ -479,6 +499,62 @@ export default async function AdminAudiencePage() {
               <h3>No delivery-batch dry runs yet</h3>
               <p>
                 Record one from a current schedule intent after queue readiness and preview safety are present.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Queue-message dry runs</p>
+            <h2>Queue evidence is recorded before Cloudflare dispatch</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastDeliveryQueueMessageIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastDeliveryQueueMessageIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastDeliveryQueueMessages.latestMessages.length > 0 ? (
+            broadcastDeliveryQueueMessages.latestMessages.map((message) => (
+              <article key={message.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">dry-run evidence</span>
+                  <span className="admin-pill">{message.dryRunMessageCount} messages</span>
+                </div>
+                <ListChecks aria-hidden="true" />
+                <h3>{message.queueName}</h3>
+                <p>{message.dispatchPolicy.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Delivery batch</strong>
+                  <span>{message.deliveryBatchId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Retry policy</strong>
+                  <span>{message.retryPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Sender gate</strong>
+                  <span>{message.senderDomainGateStatus.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Cloudflare Queue dispatch, recipient payloads, provider sends, personalized bodies, and provider
+                  message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No queue messages</span>
+                <span className="admin-pill">Issue #{audienceBroadcastDeliveryQueueMessageIssue}</span>
+              </div>
+              <h3>No queue-message dry runs yet</h3>
+              <p>
+                Record one from a current delivery batch after dry-run queue gates and the current readiness count are
+                checked.
               </p>
             </article>
           )}

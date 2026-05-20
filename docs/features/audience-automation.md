@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, and #183 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, and #189 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, and delivery-batch dry runs for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, preview/footer safety, queue readiness, delivery-batch dry runs, and dry-run queue-message evidence for issue #17.
 
 ## Live Routes
 
@@ -18,9 +18,11 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, preview/foo
   for dry-run broadcast schedule intents.
 - `/api/admin/audience/broadcasts/delivery-batches`: owner-gated POST endpoint
   for suppression-checked delivery-batch dry runs.
+- `/api/admin/audience/broadcasts/delivery-queue-messages`: owner-gated POST
+  endpoint for delivery queue message dry-run evidence.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
   enrollment inspection plus suppression totals, private note context, and
-  broadcast readiness, schedule intent context, preview safety context, queue readiness context, and delivery-batch context.
+  broadcast readiness, schedule intent context, preview safety context, queue readiness context, delivery-batch context, and queue-message context.
 
 ## Current Contract
 
@@ -41,6 +43,7 @@ The first workspace includes stable IDs for:
 - broadcast preview and unsubscribe-footer safety boundaries;
 - delivery queue readiness boundaries;
 - owner-confirmed delivery-batch dry-run boundaries;
+- owner-confirmed delivery queue message dry-run boundaries;
 - public-safe aggregate subscriber, suppression, and timeline inspection counts and
   redaction flags.
 
@@ -69,22 +72,26 @@ delivery-batch path records owner-confirmed aggregate batch evidence from the
 current schedule intent after preview safety, queue readiness, sender-domain
 gate, suppression, and stale-state checks while still creating no recipient
 payloads, queue messages, provider sends, or provider message IDs. The
+delivery queue message path records owner-confirmed aggregate dry-run message
+evidence from the current delivery batch after stale-state and dry-run queue
+gate checks while still creating no Cloudflare Queue messages, recipient
+payloads, provider sends, or provider message IDs. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
-note bodies, actor emails, recipient payloads, provider message IDs, send queue
-payloads, raw IP/user-agent evidence, and private metadata remain excluded from public
-agent-readable JSON.
+note bodies, actor emails, recipient payloads, provider message IDs, Cloudflare
+Queue message bodies, send queue payloads, raw IP/user-agent evidence, and
+private metadata remain excluded from public agent-readable JSON.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
 state, including aggregate suppression counts, broadcast readiness counts, and
-schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, and the unsubscribe write boundary.
+schedule intent counts, plus preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, and the unsubscribe write boundary.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
 intents. They can also inspect preview/footer safety and queue readiness and
-record delivery-batch dry runs without sending. Direct agent subscriber
+record delivery-batch dry runs and queue-message dry runs without sending. Direct agent subscriber
 writes, imports, real email sends, CRM automation, private
 exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
