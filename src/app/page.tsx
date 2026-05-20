@@ -45,13 +45,12 @@ const launchOutcomes = [
 
 const proofPoints = [
   "Feature examples and pricing are ready for first invite conversations.",
-  "Funnels, checkout previews, products, audience, analytics, and partner tracking are connected.",
+  "Funnels, checkout paths, products, audience, analytics, and partner tracking are connected.",
   "Customer payments and sends stay reviewed until each live path is verified.",
 ];
 
 function availabilityLabel(status: string) {
-  if (status === "live") return "Available now";
-  if (status === "launch-preview") return "Launch preview";
+  if (status === "live" || status === "launch-preview") return "Available now";
   return "In build";
 }
 

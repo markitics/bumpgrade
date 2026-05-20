@@ -15,14 +15,14 @@ export const metadata: Metadata = {
 
 const launchPlans = [
   {
-    name: "Launch preview",
+    name: "Launch access",
     label: "For the first invite wave",
     price: "Start with an invite",
-    description: "Use Bumpgrade to plan and preview the first funnel, offer stack, audience path, and product access for a real launch.",
+    description: "Use Bumpgrade to plan, shape, and review the first funnel, offer stack, audience path, and product access for a real launch.",
     cta: "Request launch access",
     href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access",
     features: [
-      "Feature, funnel, offer, product, audience, analytics, and affiliate previews",
+      "Feature, funnel, offer, product, audience, analytics, and affiliate planning",
       "Launch review links for your team and AI helpers",
       "Bumpgrade subdomain reservation after the paid launch-pilot gate is active",
       "Existing-domain DNS instructions after the default hostname is reserved",
