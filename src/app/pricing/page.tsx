@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CircleDollarSign, CreditCard, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, CircleDollarSign, CreditCard, Globe2, Mail, ShieldCheck, Sparkles } from "lucide-react";
 
 import { site } from "@/lib/site";
 
@@ -24,6 +24,7 @@ const launchPlans = [
     features: [
       "Feature, funnel, offer, product, audience, analytics, and affiliate previews",
       "Source-data routes for agents and launch review",
+      "Bumpgrade subdomain reservation after the paid launch-pilot gate is active",
       "Owner-reviewed setup before live customer payments",
     ],
   },
@@ -36,6 +37,7 @@ const launchPlans = [
     href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20publisher%20pilot",
     features: [
       "Funnel and checkout path mapped to your launch",
+      "Default Bumpgrade subdomain for your publisher workspace",
       "Email, CRM, and follow-up readiness review",
       "Stripe payment setup reviewed before live charges",
     ],
@@ -56,6 +58,11 @@ const launchPlans = [
 ];
 
 const paymentOptions = [
+  {
+    title: "Bumpgrade subdomain",
+    body: "Paid publishers can reserve a default hostname such as your-name.bumpgrade.com from account setup before adding a custom domain.",
+    icon: Globe2,
+  },
   {
     title: "Card payments",
     body: "Live customer charges are intended to run through Stripe-hosted payment pages once the live checkout smoke path is verified for the specific offer.",
@@ -98,7 +105,7 @@ export default function PricingPage() {
           <BadgeCheck aria-hidden="true" />
           <strong>Ready for invite conversations</strong>
           <p>
-            The launch site shows the feature set and proof paths. Self-serve checkout opens only after the live Stripe path is tested for the specific offer.
+            The launch site shows the feature set, proof paths, and paid account setup. Self-serve checkout opens only after the live Stripe path is tested for the specific offer.
           </p>
         </aside>
       </section>
@@ -139,10 +146,10 @@ export default function PricingPage() {
         <div className="split-heading">
           <div>
             <p className="eyebrow">Payment options</p>
-            <h2>How live payments should be handled during launch.</h2>
+            <h2>How account setup and live payments should be handled during launch.</h2>
           </div>
           <p>
-            The customer-facing promise is simple: no surprise charges, no unverified checkout path, and clear confirmation before payment.
+            The customer-facing promise is simple: no surprise charges, no unverified checkout path, a paid account gate before subdomain reservation, and clear confirmation before payment.
           </p>
         </div>
         <div className="payment-option-grid">

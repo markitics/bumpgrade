@@ -15,6 +15,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Resources: https://bumpgrade.com/resources
 - Pricing direction: https://bumpgrade.com/pricing
 - Content surface source data: https://bumpgrade.com/content/source-data
+- Publisher account setup: https://bumpgrade.com/account/setup
+- Publisher account source data: https://bumpgrade.com/account/source-data
+- Publisher subdomain reservation API: https://bumpgrade.com/api/account/publisher/subdomain
 - Funnel source data: https://bumpgrade.com/funnels/source-data
 - Seeded funnel preview: https://bumpgrade.com/funnels/indie-launch-sandbox
 - Admin draft funnels: https://bumpgrade.com/admin/funnels (human page requires Better Auth owner session)
@@ -109,6 +112,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Treat pricing tracks as positioning
   hypotheses, not published plan names, amounts, trials, limits, or live billing
   availability.
+- `/account/source-data` exposes paid publisher tenant setup, default
+  `*.bumpgrade.com` subdomain reservation policy, D1 table boundaries, and
+  cross-subdomain Better Auth configuration from issues #221 and #222.
+  `POST /api/account/publisher/subdomain` requires a signed-in,
+  email-confirmed publisher with an active paid-plan or launch-pilot
+  entitlement, plus idempotency and audit correlation. Treat it as default
+  Bumpgrade subdomain setup, not custom-domain DNS verification, domain
+  purchasing, or customer auth across unrelated custom domains.
 - `/funnels/source-data` exposes the first funnel/page-builder contract, seeded
   public preview, reusable funnel templates, block-template records, and
   owner-session editable draft capability from issues #91, #93, #95, #135,

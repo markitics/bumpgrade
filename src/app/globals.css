@@ -2304,14 +2304,16 @@ h3 {
 .launch-home,
 .marketing-features-page,
 .marketing-feature-detail-page,
-.pricing-page {
+.pricing-page,
+.account-setup-page {
   min-height: calc(100vh - 72px);
 }
 
 .launch-hero,
 .marketing-features-hero,
 .feature-detail-hero,
-.pricing-hero {
+.pricing-hero,
+.account-setup-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, 0.78fr);
   gap: 36px;
@@ -2327,7 +2329,8 @@ h3 {
 .launch-hero h1,
 .marketing-features-hero h1,
 .feature-detail-hero h1,
-.pricing-hero h1 {
+.pricing-hero h1,
+.account-setup-hero h1 {
   max-width: 980px;
 }
 
@@ -2658,6 +2661,149 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.account-status-panel {
+  align-self: center;
+  display: grid;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.account-status-panel svg {
+  width: 34px;
+  height: 34px;
+  color: var(--green);
+}
+
+.account-status-panel p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.account-status-panel strong {
+  color: var(--ink);
+  font-size: 30px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.account-status-panel span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.account-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.account-setup-card,
+.subdomain-reservation-form {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.account-setup-card {
+  min-height: 260px;
+  padding: 18px;
+}
+
+.account-setup-card svg {
+  width: 30px;
+  height: 30px;
+  color: var(--green);
+}
+
+.account-setup-card h3 {
+  margin: 0;
+  font-size: 26px;
+  overflow-wrap: anywhere;
+}
+
+.account-setup-card p:not(.eyebrow),
+.subdomain-reservation-form p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.account-setup-card .primary-action,
+.account-setup-card .secondary-action {
+  width: fit-content;
+  align-self: end;
+}
+
+.account-success {
+  margin: 18px 0 0;
+  padding: 12px;
+  border: 1px solid rgba(55, 95, 76, 0.28);
+  border-radius: 8px;
+  background: #edf7ef;
+  color: var(--green);
+  font-weight: 900;
+}
+
+.subdomain-reservation-form {
+  max-width: 820px;
+  margin-top: 22px;
+  padding: 20px;
+}
+
+.subdomain-reservation-form label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.subdomain-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+}
+
+.subdomain-input-row input {
+  min-height: 52px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 900;
+  padding: 0 14px;
+}
+
+.subdomain-input-row input:focus {
+  outline: 3px solid rgba(55, 95, 76, 0.18);
+}
+
+.subdomain-input-row input:disabled,
+.subdomain-reservation-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.subdomain-input-row span {
+  padding: 0 14px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
 .pricing-note svg {
   width: 34px;
   height: 34px;
@@ -2851,6 +2997,7 @@ h3 {
   .marketing-features-hero,
   .feature-detail-hero,
   .pricing-hero,
+  .account-setup-hero,
   .split-heading {
     grid-template-columns: 1fr;
   }
@@ -2879,7 +3026,8 @@ h3 {
   .feature-benefit-grid,
   .feature-story-grid,
   .linked-record-grid,
-  .launch-proof-grid {
+  .launch-proof-grid,
+  .account-setup-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2932,7 +3080,8 @@ h3 {
   .launch-hero,
   .marketing-features-hero,
   .feature-detail-hero,
-  .pricing-hero {
+  .pricing-hero,
+  .account-setup-hero {
     padding: 46px 16px 40px;
   }
 
@@ -2973,8 +3122,19 @@ h3 {
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
+  .account-setup-grid,
   .workflow-step-strip {
     grid-template-columns: 1fr;
+  }
+
+  .subdomain-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .subdomain-input-row span {
+    min-height: 38px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
   }
 
   .launch-hero-media img,

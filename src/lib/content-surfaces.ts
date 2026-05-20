@@ -42,7 +42,7 @@ export type PlannedPricingTrack = {
   issueNumbers: number[];
 };
 
-export const contentSurfacesUpdatedAt = "2026-05-18";
+export const contentSurfacesUpdatedAt = "2026-05-20";
 
 export const audienceSegments: AudienceSegment[] = [
   {
@@ -210,11 +210,18 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
   {
     id: "pricing-track-publisher",
     title: "Publisher workspace",
-    status: "planned",
+    status: "live",
     intendedFor: "Solo creators, coaches, and newsletter publishers starting with one owned audience.",
-    includes: ["Funnel and page builder", "Checkout and products", "Email/list growth", "Basic analytics"],
-    notYetClaimed: "No published price, plan limits, trial, or live billing availability is claimed yet.",
-    issueNumbers: [14, 15, 16, 17, 18, 20],
+    includes: [
+      "Funnel and page builder",
+      "Checkout and products",
+      "Email/list growth",
+      "Basic analytics",
+      "Paid-gated Bumpgrade subdomain reservation",
+    ],
+    notYetClaimed:
+      "Published price amounts, plan limits, custom-domain verification, domain purchase, and live self-serve billing availability are separate launch slices.",
+    issueNumbers: [14, 15, 16, 17, 18, 20, 222],
   },
   {
     id: "pricing-track-growth",
@@ -240,7 +247,7 @@ export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/content/source-data"],
+  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/account/setup", "/content/source-data"],
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,

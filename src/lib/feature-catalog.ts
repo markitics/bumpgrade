@@ -414,15 +414,19 @@ export const featureCatalog: FeatureRecord[] = [
       "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
+      "Paid-plan or launch-pilot gate for publisher account setup.",
+      "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
+      "Better Auth cookie configuration for one login across bumpgrade.com subdomains.",
       "Role and permission model for future agent actions.",
     ],
     evidence: [
       "Issue #9 owns the Better Auth foundation slice.",
       "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
       "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
+      "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
     ],
     agentContract:
-      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface.",
+      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; tenant and subdomain writes require signed-in publisher context, paid-plan checks, idempotency, audit correlation, and redaction.",
   },
   {
     id: "feature-codex-email",

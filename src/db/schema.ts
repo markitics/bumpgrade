@@ -1072,6 +1072,106 @@ export const funnelAuditEvents = sqliteTable(
   }),
 );
 
+export const publisherPlanEntitlements = sqliteTable(
+  "publisher_plan_entitlements",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    ownerEmail: text("owner_email").notNull(),
+    status: text("status").notNull().default("active"),
+    source: text("source").notNull(),
+    planSlug: text("plan_slug").notNull(),
+    startsAt: integer("starts_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    endsAt: integer("ends_at", { mode: "timestamp" }),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    ownerUserStatusIdx: index("publisher_plan_entitlements_owner_user_status_idx").on(
+      table.ownerUserId,
+      table.status,
+      table.updatedAt,
+    ),
+    ownerEmailStatusIdx: index("publisher_plan_entitlements_owner_email_status_idx").on(
+      table.ownerEmail,
+      table.status,
+      table.updatedAt,
+    ),
+  }),
+);
+
+export const publisherTenants = sqliteTable(
+  "publisher_tenants",
+  {
+    id: text("id").primaryKey(),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    ownerEmail: text("owner_email").notNull(),
+    displayName: text("display_name").notNull(),
+    status: text("status").notNull().default("active"),
+    planStatus: text("plan_status").notNull().default("paid"),
+    defaultSubdomain: text("default_subdomain"),
+    primaryHostname: text("primary_hostname"),
+    sourceIssueNumber: integer("source_issue_number").notNull().default(222),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    ownerEmailUnique: uniqueIndex("publisher_tenants_owner_email_unique").on(table.ownerEmail),
+    ownerUserUnique: uniqueIndex("publisher_tenants_owner_user_unique").on(table.ownerUserId),
+    statusUpdatedIdx: index("publisher_tenants_status_updated_idx").on(table.status, table.updatedAt),
+  }),
+);
+
+export const publisherSubdomainReservations = sqliteTable(
+  "publisher_subdomain_reservations",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => publisherTenants.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    ownerEmail: text("owner_email").notNull(),
+    subdomain: text("subdomain").notNull(),
+    fullHostname: text("full_hostname").notNull(),
+    status: text("status").notNull().default("active"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    sourceIssueNumber: integer("source_issue_number").notNull().default(222),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    subdomainUnique: uniqueIndex("publisher_subdomain_reservations_subdomain_unique").on(table.subdomain),
+    idempotencyUnique: uniqueIndex("publisher_subdomain_reservations_idempotency_unique").on(table.idempotencyKey),
+    tenantStatusIdx: index("publisher_subdomain_reservations_tenant_status_idx").on(
+      table.tenantId,
+      table.status,
+      table.updatedAt,
+    ),
+  }),
+);
+
+export const publisherTenantAuditEvents = sqliteTable(
+  "publisher_tenant_audit_events",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id").references(() => publisherTenants.id, { onDelete: "set null" }),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorEmail: text("actor_email").notNull(),
+    eventKind: text("event_kind").notNull(),
+    summary: text("summary").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("publisher_tenant_audit_events_idempotency_unique").on(table.idempotencyKey),
+    tenantCreatedIdx: index("publisher_tenant_audit_events_tenant_created_idx").on(table.tenantId, table.createdAt),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {
