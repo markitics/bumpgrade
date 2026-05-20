@@ -60,11 +60,13 @@ import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
   draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelDuplicationConfirmationText,
   draftFunnelPublishConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
 } from "../src/lib/funnel-drafts";
 import {
   checkoutLinkingCapability,
+  draftFunnelDuplicationCapability,
   editableDraftCapability,
   funnelSourceData,
   publicFunnelCheckoutStartCapability,
@@ -494,8 +496,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "webinar-resource-template-ready",
-        issue: 213,
+        status: "draft-duplication-ready",
+        issue: 215,
         parentIssue: 14,
       }),
     );
@@ -510,6 +512,7 @@ test.describe("Bumpgrade scaffold", () => {
         previewRoutePattern: "/admin/funnels/:draftId/preview",
         createEndpoint: "/api/admin/funnels/drafts",
         editEndpoint: "/api/admin/funnels/drafts",
+        duplicateEndpoint: "/api/admin/funnels/drafts",
         publishEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
@@ -518,6 +521,24 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.publishedD1Funnels).toEqual(expect.any(Array));
     expect(payload.privateDraftsIncluded).toBe(false);
     expect(payload.rawOwnerDataIncluded).toBe(false);
+    expect(payload.draftFunnelDuplicationCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelDuplicationCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 215,
+        adminRoute: "/admin/funnels",
+        duplicateEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        copiesOrderedSteps: true,
+        copiesBlocks: true,
+        copiesCheckoutLinks: false,
+        publishesDuplicate: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
     expect(payload.templateDraftCreationCapability).toEqual(
       expect.objectContaining({
         id: templateDraftCreationCapability.id,
@@ -581,6 +602,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelBlockTemplateId",
         "funnelCheckoutLinkId",
         "funnelWebinarResourceTemplateId",
+        "funnelDraftDuplicateId",
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
@@ -658,6 +680,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
+    expect(payload.caveat).toContain("private draft duplication");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -4522,6 +4545,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-duplicate-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -4535,10 +4559,18 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-funnel-contract",
           route: "/funnels/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["funnelWebinarResourceTemplateId"]),
-          safeForAgents: expect.arrayContaining(["Discover webinar and resource page-shape templates from issue #213"]),
+          stableIds: expect.arrayContaining(["funnelWebinarResourceTemplateId", "funnelDraftDuplicateId"]),
+          safeForAgents: expect.arrayContaining([
+            "Discover webinar and resource page-shape templates from issue #213",
+            "Discover owner-session private draft duplication from issue #215",
+          ]),
         }),
-        expect.objectContaining({ id: "read-admin-draft-funnels", route: "/admin/funnels", auth: "owner-session" }),
+        expect.objectContaining({
+          id: "read-admin-draft-funnels",
+          route: "/admin/funnels",
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["funnelDraftDuplicateId"]),
+        }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
           id: "read-product-access-catalog",
@@ -6125,6 +6157,66 @@ test.describe("Bumpgrade scaffold", () => {
     const checkoutLinkReplayPayload = await checkoutLinkReplay.json();
     expect(checkoutLinkReplayPayload.draft.id).toBe(checkoutLinkPayload.draft.id);
 
+    const duplicateIdempotencyKey = `playwright-duplicate-draft-${Date.now()}`;
+    const duplicateTitle = `Duplicate launch draft ${Date.now()}`;
+    const duplicateResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "duplicate",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        title: duplicateTitle,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        confirmationText: draftFunnelDuplicationConfirmationText,
+        idempotencyKey: duplicateIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(duplicateResponse.ok(), await duplicateResponse.text()).toBeTruthy();
+    const duplicatePayload = await duplicateResponse.json();
+    expect(duplicatePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "duplicate",
+        draft: expect.objectContaining({
+          title: duplicateTitle,
+          status: "draft",
+          sourceIssueNumber: 215,
+          parentIssueNumber: 14,
+          previewRoute: null,
+          steps: expect.arrayContaining([
+            expect.objectContaining({
+              order: 2,
+              kind: "sales",
+              blocks: expect.arrayContaining([expect.objectContaining({ kind: "checkout" })]),
+            }),
+          ]),
+        }),
+      }),
+    );
+    const duplicatedCheckoutBlocks = duplicatePayload.draft.steps.flatMap(
+      (step: { blocks: Array<{ kind: string; checkoutLink?: unknown }> }) =>
+        step.blocks.filter((block) => block.kind === "checkout"),
+    );
+    expect(duplicatedCheckoutBlocks.length).toBeGreaterThan(0);
+    expect(duplicatedCheckoutBlocks.every((block: { checkoutLink?: unknown }) => block.checkoutLink === undefined)).toBe(true);
+    expect(JSON.stringify(duplicatePayload.draft)).not.toContain("checkout-link-funnel-draft-indie-launch-working-copy");
+
+    const duplicateReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "duplicate",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        title: `${duplicateTitle} replay should not create a second draft`,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        confirmationText: draftFunnelDuplicationConfirmationText,
+        idempotencyKey: duplicateIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(duplicateReplay.ok(), await duplicateReplay.text()).toBeTruthy();
+    const duplicateReplayPayload = await duplicateReplay.json();
+    expect(duplicateReplayPayload.draft.id).toBe(duplicatePayload.draft.id);
+
     const staleCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
@@ -6141,6 +6233,40 @@ test.describe("Bumpgrade scaffold", () => {
     expect(staleCheckoutLinkResponse.status()).toBe(503);
     const staleCheckoutLinkPayload = await staleCheckoutLinkResponse.json();
     expect(staleCheckoutLinkPayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
+    const staleDuplicateResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "duplicate",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        title: `Stale duplicate ${Date.now()}`,
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelDuplicationConfirmationText,
+        idempotencyKey: `playwright-duplicate-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleDuplicateResponse.status()).toBe(503);
+    const staleDuplicatePayload = await staleDuplicateResponse.json();
+    expect(staleDuplicatePayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
+    const missingDuplicateConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "duplicate",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        title: `Unconfirmed duplicate ${Date.now()}`,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        confirmationText: "duplicate",
+        idempotencyKey: `playwright-duplicate-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingDuplicateConfirmationResponse.status()).toBe(503);
+    const missingDuplicateConfirmationPayload = await missingDuplicateConfirmationResponse.json();
+    expect(missingDuplicateConfirmationPayload).toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
 
     const updateResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
@@ -6233,9 +6359,11 @@ test.describe("Bumpgrade scaffold", () => {
     );
 
     await page.goto("/admin/funnels");
-    await expect(page.getByRole("heading", { name: /Draft funnel builder backed by D1/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Draft funnel builder for launch work/i })).toBeVisible();
     const draftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
     await expect(draftCard.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Duplicate draft/i })).toBeVisible();
+    await expect(draftCard.getByText("Checkout links are not copied.")).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: checkoutOfferStack.primaryOffer.title })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");

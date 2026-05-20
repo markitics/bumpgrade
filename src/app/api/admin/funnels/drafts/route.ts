@@ -4,6 +4,7 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   createDraftFunnelFromTemplate,
   createDraftFunnelFromLibraryTemplate,
+  duplicateDraftFunnel,
   getFunnelDraftD1OrThrow,
   linkDraftFunnelStepToCheckoutOffer,
   publishDraftFunnel,
@@ -55,6 +56,14 @@ export async function POST(request: NextRequest) {
       draft = await createDraftFunnelFromLibraryTemplate(db, adminState.identity, {
         templateId: formValue(formData, "templateId"),
         title: formValue(formData, "title"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+    } else if (mode === "duplicate") {
+      draft = await duplicateDraftFunnel(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        title: formValue(formData, "title"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,
       });
