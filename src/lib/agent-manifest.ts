@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { publisherTenantIssue, publisherTenantParentIssue } from "@/lib/publisher-tenants";
 
 export const agentManifestUpdatedAt = "2026-05-20";
 
@@ -202,6 +203,23 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
     safeForAgents: ["Read use-case records", "Read resource hub records", "Read pricing caveats"],
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
+  },
+  {
+    id: "read-publisher-account-setup",
+    title: "Publisher account and Bumpgrade subdomain setup",
+    route: "/account/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/publisher-tenants.ts and D1 publisher tenant tables",
+    stableIds: ["publisherTenantId", "publisherSubdomainReservationId", "publisherPlanEntitlementId", "issue"],
+    safeForAgents: [
+      "Read paid-plan gate requirements",
+      "Read default Bumpgrade subdomain reservation policy",
+      "Read cross-subdomain auth configuration",
+      "Distinguish Bumpgrade subdomains from custom-domain and domain-purchase work",
+    ],
+    writeBoundary:
+      "Subdomain reservation requires a signed-in, email-confirmed publisher with active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redacted outputs; custom-domain and domain-purchase writes are separate issue slices.",
   },
   {
     id: "read-funnel-contract",
@@ -838,6 +856,15 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     volatileClaims: "Pricing tracks are positioning hypotheses; plan names, amounts, limits, trials, and live billing are not claimed.",
   },
   {
+    id: "evidence-publisher-account-setup",
+    route: "/account/source-data",
+    resolves:
+      "Paid publisher tenant setup, Bumpgrade subdomain reservation rules, D1 table boundaries, cross-subdomain auth configuration, and custom-domain/domain-purchase exclusions.",
+    stableIds: ["publisherTenantId", "publisherSubdomainReservationId", "publisherPlanEntitlementId", "issue"],
+    volatileClaims:
+      "Default Bumpgrade subdomain reservation is live for paid or launch-pilot accounts; custom-domain DNS verification and buying domains through Bumpgrade require issues #223 and #225.",
+  },
+  {
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
@@ -1151,6 +1178,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       "Expose seeded affiliate programs, partner records, referral links, public-safe partner reports, read-only payout preparation, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
     safetyBoundary:
       "Seeded referral click capture, checkout attribution evidence, review-only commission evidence, owner review actions, public-safe partner reports, and read-only payout preparation are live; buyer attribution finalization, payable commission writes, fraud decisions, tax handling, payout account access, partner notification, and Stripe payouts require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-publisher-account",
+    resourceOrTool: "resource bumpgrade://publisher-account",
+    status: "ready-contract",
+    backedBy: "/account/source-data",
+    purpose: `Expose paid publisher tenant and Bumpgrade subdomain setup from issues #${publisherTenantParentIssue} and #${publisherTenantIssue}.`,
+    safetyBoundary:
+      "Read-only MCP resource for setup policy; reserving a subdomain requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redaction.",
   },
   {
     id: "mcp-tool-propose-update",

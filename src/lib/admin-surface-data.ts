@@ -209,9 +209,11 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
-const launchProofUpdatedAt = "2026-05-20T09:41:40.000Z";
+const launchProofUpdatedAt = "2026-05-20T11:25:00.000Z";
 const issue217BranchActionsUrl =
   "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-217-launch-marketing-readiness";
+const issue222BranchActionsUrl =
+  "https://github.com/markitics/bumpgrade/actions?query=branch%3Acodex%2Fissue-222-paid-publisher-subdomains";
 const issue217CiWorkflowUrl = "https://github.com/markitics/bumpgrade/actions/workflows/ci.yml";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -272,6 +274,28 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #217", url: "https://github.com/markitics/bumpgrade/issues/217", kind: "issue" },
     ],
     notes: ["Live self-serve checkout remains gated until live Stripe smoke proof is available."],
+  },
+  "journey-publisher-reserves-bumpgrade-subdomain": {
+    status: "passed",
+    lastTestedAt: launchProofUpdatedAt,
+    environment: "Local launch branch plus GitHub Actions CI linked from the issue #222 branch query.",
+    method: "Full Playwright browser suite, account setup route smoke test, source-data inspection, and authenticated API reservation checks.",
+    summary: "Paid publisher tenant setup and Bumpgrade subdomain reservation passed the local browser suite in issue #222.",
+    ciLinks: [
+      { label: "Issue #222 branch CI", url: issue222BranchActionsUrl, kind: "ci" },
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Account setup screenshot", url: "https://bumpgrade.com/pr-screenshots/issue-222-account-setup.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "Issue #222", url: "https://github.com/markitics/bumpgrade/issues/222", kind: "issue" },
+    ],
+    notes: [
+      "Custom-domain DNS verification and domain purchase are separate launch-readiness slices.",
+      "Screenshot URL becomes live after the PR screenshot reaches production.",
+    ],
   },
 };
 
@@ -648,6 +672,47 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
     sortOrder: 43,
+    updatedAt: null,
+  },
+  {
+    id: "journey-publisher-reserves-bumpgrade-subdomain",
+    title: "Publisher reserves a paid Bumpgrade subdomain",
+    featureId: "feature-better-auth",
+    featureStatus: "live",
+    issueNumbers: [9, 221, 222],
+    primaryUser: "Publisher who has activated a paid plan or launch pilot",
+    userGoal:
+      "Sign in, confirm email, and reserve a unique Bumpgrade subdomain that can become the default public hostname for the publisher workspace.",
+    sourceEvidence: [
+      "https://bumpgrade.com/account/setup",
+      "https://bumpgrade.com/account/source-data",
+      "https://github.com/markitics/bumpgrade/issues/221",
+      "https://github.com/markitics/bumpgrade/issues/222",
+    ],
+    happyPath: [
+      "Create or sign into a Bumpgrade publisher account.",
+      "Confirm the account email.",
+      "Activate a paid plan or launch-pilot entitlement.",
+      "Open /account/setup.",
+      "Enter the desired subdomain, such as studio, and submit the reservation.",
+      "See the reserved hostname, such as studio.bumpgrade.com, recorded for the publisher tenant.",
+    ],
+    edgeCases: [
+      "Signed-out users must sign in first.",
+      "Unverified users must confirm email first.",
+      "Free or unpaid accounts cannot reserve a Bumpgrade subdomain.",
+      "Reserved platform names such as admin, api, www, login, pricing, and features are blocked.",
+      "A subdomain already reserved by another tenant returns a conflict.",
+      "Custom domains and buying domains are tracked separately and should not be claimed as live from this journey.",
+    ],
+    agentAccess:
+      "Agents can read /account/source-data and inspect the tenant/subdomain contract. Public or delegated agent writes still require authenticated user context, idempotency, audit correlation, redaction, and paid-plan checks.",
+    validation: [
+      "Playwright covers /account/setup rendering, /account/source-data, paid owner reservation, idempotent replay, reserved-name rejection, and unpaid account rejection.",
+      "Issue #222 records the D1 migration, API, account setup route, and cross-subdomain auth configuration.",
+    ],
+    proof: createJourneyProof("journey-publisher-reserves-bumpgrade-subdomain", "feature-better-auth"),
+    sortOrder: 44,
     updatedAt: null,
   },
   {

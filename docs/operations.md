@@ -128,11 +128,20 @@ Issue #9 added the first Better Auth foundation:
   `account_verification_emails`.
 - The owner resend UX uses a 120 second cooldown and links Mark to a Gmail
   search for `codex@bumpgrade.com` with the confirmation subject.
+- Issue #222 adds paid publisher account setup at `/account/setup`, public-safe
+  account source data at `/account/source-data`, and
+  `POST /api/account/publisher/subdomain` for paid-gated
+  `*.bumpgrade.com` reservation.
+- Production Better Auth trusts `https://*.bumpgrade.com` and uses the
+  `bumpgrade.com` cookie domain so one login can work across the root app and
+  default Bumpgrade publisher subdomains.
 
 Required production configuration:
 
 - `BETTER_AUTH_SECRET`: Cloudflare secret, not a checked-in variable.
 - `BETTER_AUTH_URL`: `https://bumpgrade.com`.
+- Optional `BETTER_AUTH_COOKIE_DOMAIN`: defaults to `bumpgrade.com` when
+  `BETTER_AUTH_URL` is `https://bumpgrade.com`.
 - `PUBLIC_SITE_URL`: `https://bumpgrade.com`.
 - `PLATFORM_OWNER_EMAILS`: comma-separated owner allowlist; starts with
   `m@rkmoriarty.com`.

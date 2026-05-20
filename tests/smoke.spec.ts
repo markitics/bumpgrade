@@ -108,6 +108,7 @@ import {
   productProtectedContentStatus,
 } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
+import { publisherTenantSourceData } from "../src/lib/publisher-tenants";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
@@ -124,6 +125,7 @@ const routes = [
   { path: "/developers-and-agents", heading: "APIs and manifests" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Launch pricing" },
+  { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
@@ -421,6 +423,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/affiliates/indie-launch-partners");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs");
     expect(sitemapXml).toContain("https://bumpgrade.com/agent-docs/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/account/setup");
+    expect(sitemapXml).toContain("https://bumpgrade.com/account/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/dashboard/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
@@ -487,6 +491,43 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.caveat).toContain("does not turn planned product features");
+  });
+
+  test("publisher account source data exposes paid subdomain setup contract", async ({ request }) => {
+    const response = await request.get("/account/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: publisherTenantSourceData.id,
+        status: "live",
+        parentIssue: 221,
+        issue: 222,
+      }),
+    );
+    expect(payload.routes).toEqual(
+      expect.objectContaining({
+        accountSetup: "/account/setup",
+        accountSourceData: "/account/source-data",
+        reserveSubdomainApi: "/api/account/publisher/subdomain",
+      }),
+    );
+    expect(payload.subdomainPolicy).toEqual(
+      expect.objectContaining({
+        defaultDomain: "bumpgrade.com",
+        paidPlanRequired: true,
+        emailVerificationRequired: true,
+        reservedNames: expect.arrayContaining(["admin", "api", "www", "pricing", "features"]),
+      }),
+    );
+    expect(payload.crossSubdomainAuth).toEqual(
+      expect.objectContaining({
+        status: "configured",
+        cookieDomain: "bumpgrade.com",
+        trustedOriginPattern: "https://*.bumpgrade.com",
+      }),
+    );
+    expect(payload.notIncludedYet).toEqual(expect.arrayContaining(["Buying domains through Bumpgrade."]));
   });
 
   test("funnel source data exposes a seeded three-step draft funnel", async ({ request, page }) => {
@@ -4238,6 +4279,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-feature-catalog", status: "shipped", issue: 6 }),
         expect.objectContaining({ id: "roadmap-public-roadmap", status: "shipped", issue: 7 }),
         expect.objectContaining({ id: "roadmap-better-auth", status: "shipped", issue: 9 }),
+        expect.objectContaining({ id: "roadmap-paid-publisher-subdomains", status: "active", issue: 222 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
@@ -4299,6 +4341,15 @@ test.describe("Bumpgrade scaffold", () => {
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-217-pricing.png" }),
             ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-reserves-bumpgrade-subdomain",
+          featureId: "feature-better-auth",
+          issueNumbers: expect.arrayContaining([221, 222]),
+          proof: expect.objectContaining({
+            status: "passed",
+            lastTestedAt: expect.any(String),
           }),
         }),
         expect.objectContaining({
@@ -4544,6 +4595,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-duplicate-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
@@ -4555,6 +4607,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-publisher-account-setup",
+          route: "/account/source-data",
+          auth: "public",
+          stableIds: expect.arrayContaining(["publisherTenantId", "publisherSubdomainReservationId"]),
+        }),
         expect.objectContaining({
           id: "read-funnel-contract",
           route: "/funnels/source-data",
@@ -6426,6 +6484,108 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(publishedSource.privateDraftsIncluded).toBe(false);
     expect(publishedSource.rawOwnerDataIncluded).toBe(false);
+  });
+
+  test("paid publisher can reserve a Bumpgrade subdomain idempotently", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `paid-publisher-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Paid Publisher");
+    await verifyEmail(page, email);
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: /Choose the Bumpgrade subdomain/i })).toBeVisible();
+    await expect(page.locator("header.site-header").getByRole("link", { name: "Log in / sign up", exact: true })).toHaveCount(0);
+    await expect(page.locator("header.site-header").getByRole("link", { name: "Account", exact: true })).toBeVisible();
+
+    const subdomain = `launch-${suffix}`.slice(0, 50);
+    const idempotencyKey = `playwright-publisher-subdomain-${suffix}`;
+    const reservation = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json", "x-bumpgrade-test-plan": "allow" },
+      form: {
+        return: "json",
+        subdomain,
+        idempotencyKey,
+      },
+    });
+    expect(reservation.ok(), await reservation.text()).toBeTruthy();
+    const payload = await reservation.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 222,
+        idempotent: false,
+        reservation: expect.objectContaining({
+          subdomain,
+          fullHostname: `${subdomain}.bumpgrade.com`,
+          status: "active",
+          sourceIssueNumber: 222,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json", "x-bumpgrade-test-plan": "allow" },
+      form: {
+        return: "json",
+        subdomain,
+        idempotencyKey,
+      },
+    });
+    expect(replay.ok(), await replay.text()).toBeTruthy();
+    const replayPayload = await replay.json();
+    expect(replayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        idempotent: true,
+        reservation: expect.objectContaining({ fullHostname: `${subdomain}.bumpgrade.com` }),
+      }),
+    );
+
+    const reservedName = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json", "x-bumpgrade-test-plan": "allow" },
+      form: {
+        return: "json",
+        subdomain: "admin",
+        idempotencyKey: `playwright-reserved-name-${suffix}`,
+      },
+    });
+    expect(reservedName.status()).toBe(400);
+    const reservedNamePayload = await reservedName.json();
+    expect(reservedNamePayload).toEqual(expect.objectContaining({ code: "SUBDOMAIN_RESERVED" }));
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: `${subdomain}.bumpgrade.com` })).toBeVisible();
+  });
+
+  test("unpaid publisher cannot reserve a Bumpgrade subdomain", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `free-publisher-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Free Publisher");
+    await verifyEmail(page, email);
+
+    const response = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        subdomain: `free-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-unpaid-subdomain-${suffix}`,
+      },
+    });
+    expect(response.status()).toBe(402);
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 222,
+      }),
+    );
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: /Choose the Bumpgrade subdomain/i })).toBeVisible();
+    await expect(page.getByText("Paid plan required")).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

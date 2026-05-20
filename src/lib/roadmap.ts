@@ -145,7 +145,26 @@ export const roadmapItems: RoadmapItem[] = [
       "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation.",
       "Issue #55 adds owner verification resend UX and last-sent status for protected admin gates.",
     ],
-    nextMilestone: "Broaden publisher account surfaces and keep verification email evidence connected to admin access.",
+    nextMilestone: "Use the paid-gated account setup and subdomain foundation as the base for custom domains and publisher site auth.",
+  },
+  {
+    id: "roadmap-paid-publisher-subdomains",
+    title: "Paid publisher tenants and Bumpgrade subdomains",
+    status: "active",
+    issue: 222,
+    featureId: featureIdFor(9),
+    group: "Accounts and domains",
+    summary:
+      "Signed-in, email-confirmed publishers with an active paid plan or launch-pilot entitlement can reserve a unique default `*.bumpgrade.com` subdomain backed by D1 tenant, reservation, and audit records.",
+    publicEvidence: [
+      "Issue #222 tracks the paid publisher tenant and default Bumpgrade subdomain slice.",
+      "`/account/setup` is the signed-in publisher setup surface.",
+      "`/account/source-data` exposes the public-safe tenant/subdomain contract.",
+      "`POST /api/account/publisher/subdomain` reserves a unique Bumpgrade hostname only after email verification and active paid-plan or launch-pilot entitlement.",
+      "Better Auth is configured with the `https://*.bumpgrade.com` trusted origin pattern and `bumpgrade.com` cross-subdomain cookie domain in production.",
+    ],
+    nextMilestone:
+      "Add custom-domain DNS guidance and verification state in issue #223, then decide and implement the domain purchase path in issue #225.",
   },
   {
     id: "roadmap-stripe-commerce",
