@@ -61,6 +61,12 @@ import {
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
 import { productDownloadTokenSummary } from "../src/lib/product-download-tokens";
 import {
+  subscriptionMembershipAccessIssue,
+  subscriptionMembershipAccessStatus,
+  subscriptionMembershipCommerceProductId,
+  subscriptionMembershipPriceId,
+} from "../src/lib/product-entitlements";
+import {
   productEntitlementRevocationIntentIssue,
   productEntitlementRevocationIntentStatus,
 } from "../src/lib/product-entitlement-inspection";
@@ -162,6 +168,9 @@ async function postCheckoutSessionWebhook(
     type: "checkout.session.completed" | "checkout.session.expired";
     paymentStatus?: "paid" | "unpaid";
     status?: "complete" | "expired";
+    productId?: string;
+    priceId?: string;
+    subscriptionId?: string;
   },
 ) {
   const event = {
@@ -175,14 +184,68 @@ async function postCheckoutSessionWebhook(
       object: {
         id: "cs_test_redacted_by_route",
         object: "checkout.session",
+        subscription: input.subscriptionId ?? null,
         client_reference_id: input.checkoutIntentId,
         payment_status: input.paymentStatus ?? "paid",
         status: input.status ?? "complete",
         metadata: {
           checkout_intent_id: input.checkoutIntentId,
-          product_id: sandboxCheckoutOffer.productId,
-          price_id: sandboxCheckoutOffer.priceId,
+          product_id: input.productId ?? sandboxCheckoutOffer.productId,
+          price_id: input.priceId ?? sandboxCheckoutOffer.priceId,
           audit_correlation_id: "audit-playwright-product-inspection",
+        },
+      },
+    },
+  };
+
+  const webhook = await request.post("/api/stripe/webhook", {
+    headers: { "x-bumpgrade-test-webhook": "allow" },
+    data: event,
+  });
+  expect(webhook.ok(), await webhook.text()).toBeTruthy();
+  return webhook.json();
+}
+
+async function postSubscriptionWebhook(
+  request: APIRequestContext,
+  input: {
+    checkoutIntentId: string;
+    subscriptionId: string;
+    eventId: string;
+    type: "customer.subscription.created" | "customer.subscription.updated" | "customer.subscription.deleted";
+    status: "active" | "trialing" | "canceled" | "unpaid" | "incomplete_expired";
+    cancelAtPeriodEnd?: boolean;
+  },
+) {
+  const now = Math.floor(Date.now() / 1000);
+  const event = {
+    id: input.eventId,
+    object: "event",
+    api_version: "2026-04-22.dahlia",
+    created: now,
+    livemode: false,
+    type: input.type,
+    data: {
+      object: {
+        id: input.subscriptionId,
+        object: "subscription",
+        status: input.status,
+        customer: "cus_test_redacted_by_route",
+        current_period_start: now,
+        current_period_end: now + 30 * 24 * 60 * 60,
+        cancel_at_period_end: input.cancelAtPeriodEnd ?? false,
+        metadata: {
+          checkout_intent_id: input.checkoutIntentId,
+          bumpgrade_price_id: subscriptionMembershipPriceId,
+        },
+        items: {
+          data: [
+            {
+              price: {
+                id: "price_test_redacted_dynamic_membership",
+              },
+            },
+          ],
         },
       },
     },
@@ -618,8 +681,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: "protected-product-content-readiness-ready",
-        issue: 181,
+        status: subscriptionMembershipAccessStatus,
+        issue: subscriptionMembershipAccessIssue,
         parentIssue: 16,
       }),
     );
@@ -630,6 +693,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/products/entitlements",
         "/api/products/entitlements",
         "/api/products/download-tokens",
+        "/api/products/protected-content",
         "/api/admin/products/assets",
       ]),
     );
@@ -638,6 +702,29 @@ test.describe("Bumpgrade scaffold", () => {
         status: "sandbox-webhook-grants-ready",
         issue: 101,
         tables: expect.arrayContaining(["product_entitlements", "product_fulfillment_tasks"]),
+      }),
+    );
+    expect(payload.subscriptionMembershipAccess).toEqual(
+      expect.objectContaining({
+        id: "subscription-membership-access-contract",
+        status: subscriptionMembershipAccessStatus,
+        issue: subscriptionMembershipAccessIssue,
+        sourcePriceId: subscriptionMembershipPriceId,
+        sourceCommerceProductId: subscriptionMembershipCommerceProductId,
+        productId: "product-launch-membership",
+        entitlementTemplateId: "entitlement-template-launch-membership",
+        accessRuleId: "access-rule-membership-active-subscription",
+        counts: expect.objectContaining({
+          billingSubscriptions: expect.any(Number),
+          membershipEntitlements: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          rawStripeSubscriptionIdsIncluded: false,
+          rawStripeCustomerIdsIncluded: false,
+          customerPortalUrlIncluded: false,
+          memberPostsIncluded: false,
+          progressDataIncluded: false,
+        }),
       }),
     );
     expect(payload.entitlementInspection).toEqual(
@@ -870,7 +957,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("issue #179 exposes non-destructive revocation intent readiness");
     expect(payload.writeBoundary).toContain("issue #181 exposes protected content readiness");
     expect(payload.writeBoundary).toContain("issue #185 returns seeded protected fixture bodies");
+    expect(payload.writeBoundary).toContain("issue #187 syncs checkout-linked membership entitlement state");
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
+    expect(payload.caveat).toContain("subscription-backed membership entitlement state");
     expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
     expect(payload.caveat).toContain("non-destructive revocation intent readiness");
     expect(payload.caveat).toContain("protected content readiness");
@@ -1207,6 +1296,210 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Launch checklist download" })).toBeVisible();
     await expect(page.locator("body")).not.toContainText(buyerEmail);
     await expect(page.locator("body")).not.toContainText(grant.eventId);
+  });
+
+  test("subscription webhook syncs membership entitlement state from billing status", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Subscription membership access is covered once on desktop.");
+
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const buyerEmail = `subscription-member-${suffix}@example.com`;
+    const subscriptionId = `sub_bumpgrade_membership_${suffix.replaceAll("-", "_")}`;
+    const checkout = await request.post("/api/commerce/checkout", {
+      headers: { "x-bumpgrade-test-checkout-write": "allow" },
+      data: {
+        priceId: subscriptionMembershipPriceId,
+        confirmationText: checkoutConfirmationText,
+        buyerEmail,
+        idempotencyKey: `playwright-membership-subscription-${suffix}`,
+      },
+    });
+    expect(checkout.ok(), await checkout.text()).toBeTruthy();
+    const checkoutPayload = await checkout.json();
+    expect(checkoutPayload.checkoutIntentId).toEqual(expect.stringMatching(/^checkout-intent-/));
+    expect(checkoutPayload.lineItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          priceId: subscriptionMembershipPriceId,
+          billingInterval: "month",
+          unitAmountCents: 2900,
+        }),
+      ]),
+    );
+
+    const checkoutWebhook = await postCheckoutSessionWebhook(request, {
+      checkoutIntentId: checkoutPayload.checkoutIntentId,
+      eventId: `evt_bumpgrade_membership_checkout_${suffix.replaceAll("-", "_")}`,
+      type: "checkout.session.completed",
+      productId: subscriptionMembershipCommerceProductId,
+      priceId: subscriptionMembershipPriceId,
+      subscriptionId,
+    });
+    expect(checkoutWebhook).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        checkoutIntentUpdated: true,
+        entitlementGrantsCreated: 0,
+      }),
+    );
+
+    const activeEventId = `evt_bumpgrade_membership_active_${suffix.replaceAll("-", "_")}`;
+    const activeWebhook = await postSubscriptionWebhook(request, {
+      checkoutIntentId: checkoutPayload.checkoutIntentId,
+      subscriptionId,
+      eventId: activeEventId,
+      type: "customer.subscription.updated",
+      status: "active",
+    });
+    expect(activeWebhook).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        subscriptionUpdated: true,
+        membershipEntitlementUpdated: true,
+        membershipEntitlementStatus: "active",
+        membershipEntitlementId: expect.stringMatching(/^entitlement-/),
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
+      }),
+    );
+
+    const duplicateActiveWebhook = await request.post("/api/stripe/webhook", {
+      headers: { "x-bumpgrade-test-webhook": "allow" },
+      data: {
+        id: activeEventId,
+        object: "event",
+        api_version: "2026-04-22.dahlia",
+        created: Math.floor(Date.now() / 1000),
+        livemode: false,
+        type: "customer.subscription.updated",
+        data: {
+          object: {
+            id: subscriptionId,
+            object: "subscription",
+            status: "active",
+            customer: "cus_test_redacted_by_route",
+            metadata: {
+              checkout_intent_id: checkoutPayload.checkoutIntentId,
+              bumpgrade_price_id: subscriptionMembershipPriceId,
+            },
+            items: { data: [{ price: { id: "price_test_redacted_dynamic_membership" } }] },
+          },
+        },
+      },
+    });
+    expect(duplicateActiveWebhook.ok(), await duplicateActiveWebhook.text()).toBeTruthy();
+    await expect(duplicateActiveWebhook.json()).resolves.toEqual(expect.objectContaining({ duplicate: true }));
+
+    const activeLookup = await request.get(
+      `/api/products/entitlements?checkoutIntentId=${encodeURIComponent(checkoutPayload.checkoutIntentId)}`,
+    );
+    expect(activeLookup.ok(), await activeLookup.text()).toBeTruthy();
+    const activeLookupPayload = await activeLookup.json();
+    expect(activeLookupPayload).toEqual(
+      expect.objectContaining({
+        counts: expect.objectContaining({
+          entitlements: 1,
+          activeEntitlements: 1,
+          fulfillmentTasks: 1,
+        }),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          rawStripeIdsIncluded: false,
+          metadataJsonIncluded: false,
+        }),
+      }),
+    );
+    expect(activeLookupPayload.entitlements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          productId: "product-launch-membership",
+          productTitle: "Launch membership",
+          entitlementTemplateId: "entitlement-template-launch-membership",
+          accessRuleId: "access-rule-membership-active-subscription",
+          status: "active",
+          grantKind: "sandbox_subscription_webhook",
+          grantSummary: expect.stringContaining("trusted Stripe Billing subscription state"),
+          sourcePriceLabel: "Launch membership monthly",
+          sourcePriceAmount: "29.00 USD",
+          fulfillment: expect.objectContaining({
+            status: "active",
+            kind: "membership",
+            summary: expect.stringContaining("subscription state"),
+          }),
+          downloadDelivery: expect.objectContaining({
+            available: false,
+            privateR2KeysIncluded: false,
+            signedUrlsIncluded: false,
+          }),
+        }),
+      ]),
+    );
+    const activeLookupText = JSON.stringify(activeLookupPayload);
+    expect(activeLookupText).not.toContain(buyerEmail);
+    expect(activeLookupText).not.toContain(subscriptionId);
+    expect(activeLookupText).not.toContain(activeEventId);
+    expect(activeLookupText).not.toContain("cus_test");
+
+    const canceledEventId = `evt_bumpgrade_membership_canceled_${suffix.replaceAll("-", "_")}`;
+    const canceledWebhook = await postSubscriptionWebhook(request, {
+      checkoutIntentId: checkoutPayload.checkoutIntentId,
+      subscriptionId,
+      eventId: canceledEventId,
+      type: "customer.subscription.deleted",
+      status: "canceled",
+    });
+    expect(canceledWebhook).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        subscriptionUpdated: true,
+        membershipEntitlementUpdated: true,
+        membershipEntitlementStatus: "inactive",
+      }),
+    );
+
+    const inactiveLookup = await request.get(
+      `/api/products/entitlements?checkoutIntentId=${encodeURIComponent(checkoutPayload.checkoutIntentId)}`,
+    );
+    expect(inactiveLookup.ok(), await inactiveLookup.text()).toBeTruthy();
+    const inactiveLookupPayload = await inactiveLookup.json();
+    expect(inactiveLookupPayload.counts).toEqual(
+      expect.objectContaining({
+        entitlements: 1,
+        activeEntitlements: 0,
+        fulfillmentTasks: 1,
+      }),
+    );
+    expect(inactiveLookupPayload.entitlements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          productId: "product-launch-membership",
+          status: "inactive",
+          fulfillment: expect.objectContaining({ status: "paused" }),
+        }),
+      ]),
+    );
+
+    const sourceData = await request.get("/products/source-data");
+    expect(sourceData.ok(), await sourceData.text()).toBeTruthy();
+    const sourcePayload = await sourceData.json();
+    expect(sourcePayload.subscriptionMembershipAccess).toEqual(
+      expect.objectContaining({
+        issue: subscriptionMembershipAccessIssue,
+        counts: expect.objectContaining({
+          billingSubscriptions: expect.any(Number),
+          membershipEntitlements: expect.any(Number),
+          inactiveMembershipEntitlements: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          rawStripeSubscriptionIdsIncluded: false,
+          rawStripeCustomerIdsIncluded: false,
+          customerPortalUrlIncluded: false,
+        }),
+      }),
+    );
+    expect(sourcePayload.subscriptionMembershipAccess.counts.membershipEntitlements).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.subscriptionMembershipAccess.counts.inactiveMembershipEntitlements).toBeGreaterThanOrEqual(1);
   });
 
   test("product entitlement inspection exposes aggregate source data and owner rows", async ({ page, request }, testInfo) => {
@@ -3295,12 +3588,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -3529,10 +3822,15 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-product-access-catalog",
           route: "/products/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["productEntitlementRevocationIntentId", "productProtectedContentId"]),
+          stableIds: expect.arrayContaining([
+            "productEntitlementRevocationIntentId",
+            "productProtectedContentId",
+            "subscriptionMembershipAccessId",
+          ]),
           safeForAgents: expect.arrayContaining([
             "Inspect non-destructive revocation intent readiness",
             "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
+            "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
           ]),
         }),
         expect.objectContaining({
@@ -3549,6 +3847,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-protected-product-content",
           route: productProtectedContentDeliveryApiRoute,
           auth: "public",
+        }),
+        expect.objectContaining({
+          id: "read-subscription-membership-access",
+          route: "/products/source-data",
+          auth: "public",
+          stableIds: expect.arrayContaining(["subscriptionMembershipAccessId", "subscriptionPlanId"]),
         }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
         expect.objectContaining({
