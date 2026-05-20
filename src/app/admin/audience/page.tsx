@@ -32,6 +32,7 @@ import {
   audienceBroadcastDispatchPreflightIssue,
   audienceBroadcastProviderEventReadinessIssue,
   audienceBroadcastProviderRateLimitReadinessIssue,
+  audienceBroadcastProviderResponseReadinessIssue,
   audienceBroadcastSenderDomainReadinessIssue,
   getAudienceBroadcastDeliveryBatchSummary,
   getAudienceBroadcastDeliveryQueueMessageSummary,
@@ -40,6 +41,7 @@ import {
   getAudienceBroadcastPreviewSafetySummary,
   getAudienceBroadcastProviderEventReadinessSummary,
   getAudienceBroadcastProviderRateLimitReadinessSummary,
+  getAudienceBroadcastProviderResponseReadinessSummary,
   getAudienceBroadcastQueueReadinessSummary,
   getAudienceBroadcastReadinessSummary,
   getAudienceBroadcastScheduleIntentSummary,
@@ -82,20 +84,22 @@ export default async function AdminAudiencePage() {
     broadcastSenderDomainReadiness,
     broadcastProviderEventReadiness,
     broadcastProviderRateLimitReadiness,
+    broadcastProviderResponseReadiness,
   ] = await Promise.all([
-      getAdminAudienceInspectionState(),
-      getAudienceBroadcastReadinessSummary(),
-      getAudienceBroadcastScheduleIntentSummary(),
-      getAudienceBroadcastPreviewSafetySummary(),
-      getAudienceBroadcastQueueReadinessSummary(),
-      getAudienceBroadcastDeliveryBatchSummary(),
-      getAudienceBroadcastDeliveryQueueMessageSummary(),
-      getAudienceBroadcastDispatchPreflightSummary(),
-      getAudienceBroadcastDispatchAttemptSummary(),
-      getAudienceBroadcastSenderDomainReadinessSummary(),
-      getAudienceBroadcastProviderEventReadinessSummary(),
-      getAudienceBroadcastProviderRateLimitReadinessSummary(),
-    ]);
+    getAdminAudienceInspectionState(),
+    getAudienceBroadcastReadinessSummary(),
+    getAudienceBroadcastScheduleIntentSummary(),
+    getAudienceBroadcastPreviewSafetySummary(),
+    getAudienceBroadcastQueueReadinessSummary(),
+    getAudienceBroadcastDeliveryBatchSummary(),
+    getAudienceBroadcastDeliveryQueueMessageSummary(),
+    getAudienceBroadcastDispatchPreflightSummary(),
+    getAudienceBroadcastDispatchAttemptSummary(),
+    getAudienceBroadcastSenderDomainReadinessSummary(),
+    getAudienceBroadcastProviderEventReadinessSummary(),
+    getAudienceBroadcastProviderRateLimitReadinessSummary(),
+    getAudienceBroadcastProviderResponseReadinessSummary(),
+  ]);
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-audience-page">
@@ -112,7 +116,8 @@ export default async function AdminAudiencePage() {
             stays receipt-only before producers exist, and sender-domain readiness keeps live delivery blocked until
             SPF/DKIM/DMARC alignment evidence is explicit. Provider-event readiness keeps bounces and complaints
             redacted before provider webhooks exist. Provider rate-limit readiness keeps throttles, retries, and
-            backpressure explicit before live sends. Public source-data stays aggregate-only.
+            backpressure explicit before live sends. Provider response readiness keeps accepted, transient failure, and
+            permanent failure handling explicit before response capture exists. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -267,10 +272,79 @@ export default async function AdminAudiencePage() {
               {broadcastProviderRateLimitReadiness.counts.providerSendEnabledRecords} provider-send records enabled.
             </p>
           </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Provider responses</h3>
+            <p>
+              {broadcastProviderResponseReadiness.counts.providerResponseReadinessRecords} response-readiness record
+              {broadcastProviderResponseReadiness.counts.providerResponseReadinessRecords === 1 ? "" : "s"};{" "}
+              {broadcastProviderResponseReadiness.counts.providerResponsesCreatedRecords} provider responses created.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Provider response readiness</p>
+            <h2>Provider responses stay redacted before live sends</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceBroadcastProviderResponseReadinessIssue}`} className="text-link compact-link">
+            Issue #{audienceBroadcastProviderResponseReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {broadcastProviderResponseReadiness.records.length > 0 ? (
+            broadcastProviderResponseReadiness.records.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.providerName.replaceAll("_", " ")}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.responseStatusClasses.join(", ").replaceAll("_", " ")}</h3>
+                <p>{record.providerResponseBoundary}</p>
+                <div className="roadmap-detail">
+                  <strong>Accepted</strong>
+                  <span>{record.successResponsePolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Transient failure</strong>
+                  <span>{record.transientFailurePolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Permanent failure</strong>
+                  <span>{record.permanentFailurePolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Message IDs</strong>
+                  <span>{record.messageIdStoragePolicy.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Provider responses, raw response bodies, provider message IDs, recipient payloads, Cloudflare Queue
+                  producers, and provider sends remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No provider responses</span>
+                <span className="admin-pill">Issue #{audienceBroadcastProviderResponseReadinessIssue}</span>
+              </div>
+              <h3>No provider response readiness records</h3>
+              <p>
+                {broadcastProviderResponseReadiness.loadError ??
+                  "Run the provider response readiness migration to seed response-handling metadata."}
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Provider rate-limit readiness</p>

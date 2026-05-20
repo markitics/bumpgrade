@@ -465,6 +465,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "broadcastSenderDomainReadinessId",
       "broadcastProviderEventReadinessId",
       "broadcastProviderRateLimitReadinessId",
+      "broadcastProviderResponseReadinessId",
     ],
     safeForAgents: [
       "Read seeded opt-in form",
@@ -482,12 +483,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect sender-domain readiness without private DNS credentials, raw DNS records, provider secrets, or provider sends",
       "Inspect provider-event readiness without provider secrets, raw provider payloads, provider responses, or provider message IDs",
       "Inspect provider rate-limit readiness without provider secrets, provider limit secrets, raw provider payloads, provider responses, or provider message IDs",
+      "Inspect provider response readiness without provider secrets, raw response bodies, provider responses, or provider message IDs",
       "Inspect the public-safe unsubscribe/suppression write boundary",
       "Inspect the owner-only CRM timeline note boundary",
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, and provider rate-limit readiness, and record dry-run schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, and dispatch attempt receipts in /admin/audience; imports, real email delivery, private exports, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, queue payload bodies, recipient payloads, provider responses, and provider message IDs require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, and provider response readiness, and record dry-run schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, and dispatch attempt receipts in /admin/audience; imports, real email delivery, private exports, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, queue payload bodies, recipient payloads, provider responses, and provider message IDs require future confirmed-write APIs.",
   },
   {
     id: "create-owner-broadcast-schedule-intent",
@@ -888,7 +890,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-audience-automation",
     route: "/audience/source-data",
     resolves:
-      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, broadcast readiness, dry-run schedule intent counts, broadcast preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, and confirmed-write boundary.",
+      "Seeded audience automation workspace, opt-in form, consent-backed capture API, aggregate subscriber inspection counts, redaction flags, tags, segments, lead magnet, sequence, broadcast draft, broadcast readiness, dry-run schedule intent counts, broadcast preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, and confirmed-write boundary.",
     stableIds: [
       "subscriberSegmentId",
       "subscriberId",
@@ -908,9 +910,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "broadcastSenderDomainReadinessId",
       "broadcastProviderEventReadinessId",
       "broadcastProviderRateLimitReadinessId",
+      "broadcastProviderResponseReadinessId",
     ],
     volatileClaims:
-      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, and provider rate-limit readiness; it is not contact import, live email sending, private export, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, queue payload body creation, recipient payload creation, provider response creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
+      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, and provider response readiness; it is not contact import, live email sending, private export, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, queue payload body creation, recipient payload creation, provider response creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
   },
   {
     id: "evidence-analytics-experiments",
@@ -1099,9 +1102,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://audience-automation",
     status: "ready-contract",
     backedBy: "/audience/source-data",
-    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run schedule intent counts, preview/footer safety records, queue readiness records, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, redaction flags, consent boundaries, unsubscribe boundaries, owner-note boundaries, and owner schedule/delivery-batch/queue-message/dispatch-preflight/dispatch-attempt boundaries.",
+    purpose: "Expose seeded opt-in forms, lead magnets, tags, segments, sequences, broadcasts, automation rules, aggregate subscriber inspection counts, aggregate suppression counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run schedule intent counts, preview/footer safety records, queue readiness records, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, redaction flags, consent boundaries, unsubscribe boundaries, owner-note boundaries, and owner schedule/delivery-batch/queue-message/dispatch-preflight/dispatch-attempt boundaries.",
     safetyBoundary:
-      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, read-only broadcast readiness, preview/footer safety, queue readiness, sender-domain readiness, provider-event readiness, provider rate-limit readiness, owner-confirmed dry-run schedule intents, owner-confirmed delivery-batch dry runs, owner-confirmed queue-message dry runs, owner-confirmed dispatch preflight dry runs, and owner-confirmed dispatch attempt receipts are live; imports, real sends, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, queue payload bodies, recipient payloads, provider responses, private exports, CRM automation, and direct public agent subscriber writes require confirmed-write contracts.",
+      "Seeded public opt-in capture, public-safe unsubscribe/suppression evidence, owner-gated subscriber inspection, owner-only CRM notes, read-only broadcast readiness, preview/footer safety, queue readiness, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, owner-confirmed dry-run schedule intents, owner-confirmed delivery-batch dry runs, owner-confirmed queue-message dry runs, owner-confirmed dispatch preflight dry runs, and owner-confirmed dispatch attempt receipts are live; imports, real sends, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, queue payload bodies, recipient payloads, provider responses, private exports, CRM automation, and direct public agent subscriber writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-experiments",
