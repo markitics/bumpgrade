@@ -8,7 +8,10 @@ entitlement write path from trusted paid checkout webhooks. Issue #139 adds
 owner entitlement and fulfillment inspection without exposing buyer rows through
 public source-data. Issue #141 adds customer-safe checkout intent entitlement
 lookup. Issue #143 adds one-use download tokens. Issue #146 adds the
-first seeded private R2-backed fixture delivery path through Bumpgrade.
+first seeded private R2-backed fixture delivery path through Bumpgrade. Issue
+#147 adds redemption-time revalidation, issue #151 adds owner-confirmed private
+asset upload intent records, and issue #179 adds non-destructive revocation
+intent readiness.
 
 Live in this slice:
 
@@ -33,6 +36,12 @@ Live in this slice:
 - `/api/products/downloads?token={token}`: consumes a token once and streams the
   seeded private R2-backed fixture through Bumpgrade after revalidating current
   entitlement and trusted checkout state.
+- `/api/admin/products/assets`: lets verified owners create small private asset
+  upload records after exact confirmation, idempotency, and catalog revision
+  checks without exposing object keys, signed URLs, or upload bodies.
+- `product_entitlement_revocation_intents`: owner-visible D1 readiness records
+  for future access removal confirmation, stale-state, and audit checks. These
+  records do not remove access or mutate entitlements.
 - Agent manifest entries for reading product/access state and future MCP
   resources.
 
@@ -40,8 +49,10 @@ Not live in this slice:
 
 - Private R2 object keys or signed download URLs.
 - Protected course lessons, videos, transcripts, progress records, member posts,
-  arbitrary private R2-backed asset uploads, or live fulfillment delivery.
-- Subscription access changes, refunds, revocations, or customer portal actions.
+  customer delivery of arbitrary private R2-backed asset uploads, or live
+  fulfillment delivery.
+- Subscription access changes, refunds, destructive revocations, or customer
+  portal actions.
 - Agent write tools for granting, revoking, or delivering product access.
 
 Public redaction boundary:
@@ -55,6 +66,10 @@ Public redaction boundary:
   keys or signed object URLs. Redemption revalidates current entitlement status,
   checkout intent linkage, trusted checkout state, and asset scope before the
   private R2 read or token consumption.
+- `/products/source-data` exposes aggregate revocation intent counts and
+  public-safe policy text. `/admin/products` can inspect the seeded revocation
+  readiness record for owner review, but destructive access removal is still
+  blocked.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   private R2 object keys, and signed URLs remain server-private.
 
