@@ -701,6 +701,51 @@ export const audienceImportIntents = sqliteTable(
   }),
 );
 
+export const audienceImportPreflights = sqliteTable(
+  "audience_import_preflights",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    importIntentId: text("import_intent_id")
+      .notNull()
+      .references(() => audienceImportIntents.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("import_preflight_recorded"),
+    preflightKind: text("preflight_kind").notNull().default("owner_confirmed_import_preflight"),
+    sourceKind: text("source_kind").notNull(),
+    expectedImportIntentSourceLabel: text("expected_import_intent_source_label").notNull(),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedWorkspaceStatus: text("expected_workspace_status").notNull(),
+    totalContactsChecked: integer("total_contacts_checked").notNull().default(0),
+    eligibleNewContactCount: integer("eligible_new_contact_count").notNull().default(0),
+    eligibleUpdateCount: integer("eligible_update_count").notNull().default(0),
+    duplicateCount: integer("duplicate_count").notNull().default(0),
+    suppressedCount: integer("suppressed_count").notNull().default(0),
+    missingConsentCount: integer("missing_consent_count").notNull().default(0),
+    malformedCount: integer("malformed_count").notNull().default(0),
+    lawfulBasisCount: integer("lawful_basis_count").notNull().default(0),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    importRowsStored: integer("import_rows_stored", { mode: "boolean" }).notNull().default(false),
+    rawEmailsStored: integer("raw_emails_stored", { mode: "boolean" }).notNull().default(false),
+    subscriberRowsCreated: integer("subscriber_rows_created", { mode: "boolean" }).notNull().default(false),
+    sequenceEnrollmentsCreated: integer("sequence_enrollments_created", { mode: "boolean" }).notNull().default(false),
+    emailDeliveryEnabled: integer("email_delivery_enabled", { mode: "boolean" }).notNull().default(false),
+    exportEnabled: integer("export_enabled", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_import_preflights_idempotency_unique").on(table.idempotencyKey),
+    intentStatusIdx: index("audience_import_preflights_intent_status_idx").on(table.importIntentId, table.status),
+    workspaceStatusIdx: index("audience_import_preflights_workspace_status_idx").on(table.workspaceId, table.status),
+    statusCreatedIdx: index("audience_import_preflights_status_created_idx").on(table.status, table.createdAt),
+  }),
+);
+
 export const audienceBroadcastDrafts = sqliteTable(
   "audience_broadcast_drafts",
   {
