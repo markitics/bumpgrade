@@ -181,7 +181,8 @@ email, expose private notes, or authorize direct public agent subscriber writes.
 ## Admin `/admin/analytics`
 
 Purpose: owner-gated analytics and experiment decision evidence on top of the
-public analytics source contract.
+public analytics source contract, plus public-safe owner-reviewed cohort
+comparison evidence for agents.
 
 The page reads aggregate assignment counts, fixed-window conversion sample
 sizes, the seeded experiment definition, and `analytics_experiment_decisions`
@@ -191,10 +192,11 @@ count checks, selected fixed-window evidence, and sample-size caveat
 acknowledgement.
 
 Public agents should read `/analytics/source-data` for aggregate counts,
-redaction flags, and write boundaries. Experiment decisions are not traffic
-routing: they do not assign cookies, route visitors, select automated winners,
-expose raw event rows, expose raw assignment rows, expose contact analytics, or
-make revenue claims.
+redaction flags, owner-reviewed cohort comparison evidence, and write
+boundaries. Experiment decisions and cohort comparisons are not traffic routing:
+they do not assign cookies, route visitors, select automated winners, expose raw
+event rows, expose raw assignment rows, expose contact analytics, or make
+revenue claims.
 
 ## Agent Maintenance Rule
 

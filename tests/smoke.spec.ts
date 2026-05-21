@@ -73,7 +73,12 @@ import {
   analyticsExperimentDecisionIssue,
   analyticsExperimentDecisionStatus,
 } from "../src/lib/analytics-experiment-decisions";
-import { analyticsReportExportIssue, analyticsReportExportStatus } from "../src/lib/analytics-report-exports";
+import {
+  analyticsCohortComparisonIssue,
+  analyticsCohortComparisonStatus,
+  analyticsReportExportIssue,
+  analyticsReportExportStatus,
+} from "../src/lib/analytics-report-exports";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
@@ -3723,6 +3728,9 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsReportExportId",
         "analyticsReportExportSectionId",
         "analyticsCohortFixtureId",
+        "analyticsCohortComparisonId",
+        "analyticsCohortReviewId",
+        "analyticsCohortReviewStatus",
         "variantId",
         "utmSource",
         "utmMedium",
@@ -3821,6 +3829,38 @@ test.describe("Bumpgrade scaffold", () => {
             dimensions: expect.arrayContaining(["utmSource"]),
           }),
         ]),
+        ownerReviewedCohortComparisons: expect.arrayContaining([
+          expect.objectContaining({
+            id: "analytics-cohort-comparison-newsletter-vs-direct-referral",
+            status: analyticsCohortComparisonStatus,
+            issue: analyticsCohortComparisonIssue,
+            selectedTimeWindowKey: "all",
+            ownerReview: expect.objectContaining({
+              id: "analytics-cohort-review-indie-launch-source-mix",
+              status: "reviewed_with_caveats",
+              caveatAcknowledged: true,
+              requiredBeforeAgentClaims: true,
+            }),
+            cohortFixtureIds: expect.arrayContaining([
+              "analytics-cohort-fixture-source-newsletter",
+              "analytics-cohort-fixture-direct-or-referral",
+            ]),
+            comparisonSummary: expect.objectContaining({
+              winnerSelected: false,
+              statisticallyMeaningful: false,
+              publicClaimAllowed: false,
+              trafficRoutingEnabled: false,
+              automatedWinnerEnabled: false,
+              revenueClaimEnabled: false,
+            }),
+            redaction: expect.objectContaining({
+              rawEventRowsIncluded: false,
+              rawAssignmentRowsIncluded: false,
+              rawVisitorKeysIncluded: false,
+              contactAnalyticsIncluded: false,
+            }),
+          }),
+        ]),
         redaction: expect.objectContaining({
           rawEventRowsIncluded: false,
           rawAssignmentRowsIncluded: false,
@@ -3895,7 +3935,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, and #263 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, and #265 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -5598,7 +5638,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -6152,12 +6192,16 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsReportExportId",
             "analyticsReportExportSectionId",
             "analyticsCohortFixtureId",
+            "analyticsCohortComparisonId",
+            "analyticsCohortReviewId",
+            "analyticsCohortReviewStatus",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
             "Inspect aggregate report export sections without raw analytics downloads",
+            "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
           ]),
         }),
         expect.objectContaining({

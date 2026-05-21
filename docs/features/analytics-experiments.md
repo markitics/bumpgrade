@@ -1,13 +1,14 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, and #263 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, and #265 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
 first aggregate variant and source attribution page-view evidence, and the first
 dashboard-visible source attribution breakdown, fixed aggregate source and
 conversion time-window filters, owner-confirmed experiment decision evidence,
-and aggregate report export metadata for issue #18.
+aggregate report export metadata, and owner-reviewed cohort comparison evidence
+for issue #18.
 
 ## Live Routes
 
@@ -50,6 +51,8 @@ The first dashboard includes stable IDs for:
   metadata, selected fixed-window evidence, and redaction flags.
 - aggregate report export metadata, export sections, and fixture cohort
   comparison definitions.
+- owner-reviewed cohort comparison evidence with aggregate-only source rows,
+  selected fixed windows, sample-size caveats, and no winner or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -69,11 +72,14 @@ dashboard revision checks, experiment status checks, aggregate assignment-count
 checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
-aggregates, funnel conversion rows, and experiment decision evidence. These
-paths do not assign cookies, expose contact-level analytics, expose raw event or
-assignment rows, expose raw campaign/referrer payloads, create raw analytics
-exports, route experiment traffic, make automated winner decisions, make revenue
-claims, or prove statistical significance.
+aggregates, funnel conversion rows, experiment decision evidence, fixture
+cohort definitions, and owner-reviewed cohort comparison evidence. The cohort
+comparison record is directional evidence with sample-size caveats; agents must
+not treat it as a winner decision, statistically meaningful proof, or revenue
+claim. These paths do not assign cookies, expose contact-level analytics, expose
+raw event or assignment rows, expose raw campaign/referrer payloads, create raw
+analytics exports, route experiment traffic, make automated winner decisions,
+make revenue claims, or prove statistical significance.
 
 ## Agent Boundary
 
@@ -81,10 +87,10 @@ Agents may read the source-data route, preview route, event capture boundary,
 page-view beacon boundary, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
-report rows, and aggregate report export metadata to understand analytics and
-experiment semantics. Direct public agent analytics writes, custom events, raw
-campaign/referrer reporting, tracking cookies, raw analytics exports, experiment
-traffic routing, automated winners, or revenue claims require authenticated
-confirmed-write APIs with actor identity, privacy review, idempotency,
-stale-state checks, audit correlation, redaction, retention limits, and
-sample-size caveats.
+report rows, aggregate report export metadata, and owner-reviewed cohort
+comparison evidence to understand analytics and experiment semantics. Direct
+public agent analytics writes, custom events, raw campaign/referrer reporting,
+tracking cookies, raw analytics exports, experiment traffic routing, automated
+winners, or revenue claims require authenticated confirmed-write APIs with actor
+identity, privacy review, idempotency, stale-state checks, audit correlation,
+redaction, retention limits, and sample-size caveats.

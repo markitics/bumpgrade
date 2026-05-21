@@ -44,6 +44,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded analytics event API: https://bumpgrade.com/api/analytics/events
 - Seeded analytics assignment API: https://bumpgrade.com/api/analytics/assignments
 - Owner analytics decision API: https://bumpgrade.com/api/admin/analytics/experiment-decisions (human page/API requires Better Auth owner session)
+- Owner-reviewed analytics cohort comparison evidence: https://bumpgrade.com/analytics/source-data
 - Seeded funnel page-view beacon with variant evidence: https://bumpgrade.com/funnels/indie-launch-sandbox
 - Affiliate/referral source data: https://bumpgrade.com/affiliates/source-data
 - Seeded affiliate partner preview: https://bumpgrade.com/affiliates/indie-launch-partners
@@ -222,8 +223,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   workspace with event definitions, aggregate event counts, aggregate source
   attribution counts, aggregate variant event counts, aggregate assignment
   counts, owner-confirmed experiment decision evidence, aggregate report export
-  metadata, aggregate funnel conversion report rows, metric formulas, variants,
-  assignment rules, and the
+  metadata, owner-reviewed cohort comparison evidence, aggregate funnel
+  conversion report rows, metric formulas, variants, assignment rules, and the
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
   analytics event API, with deterministic variant evidence, normalized
@@ -233,11 +234,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   and 30-day aggregate source/conversion windows. Treat it as seeded event
   capture, seeded page-view beacon, seeded assignment, dashboard-visible
   fixed-window aggregate evidence, owner-reviewed decision evidence, aggregate
-  report export metadata, and aggregate/source-data evidence, not cookie
-  assignment, traffic routing, contact-level analytics, raw referrer/query
-  exposure, raw event or assignment exposure, raw analytics exports, automated
-  winners, direct public agent analytics writes, revenue claims, or
-  statistically meaningful proof.
+  report export metadata, owner-reviewed cohort comparison evidence, and
+  aggregate/source-data evidence, not cookie assignment, traffic routing,
+  contact-level analytics, raw referrer/query exposure, raw event or assignment
+  exposure, raw analytics exports, automated winners, direct public agent
+  analytics writes, revenue claims, or statistically meaningful proof.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, aggregate click
   counts, checkout attribution evidence, aggregate review-only commission ledger
