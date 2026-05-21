@@ -317,7 +317,7 @@ public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
 attribution evidence, aggregate review-only commission ledger counts,
 read-only payout preparation, owner-confirmed payout preparation records,
-attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
+owner-reviewed fraud review records, attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -337,8 +337,13 @@ identity, or private reasons. Issue #273 lets owners record payout preparation
 evidence after exact confirmation, idempotency, revision checks, payout batch
 status checks, and ledger count/total checks without exposing payout accounts,
 tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger
-rows, raw actor identity, or private fraud signals. This proves affiliate and referral
-click-to-checkout-to-ledger-to-review-to-report-to-preparation semantics, not
+rows, raw actor identity, or private fraud signals. Issue #275 lets owners
+record fraud review evidence after exact confirmation, idempotency, revision
+checks, payout batch status checks, review flag checks, and linked ledger count
+checks without exposing private fraud signals, buyer data, raw ledger rows, raw
+click rows, raw checkout rows, raw actor identity, payout accounts, tax data,
+Stripe payout IDs, or partner notification bodies. This proves affiliate and referral
+click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, fraud enforcement,
 Stripe payout capability, private partner portal access, or partner

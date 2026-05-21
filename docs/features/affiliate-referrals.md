@@ -1,11 +1,11 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, #193, #195, and #273 add the first
+Issues #89, #109, #111, #113, #115, #193, #195, #273, and #275 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
-contract for parent issue #19.
+and owner-reviewed fraud review record contracts for parent issue #19.
 
 ## Live Public-Safe Routes
 
@@ -26,8 +26,10 @@ contract for parent issue #19.
   for review, hold, and reversal actions on review-only commission evidence.
 - `/api/admin/affiliates/payout-preparation-records`: owner-gated GET/POST
   endpoint for confirmed payout preparation evidence.
+- `/api/admin/affiliates/fraud-review-records`: owner-gated GET/POST endpoint
+  for confirmed fraud review evidence.
 - `/admin/affiliates`: owner-gated page for reviewing and recording payout
-  preparation evidence.
+  preparation and fraud review evidence.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
@@ -36,6 +38,8 @@ contract for parent issue #19.
   readiness checklist items, review action counts, and redaction flags.
 - `/affiliates/source-data.payoutPreparationRecords`: aggregate confirmed
   payout preparation record counts and latest redacted metadata.
+- `/affiliates/source-data.fraudReviewRecords`: aggregate confirmed fraud
+  review record counts and latest redacted metadata.
 
 ## Stable IDs
 
@@ -47,6 +51,8 @@ The contract introduces stable IDs for:
 - `payoutPreparationId`
 - `payoutPreparationRecordId`
 - `payoutPreparationRecordStatus`
+- `fraudReviewRecordId`
+- `fraudReviewRecordStatus`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -85,9 +91,15 @@ evidence after exact confirmation, idempotency, current program revision checks,
 payout batch status checks, and ledger count/total checks while still excluding
 payout accounts, tax data, Stripe payout IDs, partner notification payloads,
 buyer data, raw ledger rows, raw actor identity, private fraud signals, and
-private notes from public source data. It proves affiliate/referral
-click-to-checkout-to-ledger-to-review-to-report-to-preparation semantics, not
-payable commissions or payout capability.
+private notes from public source data. Issue #275 lets owner sessions record
+fraud review evidence after exact confirmation, idempotency, current program
+revision checks, payout batch status checks, review flag checks, and linked
+ledger count checks while still excluding fraud enforcement, payable commission
+state, payout accounts, tax data, Stripe payout IDs, partner notification
+payloads, buyer data, raw ledger/click/checkout rows, raw actor identity,
+private fraud signals, and private notes from public source data. It proves
+affiliate/referral click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review semantics, not payable commissions, fraud
+enforcement, or payout capability.
 
 Not live in this slice:
 

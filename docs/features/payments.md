@@ -146,6 +146,20 @@ Issue #273 adds owner-confirmed affiliate payout preparation records:
   collection, payout account storage, partner notifications, fraud decisions, or
   direct agent affiliate writes.
 
+Issue #275 adds owner-reviewed affiliate fraud review records:
+
+- `/api/admin/affiliates/fraud-review-records` requires an owner session, exact
+  confirmation, idempotency, current affiliate program revision, payout batch
+  status, review flag severity, and linked ledger count.
+- `/affiliates/source-data` exposes `fraudReviewRecords` with aggregate counts
+  and latest redacted metadata only.
+- Records never expose private fraud signals, buyer data, raw ledger rows, raw
+  click rows, raw checkout rows, raw actor identity, payout accounts, tax data,
+  Stripe payout IDs, partner notification bodies, or private notes.
+- This does not enforce fraud decisions, create payable commissions, create
+  Stripe payouts or transfers, collect tax data, store payout accounts, notify
+  partners, or create direct agent affiliate writes.
+
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 

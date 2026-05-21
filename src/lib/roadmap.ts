@@ -420,7 +420,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, attribution boundaries, payout review, and fraud checks.",
+      "Affiliate/referral contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, attribution boundaries, payout review, and fraud checks.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
@@ -431,9 +431,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
       "Issue #195 adds read-only payout preparation without Stripe payouts, payout account storage, tax collection, partner notifications, payable commission finalization, or direct agent writes.",
       "Issue #273 adds owner-confirmed payout preparation records without payable commission state, Stripe payouts, payout account storage, tax collection, partner notifications, buyer data, raw ledger rows, fraud enforcement, or direct agent writes.",
+      "Issue #275 adds owner-reviewed fraud review records without fraud enforcement, payable commission state, Stripe payouts, payout account storage, tax collection, partner notifications, buyer data, raw ledger/click/checkout rows, private fraud signals, or direct agent writes.",
     ],
     nextMilestone:
-      "Add private payout account, tax, partner notification, and fraud-review contracts only after owner-confirmed payout preparation records stay redacted and non-payable.",
+      "Add private payout account, tax, partner notification, and eventual fraud-enforcement contracts only after owner-reviewed fraud review records stay redacted and non-payable.",
   },
   {
     id: "roadmap-marketing-surfaces",
