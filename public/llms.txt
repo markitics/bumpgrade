@@ -29,6 +29,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Customer product access lookup API: https://bumpgrade.com/api/products/entitlements
 - Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
 - Protected product content API: https://bumpgrade.com/api/products/protected-content
+- Owner product revocation intent API: https://bumpgrade.com/api/admin/products/revocation-intents (human page/API requires Better Auth owner session)
 - Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
 - Audience automation source data: https://bumpgrade.com/audience/source-data
 - Seeded audience automation preview: https://bumpgrade.com/audience/indie-launch-waitlist
@@ -173,15 +174,18 @@ GitHub repo: https://github.com/markitics/bumpgrade
   paid/completed checkout state. Public
   product source-data exposes aggregate entitlement inspection counts, customer
   lookup contract metadata, download-token contract metadata, owner upload
-  intent metadata, non-destructive revocation intent readiness, protected
+  intent metadata, owner-confirmed non-destructive revocation intent metadata, protected
   content readiness, protected fixture delivery metadata, subscription-backed
   membership access metadata, and redaction
   flags only. `/api/admin/products/assets` lets verified owners create small
   private asset upload records after exact confirmation, idempotency, and
   catalog revision checks, but those records are not customer-deliverable yet.
+  `/api/admin/products/revocation-intents` lets verified owners record
+  non-destructive access-removal intent after exact confirmation, idempotency,
+  and current entitlement status checks, but it does not revoke access.
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
   fixture delivery, protected fixture delivery, owner upload-intent,
-  revocation-readiness, protected-content-readiness, and subscription-membership
+  revocation-intent, protected-content-readiness, and subscription-membership
   access evidence, not signed
   object URLs, customer delivery of arbitrary uploads, arbitrary protected body delivery, destructive revocation, live
   fulfillment automation, Customer Portal actions, or a confirmed-write agent API.

@@ -201,6 +201,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Protected content readiness records from issue #181.",
       "Checkout-intent-scoped protected fixture delivery from issue #185.",
       "Subscription-backed membership entitlement state from issue #187.",
+      "Owner-confirmed non-destructive revocation intent records from issue #251.",
       "Stable product, offer, asset, access rule, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
@@ -220,9 +221,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #181 adds protected content readiness metadata without lesson, video, transcript, member post, or progress delivery.",
       "Issue #185 adds seeded protected fixture delivery after active-entitlement, product/template scope, and trusted checkout-state checks.",
       "Issue #187 syncs checkout-linked membership entitlement state from trusted Stripe Billing subscription webhooks.",
+      "Issue #251 records owner-confirmed non-destructive revocation intents with exact confirmation, idempotency, stale-state checks, and public redaction.",
     ],
     agentContract:
-      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, non-destructive revocation intent readiness, protected content readiness, checkout-scoped protected fixture delivery boundaries, subscription-backed membership access state, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, arbitrary protected bodies, destructive revocation, customer delivery of arbitrary uploads, Customer Portal actions, and billing data must stay behind authenticated contracts.",
+      "Agents may read public product metadata, aggregate entitlement counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, checkout-scoped protected fixture delivery boundaries, subscription-backed membership access state, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, arbitrary protected bodies, private revocation notes, destructive revocation, customer delivery of arbitrary uploads, Customer Portal actions, and billing data must stay behind authenticated contracts.",
   },
   {
     id: "feature-email-automation-crm",

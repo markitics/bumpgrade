@@ -40,7 +40,7 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, non-destructive product revocation intent readiness, and protected content readiness. Live payment and payout rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, owner-confirmed non-destructive product revocation intent records, and protected content readiness. Live payment and payout rollout remains deliberately disabled.",
   notLiveYet: [
     "No live-mode checkout path is enabled.",
     "No customer-facing checkout button is published outside the sandbox smoke path yet.",
@@ -406,12 +406,23 @@ export const commerceTables: CommerceTableContract[] = [
       "access_rule_id",
       "status",
       "intent_kind",
+      "reason_code",
       "destructive_action_enabled",
       "entitlement_mutation_enabled",
     ],
-    serverPrivateFields: ["metadata_json", "future actor identifiers", "future buyer identifiers", "future private reason notes"],
+    serverPrivateFields: [
+      "target_entitlement_id",
+      "idempotency_key",
+      "actor_user_id",
+      "actor_email_hash",
+      "confirmation_text_sha256",
+      "private_reason_sha256",
+      "metadata_json",
+      "future buyer identifiers",
+      "future private reason notes",
+    ],
     purpose:
-      "Owner-visible revocation intent readiness records that document confirmation, stale-state, audit, and non-destructive boundaries before live entitlement removal exists.",
+      "Owner-visible revocation intent records that document confirmation, stale-state, audit, and non-destructive boundaries before live entitlement removal exists.",
   },
   {
     table: "product_protected_content_sections",
@@ -439,6 +450,6 @@ export const commerceAgentWriteRules = [
   "Agents must not create, expire, refund, cancel, upgrade, downgrade, or publish a billing object without explicit confirmation text.",
   "Billing-impacting writes require actor identity, client attribution, idempotency key, audit correlation id, stale-state check, and redacted output.",
   "Model-visible output must not include raw Stripe secret keys, webhook secrets, customer IDs, Checkout Session IDs, PaymentIntent IDs, Subscription IDs, connected-account IDs, or private customer data.",
-  "Referral attribution evidence may link a seeded referral click to a checkout intent, review-only commission ledger evidence may calculate draft commission amounts, owner review actions may review, hold, or reverse that evidence, and post-purchase decisions may record non-billing follow-up intent, but none may create payable commissions, payout state, fraud decisions, tax records, partner notifications, fulfillment, entitlements, or one-click charges.",
+  "Referral attribution evidence may link a seeded referral click to a checkout intent, review-only commission ledger evidence may calculate draft commission amounts, owner review actions may review, hold, or reverse that evidence, post-purchase decisions may record non-billing follow-up intent, and owner product revocation intents may record non-destructive access-removal intent, but none may create payable commissions, payout state, fraud decisions, tax records, partner notifications, fulfillment, entitlements, access removal, refunds, or one-click charges.",
   "If an event or provider response is ambiguous, record the blocked state and continue with non-billing work instead of guessing.",
 ];

@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+import type { AdminIdentity } from "@/lib/admin-roles";
 import { entitlementGrantMappings } from "@/lib/product-entitlements";
 import { productAccessCatalogs } from "@/lib/product-access";
 
@@ -7,7 +8,16 @@ export const productEntitlementInspectionIssue = 139;
 export const productEntitlementInspectionStatus = "owner-product-entitlement-inspection-ready";
 export const productEntitlementInspectionOwnerRoute = "/admin/products";
 export const productEntitlementRevocationIntentIssue = 179;
+export const productEntitlementRevocationIntentWriteIssue = 251;
 export const productEntitlementRevocationIntentStatus = "owner-product-revocation-intents-ready";
+export const productEntitlementRevocationIntentApiRoute = "/api/admin/products/revocation-intents";
+export const productEntitlementRevocationConfirmationText = "Record product access removal intent";
+export const productEntitlementRevocationReasonCodes = [
+  "manual_review",
+  "refund_or_chargeback",
+  "customer_request",
+  "test_cleanup",
+] as const;
 
 type ProductRuntime = {
   db: D1Database;
@@ -67,6 +77,15 @@ type RevocationIntentRow = {
   product_id: string;
   entitlement_template_id: string;
   access_rule_id: string;
+  target_entitlement_id: string | null;
+  idempotency_key: string | null;
+  actor_user_id: string | null;
+  actor_email_hash: string | null;
+  actor_role: string | null;
+  expected_entitlement_status: string | null;
+  reason_code: string | null;
+  private_reason_sha256: string | null;
+  confirmation_text_sha256: string | null;
   status: string;
   intent_kind: string;
   revocation_policy: string;
@@ -74,8 +93,20 @@ type RevocationIntentRow = {
   audit_correlation_policy: string;
   destructive_action_enabled: number | string;
   entitlement_mutation_enabled: number | string;
+  created_at: number | string;
   updated_at: number | string;
 };
+
+type RevocationTargetEntitlementRow = {
+  id: string;
+  product_id: string;
+  entitlement_template_id: string;
+  access_rule_id: string;
+  status: string;
+  checkout_intent_id: string | null;
+};
+
+export type ProductEntitlementRevocationReasonCode = (typeof productEntitlementRevocationReasonCodes)[number];
 
 export type ProductEntitlementInspectionCount = {
   id: string;
@@ -127,11 +158,17 @@ export type ProductEntitlementRevocationIntent = {
   accessRuleTitle: string;
   status: string;
   intentKind: string;
+  reasonCode: string | null;
+  ownerConfirmed: boolean;
+  privateReasonRecorded: boolean;
   revocationPolicy: string;
   staleStatePolicy: string;
   auditCorrelationPolicy: string;
   destructiveActionEnabled: boolean;
   entitlementMutationEnabled: boolean;
+  targetEntitlementIncluded: false;
+  actorIdentityIncluded: false;
+  createdAt: string | null;
   updatedAt: string | null;
 };
 
@@ -142,11 +179,24 @@ export type ProductEntitlementRevocationIntentSummary = {
   parentIssue: 16;
   ownerRoute: typeof productEntitlementInspectionOwnerRoute;
   publicSourceDataRoute: "/products/source-data";
+  apiRoute: typeof productEntitlementRevocationIntentApiRoute;
+  writeIssue: typeof productEntitlementRevocationIntentWriteIssue;
   source: "d1" | "unavailable";
   loadError: string | null;
+  confirmation: {
+    required: true;
+    text: typeof productEntitlementRevocationConfirmationText;
+  };
+  idempotencyRequired: true;
+  staleStateCheck: {
+    required: true;
+    field: "expectedEntitlementStatus";
+  };
+  reasonCodes: readonly ProductEntitlementRevocationReasonCode[];
   counts: {
     revocationIntents: number;
     dryRunIntents: number;
+    ownerConfirmedIntents: number;
     destructiveActionsEnabled: number;
     entitlementMutationsEnabled: number;
   };
@@ -155,12 +205,65 @@ export type ProductEntitlementRevocationIntentSummary = {
     privateBuyerDataIncluded: false;
     rawBuyerEmailIncluded: false;
     actorEmailIncluded: false;
+    actorEmailHashIncluded: false;
     rawStripeIdsIncluded: false;
+    targetEntitlementIdsIncluded: false;
+    privateReasonIncluded: false;
     entitlementMutationEnabled: false;
     destructiveActionEnabled: false;
   };
   privateFieldsExcluded: string[];
   writeBoundary: string;
+};
+
+export type ProductEntitlementRevocationIntentInput = {
+  entitlementId: string | null | undefined;
+  expectedEntitlementStatus: string | null | undefined;
+  reasonCode: string | null | undefined;
+  privateReason?: string | null;
+  confirmationText: string | null | undefined;
+  idempotencyKey: string | null | undefined;
+  actor: AdminIdentity;
+};
+
+export type ProductEntitlementRevocationIntentResult =
+  | {
+      ok: true;
+      status: typeof productEntitlementRevocationIntentStatus | "owner-product-revocation-intent-replayed";
+      issue: typeof productEntitlementRevocationIntentWriteIssue;
+      duplicate: boolean;
+      intent: ProductEntitlementRevocationIntent & {
+        targetEntitlementId: string;
+        targetEntitlementStatus: string;
+        destructiveActionEnabled: false;
+        entitlementMutationEnabled: false;
+      };
+      redaction: ProductEntitlementRevocationIntentSummary["redaction"];
+    }
+  | {
+      ok: false;
+      status:
+        | "invalid_request"
+        | "confirmation_required"
+        | "entitlement_not_found"
+        | "stale_entitlement_state"
+        | "idempotency_conflict"
+        | "unavailable";
+      issue: typeof productEntitlementRevocationIntentWriteIssue;
+      message: string;
+      redaction: ProductEntitlementRevocationIntentSummary["redaction"];
+    };
+
+export const productEntitlementRevocationRedaction: ProductEntitlementRevocationIntentSummary["redaction"] = {
+  privateBuyerDataIncluded: false,
+  rawBuyerEmailIncluded: false,
+  actorEmailIncluded: false,
+  actorEmailHashIncluded: false,
+  rawStripeIdsIncluded: false,
+  targetEntitlementIdsIncluded: false,
+  privateReasonIncluded: false,
+  entitlementMutationEnabled: false,
+  destructiveActionEnabled: false,
 };
 
 export type AdminProductEntitlement = {
@@ -330,35 +433,44 @@ function emptyRevocationIntentSummary(
     parentIssue: 16,
     ownerRoute: productEntitlementInspectionOwnerRoute,
     publicSourceDataRoute: "/products/source-data",
+    apiRoute: productEntitlementRevocationIntentApiRoute,
+    writeIssue: productEntitlementRevocationIntentWriteIssue,
     source,
     loadError,
+    confirmation: {
+      required: true,
+      text: productEntitlementRevocationConfirmationText,
+    },
+    idempotencyRequired: true,
+    staleStateCheck: {
+      required: true,
+      field: "expectedEntitlementStatus",
+    },
+    reasonCodes: productEntitlementRevocationReasonCodes,
     counts: {
       revocationIntents: 0,
       dryRunIntents: 0,
+      ownerConfirmedIntents: 0,
       destructiveActionsEnabled: 0,
       entitlementMutationsEnabled: 0,
     },
     records: [],
-    redaction: {
-      privateBuyerDataIncluded: false,
-      rawBuyerEmailIncluded: false,
-      actorEmailIncluded: false,
-      rawStripeIdsIncluded: false,
-      entitlementMutationEnabled: false,
-      destructiveActionEnabled: false,
-    },
+    redaction: productEntitlementRevocationRedaction,
     privateFieldsExcluded: [
       "buyerEmail",
       "buyerEmailHash",
       "actorEmail",
+      "actorEmailHash",
+      "targetEntitlementId",
       "stripeCheckoutSessionId",
       "stripePaymentIntentId",
       "stripeSubscriptionId",
       "metadataJson",
+      "privateReason",
       "privateReasonNote",
     ],
     writeBoundary:
-      "Issue #179 exposes non-destructive product entitlement revocation intent readiness. It does not revoke access, mutate entitlements, expose buyer data, change billing, issue refunds, or authorize direct agent revocation writes.",
+      "Issue #179 exposes non-destructive product entitlement revocation intent readiness. Issue #251 lets verified owners record non-destructive revocation intents after exact confirmation, idempotency, and a current entitlement status check. It does not revoke access, mutate entitlements, expose buyer data, change billing, issue refunds, notify customers, or authorize direct public agent revocation writes.",
   };
 }
 
@@ -380,11 +492,17 @@ function publicRevocationIntent(row: RevocationIntentRow): ProductEntitlementRev
     accessRuleTitle: accessRule?.title ?? row.access_rule_id,
     status: row.status,
     intentKind: row.intent_kind,
+    reasonCode: row.reason_code,
+    ownerConfirmed: Boolean(row.target_entitlement_id),
+    privateReasonRecorded: Boolean(row.private_reason_sha256),
     revocationPolicy: row.revocation_policy,
     staleStatePolicy: row.stale_state_policy,
     auditCorrelationPolicy: row.audit_correlation_policy,
     destructiveActionEnabled: booleanValue(row.destructive_action_enabled),
     entitlementMutationEnabled: booleanValue(row.entitlement_mutation_enabled),
+    targetEntitlementIncluded: false,
+    actorIdentityIncluded: false,
+    createdAt: timestampValue(row.created_at),
     updatedAt: timestampValue(row.updated_at),
   };
 }
@@ -435,6 +553,235 @@ function adminEntitlement(row: EntitlementRow): AdminProductEntitlement {
     sourceEventAvailable: booleanValue(row.source_event_available),
     rawStripeReferenceAvailable: booleanValue(row.raw_stripe_reference_available),
   };
+}
+
+function normalizeRequired(value: string | null | undefined, maxLength: number) {
+  const trimmed = value?.trim() ?? "";
+  return trimmed ? trimmed.slice(0, maxLength) : null;
+}
+
+function runtimeId(prefix: string) {
+  const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `${prefix}-${random}`;
+}
+
+async function sha256(value: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function actorEmailHash(actor: AdminIdentity) {
+  return sha256((actor.email ?? "unknown-owner@bumpgrade.local").trim().toLowerCase());
+}
+
+function resultError(
+  status: Extract<ProductEntitlementRevocationIntentResult, { ok: false }>["status"],
+  message: string,
+): ProductEntitlementRevocationIntentResult {
+  return {
+    ok: false,
+    status,
+    issue: productEntitlementRevocationIntentWriteIssue,
+    message,
+    redaction: productEntitlementRevocationRedaction,
+  };
+}
+
+function isRevocationReasonCode(value: string): value is ProductEntitlementRevocationReasonCode {
+  return (productEntitlementRevocationReasonCodes as readonly string[]).includes(value);
+}
+
+function ownerIntentFromRow(
+  row: RevocationIntentRow,
+  target: RevocationTargetEntitlementRow,
+): Extract<ProductEntitlementRevocationIntentResult, { ok: true }>["intent"] {
+  return {
+    ...publicRevocationIntent(row),
+    targetEntitlementId: target.id,
+    targetEntitlementStatus: target.status,
+    destructiveActionEnabled: false,
+    entitlementMutationEnabled: false,
+  };
+}
+
+export async function createProductEntitlementRevocationIntent(
+  input: ProductEntitlementRevocationIntentInput,
+): Promise<ProductEntitlementRevocationIntentResult> {
+  if (input.confirmationText !== productEntitlementRevocationConfirmationText) {
+    return resultError("confirmation_required", "Exact product access removal confirmation text is required.");
+  }
+
+  const entitlementId = normalizeRequired(input.entitlementId, 180);
+  const expectedEntitlementStatus = normalizeRequired(input.expectedEntitlementStatus, 80);
+  const reasonCode = normalizeRequired(input.reasonCode, 80);
+  const privateReason = normalizeRequired(input.privateReason, 500);
+  const idempotencyKey = normalizeRequired(input.idempotencyKey, 180);
+
+  if (!entitlementId || !expectedEntitlementStatus || !reasonCode || !idempotencyKey) {
+    return resultError(
+      "invalid_request",
+      "entitlementId, expectedEntitlementStatus, reasonCode, and idempotencyKey are required.",
+    );
+  }
+
+  if (!isRevocationReasonCode(reasonCode)) {
+    return resultError("invalid_request", "reasonCode must be one of the supported product revocation reason codes.");
+  }
+
+  try {
+    const { db } = await getRuntime();
+    const target = await db
+      .prepare(
+        `SELECT id, product_id, entitlement_template_id, access_rule_id, status, checkout_intent_id
+        FROM product_entitlements
+        WHERE id = ?
+        LIMIT 1`,
+      )
+      .bind(entitlementId)
+      .first<RevocationTargetEntitlementRow>();
+
+    if (!target) {
+      return resultError("entitlement_not_found", "The requested product entitlement could not be found.");
+    }
+
+    const privateReasonSha256 = privateReason ? await sha256(privateReason) : null;
+    const confirmationTextSha256 = await sha256(productEntitlementRevocationConfirmationText);
+    const existing = await db
+      .prepare(
+        `SELECT
+          id, product_id, entitlement_template_id, access_rule_id, status, intent_kind,
+          target_entitlement_id, idempotency_key, actor_user_id, actor_email_hash, actor_role,
+          expected_entitlement_status, reason_code, private_reason_sha256, confirmation_text_sha256,
+          revocation_policy, stale_state_policy, audit_correlation_policy,
+          destructive_action_enabled, entitlement_mutation_enabled, created_at, updated_at
+        FROM product_entitlement_revocation_intents
+        WHERE idempotency_key = ?
+        LIMIT 1`,
+      )
+      .bind(idempotencyKey)
+      .first<RevocationIntentRow>();
+
+    if (existing) {
+      const sameRequest =
+        existing.target_entitlement_id === target.id &&
+        existing.expected_entitlement_status === expectedEntitlementStatus &&
+        existing.reason_code === reasonCode &&
+        (existing.private_reason_sha256 ?? null) === privateReasonSha256 &&
+        existing.confirmation_text_sha256 === confirmationTextSha256;
+
+      if (!sameRequest) {
+        return resultError("idempotency_conflict", "That idempotency key already belongs to a different revocation intent.");
+      }
+
+      return {
+        ok: true,
+        status: "owner-product-revocation-intent-replayed",
+        issue: productEntitlementRevocationIntentWriteIssue,
+        duplicate: true,
+        intent: ownerIntentFromRow(existing, target),
+        redaction: productEntitlementRevocationRedaction,
+      };
+    }
+
+    if (target.status !== expectedEntitlementStatus) {
+      return resultError(
+        "stale_entitlement_state",
+        "Product entitlement status changed. Refresh before recording an access-removal intent.",
+      );
+    }
+
+    const products = productById();
+    const templates = templateById();
+    const product = products.get(target.product_id);
+    const template = templates.get(target.entitlement_template_id);
+    const intentId = runtimeId("product-revocation-intent");
+    const actorHash = await actorEmailHash(input.actor);
+    const productTitle = product?.title ?? target.product_id;
+    const templateTitle = template?.title ?? target.entitlement_template_id;
+
+    await db
+      .prepare(
+        `INSERT INTO product_entitlement_revocation_intents (
+          id, product_id, entitlement_template_id, access_rule_id, target_entitlement_id, idempotency_key,
+          actor_user_id, actor_email_hash, actor_role, expected_entitlement_status, reason_code,
+          private_reason_sha256, confirmation_text_sha256, status, intent_kind, revocation_policy,
+          stale_state_policy, audit_correlation_policy, destructive_action_enabled, entitlement_mutation_enabled,
+          metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'revocation_intent_recorded',
+          'owner_confirmed_dry_run', ?, ?, ?, 0, 0, ?, unixepoch(), unixepoch())`,
+      )
+      .bind(
+        intentId,
+        target.product_id,
+        target.entitlement_template_id,
+        target.access_rule_id,
+        target.id,
+        idempotencyKey,
+        input.actor.userId,
+        actorHash,
+        input.actor.role,
+        expectedEntitlementStatus,
+        reasonCode,
+        privateReasonSha256,
+        confirmationTextSha256,
+        `Owner-confirmed non-destructive access-removal intent for ${productTitle}. Access remains ${target.status}; no entitlement, billing, refund, or customer notification mutation was performed.`,
+        `Recorded only because the targeted entitlement was still ${expectedEntitlementStatus}. Future destructive revocation must re-check entitlement, checkout, subscription/refund, and customer-notification state.`,
+        `Recorded with issue #${productEntitlementRevocationIntentWriteIssue}, idempotency key, owner actor hash, reason code ${reasonCode}, server-private target entitlement id, and no public buyer or actor identity.`,
+        JSON.stringify({
+          issue: productEntitlementRevocationIntentWriteIssue,
+          parentIssue: 16,
+          readinessIssue: productEntitlementRevocationIntentIssue,
+          productTitle,
+          entitlementTemplateTitle: templateTitle,
+          checkoutIntentRecorded: Boolean(target.checkout_intent_id),
+          privateReasonRecorded: Boolean(privateReasonSha256),
+          privateBuyerDataIncluded: false,
+          rawBuyerEmailIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          targetEntitlementIdsIncludedInPublicSourceData: false,
+          privateReasonIncluded: false,
+          destructiveActionEnabled: false,
+          entitlementMutationEnabled: false,
+        }),
+      )
+      .run();
+
+    const inserted = await db
+      .prepare(
+        `SELECT
+          id, product_id, entitlement_template_id, access_rule_id, status, intent_kind,
+          target_entitlement_id, idempotency_key, actor_user_id, actor_email_hash, actor_role,
+          expected_entitlement_status, reason_code, private_reason_sha256, confirmation_text_sha256,
+          revocation_policy, stale_state_policy, audit_correlation_policy,
+          destructive_action_enabled, entitlement_mutation_enabled, created_at, updated_at
+        FROM product_entitlement_revocation_intents
+        WHERE id = ?
+        LIMIT 1`,
+      )
+      .bind(intentId)
+      .first<RevocationIntentRow>();
+
+    if (!inserted) {
+      throw new Error("Product revocation intent could not be read after insert.");
+    }
+
+    return {
+      ok: true,
+      status: productEntitlementRevocationIntentStatus,
+      issue: productEntitlementRevocationIntentWriteIssue,
+      duplicate: false,
+      intent: ownerIntentFromRow(inserted, target),
+      redaction: productEntitlementRevocationRedaction,
+    };
+  } catch (error) {
+    return resultError(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to create product revocation intent.",
+    );
+  }
 }
 
 export async function getProductEntitlementInspectionSummary(): Promise<ProductEntitlementInspectionSummary> {
@@ -508,8 +855,10 @@ export async function getProductEntitlementRevocationIntentSummary(): Promise<Pr
       .prepare(
         `SELECT
           id, product_id, entitlement_template_id, access_rule_id, status, intent_kind,
+          target_entitlement_id, idempotency_key, actor_user_id, actor_email_hash, actor_role,
+          expected_entitlement_status, reason_code, private_reason_sha256, confirmation_text_sha256,
           revocation_policy, stale_state_policy, audit_correlation_policy,
-          destructive_action_enabled, entitlement_mutation_enabled, updated_at
+          destructive_action_enabled, entitlement_mutation_enabled, created_at, updated_at
         FROM product_entitlement_revocation_intents
         ORDER BY updated_at DESC, id ASC`,
       )
@@ -522,6 +871,7 @@ export async function getProductEntitlementRevocationIntentSummary(): Promise<Pr
       counts: {
         revocationIntents: records.length,
         dryRunIntents: records.filter((record) => record.intentKind === "owner_confirmed_dry_run").length,
+        ownerConfirmedIntents: records.filter((record) => record.ownerConfirmed).length,
         destructiveActionsEnabled: rawRows.filter((row) => booleanValue(row.destructive_action_enabled)).length,
         entitlementMutationsEnabled: rawRows.filter((row) => booleanValue(row.entitlement_mutation_enabled)).length,
       },

@@ -324,7 +324,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
+      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -339,9 +339,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #181 adds protected content readiness metadata.",
       "Issue #185 adds protected fixture delivery only after entitlement, product/template scope, and trusted checkout-state checks.",
       "Issue #187 syncs checkout-linked membership access from trusted Stripe Billing subscription state.",
+      "Issue #251 adds owner-confirmed non-destructive revocation intent records with exact confirmation, idempotency, stale-state checks, and public redaction.",
     ],
     nextMilestone:
-      "Extend beyond seeded subscription membership and protected fixtures only after Customer Portal/self-service actions, progress/audit records, real protected storage, and private media redaction stay enforced.",
+      "Extend beyond seeded subscription membership, protected fixtures, and non-destructive revocation intents only after Customer Portal/self-service actions, destructive access removal, progress/audit records, real protected storage, and private media redaction stay enforced.",
   },
   {
     id: "roadmap-email-automation",

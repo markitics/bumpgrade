@@ -14,7 +14,8 @@ asset upload intent records, and issue #179 adds non-destructive revocation
 intent readiness. Issue #181 adds protected content readiness metadata, and
 issue #185 adds checkout-intent-scoped protected fixture delivery. Issue #187
 adds subscription-backed membership entitlement state from trusted Stripe
-Billing webhooks.
+Billing webhooks. Issue #251 adds owner-confirmed, non-destructive revocation
+intent records with exact confirmation, idempotency, and stale-state checks.
 
 Live in this slice:
 
@@ -51,9 +52,12 @@ Live in this slice:
 - `/api/admin/products/assets`: lets verified owners create small private asset
   upload records after exact confirmation, idempotency, and catalog revision
   checks without exposing object keys, signed URLs, or upload bodies.
-- `product_entitlement_revocation_intents`: owner-visible D1 readiness records
-  for future access removal confirmation, stale-state, and audit checks. These
-  records do not remove access or mutate entitlements.
+- `product_entitlement_revocation_intents`: owner-visible D1 readiness and
+  confirmed intent records for future access removal confirmation, stale-state,
+  and audit checks. These records do not remove access or mutate entitlements.
+- `/api/admin/products/revocation-intents`: lets verified owners record a
+  non-destructive access-removal intent after exact confirmation, idempotency,
+  and a current entitlement status check.
 - `product_protected_content_sections`: owner-visible D1 readiness records for
   course/module and member-area delivery. Public source-data records do not
   include lesson bodies, videos, transcripts, member posts, progress rows,
@@ -85,8 +89,8 @@ Public redaction boundary:
   checkout intent linkage, trusted checkout state, and asset scope before the
   private R2 read or token consumption.
 - `/products/source-data` exposes aggregate revocation intent counts and
-  public-safe policy text. `/admin/products` can inspect the seeded revocation
-  readiness record for owner review, but destructive access removal is still
+  public-safe policy text. `/admin/products` can inspect seeded readiness and
+  owner-confirmed intent records, but destructive access removal is still
   blocked.
 - `/products/source-data` exposes aggregate protected-content readiness counts
   and public-safe access policy text. `/admin/products` can inspect the seeded
@@ -101,6 +105,7 @@ Public redaction boundary:
   private R2 object keys, signed URLs, real lesson bodies, member posts,
   transcripts, Customer Portal URLs, and progress rows remain server-private.
 
-Future product/access writes must require actor identity, exact confirmation,
-idempotency, stale-state checks, audit correlation, redaction, and trusted
-checkout or subscription evidence before access or fulfillment changes.
+Future destructive product/access writes must require actor identity, exact
+confirmation, idempotency, stale-state checks, audit correlation, redaction,
+customer-safe notification review, and trusted checkout or subscription evidence
+before access or fulfillment changes.
