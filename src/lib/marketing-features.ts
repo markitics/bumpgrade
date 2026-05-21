@@ -296,7 +296,7 @@ export const marketingFeatures: MarketingFeature[] = [
     eyebrow: "Grow with partners",
     hero: "Track partner growth without rushing into unsafe payout automation.",
     summary:
-      "Bumpgrade models affiliate programs, referral links, clicks, checkout attribution, review-only commission evidence, partner reports, and payout preparation.",
+      "Bumpgrade models affiliate programs, referral links, clicks, checkout attribution, review-only commission evidence, partner reports, payout preparation, and owner-confirmed payout preparation records.",
     audience: "Publishers who want partners, affiliates, and creators to help sell without messy attribution logs.",
     problem: "Referral tracking gets risky when attribution, commission state, and payout readiness are blended together too early.",
     outcome:
@@ -304,7 +304,7 @@ export const marketingFeatures: MarketingFeature[] = [
     imageUrl: "/marketing/bumpgrade-home-hero.jpg",
     imageAlt: "A publisher founder reviewing a launch dashboard on a laptop.",
     featureIds: ["feature-affiliates-referrals"],
-    issueIds: [19, 89, 109, 111, 113, 115, 193, 195],
+    issueIds: [19, 89, 109, 111, 113, 115, 193, 195, 273],
     proofRoutes: ["/affiliates/indie-launch-partners", "/affiliates/source-data"],
     benefits: [
       "Create partner and referral-link records with public-safe click evidence.",
