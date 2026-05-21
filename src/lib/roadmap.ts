@@ -390,7 +390,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
+      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
@@ -404,9 +404,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #129 adds fixed all-time, 24-hour, 7-day, and 30-day aggregate source and conversion windows to source-data and the dashboard preview.",
       "Issue #261 adds owner-confirmed experiment decision evidence without routing traffic, assigning cookies, selecting automated winners, exposing raw event rows, or exposing raw assignment rows.",
       "Issue #263 adds aggregate report export metadata and fixture cohort comparison definitions without raw analytics exports.",
+      "Issue #265 adds owner-reviewed cohort comparison evidence without raw analytics exports, automated winners, or revenue claims.",
     ],
     nextMilestone:
-      "Add owner-reviewed cohort comparison evidence without exposing raw event rows or turning sparse experiment evidence into automated winner claims.",
+      "Add alert thresholds and anomaly-review evidence only after cohort comparisons keep sample-size caveats and no-winner boundaries explicit.",
   },
   {
     id: "roadmap-affiliates-referrals",

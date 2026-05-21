@@ -5,6 +5,8 @@ import type { AnalyticsTimeWindow } from "@/lib/analytics-time-windows";
 
 export const analyticsReportExportIssue = 263;
 export const analyticsReportExportStatus = "aggregate-report-exports-ready";
+export const analyticsCohortComparisonIssue = 265;
+export const analyticsCohortComparisonStatus = "owner-reviewed-cohort-comparisons-ready";
 
 type AggregateSummary = {
   aggregateCounts?: unknown[];
@@ -41,8 +43,130 @@ function countRows(value: unknown[] | undefined) {
   return Array.isArray(value) ? value.length : 0;
 }
 
+function stringField(row: unknown, field: string) {
+  if (!row || typeof row !== "object") return null;
+  const value = (row as Record<string, unknown>)[field];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function numberField(row: unknown, field: string) {
+  if (!row || typeof row !== "object") return 0;
+  const value = (row as Record<string, unknown>)[field];
+  const numeric = typeof value === "number" ? value : typeof value === "string" ? Number(value) : 0;
+  return Number.isFinite(numeric) ? numeric : 0;
+}
+
 function conversionSampleSize(report: AnalyticsFunnelConversionReport) {
   return report.rows.reduce((total, row) => total + row.sampleSize, 0);
+}
+
+function cohortFixtures(dashboard: AnalyticsDashboard) {
+  return [
+    {
+      id: "analytics-cohort-fixture-source-newsletter",
+      title: "Newsletter source cohort",
+      dimensions: ["utmSource", "utmMedium", "utmCampaign"],
+      filters: { utmSource: "newsletter" },
+      metricIds: dashboard.metrics.map((metric) => metric.id),
+      caveat: "Fixture cohort only; live cohort claims require enough captured samples and privacy review.",
+    },
+    {
+      id: "analytics-cohort-fixture-direct-or-referral",
+      title: "Direct or referral cohort",
+      dimensions: ["referrerHost", "utmSource"],
+      filters: { referrerHost: "present_or_direct", utmSource: "missing_or_direct" },
+      metricIds: dashboard.metrics.map((metric) => metric.id),
+      caveat: "Fixture cohort only; it must not be treated as statistically meaningful proof.",
+    },
+  ];
+}
+
+function rowsForCohort(rows: unknown[] | undefined, fixtureId: string) {
+  const sourceRows = Array.isArray(rows) ? rows : [];
+  if (fixtureId === "analytics-cohort-fixture-source-newsletter") {
+    return sourceRows.filter((row) => stringField(row, "utm_source") === "newsletter");
+  }
+  if (fixtureId === "analytics-cohort-fixture-direct-or-referral") {
+    return sourceRows.filter((row) => {
+      const source = stringField(row, "utm_source");
+      const referrerHost = stringField(row, "referrer_host");
+      return !source || source === "direct" || source === "referral" || Boolean(referrerHost);
+    });
+  }
+  return [];
+}
+
+function buildCohortEvidence(input: AnalyticsReportExportInput) {
+  const fixtures = cohortFixtures(input.dashboard);
+  const assignmentRows = Array.isArray(input.assignmentSummary.aggregateCounts) ? input.assignmentSummary.aggregateCounts : [];
+  const totalAssignments = assignmentRows.reduce<number>((total, row) => total + numberField(row, "total_assignments"), 0);
+  const totalConversionSampleSize = conversionSampleSize(input.conversionReport);
+  const cohorts = fixtures.map((fixture) => {
+    const sourceRows = rowsForCohort(input.eventSummary.aggregateSourceCounts, fixture.id);
+    const eventCount = sourceRows.reduce<number>((total, row) => total + numberField(row, "total_events"), 0);
+    return {
+      id: fixture.id,
+      title: fixture.title,
+      filters: fixture.filters,
+      metricIds: fixture.metricIds,
+      sourceAggregateRowCount: sourceRows.length,
+      eventCount,
+      assignmentCount: totalAssignments,
+      conversionSampleSize: totalConversionSampleSize,
+      sampleSizeCaveat: input.conversionReport.sampleSizeCaveat,
+    };
+  });
+
+  return [
+    {
+      id: "analytics-cohort-comparison-newsletter-vs-direct-referral",
+      status: analyticsCohortComparisonStatus,
+      issue: analyticsCohortComparisonIssue,
+      parentIssue: 18,
+      title: "Newsletter versus direct/referral cohort comparison",
+      sourceDataRoute: "/analytics/source-data",
+      selectedTimeWindowKey: input.timeWindow.key,
+      dashboardId: input.dashboard.id,
+      cohortFixtureIds: fixtures.map((fixture) => fixture.id),
+      evidenceSectionIds: [
+        "analytics-report-section-source-attribution",
+        "analytics-report-section-assignment-aggregates",
+        "analytics-report-section-funnel-conversion",
+        "analytics-report-section-experiment-decisions",
+      ],
+      ownerReview: {
+        id: "analytics-cohort-review-indie-launch-source-mix",
+        status: "reviewed_with_caveats",
+        mode: "fixture_owner_review",
+        issue: analyticsCohortComparisonIssue,
+        reviewedAt: "2026-05-21",
+        caveatAcknowledged: true,
+        requiredBeforeAgentClaims: true,
+      },
+      cohorts,
+      comparisonSummary: {
+        direction: "insufficient_sample_for_winner",
+        winnerSelected: false,
+        statisticallyMeaningful: false,
+        publicClaimAllowed: false,
+        trafficRoutingEnabled: false,
+        automatedWinnerEnabled: false,
+        revenueClaimEnabled: false,
+        agentInstruction:
+          "Use this as owner-reviewed directional cohort evidence with sample-size caveats only; do not name a winner or make revenue claims.",
+      },
+      redaction: {
+        rawEventRowsIncluded: false,
+        rawAssignmentRowsIncluded: false,
+        rawVisitorKeysIncluded: false,
+        rawReferrersIncluded: false,
+        rawQueryStringsIncluded: false,
+        contactAnalyticsIncluded: false,
+        actorEmailIncluded: false,
+        privateNotesIncluded: false,
+      },
+    },
+  ];
 }
 
 export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportInput) {
@@ -114,24 +238,8 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
         sampleSizeCaveat: input.conversionReport.sampleSizeCaveat,
       },
     ],
-    cohortComparisonFixtures: [
-      {
-        id: "analytics-cohort-fixture-source-newsletter",
-        title: "Newsletter source cohort",
-        dimensions: ["utmSource", "utmMedium", "utmCampaign"],
-        filters: { utmSource: "newsletter" },
-        metricIds: input.dashboard.metrics.map((metric) => metric.id),
-        caveat: "Fixture cohort only; live cohort claims require enough captured samples and privacy review.",
-      },
-      {
-        id: "analytics-cohort-fixture-direct-or-referral",
-        title: "Direct or referral cohort",
-        dimensions: ["referrerHost", "utmSource"],
-        filters: { referrerHost: "present_or_direct", utmSource: "missing_or_direct" },
-        metricIds: input.dashboard.metrics.map((metric) => metric.id),
-        caveat: "Fixture cohort only; it must not be treated as statistically meaningful proof.",
-      },
-    ],
+    cohortComparisonFixtures: cohortFixtures(input.dashboard),
+    ownerReviewedCohortComparisons: buildCohortEvidence(input),
     redaction: {
       rawEventRowsIncluded: false,
       rawAssignmentRowsIncluded: false,
@@ -156,6 +264,6 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
       "requestHash",
     ],
     writeBoundary:
-      "Issue #263 exposes aggregate report export metadata only. It does not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, route traffic, choose automated winners, or make revenue claims.",
+      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, route traffic, choose automated winners, or make revenue claims.",
   };
 }
