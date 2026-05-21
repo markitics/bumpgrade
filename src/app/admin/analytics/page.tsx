@@ -5,6 +5,7 @@ import { ArrowRight, BarChart3, Bell, Database, FlaskConical, MailCheck, ShieldC
 import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analytics-experiment-decision-form";
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
+import { AdminAnalyticsNotificationProviderDomainReadinessForm } from "@/components/admin-analytics-notification-provider-domain-readiness-form";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -19,6 +20,10 @@ import {
   analyticsNotificationDispatchPreflightIssue,
   getAnalyticsNotificationDispatchPreflightSummary,
 } from "@/lib/analytics-notification-dispatch-preflights";
+import {
+  analyticsNotificationProviderDomainReadinessIssue,
+  getAnalyticsNotificationProviderDomainReadinessSummary,
+} from "@/lib/analytics-notification-provider-domain-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -40,9 +45,11 @@ export default async function AdminAnalyticsPage() {
   const summary = await getAnalyticsExperimentDecisionSummary();
   const notificationSummary = await getAnalyticsNotificationInboxSummary();
   const dispatchPreflightSummary = await getAnalyticsNotificationDispatchPreflightSummary();
+  const providerDomainReadinessSummary = await getAnalyticsNotificationProviderDomainReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
+  const latestProviderDomainReadiness = providerDomainReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -76,6 +83,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationDispatchPreflightIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationProviderDomainReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationProviderDomainReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -86,6 +100,7 @@ export default async function AdminAnalyticsPage() {
             {summary.loadError ??
               notificationSummary.loadError ??
               dispatchPreflightSummary.loadError ??
+              providerDomainReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -125,6 +140,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {dispatchPreflightSummary.counts.notificationDispatchPreflightRecords} dispatch preflights;{" "}
               {dispatchPreflightSummary.counts.queueDispatchEnabledRecords} queue-dispatch records.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Provider/domain</h3>
+            <p>
+              {providerDomainReadinessSummary.counts.notificationProviderDomainReadinessRecords} readiness records;{" "}
+              {providerDomainReadinessSummary.counts.providerConfiguredRecords} provider-configured records.
             </p>
           </div>
         </div>
@@ -182,6 +205,34 @@ export default async function AdminAnalyticsPage() {
       <section className="content-band">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Provider and domain readiness</p>
+            <h2>Record provider/domain readiness without configuring delivery.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationProviderDomainReadinessForm
+          dashboardId={providerDomainReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={providerDomainReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={providerDomainReadinessSummary.readiness.id}
+          readinessStatus={providerDomainReadinessSummary.readiness.status}
+          notificationInboxStatus={providerDomainReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={
+            providerDomainReadinessSummary.readiness.notificationDispatchPreflightStatus
+          }
+          channelId={providerDomainReadinessSummary.readiness.channelId}
+          ownerReviewStatus={providerDomainReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={providerDomainReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={providerDomainReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Confirmed write</p>
             <h2>Record experiment decision evidence with aggregate counts.</h2>
           </div>
@@ -202,7 +253,7 @@ export default async function AdminAnalyticsPage() {
         />
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest notifications</p>
@@ -246,7 +297,7 @@ export default async function AdminAnalyticsPage() {
         </div>
       </section>
 
-      <section className="content-band">
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest dispatch preflights</p>
@@ -287,6 +338,52 @@ export default async function AdminAnalyticsPage() {
               <MailCheck aria-hidden="true" />
               <h3>Dispatch preflight evidence is ready</h3>
               <p>Record a current notification inbox record before recording dispatch preflight evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest provider/domain readiness</p>
+            <h2>Provider/domain records hide secrets, DNS credentials, recipients, bodies, and provider IDs.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestProviderDomainReadiness ? (
+            providerDomainReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationProviderDomainReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Dispatch {record.dispatchPreflightId} checked with {record.expectedConversionSampleSize} conversion
+                  samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No provider configuration</strong>
+                  <span>
+                    Provider configured {String(record.providerConfigured)}, provider called{" "}
+                    {String(record.providerCalled)}, sender domain verified {String(record.senderDomainVerified)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs dispatch preflight</span>
+              </div>
+              <ShieldCheck aria-hidden="true" />
+              <h3>Provider/domain readiness evidence is ready</h3>
+              <p>Record a current dispatch preflight before recording provider/domain readiness evidence.</p>
             </article>
           )}
         </div>
