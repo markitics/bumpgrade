@@ -205,7 +205,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add owner-reviewed analytics notification provider-call readiness evidence for agents.',
   json_array(json_object('number',297,'url','https://github.com/markitics/bumpgrade/issues/297'), json_object('number',18,'url','https://github.com/markitics/bumpgrade/issues/18')),
-  json_array(),
+  json_array(json_object('number',298,'url','https://github.com/markitics/bumpgrade/pull/298')),
   json_array('https://bumpgrade.com/features','https://bumpgrade.com/analytics/source-data'),
   json_array('https://bumpgrade.com/admin/roadmap','https://bumpgrade.com/roadmap/source-data'),
   json_array('https://bumpgrade.com/admin/user-journeys','https://bumpgrade.com/admin/user-journeys/source-data'),
@@ -214,7 +214,7 @@ INSERT INTO admin_work_log_entries (
   'Provider-call readiness remains review-only: no provider send or call, provider configuration, provider response, provider message ID, provider secret, sender credential, private DNS credential, Queue producer, Queue consumer, queue message, queue acknowledgement, queue payload body, recipient payload, email body, customer alert, traffic routing, automated winner, or revenue claim was enabled.',
   unixepoch(),
   unixepoch(),
-  json_array('https://bumpgrade.com/analytics/source-data','https://bumpgrade.com/api/admin/analytics/notification-provider-call-readiness','https://bumpgrade.com/agent-docs/source-data','https://bumpgrade.com/pr-screenshots/issue-297-admin-analytics-provider-call-readiness.png','https://github.com/markitics/bumpgrade/issues/297'),
+  json_array('https://bumpgrade.com/analytics/source-data','https://bumpgrade.com/api/admin/analytics/notification-provider-call-readiness','https://bumpgrade.com/agent-docs/source-data','https://bumpgrade.com/pr-screenshots/issue-297-admin-analytics-provider-call-readiness.png','https://github.com/markitics/bumpgrade/issues/297','https://github.com/markitics/bumpgrade/pull/298'),
   NULL,
   unixepoch()
 )
