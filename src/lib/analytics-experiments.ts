@@ -116,7 +116,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedProductRoute: "/products/indie-launch-library",
   revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-time-window-filters",
   summary:
-    "A privacy-safe analytics and experiment dashboard for time-windowed aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, dashboard-visible source attribution, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, deterministic A/B assignment, and owner-confirmed experiment decision evidence before cookies, traffic routing, or automated winners exist.",
+    "A privacy-safe analytics and experiment dashboard for time-windowed aggregate funnel conversion reporting, exportable aggregate report snapshots, checkout revenue, audience opt-ins, seeded live event capture, dashboard-visible source attribution, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, deterministic A/B assignment, and owner-confirmed experiment decision evidence before cookies, traffic routing, or automated winners exist.",
   events: [
     {
       id: "event-funnel-page-view",
@@ -294,7 +294,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     },
   ],
   writeBoundary:
-    "Issues #105, #107, #119, #121, #123, #125, #127, #129, and #261 can capture seeded analytics events, assign seeded experiment variants, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, and record owner-confirmed experiment decision evidence. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, experiment traffic routing, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+    "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, and #263 can capture seeded analytics events, assign seeded experiment variants, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, record owner-confirmed experiment decision evidence, and expose aggregate report export metadata. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, raw analytics exports, experiment traffic routing, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
   validation: [
     "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, and experiment definitions.",
     "/analytics/indie-launch-dashboard renders the analytics and experiment preview.",
@@ -305,6 +305,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     `${analyticsFunnelPageViewBeaconContract.sourceRoute} emits a session-idempotent seeded page-view beacon through ${analyticsFunnelPageViewBeaconContract.apiRoute} with deterministic variant evidence from ${analyticsFunnelPageViewBeaconContract.assignmentApiRoute} and normalized source attribution when URL/referrer evidence is present.`,
     `${analyticsExperimentAssignmentApiRoute} stores seeded experiment assignment evidence with idempotency.`,
     "/api/admin/analytics/experiment-decisions stores owner-confirmed experiment decision evidence with aggregate counts, sample-size caveats, idempotency, and redaction.",
+    "/analytics/source-data exposes aggregate report export metadata without raw event rows, raw assignment rows, visitor keys, or contact analytics.",
     `${analyticsConversionReportContract.sourceDataRoute} reports captured test-event conversion rows without exposing raw events.`,
     "/agent-docs/source-data lists the analytics read contract for future MCP resources.",
   ],
@@ -341,6 +342,9 @@ export const analyticsExperimentsSourceData = {
     "experimentAssignmentId",
     "analyticsExperimentDecisionId",
     "analyticsExperimentDecisionKind",
+    "analyticsReportExportId",
+    "analyticsReportExportSectionId",
+    "analyticsCohortFixtureId",
     "utmSource",
     "utmMedium",
     "utmCampaign",
@@ -395,5 +399,5 @@ export const analyticsExperimentsSourceData = {
   writeBoundary: analyticsDashboard.writeBoundary,
   dashboards: analyticsDashboards,
   caveat:
-    "This contract proves analytics, reporting, experiment read/preview semantics, dashboard-visible aggregate source attribution, fixed-window aggregate source and conversion filters, privacy-safe seeded event capture, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, deterministic seeded assignment, aggregate funnel conversion reporting, and owner-confirmed experiment decision evidence. Public source-data may expose aggregate event, source, variant, assignment, decision, and conversion-report counts by fixed window, but it does not expose raw event rows, raw assignment rows, raw visitor keys, full referrer URLs, raw query strings, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct public agent write APIs.",
+    "This contract proves analytics, reporting, experiment read/preview semantics, dashboard-visible aggregate source attribution, fixed-window aggregate source and conversion filters, privacy-safe seeded event capture, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, deterministic seeded assignment, aggregate funnel conversion reporting, owner-confirmed experiment decision evidence, and aggregate report export metadata. Public source-data may expose aggregate event, source, variant, assignment, decision, report-export, and conversion-report counts by fixed window, but it does not expose raw event rows, raw assignment rows, raw visitor keys, full referrer URLs, raw query strings, raw analytics exports, assign cookies, expose contact-level analytics, route traffic, make automated decisions, or provide direct public agent write APIs.",
 };

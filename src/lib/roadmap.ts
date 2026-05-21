@@ -403,9 +403,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #127 renders aggregate source attribution rows in the analytics dashboard preview.",
       "Issue #129 adds fixed all-time, 24-hour, 7-day, and 30-day aggregate source and conversion windows to source-data and the dashboard preview.",
       "Issue #261 adds owner-confirmed experiment decision evidence without routing traffic, assigning cookies, selecting automated winners, exposing raw event rows, or exposing raw assignment rows.",
+      "Issue #263 adds aggregate report export metadata and fixture cohort comparison definitions without raw analytics exports.",
     ],
     nextMilestone:
-      "Add exportable aggregate reports and cohort comparison fixtures without exposing raw event rows or turning sparse experiment evidence into automated winner claims.",
+      "Add owner-reviewed cohort comparison evidence without exposing raw event rows or turning sparse experiment evidence into automated winner claims.",
   },
   {
     id: "roadmap-affiliates-referrals",

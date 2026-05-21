@@ -1,13 +1,13 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, and #261 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, and #263 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
 first aggregate variant and source attribution page-view evidence, and the first
 dashboard-visible source attribution breakdown, fixed aggregate source and
-conversion time-window filters, and owner-confirmed experiment decision evidence
-for issue #18.
+conversion time-window filters, owner-confirmed experiment decision evidence,
+and aggregate report export metadata for issue #18.
 
 ## Live Routes
 
@@ -48,6 +48,8 @@ The first dashboard includes stable IDs for:
 - dashboard-visible source attribution breakdowns.
 - owner-confirmed experiment decision counts, latest public-safe decision
   metadata, selected fixed-window evidence, and redaction flags.
+- aggregate report export metadata, export sections, and fixture cohort
+  comparison definitions.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -65,10 +67,13 @@ falls back to fixture rows only when no samples exist. Owner sessions can record
 experiment decision evidence only after exact confirmation, idempotency,
 dashboard revision checks, experiment status checks, aggregate assignment-count
 checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
-These paths do not assign cookies, expose contact-level analytics, expose raw
-event or assignment rows, expose raw campaign/referrer payloads, route
-experiment traffic, make automated winner decisions, make revenue claims, or
-prove statistical significance.
+The current export contract exposes aggregate report section metadata only:
+event aggregates, source attribution aggregates, variant aggregates, assignment
+aggregates, funnel conversion rows, and experiment decision evidence. These
+paths do not assign cookies, expose contact-level analytics, expose raw event or
+assignment rows, expose raw campaign/referrer payloads, create raw analytics
+exports, route experiment traffic, make automated winner decisions, make revenue
+claims, or prove statistical significance.
 
 ## Agent Boundary
 
@@ -76,9 +81,10 @@ Agents may read the source-data route, preview route, event capture boundary,
 page-view beacon boundary, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
-report rows to understand analytics and experiment semantics. Direct public
-agent analytics writes, custom events, raw campaign/referrer reporting, tracking
-cookies, experiment traffic routing, automated winners, or revenue claims
-require authenticated confirmed-write APIs with actor identity, privacy review,
-idempotency, stale-state checks, audit correlation, redaction, retention limits,
-and sample-size caveats.
+report rows, and aggregate report export metadata to understand analytics and
+experiment semantics. Direct public agent analytics writes, custom events, raw
+campaign/referrer reporting, tracking cookies, raw analytics exports, experiment
+traffic routing, automated winners, or revenue claims require authenticated
+confirmed-write APIs with actor identity, privacy review, idempotency,
+stale-state checks, audit correlation, redaction, retention limits, and
+sample-size caveats.

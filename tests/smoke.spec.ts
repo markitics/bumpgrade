@@ -73,6 +73,7 @@ import {
   analyticsExperimentDecisionIssue,
   analyticsExperimentDecisionStatus,
 } from "../src/lib/analytics-experiment-decisions";
+import { analyticsReportExportIssue, analyticsReportExportStatus } from "../src/lib/analytics-report-exports";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
@@ -3719,6 +3720,9 @@ test.describe("Bumpgrade scaffold", () => {
         "experimentAssignmentId",
         "analyticsExperimentDecisionId",
         "analyticsExperimentDecisionKind",
+        "analyticsReportExportId",
+        "analyticsReportExportSectionId",
+        "analyticsCohortFixtureId",
         "variantId",
         "utmSource",
         "utmMedium",
@@ -3786,6 +3790,47 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.reportExports).toEqual(
+      expect.objectContaining({
+        status: analyticsReportExportStatus,
+        issue: analyticsReportExportIssue,
+        sourceDataRoute: "/analytics/source-data",
+        selectedTimeWindow: expect.objectContaining({ key: "all" }),
+        exports: expect.arrayContaining([
+          expect.objectContaining({
+            id: "analytics-report-export-indie-launch-aggregate-summary",
+            format: "json",
+            exportMode: "aggregate_snapshot",
+            selectedTimeWindowKey: "all",
+            sections: expect.arrayContaining([
+              expect.objectContaining({
+                id: "analytics-report-section-funnel-conversion",
+                stableIds: expect.arrayContaining(["analyticsFunnelConversionReportId", "metricId"]),
+              }),
+              expect.objectContaining({
+                id: "analytics-report-section-experiment-decisions",
+                stableIds: expect.arrayContaining(["analyticsExperimentDecisionId"]),
+              }),
+            ]),
+            sampleSizeCaveat: expect.stringContaining("sample-size caveats"),
+          }),
+        ]),
+        cohortComparisonFixtures: expect.arrayContaining([
+          expect.objectContaining({
+            id: "analytics-cohort-fixture-source-newsletter",
+            dimensions: expect.arrayContaining(["utmSource"]),
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          rawVisitorKeysIncluded: false,
+          rawReferrersIncluded: false,
+          rawQueryStringsIncluded: false,
+          contactAnalyticsIncluded: false,
+        }),
+      }),
+    );
     expect(payload.conversionReport).toEqual(
       expect.objectContaining({
         status: "conversion-report-ready",
@@ -3850,7 +3895,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, and #261 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, and #263 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -5553,7 +5598,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -5883,6 +5928,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-report-exports", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
@@ -6103,11 +6149,15 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsEventVariantAggregateId",
             "experimentAssignmentId",
             "analyticsExperimentDecisionId",
+            "analyticsReportExportId",
+            "analyticsReportExportSectionId",
+            "analyticsCohortFixtureId",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
+            "Inspect aggregate report export sections without raw analytics downloads",
           ]),
         }),
         expect.objectContaining({
