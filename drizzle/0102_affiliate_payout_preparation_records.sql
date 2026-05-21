@@ -90,7 +90,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add owner-confirmed affiliate payout preparation record evidence for agents.',
   '[{"number":273,"url":"https://github.com/markitics/bumpgrade/issues/273"},{"number":19,"url":"https://github.com/markitics/bumpgrade/issues/19"}]',
-  '[]',
+  '[{"number":274,"url":"https://github.com/markitics/bumpgrade/pull/274"}]',
   '["https://bumpgrade.com/features","https://bumpgrade.com/affiliates/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
@@ -99,7 +99,7 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch(),
   unixepoch(),
-  '["https://bumpgrade.com/affiliates/source-data","https://bumpgrade.com/api/admin/affiliates/payout-preparation-records","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/273"]',
+  '["https://bumpgrade.com/affiliates/source-data","https://bumpgrade.com/api/admin/affiliates/payout-preparation-records","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/273","https://github.com/markitics/bumpgrade/pull/274"]',
   NULL,
   unixepoch()
 )
