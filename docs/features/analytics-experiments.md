@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, and #299 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, and #301 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -15,9 +15,10 @@ owner-reviewed notification provider/domain readiness evidence,
 owner-reviewed notification content/consent readiness evidence,
 owner-reviewed notification send-payload readiness evidence,
 owner-reviewed notification queue-producer readiness evidence,
-owner-reviewed notification queue-consumer readiness evidence, and
-owner-reviewed notification provider-call readiness evidence, and
-owner-reviewed notification delivery-attempt readiness evidence
+owner-reviewed notification queue-consumer readiness evidence,
+owner-reviewed notification provider-call readiness evidence,
+owner-reviewed notification delivery-attempt readiness evidence, and
+owner-reviewed notification delivery-result readiness evidence
 for issue #18.
 
 ## Live Routes
@@ -54,10 +55,13 @@ for issue #18.
 - `/api/admin/analytics/notification-delivery-attempt-readiness`: owner-gated
   GET/POST endpoint for reviewed notification delivery-attempt readiness
   evidence.
+- `/api/admin/analytics/notification-delivery-result-readiness`: owner-gated
+  GET/POST endpoint for reviewed notification delivery-result readiness
+  evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
   and notification inbox, dispatch preflight, provider/domain readiness, and
   content/consent readiness, send-payload readiness, queue-producer readiness,
-  queue-consumer readiness, provider-call readiness, and delivery-attempt
+  queue-consumer readiness, provider-call readiness, delivery-attempt, and delivery-result
   readiness evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
@@ -205,6 +209,11 @@ Owner sessions can record notification delivery-attempt readiness evidence only
 after exact confirmation, idempotency, dashboard revision checks, notification
 readiness checks, current notification provider-call readiness checks, selected
 fixed-window sample-size checks, and sample-size caveat acknowledgement.
+Owner sessions can record notification delivery-result readiness evidence only
+after exact confirmation, idempotency, dashboard revision checks, notification
+readiness checks, current notification delivery-attempt readiness checks,
+selected fixed-window sample-size checks, and sample-size caveat
+acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
@@ -216,7 +225,8 @@ provider/domain readiness evidence, and owner-reviewed content/consent
 readiness evidence, owner-reviewed send-payload readiness evidence,
 owner-reviewed queue-producer readiness evidence, owner-reviewed
 queue-consumer readiness evidence, owner-reviewed provider-call readiness
-evidence, and owner-reviewed delivery-attempt readiness evidence. The cohort
+evidence, owner-reviewed delivery-attempt readiness evidence, and
+owner-reviewed delivery-result readiness evidence. The cohort
 comparison, threshold review, notification readiness, notification inbox
 records, dispatch preflights, provider/domain readiness records, and
 content/consent readiness records, send-payload readiness records,
