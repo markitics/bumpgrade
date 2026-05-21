@@ -6,6 +6,7 @@ import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analyti
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
+import { AdminAnalyticsNotificationQueueProducerReadinessForm } from "@/components/admin-analytics-notification-queue-producer-readiness-form";
 import { AdminAnalyticsNotificationSendPayloadReadinessForm } from "@/components/admin-analytics-notification-send-payload-readiness-form";
 import { AdminAnalyticsNotificationProviderDomainReadinessForm } from "@/components/admin-analytics-notification-provider-domain-readiness-form";
 import { AdminLocked } from "@/components/admin-auth-gate";
@@ -34,6 +35,10 @@ import {
   analyticsNotificationSendPayloadReadinessIssue,
   getAnalyticsNotificationSendPayloadReadinessSummary,
 } from "@/lib/analytics-notification-send-payload-readiness";
+import {
+  analyticsNotificationQueueProducerReadinessIssue,
+  getAnalyticsNotificationQueueProducerReadinessSummary,
+} from "@/lib/analytics-notification-queue-producer-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -58,12 +63,14 @@ export default async function AdminAnalyticsPage() {
   const providerDomainReadinessSummary = await getAnalyticsNotificationProviderDomainReadinessSummary();
   const contentConsentReadinessSummary = await getAnalyticsNotificationContentConsentReadinessSummary();
   const sendPayloadReadinessSummary = await getAnalyticsNotificationSendPayloadReadinessSummary();
+  const queueProducerReadinessSummary = await getAnalyticsNotificationQueueProducerReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
   const latestProviderDomainReadiness = providerDomainReadinessSummary.latestRecords[0];
   const latestContentConsentReadiness = contentConsentReadinessSummary.latestRecords[0];
   const latestSendPayloadReadiness = sendPayloadReadinessSummary.latestRecords[0];
+  const latestQueueProducerReadiness = queueProducerReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -73,9 +80,9 @@ export default async function AdminAnalyticsPage() {
           <h1>Experiment decisions stay evidenced before traffic routing.</h1>
           <p className="lede">
             Owners can inspect aggregate assignment counts, fixed-window conversion sample sizes, and sample-size
-            caveats before recording an experiment decision or owner inbox notification record. The evidence rows stay
-            redacted and do not send email, dispatch queues, route traffic, assign cookies, pick automated winners,
-            expose raw events, expose raw assignments, or make revenue claims.
+            caveats before recording experiment decisions or staged notification readiness records. The evidence rows stay
+            redacted and do not send email, enable Queue producers, create Queue messages, route traffic, assign cookies,
+            pick automated winners, expose raw events, expose raw assignments, or make revenue claims.
           </p>
           <div className="hero-actions">
             <Link href="/analytics/source-data" className="primary-action">
@@ -118,6 +125,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationSendPayloadReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationQueueProducerReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationQueueProducerReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -131,6 +145,7 @@ export default async function AdminAnalyticsPage() {
               providerDomainReadinessSummary.loadError ??
               contentConsentReadinessSummary.loadError ??
               sendPayloadReadinessSummary.loadError ??
+              queueProducerReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -194,6 +209,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {sendPayloadReadinessSummary.counts.notificationSendPayloadReadinessRecords} readiness records;{" "}
               {sendPayloadReadinessSummary.counts.recipientPayloadCreatedRecords} recipient-payload records.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Queue producer</h3>
+            <p>
+              {queueProducerReadinessSummary.counts.notificationQueueProducerReadinessRecords} readiness records;{" "}
+              {queueProducerReadinessSummary.counts.queueMessageCreatedRecords} queue-message records.
             </p>
           </div>
         </div>
@@ -338,6 +361,38 @@ export default async function AdminAnalyticsPage() {
       </section>
 
       <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Queue-producer readiness</p>
+            <h2>Record queue-producer readiness without enabling Queue producers.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationQueueProducerReadinessForm
+          dashboardId={queueProducerReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={queueProducerReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={queueProducerReadinessSummary.readiness.id}
+          readinessStatus={queueProducerReadinessSummary.readiness.status}
+          notificationInboxStatus={queueProducerReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={queueProducerReadinessSummary.readiness.notificationDispatchPreflightStatus}
+          notificationProviderDomainReadinessStatus={
+            queueProducerReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          notificationSendPayloadReadinessStatus={
+            queueProducerReadinessSummary.readiness.notificationSendPayloadReadinessStatus
+          }
+          channelId={queueProducerReadinessSummary.readiness.channelId}
+          ownerReviewStatus={queueProducerReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={queueProducerReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={queueProducerReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Confirmed write</p>
@@ -628,6 +683,53 @@ export default async function AdminAnalyticsPage() {
               <ShieldCheck aria-hidden="true" />
               <h3>Send-payload readiness evidence is ready</h3>
               <p>Record a current content/consent readiness before recording send-payload readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest queue-producer readiness</p>
+            <h2>Queue-producer records keep Queue execution and payload creation disabled.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestQueueProducerReadiness ? (
+            queueProducerReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationQueueProducerReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Send-payload readiness {record.sendPayloadReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No Queue production</strong>
+                  <span>
+                    Queue producer {String(record.queueProducerEnabled)}, queue message{" "}
+                    {String(record.queueMessageCreated)}, queue payload body{" "}
+                    {String(record.queuePayloadBodyCreated)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs send-payload</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Queue-producer readiness evidence is ready</h3>
+              <p>Record a current send-payload readiness before recording queue-producer readiness evidence.</p>
             </article>
           )}
         </div>

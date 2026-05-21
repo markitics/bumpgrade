@@ -49,6 +49,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Owner analytics notification provider/domain readiness API: https://bumpgrade.com/api/admin/analytics/notification-provider-domain-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification content/consent readiness API: https://bumpgrade.com/api/admin/analytics/notification-content-consent-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification send-payload readiness API: https://bumpgrade.com/api/admin/analytics/notification-send-payload-readiness (human page/API requires Better Auth owner session)
+- Owner analytics notification queue-producer readiness API: https://bumpgrade.com/api/admin/analytics/notification-queue-producer-readiness (human page/API requires Better Auth owner session)
 - Owner-reviewed analytics cohort comparison evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics alert threshold/anomaly-review evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics notification delivery readiness evidence: https://bumpgrade.com/analytics/source-data
@@ -234,12 +235,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   aggregate evidence, owner-reviewed provider/domain readiness aggregate
   evidence, owner-reviewed content/consent readiness aggregate evidence,
   owner-reviewed send-payload readiness aggregate evidence,
+  owner-reviewed queue-producer readiness aggregate evidence,
   aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert
   threshold/anomaly-review evidence, owner-reviewed notification delivery
   readiness evidence, owner-confirmed notification inbox evidence,
   owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain
   readiness evidence, owner-reviewed content/consent readiness evidence,
   owner-reviewed send-payload readiness evidence,
+  owner-reviewed queue-producer readiness evidence,
   aggregate funnel conversion report rows, metric formulas, variants, assignment rules, and the
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
@@ -255,11 +258,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   readiness evidence, owner-confirmed notification inbox evidence,
   owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain
   readiness evidence, owner-reviewed content/consent readiness evidence,
-  owner-reviewed send-payload readiness evidence, and
+  owner-reviewed send-payload readiness evidence, owner-reviewed
+  queue-producer readiness evidence, and
   aggregate/source-data evidence, not cookie assignment, automated alert sends, owner email sends,
   provider sends, provider configuration, provider secrets, private DNS
-  credentials, body templates, unsubscribe URLs, queue dispatch, queue messages,
-  recipient payloads, personalized bodies, raw payload bodies, customer alerts, traffic routing,
+  credentials, body templates, unsubscribe URLs, Queue producer execution, queue dispatch, queue messages,
+  queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, customer alerts, traffic routing,
   contact-level analytics, raw referrer/query exposure, raw
   event or assignment exposure, raw analytics exports, automated winners,
   direct public agent analytics writes, revenue claims, or statistically
