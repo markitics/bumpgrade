@@ -45,6 +45,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded analytics assignment API: https://bumpgrade.com/api/analytics/assignments
 - Owner analytics decision API: https://bumpgrade.com/api/admin/analytics/experiment-decisions (human page/API requires Better Auth owner session)
 - Owner analytics notification inbox API: https://bumpgrade.com/api/admin/analytics/notification-inbox-records (human page/API requires Better Auth owner session)
+- Owner analytics notification dispatch preflight API: https://bumpgrade.com/api/admin/analytics/notification-dispatch-preflights (human page/API requires Better Auth owner session)
 - Owner-reviewed analytics cohort comparison evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics alert threshold/anomaly-review evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics notification delivery readiness evidence: https://bumpgrade.com/analytics/source-data
@@ -226,10 +227,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   workspace with event definitions, aggregate event counts, aggregate source
   attribution counts, aggregate variant event counts, aggregate assignment
   counts, owner-confirmed experiment decision evidence, owner-confirmed
-  notification inbox aggregate evidence, aggregate report export
+  notification inbox aggregate evidence, owner-confirmed dispatch preflight
+  aggregate evidence, aggregate report export
   metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert
   threshold/anomaly-review evidence, owner-reviewed notification delivery
-  readiness evidence, owner-confirmed notification inbox evidence, aggregate funnel
+  readiness evidence, owner-confirmed notification inbox evidence,
+  owner-confirmed dispatch preflight evidence, aggregate funnel
   conversion report rows, metric formulas, variants, assignment rules, and the
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
@@ -242,9 +245,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   fixed-window aggregate evidence, owner-reviewed decision evidence, aggregate
   report export metadata, owner-reviewed cohort comparison evidence,
   owner-reviewed threshold review evidence, owner-reviewed notification
-  readiness evidence, owner-confirmed notification inbox evidence, and
-  aggregate/source-data evidence, not cookie assignment, automated alert sends,
-  owner email sends, queue dispatch, customer alerts, traffic routing,
+  readiness evidence, owner-confirmed notification inbox evidence,
+  owner-confirmed dispatch preflight evidence, and aggregate/source-data
+  evidence, not cookie assignment, automated alert sends, owner email sends,
+  provider sends, queue dispatch, customer alerts, traffic routing,
   contact-level analytics, raw referrer/query exposure, raw
   event or assignment exposure, raw analytics exports, automated winners,
   direct public agent analytics writes, revenue claims, or statistically

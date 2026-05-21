@@ -312,6 +312,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-reviewed alert threshold and anomaly-review evidence from issue #267.",
       "Owner-reviewed notification delivery readiness evidence from issue #269.",
       "Owner-confirmed notification inbox records from issue #271.",
+      "Owner-confirmed notification dispatch preflights from issue #284.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
     evidence: [
@@ -331,9 +332,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence without automated alerts, traffic routing, or revenue claims.",
       "Issue #269 adds owner-reviewed notification delivery readiness evidence without alert sends, inbox writes, traffic routing, or revenue claims.",
       "Issue #271 adds owner-confirmed notification inbox records without owner email sends, queue dispatch, customer alerts, recipients, email bodies, traffic routing, or revenue claims.",
+      "Issue #284 adds owner-confirmed notification dispatch preflights without owner email sends, provider calls, queue dispatch, customer alerts, recipients, email bodies, provider message IDs, queue payloads, traffic routing, or revenue claims.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, owner-confirmed notification inbox aggregate evidence, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, raw analytics exports, automated alert sends, owner email sends, queue dispatch, customer alerts, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, owner-confirmed notification inbox aggregate evidence, owner-confirmed dispatch preflight aggregate evidence, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, raw analytics exports, automated alert sends, owner email sends, provider sends, queue dispatch, customer alerts, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",

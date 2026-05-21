@@ -105,6 +105,12 @@ import {
   analyticsNotificationInboxStatus,
 } from "../src/lib/analytics-notification-inbox";
 import {
+  analyticsNotificationDispatchPreflightApiRoute,
+  analyticsNotificationDispatchPreflightConfirmationText,
+  analyticsNotificationDispatchPreflightIssue,
+  analyticsNotificationDispatchPreflightStatus,
+} from "../src/lib/analytics-notification-dispatch-preflights";
+import {
   analyticsAlertAnomalyIssue,
   analyticsAlertAnomalyStatus,
   analyticsCohortComparisonIssue,
@@ -3751,6 +3757,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/analytics/assignments",
         analyticsExperimentDecisionApiRoute,
         analyticsNotificationInboxApiRoute,
+        analyticsNotificationDispatchPreflightApiRoute,
         "/admin/analytics",
         "/funnels/indie-launch-sandbox",
         "/analytics/indie-launch-dashboard",
@@ -3766,6 +3773,8 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsExperimentDecisionKind",
         "analyticsNotificationInboxRecordId",
         "analyticsNotificationInboxStatus",
+        "analyticsNotificationDispatchPreflightId",
+        "analyticsNotificationDispatchPreflightStatus",
         "analyticsReportExportId",
         "analyticsReportExportSectionId",
         "analyticsCohortFixtureId",
@@ -3823,6 +3832,16 @@ test.describe("Bumpgrade scaffold", () => {
         auth: "owner-session",
         confirmationText: analyticsNotificationInboxConfirmationText,
         tables: expect.arrayContaining(["analytics_notification_inbox_records"]),
+      }),
+    );
+    expect(payload.notificationDispatchPreflightWrites).toEqual(
+      expect.objectContaining({
+        status: analyticsNotificationDispatchPreflightStatus,
+        issue: analyticsNotificationDispatchPreflightIssue,
+        apiRoute: analyticsNotificationDispatchPreflightApiRoute,
+        auth: "owner-session",
+        confirmationText: analyticsNotificationDispatchPreflightConfirmationText,
+        tables: expect.arrayContaining(["analytics_notification_dispatch_preflight_records"]),
       }),
     );
     expect(payload.experimentDecisions).toEqual(
@@ -3889,6 +3908,57 @@ test.describe("Bumpgrade scaffold", () => {
           privateNoteIncluded: false,
           notificationRecipientIncluded: false,
           emailBodyIncluded: false,
+          queuePayloadIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.notificationDispatchPreflights).toEqual(
+      expect.objectContaining({
+        status: analyticsNotificationDispatchPreflightStatus,
+        issue: analyticsNotificationDispatchPreflightIssue,
+        apiRoute: analyticsNotificationDispatchPreflightApiRoute,
+        ownerRoute: "/admin/analytics",
+        readiness: expect.objectContaining({
+          id: analyticsNotificationReadinessId,
+          status: analyticsNotificationReadinessStatus,
+          notificationInboxStatus: analyticsNotificationInboxStatus,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          alertThresholdCount: 2,
+        }),
+        currentEvidenceByWindow: expect.arrayContaining([
+          expect.objectContaining({
+            timeWindow: expect.objectContaining({ key: "all" }),
+            readinessId: analyticsNotificationReadinessId,
+            notificationInboxStatus: analyticsNotificationInboxStatus,
+            channelId: analyticsNotificationAdminInboxChannelId,
+            inboxRecordRequired: true,
+            ownerEmailSendEnabled: false,
+            queueDispatchEnabled: false,
+            customerAlertEnabled: false,
+            providerMessageIdIncluded: false,
+            queuePayloadIncluded: false,
+            rawRowsIncluded: false,
+            privateDataIncluded: false,
+          }),
+        ]),
+        counts: expect.objectContaining({
+          emailSendEnabledRecords: 0,
+          queueDispatchEnabledRecords: 0,
+          customerAlertEnabledRecords: 0,
+          recipientIdentityIncludedRecords: 0,
+          emailBodyIncludedRecords: 0,
+          providerMessageIdIncludedRecords: 0,
+          queuePayloadIncludedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          notificationRecipientIncluded: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
           queuePayloadIncluded: false,
         }),
       }),
@@ -4124,7 +4194,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, and #271 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, and #284 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -5055,6 +5125,367 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/admin/analytics");
     await expect(page.getByRole("heading", { name: /Record analytics notification evidence without sending email/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record notification inbox/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
+  });
+
+  test("owner analytics notification dispatch preflights require auth, current inbox evidence, idempotency, stale checks, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner analytics notification dispatch preflight auth flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const inboxPrivateNote = `Private analytics notification inbox note before dispatch for m@rkmoriarty.com ${suffix}`;
+    const privateNote = `Private analytics notification dispatch preflight note for m@rkmoriarty.com ${suffix}`;
+
+    const sourceResponse = await request.get("/analytics/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    const inboxEvidence = sourcePayload.notificationInboxRecords.currentEvidenceByWindow.find(
+      (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+    );
+    expect(inboxEvidence).toBeTruthy();
+
+    const baseDispatchRequestBody = {
+      dashboardId: analyticsDashboard.id,
+      readinessId: analyticsNotificationReadinessId,
+      channelId: analyticsNotificationAdminInboxChannelId,
+      inboxRecordId: "analytics-notification-inbox-record-not-yet-created",
+      timeWindowKey: inboxEvidence.timeWindow.key,
+      notificationDispatchPreflightDisposition: "blocked_pending_provider_review",
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedReadinessStatus: analyticsNotificationReadinessStatus,
+      expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+      expectedOwnerReviewStatus: inboxEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: inboxEvidence.alertThresholdCount,
+      expectedConversionSampleSize: inboxEvidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote,
+      confirmationText: analyticsNotificationDispatchPreflightConfirmationText,
+      idempotencyKey: `playwright-analytics-notification-dispatch-preflight-${suffix}`,
+    };
+
+    const unauthorizedGet = await request.get(analyticsNotificationDispatchPreflightApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          notificationRecipientIncluded: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: baseDispatchRequestBody,
+    });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const inboxRequestBody = {
+      dashboardId: analyticsDashboard.id,
+      readinessId: analyticsNotificationReadinessId,
+      channelId: analyticsNotificationAdminInboxChannelId,
+      timeWindowKey: inboxEvidence.timeWindow.key,
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedReadinessStatus: analyticsNotificationReadinessStatus,
+      expectedOwnerReviewStatus: inboxEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: inboxEvidence.alertThresholdCount,
+      expectedConversionSampleSize: inboxEvidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote: inboxPrivateNote,
+      confirmationText: analyticsNotificationInboxConfirmationText,
+      idempotencyKey: `playwright-analytics-notification-inbox-before-dispatch-${suffix}`,
+    };
+    const inboxCreated = await page.request.post(analyticsNotificationInboxApiRoute, { data: inboxRequestBody });
+    expect(inboxCreated.status(), await inboxCreated.text()).toBe(201);
+    const inboxCreatedPayload = await inboxCreated.json();
+    expect(inboxCreatedPayload.record).toEqual(
+      expect.objectContaining({
+        adminInboxRecordCreated: true,
+        ownerEmailSendEnabled: false,
+        queueDispatchEnabled: false,
+        recipientIdentityIncluded: false,
+        emailBodyIncluded: false,
+      }),
+    );
+
+    const sourceAfterInbox = await page.request.get("/analytics/source-data");
+    expect(sourceAfterInbox.ok(), await sourceAfterInbox.text()).toBeTruthy();
+    const sourceAfterInboxPayload = await sourceAfterInbox.json();
+    const dispatchEvidence = sourceAfterInboxPayload.notificationDispatchPreflights.currentEvidenceByWindow.find(
+      (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+    );
+    expect(dispatchEvidence).toEqual(
+      expect.objectContaining({
+        latestInboxRecord: expect.objectContaining({ id: inboxCreatedPayload.record.id }),
+        inboxRecordRequired: true,
+        inboxRecordCurrent: true,
+        ownerRecordAllowed: true,
+        ownerEmailSendEnabled: false,
+        queueDispatchEnabled: false,
+        providerMessageIdIncluded: false,
+        queuePayloadIncluded: false,
+      }),
+    );
+
+    const requestBody = {
+      ...baseDispatchRequestBody,
+      inboxRecordId: inboxCreatedPayload.record.id,
+      expectedConversionSampleSize: dispatchEvidence.conversionSampleSize,
+    };
+
+    const contractResponse = await page.request.get(analyticsNotificationDispatchPreflightApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: analyticsNotificationDispatchPreflightStatus,
+        route: analyticsNotificationDispatchPreflightApiRoute,
+        confirmation: expect.objectContaining({ text: analyticsNotificationDispatchPreflightConfirmationText }),
+        contract: expect.objectContaining({
+          readiness: expect.objectContaining({
+            id: analyticsNotificationReadinessId,
+            notificationInboxStatus: analyticsNotificationInboxStatus,
+            channelId: analyticsNotificationAdminInboxChannelId,
+          }),
+          redaction: expect.objectContaining({
+            rawEventRowsIncluded: false,
+            rawAssignmentRowsIncluded: false,
+            privateNoteIncluded: false,
+            notificationRecipientIncluded: false,
+            emailBodyIncluded: false,
+            providerMessageIdIncluded: false,
+            queuePayloadIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingConfirmation = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        confirmationText: "Send analytics notification now",
+        idempotencyKey: `${requestBody.idempotencyKey}-missing`,
+      },
+    });
+    expect(missingConfirmation.status()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const missingCaveat = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: { ...requestBody, sampleSizeCaveatAcknowledged: false, idempotencyKey: `${requestBody.idempotencyKey}-caveat` },
+    });
+    expect(missingCaveat.status()).toBe(400);
+    await expect(missingCaveat.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "sample_size_caveat_required" }),
+    );
+
+    const staleRevision = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        expectedDashboardRevisionId: "stale-analytics-dashboard-revision",
+        idempotencyKey: `${requestBody.idempotencyKey}-stale-revision`,
+      },
+    });
+    expect(staleRevision.status()).toBe(409);
+    await expect(staleRevision.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_dashboard_revision",
+        currentDashboardRevisionId: analyticsDashboard.revisionId,
+      }),
+    );
+
+    const staleReadiness = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        expectedReadinessStatus: "stale-notification-readiness",
+        idempotencyKey: `${requestBody.idempotencyKey}-stale-readiness`,
+      },
+    });
+    expect(staleReadiness.status()).toBe(409);
+    await expect(staleReadiness.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_status",
+        currentReadinessStatus: analyticsNotificationReadinessStatus,
+      }),
+    );
+
+    const staleInboxStatus = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        expectedNotificationInboxStatus: "stale-notification-inbox-status",
+        idempotencyKey: `${requestBody.idempotencyKey}-stale-inbox-status`,
+      },
+    });
+    expect(staleInboxStatus.status()).toBe(409);
+    await expect(staleInboxStatus.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_notification_inbox_status",
+        currentNotificationInboxStatus: analyticsNotificationInboxStatus,
+      }),
+    );
+
+    const staleEvidence = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        expectedConversionSampleSize: requestBody.expectedConversionSampleSize + 1,
+        idempotencyKey: `${requestBody.idempotencyKey}-stale-evidence`,
+      },
+    });
+    expect(staleEvidence.status()).toBe(409);
+    await expect(staleEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_analytics_evidence" }),
+    );
+
+    const unsupportedInbox = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        inboxRecordId: "analytics-notification-inbox-record-not-current",
+        idempotencyKey: `${requestBody.idempotencyKey}-inbox`,
+      },
+    });
+    expect(unsupportedInbox.status()).toBe(409);
+    await expect(unsupportedInbox.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_notification_inbox_evidence" }),
+    );
+
+    const unsupportedChannel = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        channelId: "analytics-notification-channel-owner-email-digest",
+        idempotencyKey: `${requestBody.idempotencyKey}-channel`,
+      },
+    });
+    expect(unsupportedChannel.status()).toBe(400);
+    await expect(unsupportedChannel.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_channel" }),
+    );
+
+    const unsupportedDisposition = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: {
+        ...requestBody,
+        notificationDispatchPreflightDisposition: "send_now",
+        idempotencyKey: `${requestBody.idempotencyKey}-disposition`,
+      },
+    });
+    expect(unsupportedDisposition.status()).toBe(400);
+    await expect(unsupportedDisposition.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_notification_dispatch_preflight_disposition" }),
+    );
+
+    const created = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_dispatch_preflight_recorded",
+        duplicate: false,
+        record: expect.objectContaining({
+          dashboardId: analyticsDashboard.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          timeWindowKey: "all",
+          notificationDispatchPreflightDisposition: "blocked_pending_provider_review",
+          expectedReadinessStatus: analyticsNotificationReadinessStatus,
+          expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+          expectedOwnerReviewStatus: dispatchEvidence.ownerReviewStatus,
+          expectedAlertThresholdCount: dispatchEvidence.alertThresholdCount,
+          expectedConversionSampleSize: dispatchEvidence.conversionSampleSize,
+          sampleSizeCaveatAcknowledged: true,
+          privateNoteRecorded: true,
+          ownerDispatchPreflightRecorded: true,
+          ownerEmailSendEnabled: false,
+          queueDispatchEnabled: false,
+          customerAlertEnabled: false,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          revenueClaimEnabled: false,
+          rawAnalyticsRowsExposed: false,
+          recipientIdentityIncluded: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          notificationRecipientIncluded: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_dispatch_preflight_replayed",
+        duplicate: true,
+        record: expect.objectContaining({ id: createdPayload.record.id }),
+      }),
+    );
+
+    const conflict = await page.request.post(analyticsNotificationDispatchPreflightApiRoute, {
+      data: { ...requestBody, privateNote: `${privateNote} changed` },
+    });
+    expect(conflict.status()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterPreflight = await page.request.get("/analytics/source-data");
+    expect(sourceAfterPreflight.ok(), await sourceAfterPreflight.text()).toBeTruthy();
+    const sourceAfterPreflightPayload = await sourceAfterPreflight.json();
+    expect(sourceAfterPreflightPayload.notificationDispatchPreflights.counts.ownerConfirmedRecords).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterPreflightPayload.notificationDispatchPreflights.latestRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.record.id,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          ownerDispatchPreflightRecorded: true,
+          ownerEmailSendEnabled: false,
+          queueDispatchEnabled: false,
+          recipientIdentityIncluded: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+        }),
+      ]),
+    );
+    const sourceText = JSON.stringify(sourceAfterPreflightPayload.notificationDispatchPreflights);
+    expect(sourceText).not.toContain(privateNote);
+    expect(sourceText).not.toContain(inboxPrivateNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    await page.goto("/admin/analytics");
+    await expect(page.getByRole("heading", { name: /Record notification dispatch preflight without enabling delivery/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record dispatch preflight/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
   });
 
@@ -7985,7 +8416,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -8552,6 +8983,18 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["analyticsNotificationInboxRecordId", "analyticsNotificationReadinessId", "analyticsTimeWindow", "idempotencyKey"]),
         }),
         expect.objectContaining({
+          id: "create-owner-analytics-notification-dispatch-preflight",
+          route: analyticsNotificationDispatchPreflightApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "analyticsNotificationDispatchPreflightId",
+            "analyticsNotificationInboxRecordId",
+            "analyticsNotificationReadinessId",
+            "analyticsTimeWindow",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
           id: "read-affiliate-referrals",
           route: "/affiliates/source-data",
           auth: "public",
@@ -8654,6 +9097,8 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsNotificationReadinessStatus",
             "analyticsNotificationInboxRecordId",
             "analyticsNotificationInboxStatus",
+            "analyticsNotificationDispatchPreflightId",
+            "analyticsNotificationDispatchPreflightStatus",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
@@ -8664,6 +9109,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",
             "Inspect owner-reviewed notification delivery readiness without sending alerts or writing inbox rows",
             "Inspect owner-confirmed notification inbox records without recipients, email bodies, queue dispatch, or email sends",
+            "Inspect owner-confirmed notification dispatch preflights without recipients, email bodies, provider message IDs, queue payloads, queue dispatch, or email sends",
           ]),
         }),
         expect.objectContaining({
