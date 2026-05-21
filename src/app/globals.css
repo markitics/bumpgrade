@@ -1710,6 +1710,11 @@ h3 {
   justify-content: space-between;
 }
 
+.admin-step-editor-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
 .admin-step-move-row {
   align-items: center;
   flex-wrap: wrap;

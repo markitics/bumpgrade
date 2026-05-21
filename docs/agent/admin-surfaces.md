@@ -160,21 +160,23 @@ entitlement writes still need future confirmed-write APIs.
 ## Admin `/admin/audience`
 
 Purpose: owner-gated audience inspection, private CRM notes, broadcast dry-run
-evidence, readiness gates, and non-destructive import intents on top of the
-public audience automation source contract.
+evidence, readiness gates, non-destructive import intents, and aggregate import
+preflights on top of the public audience automation source contract.
 
 The page reads audience subscriber, consent, tag, sequence, suppression,
-timeline, broadcast, readiness, and `audience_import_intents` tables. Verified
+timeline, broadcast, readiness, `audience_import_intents`, and
+`audience_import_preflights` tables. Verified
 owners can inspect private subscriber rows, create private CRM notes, record
 dry-run broadcast evidence, inspect sender/provider/Queue readiness gates, and
-record import intents after exact confirmation, idempotency, and workspace
-revision/status checks.
+record import intents and aggregate import preflights after exact confirmation,
+idempotency, workspace revision/status checks, and selected import-intent
+source-label checks.
 
 Public agents should read `/audience/source-data` for aggregate counts,
-redaction flags, and write boundaries. Import intents are not real imports: they
-do not create contacts, store raw emails or contact rows, create sequence
-enrollments, send email, expose private notes, or authorize direct public agent
-subscriber writes.
+redaction flags, and write boundaries. Import intents and import preflights are
+not real imports: they do not create contacts, store raw emails or contact rows,
+create subscriber rows, create sequence enrollments, export private data, send
+email, expose private notes, or authorize direct public agent subscriber writes.
 
 ## Agent Maintenance Rule
 

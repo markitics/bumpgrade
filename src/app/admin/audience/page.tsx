@@ -20,6 +20,7 @@ import {
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAudienceImportIntentForm } from "@/components/admin-audience-import-intent-form";
+import { AdminAudienceImportPreflightForm } from "@/components/admin-audience-import-preflight-form";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { AdminBroadcastDeliveryBatchForm } from "@/components/admin-broadcast-delivery-batch-form";
 import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broadcast-delivery-queue-message-form";
@@ -55,7 +56,12 @@ import {
   getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
-import { audienceImportIntentIssue, getAudienceImportIntentSummary } from "@/lib/audience-imports";
+import {
+  audienceImportIntentIssue,
+  audienceImportPreflightIssue,
+  getAudienceImportIntentSummary,
+  getAudienceImportPreflightSummary,
+} from "@/lib/audience-imports";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -98,6 +104,7 @@ export default async function AdminAudiencePage() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     importIntents,
+    importPreflights,
   ] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
@@ -116,6 +123,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceImportIntentSummary(),
+    getAudienceImportPreflightSummary(),
   ]);
 
   return (
@@ -139,7 +147,9 @@ export default async function AdminAudiencePage() {
             Queue producer readiness keeps the Cloudflare binding, payload dependency, idempotency, consumer, and audit
             gates explicit before any producer is enabled. Queue consumer readiness keeps ack, retry, dead-letter,
             idempotency, and provider-handoff gates explicit before any consumer is enabled. Import intents stay
-            owner-confirmed and aggregate-only before any contact import exists. Public source-data stays aggregate-only.
+            owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
+            eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
+            are allowed. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -148,6 +158,10 @@ export default async function AdminAudiencePage() {
             </Link>
             <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceImportIntentIssue}`} className="secondary-action">
               Issue #{audienceImportIntentIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceImportPreflightIssue}`} className="secondary-action">
+              Issue #{audienceImportPreflightIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -200,6 +214,15 @@ export default async function AdminAudiencePage() {
               {importIntents.counts.importIntents} intent
               {importIntents.counts.importIntents === 1 ? "" : "s"} recorded;{" "}
               {importIntents.counts.importRowsStoredRecords} raw import rows stored.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Import preflights</h3>
+            <p>
+              {importPreflights.counts.importPreflights} preflight
+              {importPreflights.counts.importPreflights === 1 ? "" : "s"} recorded;{" "}
+              {importPreflights.counts.subscriberRowsCreatedRecords} subscriber-write records created.
             </p>
           </div>
           <div>
@@ -420,6 +443,99 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from this owner page after checking the current workspace revision and aggregate source
                 counts.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Audience import preflights</p>
+            <h2>Preflights prove import safety before contact writes</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceImportPreflightIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceImportPreflightIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{importPreflights.status.replaceAll("-", " ")}</span>
+              <span className="admin-pill">No subscriber writes</span>
+            </div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Record an aggregate import preflight</h3>
+            <p>{importPreflights.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Workspace</strong>
+              <span>{importPreflights.workspace.title}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Available intents</strong>
+              <span>{importIntents.latestIntents.length}</span>
+            </div>
+            <AdminAudienceImportPreflightForm
+              workspaceId={importPreflights.workspace.id}
+              workspaceTitle={importPreflights.workspace.title}
+              workspaceRevisionId={importPreflights.workspace.revisionId}
+              workspaceStatus={importPreflights.workspace.status}
+              latestIntents={importIntents.latestIntents}
+            />
+            {importIntents.latestIntents.length === 0 ? (
+              <p className="card-note">Record an import intent before creating preflight evidence.</p>
+            ) : null}
+          </article>
+          {importPreflights.latestPreflights.length > 0 ? (
+            importPreflights.latestPreflights.map((preflight) => (
+              <article key={preflight.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{preflight.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{preflight.sourceKind.replaceAll("_", " ")}</span>
+                </div>
+                <h3>{preflight.expectedImportIntentSourceLabel}</h3>
+                <p>
+                  {preflight.totalContactsChecked} contacts checked; {preflight.eligibleNewContactCount} new,{" "}
+                  {preflight.eligibleUpdateCount} updates, {preflight.duplicateCount} duplicates,{" "}
+                  {preflight.suppressedCount} suppressed.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Missing consent</strong>
+                  <span>{preflight.missingConsentCount}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Malformed</strong>
+                  <span>{preflight.malformedCount}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Subscriber rows</strong>
+                  <span>{String(preflight.subscriberRowsCreated)}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Email delivery</strong>
+                  <span>{String(preflight.emailDeliveryEnabled)}</span>
+                </div>
+                <p className="card-note">
+                  Raw emails, import rows, subscriber writes, sequence enrollments, exports, actor emails, and private
+                  notes are excluded from public source-data.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No import preflights</span>
+                <span className="admin-pill">Issue #{audienceImportPreflightIssue}</span>
+              </div>
+              <h3>No import preflight records yet</h3>
+              <p>
+                Record a preflight after choosing an owner-confirmed import intent and checking aggregate eligibility,
+                duplicate, suppression, consent, and malformed-row counts.
               </p>
             </article>
           )}
