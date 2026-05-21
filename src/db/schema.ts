@@ -326,6 +326,63 @@ export const affiliateCommissionLedgerActions = sqliteTable(
   }),
 );
 
+export const affiliatePayoutPreparationRecords = sqliteTable(
+  "affiliate_payout_preparation_records",
+  {
+    id: text("id").primaryKey(),
+    programId: text("program_id").notNull(),
+    payoutPreparationId: text("payout_preparation_id").notNull(),
+    payoutBatchId: text("payout_batch_id").notNull(),
+    recordKind: text("record_kind").notNull(),
+    expectedProgramRevisionId: text("expected_program_revision_id").notNull(),
+    expectedPayoutBatchStatus: text("expected_payout_batch_status").notNull(),
+    expectedEligibleLedgerCount: integer("expected_eligible_ledger_count").notNull().default(0),
+    expectedBlockedLedgerCount: integer("expected_blocked_ledger_count").notNull().default(0),
+    expectedReversedLedgerCount: integer("expected_reversed_ledger_count").notNull().default(0),
+    expectedTotalCommissionCents: integer("expected_total_commission_cents").notNull().default(0),
+    currency: text("currency").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    ownerPayoutPreparationRecordCreated: integer("owner_payout_preparation_record_created", {
+      mode: "boolean",
+    })
+      .notNull()
+      .default(false),
+    payableCommissionCreated: integer("payable_commission_created", { mode: "boolean" }).notNull().default(false),
+    stripePayoutCreated: integer("stripe_payout_created", { mode: "boolean" }).notNull().default(false),
+    stripeTransferCreated: integer("stripe_transfer_created", { mode: "boolean" }).notNull().default(false),
+    payoutAccountStored: integer("payout_account_stored", { mode: "boolean" }).notNull().default(false),
+    taxDataCollected: integer("tax_data_collected", { mode: "boolean" }).notNull().default(false),
+    partnerNotificationSent: integer("partner_notification_sent", { mode: "boolean" }).notNull().default(false),
+    fraudDecisionEnforced: integer("fraud_decision_enforced", { mode: "boolean" }).notNull().default(false),
+    buyerDataIncluded: integer("buyer_data_included", { mode: "boolean" }).notNull().default(false),
+    rawLedgerRowsExposed: integer("raw_ledger_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawActorIdentityIncluded: integer("raw_actor_identity_included", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("affiliate_payout_preparation_records_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    programTimeIdx: index("affiliate_payout_preparation_records_program_time_idx").on(
+      table.programId,
+      table.createdAt,
+    ),
+    preparationBatchIdx: index("affiliate_payout_preparation_records_preparation_batch_idx").on(
+      table.payoutPreparationId,
+      table.payoutBatchId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const billingSubscriptions = sqliteTable(
   "billing_subscriptions",
   {

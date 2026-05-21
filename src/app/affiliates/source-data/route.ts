@@ -11,6 +11,7 @@ import {
   type AffiliatePartnerReport,
   type PayoutBatchFixture,
 } from "@/lib/affiliate-referrals";
+import { getAffiliatePayoutPreparationRecordSummary } from "@/lib/affiliate-payout-preparation-records";
 import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
 
 export const dynamic = "force-dynamic";
@@ -318,12 +319,19 @@ function buildPayoutPreparationSummary(input: {
 
 export async function GET() {
   const db = await getDb();
-  const [clickSummary, checkoutAttributionSummary, commissionLedgerSummary, partnerReviewActionSummary] =
+  const [
+    clickSummary,
+    checkoutAttributionSummary,
+    commissionLedgerSummary,
+    partnerReviewActionSummary,
+    payoutPreparationRecords,
+  ] =
     await Promise.all([
       loadClickSummary(db),
       loadCheckoutReferralAttributionSummary(db),
       loadAffiliateCommissionLedgerSummary(db),
       loadPartnerReviewActionSummary(db),
+      getAffiliatePayoutPreparationRecordSummary(db ?? undefined),
     ]);
 
   return NextResponse.json({
@@ -345,5 +353,6 @@ export async function GET() {
       commissionLedgerSummary,
       partnerReviewActionSummary,
     }),
+    payoutPreparationRecords,
   });
 }
