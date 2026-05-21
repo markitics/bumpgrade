@@ -297,9 +297,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/api/admin/affiliates/notification-readiness-records` lets owner sessions
   record redacted partner notification readiness evidence.
   `/api/admin/affiliates/notification-send-preflights` lets owner sessions
-  record redacted partner notification send preflight evidence, but live billing,
+  record redacted partner notification send preflight evidence.
+  `/api/admin/affiliates/notification-provider-readiness` lets owner sessions
+  record redacted partner notification provider readiness evidence, but live billing,
   payable commission writes, payout mutation, direct agent review writes, payout account storage,
-  tax collection, Stripe payouts, fraud enforcement, private fraud signal exposure, recipient exposure, provider-send enablement, provider calls, send payload creation, queue dispatch, and partner notification sends remain disabled. Agents must
+  tax collection, Stripe payouts, fraud enforcement, private fraud signal exposure, recipient exposure, provider configuration, provider secret storage, sender credential storage, provider-send enablement, provider calls, send payload creation, queue dispatch, and partner notification sends remain disabled. Agents must
   not start billing-impacting or payout-impacting checkout work without exact
   confirmation, idempotency, audit correlation, stale-state checks, owner review,
   and webhook evidence.

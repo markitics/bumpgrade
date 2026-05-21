@@ -5,6 +5,7 @@ import { ArrowRight, BadgeDollarSign, Database, Handshake, MailCheck, ShieldAler
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAffiliateFraudReviewRecordForm } from "@/components/admin-affiliate-fraud-review-record-form";
 import { AdminAffiliateNotificationReadinessRecordForm } from "@/components/admin-affiliate-notification-readiness-record-form";
+import { AdminAffiliateNotificationProviderReadinessRecordForm } from "@/components/admin-affiliate-notification-provider-readiness-record-form";
 import { AdminAffiliateNotificationSendPreflightRecordForm } from "@/components/admin-affiliate-notification-send-preflight-record-form";
 import { AdminAffiliatePayoutPreparationRecordForm } from "@/components/admin-affiliate-payout-preparation-record-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -16,6 +17,10 @@ import {
   affiliatePartnerNotificationReadinessRecordIssue,
   getAffiliatePartnerNotificationReadinessRecordSummary,
 } from "@/lib/affiliate-partner-notification-readiness-records";
+import {
+  affiliatePartnerNotificationProviderReadinessRecordIssue,
+  getAffiliatePartnerNotificationProviderReadinessRecordSummary,
+} from "@/lib/affiliate-partner-notification-provider-readiness-records";
 import {
   affiliatePartnerNotificationSendPreflightRecordIssue,
   getAffiliatePartnerNotificationSendPreflightRecordSummary,
@@ -29,7 +34,7 @@ import { affiliateProgram } from "@/lib/affiliate-referrals";
 export const metadata: Metadata = {
   title: "Admin affiliates",
   description:
-    "Owner-gated affiliate payout preparation, fraud review, partner notification readiness, and send preflight records for Bumpgrade publishers.",
+    "Owner-gated affiliate payout preparation, fraud review, partner notification readiness, send preflight, and provider readiness records for Bumpgrade publishers.",
 };
 
 export const dynamic = "force-dynamic";
@@ -48,29 +53,37 @@ export default async function AdminAffiliatesPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/affiliates" />;
 
-  const [payoutSummary, fraudSummary, notificationSummary, sendPreflightSummary] = await Promise.all([
+  const [payoutSummary, fraudSummary, notificationSummary, sendPreflightSummary, providerReadinessSummary] =
+    await Promise.all([
     getAffiliatePayoutPreparationRecordSummary(),
     getAffiliateFraudReviewRecordSummary(),
     getAffiliatePartnerNotificationReadinessRecordSummary(),
     getAffiliatePartnerNotificationSendPreflightRecordSummary(),
+    getAffiliatePartnerNotificationProviderReadinessRecordSummary(),
   ]);
   const evidence = payoutSummary.currentEvidence;
   const fraudEvidence = fraudSummary.currentEvidence;
   const notificationEvidence = notificationSummary.currentEvidence;
   const sendPreflightEvidence = sendPreflightSummary.currentEvidence;
+  const providerReadinessEvidence = providerReadinessSummary.currentEvidence;
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-audience-page">
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin affiliates</p>
-          <h1>Affiliate payout, fraud review, notification readiness, and send preflight stays owner-confirmed.</h1>
+          <h1>
+            Affiliate payout, fraud review, notification readiness, send preflight, and provider readiness stay
+            owner-confirmed.
+          </h1>
           <p className="lede">
             Owners can inspect the current affiliate payout preparation snapshot, record a redacted preparation review,
             capture fraud review evidence, record partner notification readiness, and record send preflight evidence.
-            These records keep Stripe payouts, payable commission mutation, payout accounts, tax data, partner sends,
-            provider send enablement, provider calls, send payloads, queue rows, recipient emails, message bodies, buyer
-            data, raw rows, private fraud signals, and fraud enforcement disabled.
+            They can also record provider readiness evidence without configuring a provider. These records keep Stripe
+            payouts, payable commission mutation, payout accounts, tax data, partner sends, provider configuration,
+            provider secrets, sender credentials, provider send enablement, provider calls, send payloads, queue rows,
+            recipient emails, message bodies, buyer data, raw rows, private fraud signals, and fraud enforcement
+            disabled.
           </p>
           <div className="hero-actions">
             <Link href="/affiliates/source-data" className="primary-action">
@@ -105,6 +118,13 @@ export default async function AdminAffiliatesPage() {
               Issue #{affiliatePartnerNotificationSendPreflightRecordIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${affiliatePartnerNotificationProviderReadinessRecordIssue}`}
+              className="secondary-action"
+            >
+              Issue #{affiliatePartnerNotificationProviderReadinessRecordIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Affiliate review status summary">
@@ -113,7 +133,8 @@ export default async function AdminAffiliatesPage() {
             {payoutSummary.source === "d1" ||
             fraudSummary.source === "d1" ||
             notificationSummary.source === "d1" ||
-            sendPreflightSummary.source === "d1"
+            sendPreflightSummary.source === "d1" ||
+            providerReadinessSummary.source === "d1"
               ? "D1 affiliate evidence"
               : "D1 unavailable"}
           </p>
@@ -121,13 +142,15 @@ export default async function AdminAffiliatesPage() {
             {payoutSummary.counts.payoutPreparationRecords} payout prep,{" "}
             {fraudSummary.counts.fraudReviewRecords} fraud review,{" "}
             {notificationSummary.counts.notificationReadinessRecords} readiness,{" "}
-            {sendPreflightSummary.counts.notificationSendPreflightRecords} send preflight
+            {sendPreflightSummary.counts.notificationSendPreflightRecords} send preflight,{" "}
+            {providerReadinessSummary.counts.notificationProviderReadinessRecords} provider readiness
           </strong>
           <span>
             {payoutSummary.loadError ??
               fraudSummary.loadError ??
               notificationSummary.loadError ??
               sendPreflightSummary.loadError ??
+              providerReadinessSummary.loadError ??
               "Owner-confirmed affiliate review records load from D1."}
           </span>
         </aside>
@@ -180,6 +203,15 @@ export default async function AdminAffiliatesPage() {
               {sendPreflightSummary.counts.notificationProviderSendEnabledRecords} provider sends enabled,{" "}
               {sendPreflightSummary.counts.sendPayloadIncludedRecords} payloads,{" "}
               {sendPreflightSummary.counts.partnerNotificationSentRecords} notifications sent.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Provider readiness</h3>
+            <p>
+              {providerReadinessSummary.counts.notificationProviderConfiguredRecords} providers configured,{" "}
+              {providerReadinessSummary.counts.providerSecretIncludedRecords} secrets stored,{" "}
+              {providerReadinessSummary.counts.senderCredentialIncludedRecords} sender credentials.
             </p>
           </div>
         </div>
@@ -239,6 +271,20 @@ export default async function AdminAffiliatesPage() {
           </Link>
         </div>
         <AdminAffiliateNotificationSendPreflightRecordForm evidence={sendPreflightEvidence} />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Owner provider readiness</p>
+            <h2>Record affiliate partner notification provider readiness without configuring providers.</h2>
+          </div>
+          <Link href={providerReadinessSummary.apiRoute} className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAffiliateNotificationProviderReadinessRecordForm evidence={providerReadinessEvidence} />
       </section>
 
       <section className="content-band alternate">
@@ -417,6 +463,54 @@ export default async function AdminAffiliatesPage() {
               <MailCheck aria-hidden="true" />
               <h3>Send preflight evidence is ready</h3>
               <p>Use the confirmed-write form after the owner has reviewed notification readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest provider readiness records</p>
+            <h2>Provider readiness records hide provider configuration, secrets, credentials, and send payloads.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {providerReadinessSummary.latestRecords.length > 0 ? (
+            providerReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">{record.recordKind.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">
+                    {record.notificationProviderReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.affiliatePartnerReportId}</h3>
+                <p>
+                  {record.expectedLinkedLedgerCount} linked ledger, send preflight status{" "}
+                  {record.expectedNotificationSendPreflightRecordStatus.replaceAll("-", " ")}, recorded at{" "}
+                  {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No provider configuration</strong>
+                  <span>
+                    Provider configured {String(record.notificationProviderConfigured)}, secret{" "}
+                    {String(record.providerSecretIncluded)}, sender credential{" "}
+                    {String(record.senderCredentialIncluded)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">{providerReadinessEvidence.affiliatePartnerReportId}</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Provider readiness evidence is ready</h3>
+              <p>Use the confirmed-write form after the owner has reviewed send preflight evidence.</p>
             </article>
           )}
         </div>

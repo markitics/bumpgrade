@@ -1,12 +1,13 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, and #279 add the first
+Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, and #281 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
 owner-reviewed fraud review record, and owner-reviewed partner notification
-readiness and send preflight record contracts for parent issue #19.
+readiness, send preflight, and provider readiness record contracts for parent
+issue #19.
 
 ## Live Public-Safe Routes
 
@@ -33,9 +34,11 @@ readiness and send preflight record contracts for parent issue #19.
   endpoint for confirmed partner notification readiness evidence.
 - `/api/admin/affiliates/notification-send-preflights`: owner-gated GET/POST
   endpoint for confirmed partner notification send preflight evidence.
+- `/api/admin/affiliates/notification-provider-readiness`: owner-gated GET/POST
+  endpoint for confirmed partner notification provider readiness evidence.
 - `/admin/affiliates`: owner-gated page for reviewing and recording payout
-  preparation, fraud review, partner notification readiness, and send preflight
-  evidence.
+  preparation, fraud review, partner notification readiness, send preflight, and
+  provider readiness evidence.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
@@ -52,6 +55,9 @@ readiness and send preflight record contracts for parent issue #19.
 - `/affiliates/source-data.partnerNotificationSendPreflightRecords`: aggregate
   confirmed partner notification send preflight record counts and latest
   redacted metadata.
+- `/affiliates/source-data.partnerNotificationProviderReadinessRecords`:
+  aggregate confirmed partner notification provider readiness record counts and
+  latest redacted metadata.
 
 ## Stable IDs
 
@@ -69,6 +75,8 @@ The contract introduces stable IDs for:
 - `partnerNotificationReadinessRecordStatus`
 - `partnerNotificationSendPreflightRecordId`
 - `partnerNotificationSendPreflightRecordStatus`
+- `partnerNotificationProviderReadinessRecordId`
+- `partnerNotificationProviderReadinessRecordStatus`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -138,6 +146,21 @@ accounts, tax data, Stripe payout IDs, buyer data, raw ledger/click/checkout
 rows, raw actor identity, private fraud signals, and private notes from public
 source data. It proves send preflight semantics, not partner notification
 sending or provider configuration.
+Issue #281 lets owner sessions record partner notification provider readiness
+evidence after exact confirmation, idempotency, current program revision checks,
+partner report checks, payout batch status checks, payout preparation record
+status checks, fraud review record status checks, notification readiness record
+status checks, send preflight record status checks, review flag checks, linked
+ledger count checks, provider-configuration-disabled checks, provider secret
+redaction checks, sender credential redaction checks, and provider-send disabled
+checks while still excluding provider configuration, provider secrets, sender
+credentials, partner sends, provider-send enablement, provider calls, send
+payloads, queue dispatch, recipient emails, message bodies, provider message
+IDs, fraud enforcement, payable commission state, payout accounts, tax data,
+Stripe payout IDs, buyer data, raw ledger/click/checkout rows, raw actor
+identity, private fraud signals, and private notes from public source data. It
+proves provider readiness semantics, not provider configuration or partner
+notification sending.
 
 Not live in this slice:
 
@@ -153,6 +176,8 @@ Not live in this slice:
 - Stripe payout actions;
 - private partner portals;
 - partner notification sends;
+- notification provider configuration;
+- notification provider secrets;
 - notification provider calls;
 - notification queue dispatch;
 - confirmed-write agent APIs.

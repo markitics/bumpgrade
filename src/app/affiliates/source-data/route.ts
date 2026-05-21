@@ -13,6 +13,7 @@ import {
 } from "@/lib/affiliate-referrals";
 import { getAffiliateFraudReviewRecordSummary } from "@/lib/affiliate-fraud-review-records";
 import { getAffiliatePartnerNotificationReadinessRecordSummary } from "@/lib/affiliate-partner-notification-readiness-records";
+import { getAffiliatePartnerNotificationProviderReadinessRecordSummary } from "@/lib/affiliate-partner-notification-provider-readiness-records";
 import { getAffiliatePartnerNotificationSendPreflightRecordSummary } from "@/lib/affiliate-partner-notification-send-preflight-records";
 import { getAffiliatePayoutPreparationRecordSummary } from "@/lib/affiliate-payout-preparation-records";
 import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
@@ -331,6 +332,7 @@ export async function GET() {
     fraudReviewRecords,
     partnerNotificationReadinessRecords,
     partnerNotificationSendPreflightRecords,
+    partnerNotificationProviderReadinessRecords,
   ] =
     await Promise.all([
       loadClickSummary(db),
@@ -341,6 +343,7 @@ export async function GET() {
       getAffiliateFraudReviewRecordSummary(db ?? undefined),
       getAffiliatePartnerNotificationReadinessRecordSummary(db ?? undefined),
       getAffiliatePartnerNotificationSendPreflightRecordSummary(db ?? undefined),
+      getAffiliatePartnerNotificationProviderReadinessRecordSummary(db ?? undefined),
     ]);
 
   return NextResponse.json({
@@ -366,5 +369,6 @@ export async function GET() {
     fraudReviewRecords,
     partnerNotificationReadinessRecords,
     partnerNotificationSendPreflightRecords,
+    partnerNotificationProviderReadinessRecords,
   });
 }
