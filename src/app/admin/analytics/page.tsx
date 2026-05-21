@@ -6,6 +6,7 @@ import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analyti
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
+import { AdminAnalyticsNotificationQueueConsumerReadinessForm } from "@/components/admin-analytics-notification-queue-consumer-readiness-form";
 import { AdminAnalyticsNotificationQueueProducerReadinessForm } from "@/components/admin-analytics-notification-queue-producer-readiness-form";
 import { AdminAnalyticsNotificationSendPayloadReadinessForm } from "@/components/admin-analytics-notification-send-payload-readiness-form";
 import { AdminAnalyticsNotificationProviderDomainReadinessForm } from "@/components/admin-analytics-notification-provider-domain-readiness-form";
@@ -39,6 +40,10 @@ import {
   analyticsNotificationQueueProducerReadinessIssue,
   getAnalyticsNotificationQueueProducerReadinessSummary,
 } from "@/lib/analytics-notification-queue-producer-readiness";
+import {
+  analyticsNotificationQueueConsumerReadinessIssue,
+  getAnalyticsNotificationQueueConsumerReadinessSummary,
+} from "@/lib/analytics-notification-queue-consumer-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -64,6 +69,7 @@ export default async function AdminAnalyticsPage() {
   const contentConsentReadinessSummary = await getAnalyticsNotificationContentConsentReadinessSummary();
   const sendPayloadReadinessSummary = await getAnalyticsNotificationSendPayloadReadinessSummary();
   const queueProducerReadinessSummary = await getAnalyticsNotificationQueueProducerReadinessSummary();
+  const queueConsumerReadinessSummary = await getAnalyticsNotificationQueueConsumerReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
@@ -71,6 +77,7 @@ export default async function AdminAnalyticsPage() {
   const latestContentConsentReadiness = contentConsentReadinessSummary.latestRecords[0];
   const latestSendPayloadReadiness = sendPayloadReadinessSummary.latestRecords[0];
   const latestQueueProducerReadiness = queueProducerReadinessSummary.latestRecords[0];
+  const latestQueueConsumerReadiness = queueConsumerReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -132,6 +139,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationQueueProducerReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationQueueConsumerReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationQueueConsumerReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -146,6 +160,7 @@ export default async function AdminAnalyticsPage() {
               contentConsentReadinessSummary.loadError ??
               sendPayloadReadinessSummary.loadError ??
               queueProducerReadinessSummary.loadError ??
+              queueConsumerReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -217,6 +232,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {queueProducerReadinessSummary.counts.notificationQueueProducerReadinessRecords} readiness records;{" "}
               {queueProducerReadinessSummary.counts.queueMessageCreatedRecords} queue-message records.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Queue consumer</h3>
+            <p>
+              {queueConsumerReadinessSummary.counts.notificationQueueConsumerReadinessRecords} readiness records;{" "}
+              {queueConsumerReadinessSummary.counts.queueMessageConsumedRecords} consumed-message records.
             </p>
           </div>
         </div>
@@ -389,6 +412,41 @@ export default async function AdminAnalyticsPage() {
           ownerReviewStatus={queueProducerReadinessSummary.readiness.ownerReviewStatus}
           alertThresholdCount={queueProducerReadinessSummary.readiness.alertThresholdCount}
           currentEvidenceByWindow={queueProducerReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Queue-consumer readiness</p>
+            <h2>Record queue-consumer readiness without consuming Queue messages.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationQueueConsumerReadinessForm
+          dashboardId={queueConsumerReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={queueConsumerReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={queueConsumerReadinessSummary.readiness.id}
+          readinessStatus={queueConsumerReadinessSummary.readiness.status}
+          notificationInboxStatus={queueConsumerReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={queueConsumerReadinessSummary.readiness.notificationDispatchPreflightStatus}
+          notificationProviderDomainReadinessStatus={
+            queueConsumerReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          notificationSendPayloadReadinessStatus={
+            queueConsumerReadinessSummary.readiness.notificationSendPayloadReadinessStatus
+          }
+          notificationQueueProducerReadinessStatus={
+            queueConsumerReadinessSummary.readiness.notificationQueueProducerReadinessStatus
+          }
+          channelId={queueConsumerReadinessSummary.readiness.channelId}
+          ownerReviewStatus={queueConsumerReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={queueConsumerReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={queueConsumerReadinessSummary.currentEvidenceByWindow}
         />
       </section>
 
@@ -730,6 +788,53 @@ export default async function AdminAnalyticsPage() {
               <MailCheck aria-hidden="true" />
               <h3>Queue-producer readiness evidence is ready</h3>
               <p>Record a current send-payload readiness before recording queue-producer readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest queue-consumer readiness</p>
+            <h2>Queue-consumer records keep message consumption, acks, and payload reads disabled.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestQueueConsumerReadiness ? (
+            queueConsumerReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationQueueConsumerReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Queue-producer readiness {record.queueProducerReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No Queue consumption</strong>
+                  <span>
+                    Queue consumer {String(record.queueConsumerEnabled)}, message consumed{" "}
+                    {String(record.queueMessageConsumed)}, message acked {String(record.queueMessageAcknowledged)},
+                    payload body read {String(record.queuePayloadBodyRead)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs queue-producer</span>
+              </div>
+              <ShieldCheck aria-hidden="true" />
+              <h3>Queue-consumer readiness evidence is ready</h3>
+              <p>Record a current queue-producer readiness before recording queue-consumer readiness evidence.</p>
             </article>
           )}
         </div>
