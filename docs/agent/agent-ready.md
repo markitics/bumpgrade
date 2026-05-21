@@ -52,6 +52,8 @@ Recommended stable concepts:
 - `payoutPreparationId`: stable id for read-only affiliate payout preparation rows.
 - `partnerNotificationReadinessRecordId`: stable id for owner-reviewed partner
   notification readiness records.
+- `partnerNotificationSendPreflightRecordId`: stable id for owner-reviewed
+  partner notification send preflight records.
 - `referralLinkId`: stable id for partner referral links and attribution.
 - `commissionRuleId`: stable id for commission terms.
 - `commissionLedgerId`: stable id for auditable commission fixtures or records.
@@ -354,11 +356,23 @@ notifications, calling providers, creating queue rows, exposing recipient
 emails, exposing message bodies, exposing provider message IDs, exposing private
 fraud signals, exposing buyer data, exposing raw rows, exposing actor identity,
 or creating payout state. This proves affiliate and referral
-click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness semantics, not
+click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness semantics. Issue
+#279 lets owners record partner notification send preflight evidence after exact
+confirmation, idempotency, revision checks, partner report checks, payout batch
+status checks, payout preparation record status checks, fraud review record
+status checks, notification readiness record status checks, review flag checks,
+linked ledger count checks, and provider-send-disabled checks without sending
+partner notifications, enabling provider sends, calling providers, creating send
+payloads, creating queue rows, exposing recipient emails, exposing message
+bodies, exposing provider message IDs, exposing private fraud signals, exposing
+buyer data, exposing raw rows, exposing actor identity, or creating payout state.
+This proves affiliate and referral
+click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness-to-send-preflight semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, fraud enforcement,
 Stripe payout capability, private partner portal access, partner notification
-sends, provider calls, or queue dispatch.
+sends, provider-send configuration, provider calls, send payload creation, or
+queue dispatch.
 
 ## MCP And Tooling
 

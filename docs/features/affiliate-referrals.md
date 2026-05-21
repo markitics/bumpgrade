@@ -1,12 +1,12 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, and #277 add the first
+Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, and #279 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
 owner-reviewed fraud review record, and owner-reviewed partner notification
-readiness record contracts for parent issue #19.
+readiness and send preflight record contracts for parent issue #19.
 
 ## Live Public-Safe Routes
 
@@ -31,8 +31,11 @@ readiness record contracts for parent issue #19.
   for confirmed fraud review evidence.
 - `/api/admin/affiliates/notification-readiness-records`: owner-gated GET/POST
   endpoint for confirmed partner notification readiness evidence.
+- `/api/admin/affiliates/notification-send-preflights`: owner-gated GET/POST
+  endpoint for confirmed partner notification send preflight evidence.
 - `/admin/affiliates`: owner-gated page for reviewing and recording payout
-  preparation, fraud review, and partner notification readiness evidence.
+  preparation, fraud review, partner notification readiness, and send preflight
+  evidence.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
@@ -46,6 +49,9 @@ readiness record contracts for parent issue #19.
 - `/affiliates/source-data.partnerNotificationReadinessRecords`: aggregate
   confirmed partner notification readiness record counts and latest redacted
   metadata.
+- `/affiliates/source-data.partnerNotificationSendPreflightRecords`: aggregate
+  confirmed partner notification send preflight record counts and latest
+  redacted metadata.
 
 ## Stable IDs
 
@@ -61,6 +67,8 @@ The contract introduces stable IDs for:
 - `fraudReviewRecordStatus`
 - `partnerNotificationReadinessRecordId`
 - `partnerNotificationReadinessRecordStatus`
+- `partnerNotificationSendPreflightRecordId`
+- `partnerNotificationSendPreflightRecordStatus`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -118,6 +126,18 @@ state, payout accounts, tax data, Stripe payout IDs, buyer data, raw
 ledger/click/checkout rows, raw actor identity, private fraud signals, and
 private notes from public source data. It proves notification readiness
 semantics, not partner notification sending.
+Issue #279 lets owner sessions record partner notification send preflight
+evidence after exact confirmation, idempotency, current program revision checks,
+partner report checks, payout batch status checks, payout preparation record
+status checks, fraud review record status checks, notification readiness record
+status checks, review flag checks, linked ledger count checks, and provider-send
+disabled checks while still excluding partner sends, provider-send enablement,
+provider calls, send payloads, queue dispatch, recipient emails, message bodies,
+provider message IDs, fraud enforcement, payable commission state, payout
+accounts, tax data, Stripe payout IDs, buyer data, raw ledger/click/checkout
+rows, raw actor identity, private fraud signals, and private notes from public
+source data. It proves send preflight semantics, not partner notification
+sending or provider configuration.
 
 Not live in this slice:
 

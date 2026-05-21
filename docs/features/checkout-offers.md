@@ -14,7 +14,12 @@ enforcement, payable commission state, Stripe payouts, private fraud signals, or
 partner notifications. Issue #277 adds owner-reviewed partner notification
 readiness records without partner sends, provider calls, queue dispatch,
 recipient emails, message bodies, provider message IDs, payable commission
-state, Stripe payouts, private fraud signals, or partner notifications. Issue #117 adds a trusted post-purchase route and an idempotent
+state, Stripe payouts, private fraud signals, or partner notifications. Issue
+#279 adds owner-reviewed partner notification send preflight records without
+partner sends, provider-send enablement, provider calls, send payloads, queue
+dispatch, recipient emails, message bodies, provider message IDs, payable
+commission state, Stripe payouts, private fraud signals, or partner
+notifications. Issue #117 adds a trusted post-purchase route and an idempotent
 non-billing decision API for upsell/downsell follow-up evidence. Issue #133
 gates the checkout success CTA on trusted webhook state before opening that
 post-purchase path.
@@ -49,6 +54,11 @@ Live in this slice:
   notification readiness record route that can record readiness evidence without
   sending partner notifications, calling providers, creating queue rows, or
   creating payout state.
+- `/api/admin/affiliates/notification-send-preflights`: owner-gated partner
+  notification send preflight route that can record preflight evidence without
+  enabling provider sends, creating send payloads, sending partner
+  notifications, calling providers, creating queue rows, or creating payout
+  state.
 - `/commerce/post-purchase/{checkoutIntentId}`: public-safe post-purchase offer
   path for eligible paid or completed sandbox checkout intents.
 - `/api/commerce/post-purchase-decisions`: confirmed, idempotent route that can
