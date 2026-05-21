@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Bell, Database, FlaskConical, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Bell, Database, FlaskConical, MailCheck, ShieldCheck } from "lucide-react";
 
 import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analytics-experiment-decision-form";
+import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -14,6 +15,10 @@ import {
   analyticsNotificationInboxIssue,
   getAnalyticsNotificationInboxSummary,
 } from "@/lib/analytics-notification-inbox";
+import {
+  analyticsNotificationDispatchPreflightIssue,
+  getAnalyticsNotificationDispatchPreflightSummary,
+} from "@/lib/analytics-notification-dispatch-preflights";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -34,8 +39,10 @@ export default async function AdminAnalyticsPage() {
 
   const summary = await getAnalyticsExperimentDecisionSummary();
   const notificationSummary = await getAnalyticsNotificationInboxSummary();
+  const dispatchPreflightSummary = await getAnalyticsNotificationDispatchPreflightSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
+  const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -62,6 +69,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationInboxIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationDispatchPreflightIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationDispatchPreflightIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -71,6 +85,7 @@ export default async function AdminAnalyticsPage() {
           <span>
             {summary.loadError ??
               notificationSummary.loadError ??
+              dispatchPreflightSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -104,6 +119,14 @@ export default async function AdminAnalyticsPage() {
               {notificationSummary.counts.emailSendEnabledRecords} email-send records.
             </p>
           </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Dispatch preflight</h3>
+            <p>
+              {dispatchPreflightSummary.counts.notificationDispatchPreflightRecords} dispatch preflights;{" "}
+              {dispatchPreflightSummary.counts.queueDispatchEnabledRecords} queue-dispatch records.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -134,6 +157,31 @@ export default async function AdminAnalyticsPage() {
       <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Owner dispatch preflight</p>
+            <h2>Record notification dispatch preflight without enabling delivery.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationDispatchPreflightForm
+          dashboardId={dispatchPreflightSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={dispatchPreflightSummary.readiness.dashboardRevisionId}
+          readinessId={dispatchPreflightSummary.readiness.id}
+          readinessStatus={dispatchPreflightSummary.readiness.status}
+          notificationInboxStatus={dispatchPreflightSummary.readiness.notificationInboxStatus}
+          channelId={dispatchPreflightSummary.readiness.channelId}
+          ownerReviewStatus={dispatchPreflightSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={dispatchPreflightSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={dispatchPreflightSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Confirmed write</p>
             <h2>Record experiment decision evidence with aggregate counts.</h2>
           </div>
@@ -154,7 +202,7 @@ export default async function AdminAnalyticsPage() {
         />
       </section>
 
-      <section className="content-band">
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest notifications</p>
@@ -193,6 +241,52 @@ export default async function AdminAnalyticsPage() {
               <Bell aria-hidden="true" />
               <h3>Notification inbox evidence is ready</h3>
               <p>Use the confirmed-write form once the owner has reviewed the notification readiness snapshot.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest dispatch preflights</p>
+            <h2>Dispatch records hide recipients, bodies, provider IDs, and queue payloads.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestDispatchPreflight ? (
+            dispatchPreflightSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationDispatchPreflightDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Inbox {record.inboxRecordId} checked with {record.expectedConversionSampleSize} conversion samples at{" "}
+                  {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No dispatch</strong>
+                  <span>
+                    Email send {String(record.ownerEmailSendEnabled)}, queue dispatch{" "}
+                    {String(record.queueDispatchEnabled)}, provider ID {String(record.providerMessageIdIncluded)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs inbox</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Dispatch preflight evidence is ready</h3>
+              <p>Record a current notification inbox record before recording dispatch preflight evidence.</p>
             </article>
           )}
         </div>

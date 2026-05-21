@@ -28,8 +28,10 @@ for issue #18.
   confirmed experiment decision evidence.
 - `/api/admin/analytics/notification-inbox-records`: owner-gated GET/POST
   endpoint for confirmed notification inbox evidence.
+- `/api/admin/analytics/notification-dispatch-preflights`: owner-gated GET/POST
+  endpoint for confirmed notification dispatch preflight evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
-  and notification inbox evidence.
+  and notification inbox and dispatch preflight evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -69,6 +71,11 @@ The first dashboard includes stable IDs for:
   fixed windows, sample-size caveats, and no owner email sends, queue dispatch,
   customer alerts, recipient identity, email bodies, traffic routing, winner
   selection, or revenue claims.
+- owner-confirmed notification dispatch preflights with current inbox-record
+  checks, selected fixed windows, sample-size caveats, and no owner email sends,
+  provider calls, queue dispatch, customer alerts, recipient identity, email
+  bodies, provider message IDs, queue payloads, traffic routing, winner
+  selection, or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -90,20 +97,25 @@ Owner sessions can record notification inbox evidence only after exact
 confirmation, idempotency, dashboard revision checks, notification readiness
 checks, selected fixed-window sample-size checks, and sample-size caveat
 acknowledgement.
+Owner sessions can record notification dispatch preflight evidence only after
+exact confirmation, idempotency, dashboard revision checks, notification
+readiness checks, current notification inbox record checks, selected
+fixed-window sample-size checks, and sample-size caveat acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
 cohort definitions, owner-reviewed cohort comparison evidence, and
 owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed
-notification delivery readiness evidence, and owner-confirmed notification
-inbox record evidence. The cohort comparison, threshold review, notification
-readiness, and notification inbox records are directional evidence with
-sample-size caveats; agents must not treat them as winner decisions,
-statistically meaningful proof, customer alert triggers, owner email sends,
+notification delivery readiness evidence, owner-confirmed notification inbox
+record evidence, and owner-confirmed dispatch preflight evidence. The cohort
+comparison, threshold review, notification readiness, notification inbox
+records, and dispatch preflights are directional evidence with sample-size
+caveats; agents must not treat them as winner decisions, statistically
+meaningful proof, customer alert triggers, owner email sends, provider sends,
 queue dispatch, or revenue claims. These paths do not assign cookies, expose contact-level
 analytics, expose
 raw event or assignment rows, expose raw campaign/referrer payloads, create raw
-analytics exports, send automated alerts, send owner email, dispatch queues,
+analytics exports, send automated alerts, send owner email, call providers, dispatch queues,
 create customer alerts, route experiment traffic, make automated winner decisions, make revenue
 claims, or prove statistical significance.
 
@@ -116,10 +128,11 @@ boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
 comparison evidence, and owner-reviewed alert threshold/anomaly-review evidence
 and owner-reviewed notification delivery readiness evidence, plus
-owner-confirmed notification inbox aggregate evidence, to understand
+owner-confirmed notification inbox aggregate evidence and owner-confirmed
+dispatch preflight aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
-exports, automated alert sends, owner email sends, queue dispatch, customer alerts,
+exports, automated alert sends, owner email sends, provider sends, queue dispatch, customer alerts,
 experiment traffic routing, automated winners, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention
