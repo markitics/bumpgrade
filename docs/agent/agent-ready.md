@@ -316,8 +316,8 @@ Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
 attribution evidence, aggregate review-only commission ledger counts,
-read-only payout preparation, attribution rules, commission rules, ledger
-fixtures, payout review, fraud flags, and the
+read-only payout preparation, owner-confirmed payout preparation records,
+attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -333,7 +333,11 @@ readiness caveats without exposing buyer, payout, tax, Stripe, raw click, raw
 checkout, or private actor fields. Issue #195 adds read-only payout preparation
 rows and readiness checklists without payout accounts, tax forms, Stripe payout
 identifiers, partner notification payloads, raw ledger rows, private actor
-identity, or private reasons. This proves affiliate and referral
+identity, or private reasons. Issue #273 lets owners record payout preparation
+evidence after exact confirmation, idempotency, revision checks, payout batch
+status checks, and ledger count/total checks without exposing payout accounts,
+tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger
+rows, raw actor identity, or private fraud signals. This proves affiliate and referral
 click-to-checkout-to-ledger-to-review-to-report-to-preparation semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, fraud enforcement,

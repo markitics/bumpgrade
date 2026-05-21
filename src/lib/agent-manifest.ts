@@ -14,6 +14,10 @@ import {
   analyticsNotificationInboxIssue,
 } from "@/lib/analytics-notification-inbox";
 import {
+  affiliatePayoutPreparationRecordApiRoute,
+  affiliatePayoutPreparationRecordIssue,
+} from "@/lib/affiliate-payout-preparation-records";
+import {
   analyticsAlertAnomalyIssue,
   analyticsCohortComparisonIssue,
   analyticsNotificationReadinessIssue,
@@ -877,6 +881,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "affiliatePartnerId",
       "affiliatePartnerReportId",
       "payoutPreparationId",
+      "payoutPreparationRecordId",
+      "payoutPreparationRecordStatus",
       "referralLinkId",
       "referralClickId",
       "checkoutIntentId",
@@ -900,10 +906,35 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect aggregate owner review and reversal action counts",
       "Inspect public-safe partner performance reports",
       "Inspect read-only payout preparation checklists",
+      "Inspect owner-confirmed payout preparation records without payout accounts, tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger rows, or raw actor fields",
       "Inspect commission and payout review boundaries",
     ],
     writeBoundary:
-      "Seeded referral clicks can be captured with idempotency and destination-route validation, eligible clicks can be attached to sandbox checkout intents as evidence, trusted checkout attribution can create review-only commission ledger evidence, owner sessions can review, hold, or reverse that evidence, public-safe partner reports can be read, and read-only payout preparation can be inspected; cookie assignment, buyer attribution finalization, payable commission writes, direct agent review writes, fraud enforcement, payout actions, tax collection, private partner portals, and partner notifications require future confirmed-write APIs.",
+      "Seeded referral clicks can be captured with idempotency and destination-route validation, eligible clicks can be attached to sandbox checkout intents as evidence, trusted checkout attribution can create review-only commission ledger evidence, owner sessions can review, hold, or reverse that evidence, public-safe partner reports can be read, read-only payout preparation can be inspected, and owner sessions can record payout preparation evidence; cookie assignment, buyer attribution finalization, payable commission writes, direct agent review writes, fraud enforcement, payout actions, tax collection, private partner portals, and partner notifications require future confirmed-write APIs.",
+  },
+  {
+    id: "create-owner-affiliate-payout-preparation-record",
+    title: "Owner affiliate payout preparation record API",
+    route: affiliatePayoutPreparationRecordApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "src/lib/affiliate-payout-preparation-records.ts",
+    stableIds: [
+      "payoutPreparationRecordId",
+      "affiliateProgramId",
+      "payoutPreparationId",
+      "payoutBatchId",
+      "ownerUserId",
+      "idempotencyKey",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only affiliate payout preparation confirmation contract",
+      "Record owner-reviewed payout preparation evidence only with an owner session",
+      "Use exact confirmation, idempotency, program revision checks, payout batch status checks, and payout evidence checks before writing",
+      "Confirm responses omit payout accounts, tax data, Stripe IDs, partner notification bodies, buyer data, raw ledger rows, actor emails, actor hashes, private notes, and private fraud signals",
+    ],
+    writeBoundary:
+      `This owner-session API records redacted affiliate payout preparation evidence in D1 after exact confirmation, idempotency, program revision checks, payout batch status checks, and payout evidence validation. It creates owner-visible preparation records only; it does not create payable commission state, Stripe payouts or transfers, payout accounts, tax records, partner notifications, fraud decisions, buyer data, raw ledger rows, or direct public agent payout writes. Issue #${affiliatePayoutPreparationRecordIssue} tracks this slice.`,
   },
   {
     id: "read-mobile-admin-contract",
@@ -1175,12 +1206,14 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-affiliate-referrals",
     route: "/affiliates/source-data",
     resolves:
-      "Seeded affiliate program, partner records, referral links, public-safe partner reports, read-only payout preparation, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+      "Seeded affiliate program, partner records, referral links, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
     stableIds: [
       "affiliateProgramId",
       "affiliatePartnerId",
       "affiliatePartnerReportId",
       "payoutPreparationId",
+      "payoutPreparationRecordId",
+      "payoutPreparationRecordStatus",
       "referralLinkId",
       "referralClickId",
       "checkoutIntentId",
@@ -1192,7 +1225,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "payoutBatchId",
     ],
     volatileClaims:
-      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, aggregate counts, public-safe partner reports, and read-only payout preparation; it is not cookie assignment, buyer attribution finalization, payable commission state, fraud enforcement, tax collection, partner notification, private partner portal access, direct agent review automation, or Stripe payout capability.",
+      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, aggregate counts, public-safe partner reports, read-only payout preparation, and owner-confirmed payout preparation records; it is not cookie assignment, buyer attribution finalization, payable commission state, fraud enforcement, tax collection, partner notification, private partner portal access, direct agent review automation, or Stripe payout capability.",
   },
   {
     id: "evidence-mobile-admin",
@@ -1448,9 +1481,19 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/affiliates/source-data",
     purpose:
-      "Expose seeded affiliate programs, partner records, referral links, public-safe partner reports, read-only payout preparation, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
+      "Expose seeded affiliate programs, partner records, referral links, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
     safetyBoundary:
-      "Seeded referral click capture, checkout attribution evidence, review-only commission evidence, owner review actions, public-safe partner reports, and read-only payout preparation are live; buyer attribution finalization, payable commission writes, fraud decisions, tax handling, payout account access, partner notification, and Stripe payouts require confirmed-write contracts.",
+      "Seeded referral click capture, checkout attribution evidence, review-only commission evidence, owner review actions, public-safe partner reports, read-only payout preparation, and owner-confirmed payout preparation records are live; buyer attribution finalization, payable commission writes, fraud decisions, tax handling, payout account access, partner notification, and Stripe payouts require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-tool-create-affiliate-payout-preparation-record",
+    resourceOrTool: "tool create_affiliate_payout_preparation_record",
+    status: "planned",
+    backedBy: affiliatePayoutPreparationRecordApiRoute,
+    purpose:
+      `Record owner-confirmed affiliate payout preparation evidence on top of the same D1 contract from issue #${affiliatePayoutPreparationRecordIssue}.`,
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, program revision checks, payout batch status checks, payout-preparation evidence validation, audit metadata, and redacted output. It must not create payable commission state, create Stripe payouts or transfers, store payout accounts, collect tax data, notify partners, enforce fraud decisions, expose buyer data, expose raw ledger rows, or enable direct public agent writes.",
   },
   {
     id: "mcp-resource-publisher-account",

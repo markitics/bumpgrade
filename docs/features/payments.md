@@ -132,6 +132,20 @@ Issue #195 adds read-only affiliate payout preparation:
   Stripe payouts, partner statements, tax collection, payout account storage,
   partner notifications, fraud decisions, or direct agent affiliate writes.
 
+Issue #273 adds owner-confirmed affiliate payout preparation records:
+
+- `/api/admin/affiliates/payout-preparation-records` requires an owner session,
+  exact confirmation, idempotency, current affiliate program revision, payout
+  batch status, ledger counts, and public-safe commission total.
+- `/affiliates/source-data` exposes `payoutPreparationRecords` with aggregate
+  counts and latest redacted metadata only.
+- Records never expose payout accounts, tax data, Stripe payout IDs, partner
+  notification bodies, buyer data, raw ledger rows, raw actor identity, private
+  fraud signals, or private notes.
+- This does not create payable commissions, Stripe payouts or transfers, tax
+  collection, payout account storage, partner notifications, fraud decisions, or
+  direct agent affiliate writes.
+
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 

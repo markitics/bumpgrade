@@ -252,12 +252,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, aggregate click
   counts, checkout attribution evidence, aggregate review-only commission ledger
-  counts, read-only payout preparation, attribution rules, commission rules,
+  counts, read-only payout preparation, owner-confirmed payout preparation
+  records, attribution rules, commission rules,
   ledger fixtures, payout review, fraud flags, and the `/api/affiliates/clicks`
   write boundary. Treat it as
   seeded click capture, referral-click-to-checkout, review-only ledger evidence,
-  owner review evidence, aggregate partner report evidence, and payout
-  preparation checklist evidence, not cookie assignment, buyer attribution
+  owner review evidence, aggregate partner report evidence, payout
+  preparation checklist evidence, and owner-confirmed payout preparation record
+  evidence, not cookie assignment, buyer attribution
   finalization, payable commission state, payout account storage, tax
   collection, fraud enforcement, Stripe payout capability, partner notification,
   private partner portal access, direct agent review writes, or payable
@@ -282,9 +284,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   review-only commission evidence, and
   `/api/admin/affiliates/commission-ledger/actions` lets owner sessions review,
   hold, or reverse that evidence without making it payable. `/affiliates/source-data`
-  exposes read-only payout preparation rows, but live billing, payable
-  commission writes, payout mutation, direct agent review writes, payout account
-  storage, tax collection, and partner notification remain disabled. Agents must
+  exposes read-only payout preparation rows, and
+  `/api/admin/affiliates/payout-preparation-records` lets owner sessions record
+  redacted payout preparation evidence, but live billing, payable commission
+  writes, payout mutation, direct agent review writes, payout account storage,
+  tax collection, Stripe payouts, fraud enforcement, and partner notification remain disabled. Agents must
   not start billing-impacting or payout-impacting checkout work without exact
   confirmation, idempotency, audit correlation, stale-state checks, owner review,
   and webhook evidence.

@@ -7,7 +7,9 @@ offer and constrained order bump. Issue #111 adds optional referral-click
 attribution evidence on sandbox checkout intents. Issue #113 adds review-only
 commission ledger evidence from trusted checkout attribution. Issue #115 adds
 owner-gated review, hold, and reversal actions for that evidence without payout
-mutation. Issue #117 adds a trusted post-purchase route and an idempotent
+mutation. Issue #273 adds owner-confirmed payout preparation records without
+payable commission state, Stripe payouts, payout accounts, tax data, or partner
+notifications. Issue #117 adds a trusted post-purchase route and an idempotent
 non-billing decision API for upsell/downsell follow-up evidence. Issue #133
 gates the checkout success CTA on trusted webhook state before opening that
 post-purchase path.
@@ -32,6 +34,9 @@ Live in this slice:
   intent with referral attribution.
 - `/api/admin/affiliates/commission-ledger/actions`: owner-gated review action
   route that can review, hold, or reverse that evidence without payout state.
+- `/api/admin/affiliates/payout-preparation-records`: owner-gated payout
+  preparation record route that can record review evidence without creating
+  payout state.
 - `/commerce/post-purchase/{checkoutIntentId}`: public-safe post-purchase offer
   path for eligible paid or completed sandbox checkout intents.
 - `/api/commerce/post-purchase-decisions`: confirmed, idempotent route that can
