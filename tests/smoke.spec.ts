@@ -10711,6 +10711,21 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.roadmapItems.length).toBeGreaterThan(0);
     expect(payload.workLogEntries.length).toBeGreaterThan(0);
     expect(payload.userJourneys.length).toBeGreaterThan(0);
+    const analyticsRoadmap = payload.roadmapItems.find(
+      (item: { id: string }) => item.id === "roadmap-analytics-testing",
+    );
+    expect(JSON.stringify(analyticsRoadmap)).toContain("queue-consumer");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("294");
+    if (payload.source !== "fixture") {
+      expect(payload.workLogEntries).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: "work-log-2026-05-21-analytics-notification-queue-consumer-readiness",
+            title: expect.stringContaining("queue-consumer"),
+          }),
+        ]),
+      );
+    }
     expect(payload.attentionItems).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -10846,7 +10861,14 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284, 286, 288],
+          issueNumbers: [
+            18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284, 286, 288, 290,
+            292, 294,
+          ],
+          sourceEvidence: expect.arrayContaining([
+            "https://bumpgrade.com/api/admin/analytics/notification-queue-consumer-readiness",
+            "https://github.com/markitics/bumpgrade/issues/294",
+          ]),
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -11041,6 +11063,17 @@ test.describe("Bumpgrade scaffold", () => {
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-99-checkout-order-bump-start.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-133-checkout-success-desktop.png" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-previews-analytics-experiments",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({
+                url: "https://bumpgrade.com/pr-screenshots/issue-294-admin-analytics-queue-consumer-readiness.png",
+              }),
             ]),
           }),
         }),
