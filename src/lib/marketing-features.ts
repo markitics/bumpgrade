@@ -293,19 +293,19 @@ export const marketingFeatures: MarketingFeature[] = [
     category: "Growth",
     status: "live",
     availability:
-      "Referral links, attribution evidence, review-only commissions, partner reports, payout-prep records, fraud review records, partner notification readiness records, and send preflight records are available.",
+      "Referral links, attribution evidence, review-only commissions, partner reports, payout-prep records, fraud review records, partner notification readiness records, send preflight records, and provider readiness records are available.",
     eyebrow: "Grow with partners",
     hero: "Track partner growth without rushing into unsafe payout automation.",
     summary:
-      "Bumpgrade models affiliate programs, referral links, clicks, checkout attribution, review-only commission evidence, partner reports, payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, and owner-reviewed partner notification send preflight records.",
+      "Bumpgrade models affiliate programs, referral links, clicks, checkout attribution, review-only commission evidence, partner reports, payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records.",
     audience: "Publishers who want partners, affiliates, and creators to help sell without messy attribution logs.",
     problem: "Referral tracking gets risky when attribution, commission state, and payout readiness are blended together too early.",
     outcome:
-      "Separate public-safe partner performance, payout preparation, fraud review, notification readiness, and send preflight evidence from payout-impacting or send-impacting actions that still need owner review and confirmation.",
+      "Separate public-safe partner performance, payout preparation, fraud review, notification readiness, send preflight, and provider readiness evidence from payout-impacting or send-impacting actions that still need owner review and confirmation.",
     imageUrl: "/marketing/bumpgrade-home-hero.jpg",
     imageAlt: "A publisher founder reviewing a launch dashboard on a laptop.",
     featureIds: ["feature-affiliates-referrals"],
-    issueIds: [19, 89, 109, 111, 113, 115, 193, 195, 273],
+    issueIds: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279, 281],
     proofRoutes: ["/affiliates/indie-launch-partners", "/affiliates/source-data"],
     benefits: [
       "Create partner and referral-link records with public-safe click evidence.",

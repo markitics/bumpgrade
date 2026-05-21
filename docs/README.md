@@ -58,8 +58,9 @@ then open the relevant shelf for the task.
   review, owner review/reversal actions, public-safe partner reports, read-only
   payout preparation, owner-confirmed payout preparation records, and fraud flag
   and fraud review record, partner notification readiness record, and partner
-  notification send preflight source-data contracts from issues #89, #109, #111,
-  #113, #115, #193, #195, #273, #275, #277, and #279.
+  notification send preflight record, and notification provider readiness
+  source-data contracts from issues #89, #109, #111, #113, #115, #193, #195,
+  #273, #275, #277, #279, and #281.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,
