@@ -107,7 +107,7 @@ export const analyticsExperimentsUpdatedAt = analyticsConversionReportUpdatedAt;
 export const analyticsDashboard: AnalyticsDashboard = {
   id: "analytics-dashboard-indie-launch",
   slug: "indie-launch-dashboard",
-  title: "Indie launch analytics and experiment preview",
+  title: "Indie launch analytics and experiments",
   status: "draft",
   issue: 129,
   parentIssue: 18,
@@ -119,7 +119,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedProductRoute: "/products/indie-launch-library",
   revisionId: "analytics-experiment-revision-indie-launch-2026-05-19-time-window-filters",
   summary:
-    "A privacy-safe analytics and experiment scaffold for time-windowed aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, dashboard-visible source attribution, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
+    "A privacy-safe analytics and experiment dashboard for time-windowed aggregate funnel conversion reporting, checkout revenue, audience opt-ins, seeded live event capture, dashboard-visible source attribution, browser-side funnel page-view beacons with deterministic variant and source attribution evidence, and deterministic A/B assignment before cookies, traffic routing, or automated decisions exist.",
   events: [
     {
       id: "event-funnel-page-view",
@@ -149,7 +149,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
         "raw UTM payload",
       ],
       aggregation:
-        "Count by route, step, variant, normalized UTM fields, and coarse referrer host after browser-side session idempotency plus server-side bot and preview traffic filtering.",
+        "Count by route, step, variant, normalized UTM fields, and coarse referrer host after browser-side session idempotency plus server-side bot filtering.",
     },
     {
       id: "event-audience-opt-in-created",

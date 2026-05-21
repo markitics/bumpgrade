@@ -13,13 +13,13 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Customer product access lookup | Bumpgrade",
   description:
-    "Customer-safe Bumpgrade entitlement lookup for sandbox checkout product access without exposing private buyer, Stripe, R2, or signed URL data.",
+    "Customer-safe Bumpgrade entitlement lookup for checkout product access without exposing private buyer, Stripe, R2, or signed URL data.",
   alternates: {
     canonical: `${site.url}/products/entitlements`,
   },
   openGraph: {
     title: "Customer product access lookup",
-    description: "Inspect sandbox product entitlements and fulfillment state from a checkout intent without private data leaks.",
+    description: "Inspect product entitlements and fulfillment state from a checkout intent without private data leaks.",
     url: `${site.url}/products/entitlements`,
     type: "article",
   },
@@ -66,7 +66,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
           <p className="eyebrow">Customer product access</p>
           <h1>Customer product access lookup</h1>
           <p className="lede">
-            Check which sandbox products a completed checkout unlocked. This lookup shows entitlement and fulfillment
+            Check which products a completed checkout unlocked. This lookup shows entitlement and fulfillment
             status only; buyer email, hashes, raw Stripe identifiers, private object keys, metadata JSON, and signed URLs
             stay excluded.
           </p>
@@ -118,7 +118,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
               <h3>Active grants</h3>
               <p>
                 {lookup.counts.activeEntitlements} active grant{lookup.counts.activeEntitlements === 1 ? "" : "s"} from
-                trusted sandbox webhook evidence.
+                trusted webhook evidence.
               </p>
             </div>
             <div>
@@ -214,7 +214,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
               <p>
                 {lookup.checkout
                   ? "This checkout is recorded, but no product entitlement rows are available yet. The webhook may still be pending."
-                  : "Enter a checkout intent ID from the sandbox checkout success page to inspect customer-safe product access."}
+                  : "Enter a checkout intent ID from the checkout success page to inspect customer-safe product access."}
               </p>
             </article>
           )}

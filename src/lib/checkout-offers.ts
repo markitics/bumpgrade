@@ -84,20 +84,20 @@ export const checkoutOfferStack: CheckoutOfferStack = {
   webhookEndpoint: checkoutRoutes.webhook,
   revisionId: "checkout-offer-revision-indie-launch-stack-2026-05-19-post-purchase-decisions",
   summary:
-    "A sandbox checkout-offer scaffold for the primary offer, one selectable pre-payment order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing post-purchase upsell/downsell decision evidence.",
+    "A checkout offer stack for the primary offer, one selectable pre-payment order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing post-purchase upsell/downsell decision evidence.",
   primaryOffer: {
     id: "offer-primary-sandbox-launch-pass",
     kind: "primary",
     title: sandboxCheckoutOffer.name,
     slug: "sandbox-launch-pass",
-    priceLabel: "$9 one-time sandbox payment",
+    priceLabel: "$9 one-time payment",
     unitAmountCents: sandboxCheckoutOffer.unitAmountCents,
     currency: sandboxCurrency,
     productId: sandboxCheckoutOffer.productId,
     priceId: sandboxCheckoutOffer.priceId,
-    customerPromise: "Prove the checkout route, D1 intent record, Stripe Checkout handoff, webhook, and redacted audit path.",
+    customerPromise: "Review the checkout route, intent record, Stripe Checkout handoff, webhook, and redacted audit path.",
     placement: "Primary checkout line item",
-    copyIntent: "Explain exactly what the sandbox launch pass proves without implying live billing is enabled.",
+    copyIntent: "Explain exactly what the launch pass proves without implying live billing is enabled.",
     agentEditable: true,
   },
   orderBumps: [
@@ -120,7 +120,7 @@ export const checkoutOfferStack: CheckoutOfferStack = {
   postPurchasePath: {
     id: "post-purchase-path-launch-acceleration",
     trigger: "checkout.session.completed",
-    startsAfter: "Primary sandbox checkout success and webhook evidence",
+    startsAfter: "Primary checkout success and webhook evidence",
     expiresAfterMinutes: 30,
     offers: [
       {

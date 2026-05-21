@@ -181,12 +181,12 @@ export const draftFunnelDuplicationCapability = {
 export const seededFunnel: FunnelRecord = {
   id: "funnel-indie-launch-sandbox",
   slug: "indie-launch-sandbox",
-  title: "Indie launch sandbox funnel",
+  title: "Indie launch funnel",
   status: "draft",
   issue: 79,
   parentIssue: 14,
   summary:
-    "A read-only three-step launch funnel scaffold that proves ordered funnel state, page blocks, preview rendering, and source-data discovery before write APIs exist.",
+    "A three-step launch funnel that proves ordered funnel state, page blocks, route rendering, and source-data discovery before write APIs exist.",
   audienceSegmentIds: ["audience-creators", "audience-newsletter-publishers", "audience-indie-hackers"],
   linkedFeatureIds: ["feature-funnel-builder", "feature-checkout-offers", "feature-agent-ready-contracts"],
   previewRoute: "/funnels/indie-launch-sandbox",
@@ -548,7 +548,7 @@ export const publicFunnelCheckoutStartCapability = {
     "One-click post-purchase charging",
   ],
   writeBoundary:
-    "Issue #165 lets published funnel pages render the existing sandbox checkout start surface when a checkout block carries owner-confirmed checkoutLink metadata. The route remains sandbox-only, exact-confirmed, idempotent, redacted, and constrained to the seeded offer stack; live billing, arbitrary offer mutation, fulfillment, one-click upsell charging, and direct agent checkout writes require later confirmed-write APIs.",
+    "Issue #165 lets published funnel pages render the existing checkout start surface when a checkout block carries owner-confirmed checkoutLink metadata. The route remains confirmation-gated, idempotent, redacted, and constrained to the seeded offer stack; live billing, arbitrary offer mutation, fulfillment, one-click upsell charging, and direct agent checkout writes require later confirmed-write APIs.",
 };
 
 export function getFunnelBySlug(slug: string) {

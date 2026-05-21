@@ -90,19 +90,19 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
           buyerEmail: normalizedBuyerEmail || undefined,
           confirmationText,
           idempotencyKey: `${context?.idempotencyPrefix ?? "bumpgrade-offer"}-${crypto.randomUUID()}`,
-          agentClientId: context?.agentClientId ?? "offer-preview-ui",
+          agentClientId: context?.agentClientId ?? "offer-ui",
         }),
       });
       const payload = (await checkoutResponse.json()) as CheckoutResponse;
 
       if (!checkoutResponse.ok || !payload.ok) {
-        setError(payload.message ?? "The sandbox checkout start could not be created.");
+        setError(payload.message ?? "The checkout path could not be checked.");
         return;
       }
 
       setResponse(payload);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : "The sandbox checkout start failed.");
+      setError(checkoutError instanceof Error ? checkoutError.message : "The checkout path check failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -112,13 +112,13 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
     <section className="content-band">
       <div className="feature-section-heading">
         <div>
-          <p className="eyebrow">{context?.eyebrow ?? "Sandbox checkout start"}</p>
-          <h2>{context?.heading ?? "Choose the bump, confirm the checkout, keep billing sandboxed."}</h2>
+          <p className="eyebrow">{context?.eyebrow ?? "Checkout path"}</p>
+          <h2>{context?.heading ?? "Choose the bump and review the checkout path."}</h2>
         </div>
       </div>
       <div className="checkout-start-grid">
         <form className="checkout-start-panel" onSubmit={handleSubmit} noValidate>
-          <div className="checkout-line-list" aria-label="Sandbox checkout line items">
+          <div className="checkout-line-list" aria-label="Checkout line items">
             <div className="checkout-line-item selected">
               <div>
                 <span>Primary offer</span>
@@ -145,7 +145,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
           </div>
 
           <div className="checkout-total-row">
-            <span>Total sandbox amount</span>
+            <span>Total amount</span>
             <strong>{formatMoney(total, stack.primaryOffer.currency)}</strong>
           </div>
 
@@ -154,7 +154,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
             <input
               type="email"
               value={buyerEmail}
-              placeholder="sandbox-buyer@example.com"
+              placeholder="buyer@example.com"
               onChange={(event) => setBuyerEmail(event.target.value)}
               onBlur={(event) => setBuyerEmail(event.currentTarget.value.trim())}
             />
@@ -171,7 +171,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
           </label>
 
           <button type="submit" className="primary-action" disabled={isSubmitting || !confirmationMatches}>
-            {isSubmitting ? "Starting..." : "Start sandbox checkout"}
+            {isSubmitting ? "Reviewing..." : "Review checkout path"}
             <ShoppingCart aria-hidden="true" />
           </button>
         </form>
@@ -192,10 +192,10 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
             <div className="checkout-alert success">
               <CheckCircle2 aria-hidden="true" />
               <div>
-                <strong>{response.status === "preview" ? "Preview response" : "Checkout start created"}</strong>
+                <strong>{response.status === "preview" ? "Checkout setup check" : "Checkout start created"}</strong>
                 <span>
                   {response.status === "preview"
-                    ? `Safe preview: ${response.reason ?? "sandbox preview"}`
+                    ? `Setup check: ${response.reason ?? "payment setup needs review"}`
                     : "Bumpgrade redirect is ready; raw Stripe URL stays server-private."}
                 </span>
                 {typeof response.totalAmountCents === "number" ? (

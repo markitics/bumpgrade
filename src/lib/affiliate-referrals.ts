@@ -290,7 +290,7 @@ export const affiliatePayoutPreparationContract = {
 export const affiliateProgram: AffiliateProgram = {
   id: "affiliate-program-indie-launch-partners",
   slug: "indie-launch-partners",
-  title: "Indie launch partner program preview",
+  title: "Indie launch partner program",
   status: "draft",
   issue: 195,
   parentIssue: 19,
@@ -310,7 +310,7 @@ export const affiliateProgram: AffiliateProgram = {
       windowDays: 30,
       priority: 1,
       appliesTo: ["ref-link-launch-circle-waitlist", "ref-link-template-partner-sales"],
-      caveat: "Preview rule only. Future live use requires consent-safe click capture, bot filtering, and replay-safe attribution writes.",
+      caveat: "Future live use requires consent-safe click capture, bot filtering, and replay-safe attribution writes.",
     },
     {
       id: "attribution-rule-manual-review",
@@ -576,7 +576,7 @@ export const affiliateProgram: AffiliateProgram = {
           id: "payout-prep-check-refund-window",
           title: "Refund and reversal window cleared",
           status: "blocked",
-          evidence: "Fixture review flag keeps refund-window evidence open before any payout preparation can leave preview mode.",
+          evidence: "Fixture review flag keeps refund-window evidence open before any payout preparation can become payable.",
         },
         {
           id: "payout-prep-check-private-payout-data",

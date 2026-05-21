@@ -127,15 +127,15 @@ const routes = [
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Launch pricing" },
   { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
-  { path: "/funnels/indie-launch-sandbox", heading: "Indie launch sandbox funnel" },
+  { path: "/funnels/indie-launch-sandbox", heading: "Indie launch funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
   { path: "/products/entitlements", heading: "Customer product access lookup" },
-  { path: "/audience/indie-launch-waitlist", heading: "Indie launch waitlist and nurture preview" },
-  { path: "/analytics/indie-launch-dashboard", heading: "Indie launch analytics and experiment preview" },
-  { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program preview" },
-  { path: "/commerce/checkout/success", heading: "sandbox checkout returned successfully" },
-  { path: "/commerce/checkout/cancel", heading: "sandbox checkout was canceled" },
+  { path: "/audience/indie-launch-waitlist", heading: "Indie launch waitlist and nurture" },
+  { path: "/analytics/indie-launch-dashboard", heading: "Indie launch analytics and experiments" },
+  { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program" },
+  { path: "/commerce/checkout/success", heading: "checkout returned successfully" },
+  { path: "/commerce/checkout/cancel", heading: "checkout was canceled" },
   { path: "/login", heading: "Publisher login for Bumpgrade accounts" },
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
@@ -376,6 +376,27 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/resources");
     await expect(page.getByText("Available now").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Request a guide" })).toBeVisible();
+  });
+
+  test("public example routes avoid test-fixture wording", async ({ page }) => {
+    const testFixtureTerms = /\b(?:preview|sandbox)\b/i;
+    const publicExampleRoutes = [
+      "/funnels/indie-launch-sandbox",
+      "/offers/indie-launch-stack",
+      "/products/indie-launch-library",
+      "/products/entitlements",
+      "/audience/indie-launch-waitlist",
+      "/analytics/indie-launch-dashboard",
+      "/affiliates/indie-launch-partners",
+      "/commerce/checkout/success",
+      "/commerce/checkout/cancel",
+    ];
+
+    for (const path of publicExampleRoutes) {
+      await page.goto(path);
+      const visibleText = await page.locator("body").innerText();
+      expect(visibleText).not.toMatch(testFixtureTerms);
+    }
   });
 
   test("comparison hub links to every first-wave alternative", async ({ page }) => {
@@ -855,8 +876,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
-    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Three-step launch funnel scaffold/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Three-step launch funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Reusable funnel shapes for private draft starts/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Reusable page blocks with write boundaries/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Launch sales funnel/i })).toBeVisible();
@@ -941,15 +962,15 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/offers/indie-launch-stack");
     await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Choose the bump, confirm the checkout/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Choose the bump and review the checkout path/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Primary offer, order bump, upsell, and downsell/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Launch checklist bump" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Launch accelerator upsell" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Launch review downsell" })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
     await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
-    await page.getByRole("button", { name: /Start sandbox checkout/i }).click();
-    await expect(page.getByText(/Preview response/i)).toBeVisible();
+    await page.getByRole("button", { name: /Review checkout path/i }).click();
+    await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
   });
 
@@ -2681,7 +2702,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("consent-backed subscriber capture");
 
     await page.goto("/audience/indie-launch-waitlist");
-    await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture preview/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Indie launch waitlist opt-in/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Unsubscribe evidence is captured/i })).toBeVisible();
     await expect(page.getByText("Launch checklist lead magnet")).toBeVisible();
@@ -3100,7 +3121,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
 
     await page.goto("/analytics/indie-launch-dashboard");
-    await expect(page.getByRole("heading", { name: /Indie launch analytics and experiment preview/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch analytics and experiments/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Step-level conversion metrics come from aggregate captured events/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
     await expect(page.getByRole("group", { name: "Conversion window" })).toBeVisible();
@@ -3362,14 +3383,14 @@ test.describe("Bumpgrade scaffold", () => {
       "/funnels/indie-launch-sandbox?utm_source=newsletter&utm_medium=email&utm_campaign=Playwright%20Launch&utm_content=hero-button&utm_term=creator-course",
       { referer: "https://newsletter.example/archive?subscriber=private" },
     );
-    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
     await expect.poll(assignmentCount).toBe(beforeAssignments + 1);
     await expect.poll(variantCount).toBe(beforeVariantEvents + 1);
     await expect.poll(sourceCount).toBe(beforeSourceEvents + 1);
 
     await page.reload();
-    await expect(page.getByRole("heading", { name: /Indie launch sandbox funnel/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
     await expect.poll(assignmentCount).toBe(beforeAssignments + 1);
     await expect.poll(variantCount).toBe(beforeVariantEvents + 1);
@@ -3812,12 +3833,12 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("read-only payout preparation");
 
     await page.goto("/affiliates/indie-launch-partners");
-    await expect(page.getByRole("heading", { name: /Indie launch partner program preview/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Indie launch partner program/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Payout preparation stays read-only/i })).toBeVisible();
     await expect(page.getByText("Launch Circle public-safe performance report")).toBeVisible();
-    await expect(page.getByText("payout-preparation-indie-launch-may-preview")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Payout preparation", exact: true })).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
   });
@@ -5682,7 +5703,7 @@ test.describe("Bumpgrade scaffold", () => {
     test.skip(testInfo.project.name !== "chromium", "Checkout success polling is covered once on desktop.");
 
     await page.goto("/commerce/checkout/success");
-    await expect(page.getByRole("heading", { name: /sandbox checkout returned successfully/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /checkout returned successfully/i })).toBeVisible();
     await expect(page.getByText("No checkout intent was returned with this success page.")).toBeVisible();
     await expect(page.getByRole("link", { name: /Continue offer path/i })).toHaveCount(0);
 
@@ -6760,11 +6781,11 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Published funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Start the sandbox checkout from this published funnel." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Review the checkout path from this funnel." })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
     await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
-    await page.getByRole("button", { name: /Start sandbox checkout/i }).click();
-    await expect(page.getByText(/Preview response/i)).toBeVisible();
+    await page.getByRole("button", { name: /Review checkout path/i }).click();
+    await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
     await expect(page.locator("body")).not.toContainText("m@rkmoriarty.com");
 

@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Post-purchase offer path | Bumpgrade",
-  description: "Non-billing post-purchase upsell and downsell decision path for Bumpgrade sandbox checkout evidence.",
+  description: "Non-billing post-purchase upsell and downsell decision path for trusted Bumpgrade checkout evidence.",
 };
 
 async function getDb() {
@@ -47,7 +47,7 @@ export default async function PostPurchasePage({ params }: PostPurchasePageProps
           <h1>Choose the next Bumpgrade launch offer.</h1>
           <p className="lede">
             The launch accelerator upsell and launch review downsell can record follow-up decisions after trusted
-            sandbox checkout evidence. This path keeps billing mutation locked behind future contracts.
+            checkout evidence. This path keeps billing mutation locked behind future contracts.
           </p>
           <div className="hero-actions">
             <Link href="/offers/source-data" className="primary-action">
@@ -67,7 +67,7 @@ export default async function PostPurchasePage({ params }: PostPurchasePageProps
           <span>
             {eligible
               ? `${checkoutOfferStack.postPurchasePath.expiresAfterMinutes}-minute follow-up path for ${checkoutOfferStack.postPurchasePath.id}.`
-              : "A paid or completed sandbox checkout intent is required before decisions can be recorded."}
+              : "A paid or completed checkout intent is required before decisions can be recorded."}
           </span>
         </aside>
       </section>
@@ -82,7 +82,7 @@ export default async function PostPurchasePage({ params }: PostPurchasePageProps
               <h2>Checkout not eligible yet</h2>
               <p>
                 This route found <code>{intentId}</code>, but post-purchase decisions require trusted paid or completed
-                sandbox checkout state before the upsell/downsell path opens.
+                checkout state before the upsell/downsell path opens.
               </p>
               <Link href="/commerce/source-data" className="text-link compact-link">
                 Commerce source data
@@ -106,7 +106,7 @@ export default async function PostPurchasePage({ params }: PostPurchasePageProps
             "@type": "WebPage",
             name: "Bumpgrade post-purchase offer path",
             url: pageUrl,
-            about: ["post-purchase upsell", "downsell", "sandbox checkout", "non-billing decision evidence"],
+            about: ["post-purchase upsell", "downsell", "checkout", "non-billing decision evidence"],
           }).replaceAll("<", "\\u003c"),
         }}
       />

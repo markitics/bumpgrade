@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { CheckoutSuccessStatus } from "@/components/checkout-success-status";
 
 export const metadata: Metadata = {
-  title: "Sandbox checkout success | Bumpgrade",
-  description: "Sandbox checkout success state for Bumpgrade's first Stripe Checkout Session path.",
+  title: "Checkout success | Bumpgrade",
+  description: "Checkout success state for Bumpgrade's first Stripe Checkout Session path.",
 };
 
 type SandboxCheckoutSuccessPageProps = {

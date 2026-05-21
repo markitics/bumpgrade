@@ -29,6 +29,9 @@ type AffiliatePageProps = {
   }>;
 };
 
+const publicAffiliateBoundary =
+  "Payable commissions and payouts open only after trusted checkout attribution, fraud review, refund-window checks, payout account verification, tax readiness, owner confirmation, and redacted audit evidence.";
+
 export function generateStaticParams() {
   return affiliatePrograms.map((program) => ({ slug: program.slug }));
 }
@@ -40,13 +43,13 @@ export async function generateMetadata({ params }: AffiliatePageProps): Promise<
   if (!program) return {};
 
   return {
-    title: `${program.title} Preview`,
+    title: program.title,
     description: `${program.summary} This is a read-only Bumpgrade affiliate/referral scaffold tied to issue #${program.issue}.`,
     alternates: {
       canonical: `${site.url}${program.previewRoute}`,
     },
     openGraph: {
-      title: `${program.title} preview`,
+      title: program.title,
       description: program.summary,
       url: `${site.url}${program.previewRoute}`,
       type: "article",
@@ -68,7 +71,7 @@ function ReferralLinkCard({ link }: { link: ReferralLink }) {
       <Link2 aria-hidden="true" />
       <h3>{link.publicUrlPattern}</h3>
       <p>
-        Sends partner traffic to <code>{link.destinationRoute}</code> with source <code>{link.utmSource}</code>.
+        Sends partner traffic to the linked funnel or offer with source <code>{link.utmSource}</code>.
       </p>
       <div className="feature-detail">
         <strong>Attribution rule</strong>
@@ -128,7 +131,7 @@ function PayoutPreparationCard({ batch }: { batch: PayoutBatchFixture }) {
         <span className="admin-pill">{blockedCount} blockers</span>
       </div>
       <ShieldCheck aria-hidden="true" />
-      <h3>{batch.preparationId}</h3>
+      <h3>Payout preparation</h3>
       <p>{batch.caveat}</p>
       <div className="roadmap-detail">
         <strong>Eligible fixture evidence</strong>
@@ -156,7 +159,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${program.title} preview`,
+    name: program.title,
     url: `${site.url}${program.previewRoute}`,
     description: program.summary,
     isPartOf: {
@@ -175,7 +178,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Affiliate preview</p>
+          <p className="eyebrow">Affiliate program</p>
           <h1>{program.title}</h1>
           <p className="lede">{program.summary}</p>
           <div className="hero-actions">
@@ -189,7 +192,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Affiliate preview status">
+        <aside className="feature-status-panel" aria-label="Affiliate program status">
           <Handshake aria-hidden="true" />
           <p>Status</p>
           <strong>{program.partners.length} partner records</strong>
@@ -258,7 +261,9 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
               <p>{rule.caveat}</p>
               <div className="feature-detail">
                 <strong>Applies to</strong>
-                <span>{rule.appliesToOfferIds.join(", ")}</span>
+                <span>
+                  {rule.appliesToOfferIds.length} offer{rule.appliesToOfferIds.length === 1 ? "" : "s"}
+                </span>
               </div>
             </article>
           ))}
@@ -290,7 +295,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             <h2>Review-only commission evidence stays reversible before payout</h2>
           </div>
           <Link href={program.linkedAnalyticsRoute} className="text-link compact-link">
-            Analytics preview
+            Analytics dashboard
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -352,7 +357,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Confirmed writes later</h3>
-            <p>{program.writeBoundary}</p>
+            <p>{publicAffiliateBoundary}</p>
           </div>
         </div>
       </section>

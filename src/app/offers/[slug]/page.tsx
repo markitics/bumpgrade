@@ -13,6 +13,9 @@ type OfferPreviewPageProps = {
   }>;
 };
 
+const publicCheckoutBoundary =
+  "Customer-facing billing opens only after the offer has verified payment setup, trusted webhook handling, owner confirmation, and redacted audit evidence.";
+
 export function generateStaticParams() {
   return checkoutOfferStacks.map((stack) => ({ slug: stack.slug }));
 }
@@ -24,13 +27,13 @@ export async function generateMetadata({ params }: OfferPreviewPageProps): Promi
   if (!stack) return {};
 
   return {
-    title: `${stack.title} Preview`,
-    description: `${stack.summary} This is a sandbox Bumpgrade checkout-offer scaffold tied to issue #${stack.issue}.`,
+    title: stack.title,
+    description: `${stack.summary} This Bumpgrade checkout-offer route is tied to issue #${stack.issue}.`,
     alternates: {
       canonical: `${site.url}${stack.previewRoute}`,
     },
     openGraph: {
-      title: `${stack.title} preview`,
+      title: stack.title,
       description: stack.summary,
       url: `${site.url}${stack.previewRoute}`,
       type: "article",
@@ -54,8 +57,8 @@ function OfferCard({ offer }: { offer: CheckoutOffer }) {
         <span>{offer.placement}</span>
       </div>
       <div className="feature-detail">
-        <strong>Offer ID</strong>
-        <span>{offer.id}</span>
+        <strong>Offer type</strong>
+        <span>{offer.kind.replaceAll("_", " ")}</span>
       </div>
     </article>
   );
@@ -73,7 +76,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${stack.title} preview`,
+    name: stack.title,
     url: `${site.url}${stack.previewRoute}`,
     description: stack.summary,
     isPartOf: {
@@ -92,7 +95,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Checkout offer preview</p>
+          <p className="eyebrow">Checkout offer</p>
           <h1>{stack.title}</h1>
           <p className="lede">{stack.summary}</p>
           <div className="hero-actions">
@@ -106,12 +109,12 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Checkout offer preview status">
+        <aside className="feature-status-panel" aria-label="Checkout offer status">
           <ShoppingCart aria-hidden="true" />
           <p>Status</p>
           <strong>{sequence.length} offer decisions</strong>
           <span>
-            Sandbox checkout start is available for the primary offer and seeded order bump, with optional referral-click
+            Checkout review is available for the primary offer and seeded order bump, with optional referral-click
             evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing
             post-purchase decision evidence. One-click charging, fulfillment, payable commissions, partner
             notifications, and live billing stay disabled until confirmed-write contracts exist.
@@ -119,7 +122,14 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
         </aside>
       </section>
 
-      <CheckoutStartPanel stack={stack} />
+      <CheckoutStartPanel
+        stack={{ ...stack, writeBoundary: publicCheckoutBoundary }}
+        context={{
+          eyebrow: "Checkout path",
+          heading: "Choose the bump and review the checkout path.",
+          agentClientId: "offer-ui",
+        }}
+      />
 
       <section className="content-band alternate">
         <div className="feature-section-heading">
@@ -153,14 +163,14 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
         <div className="roadmap-grid">
           <article className="roadmap-card">
             <div className="roadmap-card-top">
-              <span className="status-badge active">Sandbox</span>
+              <span className="status-badge active">Checked path</span>
               <span className="admin-pill">Primary offer</span>
             </div>
             <BadgeDollarSign aria-hidden="true" />
             <h3>Hosted Checkout stays first</h3>
             <p>
               The seeded primary offer and launch checklist bump link to <code>{stack.checkoutEndpoint}</code> and
-              require exact confirmation text before a sandbox Checkout Session is attempted.
+              require exact confirmation text before a Checkout Session setup check is attempted.
             </p>
           </article>
           <article className="roadmap-card">
@@ -182,7 +192,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             </div>
             <ShieldCheck aria-hidden="true" />
             <h3>Confirmed writes later</h3>
-            <p>{stack.writeBoundary}</p>
+            <p>{publicCheckoutBoundary}</p>
           </article>
         </div>
       </section>
