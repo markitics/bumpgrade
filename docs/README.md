@@ -71,6 +71,9 @@ then open the relevant shelf for the task.
 - `features/publisher-tenants.md`: paid publisher tenant setup, default
   Bumpgrade subdomain reservation, existing-domain DNS onboarding, and
   publisher-site auth boundary from issues #221-#224.
+- `features/phone-verification-sms.md`: phone verification and SMS provider
+  research from issue #53. This is planning only; phone collection and SMS OTP
+  are not live.
 - `decision-log.md`: durable technical decisions that future agents should not
   rediscover from chat.
 - `keep-working/README.md`: how to use the repo-tracked `goal-runner` and

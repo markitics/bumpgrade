@@ -310,6 +310,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
   `/mobile-admin/android/source-data`, but App Store/Play Store distribution,
   private mobile auth, push notifications, and mobile writes are not live yet.
+- Phone verification and SMS provider research is tracked by issue #53 and
+  `docs/features/phone-verification-sms.md`. Phone collection, SMS OTP,
+  SMS marketing, and provider credentials are not live Bumpgrade capabilities.
 - Secrets, bearer tokens, storage keys, private database ids, private user data,
   and provider credentials must not be passed as prompt-visible tool input.
 

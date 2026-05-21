@@ -443,6 +443,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Existing-domain onboarding with deterministic CNAME instructions and DNS verification state.",
       "Better Auth cookie configuration for one login across bumpgrade.com subdomains.",
       "Custom-domain login boundary that uses a central Bumpgrade sign-in handoff rather than raw cross-domain cookie sharing.",
+      "Documented phone verification and SMS provider research from issue #53; phone collection and SMS OTP are not live.",
       "Role and permission model for future agent actions.",
     ],
     evidence: [
@@ -452,9 +453,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
       "Issue #223 adds existing custom-domain onboarding, DNS instructions, and redacted verification state.",
       "Issue #224 documents and tests the publisher-site auth boundary for Bumpgrade subdomains and custom domains.",
+      "Issue #53 researches Cloudflare, Better Auth, Twilio Verify, AWS Notify, Telnyx, Vonage, Bird, Sinch, and Stripe phone-number collection boundaries before any phone collection exists.",
     ],
     agentContract:
-      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; tenant, subdomain, and custom-domain writes require signed-in publisher context, paid-plan checks, idempotency, audit correlation, DNS verification state, and redaction.",
+      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; tenant, subdomain, custom-domain, and future phone-verification writes require signed-in publisher context, paid-plan checks where relevant, idempotency, audit correlation, DNS or provider verification state, rate limits, spend controls, and redaction.",
   },
   {
     id: "feature-codex-email",
