@@ -146,6 +146,12 @@ Issue #9 added the first Better Auth foundation:
   Custom domains cannot receive the `bumpgrade.com` browser cookie directly;
   use the central Bumpgrade login handoff and return URL instead of promising
   raw cross-domain cookie sharing.
+- Issue #53 documents phone verification and SMS provider options in
+  `docs/features/phone-verification-sms.md`. Phone collection and SMS OTP are
+  not live. If this becomes necessary, use Better Auth's phone-number boundary
+  with a managed SMS provider, Cloudflare Worker secrets, rate limits,
+  Turnstile or equivalent abuse friction, audit state, and public-safe
+  redaction.
 
 Required production configuration:
 

@@ -15,7 +15,7 @@ export type RoadmapItem = {
   markAttention?: string;
 };
 
-export const roadmapUpdatedAt = "2026-05-20";
+export const roadmapUpdatedAt = "2026-05-21";
 
 export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
   {
@@ -144,8 +144,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #9 owns the Better Auth foundation slice.",
       "Login/signup, D1 auth tables, Better Auth API routes, and owner-gated admin pages are included in the issue #9 implementation.",
       "Issue #55 adds owner verification resend UX and last-sent status for protected admin gates.",
+      "Issue #53 documents phone verification and SMS provider options before any phone collection, SMS OTP, or SMS marketing exists.",
     ],
-    nextMilestone: "Use the paid-gated account setup and subdomain foundation as the base for custom domains and publisher site auth.",
+    nextMilestone:
+      "Keep phone verification out of launch scope until a specific abuse, account-recovery, publisher-trust, or customer-communication need is recorded; if needed, build it through Better Auth with Cloudflare secrets, rate limits, and redaction.",
   },
   {
     id: "roadmap-paid-publisher-subdomains",
