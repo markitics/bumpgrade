@@ -9,6 +9,8 @@ export const analyticsCohortComparisonIssue = 265;
 export const analyticsCohortComparisonStatus = "owner-reviewed-cohort-comparisons-ready";
 export const analyticsAlertAnomalyIssue = 267;
 export const analyticsAlertAnomalyStatus = "owner-reviewed-alert-thresholds-ready";
+export const analyticsNotificationReadinessIssue = 269;
+export const analyticsNotificationReadinessStatus = "owner-reviewed-notification-readiness-ready";
 
 type AggregateSummary = {
   aggregateCounts?: unknown[];
@@ -254,6 +256,86 @@ function buildAlertAnomalyEvidence(input: AnalyticsReportExportInput) {
   ];
 }
 
+function buildNotificationReadinessEvidence(input: AnalyticsReportExportInput) {
+  const alertReview = buildAlertAnomalyEvidence(input)[0];
+  const thresholdIds = alertReview.alertThresholds.map((threshold) => threshold.id);
+
+  return [
+    {
+      id: "analytics-notification-readiness-indie-launch-threshold-review",
+      status: analyticsNotificationReadinessStatus,
+      issue: analyticsNotificationReadinessIssue,
+      parentIssue: 18,
+      title: "Indie launch analytics threshold notification readiness",
+      sourceDataRoute: "/analytics/source-data",
+      selectedTimeWindowKey: input.timeWindow.key,
+      dashboardId: input.dashboard.id,
+      dependsOnAlertReviewIds: [alertReview.id, alertReview.anomalyReview.id],
+      dependsOnThresholdIds: thresholdIds,
+      deliveryChannels: [
+        {
+          id: "analytics-notification-channel-owner-email-digest",
+          label: "Future owner email digest",
+          audience: "owner_only",
+          channel: "email",
+          readiness: "contract_ready_only",
+          enabled: false,
+          deliveryConfigured: false,
+          customerVisible: false,
+          caveat: "This records the future owner-notification contract only; it does not send email.",
+        },
+        {
+          id: "analytics-notification-channel-admin-inbox",
+          label: "Future admin inbox notice",
+          audience: "owner_only",
+          channel: "admin",
+          readiness: "contract_ready_only",
+          enabled: false,
+          deliveryConfigured: false,
+          customerVisible: false,
+          caveat: "This records the future owner admin-notification contract only; it does not create inbox rows.",
+        },
+      ],
+      readinessGates: {
+        ownerReviewRequired: true,
+        ownerReviewStatus: alertReview.anomalyReview.status,
+        sampleSizeCaveatAcknowledged: alertReview.anomalyReview.caveatAcknowledged,
+        selectedWindowRequired: true,
+        alertThresholdsReviewed: thresholdIds.length,
+        customerNotificationEnabled: false,
+        queueProducerEnabled: false,
+        emailSendEnabled: false,
+        retryPolicyEnabled: false,
+        directAgentSendAllowed: false,
+      },
+      deliveryBoundary: {
+        notificationSent: false,
+        persistedNotificationRows: false,
+        customerAlertEnabled: false,
+        ownerEmailSendEnabled: false,
+        adminInboxWriteEnabled: false,
+        trafficRoutingEnabled: false,
+        automatedWinnerEnabled: false,
+        revenueClaimEnabled: false,
+        agentInstruction:
+          "Use notification readiness as a future owner-delivery contract only; do not send alerts, write inbox rows, route traffic, name winners, or make revenue claims.",
+      },
+      redaction: {
+        rawEventRowsIncluded: false,
+        rawAssignmentRowsIncluded: false,
+        rawVisitorKeysIncluded: false,
+        rawReferrersIncluded: false,
+        rawQueryStringsIncluded: false,
+        contactAnalyticsIncluded: false,
+        actorEmailIncluded: false,
+        privateNotesIncluded: false,
+        notificationRecipientIncluded: false,
+        emailBodyIncluded: false,
+      },
+    },
+  ];
+}
+
 export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportInput) {
   const sections: ReportSection[] = [
     {
@@ -326,6 +408,7 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
     cohortComparisonFixtures: cohortFixtures(input.dashboard),
     ownerReviewedCohortComparisons: buildCohortEvidence(input),
     ownerReviewedAlertThresholds: buildAlertAnomalyEvidence(input),
+    ownerReviewedNotificationReadiness: buildNotificationReadinessEvidence(input),
     redaction: {
       rawEventRowsIncluded: false,
       rawAssignmentRowsIncluded: false,
@@ -350,6 +433,6 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
       "requestHash",
     ],
     writeBoundary:
-      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, send alerts, route traffic, choose automated winners, or make revenue claims.",
+      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence. Issue #269 adds owner-reviewed notification delivery readiness evidence. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, send alerts, write inbox rows, route traffic, choose automated winners, or make revenue claims.",
   };
 }

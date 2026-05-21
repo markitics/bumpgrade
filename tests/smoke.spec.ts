@@ -78,6 +78,8 @@ import {
   analyticsAlertAnomalyStatus,
   analyticsCohortComparisonIssue,
   analyticsCohortComparisonStatus,
+  analyticsNotificationReadinessIssue,
+  analyticsNotificationReadinessStatus,
   analyticsReportExportIssue,
   analyticsReportExportStatus,
 } from "../src/lib/analytics-report-exports";
@@ -3903,6 +3905,60 @@ test.describe("Bumpgrade scaffold", () => {
             }),
           }),
         ]),
+        ownerReviewedNotificationReadiness: expect.arrayContaining([
+          expect.objectContaining({
+            id: "analytics-notification-readiness-indie-launch-threshold-review",
+            status: analyticsNotificationReadinessStatus,
+            issue: analyticsNotificationReadinessIssue,
+            selectedTimeWindowKey: "all",
+            dependsOnAlertReviewIds: expect.arrayContaining([
+              "analytics-alert-threshold-review-indie-launch-funnel-health",
+              "analytics-anomaly-review-indie-launch-funnel-health",
+            ]),
+            dependsOnThresholdIds: expect.arrayContaining([
+              "analytics-alert-threshold-sales-to-checkout-rate",
+              "analytics-alert-threshold-waitlist-opt-in-rate",
+            ]),
+            deliveryChannels: expect.arrayContaining([
+              expect.objectContaining({
+                id: "analytics-notification-channel-owner-email-digest",
+                enabled: false,
+                deliveryConfigured: false,
+                customerVisible: false,
+              }),
+              expect.objectContaining({
+                id: "analytics-notification-channel-admin-inbox",
+                enabled: false,
+                deliveryConfigured: false,
+                customerVisible: false,
+              }),
+            ]),
+            readinessGates: expect.objectContaining({
+              ownerReviewRequired: true,
+              customerNotificationEnabled: false,
+              queueProducerEnabled: false,
+              emailSendEnabled: false,
+              directAgentSendAllowed: false,
+            }),
+            deliveryBoundary: expect.objectContaining({
+              notificationSent: false,
+              persistedNotificationRows: false,
+              ownerEmailSendEnabled: false,
+              adminInboxWriteEnabled: false,
+              trafficRoutingEnabled: false,
+              automatedWinnerEnabled: false,
+              revenueClaimEnabled: false,
+            }),
+            redaction: expect.objectContaining({
+              rawEventRowsIncluded: false,
+              rawAssignmentRowsIncluded: false,
+              rawVisitorKeysIncluded: false,
+              contactAnalyticsIncluded: false,
+              notificationRecipientIncluded: false,
+              emailBodyIncluded: false,
+            }),
+          }),
+        ]),
         redaction: expect.objectContaining({
           rawEventRowsIncluded: false,
           rawAssignmentRowsIncluded: false,
@@ -3977,7 +4033,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, and #267 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, and #269 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -5680,7 +5736,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -6012,6 +6068,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-report-exports", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-alert-reviews", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-notification-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
@@ -6241,6 +6298,9 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsAlertThresholdId",
             "analyticsAnomalyReviewId",
             "analyticsAnomalyReviewStatus",
+            "analyticsNotificationReadinessId",
+            "analyticsNotificationChannelId",
+            "analyticsNotificationReadinessStatus",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
@@ -6249,6 +6309,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
             "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",
+            "Inspect owner-reviewed notification delivery readiness without sending alerts or writing inbox rows",
           ]),
         }),
         expect.objectContaining({
