@@ -10,6 +10,10 @@ import {
   analyticsExperimentDecisionIssue,
 } from "@/lib/analytics-experiment-decisions";
 import {
+  analyticsNotificationInboxApiRoute,
+  analyticsNotificationInboxIssue,
+} from "@/lib/analytics-notification-inbox";
+import {
   analyticsAlertAnomalyIssue,
   analyticsCohortComparisonIssue,
   analyticsNotificationReadinessIssue,
@@ -771,6 +775,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "analyticsNotificationReadinessId",
       "analyticsNotificationChannelId",
       "analyticsNotificationReadinessStatus",
+      "analyticsNotificationInboxRecordId",
+      "analyticsNotificationInboxStatus",
       "analyticsFunnelConversionReportId",
       "utmSource",
       "utmMedium",
@@ -796,6 +802,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
       "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",
       "Inspect owner-reviewed notification delivery readiness without sending alerts or writing inbox rows",
+      "Inspect owner-confirmed notification inbox records without recipients, email bodies, queue dispatch, or email sends",
       "Inspect dashboard-visible source attribution rows",
       "Inspect fixed time-window metadata and aggregate source/conversion rows",
       "Inspect metric formulas",
@@ -806,7 +813,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
     ],
     writeBoundary:
-      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw analytics exports, automated alert sends, owner email sends, admin inbox writes, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
+      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, owner-confirmed notification inbox records from issue #${analyticsNotificationInboxIssue}, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw analytics exports, automated alert sends, owner email sends, queue dispatch, customer alerts, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
   },
   {
     id: "create-owner-analytics-experiment-decision",
@@ -832,6 +839,31 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       `This owner-session API records redacted experiment decision evidence in D1 after exact confirmation, idempotency, dashboard revision checks, experiment status checks, aggregate count validation, and sample-size caveat acknowledgement. It does not route traffic, assign cookies, select automated winners, expose raw event rows, expose raw assignment rows, expose contact analytics, make revenue claims, or allow unauthenticated/direct public agent experiment writes. Issue #${analyticsExperimentDecisionIssue} tracks this slice.`,
+  },
+  {
+    id: "create-owner-analytics-notification-inbox-record",
+    title: "Owner analytics notification inbox record",
+    route: analyticsNotificationInboxApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 table analytics_notification_inbox_records plus analytics source-data readiness evidence",
+    stableIds: [
+      "analyticsNotificationInboxRecordId",
+      "analyticsNotificationReadinessId",
+      "analyticsNotificationChannelId",
+      "analyticsDashboardId",
+      "analyticsTimeWindow",
+      "ownerUserId",
+      "idempotencyKey",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only analytics notification inbox confirmation contract",
+      "Record owner-reviewed notification inbox evidence only with an owner session",
+      "Use exact confirmation, idempotency, dashboard revision checks, notification readiness checks, fixed-window sample-size checks, and sample-size caveat acknowledgement before writing",
+      "Confirm responses omit recipients, email bodies, queue payloads, raw analytics rows, actor emails, actor hashes, private notes, customer alerts, email sends, traffic routing, automated winners, and revenue claims",
+    ],
+    writeBoundary:
+      `This owner-session API records redacted notification inbox evidence in D1 after exact confirmation, idempotency, dashboard revision checks, notification readiness checks, fixed-window evidence validation, and sample-size caveat acknowledgement. It creates owner-visible inbox records only; it does not send email, dispatch queues, alert customers, expose recipients, expose email bodies, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or allow unauthenticated/direct public agent writes. Issue #${analyticsNotificationInboxIssue} tracks this slice.`,
   },
   {
     id: "read-affiliate-referrals",
@@ -1102,7 +1134,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-analytics-experiments",
     route: "/analytics/source-data",
     resolves:
-      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate variant event counts, aggregate source attribution counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, metric formulas, experiment variants, assignment rule, owner-confirmed experiment decision evidence, and confirmed-write boundary.",
+      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate variant event counts, aggregate source attribution counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, metric formulas, experiment variants, assignment rule, owner-confirmed experiment decision evidence, and confirmed-write boundary.",
     stableIds: [
       "analyticsEventId",
       "analyticsEventIngestionId",
@@ -1123,6 +1155,8 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "analyticsNotificationReadinessId",
       "analyticsNotificationChannelId",
       "analyticsNotificationReadinessStatus",
+      "analyticsNotificationInboxRecordId",
+      "analyticsNotificationInboxStatus",
       "analyticsFunnelConversionReportId",
       "analyticsTimeWindow",
       "utmSource",
@@ -1135,7 +1169,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "assignmentRuleId",
     ],
     volatileClaims:
-      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, dashboard-visible aggregate source rows, fixed-window aggregate counts, aggregate source counts, aggregate variant counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, and owner-confirmed experiment decision evidence; it is not cookie assignment, automated alert sends, owner email sends, admin inbox writes, traffic routing, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, raw analytics exports, automated winners, revenue claims, or statistically meaningful proof.",
+      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, dashboard-visible aggregate source rows, fixed-window aggregate counts, aggregate source counts, aggregate variant counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, and owner-confirmed experiment decision evidence; it is not cookie assignment, automated alert sends, owner email sends, queue dispatch, customer alerts, traffic routing, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, raw analytics exports, automated winners, revenue claims, or statistically meaningful proof.",
   },
   {
     id: "evidence-affiliate-referrals",
@@ -1347,9 +1381,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/analytics/source-data",
     purpose:
-      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
+      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
     safetyBoundary:
-      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, raw analytics exports, contact analytics, automated alert sends, owner email sends, admin inbox writes, experiment traffic routing, custom events, automated winners, and public decision writes require confirmed-write contracts.",
+      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, raw analytics exports, contact analytics, automated alert sends, owner email sends, queue dispatch, customer alerts, experiment traffic routing, custom events, automated winners, and public decision writes require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-analytics-report-exports",
@@ -1380,6 +1414,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       "This resource reads future owner-notification readiness, channel metadata, dependency IDs, selected fixed windows, sample-size caveats, and redaction flags only. It must not send alerts, write inbox rows, expose recipients, expose email bodies, route traffic, select winners, or make revenue claims.",
   },
   {
+    id: "mcp-resource-analytics-notification-inbox-records",
+    resourceOrTool: "resource bumpgrade://analytics-notification-inbox-records",
+    status: "ready-contract",
+    backedBy: "/analytics/source-data",
+    purpose: `Expose owner-confirmed analytics notification inbox record evidence from issue #${analyticsNotificationInboxIssue}.`,
+    safetyBoundary:
+      "This resource reads aggregate owner-notification inbox record counts, readiness IDs, channel IDs, selected fixed windows, sample-size caveats, and redaction flags only. It must not expose recipients, expose email bodies, dispatch queues, send email, alert customers, route traffic, select winners, or make revenue claims.",
+  },
+  {
     id: "mcp-tool-create-analytics-experiment-decision",
     resourceOrTool: "tool create_analytics_experiment_decision",
     status: "planned",
@@ -1388,6 +1431,16 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       `Record owner-confirmed analytics experiment decision evidence on top of the same D1 contract from issue #${analyticsExperimentDecisionIssue}.`,
     safetyBoundary:
       "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, experiment status checks, fixed time-window selection, aggregate count validation, sample-size caveat acknowledgement, audit metadata, and redacted output. It must not route traffic, assign cookies, choose automated winners, expose raw event rows, expose raw assignment rows, expose contact analytics, make revenue claims, or enable direct public agent experiment writes.",
+  },
+  {
+    id: "mcp-tool-create-analytics-notification-inbox-record",
+    resourceOrTool: "tool create_analytics_notification_inbox_record",
+    status: "planned",
+    backedBy: analyticsNotificationInboxApiRoute,
+    purpose:
+      `Record owner-confirmed analytics notification inbox evidence on top of the same D1 contract from issue #${analyticsNotificationInboxIssue}.`,
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, notification readiness checks, fixed time-window evidence validation, sample-size caveat acknowledgement, audit metadata, and redacted output. It must not expose recipients, expose email bodies, dispatch queues, send email, alert customers, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or enable direct public agent writes.",
   },
   {
     id: "mcp-resource-affiliate-referrals",
