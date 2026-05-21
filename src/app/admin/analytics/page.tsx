@@ -6,6 +6,7 @@ import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analyti
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
+import { AdminAnalyticsNotificationSendPayloadReadinessForm } from "@/components/admin-analytics-notification-send-payload-readiness-form";
 import { AdminAnalyticsNotificationProviderDomainReadinessForm } from "@/components/admin-analytics-notification-provider-domain-readiness-form";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -29,6 +30,10 @@ import {
   analyticsNotificationContentConsentReadinessIssue,
   getAnalyticsNotificationContentConsentReadinessSummary,
 } from "@/lib/analytics-notification-content-consent-readiness";
+import {
+  analyticsNotificationSendPayloadReadinessIssue,
+  getAnalyticsNotificationSendPayloadReadinessSummary,
+} from "@/lib/analytics-notification-send-payload-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -52,11 +57,13 @@ export default async function AdminAnalyticsPage() {
   const dispatchPreflightSummary = await getAnalyticsNotificationDispatchPreflightSummary();
   const providerDomainReadinessSummary = await getAnalyticsNotificationProviderDomainReadinessSummary();
   const contentConsentReadinessSummary = await getAnalyticsNotificationContentConsentReadinessSummary();
+  const sendPayloadReadinessSummary = await getAnalyticsNotificationSendPayloadReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
   const latestProviderDomainReadiness = providerDomainReadinessSummary.latestRecords[0];
   const latestContentConsentReadiness = contentConsentReadinessSummary.latestRecords[0];
+  const latestSendPayloadReadiness = sendPayloadReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -104,6 +111,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationContentConsentReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationSendPayloadReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationSendPayloadReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -116,6 +130,7 @@ export default async function AdminAnalyticsPage() {
               dispatchPreflightSummary.loadError ??
               providerDomainReadinessSummary.loadError ??
               contentConsentReadinessSummary.loadError ??
+              sendPayloadReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -171,6 +186,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {contentConsentReadinessSummary.counts.notificationContentConsentReadinessRecords} readiness records;{" "}
               {contentConsentReadinessSummary.counts.emailBodyIncludedRecords} email-body records.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Send payload</h3>
+            <p>
+              {sendPayloadReadinessSummary.counts.notificationSendPayloadReadinessRecords} readiness records;{" "}
+              {sendPayloadReadinessSummary.counts.recipientPayloadCreatedRecords} recipient-payload records.
             </p>
           </div>
         </div>
@@ -283,6 +306,38 @@ export default async function AdminAnalyticsPage() {
       </section>
 
       <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Send-payload readiness</p>
+            <h2>Record send-payload readiness without creating recipient payloads.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationSendPayloadReadinessForm
+          dashboardId={sendPayloadReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={sendPayloadReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={sendPayloadReadinessSummary.readiness.id}
+          readinessStatus={sendPayloadReadinessSummary.readiness.status}
+          notificationInboxStatus={sendPayloadReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={sendPayloadReadinessSummary.readiness.notificationDispatchPreflightStatus}
+          notificationProviderDomainReadinessStatus={
+            sendPayloadReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          notificationContentConsentReadinessStatus={
+            sendPayloadReadinessSummary.readiness.notificationContentConsentReadinessStatus
+          }
+          channelId={sendPayloadReadinessSummary.readiness.channelId}
+          ownerReviewStatus={sendPayloadReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={sendPayloadReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={sendPayloadReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Confirmed write</p>
@@ -526,6 +581,53 @@ export default async function AdminAnalyticsPage() {
               <FlaskConical aria-hidden="true" />
               <h3>Decision evidence is ready to record</h3>
               <p>Use the confirmed-write form once the owner has reviewed the aggregate experiment snapshot.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest send-payload readiness</p>
+            <h2>Send-payload records hide recipient payloads, bodies, provider responses, and queue messages.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestSendPayloadReadiness ? (
+            sendPayloadReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationSendPayloadReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Content/consent {record.contentConsentReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No send payload</strong>
+                  <span>
+                    Recipient payload {String(record.recipientPayloadCreated)}, queue message{" "}
+                    {String(record.queueMessageCreated)}, provider response{" "}
+                    {String(record.providerResponseCreated)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs content/consent</span>
+              </div>
+              <ShieldCheck aria-hidden="true" />
+              <h3>Send-payload readiness evidence is ready</h3>
+              <p>Record a current content/consent readiness before recording send-payload readiness evidence.</p>
             </article>
           )}
         </div>
