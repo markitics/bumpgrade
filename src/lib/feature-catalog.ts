@@ -307,6 +307,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Dashboard-visible aggregate source attribution rows from issue #127.",
       "Fixed all-time, 24-hour, 7-day, and 30-day aggregate source and conversion windows from issue #129.",
       "Owner-confirmed experiment decision evidence with aggregate counts and sample-size caveats from issue #261.",
+      "Aggregate report export metadata and fixture cohort comparison definitions from issue #263.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
     evidence: [
@@ -321,9 +322,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #127 renders aggregate source attribution rows in the analytics dashboard preview.",
       "Issue #129 adds fixed time-window controls and public-safe source-data window metadata for aggregate source and conversion summaries.",
       "Issue #261 adds owner-confirmed experiment decision evidence without traffic routing, automated winners, raw event rows, or raw assignment rows.",
+      "Issue #263 adds public-safe aggregate report export metadata without raw analytics downloads.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, aggregate report export metadata, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, raw analytics exports, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",

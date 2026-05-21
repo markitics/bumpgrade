@@ -9,6 +9,7 @@ import {
   analyticsExperimentDecisionApiRoute,
   analyticsExperimentDecisionIssue,
 } from "@/lib/analytics-experiment-decisions";
+import { analyticsReportExportIssue } from "@/lib/analytics-report-exports";
 import {
   publisherCustomDomainIssue,
   publisherCustomerAuthIssue,
@@ -753,6 +754,9 @@ export const agentReadContracts: AgentReadContract[] = [
       "analyticsEventSourceAggregateId",
       "experimentAssignmentId",
       "analyticsExperimentDecisionId",
+      "analyticsReportExportId",
+      "analyticsReportExportSectionId",
+      "analyticsCohortFixtureId",
       "analyticsFunnelConversionReportId",
       "utmSource",
       "utmMedium",
@@ -773,6 +777,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect aggregate source attribution counts",
       "Inspect aggregate assignment counts",
       "Inspect aggregate funnel conversion report rows",
+      "Inspect aggregate report export sections without raw analytics downloads",
+      "Inspect fixture cohort comparison definitions with sample-size caveats",
       "Inspect dashboard-visible source attribution rows",
       "Inspect fixed time-window metadata and aggregate source/conversion rows",
       "Inspect metric formulas",
@@ -783,7 +789,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
     ],
     writeBoundary:
-      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
+      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw analytics exports, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
   },
   {
     id: "create-owner-analytics-experiment-decision",
@@ -1079,7 +1085,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-analytics-experiments",
     route: "/analytics/source-data",
     resolves:
-      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate variant event counts, aggregate source attribution counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, metric formulas, experiment variants, assignment rule, owner-confirmed experiment decision evidence, and confirmed-write boundary.",
+      "Seeded analytics event taxonomy, event capture API, browser-side page-view beacon boundary, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate variant event counts, aggregate source attribution counts, assignment API, aggregate assignment counts, aggregate funnel conversion reports, aggregate report export metadata, metric formulas, experiment variants, assignment rule, owner-confirmed experiment decision evidence, and confirmed-write boundary.",
     stableIds: [
       "analyticsEventId",
       "analyticsEventIngestionId",
@@ -1088,6 +1094,9 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "analyticsEventSourceAggregateId",
       "experimentAssignmentId",
       "analyticsExperimentDecisionId",
+      "analyticsReportExportId",
+      "analyticsReportExportSectionId",
+      "analyticsCohortFixtureId",
       "analyticsFunnelConversionReportId",
       "analyticsTimeWindow",
       "utmSource",
@@ -1100,7 +1109,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "assignmentRuleId",
     ],
     volatileClaims:
-      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, dashboard-visible aggregate source rows, fixed-window aggregate counts, aggregate source counts, aggregate variant counts, aggregate conversion report rows, and owner-confirmed experiment decision evidence; it is not cookie assignment, traffic routing, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, automated winners, revenue claims, or statistically meaningful proof.",
+      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, dashboard-visible aggregate source rows, fixed-window aggregate counts, aggregate source counts, aggregate variant counts, aggregate conversion report rows, aggregate report export metadata, and owner-confirmed experiment decision evidence; it is not cookie assignment, traffic routing, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, raw analytics exports, automated winners, revenue claims, or statistically meaningful proof.",
   },
   {
     id: "evidence-affiliate-referrals",
@@ -1312,9 +1321,19 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/analytics/source-data",
     purpose:
-      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
+      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, aggregate report export metadata, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
     safetyBoundary:
-      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, contact analytics, experiment traffic routing, custom events, automated winners, and public decision writes require confirmed-write contracts.",
+      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, aggregate report export metadata, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, raw analytics exports, contact analytics, experiment traffic routing, custom events, automated winners, and public decision writes require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-analytics-report-exports",
+    resourceOrTool: "resource bumpgrade://analytics-report-exports",
+    status: "ready-contract",
+    backedBy: "/analytics/source-data",
+    purpose:
+      `Expose aggregate analytics report export metadata and fixture cohort comparison definitions from issue #${analyticsReportExportIssue}.`,
+    safetyBoundary:
+      "This resource reads aggregate report sections, selected fixed windows, sample-size caveats, and redaction flags only. It must not expose raw analytics event rows, raw experiment assignment rows, visitor keys, contact analytics, raw referrer URLs, raw query strings, private notes, traffic routing, automated winners, or revenue claims.",
   },
   {
     id: "mcp-tool-create-analytics-experiment-decision",

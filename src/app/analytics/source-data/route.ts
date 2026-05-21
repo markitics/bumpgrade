@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
 import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
+import { buildAnalyticsReportExportSummary } from "@/lib/analytics-report-exports";
 import {
   analyticsTimeWindowStart,
   analyticsTimeWindows,
@@ -189,6 +190,10 @@ async function loadAssignmentSummary(db: D1Database | undefined) {
 export async function GET(request: NextRequest) {
   const db = await getDb();
   const timeWindow = resolveAnalyticsTimeWindow(request.nextUrl.searchParams.get("window"));
+  const eventSummary = await loadEventSummary(db, timeWindow);
+  const assignmentSummary = await loadAssignmentSummary(db);
+  const funnelConversionReport = await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow);
+  const experimentDecisions = await getAnalyticsExperimentDecisionSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -196,9 +201,17 @@ export async function GET(request: NextRequest) {
       selected: timeWindow.key,
       supported: analyticsTimeWindows,
     },
-    eventSummary: await loadEventSummary(db, timeWindow),
-    assignmentSummary: await loadAssignmentSummary(db),
-    funnelConversionReport: await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow),
-    experimentDecisions: await getAnalyticsExperimentDecisionSummary(db),
+    eventSummary,
+    assignmentSummary,
+    funnelConversionReport,
+    experimentDecisions,
+    reportExports: buildAnalyticsReportExportSummary({
+      dashboard: analyticsDashboard,
+      timeWindow,
+      eventSummary,
+      assignmentSummary,
+      conversionReport: funnelConversionReport,
+      experimentDecisionSummary: experimentDecisions,
+    }),
   });
 }

@@ -271,8 +271,8 @@ attribution counts, aggregate variant event counts, aggregate assignment counts,
 aggregate funnel conversion report rows, fixed time-window metadata, metric
 formulas, A/B test variants, deterministic assignment rules, the
 `/api/analytics/events` write boundary, the `/api/analytics/assignments`
-write boundary, and the owner-gated `/api/admin/analytics/experiment-decisions`
-decision-evidence boundary.
+write boundary, the owner-gated `/api/admin/analytics/experiment-decisions`
+decision-evidence boundary, and aggregate report export metadata.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
@@ -286,12 +286,15 @@ windows. Aggregate conversion rows are computed from captured test events when
 samples exist. `/admin/analytics` lets verified owners record redacted
 experiment decision evidence after exact confirmation, aggregate count checks,
 fixed-window selection, current dashboard/experiment checks, and sample-size
-caveat acknowledgement. This proves seeded event, page-view beacon,
+caveat acknowledgement. The same source-data route exposes aggregate report
+export sections and fixture cohort-comparison definitions without creating raw
+analytics downloads. This proves seeded event, page-view beacon,
 dashboard-visible fixed-window aggregate source, aggregate variant, assignment,
-and reporting semantics plus owner-reviewed decision evidence, not cookie
-assignment, traffic routing, contact-level reporting, raw referrer/query
-exposure, raw event or assignment exposure, automated winners, direct public
-agent analytics writes, revenue claims, or statistically meaningful proof.
+and reporting semantics plus owner-reviewed decision evidence and aggregate
+export metadata, not cookie assignment, traffic routing, contact-level
+reporting, raw referrer/query exposure, raw event or assignment exposure, raw
+analytics exports, automated winners, direct public agent analytics writes,
+revenue claims, or statistically meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
