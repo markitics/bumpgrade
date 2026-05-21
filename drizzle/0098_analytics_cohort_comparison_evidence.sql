@@ -37,7 +37,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add public-safe owner-reviewed analytics cohort comparison evidence for agents.',
   '[{"number":265,"url":"https://github.com/markitics/bumpgrade/issues/265"},{"number":18,"url":"https://github.com/markitics/bumpgrade/issues/18"}]',
-  '[]',
+  '[{"number":266,"url":"https://github.com/markitics/bumpgrade/pull/266"}]',
   '["https://bumpgrade.com/features","https://bumpgrade.com/analytics/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
@@ -46,7 +46,7 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch(),
   unixepoch(),
-  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/265"]',
+  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/265","https://github.com/markitics/bumpgrade/pull/266"]',
   NULL,
   unixepoch()
 )
