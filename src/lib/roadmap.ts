@@ -390,7 +390,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
+      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
@@ -405,9 +405,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #261 adds owner-confirmed experiment decision evidence without routing traffic, assigning cookies, selecting automated winners, exposing raw event rows, or exposing raw assignment rows.",
       "Issue #263 adds aggregate report export metadata and fixture cohort comparison definitions without raw analytics exports.",
       "Issue #265 adds owner-reviewed cohort comparison evidence without raw analytics exports, automated winners, or revenue claims.",
+      "Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence without automated alerts, traffic routing, automated winners, or revenue claims.",
     ],
     nextMilestone:
-      "Add alert thresholds and anomaly-review evidence only after cohort comparisons keep sample-size caveats and no-winner boundaries explicit.",
+      "Add notification delivery readiness only after alert thresholds stay owner-reviewed and do not send automated customer alerts.",
   },
   {
     id: "roadmap-affiliates-referrals",

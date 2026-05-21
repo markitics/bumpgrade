@@ -7,6 +7,8 @@ export const analyticsReportExportIssue = 263;
 export const analyticsReportExportStatus = "aggregate-report-exports-ready";
 export const analyticsCohortComparisonIssue = 265;
 export const analyticsCohortComparisonStatus = "owner-reviewed-cohort-comparisons-ready";
+export const analyticsAlertAnomalyIssue = 267;
+export const analyticsAlertAnomalyStatus = "owner-reviewed-alert-thresholds-ready";
 
 type AggregateSummary = {
   aggregateCounts?: unknown[];
@@ -169,6 +171,89 @@ function buildCohortEvidence(input: AnalyticsReportExportInput) {
   ];
 }
 
+function conversionRow(input: AnalyticsReportExportInput, metricId: string) {
+  return input.conversionReport.rows.find((row) => row.metricId === metricId) ?? null;
+}
+
+function buildAlertAnomalyEvidence(input: AnalyticsReportExportInput) {
+  const salesToCheckout = conversionRow(input, "funnel-metric-sales-to-checkout");
+  const waitlistOptIn = conversionRow(input, "funnel-metric-waitlist-opt-in");
+  const conversionRows = [salesToCheckout, waitlistOptIn].filter((row): row is NonNullable<typeof row> =>
+    Boolean(row),
+  );
+  const observedSampleSize = conversionRows.reduce((total, row) => total + row.sampleSize, 0);
+  const observedAnomalyCount = conversionRows.filter((row) => row.conversionRate !== null && row.conversionRate < 0.1).length;
+
+  return [
+    {
+      id: "analytics-alert-threshold-review-indie-launch-funnel-health",
+      status: analyticsAlertAnomalyStatus,
+      issue: analyticsAlertAnomalyIssue,
+      parentIssue: 18,
+      title: "Indie launch funnel health threshold review",
+      sourceDataRoute: "/analytics/source-data",
+      selectedTimeWindowKey: input.timeWindow.key,
+      dashboardId: input.dashboard.id,
+      alertThresholds: [
+        {
+          id: "analytics-alert-threshold-sales-to-checkout-rate",
+          metricId: "funnel-metric-sales-to-checkout",
+          label: "Sales page to checkout minimum review threshold",
+          operator: "below",
+          thresholdValue: 0.1,
+          observedValue: salesToCheckout?.conversionRate ?? null,
+          observedSampleSize: salesToCheckout?.sampleSize ?? 0,
+          action: "owner_review_only",
+          caveat: "Thresholds flag review evidence only; sparse captured samples do not prove a launch problem.",
+        },
+        {
+          id: "analytics-alert-threshold-waitlist-opt-in-rate",
+          metricId: "funnel-metric-waitlist-opt-in",
+          label: "Warm list opt-in minimum review threshold",
+          operator: "below",
+          thresholdValue: 0.12,
+          observedValue: waitlistOptIn?.conversionRate ?? null,
+          observedSampleSize: waitlistOptIn?.sampleSize ?? 0,
+          action: "owner_review_only",
+          caveat: "Thresholds must stay paired with the source rows, selected window, and sample-size caveat.",
+        },
+      ],
+      anomalyReview: {
+        id: "analytics-anomaly-review-indie-launch-funnel-health",
+        status: "reviewed_with_caveats",
+        mode: "fixture_owner_review",
+        issue: analyticsAlertAnomalyIssue,
+        reviewedAt: "2026-05-21",
+        caveatAcknowledged: true,
+        requiredBeforeAgentAction: true,
+        anomalyCount: observedAnomalyCount,
+        sampleSize: observedSampleSize,
+        sampleSizeCaveat: input.conversionReport.sampleSizeCaveat,
+      },
+      automationBoundary: {
+        notificationSent: false,
+        trafficRoutingEnabled: false,
+        automatedWinnerEnabled: false,
+        revenueClaimEnabled: false,
+        agentActionAllowed: false,
+        ownerReviewRequired: true,
+        agentInstruction:
+          "Use threshold and anomaly evidence as owner-reviewed review prompts only; do not alert customers, route traffic, name winners, or make revenue claims.",
+      },
+      redaction: {
+        rawEventRowsIncluded: false,
+        rawAssignmentRowsIncluded: false,
+        rawVisitorKeysIncluded: false,
+        rawReferrersIncluded: false,
+        rawQueryStringsIncluded: false,
+        contactAnalyticsIncluded: false,
+        actorEmailIncluded: false,
+        privateNotesIncluded: false,
+      },
+    },
+  ];
+}
+
 export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportInput) {
   const sections: ReportSection[] = [
     {
@@ -240,6 +325,7 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
     ],
     cohortComparisonFixtures: cohortFixtures(input.dashboard),
     ownerReviewedCohortComparisons: buildCohortEvidence(input),
+    ownerReviewedAlertThresholds: buildAlertAnomalyEvidence(input),
     redaction: {
       rawEventRowsIncluded: false,
       rawAssignmentRowsIncluded: false,
@@ -264,6 +350,6 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
       "requestHash",
     ],
     writeBoundary:
-      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, route traffic, choose automated winners, or make revenue claims.",
+      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, send alerts, route traffic, choose automated winners, or make revenue claims.",
   };
 }

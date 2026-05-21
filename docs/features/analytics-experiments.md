@@ -1,13 +1,14 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, and #265 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, and #267 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
 first aggregate variant and source attribution page-view evidence, and the first
 dashboard-visible source attribution breakdown, fixed aggregate source and
 conversion time-window filters, owner-confirmed experiment decision evidence,
-aggregate report export metadata, and owner-reviewed cohort comparison evidence
+aggregate report export metadata, owner-reviewed cohort comparison evidence,
+and owner-reviewed alert threshold/anomaly-review evidence
 for issue #18.
 
 ## Live Routes
@@ -53,6 +54,9 @@ The first dashboard includes stable IDs for:
   comparison definitions.
 - owner-reviewed cohort comparison evidence with aggregate-only source rows,
   selected fixed windows, sample-size caveats, and no winner or revenue claims.
+- owner-reviewed alert threshold/anomaly-review evidence with aggregate-only
+  conversion rows, selected fixed windows, sample-size caveats, and no
+  automated alert sends, traffic routing, winner selection, or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -73,13 +77,16 @@ checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
-cohort definitions, and owner-reviewed cohort comparison evidence. The cohort
-comparison record is directional evidence with sample-size caveats; agents must
-not treat it as a winner decision, statistically meaningful proof, or revenue
-claim. These paths do not assign cookies, expose contact-level analytics, expose
+cohort definitions, owner-reviewed cohort comparison evidence, and
+owner-reviewed alert threshold/anomaly-review evidence. The cohort comparison
+and threshold review records are directional evidence with sample-size caveats;
+agents must not treat them as winner decisions, statistically meaningful proof,
+customer alert triggers, or revenue claims. These paths do not assign cookies,
+expose contact-level analytics, expose
 raw event or assignment rows, expose raw campaign/referrer payloads, create raw
-analytics exports, route experiment traffic, make automated winner decisions,
-make revenue claims, or prove statistical significance.
+analytics exports, send automated alerts, route experiment traffic, make
+automated winner decisions, make revenue claims, or prove statistical
+significance.
 
 ## Agent Boundary
 
@@ -88,9 +95,10 @@ page-view beacon boundary, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
-comparison evidence to understand analytics and experiment semantics. Direct
-public agent analytics writes, custom events, raw campaign/referrer reporting,
-tracking cookies, raw analytics exports, experiment traffic routing, automated
-winners, or revenue claims require authenticated confirmed-write APIs with actor
-identity, privacy review, idempotency, stale-state checks, audit correlation,
-redaction, retention limits, and sample-size caveats.
+comparison evidence, and owner-reviewed alert threshold/anomaly-review evidence
+to understand analytics and experiment semantics. Direct public agent analytics
+writes, custom events, raw campaign/referrer reporting, tracking cookies, raw
+analytics exports, automated alert sends, experiment traffic routing, automated
+winners, or revenue claims require authenticated confirmed-write APIs with
+actor identity, privacy review, idempotency, stale-state checks, audit
+correlation, redaction, retention limits, and sample-size caveats.
