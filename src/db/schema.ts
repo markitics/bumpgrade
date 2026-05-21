@@ -1070,6 +1070,49 @@ export const analyticsExperimentAssignments = sqliteTable(
   }),
 );
 
+export const analyticsExperimentDecisions = sqliteTable(
+  "analytics_experiment_decisions",
+  {
+    id: text("id").primaryKey(),
+    dashboardId: text("dashboard_id").notNull(),
+    experimentId: text("experiment_id").notNull(),
+    decisionKind: text("decision_kind").notNull(),
+    selectedVariantId: text("selected_variant_id"),
+    timeWindowKey: text("time_window_key").notNull(),
+    expectedDashboardRevisionId: text("expected_dashboard_revision_id").notNull(),
+    expectedExperimentStatus: text("expected_experiment_status").notNull(),
+    expectedAssignmentCount: integer("expected_assignment_count").notNull().default(0),
+    expectedVariantCountsJson: text("expected_variant_counts_json").notNull(),
+    expectedPrimaryMetricId: text("expected_primary_metric_id").notNull(),
+    expectedConversionSampleSize: integer("expected_conversion_sample_size").notNull().default(0),
+    sampleSizeCaveatAcknowledged: integer("sample_size_caveat_acknowledged", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    trafficRoutingEnabled: integer("traffic_routing_enabled", { mode: "boolean" }).notNull().default(false),
+    automatedWinnerEnabled: integer("automated_winner_enabled", { mode: "boolean" }).notNull().default(false),
+    cookieAssignmentEnabled: integer("cookie_assignment_enabled", { mode: "boolean" }).notNull().default(false),
+    revenueClaimEnabled: integer("revenue_claim_enabled", { mode: "boolean" }).notNull().default(false),
+    rawEventRowsExposed: integer("raw_event_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawAssignmentRowsExposed: integer("raw_assignment_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_experiment_decisions_idempotency_unique").on(table.idempotencyKey),
+    experimentTimeIdx: index("analytics_experiment_decisions_experiment_time_idx").on(
+      table.experimentId,
+      table.createdAt,
+    ),
+    dashboardTimeIdx: index("analytics_experiment_decisions_dashboard_time_idx").on(table.dashboardId, table.createdAt),
+  }),
+);
+
 export const affiliateReferralClicks = sqliteTable(
   "affiliate_referral_clicks",
   {

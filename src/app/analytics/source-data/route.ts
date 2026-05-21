@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
+import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
 import {
   analyticsTimeWindowStart,
@@ -198,5 +199,6 @@ export async function GET(request: NextRequest) {
     eventSummary: await loadEventSummary(db, timeWindow),
     assignmentSummary: await loadAssignmentSummary(db),
     funnelConversionReport: await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow),
+    experimentDecisions: await getAnalyticsExperimentDecisionSummary(db),
   });
 }

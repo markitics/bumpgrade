@@ -44,10 +44,11 @@ then open the relevant shelf for the task.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,
-  dashboard source attribution breakdown, aggregate variant evidence, and seeded
-  assignment contract from issues #87, #105, #107, #119, #121, #123, #125,
-  #127, and #129, including fixed all-time, 24-hour, 7-day, and 30-day
-  aggregate source/conversion windows.
+  dashboard source attribution breakdown, aggregate variant evidence, seeded
+  assignment contract, and owner-confirmed experiment decision evidence from
+  issues #87, #105, #107, #119, #121, #123, #125, #127, #129, and #261,
+  including fixed all-time, 24-hour, 7-day, and 30-day aggregate
+  source/conversion windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, public-safe partner reports, read-only

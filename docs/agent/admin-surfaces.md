@@ -178,6 +178,24 @@ not real imports: they do not create contacts, store raw emails or contact rows,
 create subscriber rows, create sequence enrollments, export private data, send
 email, expose private notes, or authorize direct public agent subscriber writes.
 
+## Admin `/admin/analytics`
+
+Purpose: owner-gated analytics and experiment decision evidence on top of the
+public analytics source contract.
+
+The page reads aggregate assignment counts, fixed-window conversion sample
+sizes, the seeded experiment definition, and `analytics_experiment_decisions`
+records. Verified owners can record decision evidence after exact confirmation,
+idempotency, dashboard revision checks, experiment status checks, aggregate
+count checks, selected fixed-window evidence, and sample-size caveat
+acknowledgement.
+
+Public agents should read `/analytics/source-data` for aggregate counts,
+redaction flags, and write boundaries. Experiment decisions are not traffic
+routing: they do not assign cookies, route visitors, select automated winners,
+expose raw event rows, expose raw assignment rows, expose contact analytics, or
+make revenue claims.
+
 ## Agent Maintenance Rule
 
 When any of these change, update the others in the same PR when practical:

@@ -104,6 +104,12 @@ export const adminNavItems: NavItem[] = [
     icon: FileArchive,
   },
   {
+    label: "Analytics",
+    href: "/admin/analytics",
+    description: "Owner-gated experiment decision evidence and analytics review.",
+    icon: ChartNoAxesCombined,
+  },
+  {
     label: "For Mark",
     href: "/admin/for-mark",
     description: "Non-blocking decisions, risks, and blockers Mark should not miss.",
@@ -169,6 +175,7 @@ export const scaffoldRoutes = [
   "/admin/funnels",
   "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
   "/admin/products",
+  "/admin/analytics",
   "/admin/for-mark",
   "/agent-docs",
   "/agent-docs/bumpgrade-agent-surface",

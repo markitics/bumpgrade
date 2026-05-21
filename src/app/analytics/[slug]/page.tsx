@@ -118,8 +118,9 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
             Seeded event capture and deterministic assignments are live with idempotency and aggregate-only reporting;
-            conversion report rows now use captured events when present. Cookies, traffic routing, contact-level
-            analytics, automated winners, and revenue claims stay disabled.
+            conversion report rows now use captured events when present, and owner-reviewed decision evidence can be
+            recorded separately. Cookies, traffic routing, contact-level analytics, automated winners, and revenue claims
+            stay disabled.
           </span>
         </aside>
       </section>
@@ -206,8 +207,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Agents may summarize fixture metrics and assignment counts, but future experiment decisions need
-              sample-size caveats, retention limits, and owner confirmation before routing live traffic.
+              Agents may summarize fixture metrics, assignment counts, and owner decision evidence, but live traffic
+              routing still needs separate safety gates beyond sample-size caveats and owner confirmation.
             </p>
           </article>
         </div>
