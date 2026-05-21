@@ -284,7 +284,8 @@ evidence, owner-reviewed notification delivery readiness evidence,
 owner-confirmed notification inbox record evidence, and owner-confirmed
 notification dispatch preflight evidence, plus owner-reviewed notification
 provider/domain readiness, content/consent readiness, send-payload readiness,
-queue-producer readiness, and queue-consumer readiness evidence.
+queue-producer readiness, queue-consumer readiness, and provider-call readiness
+evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
@@ -318,7 +319,11 @@ sample-size checks, and sample-size caveat acknowledgement. The same admin
 page lets verified owners record redacted notification
 queue-consumer readiness evidence after exact confirmation, readiness checks,
 current queue-producer readiness checks, fixed-window sample-size checks, and
-sample-size caveat acknowledgement. The same source-data route exposes aggregate report
+sample-size caveat acknowledgement. The same admin page lets verified owners
+record redacted notification provider-call readiness evidence after exact
+confirmation, readiness checks, current queue-consumer readiness checks,
+fixed-window sample-size checks, and sample-size caveat acknowledgement. The
+same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
 exposes owner-reviewed alert threshold/anomaly-review evidence as review prompts
@@ -348,7 +353,13 @@ readiness path creates owner-visible readiness evidence
 only, not Queue consumer execution, queue message consumption,
 acknowledgements, retry/dead-letter rows, queue payload body reads, queue
 payloads, queues, provider sends, provider responses, recipients, email bodies,
-provider message IDs, or customer alerts. This proves
+provider message IDs, or customer alerts. The provider-call readiness path
+creates owner-visible readiness evidence only, not provider sends, provider
+calls, provider configuration, provider responses, provider secrets, sender
+credentials, private DNS credentials, Queue producer execution, Queue consumer
+execution, queue messages, queue message consumption, acknowledgements,
+retry/dead-letter rows, queue payload body reads, queue payloads, queues,
+recipients, email bodies, provider message IDs, or customer alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
@@ -356,10 +367,12 @@ evidence, owner-reviewed notification readiness evidence, owner-confirmed
 notification inbox evidence, owner-confirmed dispatch preflight evidence, and
 owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent
 readiness evidence, owner-reviewed send-payload readiness evidence,
-owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer
-readiness evidence, plus aggregate export metadata, not cookie assignment, automated alert sends, owner
-email sends, provider sends, provider configuration, provider secrets, private
-DNS credentials, body templates, unsubscribe URLs, Queue producer execution,
+owner-reviewed queue-producer readiness evidence, owner-reviewed
+queue-consumer readiness evidence, owner-reviewed provider-call readiness
+evidence, plus aggregate export metadata, not cookie assignment, automated
+alert sends, owner email sends, provider sends, provider calls, provider
+configuration, provider responses, provider secrets, sender credentials,
+private DNS credentials, body templates, unsubscribe URLs, Queue producer execution,
 Queue consumer execution, queue dispatch, queue messages, queue message
 consumption, acknowledgements, retry/dead-letter rows, queue payload body
 reads, queue payload bodies, recipient payloads,

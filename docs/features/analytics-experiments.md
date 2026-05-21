@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, and #294 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, and #297 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -14,8 +14,9 @@ record evidence, owner-confirmed notification dispatch preflight evidence, and
 owner-reviewed notification provider/domain readiness evidence,
 owner-reviewed notification content/consent readiness evidence,
 owner-reviewed notification send-payload readiness evidence,
-owner-reviewed notification queue-producer readiness evidence, and
-owner-reviewed notification queue-consumer readiness evidence
+owner-reviewed notification queue-producer readiness evidence,
+owner-reviewed notification queue-consumer readiness evidence, and
+owner-reviewed notification provider-call readiness evidence
 for issue #18.
 
 ## Live Routes
@@ -47,10 +48,12 @@ for issue #18.
   GET/POST endpoint for reviewed notification queue-producer readiness evidence.
 - `/api/admin/analytics/notification-queue-consumer-readiness`: owner-gated
   GET/POST endpoint for reviewed notification queue-consumer readiness evidence.
+- `/api/admin/analytics/notification-provider-call-readiness`: owner-gated
+  GET/POST endpoint for reviewed notification provider-call readiness evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
   and notification inbox, dispatch preflight, provider/domain readiness, and
   content/consent readiness, send-payload readiness, queue-producer readiness,
-  and queue-consumer readiness evidence.
+  queue-consumer readiness, and provider-call readiness evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -130,6 +133,16 @@ The first dashboard includes stable IDs for:
   recipient identity, email bodies, body templates, unsubscribe URLs, provider
   message IDs, queue payloads, traffic routing, winner selection, or revenue
   claims.
+- owner-reviewed notification provider-call readiness records with current
+  queue-consumer readiness checks, selected fixed windows, sample-size caveats,
+  and no provider sends, provider calls, provider configuration, provider
+  responses, provider secrets, sender credentials, private DNS credentials,
+  Queue producer execution, Queue consumer execution, queue messages, queue
+  message consumption, acknowledgements, retry/dead-letter rows, queue payload
+  body reads, queue payload bodies, queue dispatch, owner email sends, customer
+  alerts, recipient identity, email bodies, body templates, unsubscribe URLs,
+  provider message IDs, queue payloads, traffic routing, winner selection, or
+  revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -178,6 +191,11 @@ after exact confirmation, idempotency, dashboard revision checks, notification
 readiness checks, current notification queue-producer readiness checks,
 selected fixed-window sample-size checks, and sample-size caveat
 acknowledgement.
+Owner sessions can record notification provider-call readiness evidence only
+after exact confirmation, idempotency, dashboard revision checks, notification
+readiness checks, current notification queue-consumer readiness checks,
+selected fixed-window sample-size checks, and sample-size caveat
+acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
@@ -187,12 +205,14 @@ notification delivery readiness evidence, owner-confirmed notification inbox
 record evidence, owner-confirmed dispatch preflight evidence, and owner-reviewed
 provider/domain readiness evidence, and owner-reviewed content/consent
 readiness evidence, owner-reviewed send-payload readiness evidence,
-owner-reviewed queue-producer readiness evidence, and owner-reviewed
-queue-consumer readiness evidence. The cohort
+owner-reviewed queue-producer readiness evidence, owner-reviewed
+queue-consumer readiness evidence, and owner-reviewed provider-call readiness
+evidence. The cohort
 comparison, threshold review, notification readiness, notification inbox
 records, dispatch preflights, provider/domain readiness records, and
 content/consent readiness records, send-payload readiness records,
-queue-producer readiness records, and queue-consumer readiness records are
+queue-producer readiness records, queue-consumer readiness records, and
+provider-call readiness records are
 directional evidence with sample-size
 caveats; agents must not treat them as winner decisions, statistically
 meaningful proof, customer alert triggers, owner email sends, provider sends,
@@ -225,7 +245,8 @@ dispatch preflight aggregate evidence, plus owner-reviewed provider/domain
 readiness aggregate evidence, plus owner-reviewed content/consent readiness
 aggregate evidence, plus owner-reviewed send-payload readiness aggregate
 evidence, plus owner-reviewed queue-producer readiness aggregate evidence, plus
-owner-reviewed queue-consumer readiness aggregate evidence, to understand
+owner-reviewed queue-consumer readiness aggregate evidence, plus
+owner-reviewed provider-call readiness aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
 exports, automated alert sends, owner email sends, provider sends, provider
