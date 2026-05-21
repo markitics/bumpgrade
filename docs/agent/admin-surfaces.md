@@ -183,8 +183,8 @@ email, expose private notes, or authorize direct public agent subscriber writes.
 Purpose: owner-gated analytics and experiment decision evidence on top of the
 public analytics source contract, plus public-safe owner-reviewed cohort
 comparison evidence, alert threshold/anomaly-review evidence, and notification
-delivery readiness evidence, plus content/consent, send-payload, and
-queue-producer readiness evidence for agents.
+delivery readiness evidence, plus content/consent, send-payload,
+queue-producer, and queue-consumer readiness evidence for agents.
 
 The page reads aggregate assignment counts, fixed-window conversion sample
 sizes, the seeded experiment definition, and `analytics_experiment_decisions`
@@ -200,16 +200,21 @@ readiness evidence, owner-confirmed notification inbox aggregate evidence,
 owner-confirmed dispatch preflight aggregate evidence, owner-reviewed
 provider/domain readiness aggregate evidence, owner-reviewed content/consent
 readiness aggregate evidence, owner-reviewed send-payload readiness aggregate
-evidence, owner-reviewed queue-producer readiness aggregate evidence, and write boundaries. Experiment
+evidence, owner-reviewed queue-producer readiness aggregate evidence,
+owner-reviewed queue-consumer readiness aggregate evidence, and write
+boundaries. Experiment
 decisions, cohort comparisons, threshold reviews, notification readiness
 records, notification inbox records, dispatch preflights, provider/domain
 readiness records, content/consent readiness records, send-payload
-readiness records, and queue-producer readiness records are not traffic
+readiness records, queue-producer readiness records, and queue-consumer
+readiness records are not traffic
 routing or customer alerting: they do not
 assign cookies, route visitors, send automated alerts, send owner email,
 configure providers, store provider secrets, store sender credentials, expose
-private DNS credentials, call providers, enable Queue producers, dispatch
-queues, alert customers, create queue messages, create queue payload bodies, create recipient payloads, create
+private DNS credentials, call providers, enable Queue producers, enable Queue
+consumers, dispatch queues, alert customers, create queue messages, consume or
+acknowledge queue messages, create retry/dead-letter rows, read queue payload
+bodies, create queue payload bodies, create recipient payloads, create
 personalized bodies, store raw payload bodies, select automated winners, expose raw event rows, expose raw
 assignment rows, expose recipients, expose email bodies, expose provider
 message IDs, expose queue payloads, expose body templates, expose unsubscribe
