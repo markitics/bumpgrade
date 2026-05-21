@@ -139,6 +139,11 @@ import {
   analyticsNotificationQueueConsumerReadinessStatus,
 } from "../src/lib/analytics-notification-queue-consumer-readiness";
 import {
+  analyticsNotificationProviderCallReadinessApiRoute,
+  analyticsNotificationProviderCallReadinessConfirmationText,
+  analyticsNotificationProviderCallReadinessStatus,
+} from "../src/lib/analytics-notification-provider-call-readiness";
+import {
   analyticsAlertAnomalyIssue,
   analyticsAlertAnomalyStatus,
   analyticsCohortComparisonIssue,
@@ -4476,12 +4481,13 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, and #294 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, and #297 can capture seeded analytics events",
     );
     expect(payload.writeBoundary).toContain("record owner-reviewed content/consent readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed send-payload readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed queue-producer readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed queue-consumer readiness evidence");
+    expect(payload.writeBoundary).toContain("record owner-reviewed provider-call readiness evidence");
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
       expect.objectContaining({
@@ -6599,13 +6605,13 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
   });
 
-  test("owner analytics notification send-payload, queue-producer, and queue-consumer readiness require auth, evidence, idempotency, and redaction", async ({
+  test("owner analytics notification send-payload, queue-producer, queue-consumer, and provider-call readiness require auth, evidence, idempotency, and redaction", async ({
     page,
     request,
   }, testInfo) => {
     test.skip(
       testInfo.project.name !== "chromium",
-      "Owner analytics notification send-payload, queue-producer, and queue-consumer readiness auth flows are covered once on desktop.",
+      "Owner analytics notification send-payload, queue-producer, queue-consumer, and provider-call readiness auth flows are covered once on desktop.",
     );
 
     const suffix = Date.now();
@@ -6616,6 +6622,7 @@ test.describe("Bumpgrade scaffold", () => {
     const privateNote = `Private analytics notification send payload readiness note for m@rkmoriarty.com ${suffix}`;
     const queuePrivateNote = `Private analytics notification queue producer readiness note for m@rkmoriarty.com ${suffix}`;
     const queueConsumerPrivateNote = `Private analytics notification queue consumer readiness note for m@rkmoriarty.com ${suffix}`;
+    const providerCallPrivateNote = `Private analytics notification provider call readiness note for m@rkmoriarty.com ${suffix}`;
 
     const sourceResponse = await request.get("/analytics/source-data");
     expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
@@ -6698,6 +6705,32 @@ test.describe("Bumpgrade scaffold", () => {
       privateNote: queueConsumerPrivateNote,
       confirmationText: analyticsNotificationQueueConsumerReadinessConfirmationText,
       idempotencyKey: `playwright-analytics-notification-queue-consumer-readiness-${suffix}`,
+    };
+    const baseProviderCallRequestBody = {
+      dashboardId: analyticsDashboard.id,
+      readinessId: analyticsNotificationReadinessId,
+      channelId: analyticsNotificationAdminInboxChannelId,
+      inboxRecordId: "analytics-notification-inbox-record-not-yet-created",
+      dispatchPreflightId: "analytics-notification-dispatch-preflight-not-yet-created",
+      providerDomainReadinessId: "analytics-notification-provider-domain-readiness-not-yet-created",
+      sendPayloadReadinessId: "analytics-notification-send-payload-readiness-not-yet-created",
+      queueConsumerReadinessId: "analytics-notification-queue-consumer-readiness-not-yet-created",
+      timeWindowKey: inboxEvidence.timeWindow.key,
+      notificationProviderCallReadinessDisposition: "blocked_pending_provider_call_review",
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedReadinessStatus: analyticsNotificationReadinessStatus,
+      expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+      expectedNotificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+      expectedNotificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+      expectedNotificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+      expectedNotificationQueueConsumerReadinessStatus: analyticsNotificationQueueConsumerReadinessStatus,
+      expectedOwnerReviewStatus: inboxEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: inboxEvidence.alertThresholdCount,
+      expectedConversionSampleSize: inboxEvidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote: providerCallPrivateNote,
+      confirmationText: analyticsNotificationProviderCallReadinessConfirmationText,
+      idempotencyKey: `playwright-analytics-notification-provider-call-readiness-${suffix}`,
     };
 
     const unauthorizedGet = await request.get(analyticsNotificationSendPayloadReadinessApiRoute);
@@ -6788,6 +6821,42 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedQueueConsumerPost.status()).toBe(401);
     await expect(unauthorizedQueueConsumerPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+    const unauthorizedProviderCallGet = await request.get(analyticsNotificationProviderCallReadinessApiRoute);
+    expect(unauthorizedProviderCallGet.status()).toBe(401);
+    await expect(unauthorizedProviderCallGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          queuePayloadBodyIncluded: false,
+          queueProducerEnabled: false,
+          queueConsumerEnabled: false,
+          providerCallEnabled: false,
+          queueMessageCreated: false,
+          queueMessageConsumed: false,
+          queueMessageAcknowledged: false,
+          retryDeadLetterRowCreated: false,
+          queuePayloadBodyRead: false,
+          queuePayloadBodyCreated: false,
+          providerSendEnabled: false,
+          providerCalled: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedProviderCallPost = await request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: baseProviderCallRequestBody,
+    });
+    expect(unauthorizedProviderCallPost.status()).toBe(401);
+    await expect(unauthorizedProviderCallPost.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
 
@@ -7909,6 +7978,393 @@ test.describe("Bumpgrade scaffold", () => {
     expect(queueConsumerSourceText).not.toContain(inboxPrivateNote);
     expect(queueConsumerSourceText).not.toContain("m@rkmoriarty.com");
 
+    const providerCallEvidence = sourceAfterQueueConsumerPayload.notificationProviderCallReadiness.currentEvidenceByWindow.find(
+      (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+    );
+    expect(providerCallEvidence).toEqual(
+      expect.objectContaining({
+        latestQueueConsumerReadinessRecord: expect.objectContaining({
+          id: queueConsumerCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          inboxRecordId: inboxCreatedPayload.record.id,
+        }),
+        queueConsumerReadinessRecordRequired: true,
+        queueConsumerReadinessRecordCurrent: true,
+        ownerRecordAllowed: true,
+        queueBindingReviewed: true,
+        consumerModeReviewed: true,
+        producerDependencyReviewed: true,
+        payloadReadPolicyReviewed: true,
+        ackPolicyReviewed: true,
+        idempotencyPolicyReviewed: true,
+        retryDeadLetterPolicyReviewed: true,
+        providerHandoffDependencyReviewed: true,
+        backpressurePolicyReviewed: true,
+        auditCorrelationReviewed: true,
+        retentionPolicyReviewed: true,
+        ownerEmailSendEnabled: false,
+        queueDispatchEnabled: false,
+        queueProducerEnabled: false,
+        queueConsumerEnabled: false,
+        providerCallEnabled: false,
+        queueMessageCreated: false,
+        queueMessageConsumed: false,
+        queueMessageAcknowledged: false,
+        retryDeadLetterRowCreated: false,
+        queuePayloadBodyRead: false,
+        queuePayloadBodyCreated: false,
+        providerSendEnabled: false,
+        providerCalled: false,
+        providerConfigured: false,
+        providerResponseCreated: false,
+        providerSecretIncluded: false,
+        senderCredentialIncluded: false,
+        privateDnsCredentialsIncluded: false,
+      }),
+    );
+
+    const providerCallRequestBody = {
+      ...baseProviderCallRequestBody,
+      inboxRecordId: inboxCreatedPayload.record.id,
+      dispatchPreflightId: dispatchCreatedPayload.record.id,
+      providerDomainReadinessId: providerCreatedPayload.record.id,
+      sendPayloadReadinessId: createdPayload.record.id,
+      queueConsumerReadinessId: queueConsumerCreatedPayload.record.id,
+      timeWindowKey: providerCallEvidence.timeWindow.key,
+      expectedOwnerReviewStatus: providerCallEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: providerCallEvidence.alertThresholdCount,
+      expectedConversionSampleSize: providerCallEvidence.conversionSampleSize,
+    };
+
+    const providerCallContractResponse = await page.request.get(analyticsNotificationProviderCallReadinessApiRoute);
+    expect(providerCallContractResponse.ok(), await providerCallContractResponse.text()).toBeTruthy();
+    await expect(providerCallContractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: analyticsNotificationProviderCallReadinessStatus,
+        route: analyticsNotificationProviderCallReadinessApiRoute,
+        confirmation: expect.objectContaining({ text: analyticsNotificationProviderCallReadinessConfirmationText }),
+        contract: expect.objectContaining({
+          readiness: expect.objectContaining({
+            id: analyticsNotificationReadinessId,
+            notificationInboxStatus: analyticsNotificationInboxStatus,
+            notificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+            notificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+            notificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+            notificationQueueConsumerReadinessStatus: analyticsNotificationQueueConsumerReadinessStatus,
+            channelId: analyticsNotificationAdminInboxChannelId,
+          }),
+          redaction: expect.objectContaining({
+            privateNoteIncluded: false,
+            notificationRecipientIncluded: false,
+            recipientPayloadIncluded: false,
+            personalizedBodyIncluded: false,
+            rawPayloadBodyIncluded: false,
+            emailBodyIncluded: false,
+            bodyTemplateIncluded: false,
+            unsubscribeUrlIncluded: false,
+            providerMessageIdIncluded: false,
+            queuePayloadIncluded: false,
+            queuePayloadBodyIncluded: false,
+            queueProducerEnabled: false,
+            queueConsumerEnabled: false,
+            providerCallEnabled: false,
+            queueMessageCreated: false,
+            queueMessageConsumed: false,
+            queueMessageAcknowledged: false,
+            retryDeadLetterRowCreated: false,
+            queuePayloadBodyRead: false,
+            queuePayloadBodyCreated: false,
+            providerSendEnabled: false,
+            providerCalled: false,
+            providerConfigured: false,
+            providerResponseCreated: false,
+            providerSecretIncluded: false,
+            senderCredentialIncluded: false,
+            privateDnsCredentialsIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingProviderCallConfirmation = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: {
+        ...providerCallRequestBody,
+        confirmationText: "Call notification provider now",
+        idempotencyKey: `${providerCallRequestBody.idempotencyKey}-missing`,
+      },
+    });
+    expect(missingProviderCallConfirmation.status()).toBe(400);
+    await expect(missingProviderCallConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const missingProviderCallCaveat = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: {
+        ...providerCallRequestBody,
+        sampleSizeCaveatAcknowledged: false,
+        idempotencyKey: `${providerCallRequestBody.idempotencyKey}-caveat`,
+      },
+    });
+    expect(missingProviderCallCaveat.status()).toBe(400);
+    await expect(missingProviderCallCaveat.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "sample_size_caveat_required" }),
+    );
+
+    const staleQueueConsumerStatusForProviderCall = await page.request.post(
+      analyticsNotificationProviderCallReadinessApiRoute,
+      {
+        data: {
+          ...providerCallRequestBody,
+          expectedNotificationQueueConsumerReadinessStatus: "stale-queue-consumer-readiness-status",
+          idempotencyKey: `${providerCallRequestBody.idempotencyKey}-stale-queue-consumer-status`,
+        },
+      },
+    );
+    expect(staleQueueConsumerStatusForProviderCall.status()).toBe(409);
+    await expect(staleQueueConsumerStatusForProviderCall.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_notification_queue_consumer_readiness_status",
+        currentNotificationQueueConsumerReadinessStatus: analyticsNotificationQueueConsumerReadinessStatus,
+      }),
+    );
+
+    const staleProviderCallEvidence = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: {
+        ...providerCallRequestBody,
+        expectedConversionSampleSize: providerCallRequestBody.expectedConversionSampleSize + 1,
+        idempotencyKey: `${providerCallRequestBody.idempotencyKey}-stale-evidence`,
+      },
+    });
+    expect(staleProviderCallEvidence.status()).toBe(409);
+    await expect(staleProviderCallEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_analytics_evidence" }),
+    );
+
+    const staleProviderCallQueueConsumerEvidence = await page.request.post(
+      analyticsNotificationProviderCallReadinessApiRoute,
+      {
+        data: {
+          ...providerCallRequestBody,
+          queueConsumerReadinessId: "analytics-notification-queue-consumer-readiness-not-current",
+          idempotencyKey: `${providerCallRequestBody.idempotencyKey}-queue-consumer`,
+        },
+      },
+    );
+    expect(staleProviderCallQueueConsumerEvidence.status()).toBe(409);
+    await expect(staleProviderCallQueueConsumerEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_notification_queue_consumer_readiness_evidence" }),
+    );
+
+    const unsupportedProviderCallDisposition = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: {
+        ...providerCallRequestBody,
+        notificationProviderCallReadinessDisposition: "call_provider_now",
+        idempotencyKey: `${providerCallRequestBody.idempotencyKey}-disposition`,
+      },
+    });
+    expect(unsupportedProviderCallDisposition.status()).toBe(400);
+    await expect(unsupportedProviderCallDisposition.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_notification_provider_call_readiness_disposition" }),
+    );
+
+    const providerCallCreated = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: providerCallRequestBody,
+    });
+    expect(providerCallCreated.status(), await providerCallCreated.text()).toBe(201);
+    const providerCallCreatedPayload = await providerCallCreated.json();
+    expect(providerCallCreatedPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_provider_call_readiness_recorded",
+        duplicate: false,
+        record: expect.objectContaining({
+          dashboardId: analyticsDashboard.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          queueConsumerReadinessId: queueConsumerCreatedPayload.record.id,
+          timeWindowKey: "all",
+          notificationProviderCallReadinessDisposition: "blocked_pending_provider_call_review",
+          expectedReadinessStatus: analyticsNotificationReadinessStatus,
+          expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+          expectedNotificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+          expectedNotificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+          expectedNotificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+          expectedNotificationQueueConsumerReadinessStatus: analyticsNotificationQueueConsumerReadinessStatus,
+          expectedOwnerReviewStatus: providerCallEvidence.ownerReviewStatus,
+          expectedAlertThresholdCount: providerCallEvidence.alertThresholdCount,
+          expectedConversionSampleSize: providerCallEvidence.conversionSampleSize,
+          sampleSizeCaveatAcknowledged: true,
+          privateNoteRecorded: true,
+          ownerProviderCallReadinessRecorded: true,
+          queueBindingReviewed: true,
+          consumerModeReviewed: true,
+          producerDependencyReviewed: true,
+          payloadReadPolicyReviewed: true,
+          ackPolicyReviewed: true,
+          idempotencyPolicyReviewed: true,
+          retryDeadLetterPolicyReviewed: true,
+          providerHandoffDependencyReviewed: true,
+          backpressurePolicyReviewed: true,
+          auditCorrelationReviewed: true,
+          retentionPolicyReviewed: true,
+          ownerEmailSendEnabled: false,
+          queueDispatchEnabled: false,
+          queueProducerEnabled: false,
+          queueConsumerEnabled: false,
+          providerCallEnabled: false,
+          queueMessageCreated: false,
+          queueMessageConsumed: false,
+          queueMessageAcknowledged: false,
+          retryDeadLetterRowCreated: false,
+          queuePayloadBodyRead: false,
+          queuePayloadBodyCreated: false,
+          customerAlertEnabled: false,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          revenueClaimEnabled: false,
+          rawAnalyticsRowsExposed: false,
+          recipientIdentityIncluded: false,
+          recipientPayloadCreated: false,
+          personalizedBodyCreated: false,
+          rawPayloadBodyStored: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+          providerSendEnabled: false,
+          providerCalled: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerSecretIncluded: false,
+          senderDomainConfigured: false,
+          senderDomainVerified: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          notificationRecipientIncluded: false,
+          recipientPayloadIncluded: false,
+          personalizedBodyIncluded: false,
+          rawPayloadBodyIncluded: false,
+          emailBodyIncluded: false,
+          bodyTemplateIncluded: false,
+          unsubscribeUrlIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+          queuePayloadBodyIncluded: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+      }),
+    );
+
+    const providerCallReplay = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: providerCallRequestBody,
+    });
+    expect(providerCallReplay.status(), await providerCallReplay.text()).toBe(200);
+    await expect(providerCallReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_provider_call_readiness_replayed",
+        duplicate: true,
+        record: expect.objectContaining({ id: providerCallCreatedPayload.record.id }),
+      }),
+    );
+
+    const providerCallConflict = await page.request.post(analyticsNotificationProviderCallReadinessApiRoute, {
+      data: { ...providerCallRequestBody, privateNote: `${providerCallPrivateNote} changed` },
+    });
+    expect(providerCallConflict.status()).toBe(409);
+    await expect(providerCallConflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterProviderCall = await page.request.get("/analytics/source-data");
+    expect(sourceAfterProviderCall.ok(), await sourceAfterProviderCall.text()).toBeTruthy();
+    const sourceAfterProviderCallPayload = await sourceAfterProviderCall.json();
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.ownerConfirmedRecords).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.queueConsumerEnabledRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerCallEnabledRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerSendEnabledRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerCalledRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerConfiguredRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerResponseCreatedRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.providerSecretIncludedRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.senderCredentialIncludedRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.counts.privateDnsCredentialsIncludedRecords).toBe(0);
+    expect(sourceAfterProviderCallPayload.notificationProviderCallReadiness.latestRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: providerCallCreatedPayload.record.id,
+          queueConsumerReadinessId: queueConsumerCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          ownerProviderCallReadinessRecorded: true,
+          queueBindingReviewed: true,
+          consumerModeReviewed: true,
+          producerDependencyReviewed: true,
+          payloadReadPolicyReviewed: true,
+          ackPolicyReviewed: true,
+          idempotencyPolicyReviewed: true,
+          retryDeadLetterPolicyReviewed: true,
+          providerHandoffDependencyReviewed: true,
+          backpressurePolicyReviewed: true,
+          auditCorrelationReviewed: true,
+          retentionPolicyReviewed: true,
+          ownerEmailSendEnabled: false,
+          queueDispatchEnabled: false,
+          queueProducerEnabled: false,
+          queueConsumerEnabled: false,
+          providerCallEnabled: false,
+          queueMessageCreated: false,
+          queueMessageConsumed: false,
+          queueMessageAcknowledged: false,
+          retryDeadLetterRowCreated: false,
+          queuePayloadBodyRead: false,
+          queuePayloadBodyCreated: false,
+          recipientIdentityIncluded: false,
+          recipientPayloadCreated: false,
+          personalizedBodyCreated: false,
+          rawPayloadBodyStored: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+          providerSendEnabled: false,
+          providerCalled: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+      ]),
+    );
+    const providerCallSourceText = JSON.stringify(sourceAfterProviderCallPayload.notificationProviderCallReadiness);
+    expect(providerCallSourceText).not.toContain(providerCallPrivateNote);
+    expect(providerCallSourceText).not.toContain(queueConsumerPrivateNote);
+    expect(providerCallSourceText).not.toContain(queuePrivateNote);
+    expect(providerCallSourceText).not.toContain(privateNote);
+    expect(providerCallSourceText).not.toContain(contentPrivateNote);
+    expect(providerCallSourceText).not.toContain(providerPrivateNote);
+    expect(providerCallSourceText).not.toContain(dispatchPrivateNote);
+    expect(providerCallSourceText).not.toContain(inboxPrivateNote);
+    expect(providerCallSourceText).not.toContain("m@rkmoriarty.com");
+
     await page.goto("/admin/analytics");
     await expect(page.getByRole("heading", { name: /Record send-payload readiness without creating recipient payloads/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record send-payload readiness/i })).toBeVisible();
@@ -7916,6 +8372,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("button", { name: /Record queue-producer readiness/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Record queue-consumer readiness without consuming Queue messages/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record queue-consumer readiness/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Record provider-call readiness without calling a provider/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record provider-call readiness/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
   });
 
@@ -10714,8 +11172,8 @@ test.describe("Bumpgrade scaffold", () => {
     const analyticsRoadmap = payload.roadmapItems.find(
       (item: { id: string }) => item.id === "roadmap-analytics-testing",
     );
-    expect(JSON.stringify(analyticsRoadmap)).toContain("queue-consumer");
-    expect(JSON.stringify(analyticsRoadmap)).toContain("294");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("provider-call");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("297");
     if (payload.source !== "fixture") {
       expect(payload.workLogEntries).toEqual(
         expect.arrayContaining([
@@ -10863,11 +11321,13 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-analytics-testing",
           issueNumbers: [
             18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284, 286, 288, 290,
-            292, 294,
+            292, 294, 297,
           ],
           sourceEvidence: expect.arrayContaining([
             "https://bumpgrade.com/api/admin/analytics/notification-queue-consumer-readiness",
+            "https://bumpgrade.com/api/admin/analytics/notification-provider-call-readiness",
             "https://github.com/markitics/bumpgrade/issues/294",
+            "https://github.com/markitics/bumpgrade/issues/297",
           ]),
         }),
         expect.objectContaining({
@@ -11074,6 +11534,9 @@ test.describe("Bumpgrade scaffold", () => {
               expect.objectContaining({
                 url: "https://bumpgrade.com/pr-screenshots/issue-294-admin-analytics-queue-consumer-readiness.png",
               }),
+              expect.objectContaining({
+                url: "https://bumpgrade.com/pr-screenshots/issue-297-admin-analytics-provider-call-readiness.png",
+              }),
             ]),
           }),
         }),
@@ -11239,6 +11702,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-analytics-notification-send-payload-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-queue-producer-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-queue-consumer-readiness", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-notification-provider-call-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-inbox-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-dispatch-preflight", status: "planned" }),
@@ -11247,6 +11711,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-send-payload-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-queue-producer-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-queue-consumer-readiness", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-analytics-notification-provider-call-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-payout-preparation-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-fraud-review-record", status: "planned" }),
@@ -11533,6 +11998,22 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining([
             "analyticsNotificationQueueConsumerReadinessId",
             "analyticsNotificationQueueProducerReadinessId",
+            "analyticsNotificationSendPayloadReadinessId",
+            "analyticsNotificationProviderDomainReadinessId",
+            "analyticsNotificationDispatchPreflightId",
+            "analyticsNotificationInboxRecordId",
+            "analyticsNotificationReadinessId",
+            "analyticsTimeWindow",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-analytics-notification-provider-call-readiness",
+          route: analyticsNotificationProviderCallReadinessApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "analyticsNotificationProviderCallReadinessId",
+            "analyticsNotificationQueueConsumerReadinessId",
             "analyticsNotificationSendPayloadReadinessId",
             "analyticsNotificationProviderDomainReadinessId",
             "analyticsNotificationDispatchPreflightId",
