@@ -86,7 +86,7 @@ export function AdminProductRevocationIntentForm({
 
   return (
     <form
-      className="admin-step-editor admin-step-edit-form"
+      className="admin-step-editor admin-step-edit-form admin-revocation-intent-form"
       aria-label={`Record non-destructive access-removal intent for ${productTitle}`}
       onSubmit={handleSubmit}
     >
