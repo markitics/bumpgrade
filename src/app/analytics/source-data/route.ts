@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
 import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
+import { getAnalyticsNotificationDispatchPreflightSummary } from "@/lib/analytics-notification-dispatch-preflights";
 import { getAnalyticsNotificationInboxSummary } from "@/lib/analytics-notification-inbox";
 import { buildAnalyticsReportExportSummary } from "@/lib/analytics-report-exports";
 import {
@@ -196,6 +197,7 @@ export async function GET(request: NextRequest) {
   const funnelConversionReport = await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow);
   const experimentDecisions = await getAnalyticsExperimentDecisionSummary(db);
   const notificationInboxRecords = await getAnalyticsNotificationInboxSummary(db);
+  const notificationDispatchPreflights = await getAnalyticsNotificationDispatchPreflightSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -208,6 +210,7 @@ export async function GET(request: NextRequest) {
     funnelConversionReport,
     experimentDecisions,
     notificationInboxRecords,
+    notificationDispatchPreflights,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,

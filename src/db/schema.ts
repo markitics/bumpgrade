@@ -1534,6 +1534,69 @@ export const analyticsNotificationInboxRecords = sqliteTable(
   }),
 );
 
+export const analyticsNotificationDispatchPreflightRecords = sqliteTable(
+  "analytics_notification_dispatch_preflight_records",
+  {
+    id: text("id").primaryKey(),
+    dashboardId: text("dashboard_id").notNull(),
+    readinessId: text("readiness_id").notNull(),
+    channelId: text("channel_id").notNull(),
+    inboxRecordId: text("inbox_record_id").notNull(),
+    recordKind: text("record_kind").notNull(),
+    notificationDispatchPreflightDisposition: text("notification_dispatch_preflight_disposition").notNull(),
+    timeWindowKey: text("time_window_key").notNull(),
+    expectedDashboardRevisionId: text("expected_dashboard_revision_id").notNull(),
+    expectedReadinessStatus: text("expected_readiness_status").notNull(),
+    expectedNotificationInboxStatus: text("expected_notification_inbox_status").notNull(),
+    expectedOwnerReviewStatus: text("expected_owner_review_status").notNull(),
+    expectedAlertThresholdCount: integer("expected_alert_threshold_count").notNull().default(0),
+    expectedConversionSampleSize: integer("expected_conversion_sample_size").notNull().default(0),
+    sampleSizeCaveatAcknowledged: integer("sample_size_caveat_acknowledged", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    ownerDispatchPreflightRecorded: integer("owner_dispatch_preflight_recorded", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    emailSendEnabled: integer("email_send_enabled", { mode: "boolean" }).notNull().default(false),
+    queueDispatchEnabled: integer("queue_dispatch_enabled", { mode: "boolean" }).notNull().default(false),
+    customerAlertEnabled: integer("customer_alert_enabled", { mode: "boolean" }).notNull().default(false),
+    trafficRoutingEnabled: integer("traffic_routing_enabled", { mode: "boolean" }).notNull().default(false),
+    automatedWinnerEnabled: integer("automated_winner_enabled", { mode: "boolean" }).notNull().default(false),
+    revenueClaimEnabled: integer("revenue_claim_enabled", { mode: "boolean" }).notNull().default(false),
+    rawAnalyticsRowsExposed: integer("raw_analytics_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    recipientIdentityIncluded: integer("recipient_identity_included", { mode: "boolean" }).notNull().default(false),
+    emailBodyIncluded: integer("email_body_included", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdIncluded: integer("provider_message_id_included", { mode: "boolean" }).notNull().default(false),
+    queuePayloadIncluded: integer("queue_payload_included", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_notification_dispatch_preflight_records_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    dashboardTimeIdx: index("analytics_notification_dispatch_preflight_records_dashboard_time_idx").on(
+      table.dashboardId,
+      table.createdAt,
+    ),
+    readinessChannelIdx: index("analytics_notification_dispatch_preflight_records_readiness_channel_idx").on(
+      table.readinessId,
+      table.channelId,
+      table.createdAt,
+    ),
+    inboxRecordIdx: index("analytics_notification_dispatch_preflight_records_inbox_record_idx").on(
+      table.inboxRecordId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const affiliateReferralClicks = sqliteTable(
   "affiliate_referral_clicks",
   {
