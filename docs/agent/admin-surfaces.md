@@ -157,6 +157,25 @@ destructive revocation,
 subscription access changes, refunds, customer portals, and direct agent
 entitlement writes still need future confirmed-write APIs.
 
+## Admin `/admin/audience`
+
+Purpose: owner-gated audience inspection, private CRM notes, broadcast dry-run
+evidence, readiness gates, and non-destructive import intents on top of the
+public audience automation source contract.
+
+The page reads audience subscriber, consent, tag, sequence, suppression,
+timeline, broadcast, readiness, and `audience_import_intents` tables. Verified
+owners can inspect private subscriber rows, create private CRM notes, record
+dry-run broadcast evidence, inspect sender/provider/Queue readiness gates, and
+record import intents after exact confirmation, idempotency, and workspace
+revision/status checks.
+
+Public agents should read `/audience/source-data` for aggregate counts,
+redaction flags, and write boundaries. Import intents are not real imports: they
+do not create contacts, store raw emails or contact rows, create sequence
+enrollments, send email, expose private notes, or authorize direct public agent
+subscriber writes.
+
 ## Agent Maintenance Rule
 
 When any of these change, update the others in the same PR when practical:

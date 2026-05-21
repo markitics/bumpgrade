@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CalendarClock,
   Database,
+  FileUp,
   FileText,
   Gauge,
   ListChecks,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminAudienceImportIntentForm } from "@/components/admin-audience-import-intent-form";
 import { AdminAudienceNoteForm } from "@/components/admin-audience-note-form";
 import { AdminBroadcastDeliveryBatchForm } from "@/components/admin-broadcast-delivery-batch-form";
 import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broadcast-delivery-queue-message-form";
@@ -53,6 +55,7 @@ import {
   getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
+import { audienceImportIntentIssue, getAudienceImportIntentSummary } from "@/lib/audience-imports";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -94,6 +97,7 @@ export default async function AdminAudiencePage() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    importIntents,
   ] = await Promise.all([
     getAdminAudienceInspectionState(),
     getAudienceBroadcastReadinessSummary(),
@@ -111,6 +115,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastSendPayloadReadinessSummary(),
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
+    getAudienceImportIntentSummary(),
   ]);
 
   return (
@@ -133,16 +138,16 @@ export default async function AdminAudiencePage() {
             identity, personalization, unsubscribe-footer, and audit boundaries explicit before payload creation exists.
             Queue producer readiness keeps the Cloudflare binding, payload dependency, idempotency, consumer, and audit
             gates explicit before any producer is enabled. Queue consumer readiness keeps ack, retry, dead-letter,
-            idempotency, and provider-handoff gates explicit before any consumer is enabled. Public source-data stays
-            aggregate-only.
+            idempotency, and provider-handoff gates explicit before any consumer is enabled. Import intents stay
+            owner-confirmed and aggregate-only before any contact import exists. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
               Audience JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/137" className="secondary-action">
-              Issue #137
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceImportIntentIssue}`} className="secondary-action">
+              Issue #{audienceImportIntentIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -186,6 +191,15 @@ export default async function AdminAudiencePage() {
             <p>
               {state.counts.activeTimelineEntries} active private timeline notes, last recorded{" "}
               {compactDate(state.lastTimelineAt)}.
+            </p>
+          </div>
+          <div>
+            <FileUp aria-hidden="true" />
+            <h3>Import intents</h3>
+            <p>
+              {importIntents.counts.importIntents} intent
+              {importIntents.counts.importIntents === 1 ? "" : "s"} recorded;{" "}
+              {importIntents.counts.importRowsStoredRecords} raw import rows stored.
             </p>
           </div>
           <div>
@@ -329,6 +343,90 @@ export default async function AdminAudiencePage() {
       </section>
 
       <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Audience import intents</p>
+            <h2>Imports stay intent-only until contact writes are safe</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceImportIntentIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceImportIntentIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{importIntents.status.replaceAll("-", " ")}</span>
+              <span className="admin-pill">No contact import</span>
+            </div>
+            <FileUp aria-hidden="true" />
+            <h3>Record a non-destructive import request</h3>
+            <p>{importIntents.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Workspace</strong>
+              <span>{importIntents.workspace.title}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Revision</strong>
+              <span>{importIntents.workspace.revisionId}</span>
+            </div>
+            <AdminAudienceImportIntentForm
+              workspaceId={importIntents.workspace.id}
+              workspaceTitle={importIntents.workspace.title}
+              workspaceRevisionId={importIntents.workspace.revisionId}
+              workspaceStatus={importIntents.workspace.status}
+            />
+          </article>
+          {importIntents.latestIntents.length > 0 ? (
+            importIntents.latestIntents.map((intent) => (
+              <article key={intent.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{intent.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{intent.sourceKind.replaceAll("_", " ")}</span>
+                </div>
+                <h3>{intent.sourceLabel}</h3>
+                <p>
+                  {intent.estimatedContactCount} contacts estimated; {intent.estimatedNewContactCount} new,{" "}
+                  {intent.estimatedUpdateCount} updates, {intent.estimatedSuppressedCount} suppressed.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Private note</strong>
+                  <span>{intent.privateNoteRecorded ? "hash recorded" : "none"}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Import rows</strong>
+                  <span>{String(intent.importRowsStored)}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Email delivery</strong>
+                  <span>{String(intent.emailDeliveryEnabled)}</span>
+                </div>
+                <p className="card-note">
+                  Raw emails, raw contact rows, sequence enrollments, actor emails, and private notes are excluded from
+                  public source-data.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No import intents</span>
+                <span className="admin-pill">Issue #{audienceImportIntentIssue}</span>
+              </div>
+              <h3>No import intent records yet</h3>
+              <p>
+                Record one from this owner page after checking the current workspace revision and aggregate source
+                counts.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Send-payload readiness</p>

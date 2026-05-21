@@ -666,6 +666,41 @@ export const audienceTimelineEntries = sqliteTable(
   }),
 );
 
+export const audienceImportIntents = sqliteTable(
+  "audience_import_intents",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id").notNull(),
+    status: text("status").notNull().default("import_intent_recorded"),
+    intentKind: text("intent_kind").notNull().default("owner_confirmed_dry_run"),
+    sourceKind: text("source_kind").notNull(),
+    sourceLabel: text("source_label").notNull(),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedWorkspaceStatus: text("expected_workspace_status").notNull(),
+    estimatedContactCount: integer("estimated_contact_count").notNull().default(0),
+    estimatedNewContactCount: integer("estimated_new_contact_count").notNull().default(0),
+    estimatedUpdateCount: integer("estimated_update_count").notNull().default(0),
+    estimatedSuppressedCount: integer("estimated_suppressed_count").notNull().default(0),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    importRowsStored: integer("import_rows_stored", { mode: "boolean" }).notNull().default(false),
+    rawEmailsStored: integer("raw_emails_stored", { mode: "boolean" }).notNull().default(false),
+    sequenceEnrollmentsCreated: integer("sequence_enrollments_created", { mode: "boolean" }).notNull().default(false),
+    emailDeliveryEnabled: integer("email_delivery_enabled", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_import_intents_idempotency_unique").on(table.idempotencyKey),
+    workspaceStatusIdx: index("audience_import_intents_workspace_status_idx").on(table.workspaceId, table.status),
+    statusCreatedIdx: index("audience_import_intents_status_created_idx").on(table.status, table.createdAt),
+  }),
+);
+
 export const audienceBroadcastDrafts = sqliteTable(
   "audience_broadcast_drafts",
   {

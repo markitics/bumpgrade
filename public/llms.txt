@@ -196,24 +196,25 @@ GitHub repo: https://github.com/markitics/bumpgrade
   schedule intent counts, preview/footer safety records, queue readiness records, delivery-batch dry-run records,
   dry-run queue-message records, dispatch preflight records, dispatch attempt records,
   sender-domain readiness records, provider-event readiness records, provider rate-limit readiness records,
-  provider response readiness records, send-payload readiness records, Queue producer readiness records, Queue consumer readiness records, redaction flags, the
+  provider response readiness records, send-payload readiness records, Queue producer readiness records, Queue consumer readiness records, owner-confirmed import intent records, redaction flags, the
   `/api/audience/opt-in` write boundary, the `/api/audience/unsubscribe`
   suppression write boundary, and the owner-gated `/api/admin/audience/notes`
   CRM note boundary plus `/api/admin/audience/broadcasts/schedule-intents` and
   `/api/admin/audience/broadcasts/delivery-batches` and
   `/api/admin/audience/broadcasts/delivery-queue-messages` and
   `/api/admin/audience/broadcasts/dispatch-preflights` and
-  `/api/admin/audience/broadcasts/dispatch-attempts`.
+  `/api/admin/audience/broadcasts/dispatch-attempts` and
+  `/api/admin/audience/import-intents`.
   `/audience/indie-launch-waitlist` can capture explicit-consent waitlist
   opt-ins and record normalized subscriber, consent, seeded tag, and draft
   sequence enrollment evidence. It can also record an unsubscribe preference
   without revealing whether the email is already on the list. `/admin/audience`
   is owner-gated and can inspect private subscriber rows, suppression totals,
   private CRM timeline notes, broadcast readiness, preview safety, queue readiness, dry-run schedule intents,
-  delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, and Queue consumer readiness. Treat the public contract
+  delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, and non-destructive import intents. Treat the public contract
   as seeded opt-in capture, unsubscribe evidence, owner-only note evidence, and
-  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer readiness evidence, not live email sending, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch,
-  contact import, CRM automation, private export, suppression-list
+  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/import-intent evidence, not live email sending, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch,
+  real contact import, raw contact row storage, CRM automation, private export, suppression-list
   administration, or a direct agent subscriber-write API.
 - `/analytics/source-data` exposes the first analytics and experimentation
   workspace with event definitions, aggregate event counts, aggregate source
