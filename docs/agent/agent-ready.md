@@ -50,6 +50,8 @@ Recommended stable concepts:
 - `affiliateProgramId`: stable id for affiliate/referral programs.
 - `affiliatePartnerReportId`: stable id for public-safe partner performance reports.
 - `payoutPreparationId`: stable id for read-only affiliate payout preparation rows.
+- `partnerNotificationReadinessRecordId`: stable id for owner-reviewed partner
+  notification readiness records.
 - `referralLinkId`: stable id for partner referral links and attribution.
 - `commissionRuleId`: stable id for commission terms.
 - `commissionLedgerId`: stable id for auditable commission fixtures or records.
@@ -317,7 +319,8 @@ public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
 attribution evidence, aggregate review-only commission ledger counts,
 read-only payout preparation, owner-confirmed payout preparation records,
-owner-reviewed fraud review records, attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
+owner-reviewed fraud review records, owner-reviewed partner notification
+readiness records, attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -342,12 +345,20 @@ record fraud review evidence after exact confirmation, idempotency, revision
 checks, payout batch status checks, review flag checks, and linked ledger count
 checks without exposing private fraud signals, buyer data, raw ledger rows, raw
 click rows, raw checkout rows, raw actor identity, payout accounts, tax data,
-Stripe payout IDs, or partner notification bodies. This proves affiliate and referral
-click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review semantics, not
+Stripe payout IDs, or partner notification bodies. Issue #277 lets owners
+record partner notification readiness evidence after exact confirmation,
+idempotency, revision checks, partner report checks, payout batch status checks,
+payout preparation record status checks, fraud review record status checks,
+review flag checks, and linked ledger count checks without sending partner
+notifications, calling providers, creating queue rows, exposing recipient
+emails, exposing message bodies, exposing provider message IDs, exposing private
+fraud signals, exposing buyer data, exposing raw rows, exposing actor identity,
+or creating payout state. This proves affiliate and referral
+click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, fraud enforcement,
-Stripe payout capability, private partner portal access, or partner
-notifications.
+Stripe payout capability, private partner portal access, partner notification
+sends, provider calls, or queue dispatch.
 
 ## MCP And Tooling
 
@@ -365,8 +376,8 @@ Useful first MCP resources/tools:
 - Read redacted commerce product, price, checkout-intent, webhook, subscription,
   and audit records once the public-safe contracts exist.
 - Read redacted affiliate/referral programs, referral links, commission rules,
-  partner reports, payout preparation, payout review, and fraud flag records once
-  the public-safe contracts exist.
+  partner reports, payout preparation, payout review, fraud flag records, and
+  partner notification readiness records once the public-safe contracts exist.
 - Read owner-gated draft funnel state only with an owner session, and keep
   private draft copy out of public source-data.
 - Draft a feature, journey, comparison, or funnel update from validated source
@@ -410,7 +421,7 @@ review-only commission ledger evidence from trusted checkout attribution. Issue
 #115 lets owner sessions review, hold, or reverse that evidence with exact
 confirmation, idempotency, stale-state checks, and audit correlation, but
 payable commissions, payouts, direct agent review writes, fraud decisions,
-partner notifications, and buyer attribution finalization remain disabled. Live
+partner notification sends, and buyer attribution finalization remain disabled. Live
 billing remains disabled until a later explicit rollout issue.
 
 ## Browser-Agent UX
