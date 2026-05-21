@@ -129,7 +129,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add owner-reviewed affiliate fraud review evidence for agents.',
   '[{"number":275,"url":"https://github.com/markitics/bumpgrade/issues/275"},{"number":19,"url":"https://github.com/markitics/bumpgrade/issues/19"}]',
-  '[]',
+  '[{"number":276,"url":"https://github.com/markitics/bumpgrade/pull/276"}]',
   '["https://bumpgrade.com/features","https://bumpgrade.com/affiliates/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
@@ -138,7 +138,7 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch(),
   unixepoch(),
-  '["https://bumpgrade.com/affiliates/source-data","https://bumpgrade.com/api/admin/affiliates/fraud-review-records","https://bumpgrade.com/admin/affiliates","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/275"]',
+  '["https://bumpgrade.com/affiliates/source-data","https://bumpgrade.com/api/admin/affiliates/fraud-review-records","https://bumpgrade.com/admin/affiliates","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/275","https://github.com/markitics/bumpgrade/pull/276"]',
   NULL,
   unixepoch()
 )
