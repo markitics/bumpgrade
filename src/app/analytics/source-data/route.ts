@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
 import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
+import { getAnalyticsNotificationInboxSummary } from "@/lib/analytics-notification-inbox";
 import { buildAnalyticsReportExportSummary } from "@/lib/analytics-report-exports";
 import {
   analyticsTimeWindowStart,
@@ -194,6 +195,7 @@ export async function GET(request: NextRequest) {
   const assignmentSummary = await loadAssignmentSummary(db);
   const funnelConversionReport = await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow);
   const experimentDecisions = await getAnalyticsExperimentDecisionSummary(db);
+  const notificationInboxRecords = await getAnalyticsNotificationInboxSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -205,6 +207,7 @@ export async function GET(request: NextRequest) {
     assignmentSummary,
     funnelConversionReport,
     experimentDecisions,
+    notificationInboxRecords,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,
