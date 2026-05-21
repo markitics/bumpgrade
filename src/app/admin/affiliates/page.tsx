@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeDollarSign, Database, Handshake, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, Database, Handshake, MailCheck, ShieldAlert, ShieldCheck } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminAffiliateFraudReviewRecordForm } from "@/components/admin-affiliate-fraud-review-record-form";
+import { AdminAffiliateNotificationReadinessRecordForm } from "@/components/admin-affiliate-notification-readiness-record-form";
 import { AdminAffiliatePayoutPreparationRecordForm } from "@/components/admin-affiliate-payout-preparation-record-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   affiliateFraudReviewRecordIssue,
   getAffiliateFraudReviewRecordSummary,
 } from "@/lib/affiliate-fraud-review-records";
+import {
+  affiliatePartnerNotificationReadinessRecordIssue,
+  getAffiliatePartnerNotificationReadinessRecordSummary,
+} from "@/lib/affiliate-partner-notification-readiness-records";
 import {
   affiliatePayoutPreparationRecordIssue,
   getAffiliatePayoutPreparationRecordSummary,
@@ -18,7 +23,8 @@ import { affiliateProgram } from "@/lib/affiliate-referrals";
 
 export const metadata: Metadata = {
   title: "Admin affiliates",
-  description: "Owner-gated affiliate payout preparation and fraud review records for Bumpgrade publishers.",
+  description:
+    "Owner-gated affiliate payout preparation, fraud review, and partner notification readiness records for Bumpgrade publishers.",
 };
 
 export const dynamic = "force-dynamic";
@@ -37,24 +43,26 @@ export default async function AdminAffiliatesPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/affiliates" />;
 
-  const [payoutSummary, fraudSummary] = await Promise.all([
+  const [payoutSummary, fraudSummary, notificationSummary] = await Promise.all([
     getAffiliatePayoutPreparationRecordSummary(),
     getAffiliateFraudReviewRecordSummary(),
+    getAffiliatePartnerNotificationReadinessRecordSummary(),
   ]);
   const evidence = payoutSummary.currentEvidence;
   const fraudEvidence = fraudSummary.currentEvidence;
+  const notificationEvidence = notificationSummary.currentEvidence;
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-audience-page">
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin affiliates</p>
-          <h1>Affiliate payout and fraud review evidence stays owner-confirmed.</h1>
+          <h1>Affiliate payout, fraud review, and partner notification readiness stays owner-confirmed.</h1>
           <p className="lede">
             Owners can inspect the current affiliate payout preparation snapshot, record a redacted preparation review,
-            and capture fraud review evidence. These records keep Stripe payouts, payable commission mutation, payout
-            accounts, tax data, partner notifications, buyer data, raw rows, private fraud signals, and fraud enforcement
-            disabled.
+            capture fraud review evidence, and record partner notification readiness. These records keep Stripe payouts,
+            payable commission mutation, payout accounts, tax data, partner sends, provider calls, queue rows, recipient
+            emails, message bodies, buyer data, raw rows, private fraud signals, and fraud enforcement disabled.
           </p>
           <div className="hero-actions">
             <Link href="/affiliates/source-data" className="primary-action">
@@ -75,17 +83,32 @@ export default async function AdminAffiliatesPage() {
               Issue #{affiliateFraudReviewRecordIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${affiliatePartnerNotificationReadinessRecordIssue}`}
+              className="secondary-action"
+            >
+              Issue #{affiliatePartnerNotificationReadinessRecordIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Affiliate review status summary">
           <Handshake aria-hidden="true" />
-          <p>{payoutSummary.source === "d1" || fraudSummary.source === "d1" ? "D1 affiliate evidence" : "D1 unavailable"}</p>
+          <p>
+            {payoutSummary.source === "d1" || fraudSummary.source === "d1" || notificationSummary.source === "d1"
+              ? "D1 affiliate evidence"
+              : "D1 unavailable"}
+          </p>
           <strong>
             {payoutSummary.counts.payoutPreparationRecords} payout prep,{" "}
-            {fraudSummary.counts.fraudReviewRecords} fraud review
+            {fraudSummary.counts.fraudReviewRecords} fraud review,{" "}
+            {notificationSummary.counts.notificationReadinessRecords} notification readiness
           </strong>
           <span>
-            {payoutSummary.loadError ?? fraudSummary.loadError ?? "Owner-confirmed affiliate review records load from D1."}
+            {payoutSummary.loadError ??
+              fraudSummary.loadError ??
+              notificationSummary.loadError ??
+              "Owner-confirmed affiliate review records load from D1."}
           </span>
         </aside>
       </section>
@@ -121,6 +144,15 @@ export default async function AdminAffiliatesPage() {
               {payoutSummary.counts.partnerNotificationSentRecords} partner notifications.
             </p>
           </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Send boundary</h3>
+            <p>
+              {notificationSummary.counts.partnerNotificationSentRecords} sent,{" "}
+              {notificationSummary.counts.queueDispatchCreatedRecords} queue dispatches,{" "}
+              {notificationSummary.counts.recipientEmailIncludedRecords} recipient emails.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -150,6 +182,20 @@ export default async function AdminAffiliatesPage() {
           </Link>
         </div>
         <AdminAffiliateFraudReviewRecordForm evidence={fraudEvidence} />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Owner partner notification readiness</p>
+            <h2>Record affiliate partner notification readiness without sending notifications.</h2>
+          </div>
+          <Link href={notificationSummary.apiRoute} className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAffiliateNotificationReadinessRecordForm evidence={notificationEvidence} />
       </section>
 
       <section className="content-band alternate">
@@ -235,6 +281,52 @@ export default async function AdminAffiliatesPage() {
               <ShieldAlert aria-hidden="true" />
               <h3>Fraud review evidence is ready</h3>
               <p>Use the confirmed-write form after the owner has reviewed the seeded affiliate review flag.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest notification readiness records</p>
+            <h2>Notification readiness records hide recipients, payloads, provider IDs, and queue rows.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {notificationSummary.latestRecords.length > 0 ? (
+            notificationSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">{record.recordKind.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.notificationReadinessDisposition.replaceAll("_", " ")}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.affiliatePartnerReportId}</h3>
+                <p>
+                  {record.expectedLinkedLedgerCount} linked ledger, fraud status{" "}
+                  {record.expectedFraudReviewRecordStatus.replaceAll("-", " ")}, recorded at{" "}
+                  {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No partner send</strong>
+                  <span>
+                    Sent {String(record.partnerNotificationSent)}, provider called{" "}
+                    {String(record.notificationProviderCalled)}, queue dispatch{" "}
+                    {String(record.queueDispatchCreated)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">{notificationEvidence.affiliatePartnerReportId}</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Notification readiness evidence is ready</h3>
+              <p>Use the confirmed-write form after the owner has reviewed payout and fraud evidence.</p>
             </article>
           )}
         </div>

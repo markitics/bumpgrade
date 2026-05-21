@@ -12,6 +12,7 @@ import {
   type PayoutBatchFixture,
 } from "@/lib/affiliate-referrals";
 import { getAffiliateFraudReviewRecordSummary } from "@/lib/affiliate-fraud-review-records";
+import { getAffiliatePartnerNotificationReadinessRecordSummary } from "@/lib/affiliate-partner-notification-readiness-records";
 import { getAffiliatePayoutPreparationRecordSummary } from "@/lib/affiliate-payout-preparation-records";
 import { loadCheckoutReferralAttributionSummary } from "@/lib/referral-checkout-attribution";
 
@@ -327,6 +328,7 @@ export async function GET() {
     partnerReviewActionSummary,
     payoutPreparationRecords,
     fraudReviewRecords,
+    partnerNotificationReadinessRecords,
   ] =
     await Promise.all([
       loadClickSummary(db),
@@ -335,6 +337,7 @@ export async function GET() {
       loadPartnerReviewActionSummary(db),
       getAffiliatePayoutPreparationRecordSummary(db ?? undefined),
       getAffiliateFraudReviewRecordSummary(db ?? undefined),
+      getAffiliatePartnerNotificationReadinessRecordSummary(db ?? undefined),
     ]);
 
   return NextResponse.json({
@@ -358,5 +361,6 @@ export async function GET() {
     }),
     payoutPreparationRecords,
     fraudReviewRecords,
+    partnerNotificationReadinessRecords,
   });
 }
