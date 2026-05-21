@@ -37,7 +37,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add public-safe owner-reviewed analytics notification delivery readiness evidence for agents.',
   '[{"number":269,"url":"https://github.com/markitics/bumpgrade/issues/269"},{"number":18,"url":"https://github.com/markitics/bumpgrade/issues/18"}]',
-  '[]',
+  '[{"number":270,"url":"https://github.com/markitics/bumpgrade/pull/270"}]',
   '["https://bumpgrade.com/features","https://bumpgrade.com/analytics/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
@@ -46,7 +46,7 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch(),
   unixepoch(),
-  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/269"]',
+  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/269","https://github.com/markitics/bumpgrade/pull/270"]',
   NULL,
   unixepoch()
 )
