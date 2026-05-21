@@ -1842,6 +1842,17 @@ h3 {
   justify-self: start;
 }
 
+.admin-revocation-intent-form .admin-form-field:last-of-type,
+.admin-revocation-intent-form button {
+  grid-column: 1 / -1;
+}
+
+.admin-revocation-intent-form button {
+  justify-content: center;
+  justify-self: stretch;
+  min-height: 46px;
+}
+
 .admin-step-list span {
   color: var(--gold);
   font-size: 11px;

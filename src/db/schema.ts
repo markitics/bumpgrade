@@ -454,6 +454,15 @@ export const productEntitlementRevocationIntents = sqliteTable(
     productId: text("product_id").notNull(),
     entitlementTemplateId: text("entitlement_template_id").notNull(),
     accessRuleId: text("access_rule_id").notNull(),
+    targetEntitlementId: text("target_entitlement_id").references(() => productEntitlements.id, { onDelete: "set null" }),
+    idempotencyKey: text("idempotency_key"),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash"),
+    actorRole: text("actor_role"),
+    expectedEntitlementStatus: text("expected_entitlement_status"),
+    reasonCode: text("reason_code"),
+    privateReasonSha256: text("private_reason_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256"),
     status: text("status").notNull().default("revocation_intent_ready"),
     intentKind: text("intent_kind").notNull().default("owner_confirmed_dry_run"),
     revocationPolicy: text("revocation_policy").notNull(),
@@ -474,6 +483,13 @@ export const productEntitlementRevocationIntents = sqliteTable(
       table.entitlementTemplateId,
       table.status,
     ),
+    targetStatusIdx: index("product_entitlement_revocation_intents_target_idx").on(
+      table.targetEntitlementId,
+      table.status,
+    ),
+    idempotencyUnique: uniqueIndex("product_entitlement_revocation_intents_idempotency_unique")
+      .on(table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} IS NOT NULL`),
   }),
 );
 

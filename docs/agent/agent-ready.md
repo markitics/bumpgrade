@@ -170,8 +170,8 @@ entitlement and fulfillment status without exposing buyer email, hashes, raw
 Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
-contract, owner upload intent metadata, non-destructive revocation intent
-readiness, protected content readiness, checkout-scoped protected fixture
+contract, owner upload intent metadata, owner-confirmed non-destructive
+revocation intent records, protected content readiness, checkout-scoped protected fixture
 delivery metadata, subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
@@ -184,14 +184,18 @@ the checkout state is still paid or completed. `/api/admin/products/assets` lets
 create small private product asset upload records only after exact confirmation,
 idempotency, and product-catalog revision checks. It stores the body in
 `PRODUCT_ASSETS` under a server-only object key and returns only redacted
-metadata. This proves entitlement grant, owner-inspection, customer-safe lookup,
-private fixture delivery, seeded protected fixture delivery, and owner-confirmed private upload-record semantics,
+metadata. `/api/admin/products/revocation-intents` lets verified owners record
+non-destructive access-removal intent only after exact confirmation,
+idempotency, and a current entitlement status check. This proves entitlement
+grant, owner-inspection, customer-safe lookup, private fixture delivery, seeded
+protected fixture delivery, owner-confirmed private upload-record semantics,
+owner-confirmed non-destructive revocation intent semantics,
 and subscription-backed membership access state, not signed object URLs, customer delivery of arbitrary uploads, real protected
 media delivery, destructive revocation, Customer Portal actions, live fulfillment automation, or direct
 unauthenticated agent write capability. `product_entitlement_revocation_intents`
-records are inspection-only until future exact-confirmed destructive APIs
-enforce owner identity, idempotency, stale-state checks, reason codes,
-customer-safe notification review, audit correlation, and redaction.
+records are non-destructive intent records only until future exact-confirmed
+destructive APIs enforce owner identity, idempotency, stale-state checks, reason
+codes, customer-safe notification review, audit correlation, and redaction.
 `product_protected_content_sections` records expose readiness and seeded fixture
 delivery scope only; future real protected delivery APIs still need active
 entitlement or subscription state, stale-state checks, audit correlation, and

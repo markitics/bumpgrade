@@ -98,8 +98,11 @@ import {
   subscriptionMembershipPriceId,
 } from "../src/lib/product-entitlements";
 import {
+  productEntitlementRevocationConfirmationText,
+  productEntitlementRevocationIntentApiRoute,
   productEntitlementRevocationIntentIssue,
   productEntitlementRevocationIntentStatus,
+  productEntitlementRevocationIntentWriteIssue,
 } from "../src/lib/product-entitlement-inspection";
 import {
   productProtectedContentDeliveryApiRoute,
@@ -995,6 +998,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/products/download-tokens",
         "/api/products/protected-content",
         "/api/admin/products/assets",
+        productEntitlementRevocationIntentApiRoute,
       ]),
     );
     expect(payload.entitlementWrites).toEqual(
@@ -1135,9 +1139,20 @@ test.describe("Bumpgrade scaffold", () => {
         parentIssue: 16,
         ownerRoute: "/admin/products",
         publicSourceDataRoute: "/products/source-data",
+        apiRoute: productEntitlementRevocationIntentApiRoute,
+        writeIssue: productEntitlementRevocationIntentWriteIssue,
+        confirmation: expect.objectContaining({
+          required: true,
+          text: productEntitlementRevocationConfirmationText,
+        }),
+        staleStateCheck: expect.objectContaining({
+          required: true,
+          field: "expectedEntitlementStatus",
+        }),
         counts: expect.objectContaining({
           revocationIntents: expect.any(Number),
           dryRunIntents: expect.any(Number),
+          ownerConfirmedIntents: expect.any(Number),
           destructiveActionsEnabled: 0,
           entitlementMutationsEnabled: 0,
         }),
@@ -1148,6 +1163,9 @@ test.describe("Bumpgrade scaffold", () => {
             productTitle: "Launch checklist download",
             entitlementTemplateId: "entitlement-template-launch-download",
             accessRuleId: "access-rule-download-after-paid-webhook",
+            ownerConfirmed: false,
+            privateReasonRecorded: false,
+            targetEntitlementIncluded: false,
             destructiveActionEnabled: false,
             entitlementMutationEnabled: false,
           }),
@@ -1156,7 +1174,10 @@ test.describe("Bumpgrade scaffold", () => {
           privateBuyerDataIncluded: false,
           rawBuyerEmailIncluded: false,
           actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
           rawStripeIdsIncluded: false,
+          targetEntitlementIdsIncluded: false,
+          privateReasonIncluded: false,
           entitlementMutationEnabled: false,
           destructiveActionEnabled: false,
         }),
@@ -1261,7 +1282,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
     expect(payload.caveat).toContain("subscription-backed membership entitlement state");
     expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
-    expect(payload.caveat).toContain("non-destructive revocation intent readiness");
+    expect(payload.caveat).toContain("owner-confirmed non-destructive revocation intent records");
     expect(payload.caveat).toContain("protected content readiness");
     expect(payload.caveat).toContain("checkout-intent-scoped protected fixture delivery");
 
@@ -1832,8 +1853,11 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         status: productEntitlementRevocationIntentStatus,
         issue: productEntitlementRevocationIntentIssue,
+        apiRoute: productEntitlementRevocationIntentApiRoute,
+        writeIssue: productEntitlementRevocationIntentWriteIssue,
         counts: expect.objectContaining({
           revocationIntents: expect.any(Number),
+          ownerConfirmedIntents: expect.any(Number),
           destructiveActionsEnabled: 0,
           entitlementMutationsEnabled: 0,
         }),
@@ -1863,9 +1887,10 @@ test.describe("Bumpgrade scaffold", () => {
     await signInOrCreateOwner(page);
     await page.goto("/admin/products");
     await expect(page.getByRole("heading", { name: /Product entitlement inspection without public buyer leaks/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Access removal stays blocked until revocation checks are explicit/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Access removal intents stay non-destructive/i })).toBeVisible();
     await expect(page.locator("body")).toContainText("Revocation intents");
     await expect(page.locator("body")).toContainText("owner confirmed dry run");
+    await expect(page.getByRole("button", { name: /Record access-removal intent/i }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: /Lesson and member delivery stays blocked until entitlement checks are live/i })).toBeVisible();
     await expect(page.locator("body")).toContainText("Launch course module readiness");
     await expect(page.locator("body")).toContainText("Launch member area readiness");
@@ -1874,6 +1899,166 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("body")).toContainText("Launch checklist download");
     await expect(page.locator("body")).toContainText(grant.checkoutIntentId);
     await expect(page.locator("body")).not.toContainText(grant.eventId);
+  });
+
+  test("owner product revocation intents require auth, confirmation, idempotency, stale state, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner product revocation intents are covered once on desktop.");
+
+    const buyerEmail = `product-revocation-${Date.now()}@example.com`;
+    const grant = await grantSandboxProductEntitlements(request, buyerEmail);
+    const lookup = await request.get(`/api/products/entitlements?checkoutIntentId=${encodeURIComponent(grant.checkoutIntentId)}`);
+    expect(lookup.ok(), await lookup.text()).toBeTruthy();
+    const lookupPayload = await lookup.json();
+    const entitlement =
+      lookupPayload.entitlements.find(
+        (item: { productId: string }) => item.productId === "product-launch-checklist-download",
+      ) ?? lookupPayload.entitlements[0];
+    expect(entitlement).toEqual(
+      expect.objectContaining({
+        id: expect.stringMatching(/^entitlement-/),
+        status: "active",
+      }),
+    );
+
+    const idempotencyKey = `playwright-product-revocation-${Date.now()}`;
+    const privateReason = `Private revocation note ${Date.now()}`;
+    const requestBody = {
+      entitlementId: entitlement.id,
+      expectedEntitlementStatus: entitlement.status,
+      reasonCode: "manual_review",
+      privateReason,
+      confirmationText: productEntitlementRevocationConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorized = await request.post(productEntitlementRevocationIntentApiRoute, { data: requestBody });
+    expect(unauthorized.status()).toBe(401);
+    await expect(unauthorized.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          targetEntitlementIdsIncluded: false,
+          privateReasonIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+    const contract = await page.request.get(productEntitlementRevocationIntentApiRoute);
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    await expect(contract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productEntitlementRevocationIntentStatus,
+        issue: productEntitlementRevocationIntentWriteIssue,
+        route: productEntitlementRevocationIntentApiRoute,
+        confirmation: expect.objectContaining({ text: productEntitlementRevocationConfirmationText }),
+        redaction: expect.objectContaining({
+          targetEntitlementIdsIncluded: false,
+          privateReasonIncluded: false,
+          actorEmailHashIncluded: false,
+          destructiveActionEnabled: false,
+          entitlementMutationEnabled: false,
+        }),
+      }),
+    );
+
+    const stale = await page.request.post(productEntitlementRevocationIntentApiRoute, {
+      data: {
+        ...requestBody,
+        expectedEntitlementStatus: "revoked",
+        idempotencyKey: `${idempotencyKey}-stale`,
+      },
+    });
+    expect(stale.status(), await stale.text()).toBe(409);
+    await expect(stale.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_entitlement_state" }));
+
+    const created = await page.request.post(productEntitlementRevocationIntentApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productEntitlementRevocationIntentStatus,
+        issue: productEntitlementRevocationIntentWriteIssue,
+        duplicate: false,
+        intent: expect.objectContaining({
+          id: expect.stringMatching(/^product-revocation-intent-/),
+          productId: entitlement.productId,
+          productTitle: entitlement.productTitle,
+          targetEntitlementId: entitlement.id,
+          targetEntitlementStatus: "active",
+          reasonCode: "manual_review",
+          ownerConfirmed: true,
+          privateReasonRecorded: true,
+          targetEntitlementIncluded: false,
+          actorIdentityIncluded: false,
+          destructiveActionEnabled: false,
+          entitlementMutationEnabled: false,
+        }),
+        redaction: expect.objectContaining({
+          targetEntitlementIdsIncluded: false,
+          privateReasonIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(privateReason);
+    expect(createdText).not.toContain(buyerEmail);
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post(productEntitlementRevocationIntentApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-product-revocation-intent-replayed",
+        duplicate: true,
+        intent: expect.objectContaining({
+          id: createdPayload.intent.id,
+          targetEntitlementId: entitlement.id,
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post(productEntitlementRevocationIntentApiRoute, {
+      data: { ...requestBody, reasonCode: "customer_request" },
+    });
+    expect(conflict.status(), await conflict.text()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const sourceData = await request.get("/products/source-data");
+    expect(sourceData.ok(), await sourceData.text()).toBeTruthy();
+    const sourcePayload = await sourceData.json();
+    expect(sourcePayload.revocationIntents.counts.ownerConfirmedIntents).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.revocationIntents.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.intent.id,
+          ownerConfirmed: true,
+          privateReasonRecorded: true,
+          targetEntitlementIncluded: false,
+          actorIdentityIncluded: false,
+        }),
+      ]),
+    );
+    const sourceText = JSON.stringify(sourcePayload);
+    expect(sourceText).not.toContain(entitlement.id);
+    expect(sourceText).not.toContain(privateReason);
+    expect(sourceText).not.toContain(buyerEmail);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    await page.goto("/admin/products");
+    await expect(page.getByRole("heading", { name: /Access removal intents stay non-destructive/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText("Access removal intent");
+    await expect(page.locator("body")).toContainText(entitlement.id);
   });
 
   test("owner private product asset upload intents require auth, confirmation, idempotency, and redaction", async ({ page, request }, testInfo) => {
@@ -4556,12 +4741,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -4908,6 +5093,7 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-product-asset-upload-intent", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-product-revocation-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-mobile-admin-dashboard", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
@@ -4967,7 +5153,7 @@ test.describe("Bumpgrade scaffold", () => {
             "subscriptionMembershipAccessId",
           ]),
           safeForAgents: expect.arrayContaining([
-            "Inspect non-destructive revocation intent readiness",
+            "Inspect owner-confirmed non-destructive revocation intent records",
             "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
             "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
           ]),
@@ -4997,6 +5183,11 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "create-owner-product-asset-upload-intent",
           route: "/api/admin/products/assets",
+          auth: "owner-session",
+        }),
+        expect.objectContaining({
+          id: "create-owner-product-revocation-intent",
+          route: productEntitlementRevocationIntentApiRoute,
           auth: "owner-session",
         }),
         expect.objectContaining({

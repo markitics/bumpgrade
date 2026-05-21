@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, ListChecks, ShieldCheck, ShoppingCart } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminProductRevocationIntentForm } from "@/components/admin-product-revocation-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   getAdminProductEntitlementInspectionState,
@@ -54,7 +55,7 @@ export default async function AdminProductsPage() {
           <h1>Product entitlement inspection without public buyer leaks.</h1>
           <p className="lede">
             Owners can inspect paid sandbox entitlement grants, checkout state, product and price context, and queued
-            fulfillment evidence. Revocation intent readiness is visible before destructive access removal exists. Public
+            fulfillment evidence. Revocation intent records are visible before destructive access removal exists. Public
             protected-content readiness is visible before lesson or member-area delivery exists. Public product source-data
             stays aggregate-only and excludes buyer, Stripe, and private asset fields.
           </p>
@@ -125,7 +126,7 @@ export default async function AdminProductsPage() {
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Revocation readiness</p>
-            <h2>Access removal stays blocked until revocation checks are explicit</h2>
+            <h2>Access removal intents stay non-destructive</h2>
           </div>
           <Link href={`https://github.com/markitics/bumpgrade/issues/${productEntitlementRevocationIntentIssue}`} className="text-link compact-link">
             Issue #{productEntitlementRevocationIntentIssue}
@@ -306,6 +307,11 @@ export default async function AdminProductsPage() {
                       </div>
                     </div>
                   </div>
+                  <AdminProductRevocationIntentForm
+                    entitlementId={entitlement.id}
+                    productTitle={entitlement.productTitle}
+                    currentStatus={entitlement.status}
+                  />
                 </div>
               </article>
             ))

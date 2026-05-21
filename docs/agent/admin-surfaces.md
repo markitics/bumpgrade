@@ -134,7 +134,7 @@ The page reads:
 - `commerce_prices`
 
 Verified owners can inspect buyer email, checkout status, product/price context,
-access rules, queued fulfillment evidence, and revocation intent readiness.
+access rules, queued fulfillment evidence, and revocation intent records.
 Issue #181 also lets owners inspect protected content readiness without
 delivering protected bodies.
 Public agents should read
@@ -148,7 +148,9 @@ Bumpgrade without exposing object keys or signed URLs. Issue #147 revalidates
 current entitlement status, checkout intent linkage, trusted checkout state, and
 asset scope before token redemption. Issue #151 records owner-confirmed private
 asset upload intents without customer delivery. Issue #179 records
-non-destructive revocation intent readiness. Issue #181 records protected
+non-destructive revocation intent readiness. Issue #251 records owner-confirmed,
+non-destructive revocation intent records after exact confirmation, idempotency,
+and stale-state checks, without removing access. Issue #181 records protected
 content readiness without lesson bodies, member posts, progress rows, private R2
 keys, or signed URLs. Protected content delivery, arbitrary asset delivery,
 destructive revocation,
