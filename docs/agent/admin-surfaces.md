@@ -183,7 +183,8 @@ email, expose private notes, or authorize direct public agent subscriber writes.
 Purpose: owner-gated analytics and experiment decision evidence on top of the
 public analytics source contract, plus public-safe owner-reviewed cohort
 comparison evidence, alert threshold/anomaly-review evidence, and notification
-delivery readiness evidence for agents.
+delivery readiness evidence, plus content/consent readiness evidence for
+agents.
 
 The page reads aggregate assignment counts, fixed-window conversion sample
 sizes, the seeded experiment definition, and `analytics_experiment_decisions`
@@ -197,16 +198,19 @@ redaction flags, owner-reviewed cohort comparison evidence, owner-reviewed
 alert threshold/anomaly-review evidence, owner-reviewed notification delivery
 readiness evidence, owner-confirmed notification inbox aggregate evidence,
 owner-confirmed dispatch preflight aggregate evidence, owner-reviewed
-provider/domain readiness aggregate evidence, and write boundaries. Experiment
+provider/domain readiness aggregate evidence, owner-reviewed content/consent
+readiness aggregate evidence, and write boundaries. Experiment
 decisions, cohort comparisons, threshold reviews, notification readiness
-records, notification inbox records, dispatch preflights, and provider/domain
-readiness records are not traffic routing or customer alerting: they do not
+records, notification inbox records, dispatch preflights, provider/domain
+readiness records, and content/consent readiness records are not traffic
+routing or customer alerting: they do not
 assign cookies, route visitors, send automated alerts, send owner email,
 configure providers, store provider secrets, store sender credentials, expose
 private DNS credentials, call providers, dispatch queues, alert
 customers, select automated winners, expose raw event rows, expose raw
 assignment rows, expose recipients, expose email bodies, expose provider
-message IDs, expose queue payloads, expose contact
+message IDs, expose queue payloads, expose body templates, expose unsubscribe
+URLs, expose contact
 analytics, or make revenue claims.
 
 ## Agent Maintenance Rule

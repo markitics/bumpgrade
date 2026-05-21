@@ -392,7 +392,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness records, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
+      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness records, owner-reviewed content/consent readiness records, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
@@ -412,9 +412,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #271 adds owner-confirmed notification inbox records without owner email sends, queue dispatch, customer alerts, recipients, email bodies, traffic routing, automated winners, or revenue claims.",
       "Issue #284 adds owner-confirmed notification dispatch preflights without owner email sends, provider calls, queue dispatch, customer alerts, recipients, email bodies, provider message IDs, queue payloads, traffic routing, automated winners, or revenue claims.",
       "Issue #286 adds owner-reviewed provider/domain readiness records without provider configuration, provider secrets, sender credentials, private DNS credentials, provider sends, provider calls, queue dispatch, customer alerts, recipients, email bodies, provider message IDs, queue payloads, traffic routing, automated winners, or revenue claims.",
+      "Issue #288 adds owner-reviewed content/consent readiness records without body templates, unsubscribe URLs, owner email sends, provider sends, provider calls, queue dispatch, customer alerts, recipients, email bodies, provider message IDs, queue payloads, traffic routing, automated winners, or revenue claims.",
     ],
     nextMilestone:
-      "Add analytics notification body, unsubscribe, rate-limit, and audit readiness only after provider/domain readiness keeps provider sends, secrets, sender credentials, private DNS credentials, recipients, email bodies, queues, customer alerts, and sends disabled.",
+      "Add analytics notification send-payload, queue, provider-call, and delivery-attempt readiness only after content/consent readiness keeps body templates, unsubscribe URLs, provider sends, recipients, email bodies, queues, customer alerts, and sends disabled.",
   },
   {
     id: "roadmap-affiliates-referrals",

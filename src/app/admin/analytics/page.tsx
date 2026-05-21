@@ -5,6 +5,7 @@ import { ArrowRight, BarChart3, Bell, Database, FlaskConical, MailCheck, ShieldC
 import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analytics-experiment-decision-form";
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
+import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
 import { AdminAnalyticsNotificationProviderDomainReadinessForm } from "@/components/admin-analytics-notification-provider-domain-readiness-form";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -24,6 +25,10 @@ import {
   analyticsNotificationProviderDomainReadinessIssue,
   getAnalyticsNotificationProviderDomainReadinessSummary,
 } from "@/lib/analytics-notification-provider-domain-readiness";
+import {
+  analyticsNotificationContentConsentReadinessIssue,
+  getAnalyticsNotificationContentConsentReadinessSummary,
+} from "@/lib/analytics-notification-content-consent-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -46,10 +51,12 @@ export default async function AdminAnalyticsPage() {
   const notificationSummary = await getAnalyticsNotificationInboxSummary();
   const dispatchPreflightSummary = await getAnalyticsNotificationDispatchPreflightSummary();
   const providerDomainReadinessSummary = await getAnalyticsNotificationProviderDomainReadinessSummary();
+  const contentConsentReadinessSummary = await getAnalyticsNotificationContentConsentReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
   const latestProviderDomainReadiness = providerDomainReadinessSummary.latestRecords[0];
+  const latestContentConsentReadiness = contentConsentReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -90,6 +97,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationProviderDomainReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationContentConsentReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationContentConsentReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -101,6 +115,7 @@ export default async function AdminAnalyticsPage() {
               notificationSummary.loadError ??
               dispatchPreflightSummary.loadError ??
               providerDomainReadinessSummary.loadError ??
+              contentConsentReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -148,6 +163,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {providerDomainReadinessSummary.counts.notificationProviderDomainReadinessRecords} readiness records;{" "}
               {providerDomainReadinessSummary.counts.providerConfiguredRecords} provider-configured records.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Content/consent</h3>
+            <p>
+              {contentConsentReadinessSummary.counts.notificationContentConsentReadinessRecords} readiness records;{" "}
+              {contentConsentReadinessSummary.counts.emailBodyIncludedRecords} email-body records.
             </p>
           </div>
         </div>
@@ -233,6 +256,35 @@ export default async function AdminAnalyticsPage() {
       <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Content and consent readiness</p>
+            <h2>Record content/consent readiness without storing bodies or unsubscribe URLs.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationContentConsentReadinessForm
+          dashboardId={contentConsentReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={contentConsentReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={contentConsentReadinessSummary.readiness.id}
+          readinessStatus={contentConsentReadinessSummary.readiness.status}
+          notificationInboxStatus={contentConsentReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={contentConsentReadinessSummary.readiness.notificationDispatchPreflightStatus}
+          notificationProviderDomainReadinessStatus={
+            contentConsentReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          channelId={contentConsentReadinessSummary.readiness.channelId}
+          ownerReviewStatus={contentConsentReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={contentConsentReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={contentConsentReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Confirmed write</p>
             <h2>Record experiment decision evidence with aggregate counts.</h2>
           </div>
@@ -253,7 +305,7 @@ export default async function AdminAnalyticsPage() {
         />
       </section>
 
-      <section className="content-band">
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest notifications</p>
@@ -297,7 +349,7 @@ export default async function AdminAnalyticsPage() {
         </div>
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest dispatch preflights</p>
@@ -343,7 +395,7 @@ export default async function AdminAnalyticsPage() {
         </div>
       </section>
 
-      <section className="content-band">
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Latest provider/domain readiness</p>
@@ -384,6 +436,52 @@ export default async function AdminAnalyticsPage() {
               <ShieldCheck aria-hidden="true" />
               <h3>Provider/domain readiness evidence is ready</h3>
               <p>Record a current dispatch preflight before recording provider/domain readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest content/consent readiness</p>
+            <h2>Content/consent records hide bodies, templates, unsubscribe URLs, provider IDs, and queue payloads.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestContentConsentReadiness ? (
+            contentConsentReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationContentConsentReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Provider/domain {record.providerDomainReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No content payload</strong>
+                  <span>
+                    Body template reviewed {String(record.bodyTemplateReviewed)}, unsubscribe reviewed{" "}
+                    {String(record.unsubscribeLinkReviewed)}, email body included {String(record.emailBodyIncluded)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs provider/domain</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Content/consent readiness evidence is ready</h3>
+              <p>Record a current provider/domain readiness before recording content/consent readiness evidence.</p>
             </article>
           )}
         </div>

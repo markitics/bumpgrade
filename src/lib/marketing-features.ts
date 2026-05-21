@@ -236,18 +236,18 @@ export const marketingFeatures: MarketingFeature[] = [
     category: "Optimization",
     status: "live",
     availability:
-      "Seeded analytics, source attribution, experiment assignment, time-window reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert thresholds, owner-reviewed notification readiness, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, and owner-reviewed decision evidence are available.",
+      "Seeded analytics, source attribution, experiment assignment, time-window reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert thresholds, owner-reviewed notification readiness, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, owner-reviewed content/consent readiness, and owner-reviewed decision evidence are available.",
     eyebrow: "Know what worked",
     hero: "See which sources, variants, and launch paths are moving buyers.",
     summary:
-      "Bumpgrade records privacy-safe events, page-view beacons, source attribution, experiment assignment, conversion reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert threshold evidence, owner-reviewed notification readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, time-window summaries, and owner-reviewed experiment decisions.",
+      "Bumpgrade records privacy-safe events, page-view beacons, source attribution, experiment assignment, conversion reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert threshold evidence, owner-reviewed notification readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, owner-reviewed content/consent readiness, time-window summaries, and owner-reviewed experiment decisions.",
     audience: "Operators buying traffic, testing pages, or trying to understand which launch channel is working.",
     problem: "Launch attribution is often split between ad platforms, analytics scripts, checkout exports, and gut feel.",
     outcome: "Use aggregate source and conversion reports to understand the launch without exposing private visitor details.",
     imageUrl: "/marketing/bumpgrade-home-hero.jpg",
     imageAlt: "A publisher founder reviewing a launch dashboard on a laptop.",
     featureIds: ["feature-analytics-testing"],
-    issueIds: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284],
+    issueIds: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284, 286, 288],
     proofRoutes: ["/analytics/indie-launch-dashboard", "/analytics/source-data", "/admin/analytics"],
     benefits: [
       "Track seeded page views, opt-ins, checkout starts, purchases, and source attribution.",
