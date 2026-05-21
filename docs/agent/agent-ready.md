@@ -229,50 +229,36 @@ provider response readiness records,
 send-payload readiness records,
 Queue producer readiness records,
 Queue consumer readiness records,
+owner-confirmed import intent records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
-`/audience/indie-launch-waitlist` can capture
-explicit-consent waitlist opt-ins, normalize the submitted email, assign seeded
-tags, record draft sequence enrollment evidence, and record an unsubscribe
-preference without revealing list membership. `/admin/audience` lets verified
-owners inspect private subscriber rows, consent counts, active tags, draft
-sequence enrollments, suppression totals, private CRM timeline notes, and
-broadcast readiness from D1, plus record dry-run schedule intents without
-recipient payloads, inspect preview/footer safety and queue readiness without
-personalized bodies, queue rows, or provider sends, and record
-delivery-batch dry runs without recipient payloads, queue messages, provider
-sends, or provider message IDs, and record dry-run queue-message evidence without
-Cloudflare Queue dispatch, recipient payloads, provider sends, or provider
-message IDs, and record dispatch preflight evidence without Cloudflare Queue
-dispatch, recipient payloads, provider sends, or provider message IDs, and
-record dispatch attempt receipts without Cloudflare Queue producers, queue
-payload bodies, recipient payloads, provider sends, provider responses, or
-provider message IDs, and inspect sender-domain readiness without private DNS
-credentials, raw DNS records, provider secrets, queue producers, recipient
-payloads, provider sends, provider responses, or provider message IDs, and
-inspect provider-event readiness without provider secrets, raw provider payloads,
-provider responses, or provider message IDs, and inspect provider rate-limit
-readiness without provider secrets, provider limit secrets, raw provider
-payloads, provider responses, or provider message IDs, and inspect provider
-response readiness without provider secrets, raw response bodies, provider
-responses, or provider message IDs, and inspect send-payload readiness without
-raw recipient identity, recipient payloads, personalized bodies, raw payload
-bodies, provider sends, provider responses, or provider message IDs, and inspect
-Queue producer readiness without enabling Queue producers, Queue messages, queue
-payload bodies, recipient payloads, provider sends, provider responses, or
-provider message IDs, and inspect Queue consumer readiness without enabling
-Queue consumers, consuming or acking Queue messages, reading queue payload
-bodies, creating retry/dead-letter rows, recipient payloads, provider sends,
-provider responses, or provider message IDs. This
-proves seeded subscriber capture, unsubscribe
-evidence, owner inspection, private owner-note semantics, aggregate broadcast
-readiness, owner-confirmed dry-run schedule intent semantics, preview safety
-semantics, queue readiness semantics, delivery-batch dry-run semantics, and
-queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, and Queue consumer readiness semantics, not contact import, live email sending, live
-Cloudflare Queue producer or consumer execution or dispatch, recipient payloads, CRM
-automation, private export, suppression-list administration, or direct agent
-subscriber write capability.
+`/audience/indie-launch-waitlist` can capture explicit-consent waitlist
+opt-ins, normalize the submitted email, assign seeded tags, record draft
+sequence enrollment evidence, and record an unsubscribe preference without
+revealing list membership. `/admin/audience` lets verified owners inspect
+private subscriber rows, consent counts, active tags, draft sequence enrollments,
+suppression totals, private CRM timeline notes, broadcast readiness, preview
+safety, queue readiness, sender-domain readiness, provider-event readiness,
+provider rate-limit readiness, provider response readiness, send-payload
+readiness, Queue producer readiness, Queue consumer readiness, and import intent
+records from D1. It can record private CRM notes, dry-run schedule intents,
+delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
+evidence, dispatch attempt receipts, and import intents, but those records do
+not create recipient payloads, personalized bodies, queue payload bodies, raw
+contact rows, raw emails, sequence enrollments, provider sends, provider
+responses, provider message IDs, exports, or real imports. This proves seeded
+subscriber capture, unsubscribe evidence, owner inspection, private owner-note
+semantics, aggregate broadcast readiness, owner-confirmed dry-run schedule
+intent semantics, preview safety semantics, queue readiness semantics,
+delivery-batch dry-run semantics, queue-message semantics, dispatch-preflight
+semantics, dispatch-attempt semantics, sender-domain readiness, provider-event
+readiness, provider-rate-limit readiness, provider-response readiness,
+send-payload readiness, Queue producer readiness, Queue consumer readiness, and
+non-destructive import-intent semantics, not contact import, live email sending,
+live Cloudflare Queue producer or consumer execution or dispatch, recipient
+payloads, CRM automation, private export, suppression-list administration, or
+direct agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
 for seeded event definitions, aggregate event counts, aggregate source

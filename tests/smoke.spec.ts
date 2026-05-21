@@ -52,6 +52,12 @@ import {
 } from "../src/lib/audience-broadcasts";
 import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
+import {
+  audienceImportIntentApiRoute,
+  audienceImportIntentConfirmationText,
+  audienceImportIntentIssue,
+  audienceImportIntentStatus,
+} from "../src/lib/audience-imports";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
@@ -2192,8 +2198,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceBroadcastQueueConsumerReadinessStatus,
-        issue: audienceBroadcastQueueConsumerReadinessIssue,
+        status: audienceImportIntentStatus,
+        issue: audienceImportIntentIssue,
         parentIssue: 17,
       }),
     );
@@ -2208,6 +2214,7 @@ test.describe("Bumpgrade scaffold", () => {
         audienceBroadcastDeliveryQueueMessageApiRoute,
         audienceBroadcastDispatchPreflightApiRoute,
         audienceBroadcastDispatchAttemptApiRoute,
+        audienceImportIntentApiRoute,
         "/audience/indie-launch-waitlist",
         "/admin/audience",
       ]),
@@ -2768,6 +2775,45 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.importIntents).toEqual(
+      expect.objectContaining({
+        id: "audience-import-intent-contract",
+        status: audienceImportIntentStatus,
+        issue: audienceImportIntentIssue,
+        parentIssue: 17,
+        apiRoute: audienceImportIntentApiRoute,
+        ownerRoute: "/admin/audience",
+        workspace: expect.objectContaining({
+          id: audienceAutomationWorkspace.id,
+          status: audienceAutomationWorkspace.status,
+          revisionId: audienceAutomationWorkspace.revisionId,
+        }),
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceImportIntentConfirmationText,
+        }),
+        sourceKinds: expect.arrayContaining(["csv_upload", "kit_export", "manual_paste", "api_migration"]),
+        counts: expect.objectContaining({
+          importIntents: expect.any(Number),
+          ownerConfirmedIntents: expect.any(Number),
+          estimatedContacts: expect.any(Number),
+          importRowsStoredRecords: 0,
+          rawEmailsStoredRecords: 0,
+          sequenceEnrollmentsCreatedRecords: 0,
+          emailDeliveryEnabledRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailsIncluded: false,
+          importRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+        }),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforeBroadcastScopedCount = payload.broadcastReadiness.counts.scopedSubscribers;
@@ -2874,6 +2920,7 @@ test.describe("Bumpgrade scaffold", () => {
           broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
           broadcastDispatchPreflightApiRoute: audienceBroadcastDispatchPreflightApiRoute,
           broadcastDispatchAttemptApiRoute: audienceBroadcastDispatchAttemptApiRoute,
+          audienceImportIntentApiRoute,
           broadcastDrafts: expect.arrayContaining([
             expect.objectContaining({ id: "broadcast-draft-launch-window" }),
           ]),
@@ -2884,7 +2931,9 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
+    expect(payload.writeBoundary).toContain("Issue #253 can record owner-confirmed import intent metadata");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
+    expect(payload.caveat).toContain("owner-confirmed import intent evidence");
 
     await page.goto("/audience/indie-launch-waitlist");
     await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture/i })).toBeVisible();
@@ -2926,6 +2975,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(afterPayload.broadcastDeliveryBatches)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.broadcastDeliveryQueueMessages)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.broadcastDispatchPreflights)).not.toContain("@example.com");
+    expect(JSON.stringify(afterPayload.importIntents)).not.toContain("@example.com");
     expect(JSON.stringify(afterPayload.subscriberInspection)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastReadiness)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastPreviewSafety)).not.toContain("Browser smoke");
@@ -2933,6 +2983,192 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(afterPayload.broadcastDeliveryBatches)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastDeliveryQueueMessages)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastDispatchPreflights)).not.toContain("Browser smoke");
+    expect(JSON.stringify(afterPayload.importIntents)).not.toContain("Browser smoke");
+  });
+
+  test("owner audience import intents require auth, confirmation, idempotency, stale state, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner import intent auth flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const idempotencyKey = `playwright-audience-import-intent-${suffix}`;
+    const sourceLabel = `Kit import dry run ${suffix}`;
+    const rawContactEmail = `raw-import-${suffix}@example.com`;
+    const privateNote = `Private import note for m@rkmoriarty.com and ${rawContactEmail}`;
+    const requestBody = {
+      workspaceId: audienceAutomationWorkspace.id,
+      expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+      expectedWorkspaceStatus: audienceAutomationWorkspace.status,
+      sourceKind: "kit_export",
+      sourceLabel,
+      estimatedContactCount: 10,
+      estimatedNewContactCount: 7,
+      estimatedUpdateCount: 2,
+      estimatedSuppressedCount: 1,
+      privateNote,
+      confirmationText: audienceImportIntentConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorizedGet = await request.get(audienceImportIntentApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawEmailsIncluded: false,
+          importRowsIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(audienceImportIntentApiRoute, { data: requestBody });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(audienceImportIntentApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: audienceImportIntentStatus,
+        route: audienceImportIntentApiRoute,
+        confirmation: expect.objectContaining({ text: audienceImportIntentConfirmationText }),
+        contract: expect.objectContaining({
+          sourceKinds: expect.arrayContaining(["csv_upload", "kit_export"]),
+          redaction: expect.objectContaining({
+            rawEmailsIncluded: false,
+            privateNoteIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingConfirmation = await page.request.post(audienceImportIntentApiRoute, {
+      data: { ...requestBody, confirmationText: "Record contacts now", idempotencyKey: `${idempotencyKey}-missing` },
+    });
+    expect(missingConfirmation.status()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const staleRevision = await page.request.post(audienceImportIntentApiRoute, {
+      data: {
+        ...requestBody,
+        expectedWorkspaceRevisionId: "stale-workspace-revision",
+        idempotencyKey: `${idempotencyKey}-stale-revision`,
+      },
+    });
+    expect(staleRevision.status()).toBe(409);
+    await expect(staleRevision.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_workspace_revision",
+        currentWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+      }),
+    );
+
+    const staleStatus = await page.request.post(audienceImportIntentApiRoute, {
+      data: {
+        ...requestBody,
+        expectedWorkspaceStatus: "published",
+        idempotencyKey: `${idempotencyKey}-stale-status`,
+      },
+    });
+    expect(staleStatus.status()).toBe(409);
+    await expect(staleStatus.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_workspace_status",
+        currentWorkspaceStatus: audienceAutomationWorkspace.status,
+      }),
+    );
+
+    const created = await page.request.post(audienceImportIntentApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "audience_import_intent_recorded",
+        duplicate: false,
+        intent: expect.objectContaining({
+          workspaceId: audienceAutomationWorkspace.id,
+          sourceKind: "kit_export",
+          sourceLabel,
+          estimatedContactCount: 10,
+          estimatedNewContactCount: 7,
+          estimatedUpdateCount: 2,
+          estimatedSuppressedCount: 1,
+          privateNoteRecorded: true,
+          importRowsStored: false,
+          rawEmailsStored: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+        }),
+        redaction: expect.objectContaining({
+          rawEmailsIncluded: false,
+          importRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post(audienceImportIntentApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "audience_import_intent_replayed",
+        duplicate: true,
+        intent: expect.objectContaining({ id: createdPayload.intent.id }),
+      }),
+    );
+
+    const conflict = await page.request.post(audienceImportIntentApiRoute, {
+      data: { ...requestBody, estimatedContactCount: 11 },
+    });
+    expect(conflict.status()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceResponse = await page.request.get("/audience/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    expect(sourcePayload.importIntents.counts.importIntents).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.importIntents.counts.ownerConfirmedIntents).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.importIntents.latestIntents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.intent.id,
+          sourceLabel,
+          rawEmailsStored: false,
+          importRowsStored: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+        }),
+      ]),
+    );
+    const sourceText = JSON.stringify(sourcePayload.importIntents);
+    expect(sourceText).not.toContain(rawContactEmail);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+    expect(sourceText).not.toContain("Private import note");
+
+    await page.goto("/admin/audience");
+    await expect(page.getByRole("heading", { name: "Imports stay intent-only until contact writes are safe" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record import intent/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: sourceLabel })).toBeVisible();
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -4758,7 +4994,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211,
+            211, 253,
           ],
         }),
         expect.objectContaining({
@@ -5096,6 +5332,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-product-revocation-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-mobile-admin-dashboard", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
@@ -5210,6 +5447,7 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastSendPayloadReadinessId",
             "broadcastQueueProducerReadinessId",
             "broadcastQueueConsumerReadinessId",
+            "audienceImportIntentId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect suppression-aware broadcast readiness without recipient exposure",
@@ -5227,6 +5465,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect send-payload readiness without recipient payloads, personalized bodies, raw payload bodies, queue producers, or provider sends",
             "Inspect Queue producer readiness without Queue messages, queue payload bodies, recipient payloads, or provider sends",
             "Inspect Queue consumer readiness without Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, or provider sends",
+            "Inspect owner-confirmed import intents without raw contact rows, raw emails, actor emails, private notes, sequence enrollments, or sends",
           ]),
         }),
         expect.objectContaining({
@@ -5238,6 +5477,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "create-owner-audience-crm-note",
           route: "/api/admin/audience/notes",
           auth: "owner-session",
+        }),
+        expect.objectContaining({
+          id: "create-owner-audience-import-intent",
+          route: audienceImportIntentApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["audienceImportIntentId", "workspaceId", "idempotencyKey"]),
         }),
         expect.objectContaining({
           id: "create-owner-broadcast-schedule-intent",
@@ -5267,7 +5512,12 @@ test.describe("Bumpgrade scaffold", () => {
           auth: "owner-session",
           stableIds: expect.arrayContaining(["broadcastDispatchAttemptId", "broadcastDispatchPreflightId"]),
         }),
-        expect.objectContaining({ id: "read-admin-audience-subscribers", route: "/admin/audience", auth: "owner-session" }),
+        expect.objectContaining({
+          id: "read-admin-audience-subscribers",
+          route: "/admin/audience",
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["audienceImportIntentId"]),
+        }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
@@ -6530,6 +6780,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Subscriber inspection without public contact leaks/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Import intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preview safety" })).toBeVisible();
@@ -6541,6 +6792,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Send payloads", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue producers", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue consumers", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Imports stay intent-only until contact writes are safe" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record import intent/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payload body creation is still blocked" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue producers remain disabled until handoff gates pass" })).toBeVisible();

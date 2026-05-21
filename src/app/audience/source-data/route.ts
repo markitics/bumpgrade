@@ -18,6 +18,7 @@ import {
   getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
+import { getAudienceImportIntentSummary } from "@/lib/audience-imports";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,7 @@ export async function GET() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    importIntents,
   ] = await Promise.all([
     getAudienceSubscriberInspectionSummary(),
     getAudienceBroadcastReadinessSummary(),
@@ -58,6 +60,7 @@ export async function GET() {
     getAudienceBroadcastSendPayloadReadinessSummary(),
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
+    getAudienceImportIntentSummary(),
   ]);
 
   return NextResponse.json({
@@ -71,6 +74,7 @@ export async function GET() {
         broadcastDeliveryQueueMessages.apiRoute,
         broadcastDispatchPreflights.apiRoute,
         broadcastDispatchAttempts.apiRoute,
+        importIntents.apiRoute,
       ]),
     ),
     subscriberInspection,
@@ -89,5 +93,6 @@ export async function GET() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    importIntents,
   });
 }
