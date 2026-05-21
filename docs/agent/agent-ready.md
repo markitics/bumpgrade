@@ -274,7 +274,8 @@ formulas, A/B test variants, deterministic assignment rules, the
 write boundary, the owner-gated `/api/admin/analytics/experiment-decisions`
 decision-evidence boundary, aggregate report export metadata, and owner-reviewed
 cohort comparison evidence, plus owner-reviewed alert threshold/anomaly-review
-evidence and owner-reviewed notification delivery readiness evidence.
+evidence, owner-reviewed notification delivery readiness evidence, and
+owner-confirmed notification inbox record evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
@@ -288,19 +289,25 @@ windows. Aggregate conversion rows are computed from captured test events when
 samples exist. `/admin/analytics` lets verified owners record redacted
 experiment decision evidence after exact confirmation, aggregate count checks,
 fixed-window selection, current dashboard/experiment checks, and sample-size
-caveat acknowledgement. The same source-data route exposes aggregate report
+caveat acknowledgement. `/admin/analytics` also lets verified owners record
+redacted notification inbox evidence after exact confirmation, readiness checks,
+fixed-window sample-size checks, and sample-size caveat acknowledgement. The
+same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
 exposes owner-reviewed alert threshold/anomaly-review evidence as review prompts
 only, not customer alerts or automated actions. It also exposes owner-reviewed
 notification delivery readiness as a future owner-notification contract only,
-not live email delivery or admin inbox writes. This proves
+not live email delivery. The notification inbox record path creates
+owner-visible inbox evidence only, not recipients, email bodies, queues, or
+customer alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
-evidence, owner-reviewed notification readiness evidence, and aggregate export
-metadata, not cookie assignment, automated alert sends, owner email sends, admin
-inbox writes, traffic routing, contact-level reporting, raw referrer/query
+evidence, owner-reviewed notification readiness evidence, owner-confirmed
+notification inbox evidence, and aggregate export metadata, not cookie
+assignment, automated alert sends, owner email sends, queue dispatch, customer
+alerts, traffic routing, contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.

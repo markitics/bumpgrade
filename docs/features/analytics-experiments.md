@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, and #269 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, and #271 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -9,7 +9,8 @@ dashboard-visible source attribution breakdown, fixed aggregate source and
 conversion time-window filters, owner-confirmed experiment decision evidence,
 aggregate report export metadata, owner-reviewed cohort comparison evidence,
 owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
-notification delivery readiness evidence
+notification delivery readiness evidence, and owner-confirmed notification
+inbox record evidence
 for issue #18.
 
 ## Live Routes
@@ -25,8 +26,10 @@ for issue #18.
   assignments.
 - `/api/admin/analytics/experiment-decisions`: owner-gated GET/POST endpoint for
   confirmed experiment decision evidence.
+- `/api/admin/analytics/notification-inbox-records`: owner-gated GET/POST
+  endpoint for confirmed notification inbox evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
-  evidence.
+  and notification inbox evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -62,6 +65,10 @@ The first dashboard includes stable IDs for:
   owner-only channel metadata, selected fixed windows, sample-size caveats, and
   no alert sends, owner email sends, inbox writes, traffic routing, winner
   selection, or revenue claims.
+- owner-confirmed notification inbox records with readiness checks, selected
+  fixed windows, sample-size caveats, and no owner email sends, queue dispatch,
+  customer alerts, recipient identity, email bodies, traffic routing, winner
+  selection, or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -79,20 +86,25 @@ falls back to fixture rows only when no samples exist. Owner sessions can record
 experiment decision evidence only after exact confirmation, idempotency,
 dashboard revision checks, experiment status checks, aggregate assignment-count
 checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
+Owner sessions can record notification inbox evidence only after exact
+confirmation, idempotency, dashboard revision checks, notification readiness
+checks, selected fixed-window sample-size checks, and sample-size caveat
+acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
 cohort definitions, owner-reviewed cohort comparison evidence, and
-owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
-notification delivery readiness evidence. The cohort comparison, threshold
-review, and notification readiness records are directional evidence with
+owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed
+notification delivery readiness evidence, and owner-confirmed notification
+inbox record evidence. The cohort comparison, threshold review, notification
+readiness, and notification inbox records are directional evidence with
 sample-size caveats; agents must not treat them as winner decisions,
-statistically meaningful proof, customer alert triggers, owner email sends, or
-revenue claims. These paths do not assign cookies, expose contact-level
+statistically meaningful proof, customer alert triggers, owner email sends,
+queue dispatch, or revenue claims. These paths do not assign cookies, expose contact-level
 analytics, expose
 raw event or assignment rows, expose raw campaign/referrer payloads, create raw
-analytics exports, send automated alerts, send owner email, write admin inbox
-rows, route experiment traffic, make automated winner decisions, make revenue
+analytics exports, send automated alerts, send owner email, dispatch queues,
+create customer alerts, route experiment traffic, make automated winner decisions, make revenue
 claims, or prove statistical significance.
 
 ## Agent Boundary
@@ -103,10 +115,11 @@ evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
 comparison evidence, and owner-reviewed alert threshold/anomaly-review evidence
-and owner-reviewed notification delivery readiness evidence to understand
+and owner-reviewed notification delivery readiness evidence, plus
+owner-confirmed notification inbox aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
-exports, automated alert sends, owner email sends, admin inbox writes,
+exports, automated alert sends, owner email sends, queue dispatch, customer alerts,
 experiment traffic routing, automated winners, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention

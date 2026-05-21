@@ -11,6 +11,13 @@ export const analyticsAlertAnomalyIssue = 267;
 export const analyticsAlertAnomalyStatus = "owner-reviewed-alert-thresholds-ready";
 export const analyticsNotificationReadinessIssue = 269;
 export const analyticsNotificationReadinessStatus = "owner-reviewed-notification-readiness-ready";
+export const analyticsNotificationReadinessId = "analytics-notification-readiness-indie-launch-threshold-review";
+export const analyticsNotificationOwnerEmailChannelId = "analytics-notification-channel-owner-email-digest";
+export const analyticsNotificationAdminInboxChannelId = "analytics-notification-channel-admin-inbox";
+export const analyticsNotificationThresholdIds = [
+  "analytics-alert-threshold-sales-to-checkout-rate",
+  "analytics-alert-threshold-waitlist-opt-in-rate",
+] as const;
 
 type AggregateSummary = {
   aggregateCounts?: unknown[];
@@ -262,7 +269,7 @@ function buildNotificationReadinessEvidence(input: AnalyticsReportExportInput) {
 
   return [
     {
-      id: "analytics-notification-readiness-indie-launch-threshold-review",
+      id: analyticsNotificationReadinessId,
       status: analyticsNotificationReadinessStatus,
       issue: analyticsNotificationReadinessIssue,
       parentIssue: 18,
@@ -274,7 +281,7 @@ function buildNotificationReadinessEvidence(input: AnalyticsReportExportInput) {
       dependsOnThresholdIds: thresholdIds,
       deliveryChannels: [
         {
-          id: "analytics-notification-channel-owner-email-digest",
+          id: analyticsNotificationOwnerEmailChannelId,
           label: "Future owner email digest",
           audience: "owner_only",
           channel: "email",
@@ -285,7 +292,7 @@ function buildNotificationReadinessEvidence(input: AnalyticsReportExportInput) {
           caveat: "This records the future owner-notification contract only; it does not send email.",
         },
         {
-          id: "analytics-notification-channel-admin-inbox",
+          id: analyticsNotificationAdminInboxChannelId,
           label: "Future admin inbox notice",
           audience: "owner_only",
           channel: "admin",
@@ -433,6 +440,6 @@ export function buildAnalyticsReportExportSummary(input: AnalyticsReportExportIn
       "requestHash",
     ],
     writeBoundary:
-      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence. Issue #269 adds owner-reviewed notification delivery readiness evidence. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, send alerts, write inbox rows, route traffic, choose automated winners, or make revenue claims.",
+      "Issue #263 exposes aggregate report export metadata only. Issue #265 adds owner-reviewed cohort comparison evidence with sample-size caveats. Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence. Issue #269 adds owner-reviewed notification delivery readiness evidence. Issue #271 adds owner-confirmed notification inbox record evidence. These contracts do not create downloadable raw analytics exports, expose raw event rows, expose raw assignment rows, expose visitor keys, expose contact analytics, expose raw referrers or query strings, send alerts, send owner email, dispatch queues, route traffic, choose automated winners, or make revenue claims.",
   };
 }
