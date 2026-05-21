@@ -74,6 +74,8 @@ import {
   analyticsExperimentDecisionStatus,
 } from "../src/lib/analytics-experiment-decisions";
 import {
+  analyticsAlertAnomalyIssue,
+  analyticsAlertAnomalyStatus,
   analyticsCohortComparisonIssue,
   analyticsCohortComparisonStatus,
   analyticsReportExportIssue,
@@ -3861,6 +3863,46 @@ test.describe("Bumpgrade scaffold", () => {
             }),
           }),
         ]),
+        ownerReviewedAlertThresholds: expect.arrayContaining([
+          expect.objectContaining({
+            id: "analytics-alert-threshold-review-indie-launch-funnel-health",
+            status: analyticsAlertAnomalyStatus,
+            issue: analyticsAlertAnomalyIssue,
+            selectedTimeWindowKey: "all",
+            alertThresholds: expect.arrayContaining([
+              expect.objectContaining({
+                id: "analytics-alert-threshold-sales-to-checkout-rate",
+                metricId: "funnel-metric-sales-to-checkout",
+                action: "owner_review_only",
+              }),
+              expect.objectContaining({
+                id: "analytics-alert-threshold-waitlist-opt-in-rate",
+                metricId: "funnel-metric-waitlist-opt-in",
+                action: "owner_review_only",
+              }),
+            ]),
+            anomalyReview: expect.objectContaining({
+              id: "analytics-anomaly-review-indie-launch-funnel-health",
+              status: "reviewed_with_caveats",
+              caveatAcknowledged: true,
+              requiredBeforeAgentAction: true,
+            }),
+            automationBoundary: expect.objectContaining({
+              notificationSent: false,
+              trafficRoutingEnabled: false,
+              automatedWinnerEnabled: false,
+              revenueClaimEnabled: false,
+              agentActionAllowed: false,
+              ownerReviewRequired: true,
+            }),
+            redaction: expect.objectContaining({
+              rawEventRowsIncluded: false,
+              rawAssignmentRowsIncluded: false,
+              rawVisitorKeysIncluded: false,
+              contactAnalyticsIncluded: false,
+            }),
+          }),
+        ]),
         redaction: expect.objectContaining({
           rawEventRowsIncluded: false,
           rawAssignmentRowsIncluded: false,
@@ -3935,7 +3977,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, and #265 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, and #267 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -5638,7 +5680,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -5969,6 +6011,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-report-exports", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-alert-reviews", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
@@ -6195,6 +6238,9 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsCohortComparisonId",
             "analyticsCohortReviewId",
             "analyticsCohortReviewStatus",
+            "analyticsAlertThresholdId",
+            "analyticsAnomalyReviewId",
+            "analyticsAnomalyReviewStatus",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
@@ -6202,6 +6248,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
+            "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",
           ]),
         }),
         expect.objectContaining({
