@@ -67,6 +67,12 @@ import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubI
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
+import {
+  analyticsExperimentDecisionApiRoute,
+  analyticsExperimentDecisionConfirmationText,
+  analyticsExperimentDecisionIssue,
+  analyticsExperimentDecisionStatus,
+} from "../src/lib/analytics-experiment-decisions";
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
@@ -157,6 +163,7 @@ const routes = [
   { path: "/admin/funnels", heading: "Owner access is required" },
   { path: "/admin/funnels/funnel-draft-indie-launch-working-copy/preview", heading: "Owner access is required" },
   { path: "/admin/products", heading: "Owner access is required" },
+  { path: "/admin/analytics", heading: "Owner access is required" },
   { path: "/admin/for-mark", heading: "Owner access is required" },
   { path: "/agent-docs", heading: "Bumpgrade is readable by agents" },
   { path: "/agent-docs/bumpgrade-agent-surface", heading: "Agents get public contracts" },
@@ -3698,6 +3705,8 @@ test.describe("Bumpgrade scaffold", () => {
         "/analytics/source-data",
         "/api/analytics/events",
         "/api/analytics/assignments",
+        analyticsExperimentDecisionApiRoute,
+        "/admin/analytics",
         "/funnels/indie-launch-sandbox",
         "/analytics/indie-launch-dashboard",
       ]),
@@ -3708,6 +3717,8 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsEventSourceAggregateId",
         "analyticsTimeWindow",
         "experimentAssignmentId",
+        "analyticsExperimentDecisionId",
+        "analyticsExperimentDecisionKind",
         "variantId",
         "utmSource",
         "utmMedium",
@@ -3740,6 +3751,39 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 107,
         apiRoute: "/api/analytics/assignments",
         tables: expect.arrayContaining(["analytics_experiment_assignments"]),
+      }),
+    );
+    expect(payload.experimentDecisionWrites).toEqual(
+      expect.objectContaining({
+        status: analyticsExperimentDecisionStatus,
+        issue: analyticsExperimentDecisionIssue,
+        apiRoute: analyticsExperimentDecisionApiRoute,
+        auth: "owner-session",
+        tables: expect.arrayContaining(["analytics_experiment_decisions"]),
+      }),
+    );
+    expect(payload.experimentDecisions).toEqual(
+      expect.objectContaining({
+        status: analyticsExperimentDecisionStatus,
+        issue: analyticsExperimentDecisionIssue,
+        apiRoute: analyticsExperimentDecisionApiRoute,
+        ownerRoute: "/admin/analytics",
+        currentEvidenceByWindow: expect.arrayContaining([
+          expect.objectContaining({
+            timeWindow: expect.objectContaining({ key: "all" }),
+            experimentId: "experiment-opt-in-hero-promise",
+            rawRowsIncluded: false,
+            privateDataIncluded: false,
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          privateNoteIncluded: false,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+        }),
       }),
     );
     expect(payload.conversionReport).toEqual(
@@ -3806,7 +3850,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, and #129 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, and #261 can capture seeded analytics events",
     );
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
@@ -4269,6 +4313,230 @@ test.describe("Bumpgrade scaffold", () => {
     );
 
     await expect.poll(countFor).toBe(beforeCount + 2);
+  });
+
+  test("owner analytics experiment decisions require auth, confirmation, idempotency, stale evidence checks, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner analytics decision auth flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const experiment = analyticsDashboard.experiments[0];
+    const variant = experiment.variants[0];
+    const privateNote = `Private analytics decision note for m@rkmoriarty.com ${suffix}`;
+
+    const sourceResponse = await request.get("/analytics/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    const evidence = sourcePayload.experimentDecisions.currentEvidenceByWindow.find(
+      (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+    );
+    expect(evidence).toBeTruthy();
+    const expectedVariantCounts = Object.fromEntries(
+      evidence.variantCounts.map((row: { variantId: string; totalAssignments: number }) => [
+        row.variantId,
+        row.totalAssignments,
+      ]),
+    );
+    const idempotencyKey = `playwright-analytics-decision-${suffix}`;
+    const requestBody = {
+      dashboardId: analyticsDashboard.id,
+      experimentId: experiment.id,
+      decisionKind: "prefer_variant",
+      selectedVariantId: variant.id,
+      timeWindowKey: evidence.timeWindow.key,
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedExperimentStatus: experiment.status,
+      expectedAssignmentCount: evidence.assignmentCount,
+      expectedVariantCounts,
+      expectedPrimaryMetricId: evidence.primaryMetricId,
+      expectedConversionSampleSize: evidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote,
+      confirmationText: analyticsExperimentDecisionConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorizedGet = await request.get(analyticsExperimentDecisionApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(analyticsExperimentDecisionApiRoute, { data: requestBody });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(analyticsExperimentDecisionApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: analyticsExperimentDecisionStatus,
+        route: analyticsExperimentDecisionApiRoute,
+        confirmation: expect.objectContaining({ text: analyticsExperimentDecisionConfirmationText }),
+        contract: expect.objectContaining({
+          redaction: expect.objectContaining({
+            rawEventRowsIncluded: false,
+            rawAssignmentRowsIncluded: false,
+            privateNoteIncluded: false,
+            trafficRoutingEnabled: false,
+            automatedWinnerEnabled: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingConfirmation = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: { ...requestBody, confirmationText: "Pick winner now", idempotencyKey: `${idempotencyKey}-missing` },
+    });
+    expect(missingConfirmation.status()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const missingCaveat = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: { ...requestBody, sampleSizeCaveatAcknowledged: false, idempotencyKey: `${idempotencyKey}-caveat` },
+    });
+    expect(missingCaveat.status()).toBe(400);
+    await expect(missingCaveat.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "sample_size_caveat_required" }),
+    );
+
+    const staleRevision = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: {
+        ...requestBody,
+        expectedDashboardRevisionId: "stale-analytics-dashboard-revision",
+        idempotencyKey: `${idempotencyKey}-stale-revision`,
+      },
+    });
+    expect(staleRevision.status()).toBe(409);
+    await expect(staleRevision.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_dashboard_revision",
+        currentDashboardRevisionId: analyticsDashboard.revisionId,
+      }),
+    );
+
+    const staleEvidence = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: {
+        ...requestBody,
+        expectedAssignmentCount: requestBody.expectedAssignmentCount + 1,
+        idempotencyKey: `${idempotencyKey}-stale-evidence`,
+      },
+    });
+    expect(staleEvidence.status()).toBe(409);
+    await expect(staleEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_analytics_evidence" }),
+    );
+
+    const unsupportedVariant = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: {
+        ...requestBody,
+        selectedVariantId: "variant-not-in-experiment",
+        idempotencyKey: `${idempotencyKey}-variant`,
+      },
+    });
+    expect(unsupportedVariant.status()).toBe(400);
+    await expect(unsupportedVariant.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_variant" }),
+    );
+
+    const created = await page.request.post(analyticsExperimentDecisionApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_experiment_decision_recorded",
+        duplicate: false,
+        decision: expect.objectContaining({
+          dashboardId: analyticsDashboard.id,
+          experimentId: experiment.id,
+          decisionKind: "prefer_variant",
+          selectedVariantId: variant.id,
+          timeWindowKey: "all",
+          expectedAssignmentCount: requestBody.expectedAssignmentCount,
+          expectedConversionSampleSize: requestBody.expectedConversionSampleSize,
+          sampleSizeCaveatAcknowledged: true,
+          privateNoteRecorded: true,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          cookieAssignmentEnabled: false,
+          revenueClaimEnabled: false,
+          rawEventRowsExposed: false,
+          rawAssignmentRowsExposed: false,
+        }),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post(analyticsExperimentDecisionApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_experiment_decision_replayed",
+        duplicate: true,
+        decision: expect.objectContaining({ id: createdPayload.decision.id }),
+      }),
+    );
+
+    const conflict = await page.request.post(analyticsExperimentDecisionApiRoute, {
+      data: { ...requestBody, decisionKind: "needs_more_data" },
+    });
+    expect(conflict.status()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterDecision = await page.request.get("/analytics/source-data");
+    expect(sourceAfterDecision.ok(), await sourceAfterDecision.text()).toBeTruthy();
+    const sourceAfterDecisionPayload = await sourceAfterDecision.json();
+    expect(sourceAfterDecisionPayload.experimentDecisions.counts.ownerConfirmedDecisions).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterDecisionPayload.experimentDecisions.latestDecisions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.decision.id,
+          decisionKind: "prefer_variant",
+          selectedVariantId: variant.id,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          rawEventRowsExposed: false,
+          rawAssignmentRowsExposed: false,
+        }),
+      ]),
+    );
+    const sourceText = JSON.stringify(sourceAfterDecisionPayload.experimentDecisions);
+    expect(sourceText).not.toContain(privateNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    await page.goto("/admin/analytics");
+    await expect(page.getByRole("heading", { name: /Experiment decisions stay evidenced before traffic routing/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record experiment decision/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: variant.label }).first()).toBeVisible();
   });
 
   test("audience opt-in records one privacy-safe analytics event across idempotent replay", async ({ request }) => {
@@ -5285,7 +5553,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-analytics-experiments",
           featureId: "feature-analytics-testing",
-          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129],
+          issueNumbers: [18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-funnel-conversion-report",
@@ -5615,6 +5883,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
@@ -5808,6 +6077,12 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId"]),
         }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "create-owner-analytics-experiment-decision",
+          route: analyticsExperimentDecisionApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["analyticsExperimentDecisionId", "analyticsTimeWindow", "idempotencyKey"]),
+        }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-dashboard", route: "/mobile-admin/dashboard/source-data", auth: "public" }),
@@ -5827,8 +6102,12 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining([
             "analyticsEventVariantAggregateId",
             "experimentAssignmentId",
+            "analyticsExperimentDecisionId",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
+          ]),
+          safeForAgents: expect.arrayContaining([
+            "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
           ]),
         }),
         expect.objectContaining({

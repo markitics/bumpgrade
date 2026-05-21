@@ -704,6 +704,7 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
     screenshotLinks: [
       { label: "Analytics time windows", url: "https://bumpgrade.com/pr-screenshots/issue-129-analytics-time-windows-desktop.png", kind: "screenshot" },
       { label: "Source attribution", url: "https://bumpgrade.com/pr-screenshots/issue-127-dashboard-source-attribution-desktop.png", kind: "screenshot" },
+      { label: "Experiment decisions", url: "https://bumpgrade.com/pr-screenshots/issue-261-admin-analytics-experiment-decisions.png", kind: "screenshot" },
     ],
     validationLinks: [{ label: "Analytics source data", url: "https://bumpgrade.com/analytics/source-data", kind: "source-data" }],
     notes: ["Reports and decision evidence are aggregate and public-safe; raw visitor data is not exposed."],
