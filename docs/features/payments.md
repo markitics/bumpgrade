@@ -177,6 +177,25 @@ Issue #277 adds owner-reviewed affiliate partner notification readiness records:
   Stripe payouts or transfers, collect tax data, store payout accounts, or
   create direct agent affiliate writes.
 
+Issue #279 adds owner-reviewed affiliate partner notification send preflight records:
+
+- `/api/admin/affiliates/notification-send-preflights` requires an owner
+  session, exact confirmation, idempotency, current affiliate program revision,
+  partner report status, payout batch status, payout preparation record status,
+  fraud review record status, notification readiness record status, review flag
+  severity, and linked ledger count.
+- `/affiliates/source-data` exposes `partnerNotificationSendPreflightRecords`
+  with aggregate counts and latest redacted metadata only.
+- Records never expose recipient emails, message bodies, send payloads,
+  provider message IDs, send queue rows, private fraud signals, buyer data, raw
+  ledger rows, raw click rows, raw checkout rows, raw actor identity, payout
+  accounts, tax data, Stripe payout IDs, or private notes.
+- This does not send partner notifications, enable provider sends, call
+  providers, create send payloads, create queue dispatch rows, enforce fraud
+  decisions, create payable commissions, create Stripe payouts or transfers,
+  collect tax data, store payout accounts, or create direct agent affiliate
+  writes.
+
 Issue #117 records post-purchase upsell/downsell follow-up decisions without
 creating a billing mutation:
 

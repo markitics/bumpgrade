@@ -521,6 +521,90 @@ export const affiliatePartnerNotificationReadinessRecords = sqliteTable(
   }),
 );
 
+export const affiliatePartnerNotificationSendPreflightRecords = sqliteTable(
+  "affiliate_partner_notification_send_preflight_records",
+  {
+    id: text("id").primaryKey(),
+    programId: text("program_id").notNull(),
+    affiliatePartnerReportId: text("affiliate_partner_report_id").notNull(),
+    affiliatePartnerId: text("affiliate_partner_id").notNull(),
+    payoutPreparationId: text("payout_preparation_id").notNull(),
+    payoutBatchId: text("payout_batch_id").notNull(),
+    reviewFlagId: text("review_flag_id").notNull(),
+    recordKind: text("record_kind").notNull(),
+    notificationSendPreflightDisposition: text("notification_send_preflight_disposition").notNull(),
+    expectedProgramRevisionId: text("expected_program_revision_id").notNull(),
+    expectedPartnerReportStatus: text("expected_partner_report_status").notNull(),
+    expectedPayoutBatchStatus: text("expected_payout_batch_status").notNull(),
+    expectedPayoutPreparationRecordStatus: text("expected_payout_preparation_record_status").notNull(),
+    expectedFraudReviewRecordStatus: text("expected_fraud_review_record_status").notNull(),
+    expectedNotificationReadinessRecordStatus: text("expected_notification_readiness_record_status").notNull(),
+    expectedReviewFlagSeverity: text("expected_review_flag_severity").notNull(),
+    expectedLinkedLedgerCount: integer("expected_linked_ledger_count").notNull().default(0),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    ownerPartnerNotificationSendPreflightRecordCreated: integer(
+      "owner_partner_notification_send_preflight_record_created",
+      { mode: "boolean" },
+    )
+      .notNull()
+      .default(false),
+    partnerNotificationSent: integer("partner_notification_sent", { mode: "boolean" }).notNull().default(false),
+    notificationProviderCalled: integer("notification_provider_called", { mode: "boolean" }).notNull().default(false),
+    notificationProviderSendEnabled: integer("notification_provider_send_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    queueDispatchCreated: integer("queue_dispatch_created", { mode: "boolean" }).notNull().default(false),
+    sendPayloadIncluded: integer("send_payload_included", { mode: "boolean" }).notNull().default(false),
+    notificationBodyIncluded: integer("notification_body_included", { mode: "boolean" }).notNull().default(false),
+    recipientEmailIncluded: integer("recipient_email_included", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdIncluded: integer("provider_message_id_included", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    sendQueueRowsIncluded: integer("send_queue_rows_included", { mode: "boolean" }).notNull().default(false),
+    payableCommissionCreated: integer("payable_commission_created", { mode: "boolean" }).notNull().default(false),
+    fraudDecisionEnforced: integer("fraud_decision_enforced", { mode: "boolean" }).notNull().default(false),
+    stripePayoutCreated: integer("stripe_payout_created", { mode: "boolean" }).notNull().default(false),
+    stripeTransferCreated: integer("stripe_transfer_created", { mode: "boolean" }).notNull().default(false),
+    payoutAccountStored: integer("payout_account_stored", { mode: "boolean" }).notNull().default(false),
+    taxDataCollected: integer("tax_data_collected", { mode: "boolean" }).notNull().default(false),
+    buyerDataIncluded: integer("buyer_data_included", { mode: "boolean" }).notNull().default(false),
+    rawLedgerRowsExposed: integer("raw_ledger_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawClickRowsExposed: integer("raw_click_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawCheckoutRowsExposed: integer("raw_checkout_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawActorIdentityIncluded: integer("raw_actor_identity_included", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    privateFraudSignalsIncluded: integer("private_fraud_signals_included", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("affiliate_partner_notification_send_preflight_records_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    programTimeIdx: index("affiliate_partner_notification_send_preflight_records_program_time_idx").on(
+      table.programId,
+      table.createdAt,
+    ),
+    partnerReportTimeIdx: index("affiliate_partner_notification_send_preflight_records_report_time_idx").on(
+      table.affiliatePartnerReportId,
+      table.createdAt,
+    ),
+    preparationBatchIdx: index("affiliate_partner_notification_send_preflight_records_preparation_batch_idx").on(
+      table.payoutPreparationId,
+      table.payoutBatchId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const billingSubscriptions = sqliteTable(
   "billing_subscriptions",
   {

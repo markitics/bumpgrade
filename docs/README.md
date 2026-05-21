@@ -57,9 +57,9 @@ then open the relevant shelf for the task.
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, public-safe partner reports, read-only
   payout preparation, owner-confirmed payout preparation records, and fraud flag
-  and fraud review record, and partner notification readiness record source-data
-  contracts from issues #89, #109, #111, #113, #115, #193, #195, #273, #275,
-  and #277.
+  and fraud review record, partner notification readiness record, and partner
+  notification send preflight source-data contracts from issues #89, #109, #111,
+  #113, #115, #193, #195, #273, #275, #277, and #279.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

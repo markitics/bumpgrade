@@ -342,7 +342,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 19,
     summary:
-      "Referral links, affiliate partners, commission rules, attribution, public-safe payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, and partner performance reporting.",
+      "Referral links, affiliate partners, commission rules, attribution, public-safe payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and partner performance reporting.",
     audience: "Publishers who grow through partners, creators, and audience referrals.",
     expectedCapabilities: [
       "Affiliate/referral source data and preview route from issue #89.",
@@ -355,6 +355,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-confirmed payout preparation records from issue #273.",
       "Owner-reviewed fraud review records from issue #275.",
       "Owner-reviewed partner notification readiness records from issue #277.",
+      "Owner-reviewed partner notification send preflight records from issue #279.",
       "Commission and payout rules.",
       "Attribution reports tied to offers and checkout events.",
       "Fraud and self-referral review states.",
@@ -371,9 +372,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #273 adds owner-confirmed payout preparation records without payable commission state, Stripe payouts, tax data, payout accounts, partner notifications, buyer data, raw ledger rows, fraud enforcement, or direct agent writes.",
       "Issue #275 adds owner-reviewed fraud review records without fraud enforcement, payable commission state, Stripe payouts, tax data, payout accounts, partner notifications, buyer data, raw ledger/click/checkout rows, private fraud signals, or direct agent writes.",
       "Issue #277 adds owner-reviewed partner notification readiness records without partner sends, provider calls, queue dispatch, recipient emails, message bodies, provider message IDs, fraud enforcement, payable commission state, Stripe payouts, payout accounts, tax data, buyer data, raw rows, private fraud signals, or direct agent writes.",
+      "Issue #279 adds owner-reviewed partner notification send preflight records without partner sends, provider-send enablement, provider calls, send payloads, queue dispatch, recipient emails, message bodies, provider message IDs, fraud enforcement, payable commission state, Stripe payouts, payout accounts, tax data, buyer data, raw rows, private fraud signals, or direct agent writes.",
     ],
     agentContract:
-      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, public-safe partner reports, read-only payout preparation checklists, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, private partner portals, fraud enforcement, partner sends, provider calls, queue dispatch, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
+      "Agents may read aggregate referral click counts, checkout attribution evidence, review-only commission ledger evidence, owner review action counts, public-safe partner reports, read-only payout preparation checklists, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and write boundaries; buyer attribution finalization, payable commission writes, payout-impacting actions, direct agent review writes, private partner portals, fraud enforcement, partner sends, provider-send enablement, provider calls, send payload creation, queue dispatch, and tax or payout data require confirmation, audit correlation, and a clear rollback or dispute path.",
   },
   {
     id: "feature-admin-state",

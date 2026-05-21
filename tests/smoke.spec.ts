@@ -20,6 +20,11 @@ import {
   affiliatePartnerNotificationReadinessRecordConfirmationText,
   affiliatePartnerNotificationReadinessRecordStatus,
 } from "../src/lib/affiliate-partner-notification-readiness-records";
+import {
+  affiliatePartnerNotificationSendPreflightRecordApiRoute,
+  affiliatePartnerNotificationSendPreflightRecordConfirmationText,
+  affiliatePartnerNotificationSendPreflightRecordStatus,
+} from "../src/lib/affiliate-partner-notification-send-preflight-records";
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
@@ -5086,8 +5091,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "owner-partner-notification-readiness-records-ready",
-        issue: 277,
+        status: "owner-partner-notification-send-preflight-records-ready",
+        issue: 279,
         parentIssue: 19,
       }),
     );
@@ -5101,6 +5106,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/admin/affiliates/payout-preparation-records",
         "/api/admin/affiliates/fraud-review-records",
         "/api/admin/affiliates/notification-readiness-records",
+        "/api/admin/affiliates/notification-send-preflights",
         "/admin/affiliates",
         "/affiliates/indie-launch-partners",
       ]),
@@ -5113,6 +5119,8 @@ test.describe("Bumpgrade scaffold", () => {
         "fraudReviewRecordStatus",
         "partnerNotificationReadinessRecordId",
         "partnerNotificationReadinessRecordStatus",
+        "partnerNotificationSendPreflightRecordId",
+        "partnerNotificationSendPreflightRecordStatus",
       ]),
     );
     expect(payload.clickWrites).toEqual(
@@ -5201,6 +5209,15 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 277,
         apiRoute: affiliatePartnerNotificationReadinessRecordApiRoute,
         tables: expect.arrayContaining(["affiliate_partner_notification_readiness_records"]),
+      }),
+    );
+    expect(payload.partnerNotificationSendPreflightRecordWrites).toEqual(
+      expect.objectContaining({
+        id: "affiliate-partner-notification-send-preflight-record-contract",
+        status: affiliatePartnerNotificationSendPreflightRecordStatus,
+        issue: 279,
+        apiRoute: affiliatePartnerNotificationSendPreflightRecordApiRoute,
+        tables: expect.arrayContaining(["affiliate_partner_notification_send_preflight_records"]),
       }),
     );
     expect(payload.commissionLedgerSummary).toEqual(
@@ -5445,6 +5462,74 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.partnerNotificationSendPreflightRecords).toEqual(
+      expect.objectContaining({
+        id: "affiliate-partner-notification-send-preflight-record-contract",
+        status: affiliatePartnerNotificationSendPreflightRecordStatus,
+        issue: 279,
+        apiRoute: affiliatePartnerNotificationSendPreflightRecordApiRoute,
+        counts: expect.objectContaining({
+          partnerNotificationSentRecords: 0,
+          notificationProviderCalledRecords: 0,
+          notificationProviderSendEnabledRecords: 0,
+          queueDispatchCreatedRecords: 0,
+          sendPayloadIncludedRecords: 0,
+          notificationBodyIncludedRecords: 0,
+          recipientEmailIncludedRecords: 0,
+          providerMessageIdIncludedRecords: 0,
+          sendQueueRowsIncludedRecords: 0,
+          payableCommissionCreatedRecords: 0,
+          fraudDecisionEnforcedRecords: 0,
+          stripePayoutCreatedRecords: 0,
+          payoutAccountStoredRecords: 0,
+          taxDataCollectedRecords: 0,
+          rawLedgerRowsExposedRecords: 0,
+          rawClickRowsExposedRecords: 0,
+          rawCheckoutRowsExposedRecords: 0,
+          privateFraudSignalsIncludedRecords: 0,
+        }),
+        currentEvidence: expect.objectContaining({
+          programId: affiliateProgram.id,
+          affiliatePartnerReportId: "affiliate-partner-report-launch-circle",
+          affiliatePartnerId: "affiliate-partner-launch-circle",
+          payoutPreparationId: "payout-preparation-indie-launch-may-preview",
+          payoutBatchId: "payout-batch-indie-launch-may-preview",
+          reviewFlagId: "review-flag-self-referral",
+          payoutPreparationRecordStatus: affiliatePayoutPreparationRecordStatus,
+          fraudReviewRecordStatus: affiliateFraudReviewRecordStatus,
+          notificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+          notificationChannel: "email",
+          notificationAudience: "redacted_affiliate_partner_summary",
+          partnerNotificationSent: false,
+          notificationProviderCalled: false,
+          notificationProviderSendEnabled: false,
+          queueDispatchCreated: false,
+          sendPayloadIncluded: false,
+          notificationBodyIncluded: false,
+          recipientEmailIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          recipientEmailIncluded: false,
+          notificationBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+          sendPayloadIncluded: false,
+          providerSendEnabled: false,
+          buyerDataIncluded: false,
+          rawLedgerRowsIncluded: false,
+          rawClickRowsIncluded: false,
+          rawCheckoutRowsIncluded: false,
+          rawActorIdentityIncluded: false,
+          privateFraudSignalsIncluded: false,
+          payoutAccountIncluded: false,
+          taxDataIncluded: false,
+          stripeIdsIncluded: false,
+          partnerNotificationIncluded: false,
+        }),
+      }),
+    );
     expect(payload.programs).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -5493,12 +5578,14 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #273 lets verified owners record payout preparation evidence");
     expect(payload.writeBoundary).toContain("Issue #275 lets verified owners record fraud review evidence");
     expect(payload.writeBoundary).toContain("Issue #277 lets verified owners record partner notification readiness evidence");
+    expect(payload.writeBoundary).toContain("Issue #279 lets verified owners record partner notification send preflight evidence");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
     expect(payload.caveat).toContain("public-safe partner reports");
     expect(payload.caveat).toContain("read-only payout preparation");
     expect(payload.caveat).toContain("owner-confirmed payout preparation records");
     expect(payload.caveat).toContain("owner-reviewed fraud review evidence");
     expect(payload.caveat).toContain("owner-reviewed partner notification readiness evidence");
+    expect(payload.caveat).toContain("owner-reviewed partner notification send preflight evidence");
 
     await page.goto("/affiliates/indie-launch-partners");
     await expect(page.getByRole("heading", { name: /Indie launch partner program/i })).toBeVisible();
@@ -5517,6 +5604,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("button", { name: /Record fraud review/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Record affiliate partner notification readiness without sending notifications/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record notification readiness/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Record affiliate partner notification send preflight without enabling sends/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record notification send preflight/i })).toBeVisible();
   });
 
   test("owner affiliate payout preparation records require auth, confirmation, idempotency, stale evidence checks, and redaction", async ({
@@ -6440,6 +6529,301 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: evidence.affiliatePartnerReportId }).first()).toBeVisible();
   });
 
+  test("owner affiliate partner notification send preflight records require auth, notification readiness checks, idempotency, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(
+      testInfo.project.name !== "chromium",
+      "Owner affiliate partner notification send preflight auth flow is covered once on desktop.",
+    );
+
+    const suffix = Date.now();
+    const privateNote = `Private affiliate partner notification send preflight note for m@rkmoriarty.com ${suffix}`;
+
+    const sourceResponse = await request.get("/affiliates/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    const evidence = sourcePayload.partnerNotificationSendPreflightRecords.currentEvidence;
+    expect(evidence).toEqual(
+      expect.objectContaining({
+        programId: affiliateProgram.id,
+        affiliatePartnerReportId: "affiliate-partner-report-launch-circle",
+        affiliatePartnerId: "affiliate-partner-launch-circle",
+        payoutPreparationId: "payout-preparation-indie-launch-may-preview",
+        payoutBatchId: "payout-batch-indie-launch-may-preview",
+        reviewFlagId: "review-flag-self-referral",
+        payoutPreparationRecordStatus: affiliatePayoutPreparationRecordStatus,
+        fraudReviewRecordStatus: affiliateFraudReviewRecordStatus,
+        notificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+        notificationChannel: "email",
+        notificationProviderSendEnabled: false,
+        sendPayloadIncluded: false,
+      }),
+    );
+
+    const idempotencyKey = `playwright-affiliate-partner-notification-send-preflight-${suffix}`;
+    const requestBody = {
+      programId: affiliateProgram.id,
+      affiliatePartnerReportId: evidence.affiliatePartnerReportId,
+      affiliatePartnerId: evidence.affiliatePartnerId,
+      payoutPreparationId: evidence.payoutPreparationId,
+      payoutBatchId: evidence.payoutBatchId,
+      reviewFlagId: evidence.reviewFlagId,
+      notificationSendPreflightDisposition: evidence.defaultNotificationSendPreflightDisposition,
+      expectedProgramRevisionId: affiliateProgram.revisionId,
+      expectedPartnerReportStatus: evidence.partnerReportStatus,
+      expectedPayoutBatchStatus: evidence.payoutBatchStatus,
+      expectedPayoutPreparationRecordStatus: evidence.payoutPreparationRecordStatus,
+      expectedFraudReviewRecordStatus: evidence.fraudReviewRecordStatus,
+      expectedNotificationReadinessRecordStatus: evidence.notificationReadinessRecordStatus,
+      expectedReviewFlagSeverity: evidence.reviewFlagSeverity,
+      expectedLinkedLedgerCount: evidence.linkedLedgerIds.length,
+      privateNote,
+      confirmationText: affiliatePartnerNotificationSendPreflightRecordConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorizedGet = await request.get(affiliatePartnerNotificationSendPreflightRecordApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          recipientEmailIncluded: false,
+          notificationBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+          sendPayloadIncluded: false,
+          providerSendEnabled: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: requestBody,
+    });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(affiliatePartnerNotificationSendPreflightRecordApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: affiliatePartnerNotificationSendPreflightRecordStatus,
+        route: affiliatePartnerNotificationSendPreflightRecordApiRoute,
+        confirmation: expect.objectContaining({
+          text: affiliatePartnerNotificationSendPreflightRecordConfirmationText,
+        }),
+        contract: expect.objectContaining({
+          currentEvidence: expect.objectContaining({
+            affiliatePartnerReportId: evidence.affiliatePartnerReportId,
+            payoutPreparationId: evidence.payoutPreparationId,
+            payoutBatchId: evidence.payoutBatchId,
+            reviewFlagId: evidence.reviewFlagId,
+            notificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+            notificationProviderSendEnabled: false,
+            sendPayloadIncluded: false,
+          }),
+          redaction: expect.objectContaining({
+            recipientEmailIncluded: false,
+            notificationBodyIncluded: false,
+            providerMessageIdIncluded: false,
+            sendQueueRowsIncluded: false,
+            sendPayloadIncluded: false,
+            providerSendEnabled: false,
+            privateNoteIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingConfirmation = await page.request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: {
+        ...requestBody,
+        confirmationText: "Send affiliate partner notification now",
+        idempotencyKey: `${idempotencyKey}-missing`,
+      },
+    });
+    expect(missingConfirmation.status()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const staleNotificationReadiness = await page.request.post(
+      affiliatePartnerNotificationSendPreflightRecordApiRoute,
+      {
+        data: {
+          ...requestBody,
+          expectedNotificationReadinessRecordStatus: "stale-notification-readiness-record-status",
+          idempotencyKey: `${idempotencyKey}-stale-notification-readiness`,
+        },
+      },
+    );
+    expect(staleNotificationReadiness.status()).toBe(409);
+    await expect(staleNotificationReadiness.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_notification_readiness_record_status",
+        currentNotificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+      }),
+    );
+
+    const unsupportedDisposition = await page.request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: {
+        ...requestBody,
+        notificationSendPreflightDisposition: "send_now",
+        idempotencyKey: `${idempotencyKey}-unsupported-disposition`,
+      },
+    });
+    expect(unsupportedDisposition.status()).toBe(400);
+    await expect(unsupportedDisposition.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_notification_send_preflight_disposition" }),
+    );
+
+    const created = await page.request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: requestBody,
+    });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "affiliate_partner_notification_send_preflight_recorded",
+        duplicate: false,
+        record: expect.objectContaining({
+          programId: affiliateProgram.id,
+          affiliatePartnerReportId: evidence.affiliatePartnerReportId,
+          affiliatePartnerId: evidence.affiliatePartnerId,
+          payoutPreparationId: evidence.payoutPreparationId,
+          payoutBatchId: evidence.payoutBatchId,
+          reviewFlagId: evidence.reviewFlagId,
+          notificationSendPreflightDisposition: evidence.defaultNotificationSendPreflightDisposition,
+          expectedPartnerReportStatus: evidence.partnerReportStatus,
+          expectedPayoutBatchStatus: evidence.payoutBatchStatus,
+          expectedPayoutPreparationRecordStatus: affiliatePayoutPreparationRecordStatus,
+          expectedFraudReviewRecordStatus: affiliateFraudReviewRecordStatus,
+          expectedNotificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+          expectedReviewFlagSeverity: evidence.reviewFlagSeverity,
+          expectedLinkedLedgerCount: evidence.linkedLedgerIds.length,
+          ownerPartnerNotificationSendPreflightRecordCreated: true,
+          partnerNotificationSent: false,
+          notificationProviderCalled: false,
+          notificationProviderSendEnabled: false,
+          queueDispatchCreated: false,
+          sendPayloadIncluded: false,
+          notificationBodyIncluded: false,
+          recipientEmailIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+          payableCommissionCreated: false,
+          fraudDecisionEnforced: false,
+          stripePayoutCreated: false,
+          stripeTransferCreated: false,
+          payoutAccountStored: false,
+          taxDataCollected: false,
+          buyerDataIncluded: false,
+          rawLedgerRowsExposed: false,
+          rawClickRowsExposed: false,
+          rawCheckoutRowsExposed: false,
+          rawActorIdentityIncluded: false,
+          privateFraudSignalsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          recipientEmailIncluded: false,
+          notificationBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+          sendPayloadIncluded: false,
+          providerSendEnabled: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          buyerDataIncluded: false,
+          rawLedgerRowsIncluded: false,
+          rawClickRowsIncluded: false,
+          rawCheckoutRowsIncluded: false,
+          rawActorIdentityIncluded: false,
+          privateFraudSignalsIncluded: false,
+          payoutAccountIncluded: false,
+          taxDataIncluded: false,
+          stripeIdsIncluded: false,
+          partnerNotificationIncluded: false,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: requestBody,
+    });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "affiliate_partner_notification_send_preflight_replayed",
+        duplicate: true,
+        record: expect.objectContaining({ id: createdPayload.record.id }),
+      }),
+    );
+
+    const conflict = await page.request.post(affiliatePartnerNotificationSendPreflightRecordApiRoute, {
+      data: { ...requestBody, privateNote: `${privateNote} changed` },
+    });
+    expect(conflict.status()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterRecord = await page.request.get("/affiliates/source-data");
+    expect(sourceAfterRecord.ok(), await sourceAfterRecord.text()).toBeTruthy();
+    const sourceAfterRecordPayload = await sourceAfterRecord.json();
+    expect(sourceAfterRecordPayload.partnerNotificationSendPreflightRecords.counts.ownerConfirmedRecords).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterRecordPayload.partnerNotificationSendPreflightRecords.latestRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.record.id,
+          affiliatePartnerReportId: evidence.affiliatePartnerReportId,
+          payoutPreparationId: evidence.payoutPreparationId,
+          payoutBatchId: evidence.payoutBatchId,
+          reviewFlagId: evidence.reviewFlagId,
+          expectedNotificationReadinessRecordStatus: affiliatePartnerNotificationReadinessRecordStatus,
+          partnerNotificationSent: false,
+          notificationProviderCalled: false,
+          notificationProviderSendEnabled: false,
+          queueDispatchCreated: false,
+          sendPayloadIncluded: false,
+          notificationBodyIncluded: false,
+          recipientEmailIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+          fraudDecisionEnforced: false,
+          payableCommissionCreated: false,
+          stripePayoutCreated: false,
+          payoutAccountStored: false,
+          taxDataCollected: false,
+          rawLedgerRowsExposed: false,
+          rawClickRowsExposed: false,
+          rawCheckoutRowsExposed: false,
+          privateFraudSignalsIncluded: false,
+        }),
+      ]),
+    );
+    const sourceText = JSON.stringify(sourceAfterRecordPayload.partnerNotificationSendPreflightRecords);
+    expect(sourceText).not.toContain(privateNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    await page.goto("/admin/affiliates");
+    await expect(page.getByRole("heading", { name: /Record affiliate partner notification send preflight without enabling sends/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record notification send preflight/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: evidence.affiliatePartnerReportId }).first()).toBeVisible();
+  });
+
   test("affiliate click API validates seeded links and replays idempotent responses", async ({ request }) => {
     const countFor = async () => {
       const response = await request.get("/affiliates/source-data");
@@ -7201,7 +7585,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277],
+          issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279],
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-affiliate-partner-reports",
@@ -7211,7 +7595,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-prepares-affiliate-payout-batch",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 113, 115, 193, 195, 273, 275, 277],
+          issueNumbers: [19, 113, 115, 193, 195, 273, 275, 277, 279],
         }),
         expect.objectContaining({
           id: "journey-owner-reviews-affiliate-fraud-flag",
@@ -7242,6 +7626,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-owner-prepares-affiliate-partner-notification-readiness",
           featureId: "feature-affiliates-referrals",
           issueNumbers: expect.arrayContaining([19, 277]),
+        }),
+        expect.objectContaining({
+          id: "journey-owner-prepares-affiliate-partner-notification-send-preflight",
+          featureId: "feature-affiliates-referrals",
+          issueNumbers: [19, 193, 195, 273, 275, 277, 279],
         }),
       ]),
     );
@@ -7531,6 +7920,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-affiliate-payout-preparation-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-fraud-review-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-partner-notification-readiness-record", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-affiliate-partner-notification-send-preflight-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-duplicate-funnel-draft", status: "planned" }),
@@ -7746,6 +8136,8 @@ test.describe("Bumpgrade scaffold", () => {
             "fraudReviewRecordStatus",
             "partnerNotificationReadinessRecordId",
             "partnerNotificationReadinessRecordStatus",
+            "partnerNotificationSendPreflightRecordId",
+            "partnerNotificationSendPreflightRecordStatus",
           ]),
         }),
         expect.objectContaining({
@@ -7766,6 +8158,20 @@ test.describe("Bumpgrade scaffold", () => {
           auth: "owner-session",
           stableIds: expect.arrayContaining([
             "partnerNotificationReadinessRecordId",
+            "affiliatePartnerReportId",
+            "payoutPreparationId",
+            "payoutBatchId",
+            "reviewFlagId",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-affiliate-partner-notification-send-preflight-record",
+          route: affiliatePartnerNotificationSendPreflightRecordApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "partnerNotificationSendPreflightRecordId",
+            "partnerNotificationReadinessRecordStatus",
             "affiliatePartnerReportId",
             "payoutPreparationId",
             "payoutBatchId",
@@ -7826,6 +8232,7 @@ test.describe("Bumpgrade scaffold", () => {
             "payoutPreparationRecordId",
             "fraudReviewRecordId",
             "partnerNotificationReadinessRecordId",
+            "partnerNotificationSendPreflightRecordId",
             "referralClickId",
             "checkoutIntentId",
             "referralAttributionId",
@@ -7837,6 +8244,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-confirmed payout preparation records without payout accounts, tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger rows, or raw actor fields",
             "Inspect owner-reviewed fraud review records without private fraud signals, buyer data, raw ledger/click/checkout rows, actor identity, payout accounts, tax data, Stripe payout IDs, or partner notification bodies",
             "Inspect owner-reviewed partner notification readiness records without recipient emails, message bodies, provider message IDs, queue rows, buyer data, raw rows, private fraud signals, payout accounts, tax data, Stripe IDs, or partner sends",
+            "Inspect owner-reviewed partner notification send preflight records without recipient emails, message bodies, send payloads, provider message IDs, queue rows, buyer data, raw rows, private fraud signals, payout accounts, tax data, Stripe IDs, provider-send enablement, or partner sends",
           ]),
         }),
       ]),
