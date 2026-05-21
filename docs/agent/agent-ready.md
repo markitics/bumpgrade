@@ -274,7 +274,7 @@ formulas, A/B test variants, deterministic assignment rules, the
 write boundary, the owner-gated `/api/admin/analytics/experiment-decisions`
 decision-evidence boundary, aggregate report export metadata, and owner-reviewed
 cohort comparison evidence, plus owner-reviewed alert threshold/anomaly-review
-evidence.
+evidence and owner-reviewed notification delivery readiness evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
@@ -292,14 +292,17 @@ caveat acknowledgement. The same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
 exposes owner-reviewed alert threshold/anomaly-review evidence as review prompts
-only, not customer alerts or automated actions. This proves
+only, not customer alerts or automated actions. It also exposes owner-reviewed
+notification delivery readiness as a future owner-notification contract only,
+not live email delivery or admin inbox writes. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
-evidence, and aggregate export metadata, not cookie assignment, automated alert
-sends, traffic routing, contact-level reporting, raw referrer/query exposure,
-raw event or assignment exposure, raw analytics exports, automated winners,
-direct public agent analytics writes, revenue claims, or statistically
+evidence, owner-reviewed notification readiness evidence, and aggregate export
+metadata, not cookie assignment, automated alert sends, owner email sends, admin
+inbox writes, traffic routing, contact-level reporting, raw referrer/query
+exposure, raw event or assignment exposure, raw analytics exports, automated
+winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the

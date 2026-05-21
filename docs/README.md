@@ -46,11 +46,12 @@ then open the relevant shelf for the task.
   browser-side page-view beacon, aggregate source attribution evidence,
   dashboard source attribution breakdown, aggregate variant evidence, seeded
   assignment contract, owner-confirmed experiment decision evidence, aggregate
-  report export metadata, owner-reviewed cohort comparison evidence, and
-  owner-reviewed alert threshold/anomaly-review evidence from issues #87, #105,
-  #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, and #267,
-  including fixed all-time, 24-hour, 7-day, and 30-day aggregate
-  source/conversion windows.
+  report export metadata, owner-reviewed cohort comparison evidence,
+  owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
+  notification delivery readiness evidence from issues #87, #105, #107, #119,
+  #121, #123, #125, #127, #129, #261, #263, #265, #267, and #269, including
+  fixed all-time, 24-hour, 7-day, and 30-day aggregate source/conversion
+  windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, public-safe partner reports, read-only

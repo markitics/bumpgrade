@@ -182,7 +182,8 @@ email, expose private notes, or authorize direct public agent subscriber writes.
 
 Purpose: owner-gated analytics and experiment decision evidence on top of the
 public analytics source contract, plus public-safe owner-reviewed cohort
-comparison evidence and alert threshold/anomaly-review evidence for agents.
+comparison evidence, alert threshold/anomaly-review evidence, and notification
+delivery readiness evidence for agents.
 
 The page reads aggregate assignment counts, fixed-window conversion sample
 sizes, the seeded experiment definition, and `analytics_experiment_decisions`
@@ -193,11 +194,13 @@ acknowledgement.
 
 Public agents should read `/analytics/source-data` for aggregate counts,
 redaction flags, owner-reviewed cohort comparison evidence, owner-reviewed
-alert threshold/anomaly-review evidence, and write boundaries. Experiment
-decisions, cohort comparisons, and threshold reviews are not traffic routing or
-customer alerting: they do not assign cookies, route visitors, send automated
-alerts, select automated winners, expose raw event rows, expose raw assignment
-rows, expose contact analytics, or make revenue claims.
+alert threshold/anomaly-review evidence, owner-reviewed notification delivery
+readiness evidence, and write boundaries. Experiment decisions, cohort
+comparisons, threshold reviews, and notification readiness records are not
+traffic routing or customer alerting: they do not assign cookies, route
+visitors, send automated alerts, send owner email, write admin inbox rows,
+select automated winners, expose raw event rows, expose raw assignment rows,
+expose contact analytics, or make revenue claims.
 
 ## Agent Maintenance Rule
 

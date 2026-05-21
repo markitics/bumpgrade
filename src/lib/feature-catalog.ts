@@ -310,6 +310,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Aggregate report export metadata and fixture cohort comparison definitions from issue #263.",
       "Owner-reviewed cohort comparison evidence with sample-size caveats from issue #265.",
       "Owner-reviewed alert threshold and anomaly-review evidence from issue #267.",
+      "Owner-reviewed notification delivery readiness evidence from issue #269.",
       "Agent-readable metric summaries with caveats for low sample sizes.",
     ],
     evidence: [
@@ -327,9 +328,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #263 adds public-safe aggregate report export metadata without raw analytics downloads.",
       "Issue #265 adds owner-reviewed cohort comparison evidence without automated winners, raw analytics exports, or revenue claims.",
       "Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence without automated alerts, traffic routing, or revenue claims.",
+      "Issue #269 adds owner-reviewed notification delivery readiness evidence without alert sends, inbox writes, traffic routing, or revenue claims.",
     ],
     agentContract:
-      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, raw analytics exports, automated alert sends, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
+      "Agents may read aggregate analytics, event capture boundaries, page-view beacon boundaries, dashboard-visible aggregate source attribution evidence, fixed-window aggregate source and conversion summaries, aggregate variant evidence, assignment boundaries, owner-confirmed experiment decision evidence, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, and funnel conversion report rows with sample-size caveats; direct public agent analytics writes, custom events, contact analytics, raw referrer/query reporting, raw analytics exports, automated alert sends, owner email sends, admin inbox writes, experiment routing, automated winners, and revenue claims require future confirmed-write APIs.",
   },
   {
     id: "feature-affiliates-referrals",

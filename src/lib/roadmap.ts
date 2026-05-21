@@ -390,7 +390,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
+      "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
       "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
@@ -406,9 +406,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #263 adds aggregate report export metadata and fixture cohort comparison definitions without raw analytics exports.",
       "Issue #265 adds owner-reviewed cohort comparison evidence without raw analytics exports, automated winners, or revenue claims.",
       "Issue #267 adds owner-reviewed alert threshold and anomaly-review evidence without automated alerts, traffic routing, automated winners, or revenue claims.",
+      "Issue #269 adds owner-reviewed notification delivery readiness evidence without alert sends, inbox writes, traffic routing, automated winners, or revenue claims.",
     ],
     nextMilestone:
-      "Add notification delivery readiness only after alert thresholds stay owner-reviewed and do not send automated customer alerts.",
+      "Add owner notification inbox/write APIs only after delivery readiness keeps recipient identity, email bodies, and alert sends disabled.",
   },
   {
     id: "roadmap-affiliates-referrals",
