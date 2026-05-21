@@ -7,6 +7,7 @@ import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experimen
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
 import { getAnalyticsNotificationDispatchPreflightSummary } from "@/lib/analytics-notification-dispatch-preflights";
 import { getAnalyticsNotificationInboxSummary } from "@/lib/analytics-notification-inbox";
+import { getAnalyticsNotificationProviderDomainReadinessSummary } from "@/lib/analytics-notification-provider-domain-readiness";
 import { buildAnalyticsReportExportSummary } from "@/lib/analytics-report-exports";
 import {
   analyticsTimeWindowStart,
@@ -198,6 +199,7 @@ export async function GET(request: NextRequest) {
   const experimentDecisions = await getAnalyticsExperimentDecisionSummary(db);
   const notificationInboxRecords = await getAnalyticsNotificationInboxSummary(db);
   const notificationDispatchPreflights = await getAnalyticsNotificationDispatchPreflightSummary(db);
+  const notificationProviderDomainReadiness = await getAnalyticsNotificationProviderDomainReadinessSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -211,6 +213,7 @@ export async function GET(request: NextRequest) {
     experimentDecisions,
     notificationInboxRecords,
     notificationDispatchPreflights,
+    notificationProviderDomainReadiness,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,
