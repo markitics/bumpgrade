@@ -311,7 +311,10 @@ sample-size checks, and sample-size caveat acknowledgement. The same admin page
 lets verified owners record redacted notification send-payload readiness
 evidence after exact confirmation, readiness checks, current content/consent
 readiness checks, fixed-window sample-size checks, and sample-size caveat
-acknowledgement. The
+acknowledgement. The same admin page lets verified owners record redacted
+notification queue-producer readiness evidence after exact confirmation,
+readiness checks, current send-payload readiness checks, fixed-window
+sample-size checks, and sample-size caveat acknowledgement. The
 same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
@@ -334,17 +337,22 @@ The send-payload readiness path creates owner-visible readiness evidence only,
 not recipients, recipient payloads, personalized bodies, raw payload bodies,
 email bodies, body templates, unsubscribe URLs, provider responses, provider
 message IDs, queue messages, queue payloads, queues, provider sends, or customer
-alerts. This proves
+alerts. The queue-producer readiness path creates owner-visible readiness
+evidence only, not Queue producer execution, queue messages, queue payload
+bodies, queue payloads, queues, provider sends, provider responses, recipients,
+email bodies, provider message IDs, or customer alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
 evidence, owner-reviewed notification readiness evidence, owner-confirmed
 notification inbox evidence, owner-confirmed dispatch preflight evidence, and
 owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent
-readiness evidence, owner-reviewed send-payload readiness evidence, plus aggregate export metadata, not cookie assignment, automated alert sends, owner
+readiness evidence, owner-reviewed send-payload readiness evidence,
+owner-reviewed queue-producer readiness evidence, plus aggregate export metadata, not cookie assignment, automated alert sends, owner
 email sends, provider sends, provider configuration, provider secrets, private
-DNS credentials, body templates, unsubscribe URLs, queue dispatch, queue
-messages, recipient payloads, personalized bodies, raw payload bodies, customer alerts, traffic routing,
+DNS credentials, body templates, unsubscribe URLs, Queue producer execution,
+queue dispatch, queue messages, queue payload bodies, recipient payloads,
+personalized bodies, raw payload bodies, customer alerts, traffic routing,
 contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
