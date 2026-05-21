@@ -6,6 +6,7 @@ import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analyti
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
+import { AdminAnalyticsNotificationDeliveryAttemptReadinessForm } from "@/components/admin-analytics-notification-delivery-attempt-readiness-form";
 import { AdminAnalyticsNotificationProviderCallReadinessForm } from "@/components/admin-analytics-notification-provider-call-readiness-form";
 import { AdminAnalyticsNotificationQueueConsumerReadinessForm } from "@/components/admin-analytics-notification-queue-consumer-readiness-form";
 import { AdminAnalyticsNotificationQueueProducerReadinessForm } from "@/components/admin-analytics-notification-queue-producer-readiness-form";
@@ -49,6 +50,10 @@ import {
   analyticsNotificationProviderCallReadinessIssue,
   getAnalyticsNotificationProviderCallReadinessSummary,
 } from "@/lib/analytics-notification-provider-call-readiness";
+import {
+  analyticsNotificationDeliveryAttemptReadinessIssue,
+  getAnalyticsNotificationDeliveryAttemptReadinessSummary,
+} from "@/lib/analytics-notification-delivery-attempt-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -76,6 +81,7 @@ export default async function AdminAnalyticsPage() {
   const queueProducerReadinessSummary = await getAnalyticsNotificationQueueProducerReadinessSummary();
   const queueConsumerReadinessSummary = await getAnalyticsNotificationQueueConsumerReadinessSummary();
   const providerCallReadinessSummary = await getAnalyticsNotificationProviderCallReadinessSummary();
+  const deliveryAttemptReadinessSummary = await getAnalyticsNotificationDeliveryAttemptReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
@@ -85,6 +91,7 @@ export default async function AdminAnalyticsPage() {
   const latestQueueProducerReadiness = queueProducerReadinessSummary.latestRecords[0];
   const latestQueueConsumerReadiness = queueConsumerReadinessSummary.latestRecords[0];
   const latestProviderCallReadiness = providerCallReadinessSummary.latestRecords[0];
+  const latestDeliveryAttemptReadiness = deliveryAttemptReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -160,6 +167,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationProviderCallReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationDeliveryAttemptReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationDeliveryAttemptReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -176,6 +190,7 @@ export default async function AdminAnalyticsPage() {
               queueProducerReadinessSummary.loadError ??
               queueConsumerReadinessSummary.loadError ??
               providerCallReadinessSummary.loadError ??
+              deliveryAttemptReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -263,6 +278,14 @@ export default async function AdminAnalyticsPage() {
             <p>
               {providerCallReadinessSummary.counts.notificationProviderCallReadinessRecords} readiness records;{" "}
               {providerCallReadinessSummary.counts.providerCalledRecords} provider-called records.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Delivery attempt</h3>
+            <p>
+              {deliveryAttemptReadinessSummary.counts.notificationDeliveryAttemptReadinessRecords} readiness records;{" "}
+              {deliveryAttemptReadinessSummary.counts.deliveryAttemptedRecords} delivery-attempt records.
             </p>
           </div>
         </div>
@@ -509,6 +532,41 @@ export default async function AdminAnalyticsPage() {
       </section>
 
       <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Delivery-attempt readiness</p>
+            <h2>Record delivery-attempt readiness without attempting delivery.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationDeliveryAttemptReadinessForm
+          dashboardId={deliveryAttemptReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={deliveryAttemptReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={deliveryAttemptReadinessSummary.readiness.id}
+          readinessStatus={deliveryAttemptReadinessSummary.readiness.status}
+          notificationInboxStatus={deliveryAttemptReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={deliveryAttemptReadinessSummary.readiness.notificationDispatchPreflightStatus}
+          notificationProviderDomainReadinessStatus={
+            deliveryAttemptReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          notificationSendPayloadReadinessStatus={
+            deliveryAttemptReadinessSummary.readiness.notificationSendPayloadReadinessStatus
+          }
+          notificationProviderCallReadinessStatus={
+            deliveryAttemptReadinessSummary.readiness.notificationProviderCallReadinessStatus
+          }
+          channelId={deliveryAttemptReadinessSummary.readiness.channelId}
+          ownerReviewStatus={deliveryAttemptReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={deliveryAttemptReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={deliveryAttemptReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Confirmed write</p>
@@ -940,6 +998,53 @@ export default async function AdminAnalyticsPage() {
               <MailCheck aria-hidden="true" />
               <h3>Provider-call readiness evidence is ready</h3>
               <p>Record a current queue-consumer readiness before recording provider-call readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest delivery-attempt readiness</p>
+            <h2>Delivery-attempt records keep provider sends, responses, and message IDs disabled.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestDeliveryAttemptReadiness ? (
+            deliveryAttemptReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationDeliveryAttemptReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Provider-call readiness {record.providerCallReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No delivery attempt</strong>
+                  <span>
+                    Delivery enabled {String(record.deliveryAttemptEnabled)}, attempted{" "}
+                    {String(record.deliveryAttempted)}, provider send {String(record.providerSendEnabled)}, response{" "}
+                    {String(record.providerResponseCreated)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs provider-call</span>
+              </div>
+              <ShieldCheck aria-hidden="true" />
+              <h3>Delivery-attempt readiness evidence is ready</h3>
+              <p>Record a current provider-call readiness before recording delivery-attempt readiness evidence.</p>
             </article>
           )}
         </div>
