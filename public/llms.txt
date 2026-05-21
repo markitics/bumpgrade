@@ -53,6 +53,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Owner analytics notification queue-consumer readiness API: https://bumpgrade.com/api/admin/analytics/notification-queue-consumer-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification provider-call readiness API: https://bumpgrade.com/api/admin/analytics/notification-provider-call-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification delivery-attempt readiness API: https://bumpgrade.com/api/admin/analytics/notification-delivery-attempt-readiness (human page/API requires Better Auth owner session)
+- Owner analytics notification delivery-result readiness API: https://bumpgrade.com/api/admin/analytics/notification-delivery-result-readiness (human page/API requires Better Auth owner session)
 - Owner-reviewed analytics cohort comparison evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics alert threshold/anomaly-review evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics notification delivery readiness evidence: https://bumpgrade.com/analytics/source-data
@@ -252,6 +253,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed queue-consumer readiness evidence,
   owner-reviewed provider-call readiness evidence,
   owner-reviewed delivery-attempt readiness evidence,
+  owner-reviewed delivery-result readiness evidence,
   aggregate funnel conversion report rows, metric formulas, variants, assignment rules, and the
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
@@ -270,9 +272,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed send-payload readiness evidence, owner-reviewed
   queue-producer readiness evidence, owner-reviewed
   queue-consumer readiness evidence, owner-reviewed provider-call readiness
-  evidence, owner-reviewed delivery-attempt readiness evidence, and
+  evidence, owner-reviewed delivery-attempt readiness evidence,
+  owner-reviewed delivery-result readiness evidence, and
   aggregate/source-data evidence, not cookie assignment, automated alert sends, owner email sends,
-  provider sends, provider calls, delivery attempts, provider responses, provider configuration,
+  provider sends, provider calls, delivery attempts, delivery results, provider responses, provider message IDs, delivery receipts, status webhooks, provider polling, provider configuration,
   provider secrets, sender credentials, private DNS credentials, body templates,
   unsubscribe URLs, Queue producer execution, Queue consumer execution, queue dispatch, queue messages,
   queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads,

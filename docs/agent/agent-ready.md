@@ -285,7 +285,7 @@ owner-confirmed notification inbox record evidence, and owner-confirmed
 notification dispatch preflight evidence, plus owner-reviewed notification
 provider/domain readiness, content/consent readiness, send-payload readiness,
 queue-producer readiness, queue-consumer readiness, provider-call readiness,
-and delivery-attempt readiness
+delivery-attempt readiness, and delivery-result readiness
 evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
@@ -327,7 +327,10 @@ fixed-window sample-size checks, and sample-size caveat acknowledgement. The
 same admin page lets verified owners record redacted notification
 delivery-attempt readiness evidence after exact confirmation, readiness checks,
 current provider-call readiness checks, fixed-window sample-size checks, and
-sample-size caveat acknowledgement. The
+sample-size caveat acknowledgement. The same admin page lets verified owners
+record redacted notification delivery-result readiness evidence after exact
+confirmation, readiness checks, current delivery-attempt readiness checks,
+fixed-window sample-size checks, and sample-size caveat acknowledgement. The
 same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
@@ -371,7 +374,15 @@ provider responses, provider secrets, sender credentials, private DNS
 credentials, Queue producer execution, Queue consumer execution, queue messages,
 queue message consumption, acknowledgements, retry/dead-letter rows, queue
 payload body reads, queue payloads, queues, recipients, email bodies, provider
-message IDs, or customer alerts. This proves
+message IDs, or customer alerts. The delivery-result readiness path creates
+owner-visible readiness evidence only, not provider sends, provider calls,
+delivery attempts, delivery results, delivery receipts, receipt payloads, status
+webhooks, provider polling, provider configuration, provider responses,
+provider secrets, sender credentials, private DNS credentials, Queue producer
+execution, Queue consumer execution, queue messages, queue message consumption,
+acknowledgements, retry/dead-letter rows, queue payload body reads, queue
+payloads, queues, recipients, email bodies, provider message IDs, or customer
+alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
@@ -381,10 +392,12 @@ owner-reviewed provider/domain readiness evidence, owner-reviewed content/consen
 readiness evidence, owner-reviewed send-payload readiness evidence,
 owner-reviewed queue-producer readiness evidence, owner-reviewed
 queue-consumer readiness evidence, owner-reviewed provider-call readiness
-evidence, owner-reviewed delivery-attempt readiness evidence, plus aggregate
+evidence, owner-reviewed delivery-attempt readiness evidence, and
+owner-reviewed delivery-result readiness evidence, plus aggregate
 export metadata, not cookie assignment, automated alert sends, owner email
-sends, provider sends, provider calls, delivery attempts, provider
-configuration, provider responses, provider secrets, sender credentials,
+sends, provider sends, provider calls, delivery attempts, delivery results,
+delivery receipts, status webhooks, provider polling, provider configuration,
+provider responses, provider secrets, sender credentials,
 private DNS credentials, body templates, unsubscribe URLs, Queue producer execution,
 Queue consumer execution, queue dispatch, queue messages, queue message
 consumption, acknowledgements, retry/dead-letter rows, queue payload body
