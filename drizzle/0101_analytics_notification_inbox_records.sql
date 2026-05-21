@@ -77,7 +77,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-bootstrap',
   'Continue the Bumpgrade parity build and add owner-confirmed analytics notification inbox record evidence for agents.',
   '[{"number":271,"url":"https://github.com/markitics/bumpgrade/issues/271"},{"number":18,"url":"https://github.com/markitics/bumpgrade/issues/18"}]',
-  '[]',
+  '[{"number":272,"url":"https://github.com/markitics/bumpgrade/pull/272"}]',
   '["https://bumpgrade.com/features","https://bumpgrade.com/analytics/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
@@ -86,7 +86,7 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch(),
   unixepoch(),
-  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/api/admin/analytics/notification-inbox-records","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/271"]',
+  '["https://bumpgrade.com/analytics/source-data","https://bumpgrade.com/api/admin/analytics/notification-inbox-records","https://bumpgrade.com/agent-docs/source-data","https://github.com/markitics/bumpgrade/issues/271","https://github.com/markitics/bumpgrade/pull/272"]',
   NULL,
   unixepoch()
 )
