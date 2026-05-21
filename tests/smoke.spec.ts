@@ -57,6 +57,10 @@ import {
   audienceImportIntentConfirmationText,
   audienceImportIntentIssue,
   audienceImportIntentStatus,
+  audienceImportPreflightApiRoute,
+  audienceImportPreflightConfirmationText,
+  audienceImportPreflightIssue,
+  audienceImportPreflightStatus,
 } from "../src/lib/audience-imports";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
@@ -2198,8 +2202,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceImportIntentStatus,
-        issue: audienceImportIntentIssue,
+        status: audienceImportPreflightStatus,
+        issue: audienceImportPreflightIssue,
         parentIssue: 17,
       }),
     );
@@ -2215,6 +2219,7 @@ test.describe("Bumpgrade scaffold", () => {
         audienceBroadcastDispatchPreflightApiRoute,
         audienceBroadcastDispatchAttemptApiRoute,
         audienceImportIntentApiRoute,
+        audienceImportPreflightApiRoute,
         "/audience/indie-launch-waitlist",
         "/admin/audience",
       ]),
@@ -2814,6 +2819,48 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.importPreflights).toEqual(
+      expect.objectContaining({
+        id: "audience-import-preflight-contract",
+        status: audienceImportPreflightStatus,
+        issue: audienceImportPreflightIssue,
+        parentIssue: 17,
+        apiRoute: audienceImportPreflightApiRoute,
+        ownerRoute: "/admin/audience",
+        workspace: expect.objectContaining({
+          id: audienceAutomationWorkspace.id,
+          status: audienceAutomationWorkspace.status,
+          revisionId: audienceAutomationWorkspace.revisionId,
+        }),
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceImportPreflightConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          importPreflights: expect.any(Number),
+          ownerConfirmedPreflights: expect.any(Number),
+          totalContactsChecked: expect.any(Number),
+          subscriberRowsCreatedRecords: 0,
+          rawEmailsStoredRecords: 0,
+          importRowsStoredRecords: 0,
+          sequenceEnrollmentsCreatedRecords: 0,
+          emailDeliveryEnabledRecords: 0,
+          exportEnabledRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailsIncluded: false,
+          importRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          subscriberRowsCreated: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+          exportEnabled: false,
+        }),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforeBroadcastScopedCount = payload.broadcastReadiness.counts.scopedSubscribers;
@@ -2921,6 +2968,7 @@ test.describe("Bumpgrade scaffold", () => {
           broadcastDispatchPreflightApiRoute: audienceBroadcastDispatchPreflightApiRoute,
           broadcastDispatchAttemptApiRoute: audienceBroadcastDispatchAttemptApiRoute,
           audienceImportIntentApiRoute,
+          audienceImportPreflightApiRoute,
           broadcastDrafts: expect.arrayContaining([
             expect.objectContaining({ id: "broadcast-draft-launch-window" }),
           ]),
@@ -2932,8 +2980,10 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
     expect(payload.writeBoundary).toContain("Issue #253 can record owner-confirmed import intent metadata");
+    expect(payload.writeBoundary).toContain("Issue #259 can record owner-confirmed import preflight evidence");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
     expect(payload.caveat).toContain("owner-confirmed import intent evidence");
+    expect(payload.caveat).toContain("owner-confirmed import preflight evidence");
 
     await page.goto("/audience/indie-launch-waitlist");
     await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture/i })).toBeVisible();
@@ -2984,9 +3034,10 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(afterPayload.broadcastDeliveryQueueMessages)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.broadcastDispatchPreflights)).not.toContain("Browser smoke");
     expect(JSON.stringify(afterPayload.importIntents)).not.toContain("Browser smoke");
+    expect(JSON.stringify(afterPayload.importPreflights)).not.toContain("Browser smoke");
   });
 
-  test("owner audience import intents require auth, confirmation, idempotency, stale state, and redaction", async ({
+  test("owner audience import intents and preflights require auth, confirmation, idempotency, stale state, and redaction", async ({
     page,
     request,
   }, testInfo) => {
@@ -3011,6 +3062,8 @@ test.describe("Bumpgrade scaffold", () => {
       confirmationText: audienceImportIntentConfirmationText,
       idempotencyKey,
     };
+    const preflightIdempotencyKey = `playwright-audience-import-preflight-${suffix}`;
+    const rawPreflightEmail = `raw-preflight-${suffix}@example.com`;
 
     const unauthorizedGet = await request.get(audienceImportIntentApiRoute);
     expect(unauthorizedGet.status()).toBe(401);
@@ -3032,6 +3085,44 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
 
+    const unauthorizedPreflightGet = await request.get(audienceImportPreflightApiRoute);
+    expect(unauthorizedPreflightGet.status()).toBe(401);
+    await expect(unauthorizedPreflightGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawEmailsIncluded: false,
+          subscriberRowsCreated: false,
+          exportEnabled: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPreflightPost = await request.post(audienceImportPreflightApiRoute, {
+      data: {
+        workspaceId: audienceAutomationWorkspace.id,
+        importIntentId: "audience-import-intent-missing",
+        expectedImportIntentSourceLabel: sourceLabel,
+        expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+        expectedWorkspaceStatus: audienceAutomationWorkspace.status,
+        totalContactsChecked: 10,
+        eligibleNewContactCount: 7,
+        eligibleUpdateCount: 1,
+        duplicateCount: 1,
+        suppressedCount: 1,
+        missingConsentCount: 0,
+        malformedCount: 0,
+        lawfulBasisCount: 8,
+        confirmationText: audienceImportPreflightConfirmationText,
+        idempotencyKey: preflightIdempotencyKey,
+      },
+    });
+    expect(unauthorizedPreflightPost.status()).toBe(401);
+    await expect(unauthorizedPreflightPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
     await signInOrCreateOwner(page);
 
     const contractResponse = await page.request.get(audienceImportIntentApiRoute);
@@ -3047,6 +3138,25 @@ test.describe("Bumpgrade scaffold", () => {
           redaction: expect.objectContaining({
             rawEmailsIncluded: false,
             privateNoteIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const preflightContractResponse = await page.request.get(audienceImportPreflightApiRoute);
+    expect(preflightContractResponse.ok(), await preflightContractResponse.text()).toBeTruthy();
+    await expect(preflightContractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: audienceImportPreflightStatus,
+        route: audienceImportPreflightApiRoute,
+        confirmation: expect.objectContaining({ text: audienceImportPreflightConfirmationText }),
+        contract: expect.objectContaining({
+          redaction: expect.objectContaining({
+            rawEmailsIncluded: false,
+            privateNoteIncluded: false,
+            subscriberRowsCreated: false,
+            exportEnabled: false,
           }),
         }),
       }),
@@ -3165,10 +3275,180 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("m@rkmoriarty.com");
     expect(sourceText).not.toContain("Private import note");
 
+    const preflightRequestBody = {
+      workspaceId: audienceAutomationWorkspace.id,
+      importIntentId: createdPayload.intent.id,
+      expectedImportIntentSourceLabel: sourceLabel,
+      expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+      expectedWorkspaceStatus: audienceAutomationWorkspace.status,
+      totalContactsChecked: 10,
+      eligibleNewContactCount: 6,
+      eligibleUpdateCount: 2,
+      duplicateCount: 1,
+      suppressedCount: 1,
+      missingConsentCount: 0,
+      malformedCount: 0,
+      lawfulBasisCount: 8,
+      privateNote: `Private preflight note for ${rawPreflightEmail} and m@rkmoriarty.com`,
+      confirmationText: audienceImportPreflightConfirmationText,
+      idempotencyKey: preflightIdempotencyKey,
+    };
+
+    const missingPreflightConfirmation = await page.request.post(audienceImportPreflightApiRoute, {
+      data: {
+        ...preflightRequestBody,
+        confirmationText: "Create subscribers now",
+        idempotencyKey: `${preflightIdempotencyKey}-missing`,
+      },
+    });
+    expect(missingPreflightConfirmation.status()).toBe(400);
+    await expect(missingPreflightConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const stalePreflightRevision = await page.request.post(audienceImportPreflightApiRoute, {
+      data: {
+        ...preflightRequestBody,
+        expectedWorkspaceRevisionId: "stale-workspace-revision",
+        idempotencyKey: `${preflightIdempotencyKey}-stale-revision`,
+      },
+    });
+    expect(stalePreflightRevision.status()).toBe(409);
+    await expect(stalePreflightRevision.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_workspace_revision",
+        currentWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+      }),
+    );
+
+    const missingImportIntent = await page.request.post(audienceImportPreflightApiRoute, {
+      data: {
+        ...preflightRequestBody,
+        importIntentId: "audience-import-intent-missing",
+        idempotencyKey: `${preflightIdempotencyKey}-missing-intent`,
+      },
+    });
+    expect(missingImportIntent.status()).toBe(404);
+    await expect(missingImportIntent.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "import_intent_not_found" }),
+    );
+
+    const mismatchImportIntent = await page.request.post(audienceImportPreflightApiRoute, {
+      data: {
+        ...preflightRequestBody,
+        expectedImportIntentSourceLabel: "Wrong source label",
+        idempotencyKey: `${preflightIdempotencyKey}-mismatch`,
+      },
+    });
+    expect(mismatchImportIntent.status()).toBe(409);
+    await expect(mismatchImportIntent.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "import_intent_mismatch" }),
+    );
+
+    const aggregateMismatch = await page.request.post(audienceImportPreflightApiRoute, {
+      data: {
+        ...preflightRequestBody,
+        totalContactsChecked: 11,
+        idempotencyKey: `${preflightIdempotencyKey}-aggregate`,
+      },
+    });
+    expect(aggregateMismatch.status()).toBe(400);
+    await expect(aggregateMismatch.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "aggregate_count_mismatch" }),
+    );
+
+    const preflightCreated = await page.request.post(audienceImportPreflightApiRoute, { data: preflightRequestBody });
+    expect(preflightCreated.status(), await preflightCreated.text()).toBe(201);
+    const preflightCreatedPayload = await preflightCreated.json();
+    expect(preflightCreatedPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "audience_import_preflight_recorded",
+        duplicate: false,
+        preflight: expect.objectContaining({
+          workspaceId: audienceAutomationWorkspace.id,
+          importIntentId: createdPayload.intent.id,
+          sourceKind: "kit_export",
+          expectedImportIntentSourceLabel: sourceLabel,
+          totalContactsChecked: 10,
+          eligibleNewContactCount: 6,
+          eligibleUpdateCount: 2,
+          duplicateCount: 1,
+          suppressedCount: 1,
+          missingConsentCount: 0,
+          malformedCount: 0,
+          lawfulBasisCount: 8,
+          privateNoteRecorded: true,
+          importRowsStored: false,
+          rawEmailsStored: false,
+          subscriberRowsCreated: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+          exportEnabled: false,
+        }),
+        redaction: expect.objectContaining({
+          rawEmailsIncluded: false,
+          importRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          subscriberRowsCreated: false,
+          exportEnabled: false,
+        }),
+      }),
+    );
+
+    const preflightReplay = await page.request.post(audienceImportPreflightApiRoute, { data: preflightRequestBody });
+    expect(preflightReplay.status(), await preflightReplay.text()).toBe(200);
+    await expect(preflightReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "audience_import_preflight_replayed",
+        duplicate: true,
+        preflight: expect.objectContaining({ id: preflightCreatedPayload.preflight.id }),
+      }),
+    );
+
+    const preflightConflict = await page.request.post(audienceImportPreflightApiRoute, {
+      data: { ...preflightRequestBody, lawfulBasisCount: 7 },
+    });
+    expect(preflightConflict.status()).toBe(409);
+    await expect(preflightConflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterPreflight = await page.request.get("/audience/source-data");
+    expect(sourceAfterPreflight.ok(), await sourceAfterPreflight.text()).toBeTruthy();
+    const sourceAfterPreflightPayload = await sourceAfterPreflight.json();
+    expect(sourceAfterPreflightPayload.importPreflights.counts.importPreflights).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterPreflightPayload.importPreflights.counts.ownerConfirmedPreflights).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterPreflightPayload.importPreflights.latestPreflights).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: preflightCreatedPayload.preflight.id,
+          importIntentId: createdPayload.intent.id,
+          expectedImportIntentSourceLabel: sourceLabel,
+          rawEmailsStored: false,
+          importRowsStored: false,
+          subscriberRowsCreated: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+          exportEnabled: false,
+        }),
+      ]),
+    );
+    const preflightSourceText = JSON.stringify(sourceAfterPreflightPayload.importPreflights);
+    expect(preflightSourceText).not.toContain(rawPreflightEmail);
+    expect(preflightSourceText).not.toContain("m@rkmoriarty.com");
+    expect(preflightSourceText).not.toContain("Private preflight note");
+
     await page.goto("/admin/audience");
     await expect(page.getByRole("heading", { name: "Imports stay intent-only until contact writes are safe" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import intent/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: sourceLabel })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: sourceLabel }).first()).toBeVisible();
   });
 
   test("audience opt-in API validates consent, normalizes email, and replays idempotent responses", async ({ request }) => {
@@ -4994,7 +5274,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211, 253,
+            211, 253, 259,
           ],
         }),
         expect.objectContaining({
@@ -5333,6 +5613,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-mobile-admin-dashboard", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
@@ -5448,6 +5729,7 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastQueueProducerReadinessId",
             "broadcastQueueConsumerReadinessId",
             "audienceImportIntentId",
+            "audienceImportPreflightId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect suppression-aware broadcast readiness without recipient exposure",
@@ -5466,6 +5748,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect Queue producer readiness without Queue messages, queue payload bodies, recipient payloads, or provider sends",
             "Inspect Queue consumer readiness without Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, or provider sends",
             "Inspect owner-confirmed import intents without raw contact rows, raw emails, actor emails, private notes, sequence enrollments, or sends",
+            "Inspect owner-confirmed import preflights without raw contact rows, raw emails, subscriber writes, exports, actor emails, private notes, sequence enrollments, or sends",
           ]),
         }),
         expect.objectContaining({
@@ -5483,6 +5766,12 @@ test.describe("Bumpgrade scaffold", () => {
           route: audienceImportIntentApiRoute,
           auth: "owner-session",
           stableIds: expect.arrayContaining(["audienceImportIntentId", "workspaceId", "idempotencyKey"]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-audience-import-preflight",
+          route: audienceImportPreflightApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["audienceImportPreflightId", "audienceImportIntentId", "workspaceId", "idempotencyKey"]),
         }),
         expect.objectContaining({
           id: "create-owner-broadcast-schedule-intent",
@@ -5516,7 +5805,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-audience-subscribers",
           route: "/admin/audience",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["audienceImportIntentId"]),
+          stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId"]),
         }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-affiliate-referrals", route: "/affiliates/source-data", auth: "public" }),
@@ -6781,6 +7070,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Suppressions" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import intents" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Import preflights" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preview safety" })).toBeVisible();
@@ -6794,6 +7084,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Queue consumers", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Imports stay intent-only until contact writes are safe" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import intent/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payload body creation is still blocked" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Queue producers remain disabled until handoff gates pass" })).toBeVisible();
