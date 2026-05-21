@@ -22,6 +22,10 @@ import {
   analyticsNotificationProviderDomainReadinessIssue,
 } from "@/lib/analytics-notification-provider-domain-readiness";
 import {
+  analyticsNotificationContentConsentReadinessApiRoute,
+  analyticsNotificationContentConsentReadinessIssue,
+} from "@/lib/analytics-notification-content-consent-readiness";
+import {
   affiliatePayoutPreparationRecordApiRoute,
   affiliatePayoutPreparationRecordIssue,
 } from "@/lib/affiliate-payout-preparation-records";
@@ -810,6 +814,9 @@ export const agentReadContracts: AgentReadContract[] = [
       "analyticsNotificationProviderDomainReadinessId",
       "analyticsNotificationProviderDomainReadinessStatus",
       "analyticsNotificationProviderDomainReadinessDisposition",
+      "analyticsNotificationContentConsentReadinessId",
+      "analyticsNotificationContentConsentReadinessStatus",
+      "analyticsNotificationContentConsentReadinessDisposition",
       "analyticsFunnelConversionReportId",
       "utmSource",
       "utmMedium",
@@ -838,6 +845,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-confirmed notification inbox records without recipients, email bodies, queue dispatch, or email sends",
       "Inspect owner-confirmed notification dispatch preflights without recipients, email bodies, provider message IDs, queue payloads, queue dispatch, or email sends",
       "Inspect owner-reviewed notification provider/domain readiness without provider configuration, provider secrets, sender credentials, private DNS credentials, provider sends, or verified-domain claims",
+      "Inspect owner-reviewed notification content/consent readiness without body templates, unsubscribe URLs, recipients, email bodies, provider message IDs, queue payloads, provider sends, queue dispatch, or email sends",
       "Inspect dashboard-visible source attribution rows",
       "Inspect fixed time-window metadata and aggregate source/conversion rows",
       "Inspect metric formulas",
@@ -848,7 +856,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
     ],
     writeBoundary:
-      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, owner-confirmed notification inbox records from issue #${analyticsNotificationInboxIssue}, owner-confirmed notification dispatch preflights from issue #${analyticsNotificationDispatchPreflightIssue}, owner-reviewed provider/domain readiness records from issue #${analyticsNotificationProviderDomainReadinessIssue}, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw analytics exports, automated alert sends, owner email sends, provider sends, provider configuration, provider secrets, sender credentials, private DNS credentials, queue dispatch, customer alerts, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
+      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, owner-confirmed notification inbox records from issue #${analyticsNotificationInboxIssue}, owner-confirmed notification dispatch preflights from issue #${analyticsNotificationDispatchPreflightIssue}, owner-reviewed provider/domain readiness records from issue #${analyticsNotificationProviderDomainReadinessIssue}, owner-reviewed content/consent readiness records from issue #${analyticsNotificationContentConsentReadinessIssue}, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw analytics exports, automated alert sends, owner email sends, provider sends, provider configuration, provider secrets, sender credentials, private DNS credentials, queue dispatch, body templates, unsubscribe URLs, customer alerts, custom events, experiment traffic routing, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
   },
   {
     id: "create-owner-analytics-experiment-decision",
@@ -954,6 +962,35 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       `This owner-session API records redacted notification provider/domain readiness evidence in D1 after exact confirmation, idempotency, dashboard revision checks, notification readiness checks, notification inbox checks, notification dispatch preflight checks, fixed-window evidence validation, and sample-size caveat acknowledgement. It records owner-visible provider/domain readiness evidence only; it does not send email, call providers, configure providers, store provider secrets, store sender credentials, verify sender domains, expose private DNS credentials, dispatch queues, alert customers, expose recipients, expose email bodies, expose provider message IDs, expose queue payloads, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or allow unauthenticated/direct public agent writes. Issue #${analyticsNotificationProviderDomainReadinessIssue} tracks this slice.`,
+  },
+  {
+    id: "create-owner-analytics-notification-content-consent-readiness",
+    title: "Owner analytics notification content/consent readiness",
+    route: analyticsNotificationContentConsentReadinessApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth:
+      "D1 table analytics_notification_content_consent_readiness_records plus analytics notification provider-domain/readiness source-data evidence",
+    stableIds: [
+      "analyticsNotificationContentConsentReadinessId",
+      "analyticsNotificationProviderDomainReadinessId",
+      "analyticsNotificationDispatchPreflightId",
+      "analyticsNotificationInboxRecordId",
+      "analyticsNotificationReadinessId",
+      "analyticsNotificationChannelId",
+      "analyticsDashboardId",
+      "analyticsTimeWindow",
+      "ownerUserId",
+      "idempotencyKey",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only analytics notification content/consent readiness confirmation contract",
+      "Record owner-reviewed content/consent readiness evidence only with an owner session",
+      "Use exact confirmation, idempotency, dashboard revision checks, notification readiness checks, provider/domain readiness checks, fixed-window sample-size checks, and sample-size caveat acknowledgement before writing",
+      "Confirm responses omit body templates, unsubscribe URLs, recipients, email bodies, provider message IDs, queue payloads, raw analytics rows, actor emails, actor hashes, private notes, customer alerts, email sends, provider sends, queue dispatch, traffic routing, automated winners, and revenue claims",
+    ],
+    writeBoundary:
+      `This owner-session API records redacted notification content/consent readiness evidence in D1 after exact confirmation, idempotency, dashboard revision checks, notification readiness checks, notification inbox checks, notification dispatch preflight checks, provider/domain readiness checks, fixed-window evidence validation, and sample-size caveat acknowledgement. It records owner-visible body-template, unsubscribe, rate-limit, audit-correlation, and retention readiness evidence only; it does not send email, call providers, configure providers, store provider secrets, store sender credentials, verify sender domains, expose private DNS credentials, dispatch queues, alert customers, expose recipients, expose email bodies, expose body templates, expose unsubscribe URLs, expose provider message IDs, expose queue payloads, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or allow unauthenticated/direct public agent writes. Issue #${analyticsNotificationContentConsentReadinessIssue} tracks this slice.`,
   },
   {
     id: "read-affiliate-referrals",
@@ -1690,6 +1727,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       "This resource reads aggregate owner-notification provider/domain readiness counts, dispatch preflight IDs, inbox record IDs, readiness IDs, channel IDs, selected fixed windows, sample-size caveats, and redaction flags only. It must not configure providers, store provider secrets, store sender credentials, expose private DNS credentials, verify sender domains, expose recipients, expose email bodies, expose provider message IDs, expose queue payloads, dispatch queues, send email, call providers, alert customers, route traffic, select winners, or make revenue claims.",
   },
   {
+    id: "mcp-resource-analytics-notification-content-consent-readiness",
+    resourceOrTool: "resource bumpgrade://analytics-notification-content-consent-readiness",
+    status: "ready-contract",
+    backedBy: "/analytics/source-data",
+    purpose: `Expose owner-reviewed analytics notification content/consent readiness evidence from issue #${analyticsNotificationContentConsentReadinessIssue}.`,
+    safetyBoundary:
+      "This resource reads aggregate owner-notification content/consent readiness counts, provider/domain readiness IDs, dispatch preflight IDs, inbox record IDs, readiness IDs, channel IDs, selected fixed windows, sample-size caveats, and redaction flags only. It must not expose body templates, expose unsubscribe URLs, expose recipients, expose email bodies, expose provider message IDs, expose queue payloads, dispatch queues, send email, call providers, configure providers, alert customers, route traffic, select winners, or make revenue claims.",
+  },
+  {
     id: "mcp-tool-create-analytics-experiment-decision",
     resourceOrTool: "tool create_analytics_experiment_decision",
     status: "planned",
@@ -1728,6 +1774,16 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       `Record owner-reviewed analytics notification provider/domain readiness evidence on top of the same D1 contract from issue #${analyticsNotificationProviderDomainReadinessIssue}.`,
     safetyBoundary:
       "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, notification readiness checks, current dispatch preflight checks, fixed time-window evidence validation, sample-size caveat acknowledgement, audit metadata, and redacted output. It must not configure providers, store provider secrets, store sender credentials, verify sender domains, expose private DNS credentials, expose recipients, expose email bodies, expose provider message IDs, expose queue payloads, dispatch queues, send email, call providers, alert customers, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or enable direct public agent writes.",
+  },
+  {
+    id: "mcp-tool-create-analytics-notification-content-consent-readiness",
+    resourceOrTool: "tool create_analytics_notification_content_consent_readiness",
+    status: "planned",
+    backedBy: analyticsNotificationContentConsentReadinessApiRoute,
+    purpose:
+      `Record owner-reviewed analytics notification content/consent readiness evidence on top of the same D1 contract from issue #${analyticsNotificationContentConsentReadinessIssue}.`,
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, notification readiness checks, current provider/domain readiness checks, fixed time-window evidence validation, sample-size caveat acknowledgement, audit metadata, and redacted output. It must not expose body templates, expose unsubscribe URLs, expose recipients, expose email bodies, expose provider message IDs, expose queue payloads, dispatch queues, send email, call providers, configure providers, alert customers, route traffic, choose automated winners, expose raw analytics rows, make revenue claims, or enable direct public agent writes.",
   },
   {
     id: "mcp-resource-affiliate-referrals",
