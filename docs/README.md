@@ -48,9 +48,9 @@ then open the relevant shelf for the task.
   assignment contract, owner-confirmed experiment decision evidence, aggregate
   report export metadata, owner-reviewed cohort comparison evidence,
   owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
-  notification delivery readiness evidence, and owner-confirmed notification
-  inbox records and dispatch preflights from issues #87, #105, #107, #119,
-  #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, and #284, including
+  notification delivery readiness evidence, owner-confirmed notification
+  inbox records, dispatch preflights, and provider/domain readiness from issues #87, #105, #107, #119,
+  #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, and #286, including
   fixed all-time, 24-hour, 7-day, and 30-day aggregate source/conversion
   windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click

@@ -196,11 +196,14 @@ Public agents should read `/analytics/source-data` for aggregate counts,
 redaction flags, owner-reviewed cohort comparison evidence, owner-reviewed
 alert threshold/anomaly-review evidence, owner-reviewed notification delivery
 readiness evidence, owner-confirmed notification inbox aggregate evidence,
-owner-confirmed dispatch preflight aggregate evidence, and
-write boundaries. Experiment decisions, cohort comparisons, threshold reviews,
-notification readiness records, notification inbox records, and dispatch preflights are not
-traffic routing or customer alerting: they do not assign cookies, route
-visitors, send automated alerts, send owner email, call providers, dispatch queues, alert
+owner-confirmed dispatch preflight aggregate evidence, owner-reviewed
+provider/domain readiness aggregate evidence, and write boundaries. Experiment
+decisions, cohort comparisons, threshold reviews, notification readiness
+records, notification inbox records, dispatch preflights, and provider/domain
+readiness records are not traffic routing or customer alerting: they do not
+assign cookies, route visitors, send automated alerts, send owner email,
+configure providers, store provider secrets, store sender credentials, expose
+private DNS credentials, call providers, dispatch queues, alert
 customers, select automated winners, expose raw event rows, expose raw
 assignment rows, expose recipients, expose email bodies, expose provider
 message IDs, expose queue payloads, expose contact

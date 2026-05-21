@@ -313,14 +313,20 @@ not live email delivery. The notification inbox record path creates
 owner-visible inbox evidence only, not recipients, email bodies, queues, or
 customer alerts. The dispatch preflight path creates owner-visible preflight
 evidence only, not recipients, email bodies, provider message IDs, queue
-payloads, queues, provider sends, or customer alerts. This proves
+payloads, queues, provider sends, or customer alerts. The provider/domain
+readiness path creates owner-visible readiness evidence only, not provider
+configuration, provider secrets, sender credentials, private DNS credentials,
+verified sender-domain claims, recipients, email bodies, provider message IDs,
+queue payloads, queues, provider sends, or customer alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
 evidence, owner-reviewed notification readiness evidence, owner-confirmed
 notification inbox evidence, owner-confirmed dispatch preflight evidence, and
-aggregate export metadata, not cookie assignment, automated alert sends, owner
-email sends, provider sends, queue dispatch, customer alerts, traffic routing,
+owner-reviewed provider/domain readiness evidence plus aggregate export
+metadata, not cookie assignment, automated alert sends, owner
+email sends, provider sends, provider configuration, provider secrets, private
+DNS credentials, queue dispatch, customer alerts, traffic routing,
 contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically

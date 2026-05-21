@@ -236,11 +236,11 @@ export const marketingFeatures: MarketingFeature[] = [
     category: "Optimization",
     status: "live",
     availability:
-      "Seeded analytics, source attribution, experiment assignment, time-window reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert thresholds, owner-reviewed notification readiness, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, and owner-reviewed decision evidence are available.",
+      "Seeded analytics, source attribution, experiment assignment, time-window reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert thresholds, owner-reviewed notification readiness, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, and owner-reviewed decision evidence are available.",
     eyebrow: "Know what worked",
     hero: "See which sources, variants, and launch paths are moving buyers.",
     summary:
-      "Bumpgrade records privacy-safe events, page-view beacons, source attribution, experiment assignment, conversion reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert threshold evidence, owner-reviewed notification readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, time-window summaries, and owner-reviewed experiment decisions.",
+      "Bumpgrade records privacy-safe events, page-view beacons, source attribution, experiment assignment, conversion reports, aggregate export metadata, owner-reviewed cohort comparisons, owner-reviewed alert threshold evidence, owner-reviewed notification readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, time-window summaries, and owner-reviewed experiment decisions.",
     audience: "Operators buying traffic, testing pages, or trying to understand which launch channel is working.",
     problem: "Launch attribution is often split between ad platforms, analytics scripts, checkout exports, and gut feel.",
     outcome: "Use aggregate source and conversion reports to understand the launch without exposing private visitor details.",

@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, and #271 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, and #286 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -9,8 +9,9 @@ dashboard-visible source attribution breakdown, fixed aggregate source and
 conversion time-window filters, owner-confirmed experiment decision evidence,
 aggregate report export metadata, owner-reviewed cohort comparison evidence,
 owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
-notification delivery readiness evidence, and owner-confirmed notification
-inbox record evidence
+notification delivery readiness evidence, owner-confirmed notification inbox
+record evidence, owner-confirmed notification dispatch preflight evidence, and
+owner-reviewed notification provider/domain readiness evidence
 for issue #18.
 
 ## Live Routes
@@ -30,8 +31,12 @@ for issue #18.
   endpoint for confirmed notification inbox evidence.
 - `/api/admin/analytics/notification-dispatch-preflights`: owner-gated GET/POST
   endpoint for confirmed notification dispatch preflight evidence.
+- `/api/admin/analytics/notification-provider-domain-readiness`: owner-gated
+  GET/POST endpoint for reviewed notification provider/domain readiness
+  evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
-  and notification inbox and dispatch preflight evidence.
+  and notification inbox, dispatch preflight, and provider/domain readiness
+  evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -76,6 +81,12 @@ The first dashboard includes stable IDs for:
   provider calls, queue dispatch, customer alerts, recipient identity, email
   bodies, provider message IDs, queue payloads, traffic routing, winner
   selection, or revenue claims.
+- owner-reviewed notification provider/domain readiness records with current
+  dispatch-preflight checks, selected fixed windows, sample-size caveats, and no
+  provider configuration, provider secrets, sender credentials, private DNS
+  credentials, provider sends, provider calls, queue dispatch, customer alerts,
+  recipient identity, email bodies, provider message IDs, queue payloads,
+  traffic routing, winner selection, or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -101,18 +112,25 @@ Owner sessions can record notification dispatch preflight evidence only after
 exact confirmation, idempotency, dashboard revision checks, notification
 readiness checks, current notification inbox record checks, selected
 fixed-window sample-size checks, and sample-size caveat acknowledgement.
+Owner sessions can record notification provider/domain readiness evidence only
+after exact confirmation, idempotency, dashboard revision checks, notification
+readiness checks, current notification dispatch preflight checks, selected
+fixed-window sample-size checks, and sample-size caveat acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
 cohort definitions, owner-reviewed cohort comparison evidence, and
 owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed
 notification delivery readiness evidence, owner-confirmed notification inbox
-record evidence, and owner-confirmed dispatch preflight evidence. The cohort
+record evidence, owner-confirmed dispatch preflight evidence, and owner-reviewed
+provider/domain readiness evidence. The cohort
 comparison, threshold review, notification readiness, notification inbox
-records, and dispatch preflights are directional evidence with sample-size
+records, dispatch preflights, and provider/domain readiness records are
+directional evidence with sample-size
 caveats; agents must not treat them as winner decisions, statistically
 meaningful proof, customer alert triggers, owner email sends, provider sends,
-queue dispatch, or revenue claims. These paths do not assign cookies, expose contact-level
+provider configuration, verified sender-domain claims, queue dispatch, or
+revenue claims. These paths do not assign cookies, expose contact-level
 analytics, expose
 raw event or assignment rows, expose raw campaign/referrer payloads, create raw
 analytics exports, send automated alerts, send owner email, call providers, dispatch queues,
@@ -129,10 +147,12 @@ report rows, aggregate report export metadata, and owner-reviewed cohort
 comparison evidence, and owner-reviewed alert threshold/anomaly-review evidence
 and owner-reviewed notification delivery readiness evidence, plus
 owner-confirmed notification inbox aggregate evidence and owner-confirmed
-dispatch preflight aggregate evidence, to understand
+dispatch preflight aggregate evidence, plus owner-reviewed provider/domain
+readiness aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
-exports, automated alert sends, owner email sends, provider sends, queue dispatch, customer alerts,
+exports, automated alert sends, owner email sends, provider sends, provider
+configuration, provider secrets, private DNS credentials, queue dispatch, customer alerts,
 experiment traffic routing, automated winners, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention
