@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Sandbox checkout canceled | Bumpgrade",
-  description: "Sandbox checkout cancel state for Bumpgrade's first Stripe Checkout Session path.",
+  title: "Checkout canceled | Bumpgrade",
+  description: "Checkout cancel state for Bumpgrade's first Stripe Checkout Session path.",
 };
 
 export default function SandboxCheckoutCancelPage() {
@@ -12,8 +12,8 @@ export default function SandboxCheckoutCancelPage() {
     <main className="route-page">
       <section className="route-hero">
         <div>
-          <p className="eyebrow">Sandbox checkout</p>
-          <h1>The sandbox checkout was canceled.</h1>
+          <p className="eyebrow">Checkout</p>
+          <h1>The checkout was canceled.</h1>
           <p className="lede">
             Bumpgrade keeps the checkout intent for audit and recovery work, but no fulfillment should happen unless
             Stripe sends a confirming webhook.

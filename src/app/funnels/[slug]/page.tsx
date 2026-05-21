@@ -40,13 +40,13 @@ export async function generateMetadata({ params }: FunnelPreviewPageProps): Prom
   if (!funnel) return {};
 
   return {
-    title: funnel.status === "published" ? funnel.title : `${funnel.title} Preview`,
+    title: funnel.title,
     description: `${funnel.summary} This Bumpgrade funnel/page-builder route is tied to issue #${funnel.issue}.`,
     alternates: {
       canonical: `${site.url}${funnel.previewRoute}`,
     },
     openGraph: {
-      title: `${funnel.title} preview`,
+      title: funnel.title,
       description: funnel.summary,
       url: `${site.url}${funnel.previewRoute}`,
       type: "article",
@@ -71,7 +71,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: published ? funnel.title : `${funnel.title} preview`,
+    name: funnel.title,
     url: `${site.url}${funnel.previewRoute}`,
     description: funnel.summary,
     isPartOf: {
@@ -97,7 +97,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Funnel preview</p>
+          <p className="eyebrow">Funnel example</p>
           <h1>{funnel.title}</h1>
           <p className="lede">{funnel.summary}</p>
           <div className="hero-actions">
@@ -111,14 +111,14 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Funnel preview status">
+        <aside className="feature-status-panel" aria-label="Funnel example status">
           <PanelsTopLeft aria-hidden="true" />
           <p>Status</p>
           <strong>{funnel.steps.length} steps</strong>
           <span>
             {published
-              ? `Published D1 funnel. Revision ${funnel.revisionId} is public and readable by agents.`
-              : `Draft preview only. Revision ${funnel.revisionId} is readable by agents, but writes stay disabled until confirmed-write contracts exist.`}
+              ? "Published funnel. The route is public and readable by agents."
+              : "Example route. This funnel is readable by agents, but writes stay disabled until confirmed-write contracts exist."}
           </span>
         </aside>
       </section>
@@ -127,7 +127,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Ordered steps</p>
-            <h2>{published ? "Published funnel sequence" : "Three-step launch funnel scaffold"}</h2>
+            <h2>{published ? "Published funnel sequence" : "Three-step launch funnel"}</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -160,7 +160,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Page blocks</p>
-            <h2>Previewable blocks before a visual builder exists</h2>
+            <h2>Page blocks before a visual builder exists</h2>
           </div>
         </div>
         <div className="feature-grid">
@@ -189,8 +189,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <CheckoutStartPanel
           stack={checkoutOfferStack}
           context={{
-            eyebrow: "Linked funnel checkout start",
-            heading: "Start the sandbox checkout from this published funnel.",
+            eyebrow: "Linked funnel checkout",
+            heading: "Review the checkout path from this funnel.",
             agentClientId: "public-funnel-ui",
             idempotencyPrefix: `bumpgrade-funnel-${funnel.slug}`,
           }}
@@ -275,7 +275,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           </div>
           <div>
             <PanelsTopLeft aria-hidden="true" />
-            <h3>Preview semantics</h3>
+            <h3>Public route semantics</h3>
             <p>The funnel route is crawlable and semantic so browser agents can inspect it without private admin UI.</p>
           </div>
           <div>

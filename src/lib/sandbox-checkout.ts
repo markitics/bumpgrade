@@ -9,7 +9,7 @@ type CheckoutMode = NonNullable<CheckoutSessionCreateParams["mode"]>;
 
 export const sandboxCheckoutProductId = "product-bumpgrade-sandbox-launch-pass";
 export const sandboxCheckoutPriceId = "price-bumpgrade-sandbox-launch-pass-usd";
-export const checkoutConfirmationText = "Create sandbox checkout for Bumpgrade sandbox launch pass at 9.00 USD";
+export const checkoutConfirmationText = "Create checkout for Bumpgrade launch pass at 9.00 USD";
 
 export const checkoutRoutes = {
   start: "/api/commerce/checkout",
@@ -23,9 +23,9 @@ export const sandboxCheckoutOffer = {
   id: "sandbox-launch-pass",
   productId: sandboxCheckoutProductId,
   priceId: sandboxCheckoutPriceId,
-  name: "Bumpgrade sandbox launch pass",
+  name: "Bumpgrade launch pass",
   summary:
-    "A one-time sandbox checkout offer used to prove Checkout Session creation, D1 intent persistence, webhook idempotency, and redacted payment audit trails before live billing is enabled.",
+    "A one-time checkout offer used to prove Checkout Session creation, intent persistence, webhook idempotency, and redacted payment audit trails before live billing is enabled.",
   currency: "usd",
   unitAmountCents: 900,
   billingInterval: "one_time",

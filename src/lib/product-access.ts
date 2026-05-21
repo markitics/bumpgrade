@@ -87,7 +87,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
   commerceContractRoute: "/commerce/source-data",
   revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A product/access scaffold covering downloads, courses, memberships, services, events, bundles, sandbox webhook-backed entitlement grants, subscription-backed membership access, the first private R2-backed fixture delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
+    "A product/access library covering downloads, courses, memberships, services, events, bundles, trusted payment-backed entitlement grants, subscription-backed membership access, the first private delivery path, owner-confirmed private asset upload intents, non-destructive revocation intent readiness, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",

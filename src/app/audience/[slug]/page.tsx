@@ -19,6 +19,9 @@ type AudienceAutomationPageProps = {
   }>;
 };
 
+const publicAudienceAutomationBoundary =
+  "Audience sends open only after verified consent, suppression checks, sender-domain readiness, provider safety, queue controls, and owner-confirmed audit evidence.";
+
 export function generateStaticParams() {
   return audienceAutomationWorkspaces.map((workspace) => ({ slug: workspace.slug }));
 }
@@ -30,13 +33,13 @@ export async function generateMetadata({ params }: AudienceAutomationPageProps):
   if (!workspace) return {};
 
   return {
-    title: `${workspace.title} Preview`,
+    title: workspace.title,
     description: `${workspace.summary} This Bumpgrade audience automation scaffold is tied to issue #${workspace.issue}.`,
     alternates: {
       canonical: `${site.url}${workspace.previewRoute}`,
     },
     openGraph: {
-      title: `${workspace.title} preview`,
+      title: workspace.title,
       description: workspace.summary,
       url: `${site.url}${workspace.previewRoute}`,
       type: "article",
@@ -93,7 +96,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${workspace.title} preview`,
+    name: workspace.title,
     url: `${site.url}${workspace.previewRoute}`,
     description: workspace.summary,
     isPartOf: {
@@ -112,7 +115,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Audience automation preview</p>
+          <p className="eyebrow">Audience automation</p>
           <h1>{workspace.title}</h1>
           <p className="lede">{workspace.summary}</p>
           <div className="hero-actions">
@@ -126,12 +129,12 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Audience automation preview status">
+        <aside className="feature-status-panel" aria-label="Audience automation status">
           <Send aria-hidden="true" />
           <p>Status</p>
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
-            Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, broadcast readiness, preview safety,
+            Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, broadcast readiness, footer safety,
             dry-run schedule intents, and queue readiness are live for the seeded waitlist; email sending stays disabled
             until confirmed-write APIs exist.
           </span>
@@ -271,7 +274,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             <h3>Source data first</h3>
             <p>
               <code>/audience/source-data</code> exposes public-safe segment, opt-in form, tag, sequence, broadcast,
-              automation, subscriber capture, suppression, CRM timeline, broadcast readiness, preview safety, and schedule intent records.
+              automation, subscriber capture, suppression, CRM timeline, broadcast readiness, footer safety, and schedule intent records.
             </p>
           </div>
           <div>
@@ -282,7 +285,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Confirmed writes later</h3>
-            <p>{workspace.writeBoundary}</p>
+            <p>{publicAudienceAutomationBoundary}</p>
           </div>
         </div>
       </section>

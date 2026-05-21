@@ -12,6 +12,9 @@ type ProductAccessPageProps = {
   }>;
 };
 
+const publicProductAccessBoundary =
+  "Customer access opens only after trusted payment or subscription evidence, entitlement checks, owner-safe audit records, and private asset delivery controls.";
+
 export function generateStaticParams() {
   return productAccessCatalogs.map((catalog) => ({ slug: catalog.slug }));
 }
@@ -23,13 +26,13 @@ export async function generateMetadata({ params }: ProductAccessPageProps): Prom
   if (!catalog) return {};
 
   return {
-    title: `${catalog.title} Preview`,
+    title: catalog.title,
     description: `${catalog.summary} This Bumpgrade product/access scaffold is tied to issue #${catalog.issue}.`,
     alternates: {
       canonical: `${site.url}${catalog.previewRoute}`,
     },
     openGraph: {
-      title: `${catalog.title} preview`,
+      title: catalog.title,
       description: catalog.summary,
       url: `${site.url}${catalog.previewRoute}`,
       type: "article",
@@ -69,7 +72,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${catalog.title} preview`,
+    name: catalog.title,
     url: `${site.url}${catalog.previewRoute}`,
     description: catalog.summary,
     isPartOf: {
@@ -88,7 +91,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Product access preview</p>
+          <p className="eyebrow">Product access</p>
           <h1>{catalog.title}</h1>
           <p className="lede">{catalog.summary}</p>
           <div className="hero-actions">
@@ -102,12 +105,12 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Product access preview status">
+        <aside className="feature-status-panel" aria-label="Product access status">
           <FileArchive aria-hidden="true" />
           <p>Status</p>
           <strong>{catalog.products.length} product types</strong>
           <span>
-            Assets, access rules, entitlement templates, and sandbox grant mappings are public-safe records; private
+            Assets, access rules, entitlement templates, and grant mappings are public-safe records; private
             downloads, protected content, and live fulfillment stay disabled until confirmed-write APIs exist.
           </span>
         </aside>
@@ -180,7 +183,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
             <h3>Source data first</h3>
             <p>
               <code>/products/source-data</code> exposes public-safe product, asset, access-rule, entitlement
-              template, and sandbox grant mapping records.
+              template, and grant mapping records.
             </p>
           </div>
           <div>
@@ -191,7 +194,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Confirmed writes later</h3>
-            <p>{catalog.writeBoundary}</p>
+            <p>{publicProductAccessBoundary}</p>
           </div>
         </div>
       </section>

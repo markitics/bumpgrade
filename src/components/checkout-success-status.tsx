@@ -125,11 +125,11 @@ export function CheckoutSuccessStatus({ checkoutIntentId }: { checkoutIntentId?:
   return (
     <>
       <div>
-        <p className="eyebrow">Sandbox checkout</p>
-        <h1>The sandbox checkout returned successfully.</h1>
+        <p className="eyebrow">Checkout</p>
+        <h1>The checkout returned successfully.</h1>
         <p className="lede">
           This page is the safe return target for the first Bumpgrade Stripe Checkout Session path. Fulfillment
-          should still wait for the webhook to update the D1 checkout intent.
+          should still wait for the webhook to update the checkout intent.
         </p>
         <div className="hero-actions">
           {isReady ? (

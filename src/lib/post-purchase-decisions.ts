@@ -146,7 +146,7 @@ export const postPurchaseDecisionContract = {
     "private checkout metadata",
   ],
   writeBoundary:
-    "Issue #117 can record non-billing post-purchase upsell/downsell decisions for trusted sandbox checkout intents. It cannot create Stripe charges, PaymentIntents, subscriptions, fulfillment, entitlement grants, payable commissions, payout state, tax records, partner notifications, or direct agent billing writes.",
+    "Issue #117 can record non-billing post-purchase upsell/downsell decisions for trusted checkout intents. It cannot create Stripe charges, PaymentIntents, subscriptions, fulfillment, entitlement grants, payable commissions, payout state, tax records, partner notifications, or direct agent billing writes.",
 };
 
 export function publicPostPurchaseCheckout(row: PostPurchaseCheckoutRow): PublicPostPurchaseCheckout {
@@ -309,7 +309,7 @@ export async function recordPostPurchaseDecision(input: {
       ok: false,
       status: 409,
       code: "post_purchase_checkout_not_eligible",
-      message: "Post-purchase decisions require a paid or completed sandbox checkout intent.",
+      message: "Post-purchase decisions require a paid or completed checkout intent.",
       checkout: publicCheckoutState,
     };
   }

@@ -21,7 +21,7 @@ function formatPercent(value: number | null) {
 }
 
 function reportModeLabel(mode: AnalyticsFunnelConversionRow["reportMode"]) {
-  return mode === "captured_events" ? "Captured" : "Fixture";
+  return mode === "captured_events" ? "Captured" : "Modeled";
 }
 
 function MetricCard({ metric }: { metric: AnalyticsFunnelConversionRow }) {
@@ -39,8 +39,8 @@ function MetricCard({ metric }: { metric: AnalyticsFunnelConversionRow }) {
         {metric.conversionCount} conversions from {metric.visitorCount} visitors.
       </p>
       <div className="feature-detail">
-        <strong>Step ID</strong>
-        <span>{metric.stepId}</span>
+        <strong>Stage</strong>
+        <span>{metric.label}</span>
       </div>
       <div className="feature-detail">
         <strong>Source events</strong>

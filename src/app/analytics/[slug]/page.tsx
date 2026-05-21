@@ -20,6 +20,9 @@ type AnalyticsPageProps = {
   }>;
 };
 
+const publicAnalyticsBoundary =
+  "Visitor tracking and experiment decisions open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
+
 export function generateStaticParams() {
   return analyticsDashboards.map((dashboard) => ({ slug: dashboard.slug }));
 }
@@ -31,13 +34,13 @@ export async function generateMetadata({ params }: AnalyticsPageProps): Promise<
   if (!dashboard) return {};
 
   return {
-    title: `${dashboard.title} Preview`,
+    title: dashboard.title,
     description: `${dashboard.summary} This Bumpgrade analytics scaffold is tied to issue #${dashboard.issue}.`,
     alternates: {
       canonical: `${site.url}${dashboard.previewRoute}`,
     },
     openGraph: {
-      title: `${dashboard.title} preview`,
+      title: dashboard.title,
       description: dashboard.summary,
       url: `${site.url}${dashboard.previewRoute}`,
       type: "article",
@@ -76,7 +79,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${dashboard.title} preview`,
+    name: dashboard.title,
     url: `${site.url}${dashboard.previewRoute}`,
     description: dashboard.summary,
     isPartOf: {
@@ -95,7 +98,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
       />
       <section className="feature-hero">
         <div>
-          <p className="eyebrow">Analytics preview</p>
+          <p className="eyebrow">Analytics dashboard</p>
           <h1>{dashboard.title}</h1>
           <p className="lede">{dashboard.summary}</p>
           <div className="hero-actions">
@@ -109,7 +112,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             </Link>
           </div>
         </div>
-        <aside className="feature-status-panel" aria-label="Analytics preview status">
+        <aside className="feature-status-panel" aria-label="Analytics dashboard status">
           <BarChart3 aria-hidden="true" />
           <p>Status</p>
           <strong>{dashboard.events.length} event definitions</strong>
@@ -238,7 +241,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <div>
             <FlaskConical aria-hidden="true" />
             <h3>Confirmed writes later</h3>
-            <p>{dashboard.writeBoundary}</p>
+            <p>{publicAnalyticsBoundary}</p>
           </div>
         </div>
       </section>
