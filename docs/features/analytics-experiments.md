@@ -1,12 +1,13 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, and #129 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, and #261 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
 first aggregate variant and source attribution page-view evidence, and the first
-dashboard-visible source attribution breakdown, and fixed aggregate source and
-conversion time-window filters for issue #18.
+dashboard-visible source attribution breakdown, fixed aggregate source and
+conversion time-window filters, and owner-confirmed experiment decision evidence
+for issue #18.
 
 ## Live Routes
 
@@ -19,6 +20,10 @@ conversion time-window filters for issue #18.
 - `/api/analytics/events`: public POST endpoint for seeded analytics events.
 - `/api/analytics/assignments`: public POST endpoint for seeded experiment
   assignments.
+- `/api/admin/analytics/experiment-decisions`: owner-gated GET/POST endpoint for
+  confirmed experiment decision evidence.
+- `/admin/analytics`: owner-gated page for aggregate experiment decision
+  evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -41,6 +46,8 @@ The first dashboard includes stable IDs for:
   source and conversion summaries.
 - browser-side page-view beacon boundaries.
 - dashboard-visible source attribution breakdowns.
+- owner-confirmed experiment decision counts, latest public-safe decision
+  metadata, selected fixed-window evidence, and redaction flags.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -54,19 +61,24 @@ URLs and raw query strings. The server ignores known bot/crawler and explicit
 preview/test-suppressed traffic before creating analytics event rows. The
 current report path computes visitor, conversion, and conversion-rate rows from
 captured test events in the selected fixed window when samples exist, then
-falls back to fixture rows only when no samples exist. These paths do not assign
-cookies, expose contact-level analytics, expose raw event or assignment rows,
-expose raw campaign/referrer payloads, route experiment traffic, make automated
-decisions, or prove statistical significance.
+falls back to fixture rows only when no samples exist. Owner sessions can record
+experiment decision evidence only after exact confirmation, idempotency,
+dashboard revision checks, experiment status checks, aggregate assignment-count
+checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
+These paths do not assign cookies, expose contact-level analytics, expose raw
+event or assignment rows, expose raw campaign/referrer payloads, route
+experiment traffic, make automated winner decisions, make revenue claims, or
+prove statistical significance.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, event capture boundary,
 page-view beacon boundary, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
-boundary, and aggregate conversion report rows to understand analytics and
-experiment semantics. Direct agent analytics writes, custom events, raw
-campaign/referrer reporting, tracking cookies, experiment traffic routing,
-reporting decisions, or revenue claims require authenticated confirmed-write
-APIs with actor identity, privacy review, idempotency, stale-state checks, audit
-correlation, redaction, retention limits, and sample-size caveats.
+boundary, owner-confirmed experiment decision evidence, and aggregate conversion
+report rows to understand analytics and experiment semantics. Direct public
+agent analytics writes, custom events, raw campaign/referrer reporting, tracking
+cookies, experiment traffic routing, automated winners, or revenue claims
+require authenticated confirmed-write APIs with actor identity, privacy review,
+idempotency, stale-state checks, audit correlation, redaction, retention limits,
+and sample-size caveats.
