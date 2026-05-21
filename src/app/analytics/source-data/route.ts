@@ -6,6 +6,7 @@ import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-
 import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
 import { getAnalyticsNotificationContentConsentReadinessSummary } from "@/lib/analytics-notification-content-consent-readiness";
+import { getAnalyticsNotificationSendPayloadReadinessSummary } from "@/lib/analytics-notification-send-payload-readiness";
 import { getAnalyticsNotificationDispatchPreflightSummary } from "@/lib/analytics-notification-dispatch-preflights";
 import { getAnalyticsNotificationInboxSummary } from "@/lib/analytics-notification-inbox";
 import { getAnalyticsNotificationProviderDomainReadinessSummary } from "@/lib/analytics-notification-provider-domain-readiness";
@@ -202,6 +203,7 @@ export async function GET(request: NextRequest) {
   const notificationDispatchPreflights = await getAnalyticsNotificationDispatchPreflightSummary(db);
   const notificationProviderDomainReadiness = await getAnalyticsNotificationProviderDomainReadinessSummary(db);
   const notificationContentConsentReadiness = await getAnalyticsNotificationContentConsentReadinessSummary(db);
+  const notificationSendPayloadReadiness = await getAnalyticsNotificationSendPayloadReadinessSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -217,6 +219,7 @@ export async function GET(request: NextRequest) {
     notificationDispatchPreflights,
     notificationProviderDomainReadiness,
     notificationContentConsentReadiness,
+    notificationSendPayloadReadiness,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,

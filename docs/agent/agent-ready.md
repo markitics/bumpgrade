@@ -283,7 +283,8 @@ cohort comparison evidence, plus owner-reviewed alert threshold/anomaly-review
 evidence, owner-reviewed notification delivery readiness evidence,
 owner-confirmed notification inbox record evidence, and owner-confirmed
 notification dispatch preflight evidence, plus owner-reviewed notification
-provider/domain readiness and content/consent readiness evidence.
+provider/domain readiness, content/consent readiness, and send-payload
+readiness evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
 validation, and hashed request evidence. `/funnels/indie-launch-sandbox` now
@@ -306,7 +307,11 @@ record checks, fixed-window sample-size checks, and sample-size caveat
 acknowledgement. The same admin page lets verified owners record redacted
 notification content/consent readiness evidence after exact confirmation,
 readiness checks, current provider/domain readiness checks, fixed-window
-sample-size checks, and sample-size caveat acknowledgement. The
+sample-size checks, and sample-size caveat acknowledgement. The same admin page
+lets verified owners record redacted notification send-payload readiness
+evidence after exact confirmation, readiness checks, current content/consent
+readiness checks, fixed-window sample-size checks, and sample-size caveat
+acknowledgement. The
 same source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
@@ -324,16 +329,22 @@ verified sender-domain claims, recipients, email bodies, provider message IDs,
 queue payloads, queues, provider sends, or customer alerts. The content/consent
 readiness path creates owner-visible readiness evidence only, not body
 templates, unsubscribe URLs, recipients, email bodies, provider message IDs,
-queue payloads, queues, provider sends, or customer alerts. This proves
+queue payloads, queues, provider sends, or customer alerts.
+The send-payload readiness path creates owner-visible readiness evidence only,
+not recipients, recipient payloads, personalized bodies, raw payload bodies,
+email bodies, body templates, unsubscribe URLs, provider responses, provider
+message IDs, queue messages, queue payloads, queues, provider sends, or customer
+alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
 evidence, owner-reviewed notification readiness evidence, owner-confirmed
 notification inbox evidence, owner-confirmed dispatch preflight evidence, and
 owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent
-readiness evidence, plus aggregate export metadata, not cookie assignment, automated alert sends, owner
+readiness evidence, owner-reviewed send-payload readiness evidence, plus aggregate export metadata, not cookie assignment, automated alert sends, owner
 email sends, provider sends, provider configuration, provider secrets, private
-DNS credentials, body templates, unsubscribe URLs, queue dispatch, customer alerts, traffic routing,
+DNS credentials, body templates, unsubscribe URLs, queue dispatch, queue
+messages, recipient payloads, personalized bodies, raw payload bodies, customer alerts, traffic routing,
 contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
