@@ -1,11 +1,12 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, #193, #195, #273, and #275 add the first
+Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, and #277 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
-and owner-reviewed fraud review record contracts for parent issue #19.
+owner-reviewed fraud review record, and owner-reviewed partner notification
+readiness record contracts for parent issue #19.
 
 ## Live Public-Safe Routes
 
@@ -28,8 +29,10 @@ and owner-reviewed fraud review record contracts for parent issue #19.
   endpoint for confirmed payout preparation evidence.
 - `/api/admin/affiliates/fraud-review-records`: owner-gated GET/POST endpoint
   for confirmed fraud review evidence.
+- `/api/admin/affiliates/notification-readiness-records`: owner-gated GET/POST
+  endpoint for confirmed partner notification readiness evidence.
 - `/admin/affiliates`: owner-gated page for reviewing and recording payout
-  preparation and fraud review evidence.
+  preparation, fraud review, and partner notification readiness evidence.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
@@ -40,6 +43,9 @@ and owner-reviewed fraud review record contracts for parent issue #19.
   payout preparation record counts and latest redacted metadata.
 - `/affiliates/source-data.fraudReviewRecords`: aggregate confirmed fraud
   review record counts and latest redacted metadata.
+- `/affiliates/source-data.partnerNotificationReadinessRecords`: aggregate
+  confirmed partner notification readiness record counts and latest redacted
+  metadata.
 
 ## Stable IDs
 
@@ -53,6 +59,8 @@ The contract introduces stable IDs for:
 - `payoutPreparationRecordStatus`
 - `fraudReviewRecordId`
 - `fraudReviewRecordStatus`
+- `partnerNotificationReadinessRecordId`
+- `partnerNotificationReadinessRecordStatus`
 - `referralLinkId`
 - `referralClickId`
 - `checkoutIntentId`
@@ -99,7 +107,17 @@ state, payout accounts, tax data, Stripe payout IDs, partner notification
 payloads, buyer data, raw ledger/click/checkout rows, raw actor identity,
 private fraud signals, and private notes from public source data. It proves
 affiliate/referral click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review semantics, not payable commissions, fraud
-enforcement, or payout capability.
+enforcement, or payout capability. Issue #277 lets owner sessions record
+partner notification readiness evidence after exact confirmation, idempotency,
+current program revision checks, partner report checks, payout batch status
+checks, payout preparation record status checks, fraud review record status
+checks, review flag checks, and linked ledger count checks while still
+excluding partner sends, provider calls, queue dispatch, recipient emails,
+message bodies, provider message IDs, fraud enforcement, payable commission
+state, payout accounts, tax data, Stripe payout IDs, buyer data, raw
+ledger/click/checkout rows, raw actor identity, private fraud signals, and
+private notes from public source data. It proves notification readiness
+semantics, not partner notification sending.
 
 Not live in this slice:
 
@@ -114,7 +132,9 @@ Not live in this slice:
 - tax form collection;
 - Stripe payout actions;
 - private partner portals;
-- partner notifications;
+- partner notification sends;
+- notification provider calls;
+- notification queue dispatch;
 - confirmed-write agent APIs.
 
 Future writes must require actor identity, explicit confirmation, idempotency,
