@@ -200,12 +200,12 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             <h3>No list-membership leak</h3>
             <p>Unsubscribe requests return a neutral response so no one can use the form to discover who is on a list.</p>
             <div className="feature-detail">
-              <strong>API route</strong>
-              <span>{workspace.unsubscribeManagement.apiRoute}</span>
+              <strong>Preference path</strong>
+              <span>Unsubscribe preferences can be saved without revealing list membership.</span>
             </div>
             <div className="feature-detail">
-              <strong>Public-safe fields</strong>
-              <span>{workspace.unsubscribeManagement.publicSafeFields.length} fields</span>
+              <strong>Private fields excluded</strong>
+              <span>{workspace.unsubscribeManagement.publicSafeFields.length} public-safe fields shown</span>
             </div>
           </article>
           <AudienceUnsubscribeForm />
@@ -246,7 +246,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Nurture path</p>
-            <h2>Email sequences and automations are draft records, not sends</h2>
+            <h2>Email sequences and automations wait for readiness checks</h2>
           </div>
           <Link href={workspace.linkedProductRoute} className="text-link compact-link">
             Product access
@@ -282,7 +282,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           </div>
           <div>
             <MailCheck aria-hidden="true" />
-            <h3>No email send path</h3>
+            <h3>Email delivery checks</h3>
             <p>Consent, suppression, and readiness evidence are stored server-side, but provider IDs and private contact timelines stay out of public data.</p>
           </div>
           <div>
