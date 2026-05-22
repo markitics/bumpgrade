@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Bumpgrade mark</title>
+  <desc id="desc">A dark green rounded square with a stepped B monogram and an upward gold arrow.</desc>
+  <rect width="512" height="512" rx="96" fill="#174131"/>
+  <path fill="#fbf8f0" d="M112 104h64v304h-64V104Zm48 0h128c70 0 112 35 112 91 0 36-17 63-48 78 41 14 64 45 64 87 0 61-46 96-122 96H160v-68h126c39 0 59-15 59-43s-20-43-59-43H160v-64h112c37 0 56-14 56-42s-19-42-56-42H160v-50Z"/>
+  <path fill="#d1a752" d="M319 112h88v88h-42v-24l-76 76-30-30 76-76h-16v-34Z"/>
+</svg>

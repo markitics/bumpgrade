@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Bumpgrade brand card</title>
+  <desc id="desc">Bumpgrade brand preview for social sharing.</desc>
+  <rect width="1200" height="630" fill="#f5f7f4"/>
+  <rect x="64" y="64" width="1072" height="502" rx="36" fill="#ffffff" stroke="#c9d3ce" stroke-width="2"/>
+  <g transform="translate(112 118) scale(.52)">
+    <rect width="512" height="512" rx="96" fill="#174131"/>
+    <path fill="#fbf8f0" d="M112 104h64v304h-64V104Zm48 0h128c70 0 112 35 112 91 0 36-17 63-48 78 41 14 64 45 64 87 0 61-46 96-122 96H160v-68h126c39 0 59-15 59-43s-20-43-59-43H160v-64h112c37 0 56-14 56-42s-19-42-56-42H160v-50Z"/>
+    <path fill="#d1a752" d="M319 112h88v88h-42v-24l-76 76-30-30 76-76h-16v-34Z"/>
+  </g>
+  <text x="430" y="250" fill="#121713" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="92" font-weight="850" letter-spacing="0">Bumpgrade</text>
+  <text x="434" y="316" fill="#5c645e" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="34" font-weight="700" letter-spacing="0">publisher growth OS</text>
+  <text x="434" y="390" fill="#121713" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="29" font-weight="700" letter-spacing="0">Funnels, checkout, email, products, analytics, and AI-assisted growth in one launch system.</text>
+  <rect x="434" y="454" width="76" height="18" rx="9" fill="#174131"/>
+  <rect x="528" y="454" width="76" height="18" rx="9" fill="#1f536b"/>
+  <rect x="622" y="454" width="76" height="18" rx="9" fill="#8a6424"/>
+  <rect x="716" y="454" width="76" height="18" rx="9" fill="#7c3e46"/>
+</svg>

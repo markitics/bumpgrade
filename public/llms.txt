@@ -13,6 +13,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Feature source data: https://bumpgrade.com/features/source-data
 - Users and use cases: https://bumpgrade.com/users
 - Resources: https://bumpgrade.com/resources
+- Brand kit: https://bumpgrade.com/brand
+- Brand source data: https://bumpgrade.com/brand/source-data
 - Pricing direction: https://bumpgrade.com/pricing
 - Content surface source data: https://bumpgrade.com/content/source-data
 - Publisher account setup: https://bumpgrade.com/account/setup
@@ -128,9 +130,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   comparison intent. Treat those as routing/search-intent metadata, not proof
   that planned Bumpgrade parity features have shipped.
 - `/content/source-data` exposes audience, resource, and pricing-direction
-  records for public content surfaces. Treat pricing tracks as positioning
-  hypotheses, not published plan names, amounts, trials, limits, or live billing
-  availability.
+  records for public content surfaces. Pricing tracks include the published
+  Bumpgrade account-plan names and amounts, but they are not proof of
+  publisher-offer billing, trials, limits, or planned feature availability.
+- `/brand/source-data` exposes public logo, favicon, social-card, palette,
+  typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes paid publisher tenant setup, default
   `*.bumpgrade.com` subdomain reservation policy, existing custom-domain DNS
   onboarding policy, D1 table boundaries, and cross-subdomain Better Auth
