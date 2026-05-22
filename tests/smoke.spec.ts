@@ -266,7 +266,7 @@ const routes = [
   { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
   { path: "/pricing", heading: "Start building your publisher launch system today" },
   { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
-  { path: "/pricing/success", heading: "Checkout needs one more check" },
+  { path: "/pricing/success", heading: "Finish verifying your checkout" },
   { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
@@ -277,7 +277,7 @@ const routes = [
   { path: "/affiliates/indie-launch-partners", heading: "Indie launch partner program" },
   { path: "/commerce/checkout/success", heading: "checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "checkout was canceled" },
-  { path: "/login", heading: "Publisher login for Bumpgrade accounts" },
+  { path: "/login", heading: "Publisher account access for Bumpgrade" },
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
@@ -17581,6 +17581,30 @@ test.describe("Bumpgrade scaffold", () => {
 
     expect(signUpPayload.email).toBe(email);
     expect(signUpPayload.name).toBe("Trimmed Publisher");
+  });
+
+  test("publisher login defaults to account setup and can prefill the checkout email", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Publisher auth handoff is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `checkout-publisher-${suffix}@example.com`;
+
+    await page.goto(`/login?mode=sign-up&email=${encodeURIComponent(` ${email.toUpperCase()} `)}`);
+    await expect(page.getByRole("heading", { name: /Publisher account access for Bumpgrade/i })).toBeVisible();
+
+    const authForm = page.locator("form.auth-form");
+    await expect(authForm.getByLabel("Email")).toHaveValue(email);
+    await authForm.getByLabel("Name").fill("Checkout Publisher");
+    await authForm.getByLabel("Password").fill("BumpgradeLocal123!");
+
+    const signUpRequestPromise = page.waitForRequest(
+      (request) => request.method() === "POST" && request.url().includes("/api/auth/sign-up/email"),
+    );
+    await authForm.getByRole("button", { name: "Create account" }).click();
+    const signUpRequest = await signUpRequestPromise;
+    const signUpPayload = signUpRequest.postDataJSON() as { callbackURL?: string; email?: string };
+
+    expect(signUpPayload.email).toBe(email);
+    expect(signUpPayload.callbackURL).toBe("/account/setup");
   });
 
   test("paid publisher can reserve a Bumpgrade subdomain idempotently", async ({ page }, testInfo) => {

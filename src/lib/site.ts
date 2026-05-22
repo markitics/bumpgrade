@@ -191,7 +191,7 @@ export const scaffoldRoutes = [
 
 export const loginNavItem: NavItem = {
   label: "Log in / sign up",
-  href: "/login",
+  href: "/login?callbackURL=/account/setup",
   description: "Sign in or create a Bumpgrade publisher account.",
   icon: LogIn,
   status: "live",
