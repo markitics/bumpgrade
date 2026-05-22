@@ -12,6 +12,7 @@ import { getAnalyticsNotificationDeliveryStatusWebhookReadinessSummary } from "@
 import { getAnalyticsNotificationProviderPollingReadinessSummary } from "@/lib/analytics-notification-provider-polling-readiness";
 import { getAnalyticsNotificationReceiptPayloadReadinessSummary } from "@/lib/analytics-notification-receipt-payload-readiness";
 import { getAnalyticsNotificationDeliveryReceiptReadinessSummary } from "@/lib/analytics-notification-delivery-receipt-readiness";
+import { getAnalyticsNotificationProviderStatusReconciliationReadinessSummary } from "@/lib/analytics-notification-provider-status-reconciliation-readiness";
 import { getAnalyticsNotificationProviderCallReadinessSummary } from "@/lib/analytics-notification-provider-call-readiness";
 import { getAnalyticsNotificationQueueConsumerReadinessSummary } from "@/lib/analytics-notification-queue-consumer-readiness";
 import { getAnalyticsNotificationQueueProducerReadinessSummary } from "@/lib/analytics-notification-queue-producer-readiness";
@@ -222,6 +223,8 @@ export async function GET(request: NextRequest) {
   const notificationProviderPollingReadiness = await getAnalyticsNotificationProviderPollingReadinessSummary(db);
   const notificationReceiptPayloadReadiness = await getAnalyticsNotificationReceiptPayloadReadinessSummary(db);
   const notificationDeliveryReceiptReadiness = await getAnalyticsNotificationDeliveryReceiptReadinessSummary(db);
+  const notificationProviderStatusReconciliationReadiness =
+    await getAnalyticsNotificationProviderStatusReconciliationReadinessSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -247,6 +250,7 @@ export async function GET(request: NextRequest) {
     notificationProviderPollingReadiness,
     notificationReceiptPayloadReadiness,
     notificationDeliveryReceiptReadiness,
+    notificationProviderStatusReconciliationReadiness,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,
