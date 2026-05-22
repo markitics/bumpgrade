@@ -494,7 +494,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public launch pages avoid internal build language", async ({ page }) => {
     const internalTerms =
-      /\b(?:Cloudflare|D1|database|admin|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|launch-preview|Issue #|PR #|In build|feature coming|request access/i;
+      /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access/i;
 
     const publicCopyRoutes = [
       "/",
@@ -1231,6 +1231,7 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/offers/indie-launch-stack");
     await expect(page.getByRole("heading", { name: /Indie launch checkout offer stack/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Choose the bump and review the checkout path/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Primary offer, order bump, upsell, and downsell/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Payment steps stay clear before money moves/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Offer structure is visible; payment data stays private/i })).toBeVisible();
@@ -1238,8 +1239,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Launch accelerator upsell" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Launch review downsell" })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
-    await page.getByLabel(/Review phrase/i).fill(checkoutConfirmationText);
-    await page.getByRole("button", { name: /Check checkout setup/i }).click();
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
+    await page.getByRole("button", { name: /Review checkout path/i }).click();
     await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
   });
@@ -12454,9 +12455,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Indie launch partner program/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only before payout prep/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Review-only commission evidence stays reversible before payout/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Commission evidence stays reversible before payout/i })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /Payout preparation stays read-only until refund windows and review flags are resolved/i }),
+      page.getByRole("heading", { name: /Payout preparation waits until refund windows and review flags are resolved/i }),
     ).toBeVisible();
     await expect(page.getByText("Launch Circle performance report")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payout preparation", exact: true })).toBeVisible();
@@ -17549,8 +17550,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Review the checkout path from this funnel." })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
-    await page.getByLabel(/Review phrase/i).fill(checkoutConfirmationText);
-    await page.getByRole("button", { name: /Check checkout setup/i }).click();
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
+    await page.getByRole("button", { name: /Review checkout path/i }).click();
     await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
     await expect(page.locator("body")).not.toContainText("m@rkmoriarty.com");

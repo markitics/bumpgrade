@@ -321,7 +321,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Commission ledger</p>
-            <h2>Review-only commission evidence stays reversible before payout</h2>
+            <h2>Commission evidence stays reversible before payout</h2>
           </div>
           <Link href={program.linkedAnalyticsRoute} className="text-link compact-link">
             Analytics dashboard
@@ -339,7 +339,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Payout review</p>
-            <h2>Payout preparation stays read-only until refund windows and review flags are resolved</h2>
+            <h2>Payout preparation waits until refund windows and review flags are resolved</h2>
           </div>
         </div>
         <div className="roadmap-grid">
