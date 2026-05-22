@@ -112,7 +112,7 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           <div>
             <strong>{response.duplicate ? "Already on the waitlist" : "Waitlist opt-in saved"}</strong>
             <span>{response.normalizedEmail}</span>
-            <span>Email delivery remains disabled until the next confirmed-write slice.</span>
+            <span>Email delivery waits for sender, consent, and suppression checks.</span>
           </div>
         </div>
       ) : null}

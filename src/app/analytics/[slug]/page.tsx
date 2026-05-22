@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Activity, ArrowRight, BarChart3, Database, FlaskConical, MapPinned, ShieldCheck } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, FlaskConical, MapPinned, ShieldCheck } from "lucide-react";
 
 import { AnalyticsConversionReportPanel } from "@/components/analytics-conversion-report-panel";
 import { AnalyticsSourceAttributionPanel } from "@/components/analytics-source-attribution-panel";
@@ -22,6 +22,8 @@ type AnalyticsPageProps = {
 
 const publicAnalyticsBoundary =
   "Visitor tracking and experiment decisions open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
+const analyticsPageDescription =
+  "A launch analytics dashboard that summarizes funnel conversion, source attribution, and experiment results without publishing visitor-level data.";
 
 export function generateStaticParams() {
   return analyticsDashboards.map((dashboard) => ({ slug: dashboard.slug }));
@@ -35,13 +37,13 @@ export async function generateMetadata({ params }: AnalyticsPageProps): Promise<
 
   return {
     title: dashboard.title,
-    description: `${dashboard.summary} This Bumpgrade analytics scaffold is tied to issue #${dashboard.issue}.`,
+    description: analyticsPageDescription,
     alternates: {
       canonical: `${site.url}${dashboard.previewRoute}`,
     },
     openGraph: {
       title: dashboard.title,
-      description: dashboard.summary,
+      description: analyticsPageDescription,
       url: `${site.url}${dashboard.previewRoute}`,
       type: "article",
     },
@@ -52,7 +54,7 @@ function ExperimentCard({ experiment }: { experiment: ExperimentDefinition }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge planned">Experiment</span>
+        <span className="status-badge active">Experiment</span>
         <span className="admin-pill">{experiment.status}</span>
       </div>
       <FlaskConical aria-hidden="true" />
@@ -81,7 +83,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
     "@type": "WebPage",
     name: dashboard.title,
     url: `${site.url}${dashboard.previewRoute}`,
-    description: dashboard.summary,
+    description: analyticsPageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -100,14 +102,14 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div>
           <p className="eyebrow">Analytics dashboard</p>
           <h1>{dashboard.title}</h1>
-          <p className="lede">{dashboard.summary}</p>
+          <p className="lede">{analyticsPageDescription}</p>
           <div className="hero-actions">
-            <Link href="/analytics/source-data" className="primary-action">
-              Analytics JSON
-              <Database aria-hidden="true" />
+            <Link href={dashboard.linkedFunnelRoute} className="primary-action">
+              See the funnel
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${dashboard.issue}`} className="secondary-action">
-              Issue #{dashboard.issue}
+            <Link href={dashboard.linkedOfferRoute} className="secondary-action">
+              See the checkout offer
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -117,10 +119,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <p>Status</p>
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
-            Seeded event capture and deterministic assignments are live with idempotency and aggregate-only reporting;
-            conversion report rows now use captured events when present, and owner-reviewed decision evidence can be
-            recorded separately. Cookies, traffic routing, contact-level analytics, automated winners, and revenue claims
-            stay disabled.
+            Event capture, variant assignment, and conversion summaries stay aggregate-only, with visitor privacy and
+            revenue claims kept out of public reporting.
           </span>
         </aside>
       </section>
@@ -154,8 +154,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           {dashboard.events.slice(0, 4).map((event) => (
             <article key={event.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className="status-badge planned">{event.kind.replaceAll("_", " ")}</span>
-                <span className="admin-pill">Public-safe</span>
+                <span className="status-badge live">{event.kind.replaceAll("_", " ")}</span>
+                <span className="admin-pill">Private fields excluded</span>
               </div>
               <Activity aria-hidden="true" />
               <h3>{event.title}</h3>
@@ -175,8 +175,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <p className="eyebrow">Source attribution</p>
             <h2>Source attribution stays aggregate-only</h2>
           </div>
-          <Link href="/analytics/source-data" className="text-link compact-link">
-            Source data
+          <Link href={dashboard.linkedAudienceRoute} className="text-link compact-link">
+            Audience automation
             <MapPinned aria-hidden="true" />
           </Link>
         </div>
@@ -201,14 +201,14 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <ExperimentCard experiment={primaryExperiment} />
           <article className="roadmap-card">
             <div className="roadmap-card-top">
-              <span className="status-badge pending">Guardrails</span>
+              <span className="status-badge blocked">Safeguards</span>
               <span className="admin-pill">Sample size</span>
             </div>
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Agents may summarize fixture metrics, assignment counts, and owner decision evidence, but live traffic
-              routing still needs separate safety gates beyond sample-size caveats and owner confirmation.
+              Bumpgrade can summarize assignment counts and decision evidence, but traffic routing waits for sample-size
+              checks and owner confirmation.
             </p>
           </article>
         </div>
@@ -217,22 +217,19 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect metrics, capture seeded events, and assign variants, not track visitors.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Metrics are useful without exposing visitor-level data.</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/analytics/source-data</code> exposes public-safe events, metric formulas, aggregate event and
-              assignment counts, aggregate conversion report rows, and experiment definitions.
-            </p>
+            <BarChart3 aria-hidden="true" />
+            <h3>Aggregate reporting</h3>
+            <p>Conversion and source views summarize patterns without publishing raw event rows.</p>
           </div>
           <div>
             <BarChart3 aria-hidden="true" />
@@ -241,7 +238,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           </div>
           <div>
             <FlaskConical aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>Experiment changes are protected</h3>
             <p>{publicAnalyticsBoundary}</p>
           </div>
         </div>

@@ -522,7 +522,8 @@ test.describe("Bumpgrade scaffold", () => {
   });
 
   test("public example routes avoid test-fixture wording", async ({ page }) => {
-    const testFixtureTerms = /\b(?:preview|sandbox)\b/i;
+    const testFixtureTerms =
+      /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox|scaffold|fixture|issue|PR|implementation)\b|source-data|source data|how I built|contract shipped|launch-preview|confirmed-write|read contract/i;
     const publicExampleRoutes = [
       "/funnels/indie-launch-sandbox",
       "/offers/indie-launch-stack",
@@ -1124,8 +1125,8 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/funnels/indie-launch-sandbox");
     await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Three-step launch funnel/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Reusable funnel shapes for private draft starts/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Reusable page blocks with write boundaries/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reusable funnel shapes for private workspace starts/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reusable page blocks with safety rules/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Launch sales funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Webinar registration and replay funnel/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Resource library promise/i })).toBeVisible();
@@ -3233,7 +3234,7 @@ test.describe("Bumpgrade scaffold", () => {
     await optInForm.getByRole("button", { name: /Join waitlist/i }).click();
     await expect(page.getByText("Waitlist opt-in saved")).toBeVisible();
     await expect(page.getByText(browserEmail)).toBeVisible();
-    await expect(page.getByText("Email delivery remains disabled")).toBeVisible();
+    await expect(page.getByText("Email delivery waits for sender, consent, and suppression checks.")).toBeVisible();
 
     const unsubscribeForm = page.getByRole("form", { name: "Audience unsubscribe" });
     await unsubscribeForm.getByLabel("Email address").fill(` ${browserEmail.toUpperCase()} `);

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Database, MailCheck, Send, ShieldCheck, Tags, Workflow } from "lucide-react";
+import { ArrowRight, MailCheck, Send, ShieldCheck, Tags, Workflow } from "lucide-react";
 
 import { AudienceOptInForm } from "@/components/audience-opt-in-form";
 import { AudienceUnsubscribeForm } from "@/components/audience-unsubscribe-form";
@@ -21,6 +21,13 @@ type AudienceAutomationPageProps = {
 
 const publicAudienceAutomationBoundary =
   "Audience sends open only after verified consent, suppression checks, sender-domain readiness, provider safety, queue controls, and owner-confirmed audit evidence.";
+const audiencePageDescription =
+  "An audience workspace for opt-ins, lead magnets, segments, sequences, automations, and unsubscribe handling with consent first.";
+
+function audienceStatusLabel(value: string) {
+  if (value === "draft") return "Ready to review";
+  return value.replaceAll("_", " ");
+}
 
 export function generateStaticParams() {
   return audienceAutomationWorkspaces.map((workspace) => ({ slug: workspace.slug }));
@@ -34,13 +41,13 @@ export async function generateMetadata({ params }: AudienceAutomationPageProps):
 
   return {
     title: workspace.title,
-    description: `${workspace.summary} This Bumpgrade audience automation scaffold is tied to issue #${workspace.issue}.`,
+    description: audiencePageDescription,
     alternates: {
       canonical: `${site.url}${workspace.previewRoute}`,
     },
     openGraph: {
       title: workspace.title,
-      description: workspace.summary,
+      description: audiencePageDescription,
       url: `${site.url}${workspace.previewRoute}`,
       type: "article",
     },
@@ -51,8 +58,8 @@ function SequenceCard({ sequence }: { sequence: EmailSequence }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge planned">Sequence</span>
-        <span className="admin-pill">{sequence.status}</span>
+        <span className="status-badge active">Sequence</span>
+        <span className="admin-pill">{audienceStatusLabel(sequence.status)}</span>
       </div>
       <MailCheck aria-hidden="true" />
       <h3>{sequence.title}</h3>
@@ -69,8 +76,8 @@ function AutomationCard({ automation }: { automation: AutomationRule }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge planned">Automation</span>
-        <span className="admin-pill">{automation.status}</span>
+        <span className="status-badge active">Automation</span>
+        <span className="admin-pill">{audienceStatusLabel(automation.status)}</span>
       </div>
       <Workflow aria-hidden="true" />
       <h3>{automation.title}</h3>
@@ -98,7 +105,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
     "@type": "WebPage",
     name: workspace.title,
     url: `${site.url}${workspace.previewRoute}`,
-    description: workspace.summary,
+    description: audiencePageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -117,14 +124,14 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
         <div>
           <p className="eyebrow">Audience automation</p>
           <h1>{workspace.title}</h1>
-          <p className="lede">{workspace.summary}</p>
+          <p className="lede">{audiencePageDescription}</p>
           <div className="hero-actions">
-            <Link href="/audience/source-data" className="primary-action">
-              Audience JSON
-              <Database aria-hidden="true" />
+            <Link href={workspace.linkedFunnelRoute} className="primary-action">
+              See the funnel
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${workspace.issue}`} className="secondary-action">
-              Issue #{workspace.issue}
+            <Link href={workspace.linkedProductRoute} className="secondary-action">
+              View product access
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -134,9 +141,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           <p>Status</p>
           <strong>{workspace.sequences.length} nurture sequence</strong>
           <span>
-            Consent-backed opt-in capture, unsubscribe suppression evidence, CRM notes, broadcast readiness, footer safety,
-            dry-run schedule intents, and queue readiness are live for the seeded waitlist; email sending stays disabled
-            until confirmed-write APIs exist.
+            Consent-backed signup, unsubscribe handling, contact notes, broadcast checks, and message safety are grouped
+            before any real subscriber sends.
           </span>
         </aside>
       </section>
@@ -153,10 +159,10 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           </Link>
         </div>
         <div className="feature-grid two-column-grid">
-          <article className="feature-card compact-content-card">
-            <div className="feature-card-top">
-              <span className="status-badge planned">Lead magnet</span>
-              <span className="admin-pill">{form.status}</span>
+            <article className="feature-card compact-content-card">
+              <div className="feature-card-top">
+              <span className="status-badge active">Lead magnet</span>
+              <span className="admin-pill">{audienceStatusLabel(form.status)}</span>
             </div>
             <h3>{leadMagnet?.title ?? "Lead magnet"}</h3>
             <p>{leadMagnet?.deliveryPromise}</p>
@@ -179,20 +185,20 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
             <p className="eyebrow">Suppression model</p>
             <h2>Unsubscribe evidence is captured before any sends exist</h2>
           </div>
-          <Link href={workspace.sourceDataRoute} className="text-link compact-link">
-            Public contract
-            <Database aria-hidden="true" />
+          <Link href={workspace.linkedOfferRoute} className="text-link compact-link">
+            Checkout offer
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-grid two-column-grid">
           <article className="feature-card compact-content-card">
             <div className="feature-card-top">
-              <span className="status-badge planned">Unsubscribe</span>
-              <span className="admin-pill">Issue #{workspace.unsubscribeManagement.issue}</span>
+              <span className="status-badge active">Unsubscribe</span>
+              <span className="admin-pill">Privacy-safe</span>
             </div>
             <ShieldCheck aria-hidden="true" />
             <h3>No list-membership leak</h3>
-            <p>{workspace.unsubscribeManagement.writeBoundary}</p>
+            <p>Unsubscribe requests return a neutral response so no one can use the form to discover who is on a list.</p>
             <div className="feature-detail">
               <strong>API route</strong>
               <span>{workspace.unsubscribeManagement.apiRoute}</span>
@@ -221,8 +227,8 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           {workspace.segments.map((segment) => (
             <article key={segment.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className="status-badge planned">Segment</span>
-                <span className="admin-pill">{segment.status}</span>
+                <span className="status-badge active">Segment</span>
+                <span className="admin-pill">{audienceStatusLabel(segment.status)}</span>
               </div>
               <Tags aria-hidden="true" />
               <h3>{segment.title}</h3>
@@ -260,22 +266,19 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect audience plans, not email subscribers.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Audience planning stays useful without exposing subscriber data.</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/audience/source-data</code> exposes public-safe segment, opt-in form, tag, sequence, broadcast,
-              automation, subscriber capture, suppression, CRM timeline, broadcast readiness, footer safety, and schedule intent records.
-            </p>
+            <Tags aria-hidden="true" />
+            <h3>Consent comes first</h3>
+            <p>Segments, tags, sequences, and automations depend on explicit signup consent.</p>
           </div>
           <div>
             <MailCheck aria-hidden="true" />
@@ -284,7 +287,7 @@ export default async function AudienceAutomationPage({ params }: AudienceAutomat
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>Sends are protected</h3>
             <p>{publicAudienceAutomationBoundary}</p>
           </div>
         </div>

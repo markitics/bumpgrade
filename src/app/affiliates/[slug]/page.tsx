@@ -5,7 +5,6 @@ import {
   ArrowRight,
   BadgeDollarSign,
   ChartNoAxesCombined,
-  Database,
   Handshake,
   Link2,
   Scale,
@@ -31,6 +30,38 @@ type AffiliatePageProps = {
 
 const publicAffiliateBoundary =
   "Payable commissions and payouts open only after trusted checkout attribution, fraud review, refund-window checks, payout account verification, tax readiness, owner confirmation, and redacted audit evidence.";
+const affiliatePageDescription =
+  "An affiliate workspace for partner links, commission rules, performance reports, and payout review without exposing buyer or payout data.";
+
+function publicStatusLabel(value: string) {
+  if (value === "approved_pending_payout") return "Approved for review";
+  if (value === "review_required") return "Needs review";
+  if (value === "not_payable") return "Not payable";
+  if (value === "public_safe_report_ready") return "Report ready";
+  if (value === "draft") return "In review";
+  return value.replaceAll("_", " ");
+}
+
+function commissionRuleSummary(kind: string) {
+  if (kind === "holdback") return "A holdback rule keeps commissions reviewable while refunds and disputes can still happen.";
+  return "Commission terms stay visible for review before payout setup, taxes, and partner account checks are complete.";
+}
+
+function ledgerReason(status: string) {
+  if (status === "approved_pending_payout") return "A paid checkout was attributed inside the partner window.";
+  if (status === "review_required") return "This commission needs owner review before it can become payable.";
+  return "This commission was reversed after refund or dispute review.";
+}
+
+function ledgerTitle(status: string) {
+  if (status === "approved_pending_payout") return "Launch pass commission";
+  if (status === "review_required") return "Self-referral review";
+  return "Refund reversal";
+}
+
+function partnerProfileCopy(value: string) {
+  return value.replaceAll("pending", "awaiting");
+}
 
 export function generateStaticParams() {
   return affiliatePrograms.map((program) => ({ slug: program.slug }));
@@ -44,13 +75,13 @@ export async function generateMetadata({ params }: AffiliatePageProps): Promise<
 
   return {
     title: program.title,
-    description: `${program.summary} This is a read-only Bumpgrade affiliate/referral scaffold tied to issue #${program.issue}.`,
+    description: affiliatePageDescription,
     alternates: {
       canonical: `${site.url}${program.previewRoute}`,
     },
     openGraph: {
       title: program.title,
-      description: program.summary,
+      description: affiliatePageDescription,
       url: `${site.url}${program.previewRoute}`,
       type: "article",
     },
@@ -65,7 +96,7 @@ function ReferralLinkCard({ link }: { link: ReferralLink }) {
   return (
     <article className="feature-card compact-content-card">
       <div className="feature-card-top">
-        <span className="status-badge planned">{link.status}</span>
+        <span className="status-badge active">{publicStatusLabel(link.status)}</span>
         <span className="admin-pill">{link.code}</span>
       </div>
       <Link2 aria-hidden="true" />
@@ -85,15 +116,15 @@ function LedgerCard({ ledger }: { ledger: CommissionLedgerFixture }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge pending">{ledger.status.replaceAll("_", " ")}</span>
+        <span className="status-badge live">{publicStatusLabel(ledger.status)}</span>
         <span className="admin-pill">{formatMoney(ledger.commissionCents)}</span>
       </div>
       <BadgeDollarSign aria-hidden="true" />
-      <h3>{ledger.id}</h3>
-      <p>{ledger.reason}</p>
+      <h3>{ledgerTitle(ledger.status)}</h3>
+      <p>{ledgerReason(ledger.status)}</p>
       <div className="roadmap-detail">
         <strong>Gross sale</strong>
-        <span>{formatMoney(ledger.grossSaleCents)} fixture sale</span>
+        <span>{formatMoney(ledger.grossSaleCents)} example sale</span>
       </div>
     </article>
   );
@@ -108,13 +139,13 @@ function PartnerReportCard({ report }: { report: AffiliatePartnerReport }) {
       </div>
       <ChartNoAxesCombined aria-hidden="true" />
       <h3>{report.title}</h3>
-      <p>{report.payoutReadiness.caveats.join(" ")}</p>
+      <p>Shows aggregate clicks, attributed checkouts, commission review, and reversal activity without buyer or payout data.</p>
       <div className="feature-detail">
-        <strong>Fixture commission evidence</strong>
+        <strong>Commission total</strong>
         <span>{formatMoney(report.fixtureMetrics.fixtureCommissionCents)} public-safe total</span>
       </div>
       <div className="feature-detail">
-        <strong>Runtime fields</strong>
+        <strong>Report fields</strong>
         <span>{report.fixtureMetrics.runtimeAggregateFields.slice(0, 4).join(", ")}</span>
       </div>
     </article>
@@ -127,21 +158,21 @@ function PayoutPreparationCard({ batch }: { batch: PayoutBatchFixture }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge pending">Preparation</span>
+        <span className="status-badge live">Review</span>
         <span className="admin-pill">{blockedCount} blockers</span>
       </div>
       <ShieldCheck aria-hidden="true" />
       <h3>Payout preparation</h3>
-      <p>{batch.caveat}</p>
+      <p>Use this checklist to review commissions before any partner payout is prepared.</p>
       <div className="roadmap-detail">
-        <strong>Eligible fixture evidence</strong>
+        <strong>Eligible commission evidence</strong>
         <span>
           {batch.eligibleLedgerIds.length} ledger, {formatMoney(batch.totalCommissionCents)} public-safe total
         </span>
       </div>
       <div className="roadmap-detail">
         <strong>Blocked before payout prep</strong>
-        <span>{batch.reviewBeforePayout.join(" ")}</span>
+        <span>Confirm the refund window, resolve review flags, and verify the partner payout account privately.</span>
       </div>
     </article>
   );
@@ -161,7 +192,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
     "@type": "WebPage",
     name: program.title,
     url: `${site.url}${program.previewRoute}`,
-    description: program.summary,
+    description: affiliatePageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -180,14 +211,14 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         <div>
           <p className="eyebrow">Affiliate program</p>
           <h1>{program.title}</h1>
-          <p className="lede">{program.summary}</p>
+          <p className="lede">{affiliatePageDescription}</p>
           <div className="hero-actions">
-            <Link href="/affiliates/source-data" className="primary-action">
-              Affiliate JSON
-              <Database aria-hidden="true" />
+            <Link href={program.linkedFunnelRoute} className="primary-action">
+              See the funnel
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${program.issue}`} className="secondary-action">
-              Issue #{program.issue}
+            <Link href={program.linkedOfferRoute} className="secondary-action">
+              See the checkout offer
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -197,10 +228,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           <p>Status</p>
           <strong>{program.partners.length} partner records</strong>
           <span>
-            Referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger
-            evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, and payout
-            review states are public-safe records; cookies, buyers, tax forms, partner notifications, Stripe payouts, and
-            payout accounts stay disabled.
+            Referral links, click summaries, checkout attribution, commission review, partner reports, and payout checks
+            are visible without exposing buyers, tax forms, payout accounts, or private partner data.
           </span>
         </aside>
       </section>
@@ -238,12 +267,12 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           {program.partners.map((partner) => (
             <article key={partner.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className="status-badge planned">{partner.status}</span>
+                <span className="status-badge active">{publicStatusLabel(partner.status)}</span>
                 <span className="admin-pill">{partner.referralLinkIds.length} links</span>
               </div>
               <UserCheck aria-hidden="true" />
               <h3>{partner.displayName}</h3>
-              <p>{partner.publicProfile}</p>
+              <p>{partnerProfileCopy(partner.publicProfile)}</p>
               <div className="feature-detail">
                 <strong>Private data excluded</strong>
                 <span>{partner.privateDataExcluded.length} fields</span>
@@ -253,12 +282,12 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           {program.commissionRules.slice(0, 2).map((rule) => (
             <article key={rule.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className="status-badge pending">{rule.kind}</span>
+                <span className="status-badge live">{rule.kind}</span>
                 <span className="admin-pill">{rule.rateBps ? `${rule.rateBps / 100}%` : `${rule.holdDays}d hold`}</span>
               </div>
               <Scale aria-hidden="true" />
               <h3>{rule.title}</h3>
-              <p>{rule.caveat}</p>
+              <p>{commissionRuleSummary(rule.kind)}</p>
               <div className="feature-detail">
                 <strong>Applies to</strong>
                 <span>
@@ -276,8 +305,8 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
             <p className="eyebrow">Partner reports</p>
             <h2>Partner performance reporting stays aggregate-only before payout prep</h2>
           </div>
-          <Link href="/affiliates/source-data" className="text-link compact-link">
-            Report source data
+          <Link href={program.linkedAnalyticsRoute} className="text-link compact-link">
+            Analytics dashboard
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -323,7 +352,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
               </div>
               <ShieldCheck aria-hidden="true" />
               <h3>{flag.title}</h3>
-              <p>{flag.requiredAction}</p>
+              <p>Review this flag before preparing a partner payout.</p>
             </article>
           ))}
         </div>
@@ -332,22 +361,19 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect partner evidence and create review-only ledgers, not payable commissions.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Partner performance is visible without exposing payout data.</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/affiliates/source-data</code> exposes public-safe partners, links, aggregate click and checkout
-              attribution counts, rules, partner reports, ledger fixtures, read-only payout preparation, review flags, and audit events.
-            </p>
+            <Handshake aria-hidden="true" />
+            <h3>Partner-ready structure</h3>
+            <p>Links, partner profiles, commission rules, and review checks are grouped in one place.</p>
           </div>
           <div>
             <BadgeDollarSign aria-hidden="true" />
@@ -356,7 +382,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>Payout changes are protected</h3>
             <p>{publicAffiliateBoundary}</p>
           </div>
         </div>

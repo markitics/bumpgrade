@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BadgeDollarSign, Database, ShieldCheck, ShoppingCart, TimerReset } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, ShieldCheck, ShoppingCart, TimerReset } from "lucide-react";
 
 import { CheckoutStartPanel } from "@/components/checkout-start-panel";
 import { checkoutOfferStacks, getCheckoutOfferStackBySlug, type CheckoutOffer } from "@/lib/checkout-offers";
@@ -15,6 +15,17 @@ type OfferPreviewPageProps = {
 
 const publicCheckoutBoundary =
   "Customer-facing billing opens only after the offer has verified payment setup, trusted webhook handling, owner confirmation, and redacted audit evidence.";
+const offerPageDescription =
+  "A checkout offer sequence with a primary launch product, order bump, and follow-up offers that keeps payment and fulfillment safeguards visible.";
+
+function customerOfferCopy(value: string) {
+  return value
+    .replaceAll("implementation checklist", "launch checklist")
+    .replaceAll("implementation package", "launch support package")
+    .replaceAll("implementation", "setup")
+    .replaceAll("webhook-confirmed checkout", "verified checkout")
+    .replaceAll("webhook", "payment confirmation");
+}
 
 export function generateStaticParams() {
   return checkoutOfferStacks.map((stack) => ({ slug: stack.slug }));
@@ -28,13 +39,13 @@ export async function generateMetadata({ params }: OfferPreviewPageProps): Promi
 
   return {
     title: stack.title,
-    description: `${stack.summary} This Bumpgrade checkout-offer route is tied to issue #${stack.issue}.`,
+    description: offerPageDescription,
     alternates: {
       canonical: `${site.url}${stack.previewRoute}`,
     },
     openGraph: {
       title: stack.title,
-      description: stack.summary,
+      description: offerPageDescription,
       url: `${site.url}${stack.previewRoute}`,
       type: "article",
     },
@@ -45,16 +56,16 @@ function OfferCard({ offer }: { offer: CheckoutOffer }) {
   return (
     <article className="feature-card compact-content-card">
       <div className="feature-card-top">
-        <span className={`status-badge ${offer.kind === "primary" ? "active" : "planned"}`}>
+        <span className={`status-badge ${offer.kind === "primary" ? "active" : "live"}`}>
           {offer.kind.replaceAll("_", " ")}
         </span>
-        <span className="admin-pill">{offer.priceLabel}</span>
+        <span className="admin-pill">{offer.priceLabel.replace(/\bdraft\s+/i, "")}</span>
       </div>
       <h3>{offer.title}</h3>
-      <p>{offer.customerPromise}</p>
+      <p>{customerOfferCopy(offer.customerPromise)}</p>
       <div className="feature-detail">
         <strong>Placement</strong>
-        <span>{offer.placement}</span>
+        <span>{customerOfferCopy(offer.placement)}</span>
       </div>
       <div className="feature-detail">
         <strong>Offer type</strong>
@@ -78,7 +89,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
     "@type": "WebPage",
     name: stack.title,
     url: `${site.url}${stack.previewRoute}`,
-    description: stack.summary,
+    description: offerPageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -97,14 +108,14 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
         <div>
           <p className="eyebrow">Checkout offer</p>
           <h1>{stack.title}</h1>
-          <p className="lede">{stack.summary}</p>
+          <p className="lede">{offerPageDescription}</p>
           <div className="hero-actions">
-            <Link href="/offers/source-data" className="primary-action">
-              Offer JSON
-              <Database aria-hidden="true" />
+            <Link href={stack.linkedFunnelRoute} className="primary-action">
+              See the funnel
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${stack.issue}`} className="secondary-action">
-              Issue #{stack.issue}
+            <Link href="/pricing" className="secondary-action">
+              See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -114,10 +125,8 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           <p>Status</p>
           <strong>{sequence.length} offer decisions</strong>
           <span>
-            Checkout review is available for the primary offer and seeded order bump, with optional referral-click
-            evidence, review-only commission ledger evidence, owner review/reversal actions, and non-billing
-            post-purchase decision evidence. One-click charging, fulfillment, payable commissions, partner
-            notifications, and live billing stay disabled until confirmed-write contracts exist.
+            The checkout path shows a primary offer, order bump, and follow-up offer sequence with payment, fulfillment,
+            commission, and notification safeguards kept separate.
           </span>
         </aside>
       </section>
@@ -153,11 +162,11 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Checkout mechanics</p>
-            <h2>Read contract before billing writes</h2>
+            <h2>Payment steps stay clear before money moves</h2>
           </div>
-          <Link href="/commerce/source-data" className="text-link compact-link">
-            Commerce contract
-            <Database aria-hidden="true" />
+          <Link href="/products/indie-launch-library" className="text-link compact-link">
+            Product access
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="roadmap-grid">
@@ -169,29 +178,29 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
             <BadgeDollarSign aria-hidden="true" />
             <h3>Hosted Checkout stays first</h3>
             <p>
-              The seeded primary offer and launch checklist bump link to <code>{stack.checkoutEndpoint}</code> and
-              require exact confirmation text before a Checkout Session setup check is attempted.
+              The primary offer and launch checklist bump require exact confirmation before Bumpgrade checks payment
+              setup.
             </p>
           </article>
           <article className="roadmap-card">
             <div className="roadmap-card-top">
-              <span className="status-badge planned">Planned</span>
+              <span className="status-badge live">Follow-up</span>
               <span className="admin-pill">Post purchase</span>
             </div>
             <TimerReset aria-hidden="true" />
             <h3>{stack.postPurchasePath.expiresAfterMinutes}-minute upsell window</h3>
             <p>
-              The route can record a non-billing follow-up decision after {stack.postPurchasePath.trigger}, but no
-              one-click charge or entitlement write is live in this slice.
+              Bumpgrade can record a follow-up decision after a verified checkout, while one-click charging and access
+              changes stay protected.
             </p>
           </article>
           <article className="roadmap-card">
             <div className="roadmap-card-top">
-              <span className="status-badge pending">Locked</span>
+              <span className="status-badge blocked">Protected</span>
               <span className="admin-pill">Billing safety</span>
             </div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>Charging stays protected</h3>
             <p>{publicCheckoutBoundary}</p>
           </article>
         </div>
@@ -200,22 +209,19 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Agent boundary</p>
-            <h2>Agents can inspect offer structure, not mutate billing.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Offer structure is visible; payment data stays private.</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/offers/source-data</code> exposes public-safe offer, bump, upsell, downsell, revision, and
-              confirmation records.
-            </p>
+            <ShoppingCart aria-hidden="true" />
+            <h3>Clear offer sequence</h3>
+            <p>The primary offer, bump, upsell, and downsell are separated so the buyer path is easy to review.</p>
           </div>
           <div>
             <ShoppingCart aria-hidden="true" />
@@ -224,10 +230,10 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Webhook evidence required</h3>
+            <h3>Fulfillment waits for proof</h3>
             <p>
-              Fulfillment, access, payable commissions, and post-purchase billing depend on trusted webhook and owner
-              review state in later slices; this slice records decision evidence only.
+              Fulfillment, access, payable commissions, and post-purchase billing depend on trusted payment and owner
+              review state.
             </p>
           </div>
         </div>
