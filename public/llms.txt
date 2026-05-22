@@ -57,6 +57,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Owner analytics notification delivery-status webhook readiness API: https://bumpgrade.com/api/admin/analytics/notification-delivery-status-webhook-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification provider-polling readiness API: https://bumpgrade.com/api/admin/analytics/notification-provider-polling-readiness (human page/API requires Better Auth owner session)
 - Owner analytics notification receipt-payload readiness API: https://bumpgrade.com/api/admin/analytics/notification-receipt-payload-readiness (human page/API requires Better Auth owner session)
+- Owner analytics notification delivery-receipt readiness API: https://bumpgrade.com/api/admin/analytics/notification-delivery-receipt-readiness (human page/API requires Better Auth owner session)
 - Owner-reviewed analytics cohort comparison evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics alert threshold/anomaly-review evidence: https://bumpgrade.com/analytics/source-data
 - Owner-reviewed analytics notification delivery readiness evidence: https://bumpgrade.com/analytics/source-data
@@ -250,6 +251,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed delivery-status webhook readiness aggregate evidence,
   owner-reviewed provider-polling readiness aggregate evidence,
   owner-reviewed receipt-payload readiness aggregate evidence,
+  owner-reviewed delivery-receipt readiness aggregate evidence,
   aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert
   threshold/anomaly-review evidence, owner-reviewed notification delivery
   readiness evidence, owner-confirmed notification inbox evidence,
@@ -264,6 +266,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed delivery-status webhook readiness evidence,
   owner-reviewed provider-polling readiness evidence,
   owner-reviewed receipt-payload readiness evidence,
+  owner-reviewed delivery-receipt readiness evidence,
   aggregate funnel conversion report rows, metric formulas, variants, assignment rules, and the
   `/api/analytics/events` and `/api/analytics/assignments` write boundaries. The
   seeded funnel preview emits a session-idempotent page-view beacon through the
@@ -286,7 +289,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed delivery-result readiness evidence,
   owner-reviewed delivery-status webhook readiness evidence,
   owner-reviewed provider-polling readiness evidence,
-  owner-reviewed receipt-payload readiness evidence, and
+  owner-reviewed receipt-payload readiness evidence,
+  owner-reviewed delivery-receipt readiness evidence, and
   aggregate/source-data evidence, not cookie assignment, automated alert sends, owner email sends,
   provider sends, provider calls, delivery attempts, delivery results, provider responses, provider message IDs, delivery receipts, status webhooks, provider polling, provider configuration,
   provider secrets, sender credentials, private DNS credentials, body templates,
