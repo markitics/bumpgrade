@@ -524,7 +524,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public example routes avoid test-fixture wording", async ({ page }) => {
     const testFixtureTerms =
-      /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox|scaffold|fixture|issue|PR|implementation)\b|source-data|source data|how I built|contract shipped|launch-preview|confirmed-write|read contract/i;
+      /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox|scaffold|fixture|issue|PR|implementation)\b|source-data|source data|api route|draft records|no email send path|how I built|contract shipped|launch-preview|confirmed-write|read contract/i;
     const publicExampleRoutes = [
       "/funnels/indie-launch-sandbox",
       "/offers/indie-launch-stack",
