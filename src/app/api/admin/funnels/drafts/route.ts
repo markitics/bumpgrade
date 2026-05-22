@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getSessionAdminState } from "@/lib/admin-auth";
 import {
+  archiveDraftFunnel,
   createDraftFunnelFromTemplate,
   createDraftFunnelFromLibraryTemplate,
   duplicateDraftFunnel,
@@ -63,6 +64,13 @@ export async function POST(request: NextRequest) {
       draft = await duplicateDraftFunnel(db, adminState.identity, {
         draftId: formValue(formData, "draftId"),
         title: formValue(formData, "title"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+    } else if (mode === "archive") {
+      draft = await archiveDraftFunnel(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,

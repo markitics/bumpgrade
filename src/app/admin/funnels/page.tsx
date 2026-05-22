@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CreditCard, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
+import { Archive, ArrowRight, CreditCard, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
   draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelArchiveConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
@@ -47,7 +48,8 @@ export default async function AdminFunnelsPage() {
             steps. Exact-confirmed publishing is live for public funnel routes, and owner-confirmed template-to-draft
             creation is live for the reusable template library, including webinar and resource page shapes. Owners can
             duplicate private drafts after a revision check and attach the seeded sandbox checkout offer to private draft
-            checkout blocks. Deletion, unpublishing, drag-and-drop layout editing, live webinar integrations, private
+            checkout blocks. Owners can also archive private drafts or unpublish public D1 draft routes without deleting
+            audit evidence. Destructive deletion, drag-and-drop layout editing, live webinar integrations, private
             resource delivery, and direct agent edits still need confirmed-write slices.
           </p>
           <div className="hero-actions">
@@ -175,10 +177,14 @@ export default async function AdminFunnelsPage() {
           </Link>
         </div>
         <div className="roadmap-grid admin-record-grid">
-          {state.drafts.map((draft) => (
+          {state.drafts.map((draft) => {
+            const isArchived = draft.status === "archived";
+            const canMutateDraft = state.canWrite && !isArchived;
+
+            return (
             <article key={draft.id} className="roadmap-card active">
               <div className="roadmap-card-top">
-                <span className="status-badge active">{draft.status}</span>
+                <span className={`status-badge ${isArchived ? "blocked" : "active"}`}>{draft.status}</span>
                 <span className="admin-pill">Issue #{draft.sourceIssueNumber}</span>
               </div>
               <h3>{draft.title}</h3>
@@ -195,42 +201,73 @@ export default async function AdminFunnelsPage() {
                   </Link>
                 ) : null}
               </div>
-              <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
-                <input type="hidden" name="mode" value="duplicate" />
-                <input type="hidden" name="draftId" value={draft.id} />
-                <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
-                <input
-                  type="hidden"
-                  name="idempotencyKey"
-                  value={`duplicate-${draft.id}-${draft.revisionId}-${state.drafts.length}`}
-                />
-                <label>
-                  Duplicate title
+              {!isArchived ? (
+                <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
+                  <input type="hidden" name="mode" value="duplicate" />
+                  <input type="hidden" name="draftId" value={draft.id} />
+                  <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
                   <input
-                    name="title"
-                    type="text"
-                    defaultValue={`Copy of ${draft.title}`}
-                    maxLength={120}
-                    disabled={!state.canWrite}
+                    type="hidden"
+                    name="idempotencyKey"
+                    value={`duplicate-${draft.id}-${draft.revisionId}-${state.drafts.length}`}
                   />
-                </label>
-                <label className="admin-step-goal-field">
-                  Duplicate confirmation
-                  <input
-                    name="confirmationText"
-                    type="text"
-                    placeholder={draftFunnelDuplicationConfirmationText}
-                    disabled={!state.canWrite}
-                  />
-                </label>
-                <p>
-                  Creates a new private draft with copied ordered steps and blocks. Checkout links are not copied.
-                </p>
-                <button type="submit" className="secondary-action" disabled={!state.canWrite}>
-                  Duplicate draft
-                  <GitBranch aria-hidden="true" />
-                </button>
-              </form>
+                  <label>
+                    Duplicate title
+                    <input
+                      name="title"
+                      type="text"
+                      defaultValue={`Copy of ${draft.title}`}
+                      maxLength={120}
+                      disabled={!canMutateDraft}
+                    />
+                  </label>
+                  <label className="admin-step-goal-field">
+                    Duplicate confirmation
+                    <input
+                      name="confirmationText"
+                      type="text"
+                      placeholder={draftFunnelDuplicationConfirmationText}
+                      disabled={!canMutateDraft}
+                    />
+                  </label>
+                  <p>Creates a new private draft with copied ordered steps and blocks. Checkout links are not copied.</p>
+                  <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
+                    Duplicate draft
+                    <GitBranch aria-hidden="true" />
+                  </button>
+                </form>
+              ) : null}
+              {isArchived ? (
+                <div className="admin-checkout-link-summary">
+                  <Archive aria-hidden="true" />
+                  <p>Archived. Public route is cleared; draft steps and audit evidence remain available to the owner.</p>
+                </div>
+              ) : (
+                <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
+                  <input type="hidden" name="mode" value="archive" />
+                  <input type="hidden" name="draftId" value={draft.id} />
+                  <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                  <input type="hidden" name="idempotencyKey" value={`archive-${draft.id}-${draft.revisionId}`} />
+                  <label className="admin-step-goal-field">
+                    {draft.status === "published" ? "Archive and unpublish confirmation" : "Archive confirmation"}
+                    <input
+                      name="confirmationText"
+                      type="text"
+                      placeholder={draftFunnelArchiveConfirmationText}
+                      disabled={!canMutateDraft}
+                    />
+                  </label>
+                  <p>
+                    {draft.status === "published"
+                      ? "Archives this draft and removes its public route without deleting steps or audit events."
+                      : "Archives this private draft without deleting steps or audit events."}
+                  </p>
+                  <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
+                    {draft.status === "published" ? "Archive and unpublish" : "Archive draft"}
+                    <Archive aria-hidden="true" />
+                  </button>
+                </form>
+              )}
               <div className="roadmap-detail">
                 <strong>Draft ID</strong>
                 <span>{draft.id}</span>
@@ -251,6 +288,27 @@ export default async function AdminFunnelsPage() {
                 {draft.steps.map((step, index) => {
                   const checkoutBlock = step.blocks.find((block) => block.kind === "checkout");
                   const checkoutLink = checkoutBlock?.checkoutLink;
+                  if (isArchived) {
+                    return (
+                      <div key={step.id} className="admin-step-editor">
+                        <div className="admin-step-editor-heading">
+                          <div>
+                            <span>Step {step.order}</span>
+                            <strong>{step.title}</strong>
+                            <p>{step.kind.replaceAll("_", " ")} · {step.blocks.length} blocks</p>
+                          </div>
+                        </div>
+                        <p>{step.goal}</p>
+                        {checkoutLink ? (
+                          <div className="admin-checkout-link-summary">
+                            <CreditCard aria-hidden="true" />
+                            <p>Linked to {checkoutLink.offerTitle} ({checkoutLink.mode}, no live billing).</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
                   return (
                     <div key={step.id} className="admin-step-editor">
                     <div className="admin-step-editor-heading">
@@ -265,7 +323,7 @@ export default async function AdminFunnelsPage() {
                           <input type="hidden" name="draftId" value={draft.id} />
                           <input type="hidden" name="stepId" value={step.id} />
                           <input type="hidden" name="direction" value="up" />
-                          <button type="submit" className="secondary-action compact-action" disabled={!state.canWrite || index === 0}>
+                          <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft || index === 0}>
                             Up
                           </button>
                         </form>
@@ -277,7 +335,7 @@ export default async function AdminFunnelsPage() {
                           <button
                             type="submit"
                             className="secondary-action compact-action"
-                            disabled={!state.canWrite || index === draft.steps.length - 1}
+                            disabled={!canMutateDraft || index === draft.steps.length - 1}
                           >
                             Down
                           </button>
@@ -290,11 +348,11 @@ export default async function AdminFunnelsPage() {
                       <input type="hidden" name="stepId" value={step.id} />
                       <label>
                         Title
-                        <input name="title" type="text" defaultValue={step.title} maxLength={120} disabled={!state.canWrite} />
+                        <input name="title" type="text" defaultValue={step.title} maxLength={120} disabled={!canMutateDraft} />
                       </label>
                       <label>
                         Kind
-                        <select name="kind" defaultValue={step.kind} disabled={!state.canWrite}>
+                        <select name="kind" defaultValue={step.kind} disabled={!canMutateDraft}>
                           <option value="opt_in">Opt-in</option>
                           <option value="sales">Sales</option>
                           <option value="checkout">Checkout</option>
@@ -306,9 +364,9 @@ export default async function AdminFunnelsPage() {
                       </label>
                       <label className="admin-step-goal-field">
                         Goal
-                        <textarea name="goal" defaultValue={step.goal} maxLength={500} rows={3} disabled={!state.canWrite} />
+                        <textarea name="goal" defaultValue={step.goal} maxLength={500} rows={3} disabled={!canMutateDraft} />
                       </label>
-                      <button type="submit" className="primary-action" disabled={!state.canWrite}>
+                      <button type="submit" className="primary-action" disabled={!canMutateDraft}>
                         Save step
                         <ArrowRight aria-hidden="true" />
                       </button>
@@ -335,10 +393,10 @@ export default async function AdminFunnelsPage() {
                             name="confirmationText"
                             placeholder={draftFunnelCheckoutLinkConfirmationText}
                             rows={2}
-                            disabled={!state.canWrite}
+                            disabled={!canMutateDraft}
                           />
                         </label>
-                        <button type="submit" className="secondary-action" disabled={!state.canWrite}>
+                        <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
                           Link checkout offer
                           <CreditCard aria-hidden="true" />
                         </button>
@@ -348,7 +406,7 @@ export default async function AdminFunnelsPage() {
                   );
                 })}
               </div>
-              {draft.status === "published" ? null : (
+              {draft.status === "published" || isArchived ? null : (
                 <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-publish-form">
                   <input type="hidden" name="mode" value="publish" />
                   <input type="hidden" name="draftId" value={draft.id} />
@@ -360,17 +418,18 @@ export default async function AdminFunnelsPage() {
                       name="confirmationText"
                       type="text"
                       placeholder={draftFunnelPublishConfirmationText}
-                      disabled={!state.canWrite}
+                      disabled={!canMutateDraft}
                     />
                   </label>
-                  <button type="submit" className="primary-action" disabled={!state.canWrite || draft.steps.length < 3}>
+                  <button type="submit" className="primary-action" disabled={!canMutateDraft || draft.steps.length < 3}>
                     Publish funnel
                     <ArrowRight aria-hidden="true" />
                   </button>
                 </form>
               )}
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 

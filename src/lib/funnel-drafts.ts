@@ -13,6 +13,8 @@ import type {
 } from "@/lib/funnels";
 import {
   checkoutLinkingCapability,
+  draftFunnelArchiveCapability,
+  draftFunnelArchiveIssue,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -112,6 +114,7 @@ export const draftFunnelPublishConfirmationText = "Publish this draft funnel pub
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
 export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
+export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -674,6 +677,7 @@ export async function duplicateDraftFunnel(
 
   const sourceDraft = await loadDraftFromD1(db, input.draftId);
   if (!sourceDraft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(sourceDraft, "duplicated");
 
   if (!input.expectedRevisionId || input.expectedRevisionId !== sourceDraft.revisionId) {
     throw new Error("Draft funnel revision changed. Refresh before duplicating.");
@@ -763,6 +767,12 @@ function checkoutLinkForOffer(draft: DraftFunnelRecord, step: DraftFunnelStepRec
   };
 }
 
+function assertDraftIsMutable(draft: DraftFunnelRecord, action: string) {
+  if (draft.status === "archived") {
+    throw new Error(`Archived draft funnels are read-only and cannot be ${action}.`);
+  }
+}
+
 export async function updateDraftFunnelStep(
   db: D1Database,
   identity: AdminIdentity,
@@ -770,6 +780,7 @@ export async function updateDraftFunnelStep(
 ) {
   const draft = await loadDraftFromD1(db, input.draftId);
   if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "updated");
 
   const step = draft.steps.find((item) => item.id === input.stepId);
   if (!step) throw new Error("Draft funnel step not found.");
@@ -829,6 +840,7 @@ export async function linkDraftFunnelStepToCheckoutOffer(
 
   const draft = await loadDraftFromD1(db, input.draftId);
   if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "linked to checkout");
 
   if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
     throw new Error("Draft funnel revision changed. Refresh before linking checkout.");
@@ -906,6 +918,7 @@ export async function publishDraftFunnel(
 
   const draft = await loadDraftFromD1(db, input.draftId);
   if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "published");
 
   if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
     throw new Error("Draft funnel revision changed. Refresh before publishing.");
@@ -942,6 +955,65 @@ export async function publishDraftFunnel(
   return (await loadDraftFromD1(db, draft.id)) ?? { ...draft, status: "published", previewRoute: publicRoute, revisionId: nextRevisionId };
 }
 
+export async function archiveDraftFunnel(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelArchiveConfirmationText) {
+    throw new Error("Exact archive confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before archiving.");
+  }
+
+  if (draft.status === "archived") {
+    return draft;
+  }
+
+  const previousStatus = draft.status;
+  const previousPreviewRoute = draft.previewRoute;
+  const nextRevisionId = `${draft.revisionId}-archived-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_drafts SET status = 'archived', preview_route = NULL, revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} archived ${draft.title}.`,
+      {
+        issue: draftFunnelArchiveIssue,
+        action: "draft_archive",
+        draftFunnelArchiveCapability: draftFunnelArchiveCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        previousStatus,
+        nextStatus: "archived",
+        previousPreviewRoute,
+        previewRouteCleared: true,
+        publishedRouteRemoved: previousStatus === "published",
+        deletedDraftRows: false,
+        deletedStepRows: false,
+        deletedAuditRows: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? { ...draft, status: "archived", previewRoute: null, revisionId: nextRevisionId };
+}
+
 export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
   return {
     id: `published-${draft.id}`,
@@ -958,7 +1030,7 @@ export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
     revisionId: draft.revisionId,
     steps: draft.steps,
     writeBoundary:
-      "Published D1 funnels are public read surfaces. Linked checkout blocks can render the existing sandbox checkout start panel after exact confirmation. Further publishing edits, unpublishing, checkout-linking, deletion, live billing, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
+      "Published D1 funnels are public read surfaces. Linked checkout blocks can render the existing sandbox checkout start panel after exact confirmation. Owner-session archive/unpublish can remove a published D1 draft from public source-data without deleting audit evidence. Further publishing edits, checkout-linking, destructive deletion, live billing, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
     validation: [
       "Owner-session publish action requires exact confirmation and revision match.",
       "Public /funnels/{slug} route renders ordered D1 steps and blocks.",
@@ -1007,6 +1079,7 @@ export async function reorderDraftFunnelStep(
 ) {
   const draft = await loadDraftFromD1(db, input.draftId);
   if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "reordered");
 
   const orderedSteps = [...draft.steps].sort((left, right) => left.order - right.order);
   const currentIndex = orderedSteps.findIndex((step) => step.id === input.stepId);

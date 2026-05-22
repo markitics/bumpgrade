@@ -103,15 +103,16 @@ export const draftFunnelCheckoutLinkingIssue = 163;
 export const publicFunnelCheckoutStartIssue = 165;
 export const funnelWebinarResourceTemplateIssue = 213;
 export const draftFunnelDuplicationIssue = 215;
+export const draftFunnelArchiveIssue = 341;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, private preview, exact-confirmed public publishing of D1 draft funnels, and exact-confirmed checkout-offer linking on private draft steps. Deleting, archiving, unpublishing, drag-and-drop visual editing, direct agent template creation or duplication, direct webinar scheduling, private resource delivery, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, and exact-confirmed checkout-offer linking on private draft steps. Deleting, destructive purge, drag-and-drop visual editing, direct agent template creation or duplication, direct webinar scheduling, private resource delivery, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
-  status: "owner-session-publish-ready",
-  issue: draftFunnelPublishingIssue,
+  status: "owner-session-lifecycle-ready",
+  issue: draftFunnelArchiveIssue,
   parentIssue: draftFunnelBuilderParentIssue,
   adminRoute: "/admin/funnels",
   previewRoutePattern: "/admin/funnels/:draftId/preview",
@@ -119,6 +120,7 @@ export const editableDraftCapability = {
   editEndpoint: "/api/admin/funnels/drafts",
   duplicateEndpoint: "/api/admin/funnels/drafts",
   publishEndpoint: "/api/admin/funnels/drafts",
+  archiveEndpoint: "/api/admin/funnels/drafts",
   checkoutLinkEndpoint: "/api/admin/funnels/drafts",
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
   auth: "owner-session",
@@ -130,18 +132,19 @@ export const editableDraftCapability = {
     "Read that owner sessions can attach the seeded sandbox checkout offer to a private draft step after exact confirmation.",
     "Read that owner sessions can duplicate a private draft after exact confirmation and a fresh revision check.",
     "Read that owner sessions can create private webinar and resource funnel drafts from reusable templates after exact confirmation.",
+    "Read that owner sessions can archive private drafts or unpublish public D1 draft funnels after exact confirmation.",
     "Read that published linked checkout blocks can render the existing sandbox checkout start surface.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91, #93, #95, #135, #163, #165, #213, and #215 before claiming editable, publishable, checkout-linkable, public checkout-start, webinar-template, resource-template, or duplicate capability.",
+    "Cite issues #91, #93, #95, #135, #163, #165, #213, #215, and #341 before claiming editable, publishable, checkout-linkable, public checkout-start, webinar-template, resource-template, duplicate, or archive/unpublish capability.",
   ],
   notYetLive: [
     "Drag-and-drop layout editing",
-    "Deletion/archive workflows",
-    "Unpublishing workflows",
+    "Destructive deletion or purge workflows",
     "Live webinar scheduling or replay hosting",
     "Private resource delivery",
     "Agent-initiated edits without owner confirmation",
     "Agent-initiated duplication without owner confirmation",
+    "Agent-initiated archive/unpublish without owner confirmation",
   ],
   writeBoundary: draftFunnelBuilderWriteBoundary,
 };
@@ -172,10 +175,42 @@ export const draftFunnelDuplicationCapability = {
     "Direct agent duplication without owner confirmation",
     "Copying checkout-link metadata by default",
     "Publishing the duplicate automatically",
-    "Deletion, archive, or unpublish lifecycle actions",
+    "Destructive deletion or purge lifecycle actions",
   ],
   writeBoundary:
     "Issue #215 lets verified owners duplicate a private D1 draft funnel after exact confirmation, idempotency, and a fresh revision check. The duplicate remains private, gets new draft and step IDs, and strips checkout-link metadata so billing-related links must be reviewed and re-linked separately.",
+};
+
+export const draftFunnelArchiveCapability = {
+  id: "funnel-draft-archive-owner-confirmed",
+  status: "owner-session-confirmed-write-ready",
+  issue: draftFunnelArchiveIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  archiveEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  staleRevisionRequired: true,
+  statusAfterArchive: "archived",
+  clearsPublicPreviewRoute: true,
+  deletesDraftRows: false,
+  deletesStepRows: false,
+  deletesAuditRows: false,
+  rawOwnerDataIncluded: false,
+  safeForPublicAgents: [
+    "Read that verified owners can archive a private draft only after exact confirmation.",
+    "Read that archiving a published D1 draft clears its public route and removes it from published funnel source-data.",
+    "Read that archived drafts become read-only while keeping draft, step, block, checkout-link, and audit evidence for owner review.",
+    "Distinguish owner-gated archive/unpublish from destructive deletion, public agent writes, or content purge.",
+  ],
+  notYetLive: [
+    "Destructive deletion or purge",
+    "Direct agent archive/unpublish without owner confirmation",
+    "Automatic redirects from archived public routes",
+  ],
+  writeBoundary:
+    "Issue #341 lets verified owners archive private draft funnels or unpublish published D1 draft funnels after exact confirmation, idempotency, and a fresh revision check. It makes the archived draft read-only, clears the public preview route, and removes the draft from published funnel source-data without deleting draft rows, steps, blocks, checkout links, or audit records.",
 };
 
 export const seededFunnel: FunnelRecord = {
@@ -291,7 +326,7 @@ export const seededFunnel: FunnelRecord = {
     },
   ],
   writeBoundary:
-    "Issue #79 is read-only. Owner-session creating, editing, publishing, and checkout-linking run through /admin/funnels with confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes; deleting, unpublishing, or direct agent-writing funnel state still requires future confirmed-write APIs.",
+    "Issue #79 is read-only. Owner-session creating, editing, publishing, archive/unpublishing, and checkout-linking run through /admin/funnels with confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes; destructive deletion or direct agent-writing funnel state still requires future confirmed-write APIs.",
   validation: [
     "/funnels/source-data returns a three-step draft funnel.",
     "/funnels/indie-launch-sandbox renders semantic preview sections.",
@@ -558,8 +593,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "draft-duplication-ready",
-  issue: draftFunnelDuplicationIssue,
+  status: "draft-archive-ready",
+  issue: draftFunnelArchiveIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: ["/funnels/source-data", "/api/commerce/checkout", ...seededFunnels.map((funnel) => funnel.previewRoute)],
@@ -575,6 +610,7 @@ export const funnelSourceData = {
     "funnelRevisionId",
     "funnelDraftId",
     "funnelDraftDuplicateId",
+    "funnelDraftArchiveId",
     "funnelAuditEventId",
     "checkoutIntentId",
     "checkoutOfferStackId",
@@ -584,6 +620,7 @@ export const funnelSourceData = {
   writeBoundary: seededFunnel.writeBoundary,
   editableDraftCapability,
   draftFunnelDuplicationCapability,
+  draftFunnelArchiveCapability,
   templateDraftCreationCapability,
   webinarResourceTemplateCapability,
   checkoutLinkingCapability,
@@ -593,5 +630,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, deletion/unpublishing, direct agent duplication, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, destructive deletion, direct agent duplication, direct agent archive/unpublish, and unconfirmed agent-write APIs are not live.",
 };
