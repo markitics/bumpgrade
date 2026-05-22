@@ -2330,6 +2330,7 @@ h3 {
 .marketing-features-hero,
 .feature-detail-hero,
 .pricing-hero,
+.pricing-success-hero,
 .account-setup-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, 0.78fr);
@@ -2347,6 +2348,7 @@ h3 {
 .marketing-features-hero h1,
 .feature-detail-hero h1,
 .pricing-hero h1,
+.pricing-success-hero h1,
 .account-setup-hero h1 {
   max-width: 980px;
 }
@@ -3119,6 +3121,156 @@ h3 {
   align-self: end;
 }
 
+.plan-checkout-form {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.plan-checkout-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.plan-checkout-form input[type="email"] {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  padding: 0 12px;
+}
+
+.plan-checkout-form input[type="email"]:focus {
+  outline: 3px solid rgba(55, 95, 76, 0.18);
+  border-color: rgba(55, 95, 76, 0.42);
+}
+
+.setup-addon-choice {
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  padding: 10px 12px;
+  border: 1px solid rgba(18, 23, 19, 0.12);
+  border-radius: 8px;
+  background: rgba(241, 246, 242, 0.88);
+  text-transform: none !important;
+}
+
+.setup-addon-choice input {
+  margin-top: 2px;
+  accent-color: var(--green);
+}
+
+.setup-addon-choice span {
+  margin: 0;
+  color: #26332b;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.checkout-return-note {
+  width: fit-content;
+  max-width: 680px;
+  margin-top: 18px;
+  padding: 10px 12px;
+  border: 1px solid rgba(55, 95, 76, 0.24);
+  border-radius: 8px;
+  background: rgba(237, 247, 239, 0.9);
+  color: var(--green);
+  font-weight: 800;
+}
+
+.pricing-feature-table {
+  display: grid;
+  overflow: hidden;
+  margin-top: 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.pricing-feature-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.1fr) repeat(3, minmax(150px, 0.7fr));
+  border-top: 1px solid var(--line);
+}
+
+.pricing-feature-row:first-child {
+  border-top: 0;
+}
+
+.pricing-feature-row > span {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px;
+  border-left: 1px solid var(--line);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pricing-feature-row > span:first-child {
+  border-left: 0;
+}
+
+.pricing-feature-head {
+  background: #eef6f1;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pricing-feature-row strong {
+  color: var(--ink);
+}
+
+.pricing-feature-row em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.pricing-feature-row svg {
+  width: 18px;
+  height: 18px;
+  color: var(--green);
+}
+
+.pricing-feature-row .included {
+  color: #26332b;
+  font-weight: 800;
+}
+
+.usage-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.usage-pricing-grid .payment-option-card {
+  display: grid;
+  gap: 10px;
+}
+
+.usage-pricing-grid strong {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.success-note {
+  border-color: rgba(55, 95, 76, 0.32);
+  background: #edf7ef;
+}
+
 .payment-option-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -3412,6 +3564,7 @@ h3 {
   .marketing-features-hero,
   .feature-detail-hero,
   .pricing-hero,
+  .pricing-success-hero,
   .account-setup-hero,
   .split-heading {
     grid-template-columns: 1fr;
@@ -3438,6 +3591,7 @@ h3 {
   .marketing-feature-grid,
   .pricing-card-grid,
   .payment-option-grid,
+  .usage-pricing-grid,
   .feature-benefit-grid,
   .feature-example-grid,
   .feature-story-grid,
@@ -3500,6 +3654,7 @@ h3 {
   .marketing-features-hero,
   .feature-detail-hero,
   .pricing-hero,
+  .pricing-success-hero,
   .account-setup-hero {
     padding: 46px 16px 40px;
   }
@@ -3537,6 +3692,7 @@ h3 {
   .marketing-feature-grid,
   .pricing-card-grid,
   .payment-option-grid,
+  .usage-pricing-grid,
   .feature-benefit-grid,
   .feature-example-grid,
   .feature-story-grid,
@@ -3552,6 +3708,14 @@ h3 {
 
   .subdomain-input-row {
     grid-template-columns: 1fr;
+  }
+
+  .pricing-feature-table {
+    overflow-x: auto;
+  }
+
+  .pricing-feature-row {
+    min-width: 760px;
   }
 
   .subdomain-input-row span {

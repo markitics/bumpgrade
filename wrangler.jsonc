@@ -37,6 +37,8 @@
       "/developers-and-agents",
       "/resources",
       "/pricing",
+      "/pricing/*",
+      "/pricing-v2",
       "/login",
       "/api/*",
       "/admin/*",

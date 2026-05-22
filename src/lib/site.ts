@@ -66,7 +66,7 @@ export const topNavItems: NavItem[] = [
   {
     label: "Pricing",
     href: "/pricing",
-    description: "Launch pricing and payment options for publishers trying Bumpgrade.",
+    description: "Self-serve pricing and checkout for publishers starting Bumpgrade.",
     icon: CircleDollarSign,
     status: "live",
   },
@@ -164,6 +164,8 @@ export const scaffoldRoutes = [
   "/developers-and-agents",
   "/resources",
   "/pricing",
+  "/pricing-v2",
+  "/pricing/success",
   "/account/setup",
   "/products/entitlements",
   "/commerce/checkout/success",
