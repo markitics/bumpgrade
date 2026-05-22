@@ -23,6 +23,15 @@ type PricingSuccessPageProps = {
   }>;
 };
 
+function accountSetupLoginHref(email?: string | null) {
+  const params = new URLSearchParams({ callbackURL: "/account/setup" });
+  if (email) {
+    params.set("mode", "sign-up");
+    params.set("email", email);
+  }
+  return `/login?${params.toString()}`;
+}
+
 export default async function PricingSuccessPage({ searchParams }: PricingSuccessPageProps) {
   const params = await searchParams;
   const runtime = await getOptionalBillingRuntime();
@@ -41,14 +50,14 @@ export default async function PricingSuccessPage({ searchParams }: PricingSucces
       <section className="pricing-success-hero">
         <div>
           <p className="eyebrow">Bumpgrade checkout</p>
-          <h1>{confirmation.ok ? `${plan?.name ?? "Bumpgrade"} is active.` : "Checkout needs one more check."}</h1>
+          <h1>{confirmation.ok ? `${plan?.name ?? "Bumpgrade"} is active.` : "Finish verifying your checkout."}</h1>
           <p className="lede">
             {confirmation.ok
               ? `Stripe confirmed the subscription for ${confirmation.ownerEmail}. Use the same email when you create or sign in to your Bumpgrade account so the paid entitlement can unlock publisher setup.`
               : confirmation.message}
           </p>
           <div className="hero-actions">
-            <Link href="/login?callbackURL=/account/setup" className="primary-action">
+            <Link href={accountSetupLoginHref(confirmation.ok ? confirmation.ownerEmail : null)} className="primary-action">
               Continue to account setup
               <ArrowRight aria-hidden="true" />
             </Link>
@@ -66,7 +75,7 @@ export default async function PricingSuccessPage({ searchParams }: PricingSucces
               ? `Plan: ${plan?.name ?? confirmation.planSlug}. White glove setup: ${
                   confirmation.setupAddonSelected ? "selected" : "not selected"
                 }. Raw Stripe identifiers stay server-private.`
-              : "If Stripe already completed the payment, refresh this page after a few seconds. The server verifies the Checkout Session directly before granting account access."}
+              : "If Stripe already completed the payment, refresh this page after a few seconds. Bumpgrade verifies the Checkout Session directly before granting account access."}
           </p>
         </aside>
       </section>

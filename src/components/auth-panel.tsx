@@ -11,6 +11,7 @@ type AuthMode = "sign-in" | "sign-up";
 
 type AuthPanelProps = {
   initialState: SessionAdminState;
+  initialEmail?: string;
   initialMode?: AuthMode;
   nextPath?: string;
 };
@@ -22,12 +23,12 @@ function errorMessage(error: unknown) {
   return "Authentication failed. Check the details and try again.";
 }
 
-export function AuthPanel({ initialState, initialMode = "sign-in", nextPath }: AuthPanelProps) {
+export function AuthPanel({ initialState, initialEmail = "", initialMode = "sign-in", nextPath }: AuthPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const session = authClient.useSession();
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +36,7 @@ export function AuthPanel({ initialState, initialMode = "sign-in", nextPath }: A
 
   const callbackURL = useMemo(() => {
     const raw = nextPath ?? searchParams.get("callbackURL") ?? searchParams.get("next");
-    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/admin/roadmap";
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/account/setup";
     return raw;
   }, [nextPath, searchParams]);
   const ctaLabel = mode === "sign-up" ? "Create account" : "Sign in";
