@@ -2366,13 +2366,14 @@ h3 {
 .spotlight-feature-card img {
   display: block;
   width: 100%;
+  height: auto;
   object-fit: cover;
 }
 
 .launch-hero-media img,
 .feature-detail-media img {
-  aspect-ratio: 1.18;
-  min-height: 420px;
+  aspect-ratio: 1200 / 650;
+  object-position: top;
 }
 
 .hero-media-overlay,
@@ -3365,7 +3366,7 @@ h3 {
 
   .launch-hero-media img,
   .feature-detail-media img {
-    min-height: 300px;
+    aspect-ratio: 1200 / 650;
   }
 
   .checkout-line-item,

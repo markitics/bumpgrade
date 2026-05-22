@@ -108,7 +108,15 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
           </div>
         </div>
         <aside className="feature-detail-media">
-          <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} priority unoptimized />
+          <Image
+            src={feature.imageUrl}
+            alt={feature.imageAlt}
+            width={1200}
+            height={650}
+            priority
+            style={{ width: "100%", height: "auto" }}
+            unoptimized
+          />
           <div>
             <span className={`status-badge ${availabilityClass(feature.status)}`}>
               {availabilityLabel(feature.status)}

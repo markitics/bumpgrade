@@ -57,11 +57,12 @@ export default function FeaturesPage() {
         </div>
         <div className="launch-hero-media">
           <Image
-            src="/marketing/bumpgrade-home-hero.jpg"
-            alt="A publisher founder planning a launch from a laptop."
-            width={932}
-            height={632}
+            src="/marketing/bumpgrade-launch-stack.png"
+            alt="Bumpgrade checkout, order bump, and launch workflow screens."
+            width={1200}
+            height={650}
             priority
+            style={{ width: "100%", height: "auto" }}
             unoptimized
           />
           <div className="hero-media-overlay">
@@ -82,9 +83,17 @@ export default function FeaturesPage() {
           </p>
         </div>
         <div className="spotlight-feature-grid">
-          {featuredFeatures.map((feature) => (
+          {featuredFeatures.map((feature, index) => (
             <article key={feature.slug} className="spotlight-feature-card">
-              <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
+              <Image
+                src={feature.imageUrl}
+                alt={feature.imageAlt}
+                width={1200}
+                height={650}
+                style={{ width: "100%", height: "auto" }}
+                loading={index === 0 ? "eager" : "lazy"}
+                unoptimized
+              />
               <div>
                 <span className={`status-badge ${availabilityClass(feature)}`}>
                   {availabilityLabel(feature)}

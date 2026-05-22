@@ -479,6 +479,30 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Available now").first()).toBeVisible();
     await expect(page.getByText("Launch preview")).toHaveCount(0);
     await expect(page.getByText("In build")).toHaveCount(0);
+
+    const homepageImages = await page.locator("main img").evaluateAll((images) =>
+      images.map((image) => ({
+        src: image.getAttribute("src"),
+        width: image.getBoundingClientRect().width,
+        height: image.getBoundingClientRect().height,
+      })),
+    );
+
+    const homepageImageSources = homepageImages.map((image) => image.src);
+    expect(homepageImageSources).not.toContain("/marketing/bumpgrade-home-hero.jpg");
+    expect(new Set(homepageImageSources).size).toBe(homepageImageSources.length);
+    expect(homepageImageSources).toEqual(
+      expect.arrayContaining([
+        "/marketing/bumpgrade-launch-stack.png",
+        "/marketing/feature-landing-pages.png",
+        "/marketing/feature-email-campaigns.png",
+        "/marketing/feature-order-bump.png",
+        "/marketing/feature-ai-business-coach.png",
+      ]),
+    );
+    for (const image of homepageImages) {
+      expect(image.width / image.height).toBeGreaterThan(1.7);
+    }
   });
 
   test("public launch pages avoid internal build language", async ({ page }) => {
