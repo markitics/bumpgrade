@@ -6,9 +6,9 @@ import { formatUsd, whiteGloveSetupAddon } from "@/lib/pricing-plans";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Usage-based pricing draft",
+  title: "Usage-based pricing",
   description:
-    "A usage-based Bumpgrade pricing draft for publishers who want the platform to scale with launch volume, audience size, and payment throughput.",
+    "A usage-based Bumpgrade pricing option for publishers who want the platform to scale with launch volume, audience size, and payment throughput.",
   alternates: {
     canonical: `${site.url}/pricing-v2`,
   },
@@ -31,7 +31,7 @@ const usageProducts = [
     name: "Audience",
     meter: "Contacts",
     price: "$12 per 1,000 contacts/mo",
-    summary: "Subscribers, consent state, tags, CRM notes, suppression state, and broadcast readiness records.",
+    summary: "Subscribers, consent state, tags, CRM notes, suppression state, and campaign checks.",
   },
   {
     name: "Commerce",
@@ -76,11 +76,11 @@ export default function PricingV2Page() {
     <main className="pricing-page">
       <section className="pricing-hero">
         <div>
-          <p className="eyebrow">Pricing v2 draft</p>
+          <p className="eyebrow">Usage pricing</p>
           <h1>Usage-based pricing that grows with the launch.</h1>
           <p className="lede">
-            This alternate model keeps a smaller base subscription and lets usage scale with the parts that cost more
-            to operate: published paths, contacts, commerce, automation, analytics, and implementation help.
+            This model starts with a smaller base subscription, then scales with published paths, contacts, commerce,
+            automation, analytics, and implementation help.
           </p>
           <div className="hero-actions">
             <Link href="/pricing" className="primary-action">
@@ -95,10 +95,10 @@ export default function PricingV2Page() {
         </div>
         <aside className="pricing-note">
           <BarChart3 aria-hidden="true" />
-          <strong>Not the default yet</strong>
+          <strong>Simple plans are still the fastest start</strong>
           <p>
-            Bumpgrade can run the simple plan grid now. This page gives the team a public draft for a usage-based model
-            before deciding which pricing page becomes the default.
+            Use Experiment or Grow when you want a fixed monthly plan today. Usage pricing is here for publishers who
+            prefer costs tied to launch volume.
           </p>
         </aside>
       </section>
@@ -131,11 +131,11 @@ export default function PricingV2Page() {
         <div className="split-heading">
           <div>
             <p className="eyebrow">Example bills</p>
-            <h2>Make the scale-up path visible before choosing a default.</h2>
+            <h2>See how costs change as the launch grows.</h2>
           </div>
           <p>
-            The exact rates are draft values. The useful part is the framework: small launches stay simple, successful
-            launches scale with usage, and operators can negotiate caps.
+            Small launches stay simple, successful launches scale with usage, and larger operators can use caps or custom
+            terms.
           </p>
         </div>
         <div className="pricing-card-grid">
@@ -160,8 +160,8 @@ export default function PricingV2Page() {
       <section className="content-band dark-band pricing-cta-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Decision point</p>
-            <h2>Simple plans are live; usage pricing is the alternate model.</h2>
+            <p className="eyebrow">Start path</p>
+            <h2>Use simple plans today, or talk through usage pricing.</h2>
           </div>
           <Link href="/pricing" className="secondary-action">
             Start from the simple plan grid

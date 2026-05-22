@@ -87,14 +87,14 @@ export const brandColors: BrandColor[] = [
     name: "System blue",
     cssVariable: "--blue",
     hex: "#1f536b",
-    usage: "Secondary product evidence, source-data accents, and technical surfaces.",
+    usage: "Secondary actions, analytics context, and product detail surfaces.",
   },
   {
     id: "brand-color-gold",
     name: "Signal gold",
     cssVariable: "--gold",
     hex: "#8a6424",
-    usage: "Eyebrows, decision labels, and owner-attention emphasis.",
+    usage: "Eyebrows, decision labels, and high-priority emphasis.",
   },
   {
     id: "brand-color-rose",
@@ -120,8 +120,8 @@ export const brandVoicePrinciples: BrandPrinciple[] = [
   },
   {
     id: "brand-voice-evidence",
-    title: "Evidence-backed",
-    body: "Tie capability claims to source-data routes, issues, PRs, screenshots, or live product states.",
+    title: "Concrete",
+    body: "Tie capability claims to real product jobs: funnels, checkout, email, products, analytics, and AI-assisted planning.",
   },
   {
     id: "brand-voice-practical",
@@ -138,8 +138,8 @@ export const brandUiPrinciples: BrandPrinciple[] = [
   },
   {
     id: "brand-ui-proof-visible",
-    title: "Proof visible",
-    body: "Expose source-data, screenshots, roadmap state, and admin evidence close to the claim they support.",
+    title: "Useful context",
+    body: "Show the next decision, relevant state, and supporting detail close to the action a publisher needs to take.",
   },
   {
     id: "brand-ui-restrained",

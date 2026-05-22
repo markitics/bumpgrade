@@ -65,7 +65,7 @@ export const audienceSegments: AudienceSegment[] = [
     route: "/users#creators",
     status: "live",
     summary: "Publishers packaging knowledge, templates, communities, or services into repeatable offers.",
-    primaryJobs: ["Draft a funnel", "Capture leads", "Sell the first offer", "Measure conversion"],
+    primaryJobs: ["Outline a funnel", "Capture leads", "Sell the first offer", "Measure conversion"],
     linkedFeatureIds: ["feature-funnel-builder", "feature-checkout-offers", "feature-products-access"],
     issueNumbers: [14, 15, 16, 20],
     agentBoundary: "Agents may draft funnel or offer copy, but publishing and billing changes require confirmed-write rules.",

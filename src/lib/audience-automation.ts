@@ -153,7 +153,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   linkedProductRoute: "/products/indie-launch-library",
   revisionId: "audience-automation-revision-indie-launch-2026-05-20",
   summary:
-    "An audience and automation workspace with live consent-backed opt-in capture, public-safe unsubscribe/suppression evidence, owner-only CRM timeline notes, suppression-aware broadcast draft readiness, footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed import intents, and owner-confirmed import preflights for the seeded waitlist, plus draft lead magnets, tags, sequences, broadcasts, and automation rules before email sends exist.",
+    "An audience workspace for opt-ins, consent, tags, suppression, CRM notes, launch emails, campaign checks, import planning, and practical follow-up.",
   segments: [
     {
       id: "segment-indie-launch-waitlist",
@@ -193,7 +193,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     {
       id: "lead-magnet-launch-checklist",
       title: "Launch checklist lead magnet",
-      deliveryPromise: "Send a practical launch checklist after confirmed consent and email verification in a future delivery slice.",
+      deliveryPromise: "Send a practical launch checklist after consent and email verification.",
       assetBoundary: "No private file, R2 object key, signed URL, or recipient email is exposed in this public source-data contract.",
     },
   ],
@@ -250,7 +250,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           subjectIntent: "Deliver the requested launch checklist",
           timing: "immediate",
           delayValue: 0,
-          goal: "Fulfill the lead magnet promise without implying a live file delivery path exists today.",
+          goal: "Fulfill the lead magnet promise with a clear checklist delivery.",
           agentEditable: true,
         },
         {
@@ -258,7 +258,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           subjectIntent: "Show how the funnel, offer, and product records connect",
           timing: "delay_hours",
           delayValue: 24,
-          goal: "Educate subscribers with source-linked Bumpgrade surfaces and avoid unsourced customer claims.",
+          goal: "Show subscribers how the funnel, offer, and product path connect.",
           agentEditable: true,
         },
         {
@@ -266,7 +266,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
           subjectIntent: "Invite a safe checkout review",
           timing: "delay_days",
           delayValue: 3,
-          goal: "Point to the checkout offer only after consent and without live-billing claims.",
+          goal: "Point to the checkout offer only after consent and clear buyer expectations.",
           agentEditable: true,
         },
       ],

@@ -34,8 +34,8 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     cta: "See launch stack",
   },
   "resource-product-notes-blog-index": {
-    title: "Product notes and launch essays",
-    summary: "Short notes on what Bumpgrade is shipping, what early publishers can try, and how to think about launch systems.",
+    title: "Launch essays and product guidance",
+    summary: "Short practical notes on building stronger launch systems, choosing features, and improving offer workflows.",
     label: "Available now",
     cta: "Open notes",
   },
@@ -46,8 +46,8 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     cta: "Read notes",
   },
   "resource-agent-contracts": {
-    title: "AI helper setup notes",
-    summary: "How Bumpgrade keeps product, offer, customer, and launch context readable enough for AI helpers to assist safely.",
+    title: "AI launch helper guide",
+    summary: "How AI helpers can use Bumpgrade launch context to plan funnels, offers, email, product delivery, and next actions.",
     label: "Available now",
     cta: "Read notes",
   },
