@@ -51,6 +51,12 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     label: "Available now",
     cta: "Read notes",
   },
+  "resource-brand-kit": {
+    title: "Bumpgrade brand kit",
+    summary: "Logo, favicon, social card, color, typography, voice, and UI principles for public launch surfaces.",
+    label: "Available now",
+    cta: "Open brand kit",
+  },
 };
 
 function displayForResource(id: string) {

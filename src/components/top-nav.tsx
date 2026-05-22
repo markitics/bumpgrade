@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Menu } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
@@ -65,7 +66,7 @@ export function TopNav() {
     <header className="site-header">
       <Link href="/" className="brand-link" aria-label="Bumpgrade home">
         <span className="brand-mark" aria-hidden="true">
-          B
+          <Image src="/brand/bumpgrade-mark.svg" alt="" width={40} height={40} priority unoptimized />
         </span>
         <span>
           <span className="brand-name">{site.name}</span>

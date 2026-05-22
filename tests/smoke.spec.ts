@@ -33,6 +33,7 @@ import {
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
+import { brandAssets, brandColors, brandSourceData } from "../src/lib/brand";
 import {
   audienceBroadcastDeliveryBatchApiRoute,
   audienceBroadcastDeliveryBatchConfirmationText,
@@ -257,6 +258,7 @@ const routes = [
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
+  { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
   { path: "/pricing", heading: "Start building your publisher launch system today" },
   { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
   { path: "/pricing/success", heading: "Checkout needs one more check" },
@@ -601,6 +603,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/brand");
+    expect(sitemapXml).toContain("https://bumpgrade.com/brand/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/indie-launch-sandbox");
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/source-data");
@@ -668,7 +672,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.audienceSegments).toHaveLength(audienceSegments.length);
     expect(payload.resourceHubItems).toHaveLength(resourceHubItems.length);
     expect(payload.plannedPricingTracks).toHaveLength(plannedPricingTracks.length);
-    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/pricing", "/pricing-v2", "/content/source-data"]));
+    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/brand", "/pricing", "/pricing-v2", "/content/source-data"]));
     expect(payload.audienceSegments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -683,6 +687,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "resource-comparison-hub",
           status: "live",
           evidenceRoutes: expect.arrayContaining(["/compare/source-data"]),
+        }),
+        expect.objectContaining({
+          id: "resource-brand-kit",
+          status: "live",
+          route: "/brand",
+          evidenceRoutes: expect.arrayContaining(["/brand/source-data"]),
         }),
       ]),
     );
@@ -712,6 +722,41 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.caveat).toContain("does not turn planned product features");
+  });
+
+  test("brand source data exposes logo assets, palette, and usage boundaries", async ({ page, request }) => {
+    await page.goto("/brand");
+    await expect(page.getByRole("heading", { name: /calm control room for publisher launches/i })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Bumpgrade logo" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Open asset/i })).toHaveCount(brandAssets.length);
+
+    const response = await request.get("/brand/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: brandSourceData.id,
+        status: "live",
+        issue: 318,
+        routes: expect.arrayContaining(["/brand", "/brand/source-data", "/favicon.svg", "/icon-192.png", "/apple-touch-icon.png"]),
+        iconRoutes: expect.arrayContaining(["/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]),
+        agentBoundary: expect.stringContaining("Agents may read and cite"),
+      }),
+    );
+    expect(payload.assets).toHaveLength(brandAssets.length);
+    expect(payload.assets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "brand-asset-logo", route: "/brand/bumpgrade-logo.svg" }),
+        expect.objectContaining({ id: "brand-asset-favicon", route: "/favicon.svg" }),
+      ]),
+    );
+    expect(payload.colors).toHaveLength(brandColors.length);
+    expect(payload.colors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ cssVariable: "--green", hex: "#174131" }),
+        expect.objectContaining({ cssVariable: "--blue", hex: "#1f536b" }),
+      ]),
+    );
   });
 
   test("self-serve billing checkout exposes contract and safe test preview", async ({ request }) => {
