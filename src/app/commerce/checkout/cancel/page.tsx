@@ -1,10 +1,10 @@
-import { CircleAlert, ReceiptText } from "lucide-react";
+import { CircleAlert, ShoppingCart } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Checkout canceled | Bumpgrade",
-  description: "Checkout cancel state for Bumpgrade's first Stripe Checkout Session path.",
+  description: "Checkout cancel state for Bumpgrade's checkout path.",
 };
 
 export default function SandboxCheckoutCancelPage() {
@@ -18,8 +18,8 @@ export default function SandboxCheckoutCancelPage() {
             Bumpgrade keeps the checkout intent for audit and recovery work, but no fulfillment should happen unless
             Stripe sends a confirming webhook.
           </p>
-          <Link className="text-link" href="/commerce/source-data">
-            Commerce source data <ReceiptText aria-hidden="true" />
+          <Link className="text-link" href="/offers/indie-launch-stack">
+            Return to offer <ShoppingCart aria-hidden="true" />
           </Link>
         </div>
         <div className="route-status-panel">

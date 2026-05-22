@@ -43,12 +43,8 @@ function MetricCard({ metric }: { metric: AnalyticsFunnelConversionRow }) {
         <span>{metric.label}</span>
       </div>
       <div className="feature-detail">
-        <strong>Source events</strong>
-        <span>
-          {metric.visitorEventId}
-          {" -> "}
-          {metric.conversionEventId}
-        </span>
+        <strong>Signals</strong>
+        <span>Visitor activity to conversion activity</span>
       </div>
     </article>
   );
@@ -93,7 +89,7 @@ export function AnalyticsConversionReportPanel({ fallbackReport, timeWindows }: 
           <MetricCard key={metric.metricId} metric={metric} />
         ))}
       </div>
-      <p className="section-note">{report.sampleSizeCaveat}</p>
+      <p className="section-note">Use these rates directionally until more traffic accumulates.</p>
     </>
   );
 }
