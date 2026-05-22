@@ -183,11 +183,11 @@ export const marketingFeatures: MarketingFeature[] = [
     category: "Audience",
     status: "live",
     availability:
-      "Opt-in forms, consent, tags, suppression, unsubscribe-paused sequence evidence, CRM notes, campaign prep, and send checks are ready to use.",
+      "Opt-in forms, consent, tags, suppression, unsubscribe-paused sequence evidence, sequence delivery readiness, CRM notes, campaign prep, and send checks are ready to use.",
     eyebrow: "Grow the list",
     hero: "Capture subscribers and prepare campaigns without breaking trust.",
     summary:
-      "Bumpgrade connects waitlist forms, consent, tags, subscriber inspection, suppression, unsubscribe-paused sequence evidence, CRM notes, campaign preparation, and safer send checks.",
+      "Bumpgrade connects waitlist forms, consent, tags, subscriber inspection, suppression, unsubscribe-paused sequence evidence, aggregate sequence delivery readiness, CRM notes, campaign preparation, and safer send checks.",
     audience: "Publishers who need launch email workflows but do not want a brittle list glued to a separate funnel stack.",
     problem: "Email tools are powerful, but they often hide the relationship between consent, segments, campaign plans, and checkout journeys.",
     outcome:
@@ -195,11 +195,11 @@ export const marketingFeatures: MarketingFeature[] = [
     imageUrl: "/marketing/audience-email-card.png",
     imageAlt: "Bumpgrade audience campaign workspace with opt-in, consent, segment, and nurture outline steps.",
     featureIds: ["feature-email-automation-crm"],
-    issueIds: [17, 85, 103, 137, 167, 343, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209, 211],
+    issueIds: [17, 85, 103, 137, 167, 343, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209, 211, 347, 351],
     proofRoutes: ["/audience/indie-launch-waitlist", "/audience/source-data", "/admin/audience"],
     benefits: [
       "Capture waitlist leads with consent and normalized email records.",
-      "Inspect tags, consent, suppression, unsubscribe-paused sequence evidence, CRM notes, and campaign preparation in one place.",
+      "Inspect tags, consent, suppression, unsubscribe-paused sequence evidence, aggregate sequence delivery readiness, CRM notes, and campaign preparation in one place.",
       "Check scheduling, audience, message, and delivery details before live sends.",
     ],
     useCases: ["Launch waitlist", "Lead magnet nurture", "Broadcast preflight", "CRM follow-up notes"],

@@ -95,6 +95,10 @@ import {
   audienceImportPreflightStatus,
 } from "../src/lib/audience-imports";
 import { audienceExportReadinessIssue, audienceExportReadinessStatus } from "../src/lib/audience-exports";
+import {
+  audienceSequenceDeliveryReadinessIssue,
+  audienceSequenceDeliveryReadinessStatus,
+} from "../src/lib/audience-sequence-delivery";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
@@ -710,9 +714,10 @@ test.describe("Bumpgrade scaffold", () => {
     const emailCampaignsFeature = payload.marketingFeatures.find((feature: { slug: string }) => feature.slug === "email-campaigns");
     expect(emailCampaignsFeature).toEqual(
       expect.objectContaining({
-        issueIds: expect.arrayContaining([343]),
+        issueIds: expect.arrayContaining([343, 351]),
         availability: expect.stringContaining("unsubscribe-paused sequence evidence"),
-        benefits: expect.arrayContaining([expect.stringContaining("unsubscribe-paused sequence evidence")]),
+        summary: expect.stringContaining("aggregate sequence delivery readiness"),
+        benefits: expect.arrayContaining([expect.stringContaining("aggregate sequence delivery readiness")]),
       }),
     );
   });
@@ -2524,8 +2529,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceImportPreflightStatus,
-        issue: audienceImportPreflightIssue,
+        status: audienceSequenceDeliveryReadinessStatus,
+        issue: audienceSequenceDeliveryReadinessIssue,
         parentIssue: 17,
       }),
     );
@@ -3219,6 +3224,61 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.audienceSequenceDeliveryReadiness).toEqual(
+      expect.objectContaining({
+        id: "audience-sequence-delivery-readiness-contract",
+        status: audienceSequenceDeliveryReadinessStatus,
+        issue: audienceSequenceDeliveryReadinessIssue,
+        parentIssue: 17,
+        ownerRoute: "/admin/audience",
+        publicSourceDataRoute: "/audience/source-data",
+        deliveryMode: "disabled_sequence_step_readiness",
+        deliveryEnabled: false,
+        sequenceContracts: expect.arrayContaining([
+          expect.objectContaining({
+            sequenceId: "sequence-indie-launch-nurture",
+            stepCount: 3,
+            deliveryEnabled: false,
+            bodyTemplatesIncluded: false,
+            unsubscribeUrlsCreated: false,
+          }),
+        ]),
+        counts: expect.objectContaining({
+          sequences: expect.any(Number),
+          sequenceSteps: expect.any(Number),
+          sequenceEnrollments: expect.any(Number),
+          draftSequenceEnrollments: expect.any(Number),
+          pausedSequenceEnrollments: expect.any(Number),
+          unsubscribedEnrollmentHolds: expect.any(Number),
+          suppressionEnrollmentHolds: expect.any(Number),
+          eligibleDraftEnrollments: expect.any(Number),
+          nextStepReadyEnrollments: expect.any(Number),
+          deliveryAttemptsCreatedRecords: 0,
+          recipientPayloadsCreatedRecords: 0,
+          personalizedBodiesCreatedRecords: 0,
+          bodyTemplatesIncludedRecords: 0,
+          unsubscribeUrlsCreatedRecords: 0,
+          queuePayloadsCreatedRecords: 0,
+          providerCallsCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+          sendUrlsCreatedRecords: 0,
+          exportUrlsCreatedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailsIncluded: false,
+          subscriberIdsIncluded: false,
+          bodyTemplatesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+          queuePayloadsIncluded: false,
+          providerIdsIncluded: false,
+          sendUrlsIncluded: false,
+          exportUrlsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+        }),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforePausedSequenceCount = payload.subscriberInspection.counts.pausedSequenceEnrollments;
@@ -3343,11 +3403,13 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
     expect(payload.writeBoundary).toContain("Issue #343 pauses known draft sequence enrollments");
     expect(payload.writeBoundary).toContain("Issue #347 exposes aggregate audience export readiness");
+    expect(payload.writeBoundary).toContain("Issue #351 exposes aggregate sequence-step delivery readiness");
     expect(payload.writeBoundary).toContain("Issue #253 can record owner-confirmed import intent metadata");
     expect(payload.writeBoundary).toContain("Issue #259 can record owner-confirmed import preflight evidence");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
     expect(payload.caveat).toContain("unsubscribe-paused sequence enrollment aggregates");
     expect(payload.caveat).toContain("aggregate export-readiness evidence");
+    expect(payload.caveat).toContain("aggregate sequence delivery readiness evidence");
     expect(payload.caveat).toContain("owner-confirmed import intent evidence");
     expect(payload.caveat).toContain("owner-confirmed import preflight evidence");
 
@@ -3400,6 +3462,34 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(afterPayload.audienceExportReadiness)).not.toContain(browserEmail);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.pausedSequenceEnrollments).toBeGreaterThanOrEqual(1);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.deliveryAttemptsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.recipientPayloadsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.personalizedBodiesCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.bodyTemplatesIncludedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.unsubscribeUrlsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.queuePayloadsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.providerCallsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.providerMessageIdsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.sendUrlsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.exportUrlsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.redaction).toEqual(
+      expect.objectContaining({
+        rawEmailsIncluded: false,
+        subscriberIdsIncluded: false,
+        bodyTemplatesIncluded: false,
+        unsubscribeUrlsIncluded: false,
+        queuePayloadsIncluded: false,
+        providerIdsIncluded: false,
+        sendUrlsIncluded: false,
+        exportUrlsIncluded: false,
+        recipientPayloadsIncluded: false,
+        personalizedBodiesIncluded: false,
+      }),
+    );
+    expect(JSON.stringify(afterPayload.audienceSequenceDeliveryReadiness)).not.toContain(browserEmail);
+    expect(JSON.stringify(afterPayload.audienceSequenceDeliveryReadiness)).not.toContain("@example.com");
+    expect(JSON.stringify(afterPayload.audienceSequenceDeliveryReadiness)).not.toContain("Browser smoke");
     expect(afterPayload.broadcastReadiness.counts.scopedSubscribers).toBeGreaterThanOrEqual(beforeBroadcastScopedCount + 1);
     expect(afterPayload.broadcastReadiness.counts.activeSuppressionEntries).toBeGreaterThanOrEqual(
       beforeBroadcastSuppressionCount + 1,
@@ -15557,6 +15647,7 @@ test.describe("Bumpgrade scaffold", () => {
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
+            "audienceSequenceDeliveryReadinessId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
@@ -15578,6 +15669,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-confirmed import intents without raw contact rows, raw emails, actor emails, private notes, sequence enrollments, or sends",
             "Inspect owner-confirmed import preflights without raw contact rows, raw emails, subscriber writes, exports, actor emails, private notes, sequence enrollments, or sends",
             "Inspect aggregate audience export readiness without raw emails, subscriber IDs, export files, or export URLs",
+            "Inspect aggregate sequence delivery readiness without raw emails, subscriber IDs, body templates, unsubscribe URLs, Queue payloads, provider IDs, or send/export URLs",
           ]),
         }),
         expect.objectContaining({
@@ -15635,7 +15727,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-audience-subscribers",
           route: "/admin/audience",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId", "audienceExportReadinessId"]),
+          stableIds: expect.arrayContaining([
+            "audienceImportIntentId",
+            "audienceImportPreflightId",
+            "audienceExportReadinessId",
+            "audienceSequenceDeliveryReadinessId",
+          ]),
         }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({

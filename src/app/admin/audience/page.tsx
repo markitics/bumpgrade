@@ -64,6 +64,10 @@ import {
   getAudienceImportIntentSummary,
   getAudienceImportPreflightSummary,
 } from "@/lib/audience-imports";
+import {
+  audienceSequenceDeliveryReadinessIssue,
+  getAudienceSequenceDeliveryReadinessSummary,
+} from "@/lib/audience-sequence-delivery";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -106,6 +110,7 @@ export default async function AdminAudiencePage() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceExportReadiness,
+    audienceSequenceDeliveryReadiness,
     importIntents,
     importPreflights,
   ] = await Promise.all([
@@ -126,6 +131,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceExportReadinessSummary(),
+    getAudienceSequenceDeliveryReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
   ]);
@@ -154,7 +160,8 @@ export default async function AdminAudiencePage() {
             owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Export readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts
-            before private CSV exports exist. Public source-data stays aggregate-only.
+            before private CSV exports exist. Sequence delivery readiness shows draft, paused, unsubscribed, and
+            step-level counts while delivery stays disabled. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -171,6 +178,13 @@ export default async function AdminAudiencePage() {
             </Link>
             <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceExportReadinessIssue}`} className="secondary-action">
               Issue #{audienceExportReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceDeliveryReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -199,6 +213,15 @@ export default async function AdminAudiencePage() {
             <Workflow aria-hidden="true" />
             <h3>Draft enrollments</h3>
             <p>{state.counts.sequenceEnrollments} sequence enrollment rows. Email delivery remains disabled.</p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Sequence delivery</h3>
+            <p>
+              {audienceSequenceDeliveryReadiness.counts.draftSequenceEnrollments} draft,{" "}
+              {audienceSequenceDeliveryReadiness.counts.pausedSequenceEnrollments} paused;{" "}
+              {audienceSequenceDeliveryReadiness.counts.deliveryAttemptsCreatedRecords} delivery attempts.
+            </p>
           </div>
           <div>
             <MailX aria-hidden="true" />
@@ -379,6 +402,65 @@ export default async function AdminAudiencePage() {
               {broadcastQueueConsumerReadiness.counts.cloudflareQueueConsumerEnabledRecords} consumers enabled.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Audience sequence delivery readiness</p>
+            <h2>Draft nurture steps stay aggregate-only before email delivery</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDeliveryReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">
+                {audienceSequenceDeliveryReadiness.status.replaceAll("-", " ")}
+              </span>
+              <span className="admin-pill">Delivery disabled</span>
+            </div>
+            <Workflow aria-hidden="true" />
+            <h3>Sequence-step delivery readiness is count-only</h3>
+            <p>{audienceSequenceDeliveryReadiness.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Draft enrollments</strong>
+              <span>{audienceSequenceDeliveryReadiness.counts.draftSequenceEnrollments}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Held back</strong>
+              <span>
+                {audienceSequenceDeliveryReadiness.counts.pausedSequenceEnrollments} paused,{" "}
+                {audienceSequenceDeliveryReadiness.counts.unsubscribedEnrollmentHolds} unsubscribed
+              </span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Steps</strong>
+              <span>
+                {audienceSequenceDeliveryReadiness.counts.sequenceSteps} steps across{" "}
+                {audienceSequenceDeliveryReadiness.counts.sequences} sequence
+                {audienceSequenceDeliveryReadiness.counts.sequences === 1 ? "" : "s"}
+              </span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Delivery</strong>
+              <span>
+                {audienceSequenceDeliveryReadiness.counts.deliveryAttemptsCreatedRecords} attempts,{" "}
+                {audienceSequenceDeliveryReadiness.counts.recipientPayloadsCreatedRecords} recipient payloads
+              </span>
+            </div>
+            <p className="card-note">
+              Raw emails, subscriber IDs, body templates, unsubscribe URLs, Queue payloads, provider IDs, send URLs,
+              export URLs, recipient payloads, and personalized bodies are excluded from public source-data.
+            </p>
+          </article>
         </div>
       </section>
 

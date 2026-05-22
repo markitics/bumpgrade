@@ -20,6 +20,7 @@ import {
 } from "@/lib/audience-broadcasts";
 import { getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import { getAudienceImportIntentSummary, getAudienceImportPreflightSummary } from "@/lib/audience-imports";
+import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-delivery";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export async function GET() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceExportReadiness,
+    audienceSequenceDeliveryReadiness,
     importIntents,
     importPreflights,
   ] = await Promise.all([
@@ -64,6 +66,7 @@ export async function GET() {
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceExportReadinessSummary(),
+    getAudienceSequenceDeliveryReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
   ]);
@@ -100,6 +103,7 @@ export async function GET() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceExportReadiness,
+    audienceSequenceDeliveryReadiness,
     importIntents,
     importPreflights,
   });
