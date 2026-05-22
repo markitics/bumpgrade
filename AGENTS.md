@@ -92,6 +92,8 @@ Read `docs/agent/agent-ready.md` before building agent-facing behavior.
 - Turn meaningful ideas, bugs, and follow-ups into GitHub issues. Do not leave
   important work only in chat.
 - Use one issue, one branch, and one PR when practical.
+- Bundle genuinely related behind-the-scenes changes into the same issue/PR
+  when they serve one product outcome. Keep unrelated fixes separate.
 - For meaty features, create a parent issue plus linked child issues for
   independently shippable slices. Keep the shared contract in the parent issue.
 - When beginning an issue, add or update active ownership labels if the repo uses
@@ -106,7 +108,9 @@ Read `docs/agent/agent-ready.md` before building agent-facing behavior.
 
 - Open one PR for the issue. Use a real multiline PR body, not escaped `\n`
   text from a shell argument.
-- For UI-visible work, include screenshots in the PR description.
+- For UI-visible work, include actual embedded screenshots in the PR
+  description using Markdown image syntax, such as `![alt](url)`. Bare
+  screenshot links alone are not enough when screenshots exist.
 - Screenshots must work for reviewers. Do not rely on private GitHub `blob` URLs,
   private `raw.githubusercontent.com` URLs, or branch-scoped repo links as durable
   screenshot evidence.
@@ -116,6 +120,8 @@ Read `docs/agent/agent-ready.md` before building agent-facing behavior.
   return 200 without repo authentication.
 - Before finalizing or emailing a PR notice with screenshots, verify each
   screenshot URL loads without GitHub auth.
+- If no screenshots exist because the work is docs-only, tooling-only, or
+  otherwise not visible in the UI, say that explicitly in the PR body.
 - Keep meaningful PRs as drafts while CI is still settling.
 - When CI is green, mark meaningful PRs ready and wait briefly for Codex/GitHub
   review if available. Treat important review findings as blocking.
@@ -166,6 +172,24 @@ identifiers, or private user data into GitHub.
 - Append important architectural decisions to a decision log if one exists.
 - Update docs in the same PR as the behavior when the doc is part of the product
   contract.
+
+## Shipping Communication
+
+- Send shipped email only for merged work that is user-visible, owner-visible, or
+  materially actionable for Mark: product UI/content changes, live feature
+  launches, user-impacting bug fixes, roadmap/status movement, production
+  incidents resolved, or anything Mark explicitly asked to be emailed about.
+- Do not send low-signal shipped email for tiny internal PRs, docs-only edits,
+  tests, lint, refactors, plumbing, dependency housekeeping, or agent workflow
+  tweaks unless they are bundled with a qualifying user-facing change or need
+  Mark's action.
+- Use the quiet path for non-qualifying merged PRs: PR comment, issue update,
+  and `/admin/work-log` entry when the work should be durable. Keep polling for
+  replies before unrelated large work, but do not create new email just to say an
+  internal PR merged.
+- When roadmap state changes, call it out explicitly in the PR and work-log:
+  include the item name/ID, previous status, new status, issue/PR, and live or
+  admin URL.
 
 ## Codex Session Email Identity
 

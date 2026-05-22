@@ -1,6 +1,7 @@
 # PR Screenshots
 
-Visible UI work needs working screenshots in the PR description.
+Visible UI work needs working screenshots embedded in the PR description with
+Markdown image syntax, such as `![alt](url)`.
 
 This project should avoid the failure mode where a screenshot exists in the repo
 but reviewers cannot load it because the repo is private, the URL points to a
@@ -10,11 +11,15 @@ GitHub session.
 ## Rules
 
 - Include screenshots for visible UI work.
+- Embed the screenshots inline in the PR body. Bare links alone are not enough
+  when screenshots exist.
 - Verify screenshot URLs before marking a PR ready or sending a ship notice.
 - Do not rely on private GitHub `blob` URLs as durable PR evidence.
 - Do not rely on private `raw.githubusercontent.com` URLs as durable PR evidence.
 - Do not rely on branch-scoped repo file URLs after a branch may be deleted.
 - Refresh screenshots after follow-up commits if the UI changed.
+- If there is no visible UI change, write a screenshot section that says why,
+  such as `No screenshots; docs-only workflow change`.
 
 ## Preferred Storage
 
@@ -52,8 +57,9 @@ Record screenshot evidence in the PR body:
 
 ```md
 Screenshots
-* Public features page: https://bumpgrade.com/pr-screenshots/issue-123-features.png
-* Admin roadmap: https://bumpgrade.com/pr-screenshots/issue-123-admin-roadmap.png
+![Public features page](https://bumpgrade.com/pr-screenshots/issue-123-features.png)
+
+![Admin roadmap](https://bumpgrade.com/pr-screenshots/issue-123-admin-roadmap.png)
 ```
 
 ## PR Body Reminder
