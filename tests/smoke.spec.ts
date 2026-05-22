@@ -697,6 +697,23 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ slug: "ai-business-coach", status: "launch-preview", proofRoutes: expect.arrayContaining(["/agent-docs/source-data"]) }),
       ]),
     );
+
+    const salesFunnelsFeature = payload.marketingFeatures.find((feature: { slug: string }) => feature.slug === "sales-funnels");
+    expect(salesFunnelsFeature).toEqual(
+      expect.objectContaining({
+        issueIds: expect.arrayContaining([341]),
+        availability: expect.stringContaining("archive/unpublish"),
+        benefits: expect.arrayContaining([expect.stringContaining("archive")]),
+      }),
+    );
+    const emailCampaignsFeature = payload.marketingFeatures.find((feature: { slug: string }) => feature.slug === "email-campaigns");
+    expect(emailCampaignsFeature).toEqual(
+      expect.objectContaining({
+        issueIds: expect.arrayContaining([343]),
+        availability: expect.stringContaining("unsubscribe-paused sequence evidence"),
+        benefits: expect.arrayContaining([expect.stringContaining("unsubscribe-paused sequence evidence")]),
+      }),
+    );
   });
 
   test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {

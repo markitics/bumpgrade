@@ -153,7 +153,8 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Funnels",
     category: "Funnels",
     status: "live",
-    availability: "Funnel examples, reusable templates, checkout links, and public funnel routes are ready to use.",
+    availability:
+      "Funnel examples, reusable templates, checkout links, public funnel routes, and archive/unpublish controls are ready to use.",
     eyebrow: "Connect the path",
     hero: "Move people from first click to the right next offer.",
     summary:
@@ -164,12 +165,12 @@ export const marketingFeatures: MarketingFeature[] = [
     imageUrl: "/marketing/sales-funnels-card.png",
     imageAlt: "Bumpgrade sales funnel sequence with lead page, offer page, order bump, and follow-up steps.",
     featureIds: ["feature-funnel-builder", "feature-checkout-offers"],
-    issueIds: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165],
+    issueIds: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165, 215, 341],
     proofRoutes: ["/funnels/indie-launch-sandbox", "/funnels/source-data", "/admin/funnels"],
     benefits: [
       "Use launch, webinar, resource, and checkout handoff templates as reusable starting points.",
-      "Review the launch path before publishing.",
-      "Connect checkout links and publishing steps from the same launch path.",
+      "Review, duplicate, and archive launch paths before or after publishing.",
+      "Connect checkout links, publishing, and unpublishing steps from the same launch path.",
     ],
     useCases: ["Book launch funnel", "Course waitlist", "Paid workshop funnel", "Digital product launch"],
     replaces: ["ClickFunnels page sequences", "Manual page-to-checkout handoffs", "Untracked funnel docs"],
@@ -181,11 +182,12 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "Email",
     category: "Audience",
     status: "live",
-    availability: "Opt-in forms, consent, tags, suppression, CRM notes, campaign prep, and send checks are ready to use.",
+    availability:
+      "Opt-in forms, consent, tags, suppression, unsubscribe-paused sequence evidence, CRM notes, campaign prep, and send checks are ready to use.",
     eyebrow: "Grow the list",
     hero: "Capture subscribers and prepare campaigns without breaking trust.",
     summary:
-      "Bumpgrade connects waitlist forms, consent, tags, subscriber inspection, suppression, CRM notes, campaign preparation, and safer send checks.",
+      "Bumpgrade connects waitlist forms, consent, tags, subscriber inspection, suppression, unsubscribe-paused sequence evidence, CRM notes, campaign preparation, and safer send checks.",
     audience: "Publishers who need launch email workflows but do not want a brittle list glued to a separate funnel stack.",
     problem: "Email tools are powerful, but they often hide the relationship between consent, segments, campaign plans, and checkout journeys.",
     outcome:
@@ -193,11 +195,11 @@ export const marketingFeatures: MarketingFeature[] = [
     imageUrl: "/marketing/audience-email-card.png",
     imageAlt: "Bumpgrade audience campaign workspace with opt-in, consent, segment, and nurture outline steps.",
     featureIds: ["feature-email-automation-crm"],
-    issueIds: [17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209, 211],
+    issueIds: [17, 85, 103, 137, 167, 343, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209, 211],
     proofRoutes: ["/audience/indie-launch-waitlist", "/audience/source-data", "/admin/audience"],
     benefits: [
       "Capture waitlist leads with consent and normalized email records.",
-      "Inspect tags, consent, suppression, CRM notes, and campaign preparation in one place.",
+      "Inspect tags, consent, suppression, unsubscribe-paused sequence evidence, CRM notes, and campaign preparation in one place.",
       "Check scheduling, audience, message, and delivery details before live sends.",
     ],
     useCases: ["Launch waitlist", "Lead magnet nurture", "Broadcast preflight", "CRM follow-up notes"],
