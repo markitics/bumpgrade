@@ -67,17 +67,18 @@ a {
   min-width: 0;
 }
 
-.brand-mark {
+.brand-lockup {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand-mark {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--green);
-  border-radius: 8px;
-  background: var(--green);
-  color: #f8f6f0;
-  font-weight: 800;
+  flex: 0 0 auto;
+  display: block;
 }
 
 .brand-name,
@@ -2541,6 +2542,185 @@ h3 {
   margin-top: 0;
 }
 
+.brand-page {
+  min-height: calc(100vh - 72px);
+}
+
+.brand-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+  gap: 36px;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 72px 28px 56px;
+}
+
+.brand-hero > div:first-child {
+  align-self: center;
+}
+
+.brand-showcase {
+  align-self: center;
+  display: grid;
+  justify-items: center;
+  gap: 22px;
+  min-height: 430px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(216, 164, 67, 0.16), transparent 34%),
+    linear-gradient(315deg, rgba(31, 83, 107, 0.14), transparent 38%),
+    #f9fbf7;
+  box-shadow: var(--shadow);
+}
+
+.brand-showcase-mark {
+  width: min(260px, 62vw);
+  height: auto;
+  display: block;
+}
+
+.brand-showcase div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.brand-showcase span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.brand-showcase strong {
+  color: var(--green);
+  font-size: clamp(24px, 3vw, 42px);
+  line-height: 1;
+  text-align: center;
+}
+
+.brand-asset-grid,
+.brand-color-grid,
+.brand-principle-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.brand-asset-grid,
+.brand-color-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.brand-principle-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.brand-asset-card,
+.brand-color-card,
+.brand-principle-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.brand-asset-card,
+.brand-color-card,
+.brand-principle-card {
+  display: grid;
+  align-content: start;
+  min-height: 240px;
+  padding: 18px;
+}
+
+.brand-asset-preview {
+  display: grid;
+  place-items: center;
+  min-height: 150px;
+  border: 1px solid rgba(18, 23, 19, 0.1);
+  border-radius: 8px;
+  background:
+    linear-gradient(45deg, rgba(18, 23, 19, 0.04) 25%, transparent 25% 50%, rgba(18, 23, 19, 0.04) 50% 75%, transparent 75%),
+    #fbfcf8;
+  background-size: 18px 18px;
+}
+
+.brand-asset-preview img {
+  max-width: min(230px, 86%);
+  max-height: 96px;
+}
+
+.brand-asset-card > span {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.brand-asset-card p,
+.brand-color-card p,
+.brand-principle-card p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.brand-color-card {
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 170px;
+}
+
+.brand-color-card > span {
+  width: 56px;
+  height: 56px;
+  border: 1px solid rgba(18, 23, 19, 0.16);
+  border-radius: 8px;
+}
+
+.brand-color-card code {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.brand-principle-card svg {
+  width: 28px;
+  height: 28px;
+  color: var(--green);
+}
+
+.brand-proof-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.brand-proof-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 1px solid rgba(248, 244, 235, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8f4eb;
+  font-weight: 800;
+}
+
+.brand-proof-strip svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: #c8d7af;
+}
+
 .launch-outcome-grid,
 .launch-feature-grid,
 .spotlight-feature-grid,
@@ -3566,6 +3746,7 @@ h3 {
   .pricing-hero,
   .pricing-success-hero,
   .account-setup-hero,
+  .brand-hero,
   .split-heading {
     grid-template-columns: 1fr;
   }
@@ -3600,7 +3781,11 @@ h3 {
   .agent-resource-grid,
   .account-setup-grid,
   .custom-domain-list,
-  .journey-proof-stat-grid {
+  .journey-proof-stat-grid,
+  .brand-asset-grid,
+  .brand-color-grid,
+  .brand-principle-grid,
+  .brand-proof-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3655,7 +3840,8 @@ h3 {
   .feature-detail-hero,
   .pricing-hero,
   .pricing-success-hero,
-  .account-setup-hero {
+  .account-setup-hero,
+  .brand-hero {
     padding: 46px 16px 40px;
   }
 
@@ -3702,7 +3888,11 @@ h3 {
   .account-setup-grid,
   .custom-domain-list,
   .workflow-step-strip,
-  .journey-proof-stat-grid {
+  .journey-proof-stat-grid,
+  .brand-asset-grid,
+  .brand-color-grid,
+  .brand-principle-grid,
+  .brand-proof-strip {
     grid-template-columns: 1fr;
   }
 
