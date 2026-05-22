@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { MarketingProductVisual } from "@/components/marketing-product-visual";
 import { featuredMarketingFeatureSlugs, getMarketingFeature, marketingFeatures } from "@/lib/marketing-features";
 
 const featuredFeatures = featuredMarketingFeatureSlugs.map((slug) => getMarketingFeature(slug)).filter(Boolean);
@@ -87,20 +88,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <div className="launch-hero-media">
-          <Image
-            src="/marketing/bumpgrade-home-hero.jpg"
-            alt="A publisher founder reviewing a launch dashboard on a laptop."
-            width={932}
-            height={632}
-            priority
-            unoptimized
-          />
-          <div className="hero-media-overlay">
-            <strong>Offer launch stack</strong>
-            <span>Funnel, checkout, email, product access, analytics, and launch guidance.</span>
-          </div>
-        </div>
+        <MarketingProductVisual />
       </section>
 
       <section className="content-band launch-outcome-band">

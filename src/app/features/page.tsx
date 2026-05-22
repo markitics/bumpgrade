@@ -10,6 +10,7 @@ import {
   marketingFeatures,
   type MarketingFeature,
 } from "@/lib/marketing-features";
+import { MarketingProductVisual } from "@/components/marketing-product-visual";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -55,20 +56,7 @@ export default function FeaturesPage() {
             </Link>
           </div>
         </div>
-        <div className="launch-hero-media">
-          <Image
-            src="/marketing/bumpgrade-home-hero.jpg"
-            alt="A publisher founder planning a launch from a laptop."
-            width={932}
-            height={632}
-            priority
-            unoptimized
-          />
-          <div className="hero-media-overlay">
-            <strong>From idea to paid offer</strong>
-            <span>Pages, checkout, email, delivery, analytics, and next-step guidance in one workflow.</span>
-          </div>
-        </div>
+        <MarketingProductVisual />
       </section>
 
       <section className="content-band marketing-outcome-band">
