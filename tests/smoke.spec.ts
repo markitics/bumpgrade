@@ -195,6 +195,7 @@ import {
 import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
+  draftFunnelArchiveConfirmationText,
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPublishConfirmationText,
@@ -202,6 +203,7 @@ import {
 } from "../src/lib/funnel-drafts";
 import {
   checkoutLinkingCapability,
+  draftFunnelArchiveCapability,
   draftFunnelDuplicationCapability,
   editableDraftCapability,
   funnelSourceData,
@@ -957,8 +959,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-duplication-ready",
-        issue: 215,
+        status: "draft-archive-ready",
+        issue: 341,
         parentIssue: 14,
       }),
     );
@@ -967,14 +969,15 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
         id: editableDraftCapability.id,
-        status: "owner-session-publish-ready",
-        issue: 135,
+        status: "owner-session-lifecycle-ready",
+        issue: 341,
         adminRoute: "/admin/funnels",
         previewRoutePattern: "/admin/funnels/:draftId/preview",
         createEndpoint: "/api/admin/funnels/drafts",
         editEndpoint: "/api/admin/funnels/drafts",
         duplicateEndpoint: "/api/admin/funnels/drafts",
         publishEndpoint: "/api/admin/funnels/drafts",
+        archiveEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
@@ -997,6 +1000,25 @@ test.describe("Bumpgrade scaffold", () => {
         copiesBlocks: true,
         copiesCheckoutLinks: false,
         publishesDuplicate: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.draftFunnelArchiveCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelArchiveCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 341,
+        adminRoute: "/admin/funnels",
+        archiveEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        statusAfterArchive: "archived",
+        clearsPublicPreviewRoute: true,
+        deletesDraftRows: false,
+        deletesStepRows: false,
+        deletesAuditRows: false,
         rawOwnerDataIncluded: false,
       }),
     );
@@ -1064,6 +1086,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelCheckoutLinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
+        "funnelDraftArchiveId",
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
@@ -1142,6 +1165,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
+    expect(payload.caveat).toContain("archive/unpublish");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -1156,6 +1180,23 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("#warm-list-opt-in")).toContainText("Warm list opt-in");
     await expect(page.locator("#offer-sales-page")).toContainText("Offer sales page");
     await expect(page.locator("#thank-you-delivery")).toContainText("Thank-you and delivery");
+  });
+
+  test("funnel draft archive endpoint rejects unauthenticated writes", async ({ request }) => {
+    const response = await request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: "unknown",
+        confirmationText: draftFunnelArchiveConfirmationText,
+        idempotencyKey: `playwright-archive-unauthenticated-${Date.now()}`,
+        return: "json",
+      },
+    });
+
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
   });
 
   test("checkout offer source data exposes a primary offer, bump, upsell, and downsell", async ({ request, page }) => {
@@ -15274,6 +15315,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-publisher-account", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-duplicate-funnel-draft", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-archive-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -15303,17 +15345,22 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-funnel-contract",
           route: "/funnels/source-data",
           auth: "public",
-          stableIds: expect.arrayContaining(["funnelWebinarResourceTemplateId", "funnelDraftDuplicateId"]),
+          stableIds: expect.arrayContaining([
+            "funnelWebinarResourceTemplateId",
+            "funnelDraftDuplicateId",
+            "funnelDraftArchiveId",
+          ]),
           safeForAgents: expect.arrayContaining([
             "Discover webinar and resource page-shape templates from issue #213",
             "Discover owner-session private draft duplication from issue #215",
+            "Discover owner-session private draft archive/unpublish from issue #341",
           ]),
         }),
         expect.objectContaining({
           id: "read-admin-draft-funnels",
           route: "/admin/funnels",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["funnelDraftDuplicateId"]),
+          stableIds: expect.arrayContaining(["funnelDraftDuplicateId", "funnelDraftArchiveId"]),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
@@ -17378,6 +17425,48 @@ test.describe("Bumpgrade scaffold", () => {
     const duplicateReplayPayload = await duplicateReplay.json();
     expect(duplicateReplayPayload.draft.id).toBe(duplicatePayload.draft.id);
 
+    const privateArchiveIdempotencyKey = `playwright-archive-private-draft-${Date.now()}`;
+    const privateArchiveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: duplicatePayload.draft.revisionId,
+        confirmationText: draftFunnelArchiveConfirmationText,
+        idempotencyKey: privateArchiveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(privateArchiveResponse.ok(), await privateArchiveResponse.text()).toBeTruthy();
+    const privateArchivePayload = await privateArchiveResponse.json();
+    expect(privateArchivePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "archive",
+        draft: expect.objectContaining({
+          id: duplicatePayload.draft.id,
+          status: "archived",
+          previewRoute: null,
+          steps: expect.arrayContaining([expect.objectContaining({ kind: "sales" })]),
+        }),
+      }),
+    );
+    const privateArchiveReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: duplicatePayload.draft.revisionId,
+        confirmationText: draftFunnelArchiveConfirmationText,
+        idempotencyKey: privateArchiveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(privateArchiveReplay.ok(), await privateArchiveReplay.text()).toBeTruthy();
+    const privateArchiveReplayPayload = await privateArchiveReplay.json();
+    expect(privateArchiveReplayPayload.draft.id).toBe(privateArchivePayload.draft.id);
+    expect(privateArchiveReplayPayload.draft.status).toBe("archived");
+
     const staleCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
@@ -17587,6 +17676,104 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(publishedSource.privateDraftsIncluded).toBe(false);
     expect(publishedSource.rawOwnerDataIncluded).toBe(false);
+
+    const staleArchiveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: "stale-revision",
+        confirmationText: draftFunnelArchiveConfirmationText,
+        idempotencyKey: `playwright-archive-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleArchiveResponse.status()).toBe(503);
+    await expect(staleArchiveResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const missingArchiveConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: publishPayload.draft.revisionId,
+        confirmationText: "archive",
+        idempotencyKey: `playwright-archive-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingArchiveConfirmationResponse.status()).toBe(503);
+    await expect(missingArchiveConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
+
+    const archivePublishedResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "archive",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: publishPayload.draft.revisionId,
+        confirmationText: draftFunnelArchiveConfirmationText,
+        idempotencyKey: `playwright-archive-published-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivePublishedResponse.ok(), await archivePublishedResponse.text()).toBeTruthy();
+    const archivePublishedPayload = await archivePublishedResponse.json();
+    expect(archivePublishedPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "archive",
+        draft: expect.objectContaining({
+          id: "funnel-draft-indie-launch-working-copy",
+          status: "archived",
+          previewRoute: null,
+          steps: expect.arrayContaining([
+            expect.objectContaining({
+              id: "funnel-draft-indie-launch-working-copy-sales-2",
+              blocks: expect.arrayContaining([expect.objectContaining({ kind: "checkout" })]),
+            }),
+          ]),
+        }),
+      }),
+    );
+
+    const archivedStepUpdateResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "update-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        title: "Archived drafts should stay read-only",
+        goal: "This mutation should be rejected after archive.",
+        kind: "sales",
+        idempotencyKey: `playwright-archived-draft-update-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedStepUpdateResponse.status()).toBe(503);
+    await expect(archivedStepUpdateResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
+    const archivedSourceResponse = await page.request.get("/funnels/source-data");
+    expect(archivedSourceResponse.ok(), await archivedSourceResponse.text()).toBeTruthy();
+    const archivedSource = await archivedSourceResponse.json();
+    expect(archivedSource.routes).not.toContain("/funnels/indie-launch-working-copy");
+    expect(archivedSource.publishedD1Funnels.map((funnel: { slug: string }) => funnel.slug)).not.toContain(
+      "indie-launch-working-copy",
+    );
+    expect(archivedSource.privateDraftsIncluded).toBe(false);
+    expect(archivedSource.rawOwnerDataIncluded).toBe(false);
+
+    await page.goto("/admin/funnels");
+    const archivedDraftCard = page.getByRole("article").filter({ hasText: "funnel-draft-indie-launch-working-copy" });
+    await expect(archivedDraftCard.locator(".status-badge.blocked", { hasText: /^archived$/ })).toBeVisible();
+    await expect(archivedDraftCard.getByText("Public route is cleared")).toBeVisible();
+    await expect(archivedDraftCard.getByRole("button", { name: /Duplicate draft/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Save step/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
   });
 
   test("publisher auth form trims email whitespace before submit", async ({ page }, testInfo) => {
