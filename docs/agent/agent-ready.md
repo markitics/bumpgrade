@@ -287,8 +287,8 @@ notification dispatch preflight evidence, plus owner-reviewed notification
 provider/domain readiness, content/consent readiness, send-payload readiness,
 queue-producer readiness, queue-consumer readiness, provider-call readiness,
 delivery-attempt readiness, delivery-result readiness, delivery-status webhook
-readiness, provider-polling readiness, receipt-payload readiness, and
-delivery-receipt readiness
+readiness, provider-polling readiness, receipt-payload readiness,
+delivery-receipt readiness, and provider-status reconciliation readiness
 evidence.
 `/analytics/indie-launch-dashboard` is the preview. Seeded analytics events and
 seeded experiment assignments can be captured with idempotency, source-route
@@ -348,7 +348,11 @@ sample-size checks, and sample-size caveat acknowledgement. The same admin page
 lets verified owners record redacted notification delivery-receipt readiness
 evidence after exact confirmation, readiness checks, current receipt-payload
 readiness checks, fixed-window sample-size checks, and sample-size caveat
-acknowledgement. The same source-data route exposes aggregate report
+acknowledgement. The same admin page lets verified owners record redacted notification
+provider-status reconciliation readiness evidence after exact confirmation,
+readiness checks, current delivery-receipt readiness checks, fixed-window
+sample-size checks, and sample-size caveat acknowledgement. The same
+source-data route exposes aggregate report
 export sections, fixture cohort-comparison definitions, and owner-reviewed
 cohort comparison evidence without creating raw analytics downloads. It also
 exposes owner-reviewed alert threshold/anomaly-review evidence as review prompts
@@ -431,7 +435,17 @@ provider configuration, provider responses, provider secrets, sender
 credentials, private DNS credentials, Queue producer execution, Queue consumer
 execution, queue messages, queue message consumption, acknowledgements,
 retry/dead-letter rows, queue payload body reads, queue payloads, queues,
-recipients, email bodies, provider message IDs, or customer alerts. This proves
+recipients, email bodies, provider message IDs, or customer alerts. The
+provider-status reconciliation readiness path creates owner-visible
+readiness evidence only, not provider sends, provider calls, delivery attempts,
+delivery results, delivery status webhooks, provider polling execution,
+delivery receipt processing, receipt payload capture, provider status
+reconciliation execution, provider configuration, provider responses, provider
+secrets, sender credentials, private DNS credentials, Queue producer execution,
+Queue consumer execution, queue messages, queue message consumption,
+acknowledgements, retry/dead-letter rows, queue payload body reads, queue
+payloads, queues, recipients, email bodies, provider message IDs, or customer
+alerts. This proves
 seeded event, page-view beacon, dashboard-visible fixed-window aggregate source,
 aggregate variant, assignment, and reporting semantics plus owner-reviewed
 decision evidence, owner-reviewed cohort evidence, owner-reviewed threshold
@@ -445,10 +459,12 @@ evidence, owner-reviewed delivery-attempt readiness evidence, and
 owner-reviewed delivery-result readiness evidence, owner-reviewed
 delivery-status-webhook readiness evidence, owner-reviewed provider-polling
 readiness evidence, owner-reviewed receipt-payload readiness evidence,
-owner-reviewed delivery-receipt readiness evidence, plus aggregate
+owner-reviewed delivery-receipt readiness evidence, owner-reviewed
+provider-status reconciliation readiness evidence, plus aggregate
 export metadata, not cookie assignment, automated alert sends, owner email
 sends, provider sends, provider calls, delivery attempts, delivery results,
-delivery receipts, status webhooks, provider polling, provider configuration,
+delivery receipts, status webhooks, provider polling, provider status
+reconciliation, provider configuration,
 provider responses, provider secrets, sender credentials,
 private DNS credentials, body templates, unsubscribe URLs, Queue producer execution,
 Queue consumer execution, queue dispatch, queue messages, queue message
