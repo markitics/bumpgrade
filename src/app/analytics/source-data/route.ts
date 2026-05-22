@@ -8,6 +8,7 @@ import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analyt
 import { getAnalyticsNotificationContentConsentReadinessSummary } from "@/lib/analytics-notification-content-consent-readiness";
 import { getAnalyticsNotificationDeliveryAttemptReadinessSummary } from "@/lib/analytics-notification-delivery-attempt-readiness";
 import { getAnalyticsNotificationDeliveryResultReadinessSummary } from "@/lib/analytics-notification-delivery-result-readiness";
+import { getAnalyticsNotificationDeliveryStatusWebhookReadinessSummary } from "@/lib/analytics-notification-delivery-status-webhook-readiness";
 import { getAnalyticsNotificationProviderCallReadinessSummary } from "@/lib/analytics-notification-provider-call-readiness";
 import { getAnalyticsNotificationQueueConsumerReadinessSummary } from "@/lib/analytics-notification-queue-consumer-readiness";
 import { getAnalyticsNotificationQueueProducerReadinessSummary } from "@/lib/analytics-notification-queue-producer-readiness";
@@ -214,6 +215,7 @@ export async function GET(request: NextRequest) {
   const notificationProviderCallReadiness = await getAnalyticsNotificationProviderCallReadinessSummary(db);
   const notificationDeliveryAttemptReadiness = await getAnalyticsNotificationDeliveryAttemptReadinessSummary(db);
   const notificationDeliveryResultReadiness = await getAnalyticsNotificationDeliveryResultReadinessSummary(db);
+  const notificationDeliveryStatusWebhookReadiness = await getAnalyticsNotificationDeliveryStatusWebhookReadinessSummary(db);
   return NextResponse.json({
     ...analyticsExperimentsSourceData,
     timeWindows: {
@@ -235,6 +237,7 @@ export async function GET(request: NextRequest) {
     notificationProviderCallReadiness,
     notificationDeliveryAttemptReadiness,
     notificationDeliveryResultReadiness,
+    notificationDeliveryStatusWebhookReadiness,
     reportExports: buildAnalyticsReportExportSummary({
       dashboard: analyticsDashboard,
       timeWindow,
