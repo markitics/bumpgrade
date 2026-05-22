@@ -53,9 +53,10 @@ then open the relevant shelf for the task.
   content/consent readiness, send-payload readiness, queue-producer readiness,
   queue-consumer readiness, provider-call readiness, delivery-attempt readiness,
   delivery-result readiness, delivery-status-webhook readiness,
-  provider-polling readiness, and receipt-payload readiness from issues #87, #105, #107, #119,
+  provider-polling readiness, receipt-payload readiness, and delivery-receipt
+  readiness from issues #87, #105, #107, #119,
   #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286,
-  #288, #290, #292, #294, #297, #299, #301, #303, #305, and #307, including
+  #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, and #309, including
   fixed all-time, 24-hour, 7-day, and 30-day aggregate source/conversion
   windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
