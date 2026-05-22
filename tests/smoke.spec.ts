@@ -254,7 +254,7 @@ const routes = [
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
-  { path: "/developers-and-agents", heading: "APIs and manifests" },
+  { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/pricing", heading: "Launch pricing" },
   { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
