@@ -21,7 +21,9 @@ type AnalyticsPageProps = {
 };
 
 const publicAnalyticsBoundary =
-  "Bumpgrade keeps launch reports aggregate by default and separates performance signals from private visitor details.";
+  "Visitor tracking and experiment decisions open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
+const analyticsPageDescription =
+  "A launch analytics dashboard that summarizes funnel conversion, source attribution, and experiment results without publishing visitor-level data.";
 
 export function generateStaticParams() {
   return analyticsDashboards.map((dashboard) => ({ slug: dashboard.slug }));
@@ -35,13 +37,13 @@ export async function generateMetadata({ params }: AnalyticsPageProps): Promise<
 
   return {
     title: dashboard.title,
-    description: dashboard.summary,
+    description: analyticsPageDescription,
     alternates: {
       canonical: `${site.url}${dashboard.previewRoute}`,
     },
     openGraph: {
       title: dashboard.title,
-      description: dashboard.summary,
+      description: analyticsPageDescription,
       url: `${site.url}${dashboard.previewRoute}`,
       type: "article",
     },
@@ -52,8 +54,8 @@ function ExperimentCard({ experiment }: { experiment: ExperimentDefinition }) {
   return (
     <article className="roadmap-card">
       <div className="roadmap-card-top">
-        <span className="status-badge planned">Experiment</span>
-        <span className="admin-pill">Traffic split</span>
+        <span className="status-badge active">Experiment</span>
+        <span className="admin-pill">{experiment.status}</span>
       </div>
       <FlaskConical aria-hidden="true" />
       <h3>{experiment.title}</h3>
@@ -81,7 +83,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
     "@type": "WebPage",
     name: dashboard.title,
     url: `${site.url}${dashboard.previewRoute}`,
-    description: dashboard.summary,
+    description: analyticsPageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -100,14 +102,14 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div>
           <p className="eyebrow">Analytics dashboard</p>
           <h1>{dashboard.title}</h1>
-          <p className="lede">{dashboard.summary}</p>
+          <p className="lede">{analyticsPageDescription}</p>
           <div className="hero-actions">
-            <Link href="/features/ad-tracking" className="primary-action">
-              See analytics feature
+            <Link href={dashboard.linkedFunnelRoute} className="primary-action">
+              See the funnel
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={dashboard.linkedFunnelRoute} className="secondary-action">
-              Open linked funnel
+            <Link href={dashboard.linkedOfferRoute} className="secondary-action">
+              See the checkout offer
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -117,8 +119,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <p>Status</p>
           <strong>{dashboard.events.length} event definitions</strong>
           <span>
-            Review source attribution, conversion steps, time windows, and experiment results without exposing private
-            visitor details.
+            Event capture, variant assignment, and conversion summaries stay aggregate-only, with visitor privacy and
+            revenue claims kept out of public reporting.
           </span>
         </aside>
       </section>
@@ -127,7 +129,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Funnel report</p>
-            <h2>Step-level conversion metrics show where the launch path improves.</h2>
+            <h2>Step-level conversion metrics come from aggregate captured events</h2>
           </div>
           <Link href={dashboard.linkedFunnelRoute} className="text-link compact-link">
             Linked funnel
@@ -141,7 +143,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Event taxonomy</p>
-            <h2>Track the moments that matter in the launch.</h2>
+            <h2>Analytics inputs resolve to stable public-safe event IDs</h2>
           </div>
           <Link href={dashboard.linkedAudienceRoute} className="text-link compact-link">
             Audience automation
@@ -152,15 +154,15 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           {dashboard.events.slice(0, 4).map((event) => (
             <article key={event.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className="status-badge planned">{event.kind.replaceAll("_", " ")}</span>
-                <span className="admin-pill">Aggregate</span>
+                <span className="status-badge live">{event.kind.replaceAll("_", " ")}</span>
+                <span className="admin-pill">Private fields excluded</span>
               </div>
               <Activity aria-hidden="true" />
               <h3>{event.title}</h3>
               <p>{event.aggregation}</p>
               <div className="feature-detail">
-                <strong>Privacy</strong>
-                <span>Private visitor fields stay out of launch reports.</span>
+                <strong>Private data excluded</strong>
+                <span>{event.privateDataExcluded.length} fields</span>
               </div>
             </article>
           ))}
@@ -173,8 +175,8 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <p className="eyebrow">Source attribution</p>
             <h2>Source attribution stays aggregate-only</h2>
           </div>
-          <Link href="/features/ad-tracking" className="text-link compact-link">
-            Learn about attribution
+          <Link href={dashboard.linkedAudienceRoute} className="text-link compact-link">
+            Audience automation
             <MapPinned aria-hidden="true" />
           </Link>
         </div>
@@ -188,7 +190,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Experiment model</p>
-            <h2>Compare variants without jumping to false winners.</h2>
+            <h2>Deterministic assignment can be audited before traffic writes exist</h2>
           </div>
           <Link href={dashboard.linkedOfferRoute} className="text-link compact-link">
             Checkout offer
@@ -199,14 +201,14 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           <ExperimentCard experiment={primaryExperiment} />
           <article className="roadmap-card">
             <div className="roadmap-card-top">
-              <span className="status-badge active">Guardrails</span>
+              <span className="status-badge blocked">Safeguards</span>
               <span className="admin-pill">Sample size</span>
             </div>
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Bumpgrade can summarize metrics and assignments, but changing traffic should wait for enough data and a
-              deliberate decision.
+              Bumpgrade can summarize assignment counts and decision evidence, but traffic routing waits for sample-size
+              checks and owner confirmation.
             </p>
           </article>
         </div>
@@ -215,15 +217,19 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Analytics safety</p>
-            <h2>Use launch signals without exposing raw visitor data.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Metrics are useful without exposing visitor-level data.</h2>
           </div>
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
+          </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
             <BarChart3 aria-hidden="true" />
-            <h3>Aggregate reports</h3>
-            <p>Reports focus on source, step, variant, and time-window performance.</p>
+            <h3>Aggregate reporting</h3>
+            <p>Conversion and source views summarize patterns without publishing raw event rows.</p>
           </div>
           <div>
             <BarChart3 aria-hidden="true" />
@@ -232,7 +238,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
           </div>
           <div>
             <FlaskConical aria-hidden="true" />
-            <h3>Deliberate decisions</h3>
+            <h3>Experiment changes are protected</h3>
             <p>{publicAnalyticsBoundary}</p>
           </div>
         </div>

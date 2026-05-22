@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Clock3, FileArchive, ReceiptText, RefreshCw } from "lucide-react";
+import { CheckCircle2, Clock3, FileArchive, RefreshCw, ShoppingCart } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { postPurchaseDecisionRoutePrefix } from "@/lib/post-purchase-decisions";
@@ -153,8 +153,8 @@ export function CheckoutSuccessStatus({ checkoutIntentId }: { checkoutIntentId?:
               View product access <FileArchive aria-hidden="true" />
             </Link>
           ) : null}
-          <Link className={isReady || checkoutIntentId ? "secondary-action" : "text-link"} href="/commerce/source-data">
-            Commerce source data <ReceiptText aria-hidden="true" />
+          <Link className={isReady || checkoutIntentId ? "secondary-action" : "text-link"} href="/offers/indie-launch-stack">
+            Return to offer <ShoppingCart aria-hidden="true" />
           </Link>
         </div>
       </div>

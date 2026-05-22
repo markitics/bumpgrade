@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Database, FileArchive, KeyRound, ReceiptText, Search, ShieldCheck } from "lucide-react";
+import { ArrowRight, FileArchive, KeyRound, ReceiptText, Search, ShieldCheck } from "lucide-react";
 
 import { CustomerDownloadTokenButton } from "@/components/customer-download-token-button";
-import {
-  customerProductEntitlementLookupApiRoute,
-  customerProductEntitlementLookupIssue,
-  getCustomerProductEntitlementLookup,
-} from "@/lib/customer-product-entitlements";
+import { getCustomerProductEntitlementLookup } from "@/lib/customer-product-entitlements";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Customer product access lookup | Bumpgrade",
   description:
-    "Customer-safe Bumpgrade entitlement lookup for checkout product access without exposing private buyer, Stripe, R2, or signed URL data.",
+    "Customer-safe Bumpgrade entitlement lookup for checkout product access without exposing private buyer or delivery data.",
   alternates: {
     canonical: `${site.url}/products/entitlements`,
   },
@@ -50,7 +46,7 @@ function sourceLabel(source: string) {
   if (source === "d1") return "Entitlement store";
   if (source === "invalid") return "Invalid checkout intent";
   if (source === "missing") return "Checkout intent needed";
-  return "D1 unavailable";
+  return "Access store unavailable";
 }
 
 export default async function CustomerProductEntitlementsPage({ searchParams }: CustomerProductEntitlementsPageProps) {
@@ -85,9 +81,9 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
                 Look up access
                 <Search aria-hidden="true" />
               </button>
-              <Link href="/products/source-data" className="secondary-action">
-                Product JSON
-                <Database aria-hidden="true" />
+              <Link href="/products/indie-launch-library" className="secondary-action">
+                Product library
+                <FileArchive aria-hidden="true" />
               </Link>
             </div>
           </form>
@@ -142,8 +138,8 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
               <ArrowRight aria-hidden="true" />
             </Link>
           ) : (
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${customerProductEntitlementLookupIssue}`} className="text-link compact-link">
-              Issue #{customerProductEntitlementLookupIssue}
+            <Link href="/offers/indie-launch-stack" className="text-link compact-link">
+              Start from the offer
               <ArrowRight aria-hidden="true" />
             </Link>
           )}
@@ -195,7 +191,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
                         <div>
                           <span>Private delivery</span>
                           <strong>{entitlement.downloadDelivery.assetTitle}</strong>
-                          <p>Streams a private R2-backed fixture without exposing object keys or signed URLs.</p>
+                          <p>Streams a private file without exposing object keys or signed URLs.</p>
                         </div>
                       </div>
                       <CustomerDownloadTokenButton checkoutIntentId={lookup.checkoutIntentId} entitlementId={entitlement.id} />
@@ -208,7 +204,7 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
             <article className="roadmap-card">
               <div className="roadmap-card-top">
                 <span className={`status-badge ${statusClass(lookup.source)}`}>{lookup.source}</span>
-                <span className="admin-pill">Issue #{customerProductEntitlementLookupIssue}</span>
+                <span className="admin-pill">Checkout lookup</span>
               </div>
               <h3>No customer entitlement rows shown</h3>
               <p>
@@ -229,16 +225,14 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
             <p>Possession of the checkout intent reference can reveal product access state, but not private buyer data.</p>
           </div>
           <div>
-            <Database aria-hidden="true" />
-            <h3>API contract</h3>
-            <p>
-              <code>{customerProductEntitlementLookupApiRoute}</code> returns the same redacted lookup contract.
-            </p>
+            <ReceiptText aria-hidden="true" />
+            <h3>Same result for integrations</h3>
+            <p>Connected tools can request the same redacted lookup through the product-access endpoint.</p>
           </div>
           <div>
             <FileArchive aria-hidden="true" />
             <h3>Delivery boundary</h3>
-            <p>{lookup.writeBoundary}</p>
+            <p>Private delivery requires a valid checkout reference, active product access, and a one-use download token.</p>
           </div>
         </div>
       </section>

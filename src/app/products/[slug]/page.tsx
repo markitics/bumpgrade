@@ -13,7 +13,29 @@ type ProductAccessPageProps = {
 };
 
 const publicProductAccessBoundary =
-  "Customer access opens only after payment or subscription state matches the product access rules.";
+  "Customer access opens only after trusted payment or subscription evidence, entitlement checks, owner-safe audit records, and private asset delivery controls.";
+const productPageDescription =
+  "A product access library for downloads, courses, memberships, services, events, and bundles connected to trusted checkout evidence.";
+
+function productStatusLabel(value: string) {
+  if (value === "draft") return "Access model";
+  return value.replaceAll("_", " ");
+}
+
+function productSummary(summary: string) {
+  return summary
+    .replace("Manual service fulfillment placeholder", "Manual service fulfillment model")
+    .replaceAll("implementation", "setup")
+    .replaceAll("webhook", "payment confirmation")
+    .replaceAll("paid payment confirmation", "payment confirmation");
+}
+
+function accessTimingLabel(value: string) {
+  if (value === "after_webhook_paid") return "After payment confirmation";
+  if (value === "active_subscription") return "Active subscription";
+  if (value === "manual_review") return "Manual review";
+  return value.replaceAll("_", " ");
+}
 
 export function generateStaticParams() {
   return productAccessCatalogs.map((catalog) => ({ slug: catalog.slug }));
@@ -27,13 +49,13 @@ export async function generateMetadata({ params }: ProductAccessPageProps): Prom
 
   return {
     title: catalog.title,
-    description: catalog.summary,
+    description: productPageDescription,
     alternates: {
       canonical: `${site.url}${catalog.previewRoute}`,
     },
     openGraph: {
       title: catalog.title,
-      description: catalog.summary,
+      description: productPageDescription,
       url: `${site.url}${catalog.previewRoute}`,
       type: "article",
     },
@@ -45,12 +67,12 @@ function ProductCard({ product }: { product: ProductAccessRecord }) {
     <article className="feature-card compact-content-card">
       <div className="feature-card-top">
         <span className="status-badge active">{product.kind.replaceAll("_", " ")}</span>
-        <span className="admin-pill">Access path</span>
+        <span className="admin-pill">{productStatusLabel(product.status)}</span>
       </div>
       <h3>{product.title}</h3>
-      <p>{product.summary}</p>
+      <p>{productSummary(product.summary)}</p>
       <div className="feature-detail">
-        <strong>Delivery type</strong>
+        <strong>Best for</strong>
         <span>{product.kind.replaceAll("_", " ")}</span>
       </div>
       <div className="feature-detail">
@@ -59,20 +81,6 @@ function ProductCard({ product }: { product: ProductAccessRecord }) {
       </div>
     </article>
   );
-}
-
-function sourceEventLabel(sourceEvent: string) {
-  if (sourceEvent === "checkout.session.completed") return "Completed checkout";
-  if (sourceEvent === "customer.subscription.updated") return "Active subscription";
-  if (sourceEvent === "payment_audit_events") return "Payment review";
-  return sourceEvent.replaceAll("_", " ");
-}
-
-function fulfillmentTimingLabel(timing: string) {
-  if (timing === "after_webhook_paid") return "After paid checkout";
-  if (timing === "manual_review") return "Manual review";
-  if (timing === "active_subscription") return "Active subscription";
-  return timing.replaceAll("_", " ");
 }
 
 export default async function ProductAccessPage({ params }: ProductAccessPageProps) {
@@ -88,7 +96,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
     "@type": "WebPage",
     name: catalog.title,
     url: `${site.url}${catalog.previewRoute}`,
-    description: catalog.summary,
+    description: productPageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -107,14 +115,14 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
         <div>
           <p className="eyebrow">Product access</p>
           <h1>{catalog.title}</h1>
-          <p className="lede">{catalog.summary}</p>
+          <p className="lede">{productPageDescription}</p>
           <div className="hero-actions">
-            <Link href="/features/digital-products" className="primary-action">
-              See product feature
+            <Link href={catalog.checkoutOfferRoute} className="primary-action">
+              See checkout offers
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={catalog.checkoutOfferRoute} className="secondary-action">
-              Open linked checkout
+            <Link href="/pricing" className="secondary-action">
+              See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -124,8 +132,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <p>Status</p>
           <strong>{catalog.products.length} product types</strong>
           <span>
-            Connect products to checkout, access rules, memberships, downloads, and protected content so customers get
-            the right thing after purchase.
+            Downloads, courses, memberships, services, events, and bundles can share access rules while private files,
+            lesson bodies, and buyer details stay protected.
           </span>
         </aside>
       </section>
@@ -152,10 +160,10 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Access rules</p>
-            <h2>Customer access depends on trusted payment or subscription state</h2>
+            <h2>Entitlements depend on trusted payment or subscription evidence</h2>
           </div>
-          <Link href="/features/digital-products" className="text-link compact-link">
-            Learn about product delivery
+          <Link href="/products/entitlements" className="text-link compact-link">
+            Check product access
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -163,17 +171,17 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           {catalog.accessRules.map((rule) => (
             <article key={rule.id} className="roadmap-card">
               <div className="roadmap-card-top">
-                <span className={`status-badge ${rule.timing === "manual_review" ? "pending" : "planned"}`}>
-                  {fulfillmentTimingLabel(rule.timing)}
+                <span className={`status-badge ${rule.timing === "manual_review" ? "blocked" : "active"}`}>
+                  {accessTimingLabel(rule.timing)}
                 </span>
                 <span className="admin-pill">{rule.revocable ? "Revocable" : "Permanent"}</span>
               </div>
               <KeyRound aria-hidden="true" />
-              <h3>{rule.title}</h3>
-              <p>{rule.grants}</p>
+              <h3>{productSummary(rule.title)}</h3>
+              <p>{productSummary(rule.grants).replace("trusted checkout.session.completed evidence", "verified payment confirmation")}</p>
               <div className="roadmap-detail">
                 <strong>Unlocks after</strong>
-                <span>{sourceEventLabel(rule.sourceEvent)}</span>
+                <span>{accessTimingLabel(rule.timing)}</span>
               </div>
             </article>
           ))}
@@ -183,24 +191,28 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Delivery safety</p>
-            <h2>Give customers access only when the purchase state matches.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Product access can be checked without exposing private assets.</h2>
           </div>
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
+          </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
             <KeyRound aria-hidden="true" />
-            <h3>Access rules</h3>
-            <p>Each product defines what purchase, subscription, or manual review state should unlock it.</p>
+            <h3>Access is entitlement-based</h3>
+            <p>Each product type maps to rules that can be checked after a trusted checkout or subscription event.</p>
           </div>
           <div>
             <FileArchive aria-hidden="true" />
             <h3>Private assets stay private</h3>
-            <p>Download files, lesson bodies, buyer data, and join links stay behind customer access checks.</p>
+            <p>Object keys, signed URLs, lesson bodies, buyer data, and join links stay out of customer-facing pages.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Trusted fulfillment</h3>
+            <h3>Delivery stays protected</h3>
             <p>{publicProductAccessBoundary}</p>
           </div>
         </div>

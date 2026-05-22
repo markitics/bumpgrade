@@ -21,6 +21,27 @@ type FunnelPreviewPageProps = {
   }>;
 };
 
+const funnelPageDescription =
+  "A three-step product-launch funnel that shows how a publisher can capture interest, present an offer, and connect buyers to product access.";
+
+function customerFacingCopy(value: string) {
+  return value
+    .replaceAll("Future slices", "Future updates")
+    .replaceAll("future confirmed-write", "future protected")
+    .replaceAll("confirmed-write", "protected")
+    .replaceAll("commerce contract", "checkout rules")
+    .replaceAll("checkout contract", "checkout rules")
+    .replaceAll("product/access contracts", "product access rules")
+    .replaceAll("source IDs", "verified sources")
+    .replaceAll("shipped-product evidence", "approved product evidence")
+    .replaceAll("R2 object", "private storage")
+    .replaceAll("R2 keys", "private storage keys")
+    .replaceAll("R2 key", "private storage key")
+    .replaceAll("draft until", "ready after")
+    .replaceAll("draft", "working")
+    .replaceAll("contract", "rules");
+}
+
 export function generateStaticParams() {
   return seededFunnels.map((funnel) => ({ slug: funnel.slug }));
 }
@@ -40,13 +61,13 @@ export async function generateMetadata({ params }: FunnelPreviewPageProps): Prom
 
   return {
     title: funnel.title,
-    description: funnel.summary,
+    description: funnelPageDescription,
     alternates: {
       canonical: `${site.url}${funnel.previewRoute}`,
     },
     openGraph: {
       title: funnel.title,
-      description: funnel.summary,
+      description: funnelPageDescription,
       url: `${site.url}${funnel.previewRoute}`,
       type: "article",
     },
@@ -72,7 +93,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
     "@type": "WebPage",
     name: funnel.title,
     url: `${site.url}${funnel.previewRoute}`,
-    description: funnel.summary,
+    description: funnelPageDescription,
     isPartOf: {
       "@type": "WebSite",
       name: site.name,
@@ -98,14 +119,14 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div>
           <p className="eyebrow">Funnel example</p>
           <h1>{funnel.title}</h1>
-          <p className="lede">{funnel.summary}</p>
+          <p className="lede">{funnelPageDescription}</p>
           <div className="hero-actions">
-            <Link href="/features/sales-funnels" className="primary-action">
-              See funnel feature
+            <Link href="/offers/indie-launch-stack" className="primary-action">
+              View checkout offer
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={checkoutOfferStack.previewRoute} className="secondary-action">
-              Open linked checkout
+            <Link href="/pricing" className="secondary-action">
+              See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -114,11 +135,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <PanelsTopLeft aria-hidden="true" />
           <p>Status</p>
           <strong>{funnel.steps.length} steps</strong>
-          <span>
-            {published
-              ? "Published launch path with ordered pages, reusable sections, and a connected checkout."
-              : "Example launch path you can review before building your own offer flow."}
-          </span>
+          <span>{published ? "A published funnel path is ready to inspect." : "A working funnel shape for a publisher launch."}</span>
         </aside>
       </section>
 
@@ -128,8 +145,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             <p className="eyebrow">Ordered steps</p>
             <h2>{published ? "Published funnel sequence" : "Three-step launch funnel"}</h2>
           </div>
-          <Link href="/features/sales-funnels" className="text-link compact-link">
-            Learn how funnels work
+          <Link href="/offers/indie-launch-stack" className="text-link compact-link">
+            Connected offer
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -141,13 +158,13 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                 <span className="admin-pill">{step.kind.replaceAll("_", " ")}</span>
               </div>
               <h3>{step.title}</h3>
-              <p>{step.goal}</p>
+              <p>{customerFacingCopy(step.goal)}</p>
               <div className="roadmap-detail">
-                <strong>Page type</strong>
+                <strong>Role</strong>
                 <span>{step.kind.replaceAll("_", " ")}</span>
               </div>
               <div className="roadmap-detail">
-                <strong>Blocks</strong>
+                <strong>Sections</strong>
                 <span>{step.blocks.map((block) => block.kind).join(", ")}</span>
               </div>
             </article>
@@ -159,7 +176,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Page blocks</p>
-            <h2>Reusable page sections for this launch path</h2>
+            <h2>Reusable page sections for launch funnels</h2>
           </div>
         </div>
         <div className="feature-grid">
@@ -167,15 +184,15 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             step.blocks.map((block) => (
               <article key={block.id} className="feature-card compact-content-card">
                 <div className="feature-card-top">
-                  <span className={`status-badge ${block.agentEditable ? "active" : "pending"}`}>
-                    {block.agentEditable ? "Customizable" : "Fixed"}
+                  <span className={`status-badge ${block.agentEditable ? "active" : "blocked"}`}>
+                    {block.agentEditable ? "Reusable" : "Protected"}
                   </span>
                   <span className="admin-pill">{step.title}</span>
                 </div>
                 <h3>{block.title}</h3>
-                <p>{block.body}</p>
+                <p>{customerFacingCopy(block.body)}</p>
                 <div className="feature-detail">
-                  <strong>Section type</strong>
+                  <strong>Purpose</strong>
                   <span>{block.kind.replaceAll("_", " ")}</span>
                 </div>
               </article>
@@ -186,7 +203,11 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
 
       {canStartLinkedCheckout ? (
         <CheckoutStartPanel
-          stack={checkoutOfferStack}
+          stack={{
+            ...checkoutOfferStack,
+            writeBoundary:
+              "Checkout starts require exact confirmation, payment setup checks, and private fulfillment safeguards.",
+          }}
           context={{
             eyebrow: "Linked funnel checkout",
             heading: "Review the checkout path from this funnel.",
@@ -200,10 +221,10 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Template library</p>
-            <h2>Reusable funnel shapes for future launches</h2>
+            <h2>Reusable funnel shapes for private workspace starts</h2>
           </div>
-          <Link href="/features/simple-landing-page" className="text-link compact-link">
-            See landing pages
+          <Link href="/resources" className="text-link compact-link">
+            Browse resources
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
@@ -215,7 +236,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                 <span className="admin-pill">{template.audience}</span>
               </div>
               <h3>{template.title}</h3>
-              <p>{template.goal}</p>
+              <p>{customerFacingCopy(template.goal)}</p>
               <div className="roadmap-detail">
                 <strong>Audience</strong>
                 <span>{template.audience}</span>
@@ -230,23 +251,23 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading compact-section-heading">
           <div>
             <p className="eyebrow">Block library</p>
-            <h2>Reusable page sections for opt-ins, offers, resources, and checkout handoffs</h2>
+            <h2>Reusable page blocks with safety rules</h2>
           </div>
         </div>
         <div className="feature-grid">
           {funnelBlockLibrary.map((block) => (
             <article key={block.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className={`status-badge ${block.agentEditable ? "active" : "pending"}`}>
-                  {block.agentEditable ? "Customizable" : "Fixed"}
+                <span className={`status-badge ${block.agentEditable ? "active" : "blocked"}`}>
+                  {block.agentEditable ? "Reusable" : "Protected"}
                 </span>
                 <span className="admin-pill">{block.kind}</span>
               </div>
               <h3>{block.title}</h3>
-              <p>{block.purpose}</p>
+              <p>{customerFacingCopy(block.purpose)}</p>
               <div className="feature-detail">
-                <strong>Use it for</strong>
-                <span>{block.purpose}</span>
+                <strong>Safety rule</strong>
+                <span>{customerFacingCopy(block.writeBoundary)}</span>
               </div>
             </article>
           ))}
@@ -256,28 +277,31 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Launch safety</p>
-            <h2>Review the funnel path before sending visitors through it.</h2>
+            <p className="eyebrow">Privacy and safety</p>
+            <h2>Built for real launch pages without exposing private records.</h2>
           </div>
+          <Link href="/developers-and-agents" className="text-link compact-link">
+            Developer details
+            <ArrowRight aria-hidden="true" />
+          </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
             <PanelsTopLeft aria-hidden="true" />
-            <h3>Structured steps</h3>
-            <p>Each page has a goal, order, and reusable sections so the launch path is easy to review.</p>
+            <h3>Structured pages</h3>
+            <p>Every launch step has a clear role, page sections, and a connected offer path.</p>
           </div>
           <div>
             <PanelsTopLeft aria-hidden="true" />
-            <h3>Shareable route</h3>
-            <p>The launch path can be opened, reviewed, and improved without digging through private builder screens.</p>
+            <h3>Readable in a browser</h3>
+            <p>The funnel is crawlable and structured so visitors can understand the path without internal tooling.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>{canStartLinkedCheckout ? "Checkout connection" : "Deliberate publishing"}</h3>
+            <h3>{canStartLinkedCheckout ? "Checkout is gated" : published ? "Published safely" : "Protected changes"}</h3>
             <p>
-              {canStartLinkedCheckout
-                ? "The funnel can pass buyers into the linked checkout review."
-                : "Connect checkout only when the offer path is ready for visitors."}
+              Checkout, publishing, and private delivery changes stay behind account access, confirmation, and audit
+              checks.
             </p>
           </div>
         </div>

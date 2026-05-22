@@ -64,9 +64,9 @@ export function AudienceUnsubscribeForm() {
   return (
     <form className="checkout-start-panel audience-opt-in-panel" aria-label="Audience unsubscribe" onSubmit={handleSubmit} noValidate>
       <div>
-        <span className="status-badge planned">Suppression</span>
+        <span className="status-badge active">Preference</span>
         <h3>Record an unsubscribe preference</h3>
-        <p>Email delivery is disabled, but suppression evidence is ready before sends exist.</p>
+        <p>Bumpgrade can save suppression preferences before any campaign is sent.</p>
       </div>
       <label className="checkout-field">
         Email address

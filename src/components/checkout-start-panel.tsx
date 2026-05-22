@@ -46,6 +46,19 @@ function formatMoney(cents: number, currency: string) {
   }).format(cents / 100);
 }
 
+function displayPriceLabel(label: string) {
+  return label.replace(/\bdraft\s+/i, "");
+}
+
+function displayCustomerCopy(value: string) {
+  return value
+    .replaceAll("implementation checklist", "launch checklist")
+    .replaceAll("implementation package", "launch support package")
+    .replaceAll("implementation", "setup")
+    .replaceAll("webhook-confirmed checkout", "verified checkout")
+    .replaceAll("webhook", "payment confirmation");
+}
+
 function lineItemTotal(primaryOffer: CheckoutOffer, selectedBumps: CheckoutOffer[]) {
   return [primaryOffer, ...selectedBumps].reduce((total, offer) => total + offer.unitAmountCents, 0);
 }
@@ -123,9 +136,9 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
               <div>
                 <span>Primary offer</span>
                 <strong>{stack.primaryOffer.title}</strong>
-                <p>{stack.primaryOffer.customerPromise}</p>
+                <p>{displayCustomerCopy(stack.primaryOffer.customerPromise)}</p>
               </div>
-              <b>{stack.primaryOffer.priceLabel}</b>
+              <b>{displayPriceLabel(stack.primaryOffer.priceLabel)}</b>
             </div>
             {stack.orderBumps.map((offer) => (
               <label key={offer.id} className="checkout-line-item selectable">
@@ -137,9 +150,9 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
                 <div>
                   <span>Order bump</span>
                   <strong>{offer.title}</strong>
-                  <p>{offer.customerPromise}</p>
+                  <p>{displayCustomerCopy(offer.customerPromise)}</p>
                 </div>
-                <b>{offer.priceLabel}</b>
+                <b>{displayPriceLabel(offer.priceLabel)}</b>
               </label>
             ))}
           </div>
