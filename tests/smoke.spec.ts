@@ -95,6 +95,10 @@ import {
   audienceImportPreflightStatus,
 } from "../src/lib/audience-imports";
 import { audienceExportReadinessIssue, audienceExportReadinessStatus } from "../src/lib/audience-exports";
+import {
+  audienceSequenceDeliveryReadinessIssue,
+  audienceSequenceDeliveryReadinessStatus,
+} from "../src/lib/audience-sequence-readiness";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
@@ -2524,8 +2528,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceImportPreflightStatus,
-        issue: audienceImportPreflightIssue,
+        status: audienceSequenceDeliveryReadinessStatus,
+        issue: audienceSequenceDeliveryReadinessIssue,
         parentIssue: 17,
       }),
     );
@@ -3219,6 +3223,66 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.audienceSequenceDeliveryReadiness).toEqual(
+      expect.objectContaining({
+        id: "audience-sequence-delivery-readiness-contract",
+        status: audienceSequenceDeliveryReadinessStatus,
+        issue: audienceSequenceDeliveryReadinessIssue,
+        parentIssue: 17,
+        ownerRoute: "/admin/audience",
+        publicSourceDataRoute: "/audience/source-data",
+        scheduleMode: "readiness_only",
+        deliveryEnabled: false,
+        workspace: expect.objectContaining({
+          id: audienceAutomationWorkspace.id,
+          revisionId: audienceAutomationWorkspace.revisionId,
+          status: audienceAutomationWorkspace.status,
+        }),
+        counts: expect.objectContaining({
+          sequences: expect.any(Number),
+          sequenceSteps: expect.any(Number),
+          immediateSteps: expect.any(Number),
+          delayedSteps: expect.any(Number),
+          draftEnrollments: expect.any(Number),
+          readyEnrollments: expect.any(Number),
+          pausedEnrollments: expect.any(Number),
+          unsubscribedEnrollments: expect.any(Number),
+          suppressedEnrollments: expect.any(Number),
+          missingConsentEnrollments: expect.any(Number),
+          deliveryQueueRowsCreatedRecords: 0,
+          recipientPayloadsCreatedRecords: 0,
+          personalizedBodiesCreatedRecords: 0,
+          emailSendEnabledRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+          unsubscribeUrlsCreatedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailsIncluded: false,
+          subscriberIdsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+          bodyTemplatesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+          providerMessageIdsIncluded: false,
+          queuePayloadsIncluded: false,
+          actorEmailIncluded: false,
+          suppressionHashesIncluded: false,
+        }),
+        records: expect.arrayContaining([
+          expect.objectContaining({
+            id: "sequence-indie-launch-nurture-delivery-readiness",
+            sequenceId: "sequence-indie-launch-nurture",
+            stepCount: 3,
+            deliveryEnabled: false,
+            recipientPayloadsCreated: false,
+            personalizedBodiesCreated: false,
+            queueMessagesCreated: false,
+            providerSendEnabled: false,
+          }),
+        ]),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforePausedSequenceCount = payload.subscriberInspection.counts.pausedSequenceEnrollments;
@@ -3400,6 +3464,25 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(afterPayload.audienceExportReadiness)).not.toContain(browserEmail);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.pausedEnrollments).toBeGreaterThanOrEqual(
+      beforePausedSequenceCount + 1,
+    );
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.deliveryQueueRowsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.recipientPayloadsCreatedRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.counts.emailSendEnabledRecords).toBe(0);
+    expect(afterPayload.audienceSequenceDeliveryReadiness.redaction).toEqual(
+      expect.objectContaining({
+        rawEmailsIncluded: false,
+        subscriberIdsIncluded: false,
+        recipientPayloadsIncluded: false,
+        personalizedBodiesIncluded: false,
+        bodyTemplatesIncluded: false,
+        unsubscribeUrlsIncluded: false,
+        queuePayloadsIncluded: false,
+        providerMessageIdsIncluded: false,
+      }),
+    );
+    expect(JSON.stringify(afterPayload.audienceSequenceDeliveryReadiness)).not.toContain(browserEmail);
     expect(afterPayload.broadcastReadiness.counts.scopedSubscribers).toBeGreaterThanOrEqual(beforeBroadcastScopedCount + 1);
     expect(afterPayload.broadcastReadiness.counts.activeSuppressionEntries).toBeGreaterThanOrEqual(
       beforeBroadcastSuppressionCount + 1,
@@ -15554,12 +15637,14 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastQueueProducerReadinessId",
             "broadcastQueueConsumerReadinessId",
             "sequenceEnrollmentPauseId",
+            "sequenceDeliveryReadinessId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
+            "Inspect aggregate sequence delivery readiness without body templates, unsubscribe URLs, recipient payloads, queue payloads, provider sends, or provider message IDs",
             "Inspect suppression-aware broadcast readiness without recipient exposure",
             "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
             "Inspect broadcast preview and unsubscribe-footer safety without personalized body or recipient exposure",
@@ -15635,7 +15720,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-audience-subscribers",
           route: "/admin/audience",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId", "audienceExportReadinessId"]),
+          stableIds: expect.arrayContaining([
+            "sequenceDeliveryReadinessId",
+            "audienceImportIntentId",
+            "audienceImportPreflightId",
+            "audienceExportReadinessId",
+          ]),
         }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({
@@ -17277,6 +17367,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import preflights" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sequence readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Export readiness", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
@@ -17295,6 +17386,10 @@ test.describe("Bumpgrade scaffold", () => {
       page.getByRole("heading", { name: "Private exports stay disabled until confirmed export APIs exist" }),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "CSV export readiness is aggregate-only" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Nurture steps stay aggregate-only until scheduling is safe" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Draft nurture delivery readiness is aggregate-only" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();

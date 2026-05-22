@@ -355,7 +355,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed import intents, owner-confirmed import preflights, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, aggregate sequence delivery readiness, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed import intents, owner-confirmed import preflights, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
@@ -381,10 +381,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #253 adds owner-confirmed import intent records without creating contacts, storing raw rows/emails, enrolling sequences, or sending email.",
       "Issue #259 adds owner-confirmed import preflight evidence without creating contacts, storing raw rows/emails, creating subscriber rows, exporting private data, enrolling sequences, or sending email.",
       "Issue #347 adds aggregate audience export readiness without creating export files, exposing raw emails, subscriber IDs, or export URLs.",
+      "Issue #351 adds aggregate sequence delivery readiness without scheduling steps, creating recipient payloads, personalized bodies, unsubscribe URLs, queue payloads, provider sends, or provider message IDs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add real contact imports, Cloudflare Queue producers, and consumers only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, import redaction, unsubscribe footer, suppression, audit checks, delivery-batch gates, queue-message gates, dispatch preflight boundaries, and dispatch-attempt receipts stay explicit.",
+      "Add real contact imports, sequence scheduling, Cloudflare Queue producers, and consumers only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, delivery-batch gates, queue-message gates, dispatch preflight boundaries, and dispatch-attempt receipts stay explicit.",
   },
   {
     id: "roadmap-analytics-testing",
