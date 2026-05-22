@@ -37,10 +37,11 @@ then open the relevant shelf for the task.
   queue readiness, delivery-batch, queue-message, dispatch-preflight, and
   dispatch-attempt, sender-domain readiness, provider-event readiness,
   provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness,
-  Queue consumer readiness, owner-confirmed import intent, and owner-confirmed import preflight
+  Queue consumer readiness, owner-confirmed import intent, owner-confirmed import preflight,
+  aggregate export readiness, and aggregate sequence delivery readiness
   contracts from issues #85, #103, #137, #167, #169, #171, #173, #175, #177,
   #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, and
-  #253 and #259.
+  #253, #259, #347, and #351.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,
