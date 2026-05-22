@@ -334,7 +334,7 @@ export const competitors: Competitor[] = [
           bumpgradePlan: "Bumpgrade keeps products, downloads, courses, memberships, access rules, and subscriptions in the same buyer journey.",
         },
         {
-          area: "Optimization, affiliates, and agent contracts",
+          area: "Optimization, affiliates, and AI helpers",
           incumbent:
             "ClickFunnels lists A/B testing, analytics, discounts, payments, affiliate center, API, and webhooks among the platform surface area.",
           bumpgradePlan: "Bumpgrade connects testing, analytics, discounts, payments, affiliate referrals, and AI assistance to the launch record.",
@@ -359,7 +359,7 @@ export const competitors: Competitor[] = [
         {
           label: "Developers and agents",
           href: "/developers-and-agents",
-          description: "The agent-readiness surface for source evidence, APIs, public manifests, and future MCP contracts.",
+          description: "The AI-helper surface for source evidence, APIs, public manifests, and future developer tooling.",
         },
       ],
     },
@@ -426,7 +426,7 @@ export const competitors: Competitor[] = [
       {
         area: "Use case",
         incumbent: "Kit is compelling when the newsletter is the center of gravity.",
-        bumpgradePlan: "Bumpgrade should be compelling when the newsletter, offer, checkout, product delivery, and agent workflow need one contract.",
+        bumpgradePlan: "Bumpgrade should be compelling when the newsletter, offer, checkout, product delivery, and AI helper workflow need one connected system.",
       },
     ],
   },
@@ -596,7 +596,7 @@ export const competitors: Competitor[] = [
     slug: "systeme-io-alternative",
     category: "All-in-one online business platform",
     bestFor: "Indie sellers who want funnels, email, courses, automation, affiliate management, websites, communities, booking, SMS, and pipelines in one low-friction platform.",
-    headline: "Bumpgrade vs Systeme.io: all-in-one scope with stronger source contracts.",
+    headline: "Bumpgrade vs Systeme.io: all-in-one scope with clearer launch structure.",
     summary:
       "Systeme.io is a broad all-in-one competitor that combines sales funnels, email marketing, automation, courses, affiliate management, websites, communities, booking, SMS, and pipelines.",
     alternativePosition:
@@ -640,7 +640,7 @@ export const competitors: Competitor[] = [
     summary:
       "Kartra is a marketing-suite competitor spanning pages, funnels, email or SMS, checkouts, affiliate management, video, webinars, memberships, and lead management.",
     alternativePosition:
-      "Bumpgrade should compete by building the marketing suite as a set of clear contracts: funnel, offer, checkout, lead, automation, source, and permission records.",
+      "Bumpgrade should compete by connecting the marketing suite around clear funnel, offer, checkout, lead, automation, source, and permission records.",
     sourceId: "source-kartra-home",
     sourceUrl: "https://kartra.com/home/",
     evidence: [

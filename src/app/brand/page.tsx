@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Download, FileJson, MessageSquareText, Palette, PanelsTopLeft, ShieldCheck, Type } from "lucide-react";
+import { ArrowRight, Download, MessageSquareText, Palette, PanelsTopLeft, ShieldCheck, Type } from "lucide-react";
 
 import { brandAssets, brandColors, brandTypography, brandUiPrinciples, brandVoicePrinciples } from "@/lib/brand";
 import { site } from "@/lib/site";
@@ -38,13 +38,12 @@ export default function BrandPage() {
           <h1>Bumpgrade should feel like a calm control room for publisher launches.</h1>
           <p className="lede">
             The brand pairs a compact stepped B mark with a practical product voice: direct, evidence-backed, and built
-            for publishers making launch decisions across funnels, checkout, email, products, analytics, and AI-assisted
-            review.
+            for publishers making launch decisions across funnels, checkout, email, products, analytics, and AI guidance.
           </p>
           <div className="hero-actions">
-            <Link href="/brand/source-data" className="primary-action">
-              Source data
-              <FileJson aria-hidden="true" />
+            <Link href="/brand/bumpgrade-logo.svg" className="primary-action">
+              Open logo
+              <Download aria-hidden="true" />
             </Link>
             <Link href="/pricing" className="secondary-action">
               See it in context
@@ -63,8 +62,8 @@ export default function BrandPage() {
           />
           <div className="brand-specimen-grid">
             <span>Publisher growth OS</span>
-            <span>Issue #318</span>
-            <span>Public brand kit</span>
+            <span>Launch workspace</span>
+            <span>Funnel, checkout, email</span>
           </div>
         </aside>
       </section>
@@ -75,9 +74,9 @@ export default function BrandPage() {
             <p className="eyebrow">Assets</p>
             <h2>Logo, mark, favicon, and social card</h2>
           </div>
-          <Link href="/brand/source-data" className="text-link compact-link">
-            Agent-readable asset list
-            <FileJson aria-hidden="true" />
+          <Link href="/brand/bumpgrade-logo.svg" className="text-link compact-link">
+            Open primary logo
+            <Download aria-hidden="true" />
           </Link>
         </div>
         <div className="brand-asset-grid">
@@ -104,7 +103,7 @@ export default function BrandPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Palette</p>
-            <h2>Use color to separate actions, evidence, decisions, and review states.</h2>
+            <h2>Use color to separate actions, decisions, support notes, and product states.</h2>
           </div>
         </div>
         <div className="brand-color-grid">
@@ -124,7 +123,7 @@ export default function BrandPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Voice and UI</p>
-            <h2>Keep the surface useful for a publisher who is trying to ship.</h2>
+            <h2>Keep every surface useful for a publisher trying to launch.</h2>
           </div>
         </div>
         <div className="brand-principle-grid">
@@ -181,7 +180,7 @@ export default function BrandPage() {
           <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Keep claims grounded</h3>
-            <p>Brand copy should point to live routes, source-data, issues, PRs, screenshots, or admin evidence.</p>
+            <p>Brand copy should make concrete promises about funnels, checkout, email, products, analytics, and AI help.</p>
           </div>
           <div>
             <PanelsTopLeft aria-hidden="true" />

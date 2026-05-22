@@ -161,7 +161,7 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
           </label>
 
           <label className="checkout-field">
-            Exact confirmation text
+            Review phrase
             <textarea
               value={confirmationText}
               onChange={(event) => setConfirmationText(event.target.value)}
@@ -171,15 +171,15 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
           </label>
 
           <button type="submit" className="primary-action" disabled={isSubmitting || !confirmationMatches}>
-            {isSubmitting ? "Reviewing..." : "Review checkout path"}
+            {isSubmitting ? "Checking..." : "Check checkout setup"}
             <ShoppingCart aria-hidden="true" />
           </button>
         </form>
 
         <aside className="checkout-result-panel" aria-live="polite">
           <ShoppingCart aria-hidden="true" />
-          <p>Confirmation required</p>
-          <strong>{confirmationMatches ? "Ready to start" : "Paste exact text"}</strong>
+          <p>Review phrase required</p>
+          <strong>{confirmationMatches ? "Ready to check" : "Paste the phrase"}</strong>
           <code>{stack.confirmation.checkoutText}</code>
           <span>{stack.writeBoundary}</span>
           {error ? (

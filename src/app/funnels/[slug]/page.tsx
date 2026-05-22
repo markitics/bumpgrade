@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Database, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
+import { ArrowRight, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { CheckoutStartPanel } from "@/components/checkout-start-panel";
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
@@ -11,7 +11,6 @@ import {
   funnelBlockLibrary,
   funnelTemplateLibrary,
   getFunnelBySlug,
-  publicFunnelCheckoutStartCapability,
   seededFunnels,
 } from "@/lib/funnels";
 import { site } from "@/lib/site";
@@ -41,7 +40,7 @@ export async function generateMetadata({ params }: FunnelPreviewPageProps): Prom
 
   return {
     title: funnel.title,
-    description: `${funnel.summary} This Bumpgrade funnel/page-builder route is tied to issue #${funnel.issue}.`,
+    description: funnel.summary,
     alternates: {
       canonical: `${site.url}${funnel.previewRoute}`,
     },
@@ -101,12 +100,12 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <h1>{funnel.title}</h1>
           <p className="lede">{funnel.summary}</p>
           <div className="hero-actions">
-            <Link href="/funnels/source-data" className="primary-action">
-              Funnel JSON
-              <Database aria-hidden="true" />
+            <Link href="/features/sales-funnels" className="primary-action">
+              See funnel feature
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${funnel.issue}`} className="secondary-action">
-              Issue #{funnel.issue}
+            <Link href={checkoutOfferStack.previewRoute} className="secondary-action">
+              Open linked checkout
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -117,8 +116,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
           <strong>{funnel.steps.length} steps</strong>
           <span>
             {published
-              ? "Published funnel. The route is public and readable by agents."
-              : "Example route. This funnel is readable by agents, but writes stay disabled until confirmed-write contracts exist."}
+              ? "Published launch path with ordered pages, reusable sections, and a connected checkout."
+              : "Example launch path you can review before building your own offer flow."}
           </span>
         </aside>
       </section>
@@ -129,9 +128,9 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             <p className="eyebrow">Ordered steps</p>
             <h2>{published ? "Published funnel sequence" : "Three-step launch funnel"}</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
+          <Link href="/features/sales-funnels" className="text-link compact-link">
+            Learn how funnels work
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="roadmap-grid">
@@ -144,8 +143,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
               <h3>{step.title}</h3>
               <p>{step.goal}</p>
               <div className="roadmap-detail">
-                <strong>Step ID</strong>
-                <span>{step.id}</span>
+                <strong>Page type</strong>
+                <span>{step.kind.replaceAll("_", " ")}</span>
               </div>
               <div className="roadmap-detail">
                 <strong>Blocks</strong>
@@ -160,7 +159,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Page blocks</p>
-            <h2>Page blocks before a visual builder exists</h2>
+            <h2>Reusable page sections for this launch path</h2>
           </div>
         </div>
         <div className="feature-grid">
@@ -168,16 +167,16 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             step.blocks.map((block) => (
               <article key={block.id} className="feature-card compact-content-card">
                 <div className="feature-card-top">
-                  <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
-                    {block.agentEditable ? "Draftable" : "Locked"}
+                  <span className={`status-badge ${block.agentEditable ? "active" : "pending"}`}>
+                    {block.agentEditable ? "Customizable" : "Fixed"}
                   </span>
                   <span className="admin-pill">{step.title}</span>
                 </div>
                 <h3>{block.title}</h3>
                 <p>{block.body}</p>
                 <div className="feature-detail">
-                  <strong>Block ID</strong>
-                  <span>{block.id}</span>
+                  <strong>Section type</strong>
+                  <span>{block.kind.replaceAll("_", " ")}</span>
                 </div>
               </article>
             )),
@@ -201,19 +200,19 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Template library</p>
-            <h2>Reusable funnel shapes for private draft starts</h2>
+            <h2>Reusable funnel shapes for future launches</h2>
           </div>
-          <Link href="/funnels/source-data" className="text-link compact-link">
-            Template JSON
-            <Database aria-hidden="true" />
+          <Link href="/features/simple-landing-page" className="text-link compact-link">
+            See landing pages
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="roadmap-grid">
           {funnelTemplateLibrary.map((template) => (
             <article key={template.id} className="roadmap-card">
               <div className="roadmap-card-top">
-                <span className="status-badge pending">Read-only</span>
-                <span className="admin-pill">Issue #{template.sourceIssue}</span>
+                <span className="status-badge active">Template</span>
+                <span className="admin-pill">{template.audience}</span>
               </div>
               <h3>{template.title}</h3>
               <p>{template.goal}</p>
@@ -231,23 +230,23 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         <div className="feature-section-heading compact-section-heading">
           <div>
             <p className="eyebrow">Block library</p>
-            <h2>Reusable page blocks with write boundaries</h2>
+            <h2>Reusable page sections for opt-ins, offers, resources, and checkout handoffs</h2>
           </div>
         </div>
         <div className="feature-grid">
           {funnelBlockLibrary.map((block) => (
             <article key={block.id} className="feature-card compact-content-card">
               <div className="feature-card-top">
-                <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
-                  {block.agentEditable ? "Draftable" : "Locked"}
+                <span className={`status-badge ${block.agentEditable ? "active" : "pending"}`}>
+                  {block.agentEditable ? "Customizable" : "Fixed"}
                 </span>
                 <span className="admin-pill">{block.kind}</span>
               </div>
               <h3>{block.title}</h3>
               <p>{block.purpose}</p>
               <div className="feature-detail">
-                <strong>Boundary</strong>
-                <span>{block.writeBoundary}</span>
+                <strong>Use it for</strong>
+                <span>{block.purpose}</span>
               </div>
             </article>
           ))}
@@ -257,31 +256,29 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Write boundary</p>
-            <h2>This is a read contract, not a publishing surface.</h2>
+            <p className="eyebrow">Launch safety</p>
+            <h2>Review the funnel path before sending visitors through it.</h2>
           </div>
-          <Link href="/agent-docs/bumpgrade-mcp" className="text-link compact-link">
-            MCP roadmap
-            <GitBranch aria-hidden="true" />
-          </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/funnels/source-data</code> exposes funnel, step, block, revision, and write-boundary records.
-            </p>
+            <PanelsTopLeft aria-hidden="true" />
+            <h3>Structured steps</h3>
+            <p>Each page has a goal, order, and reusable sections so the launch path is easy to review.</p>
           </div>
           <div>
             <PanelsTopLeft aria-hidden="true" />
-            <h3>Public route semantics</h3>
-            <p>The funnel route is crawlable and semantic so browser agents can inspect it without private admin UI.</p>
+            <h3>Shareable route</h3>
+            <p>The launch path can be opened, reviewed, and improved without digging through private builder screens.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>{canStartLinkedCheckout ? "Linked checkout start" : published ? "Published read surface" : "Confirmed writes later"}</h3>
-            <p>{canStartLinkedCheckout ? publicFunnelCheckoutStartCapability.writeBoundary : funnel.writeBoundary}</p>
+            <h3>{canStartLinkedCheckout ? "Checkout connection" : "Deliberate publishing"}</h3>
+            <p>
+              {canStartLinkedCheckout
+                ? "The funnel can pass buyers into the linked checkout review."
+                : "Connect checkout only when the offer path is ready for visitors."}
+            </p>
           </div>
         </div>
       </section>

@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: FeaturePageProps): Promise<Me
 
 function availabilityLabel(status: string) {
   if (status === "live" || status === "launch-preview") return "Available now";
-  return "In build";
+  return "Next release";
 }
 
 function availabilityClass(status: string) {
@@ -55,6 +55,7 @@ function exampleRouteLabel(route: string) {
   if (route.startsWith("/analytics/")) return "Open analytics dashboard";
   if (route.startsWith("/affiliates/")) return "Open partner program";
   if (route.startsWith("/agent-docs")) return "Open AI helper notes";
+  if (route.startsWith("/pricing")) return "Open pricing";
   if (route.startsWith("/compare")) return "Open comparison hub";
   return "Open example";
 }
@@ -68,7 +69,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
   }
 
   const visibleExampleRoutes = feature.proofRoutes.filter(
-    (route) => !route.includes("/source-data") && !route.startsWith("/admin"),
+    (route) => !route.includes("/source-data") && !route.startsWith("/admin") && !route.startsWith("/agent-docs"),
   );
   const relatedExampleRoutes = visibleExampleRoutes.length ? visibleExampleRoutes : [feature.nextStep.href];
 
@@ -169,16 +170,17 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
           <div className="split-heading">
             <div>
               <p className="eyebrow">Examples</p>
-              <h2>Concrete requests the coach can help with</h2>
+              <h2>Concrete prompts the coach can help with</h2>
             </div>
             <p>
-              Each request stays grounded in Bumpgrade source evidence and keeps customer-facing changes behind review.
+              Use these prompts to turn the current launch state into concrete planning, copy, checkout, email, and analytics
+              next steps.
             </p>
           </div>
           <div className="feature-example-grid">
             {feature.examples.map((example) => (
               <article key={example.title}>
-                <span>Example request</span>
+                <span>Example prompt</span>
                 <h3>{example.title}</h3>
                 <p>{example.body}</p>
                 <blockquote>{example.request}</blockquote>

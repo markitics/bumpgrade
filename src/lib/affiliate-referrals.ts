@@ -301,7 +301,7 @@ export const affiliateProgram: AffiliateProgram = {
   linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
   revisionId: "affiliate-program-revision-indie-launch-2026-05-21-notification-provider-readiness",
   summary:
-    "An affiliate and referral scaffold for partner links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review evidence, owner-reviewed partner notification readiness evidence, owner-reviewed partner notification send preflight evidence, owner-reviewed notification provider readiness evidence, and audit-safe agent access before payable commissions or partner sends exist.",
+    "A partner program example for referral links, checkout attribution, commission review, partner reports, payout preparation, review flags, and careful partner communication.",
   attributionRules: [
     {
       id: "attribution-rule-first-click-30",
@@ -331,7 +331,7 @@ export const affiliateProgram: AffiliateProgram = {
       rateBps: 3000,
       holdDays: 14,
       currency: "USD",
-      caveat: "Percentage is fixture data, not a live payable promise or published affiliate term.",
+      caveat: "Use this as an example partner commission before publishing final affiliate terms.",
     },
     {
       id: "commission-rule-checklist-bump-10",
@@ -341,7 +341,7 @@ export const affiliateProgram: AffiliateProgram = {
       rateBps: 1000,
       holdDays: 14,
       currency: "USD",
-      caveat: "Order-bump commission is draft until checkout, refund, and tax behavior are finalized.",
+      caveat: "Order-bump commission waits for checkout, refund, and tax rules to be finalized.",
     },
     {
       id: "commission-rule-refund-holdback",
@@ -351,7 +351,7 @@ export const affiliateProgram: AffiliateProgram = {
       amountCents: 0,
       holdDays: 30,
       currency: "USD",
-      caveat: "Holdback records are fixture controls only; payout-impacting holds require owner confirmation later.",
+      caveat: "Holdback rules keep refund and dispute risk visible before payout.",
     },
   ],
   partners: [
@@ -368,7 +368,7 @@ export const affiliateProgram: AffiliateProgram = {
       id: "affiliate-partner-template-studio",
       displayName: "Template Studio partner",
       status: "review",
-      publicProfile: "Template seller pending affiliate approval before public links or payout eligibility.",
+      publicProfile: "Template seller awaiting affiliate approval before public links or payout eligibility.",
       approvedProgramIds: [],
       referralLinkIds: ["ref-link-template-partner-sales"],
       privateDataExcluded: ["email address", "W-9/W-8 details", "payment rail", "private fraud notes"],
@@ -402,12 +402,12 @@ export const affiliateProgram: AffiliateProgram = {
     {
       id: "affiliate-partner-report-launch-circle",
       partnerId: "affiliate-partner-launch-circle",
-      title: "Launch Circle public-safe performance report",
+      title: "Launch Circle performance report",
       status: "public_safe_report_ready",
       issue: 193,
       reportingWindow: {
         id: "affiliate-report-window-public-safe-all-time",
-        label: "All-time public-safe aggregate",
+        label: "All-time aggregate",
         source: "Seeded fixture plus D1 aggregate summaries from click, checkout attribution, ledger, and review-action tables.",
       },
       referralLinkIds: ["ref-link-launch-circle-waitlist"],
@@ -437,7 +437,7 @@ export const affiliateProgram: AffiliateProgram = {
         status: "review_required",
         caveats: [
           "Refund window and reversal evidence must remain reviewable before payout preparation.",
-          "Partner payout account, tax form, and private notification data are not in public source data.",
+          "Partner payout account, tax form, and private notification data stay private.",
         ],
       },
       redaction: {
@@ -450,17 +450,17 @@ export const affiliateProgram: AffiliateProgram = {
         taxDataIncluded: false,
         stripeIdsIncluded: false,
       },
-      caveat: "Report totals are public-safe evidence for product semantics, not a payable statement or partner portal.",
+      caveat: "Report totals help review partner performance before a payable statement is issued.",
     },
     {
       id: "affiliate-partner-report-template-studio",
       partnerId: "affiliate-partner-template-studio",
-      title: "Template Studio public-safe performance report",
+      title: "Template Studio performance report",
       status: "public_safe_report_ready",
       issue: 193,
       reportingWindow: {
         id: "affiliate-report-window-public-safe-all-time",
-        label: "All-time public-safe aggregate",
+        label: "All-time aggregate",
         source: "Seeded fixture plus D1 aggregate summaries from click, checkout attribution, ledger, and review-action tables.",
       },
       referralLinkIds: ["ref-link-template-partner-sales"],
@@ -503,7 +503,7 @@ export const affiliateProgram: AffiliateProgram = {
         taxDataIncluded: false,
         stripeIdsIncluded: false,
       },
-      caveat: "Report totals are public-safe evidence for product semantics, not a payable statement or partner portal.",
+      caveat: "Report totals help review partner performance before a payable statement is issued.",
     },
   ],
   commissionLedger: [
@@ -517,7 +517,7 @@ export const affiliateProgram: AffiliateProgram = {
       grossSaleCents: 9000,
       commissionCents: 2700,
       currency: "USD",
-      reason: "Fixture paid checkout attributed to the Launch Circle partner inside the 30-day window.",
+      reason: "Paid checkout attributed to the Launch Circle partner inside the 30-day window.",
     },
     {
       id: "commission-ledger-self-referral-review",
@@ -529,7 +529,7 @@ export const affiliateProgram: AffiliateProgram = {
       grossSaleCents: 9000,
       commissionCents: 2700,
       currency: "USD",
-      reason: "Fixture self-referral pattern requires owner review before payout eligibility.",
+      reason: "Possible self-referral pattern needs review before payout eligibility.",
     },
     {
       id: "commission-ledger-refund-reversal",
@@ -541,7 +541,7 @@ export const affiliateProgram: AffiliateProgram = {
       grossSaleCents: 9000,
       commissionCents: 0,
       currency: "USD",
-      reason: "Fixture refund reversed commission before payout batch creation.",
+      reason: "Refund reversed commission before payout batch creation.",
     },
   ],
   payoutBatches: [
@@ -563,26 +563,26 @@ export const affiliateProgram: AffiliateProgram = {
       reviewBeforePayout: [
         "Confirm refund window has elapsed.",
         "Resolve self-referral review flag.",
-        "Confirm partner payout account outside public source data.",
+        "Confirm partner payout account privately.",
       ],
       readinessChecklist: [
         {
           id: "payout-prep-check-owner-reviewed",
-          title: "Owner review evidence captured",
+          title: "Review decision captured",
           status: "passed",
-          evidence: "Issue #115 owner review/reversal actions can mark, hold, or reverse review-only ledger evidence.",
+          evidence: "Commission rows can be marked, held, or reversed before payout.",
         },
         {
           id: "payout-prep-check-refund-window",
           title: "Refund and reversal window cleared",
           status: "blocked",
-          evidence: "Fixture review flag keeps refund-window evidence open before any payout preparation can become payable.",
+          evidence: "Refund-window checks must clear before payout preparation becomes payable.",
         },
         {
           id: "payout-prep-check-private-payout-data",
           title: "Private payout and tax data available",
           status: "external_required",
-          evidence: "Partner payout account and tax form checks are intentionally excluded from public source data.",
+          evidence: "Partner payout account and tax form checks stay private.",
         },
       ],
       sourceRoutes: [
@@ -602,7 +602,7 @@ export const affiliateProgram: AffiliateProgram = {
         partnerNotificationIncluded: false,
       },
       caveat:
-        "This preparation row is a public-safe readiness checklist, not a payable batch, partner statement, tax workflow, Stripe payout, transfer, or notification.",
+        "This preparation view shows what must be reviewed before a payable partner statement or payout is created.",
     },
   ],
   reviewFlags: [
@@ -611,8 +611,8 @@ export const affiliateProgram: AffiliateProgram = {
       severity: "high",
       title: "Possible self-referral",
       linkedLedgerIds: ["commission-ledger-self-referral-review"],
-      reason: "Fixture buyer and partner signals would need private, redacted comparison before payout.",
-      requiredAction: "Owner must approve or reject the commission with an audit note before payout.",
+      reason: "Buyer and partner signals need private comparison before payout.",
+      requiredAction: "Approve or reject the commission with a short review note before payout.",
     },
     {
       id: "review-flag-refund-window",
@@ -620,7 +620,7 @@ export const affiliateProgram: AffiliateProgram = {
       title: "Refund window still open",
       linkedLedgerIds: ["commission-ledger-launch-pass-fixture"],
       reason: "Approved commission remains pending while the refund/dispute window is still open.",
-      requiredAction: "Hold payout until webhook evidence proves the window has elapsed.",
+      requiredAction: "Hold payout until the refund and dispute window has elapsed.",
     },
   ],
   auditEvents: [

@@ -28,7 +28,7 @@ const featuredFeatures = featuredMarketingFeatureSlugs
 
 function availabilityLabel(feature: MarketingFeature) {
   if (feature.status === "live" || feature.status === "launch-preview") return "Available now";
-  return "In build";
+  return "Next release";
 }
 
 function availabilityClass(feature: MarketingFeature) {
@@ -66,13 +66,20 @@ export default function FeaturesPage() {
             <h2>The main things Bumpgrade can do for a launch.</h2>
           </div>
           <p>
-            These are customer-facing jobs. The deeper pages explain the problem, outcome, use cases, and how each feature fits into a real launch.
+            Use these paths to plan the first page, collect the buyer, deliver the product, measure the result, and choose
+            what to improve next.
           </p>
         </div>
         <div className="spotlight-feature-grid">
           {featuredFeatures.map((feature) => (
             <article key={feature.slug} className="spotlight-feature-card">
-              <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
+              <Image
+                src={feature.cardImageUrl ?? feature.imageUrl}
+                alt={feature.cardImageAlt ?? feature.imageAlt}
+                width={1200}
+                height={650}
+                unoptimized
+              />
               <div>
                 <span className={`status-badge ${availabilityClass(feature)}`}>
                   {availabilityLabel(feature)}
@@ -145,8 +152,8 @@ export default function FeaturesPage() {
           </div>
           <div>
             <BadgeCheck aria-hidden="true" />
-            <h3>Honest availability</h3>
-            <p>Each page says what is available now and what still needs review before customer money or messages move.</p>
+            <h3>Clear next steps</h3>
+            <p>Each feature page explains what it does, when to use it, and where it fits in the launch.</p>
           </div>
           <div>
             <Sparkles aria-hidden="true" />

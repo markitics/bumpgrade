@@ -2597,8 +2597,9 @@ h3 {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: top center;
+  object-fit: contain;
+  object-position: center;
+  background: linear-gradient(135deg, #f7fbf8, #eef6f1);
 }
 
 .product-visual-primary img {
@@ -2666,6 +2667,7 @@ h3 {
 .launch-hero-media img,
 .feature-detail-media img {
   aspect-ratio: 1.18;
+  height: auto;
   min-height: 420px;
 }
 
@@ -2839,6 +2841,7 @@ h3 {
 .launch-feature-card img,
 .spotlight-feature-card img {
   aspect-ratio: 1.85;
+  height: auto;
 }
 
 .launch-feature-card > div,

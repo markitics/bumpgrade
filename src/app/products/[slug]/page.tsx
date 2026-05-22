@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Database, FileArchive, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, FileArchive, KeyRound, ShieldCheck } from "lucide-react";
 
 import { getProductAccessCatalogBySlug, productAccessCatalogs, type ProductAccessRecord } from "@/lib/product-access";
 import { site } from "@/lib/site";
@@ -13,7 +13,7 @@ type ProductAccessPageProps = {
 };
 
 const publicProductAccessBoundary =
-  "Customer access opens only after trusted payment or subscription evidence, entitlement checks, owner-safe audit records, and private asset delivery controls.";
+  "Customer access opens only after payment or subscription state matches the product access rules.";
 
 export function generateStaticParams() {
   return productAccessCatalogs.map((catalog) => ({ slug: catalog.slug }));
@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: ProductAccessPageProps): Prom
 
   return {
     title: catalog.title,
-    description: `${catalog.summary} This Bumpgrade product/access scaffold is tied to issue #${catalog.issue}.`,
+    description: catalog.summary,
     alternates: {
       canonical: `${site.url}${catalog.previewRoute}`,
     },
@@ -44,14 +44,14 @@ function ProductCard({ product }: { product: ProductAccessRecord }) {
   return (
     <article className="feature-card compact-content-card">
       <div className="feature-card-top">
-        <span className="status-badge planned">{product.kind.replaceAll("_", " ")}</span>
-        <span className="admin-pill">{product.status}</span>
+        <span className="status-badge active">{product.kind.replaceAll("_", " ")}</span>
+        <span className="admin-pill">Access path</span>
       </div>
       <h3>{product.title}</h3>
       <p>{product.summary}</p>
       <div className="feature-detail">
-        <strong>Product ID</strong>
-        <span>{product.id}</span>
+        <strong>Delivery type</strong>
+        <span>{product.kind.replaceAll("_", " ")}</span>
       </div>
       <div className="feature-detail">
         <strong>Access rules</strong>
@@ -59,6 +59,20 @@ function ProductCard({ product }: { product: ProductAccessRecord }) {
       </div>
     </article>
   );
+}
+
+function sourceEventLabel(sourceEvent: string) {
+  if (sourceEvent === "checkout.session.completed") return "Completed checkout";
+  if (sourceEvent === "customer.subscription.updated") return "Active subscription";
+  if (sourceEvent === "payment_audit_events") return "Payment review";
+  return sourceEvent.replaceAll("_", " ");
+}
+
+function fulfillmentTimingLabel(timing: string) {
+  if (timing === "after_webhook_paid") return "After paid checkout";
+  if (timing === "manual_review") return "Manual review";
+  if (timing === "active_subscription") return "Active subscription";
+  return timing.replaceAll("_", " ");
 }
 
 export default async function ProductAccessPage({ params }: ProductAccessPageProps) {
@@ -95,12 +109,12 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <h1>{catalog.title}</h1>
           <p className="lede">{catalog.summary}</p>
           <div className="hero-actions">
-            <Link href="/products/source-data" className="primary-action">
-              Product JSON
-              <Database aria-hidden="true" />
+            <Link href="/features/digital-products" className="primary-action">
+              See product feature
+              <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${catalog.issue}`} className="secondary-action">
-              Issue #{catalog.issue}
+            <Link href={catalog.checkoutOfferRoute} className="secondary-action">
+              Open linked checkout
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -110,8 +124,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <p>Status</p>
           <strong>{catalog.products.length} product types</strong>
           <span>
-            Assets, access rules, entitlement templates, and grant mappings are public-safe records; private
-            downloads, protected content, and live fulfillment stay disabled until confirmed-write APIs exist.
+            Connect products to checkout, access rules, memberships, downloads, and protected content so customers get
+            the right thing after purchase.
           </span>
         </aside>
       </section>
@@ -138,11 +152,11 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Access rules</p>
-            <h2>Entitlements depend on trusted payment or subscription evidence</h2>
+            <h2>Customer access depends on trusted payment or subscription state</h2>
           </div>
-          <Link href={catalog.commerceContractRoute} className="text-link compact-link">
-            Commerce contract
-            <Database aria-hidden="true" />
+          <Link href="/features/digital-products" className="text-link compact-link">
+            Learn about product delivery
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="roadmap-grid">
@@ -150,7 +164,7 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
             <article key={rule.id} className="roadmap-card">
               <div className="roadmap-card-top">
                 <span className={`status-badge ${rule.timing === "manual_review" ? "pending" : "planned"}`}>
-                  {rule.timing.replaceAll("_", " ")}
+                  {fulfillmentTimingLabel(rule.timing)}
                 </span>
                 <span className="admin-pill">{rule.revocable ? "Revocable" : "Permanent"}</span>
               </div>
@@ -158,8 +172,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
               <h3>{rule.title}</h3>
               <p>{rule.grants}</p>
               <div className="roadmap-detail">
-                <strong>Source event</strong>
-                <span>{rule.sourceEvent}</span>
+                <strong>Unlocks after</strong>
+                <span>{sourceEventLabel(rule.sourceEvent)}</span>
               </div>
             </article>
           ))}
@@ -169,31 +183,24 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
       <section className="content-band dark-band">
         <div className="feature-section-heading">
           <div>
-            <p className="eyebrow">Write boundary</p>
-            <h2>Agents can inspect entitlement grants, not deliver private assets.</h2>
+            <p className="eyebrow">Delivery safety</p>
+            <h2>Give customers access only when the purchase state matches.</h2>
           </div>
-          <Link href="/agent-docs/source-data" className="text-link compact-link">
-            Agent manifest
-            <Database aria-hidden="true" />
-          </Link>
         </div>
         <div className="feature-proof-grid">
           <div>
-            <Database aria-hidden="true" />
-            <h3>Source data first</h3>
-            <p>
-              <code>/products/source-data</code> exposes public-safe product, asset, access-rule, entitlement
-              template, and grant mapping records.
-            </p>
+            <KeyRound aria-hidden="true" />
+            <h3>Access rules</h3>
+            <p>Each product defines what purchase, subscription, or manual review state should unlock it.</p>
           </div>
           <div>
             <FileArchive aria-hidden="true" />
             <h3>Private assets stay private</h3>
-            <p>R2 object keys, signed URLs, lesson bodies, buyer data, and join links are excluded from public data.</p>
+            <p>Download files, lesson bodies, buyer data, and join links stay behind customer access checks.</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Confirmed writes later</h3>
+            <h3>Trusted fulfillment</h3>
             <p>{publicProductAccessBoundary}</p>
           </div>
         </div>
