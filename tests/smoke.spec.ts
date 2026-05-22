@@ -94,6 +94,7 @@ import {
   audienceImportPreflightIssue,
   audienceImportPreflightStatus,
 } from "../src/lib/audience-imports";
+import { audienceExportReadinessIssue, audienceExportReadinessStatus } from "../src/lib/audience-exports";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
@@ -3166,6 +3167,41 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.audienceExportReadiness).toEqual(
+      expect.objectContaining({
+        id: "audience-export-readiness-contract",
+        status: audienceExportReadinessStatus,
+        issue: audienceExportReadinessIssue,
+        parentIssue: 17,
+        ownerRoute: "/admin/audience",
+        publicSourceDataRoute: "/audience/source-data",
+        exportFormat: "csv_private_contact_export",
+        exportEnabled: false,
+        counts: expect.objectContaining({
+          subscribers: expect.any(Number),
+          subscribedSubscribers: expect.any(Number),
+          consentedSubscribers: expect.any(Number),
+          exportEligibleSubscribers: expect.any(Number),
+          suppressedSubscribers: expect.any(Number),
+          activeSuppressionEntries: expect.any(Number),
+          unsubscribedSubscribers: expect.any(Number),
+          pausedSequenceSubscribers: expect.any(Number),
+          exportFilesCreatedRecords: 0,
+          rawEmailsIncludedRecords: 0,
+          exportUrlsCreatedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawEmailsIncluded: false,
+          subscriberIdsIncluded: false,
+          exportFileUrlsIncluded: false,
+          exportFilesCreated: false,
+          actorEmailIncluded: false,
+          suppressionHashesIncluded: false,
+          privateNotesIncluded: false,
+        }),
+      }),
+    );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
     const beforePausedSequenceCount = payload.subscriberInspection.counts.pausedSequenceEnrollments;
@@ -3289,10 +3325,12 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
     expect(payload.writeBoundary).toContain("Issue #343 pauses known draft sequence enrollments");
+    expect(payload.writeBoundary).toContain("Issue #347 exposes aggregate audience export readiness");
     expect(payload.writeBoundary).toContain("Issue #253 can record owner-confirmed import intent metadata");
     expect(payload.writeBoundary).toContain("Issue #259 can record owner-confirmed import preflight evidence");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
     expect(payload.caveat).toContain("unsubscribe-paused sequence enrollment aggregates");
+    expect(payload.caveat).toContain("aggregate export-readiness evidence");
     expect(payload.caveat).toContain("owner-confirmed import intent evidence");
     expect(payload.caveat).toContain("owner-confirmed import preflight evidence");
 
@@ -3333,6 +3371,18 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "sequence-indie-launch-nurture", status: "unsubscribe_paused" }),
       ]),
     );
+    expect(afterPayload.audienceExportReadiness.counts.unsubscribedSubscribers).toBeGreaterThanOrEqual(1);
+    expect(afterPayload.audienceExportReadiness.counts.pausedSequenceSubscribers).toBeGreaterThanOrEqual(1);
+    expect(afterPayload.audienceExportReadiness.counts.exportFilesCreatedRecords).toBe(0);
+    expect(afterPayload.audienceExportReadiness.redaction).toEqual(
+      expect.objectContaining({
+        rawEmailsIncluded: false,
+        subscriberIdsIncluded: false,
+        exportFileUrlsIncluded: false,
+        exportFilesCreated: false,
+      }),
+    );
+    expect(JSON.stringify(afterPayload.audienceExportReadiness)).not.toContain(browserEmail);
     expect(afterPayload.broadcastReadiness.counts.scopedSubscribers).toBeGreaterThanOrEqual(beforeBroadcastScopedCount + 1);
     expect(afterPayload.broadcastReadiness.counts.activeSuppressionEntries).toBeGreaterThanOrEqual(
       beforeBroadcastSuppressionCount + 1,
@@ -15489,6 +15539,7 @@ test.describe("Bumpgrade scaffold", () => {
             "sequenceEnrollmentPauseId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
+            "audienceExportReadinessId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
@@ -15509,6 +15560,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect Queue consumer readiness without Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, or provider sends",
             "Inspect owner-confirmed import intents without raw contact rows, raw emails, actor emails, private notes, sequence enrollments, or sends",
             "Inspect owner-confirmed import preflights without raw contact rows, raw emails, subscriber writes, exports, actor emails, private notes, sequence enrollments, or sends",
+            "Inspect aggregate audience export readiness without raw emails, subscriber IDs, export files, or export URLs",
           ]),
         }),
         expect.objectContaining({
@@ -15566,7 +15618,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-audience-subscribers",
           route: "/admin/audience",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId"]),
+          stableIds: expect.arrayContaining(["audienceImportIntentId", "audienceImportPreflightId", "audienceExportReadinessId"]),
         }),
         expect.objectContaining({ id: "read-analytics-experiments", route: "/analytics/source-data", auth: "public" }),
         expect.objectContaining({
@@ -17208,6 +17260,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "CRM notes" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import preflights" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Export readiness", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preview safety" })).toBeVisible();
@@ -17221,6 +17274,10 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Queue consumers", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Imports stay intent-only until contact writes are safe" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import intent/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Private exports stay disabled until confirmed export APIs exist" }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "CSV export readiness is aggregate-only" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();
