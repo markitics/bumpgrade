@@ -750,8 +750,8 @@ export async function loadPublisherAccountState(
       customDomains,
       canReserveSubdomain: false,
       canAddCustomDomain: false,
-      message: "A paid plan or launch-pilot entitlement is required before choosing a Bumpgrade subdomain.",
-      customDomainMessage: "A paid plan or launch-pilot entitlement is required before adding a custom domain.",
+      message: "A paid plan entitlement is required before choosing a Bumpgrade subdomain.",
+      customDomainMessage: "A paid plan entitlement is required before adding a custom domain.",
       source: "d1",
     };
   }
@@ -800,7 +800,7 @@ export async function reservePublisherSubdomain(
   const entitlement = await loadActivePlanEntitlement(db, user);
   if (!entitlement) {
     throw new PublisherTenantError(
-      "Choose a paid plan or activate a launch pilot before reserving a Bumpgrade subdomain.",
+      "Choose a paid plan before reserving a Bumpgrade subdomain.",
       402,
       "PAID_PLAN_REQUIRED",
     );
@@ -917,7 +917,7 @@ async function requirePaidTenantWithDefaultHostname(db: D1Database, user: Publis
   const entitlement = await loadActivePlanEntitlement(db, user);
   if (!entitlement) {
     throw new PublisherTenantError(
-      "Choose a paid plan or activate a launch pilot before adding a custom domain.",
+      "Choose a paid plan before adding a custom domain.",
       402,
       "PAID_PLAN_REQUIRED",
     );
@@ -1150,7 +1150,7 @@ export const publisherTenantSourceData = {
   tables: [
     {
       name: "publisher_plan_entitlements",
-      purpose: "Paid-plan or launch-pilot gate checked before a publisher can reserve a Bumpgrade subdomain.",
+      purpose: "Paid-plan gate checked before a publisher can reserve a Bumpgrade subdomain.",
       publicSafeFields: ["status", "source", "plan_slug", "starts_at", "ends_at"],
       privateFields: ["owner_user_id", "owner_email"],
     },

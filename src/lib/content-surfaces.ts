@@ -37,8 +37,9 @@ export type PlannedPricingTrack = {
   title: string;
   status: ContentSurfaceStatus;
   intendedFor: string;
+  price: string;
   includes: string[];
-  notYetClaimed: string;
+  checkoutStatus: string;
   issueNumbers: number[];
 };
 
@@ -55,7 +56,7 @@ export type LaunchSignupPolicy = {
   evidenceRoutes: string[];
 };
 
-export const contentSurfacesUpdatedAt = "2026-05-20";
+export const contentSurfacesUpdatedAt = "2026-05-22";
 
 export const audienceSegments: AudienceSegment[] = [
   {
@@ -177,10 +178,10 @@ export const resourceHubItems: ResourceHubItem[] = [
     type: "product",
     status: "live",
     route: "/agent-docs/bumpgrade-commerce-contract",
-    summary: "Sandbox checkout, Stripe mode, webhook, and billing-safe agent boundaries.",
-    evidenceRoutes: ["/commerce/source-data", "/agent-docs/source-data"],
-    issueNumbers: [11, 34, 46],
-    agentBoundary: "Live billing remains disabled until a later explicit rollout proves webhook evidence.",
+    summary: "Self-serve subscription checkout, sandbox offer checkout, Stripe mode, and billing-safe agent boundaries.",
+    evidenceRoutes: ["/commerce/source-data", "/api/billing/checkout", "/agent-docs/source-data"],
+    issueNumbers: [11, 34, 46, 316],
+    agentBoundary: "Bumpgrade subscription checkout is live; publisher-offer checkout remains governed by offer-specific billing safety boundaries.",
   },
   {
     id: "resource-agent-contracts",
@@ -197,18 +198,18 @@ export const resourceHubItems: ResourceHubItem[] = [
 
 export const pricingPrinciples: PricingPrinciple[] = [
   {
-    id: "pricing-no-invented-plans",
-    title: "No invented plan names or price points",
+    id: "pricing-self-serve",
+    title: "Self-serve subscription checkout",
     status: "live",
-    summary: "Bumpgrade can explain pricing direction, but published plan names, limits, and amounts wait for packaging evidence.",
-    evidenceRoutes: ["/commerce/source-data", "/roadmap/source-data"],
+    summary: "Experiment and Grow use Stripe Checkout so publishers can start today without a sales conversation.",
+    evidenceRoutes: ["/pricing", "/api/billing/checkout", "/commerce/source-data"],
   },
   {
-    id: "pricing-checkout-first",
-    title: "Checkout and webhook evidence before live billing claims",
+    id: "pricing-flexible-entitlements",
+    title: "Flexible plan entitlements",
     status: "live",
-    summary: "Stripe Checkout, D1 commerce records, and webhook idempotency are the foundation before live subscription rollout.",
-    evidenceRoutes: ["/commerce/source-data", "/agent-docs/bumpgrade-commerce-contract"],
+    summary: "Plan capability boundaries live in a data framework so features can move between plans later.",
+    evidenceRoutes: ["/pricing", "/content/source-data"],
   },
   {
     id: "pricing-agent-safe",
@@ -222,73 +223,76 @@ export const pricingPrinciples: PricingPrinciple[] = [
 export const plannedPricingTracks: PlannedPricingTrack[] = [
   {
     id: "pricing-track-publisher",
-    title: "Publisher workspace",
+    title: "Experiment",
     status: "live",
     intendedFor: "Solo creators, coaches, and newsletter publishers starting with one owned audience.",
+    price: "$97/mo",
     includes: [
       "Funnel and page builder",
       "Checkout and products",
       "Email/list growth",
       "Basic analytics",
       "Paid-gated Bumpgrade subdomain reservation",
-      "Existing-domain DNS instructions and verification state",
+      "AI coach launch context",
     ],
-    notYetClaimed:
-      "Published price amounts, plan limits, domain purchase, and live self-serve billing availability are separate launch slices.",
-    issueNumbers: [14, 15, 16, 17, 18, 20, 222, 223],
+    checkoutStatus: "Self-serve Stripe Checkout is available through /api/billing/checkout.",
+    issueNumbers: [14, 15, 16, 17, 18, 20, 222, 316],
   },
   {
     id: "pricing-track-growth",
-    title: "Growth stack",
-    status: "planned",
+    title: "Grow",
+    status: "live",
     intendedFor: "Publishers who need optimization, affiliates, richer automations, and multi-offer reporting.",
+    price: "$197/mo",
     includes: ["A/B tests", "Referral and affiliate tracking", "Advanced automations", "Offer performance views"],
-    notYetClaimed: "This is positioning only until analytics, referrals, and automation slices ship.",
-    issueNumbers: [17, 18, 19, 20],
+    checkoutStatus: "Self-serve Stripe Checkout is available through /api/billing/checkout.",
+    issueNumbers: [17, 18, 19, 20, 316],
   },
   {
     id: "pricing-track-agent",
-    title: "Agent-enabled operations",
-    status: "planned",
-    intendedFor: "Operators who want Codex, ChatGPT, Claude, or internal agents to inspect and propose changes safely.",
-    includes: ["Source-data reads", "MCP resources", "Confirmed-write proposals", "Audit and approval records"],
-    notYetClaimed: "Read contracts are live, but write tools and MCP server packaging are still planned.",
-    issueNumbers: [12, 20],
+    title: "Enterprise",
+    status: "live",
+    intendedFor: "Teams that need SSO, custom development, dedicated implementation help, or unusual billing/data boundaries.",
+    price: "Contact us",
+    includes: ["SSO planning", "Custom development", "Team security requirements", "Dedicated launch architecture review"],
+    checkoutStatus: "Enterprise uses a contact path instead of self-serve checkout.",
+    issueNumbers: [12, 20, 316],
   },
 ];
 
 export const launchSignupPolicy: LaunchSignupPolicy = {
-  id: "launch-signup-paid-domain-readiness",
+  id: "self-serve-pricing-and-account-setup",
   status: "live",
-  issueNumbers: [217, 222, 223, 225, 226],
+  issueNumbers: [217, 222, 223, 225, 226, 316],
   summary:
-    "Bumpgrade launch access is invite-based while paid publisher accounts, default subdomains, existing-domain setup, and customer-facing payment paths are verified per offer.",
+    "Bumpgrade offers self-serve Experiment and Grow subscriptions through Stripe Checkout, plus an Enterprise contact path.",
   defaultSubdomain:
-    "A publisher can reserve a default *.bumpgrade.com hostname after a paid plan or launch-pilot entitlement is active.",
+    "A publisher can reserve a default *.bumpgrade.com hostname after a paid plan entitlement is active.",
   customDomain:
-    "Paid publishers can connect a domain they already own after reserving the default Bumpgrade hostname; Bumpgrade shows the CNAME target and verification state.",
+    "Grow and Enterprise publishers can connect a domain they already own after reserving the default Bumpgrade hostname; Bumpgrade shows the CNAME target and verification state.",
   domainPurchase:
     "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
   payments: [
-    "Bumpgrade pilot fees can use a confirmed payment path such as a Stripe invoice.",
-    "Billing-impacting publisher-offer checkout is enabled only after the live Stripe path is verified for that offer.",
-    "No public self-serve live checkout button should appear without linked smoke evidence.",
+    "Experiment is $97/month.",
+    "Grow is $197/month.",
+    "White glove setup is an optional one-time $1,000 add-on.",
+    "Successful Stripe Checkout Sessions are verified server-side before Bumpgrade activates publisher plan entitlements.",
   ],
   customerCheckout:
-    "Customer-facing checkout is offer-specific: the sandbox flow is proven, while live-mode customer charges require a separate live Stripe smoke before launch copy may claim they are active.",
-  evidenceRoutes: ["/pricing", "/account/setup", "/account/source-data", "/commerce/source-data", "/admin/user-journeys/source-data"],
+    "Customer-facing checkout for a publisher's own offer remains offer-specific; Bumpgrade subscription checkout is the self-serve account plan path.",
+  evidenceRoutes: ["/pricing", "/pricing-v2", "/api/billing/checkout", "/account/setup", "/account/source-data", "/commerce/source-data", "/admin/user-journeys/source-data"],
 };
 
 export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/account/setup", "/content/source-data"],
+  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/pricing-v2", "/account/setup", "/content/source-data"],
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,
   plannedPricingTracks,
   launchSignupPolicy,
   caveat:
-    "This source data describes public content surfaces. It does not turn planned product features, live billing, or confirmed-write agent tools into shipped capabilities.",
+    "This source data describes public content surfaces. It does not turn planned product features, publisher-offer billing, or confirmed-write agent tools into shipped capabilities.",
 };

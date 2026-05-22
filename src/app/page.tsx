@@ -45,7 +45,7 @@ const launchOutcomes = [
 ];
 
 const proofPoints = [
-  "Feature examples and pricing are ready for first invite conversations.",
+  "Feature examples and self-serve pricing are ready for publishers who want to start today.",
   "Funnels, checkout paths, products, audience, analytics, and partner tracking are connected.",
   "Customer payments and sends stay reviewed until each live path is verified.",
 ];
@@ -170,11 +170,11 @@ export default function HomePage() {
       <section className="content-band dark-band launch-proof-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Ready for the first invite wave</p>
+            <p className="eyebrow">Ready to start</p>
             <h2>Follow working launch paths from the first page to customer follow-up.</h2>
           </div>
           <Link href="/pricing" className="secondary-action">
-            Request access
+            Start on pricing
             <BarChart3 aria-hidden="true" />
           </Link>
         </div>

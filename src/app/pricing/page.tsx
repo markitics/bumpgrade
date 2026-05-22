@@ -1,155 +1,138 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CircleDollarSign, CreditCard, Globe2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, Globe2, ShieldCheck, Sparkles } from "lucide-react";
 
+import {
+  billingCheckoutRoute,
+  formatUsd,
+  planIncludesFeature,
+  pricingFeatureMatrix,
+  pricingPlans,
+  selfServePricingContract,
+  whiteGloveSetupAddon,
+  type PricingPlan,
+} from "@/lib/pricing-plans";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Bumpgrade launch pricing for publishers who want funnels, checkout, email, products, analytics, and AI-assisted growth in one launch system.",
+    "Bumpgrade pricing for publishers who want self-serve funnels, checkout, email, products, analytics, and AI-assisted launch growth.",
   alternates: {
     canonical: `${site.url}/pricing`,
   },
 };
 
-const launchPlans = [
-  {
-    name: "Launch access",
-    label: "For the first invite wave",
-    price: "Start with an invite",
-    description: "Use Bumpgrade to plan, shape, and review the first funnel, offer stack, audience path, and product access for a real launch.",
-    cta: "Request launch access",
-    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access",
-    features: [
-      "Feature, funnel, offer, product, audience, analytics, and affiliate planning",
-      "Launch review links for your team and AI helpers",
-      "Bumpgrade subdomain reservation after the paid launch-pilot gate is active",
-      "Existing-domain DNS instructions after the default hostname is reserved",
-      "Reviewed setup before customer-facing payments are enabled",
-    ],
-  },
-  {
-    name: "Publisher pilot",
-    label: "For active sellers",
-    price: "Paid pilot",
-    description: "For publishers bringing a live offer, list, product, or paid workshop into Bumpgrade with checkout and fulfillment review.",
-    cta: "Plan a pilot",
-    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20publisher%20pilot",
-    features: [
-      "Funnel and checkout path mapped to your launch",
-      "Default Bumpgrade subdomain for your publisher workspace",
-      "Bring-your-own-domain setup with CNAME verification state",
-      "Connect a domain you already own; domain purchase is not sold by Bumpgrade yet",
-      "Email, CRM, and follow-up readiness review",
-      "Stripe payment setup reviewed before live charges",
-    ],
-  },
-  {
-    name: "Operator stack",
-    label: "For teams and agencies",
-    price: "Concierge setup",
-    description: "For operators who want repeatable launch systems, partner tracking, reporting, and AI-assisted review across multiple offers.",
-    cta: "Discuss operator setup",
-    href: "mailto:m@rkmoriarty.com?subject=Bumpgrade%20operator%20setup",
-    features: [
-      "Reusable funnel and offer structures",
-      "Affiliate and attribution review surfaces",
-      "Launch journey review links, screenshots, and validation notes",
-    ],
-  },
-];
+type PricingPageProps = {
+  searchParams?: Promise<{
+    checkout?: string;
+  }>;
+};
 
-const paymentOptions = [
-  {
-    title: "Bumpgrade subdomain",
-    body: "Paid publishers can reserve a default hostname such as your-name.bumpgrade.com from account setup before adding a custom domain.",
-    icon: Globe2,
-  },
-  {
-    title: "Existing domain",
-    body: "Paid publishers can add a domain they already own, copy Bumpgrade's CNAME target, and re-check DNS before activation.",
-    icon: Globe2,
-  },
-  {
-    title: "Domain purchase",
-    body: "Bumpgrade does not sell or register domains today. Use your paid Bumpgrade subdomain, or connect a domain you already own.",
-    icon: Globe2,
-  },
-  {
-    title: "Pilot payments",
-    body: "Bumpgrade pilot fees can be handled through a confirmed payment path while customer-facing checkout is verified separately for each offer.",
-    icon: CreditCard,
-  },
-  {
-    title: "Stripe invoices",
-    body: "Paid pilots can use a Stripe invoice when that is the cleanest way to confirm package, scope, and account entitlement before a larger rollout.",
-    icon: CircleDollarSign,
-  },
-  {
-    title: "Manual approval for launch offers",
-    body: "Billing-impacting actions stay reviewed and confirmed. That keeps early customers from seeing an unverified payment path.",
-    icon: ShieldCheck,
-  },
-];
+function planPrice(plan: PricingPlan) {
+  if (plan.monthlyAmountCents === null) return "Contact us";
+  return `${formatUsd(plan.monthlyAmountCents)}/mo`;
+}
 
-export default function PricingPage() {
+function PlanCheckoutForm({ plan }: { plan: PricingPlan }) {
+  if (plan.status === "contact") {
+    return (
+      <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20Enterprise" className="primary-action">
+        {plan.cta}
+        <ArrowRight aria-hidden="true" />
+      </Link>
+    );
+  }
+
+  return (
+    <form action={billingCheckoutRoute} method="post" className="plan-checkout-form">
+      <input type="hidden" name="planSlug" value={plan.slug} />
+      <label>
+        Email
+        <input name="buyerEmail" type="email" autoComplete="email" placeholder="you@example.com" />
+      </label>
+      <label className="setup-addon-choice">
+        <input name="whiteGloveSetup" type="checkbox" />
+        <span>
+          Add {whiteGloveSetupAddon.name} setup for {formatUsd(whiteGloveSetupAddon.unitAmountCents)}
+        </span>
+      </label>
+      <button type="submit" className="primary-action">
+        {plan.cta}
+        <ArrowRight aria-hidden="true" />
+      </button>
+    </form>
+  );
+}
+
+export default async function PricingPage({ searchParams }: PricingPageProps) {
+  const params = await searchParams;
+
   return (
     <main className="pricing-page">
       <section className="pricing-hero">
         <div>
           <p className="eyebrow">Bumpgrade pricing</p>
-          <h1>Launch pricing for publishers ready to try the whole growth stack.</h1>
+          <h1>Start building your publisher launch system today.</h1>
           <p className="lede">
-            Bumpgrade is opening with invite-based access so each early publisher gets the right funnel, checkout, email, product, analytics, subdomain, and domain plan before inviting buyers.
+            Choose a self-serve plan, go through Stripe Checkout, then set up your Bumpgrade publisher workspace with
+            funnels, checkout, products, audience workflows, analytics, and AI launch context.
           </p>
           <div className="hero-actions">
-            <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access" className="primary-action">
-              Request access
+            <Link href="#plans" className="primary-action">
+              Choose a plan
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/features" className="secondary-action">
-              Review features
+            <Link href="/pricing-v2" className="secondary-action">
+              Usage-based draft
               <Sparkles aria-hidden="true" />
             </Link>
           </div>
+          {params?.checkout === "cancelled" ? (
+            <p className="checkout-return-note">Stripe checkout was canceled. Choose a plan when you are ready.</p>
+          ) : null}
+          {params?.checkout === "preview" ? (
+            <p className="checkout-return-note">Checkout preview is available in this runtime; live Stripe checkout runs in production.</p>
+          ) : null}
         </div>
         <aside className="pricing-note">
-          <BadgeCheck aria-hidden="true" />
-          <strong>Ready for invite conversations</strong>
+          <CreditCard aria-hidden="true" />
+          <strong>Self-serve Stripe checkout</strong>
           <p>
-            The launch site shows the feature set, paid account setup, and domain path. Customer-facing checkout for a publisher offer opens after the live Stripe path is verified for that offer.
+            Experiment and Grow start through live Stripe Checkout. Successful checkout activates a publisher plan
+            entitlement by email so account setup can unlock the workspace.
           </p>
         </aside>
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band alternate" id="plans">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Launch packages</p>
-            <h2>Choose the level of help around your first offer.</h2>
+            <p className="eyebrow">Plans</p>
+            <h2>Pick the amount of launch surface you need now.</h2>
           </div>
-          <p>Exact pricing is confirmed during the invite or pilot conversation so the first wave gets the right package instead of a generic plan grid.</p>
+          <p>
+            Plan features are data-driven, so Bumpgrade can move capabilities between plans later without rewriting the
+            page or checkout contract.
+          </p>
         </div>
         <div className="pricing-card-grid">
-          {launchPlans.map((plan) => (
-            <article key={plan.name} className="pricing-card">
+          {pricingPlans.map((plan) => (
+            <article key={plan.slug} className={`pricing-card plan-${plan.slug}`}>
               <span>{plan.label}</span>
               <h3>{plan.name}</h3>
-              <strong>{plan.price}</strong>
+              <strong>{planPrice(plan)}</strong>
+              <p>{plan.headline}</p>
               <p>{plan.description}</p>
               <ul>
-                {plan.features.map((feature) => (
+                {plan.included.map((feature) => (
                   <li key={feature}>
                     <BadgeCheck aria-hidden="true" />
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Link href={plan.href} className="primary-action">
-                {plan.cta}
-                <ArrowRight aria-hidden="true" />
-              </Link>
+              <PlanCheckoutForm plan={plan} />
             </article>
           ))}
         </div>
@@ -158,20 +141,66 @@ export default function PricingPage() {
       <section className="content-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Payment options</p>
-            <h2>How account setup and live payments should be handled during launch.</h2>
+            <p className="eyebrow">Setup</p>
+            <h2>Add humans for the first setup push.</h2>
           </div>
           <p>
-            The customer-facing promise is simple: no surprise charges, no unverified checkout path, a paid account gate before subdomain reservation, and clear confirmation before payment.
+            {whiteGloveSetupAddon.name} is a one-time {formatUsd(whiteGloveSetupAddon.unitAmountCents)} option paired
+            with Experiment or Grow. It helps you set up the launch workspace and scale with confidence.
           </p>
         </div>
         <div className="payment-option-grid">
-          {paymentOptions.map((option) => (
-            <article key={option.title} className="payment-option-card">
-              <option.icon aria-hidden="true" />
-              <h3>{option.title}</h3>
-              <p>{option.body}</p>
-            </article>
+          <article className="payment-option-card">
+            <ShieldCheck aria-hidden="true" />
+            <h3>Plan entitlement</h3>
+            <p>Stripe success activates the paid publisher entitlement that account setup uses for subdomain access.</p>
+          </article>
+          <article className="payment-option-card">
+            <Globe2 aria-hidden="true" />
+            <h3>Publisher domain path</h3>
+            <p>Every paid account starts with a Bumpgrade subdomain. Grow and Enterprise add existing-domain setup.</p>
+          </article>
+          <article className="payment-option-card">
+            <CreditCard aria-hidden="true" />
+            <h3>Billing boundary</h3>
+            <p>Provider identifiers stay private; public contract notes expose plan IDs, status, and safe billing boundaries.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Feature access</p>
+            <h2>Current plan boundaries are explicit and adjustable.</h2>
+          </div>
+          <p>
+            These boundaries are intentionally conservative for the first self-serve rollout. The entitlement framework
+            keeps future plan changes as configuration changes.
+          </p>
+        </div>
+        <div className="pricing-feature-table" role="table" aria-label="Bumpgrade plan feature matrix">
+          <div role="row" className="pricing-feature-row pricing-feature-head">
+            <span role="columnheader">Capability</span>
+            {pricingPlans.map((plan) => (
+              <span role="columnheader" key={plan.slug}>
+                {plan.name}
+              </span>
+            ))}
+          </div>
+          {pricingFeatureMatrix.map((feature) => (
+            <div role="row" className="pricing-feature-row" key={feature.id}>
+              <span role="cell">
+                <strong>{feature.label}</strong>
+                <em>{feature.summary}</em>
+              </span>
+              {pricingPlans.map((plan) => (
+                <span role="cell" key={plan.slug} className={planIncludesFeature(plan.slug, feature) ? "included" : "limited"}>
+                  {planIncludesFeature(plan.slug, feature) ? <CheckCircle2 aria-hidden="true" /> : null}
+                  {feature.availability[plan.slug]}
+                </span>
+              ))}
+            </div>
           ))}
         </div>
       </section>
@@ -179,13 +208,13 @@ export default function PricingPage() {
       <section className="content-band dark-band pricing-cta-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">First wave</p>
-            <h2>Bring the offer. Bumpgrade helps shape the path.</h2>
+            <p className="eyebrow">Checkout contract</p>
+            <h2>Self-serve plans now have a live billing path.</h2>
           </div>
-          <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20launch%20access" className="secondary-action">
-            Contact Bumpgrade
-            <Mail aria-hidden="true" />
-          </Link>
+          <p>
+            Contract {selfServePricingContract.id} uses {selfServePricingContract.checkoutRoute} and verifies successful
+            sessions on {selfServePricingContract.successRoute}.
+          </p>
         </div>
       </section>
     </main>

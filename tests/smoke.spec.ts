@@ -240,6 +240,7 @@ import {
   productProtectedContentStatus,
 } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
+import { selfServePricingContract, whiteGloveSetupAddon } from "../src/lib/pricing-plans";
 import { publisherTenantSourceData } from "../src/lib/publisher-tenants";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -256,7 +257,9 @@ const routes = [
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
-  { path: "/pricing", heading: "Launch pricing" },
+  { path: "/pricing", heading: "Start building your publisher launch system today" },
+  { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
+  { path: "/pricing/success", heading: "Checkout needs one more check" },
   { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
@@ -508,7 +511,7 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/resources");
     await expect(page.getByText("Available now").first()).toBeVisible();
-    await expect(page.getByRole("link", { name: "Request a guide" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Browse features" }).first()).toBeVisible();
   });
 
   test("public example routes avoid test-fixture wording", async ({ page }) => {
@@ -657,7 +660,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
-  test("content source data exposes use cases, resources, and pricing caveats", async ({ request }) => {
+  test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {
     const response = await request.get("/content/source-data");
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();
@@ -665,7 +668,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.audienceSegments).toHaveLength(audienceSegments.length);
     expect(payload.resourceHubItems).toHaveLength(resourceHubItems.length);
     expect(payload.plannedPricingTracks).toHaveLength(plannedPricingTracks.length);
-    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/pricing", "/content/source-data"]));
+    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/pricing", "/pricing-v2", "/content/source-data"]));
     expect(payload.audienceSegments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -686,27 +689,87 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.plannedPricingTracks).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: "pricing-track-agent",
-          notYetClaimed: expect.stringContaining("MCP server packaging"),
+          id: "pricing-track-publisher",
+          price: "$97/mo",
+          checkoutStatus: expect.stringContaining("/api/billing/checkout"),
         }),
+        expect.objectContaining({ id: "pricing-track-agent", price: "Contact us" }),
       ]),
     );
     expect(payload.launchSignupPolicy).toEqual(
       expect.objectContaining({
-        id: "launch-signup-paid-domain-readiness",
+        id: "self-serve-pricing-and-account-setup",
         status: "live",
-        issueNumbers: expect.arrayContaining([222, 223, 225, 226]),
-        defaultSubdomain: expect.stringContaining("paid plan or launch-pilot entitlement"),
+        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316]),
+        defaultSubdomain: expect.stringContaining("paid plan entitlement"),
         customDomain: expect.stringContaining("domain they already own"),
         domainPurchase: expect.stringContaining("does not sell, register, renew, transfer, price, or check availability"),
         payments: expect.arrayContaining([
-          expect.stringContaining("Stripe invoice"),
-          expect.stringContaining("live Stripe path is verified"),
+          expect.stringContaining("Experiment is $97/month"),
+          expect.stringContaining("White glove setup is an optional one-time $1,000 add-on"),
         ]),
-        evidenceRoutes: expect.arrayContaining(["/pricing", "/account/setup", "/account/source-data"]),
+        evidenceRoutes: expect.arrayContaining(["/pricing", "/pricing-v2", "/api/billing/checkout", "/account/setup", "/account/source-data"]),
       }),
     );
     expect(payload.caveat).toContain("does not turn planned product features");
+  });
+
+  test("self-serve billing checkout exposes contract and safe test preview", async ({ request }) => {
+    const contractResponse = await request.get("/api/billing/checkout");
+    expect(contractResponse.ok()).toBeTruthy();
+    const contract = await contractResponse.json();
+    expect(contract).toEqual(
+      expect.objectContaining({
+        ok: true,
+        route: "/api/billing/checkout",
+        contract: expect.objectContaining({
+          id: selfServePricingContract.id,
+          checkoutRoute: "/api/billing/checkout",
+          successRoute: "/pricing/success",
+          stripeMode: "live",
+        }),
+        setupAddon: expect.objectContaining({
+          slug: whiteGloveSetupAddon.slug,
+          unitAmountCents: 100000,
+        }),
+        redaction: expect.objectContaining({ rawStripeIdsIncluded: false }),
+      }),
+    );
+
+    const previewResponse = await request.post("/api/billing/checkout", {
+      data: {
+        planSlug: "experiment",
+        buyerEmail: " mark@example.com ",
+        whiteGloveSetup: true,
+      },
+    });
+    expect(previewResponse.ok()).toBeTruthy();
+    const preview = await previewResponse.json();
+    expect(preview).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "preview",
+        reason: "test_environment",
+        planSlug: "experiment",
+        totalInitialAmountCents: 109700,
+        redaction: expect.objectContaining({
+          rawStripeIdsIncluded: false,
+          checkoutUrlIncluded: false,
+        }),
+      }),
+    );
+    expect(preview.lineItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ priceId: "price-bumpgrade-experiment-monthly-usd", unitAmountCents: 9700 }),
+        expect.objectContaining({ priceId: "price-bumpgrade-white-glove-setup-usd", unitAmountCents: 100000 }),
+      ]),
+    );
+
+    const unsupportedResponse = await request.post("/api/billing/checkout", {
+      data: { planSlug: "enterprise" },
+    });
+    expect(unsupportedResponse.status()).toBe(400);
+    expect(await unsupportedResponse.json()).toEqual(expect.objectContaining({ code: "unsupported_plan" }));
   });
 
   test("publisher account source data exposes paid subdomain setup contract", async ({ request }) => {
@@ -14479,6 +14542,24 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.id).toBe("bumpgrade-commerce-source-data");
     expect(payload.contract).toEqual(expect.objectContaining({ issue: 11, firstCheckoutIssue: 34 }));
+    expect(payload.selfServePricing).toEqual(
+      expect.objectContaining({
+        contract: expect.objectContaining({
+          id: selfServePricingContract.id,
+          checkoutRoute: "/api/billing/checkout",
+          successRoute: "/pricing/success",
+          stripeMode: "live",
+        }),
+        setupAddon: expect.objectContaining({
+          slug: whiteGloveSetupAddon.slug,
+          unitAmountCents: 100000,
+        }),
+        plans: expect.arrayContaining([
+          expect.objectContaining({ slug: "experiment", monthlyAmountCents: 9700 }),
+          expect.objectContaining({ slug: "grow", monthlyAmountCents: 19700 }),
+        ]),
+      }),
+    );
     expect(payload.sandboxCheckout).toEqual(
       expect.objectContaining({
         offer: expect.objectContaining({ priceId: sandboxCheckoutOffer.priceId, unitAmountCents: 900 }),
@@ -17188,7 +17269,7 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/account/setup");
     await expect(page.getByRole("heading", { name: /Bring an existing domain/i })).toBeVisible();
-    await expect(page.getByText("A paid plan or launch-pilot entitlement is required before adding a custom domain.")).toBeVisible();
+    await expect(page.getByText("A paid plan entitlement is required before adding a custom domain.")).toBeVisible();
   });
 
   test("unverified owner sees email verification actions instead of technical denial copy", async ({ page }, testInfo) => {

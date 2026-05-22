@@ -324,7 +324,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Distinguish Bumpgrade subdomains, existing custom domains, and the current no-domain-purchase policy",
     ],
     writeBoundary:
-      "Subdomain reservation and custom-domain onboarding require a signed-in, email-confirmed publisher with active paid-plan or launch-pilot entitlement, idempotency, audit correlation, and redacted outputs; Bumpgrade does not sell, register, renew, transfer, or price domains today.",
+      "Subdomain reservation and custom-domain onboarding require a signed-in, email-confirmed publisher with active paid-plan entitlement, idempotency, audit correlation, and redacted outputs; Bumpgrade does not sell, register, renew, transfer, or price domains today.",
   },
   {
     id: "read-funnel-contract",
@@ -1679,7 +1679,8 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     route: "/content/source-data",
     resolves: "Audience segments, resource hub records, pricing principles, planned pricing tracks, issue links, and agent boundaries.",
     stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
-    volatileClaims: "Pricing tracks are positioning hypotheses; plan names, amounts, limits, trials, and live billing are not claimed.",
+    volatileClaims:
+      "Experiment, Grow, Enterprise, and White glove setup are the current public pricing records; future limits, trials, and usage-meter rates still need current source evidence before being cited.",
   },
   {
     id: "evidence-publisher-account-setup",
@@ -1694,7 +1695,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "issue",
     ],
     volatileClaims:
-      `Default Bumpgrade subdomain reservation and existing-domain DNS onboarding are live for paid or launch-pilot accounts; Bumpgrade-hosted subdomains share the central identity session, custom domains use a Bumpgrade login handoff, and Bumpgrade does not sell or register domains today.`,
+      `Default Bumpgrade subdomain reservation and existing-domain DNS onboarding are live for paid accounts; Bumpgrade-hosted subdomains share the central identity session, custom domains use a Bumpgrade login handoff, and Bumpgrade does not sell or register domains today.`,
   },
   {
     id: "evidence-funnels",
@@ -2431,7 +2432,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/account/source-data",
     purpose: `Expose paid publisher tenant, Bumpgrade subdomain setup, custom-domain DNS onboarding, and publisher-site auth boundaries from issues #${publisherTenantParentIssue}, #${publisherTenantIssue}, #${publisherCustomDomainIssue}, and #${publisherCustomerAuthIssue}.`,
     safetyBoundary:
-      "Read-only MCP resource for setup policy; reserving a subdomain or starting custom-domain onboarding requires authenticated publisher context, active paid-plan or launch-pilot entitlement, idempotency, audit correlation, DNS verification state, and redaction. Shared Bumpgrade identity never bypasses tenant-scoped access checks.",
+      "Read-only MCP resource for setup policy; reserving a subdomain or starting custom-domain onboarding requires authenticated publisher context, active paid-plan entitlement, idempotency, audit correlation, DNS verification state, and redaction. Shared Bumpgrade identity never bypasses tenant-scoped access checks.",
   },
   {
     id: "mcp-tool-propose-update",

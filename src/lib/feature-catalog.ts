@@ -462,7 +462,7 @@ export const featureCatalog: FeatureRecord[] = [
       "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
-      "Paid-plan or launch-pilot gate for publisher account setup.",
+      "Paid-plan entitlement gate for publisher account setup.",
       "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
       "Existing-domain onboarding with deterministic CNAME instructions and DNS verification state.",
       "Better Auth cookie configuration for one login across bumpgrade.com subdomains.",
@@ -581,19 +581,19 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 20,
     summary:
-      "Public use-case page, developer/agent page, resource and blog hub, pricing direction, and content source-data contract for search and agent discovery.",
+      "Public use-case page, developer/agent page, resource and blog hub, self-serve pricing, and content source-data contract for search and agent discovery.",
     audience: "Prospects, search traffic, agents, and future customers evaluating Bumpgrade.",
     expectedCapabilities: [
       "Use cases for creators, coaches, course sellers, agencies, and publishers.",
       "Developer and agent pages backed by real contracts.",
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
-      "Pricing page that avoids invented plan details until packaging is set.",
-      "Agent-readable `/content/source-data` records for personas, resources, and pricing caveats.",
+      "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, and an alternate usage-based pricing draft.",
+      "Agent-readable `/content/source-data` records for personas, resources, and pricing contracts.",
     ],
     evidence: [
       "Tracked by issue #20.",
-      "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
-      "`/content/source-data` exposes stable audience, resource, and pricing-direction records.",
+      "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, and `/pricing-v2` are live destinations.",
+      "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
       "Agents may read content surface records and draft resource copy, but public claims need source URLs or shipped-product evidence before publication.",

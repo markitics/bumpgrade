@@ -5,7 +5,8 @@ import {
 import {
   checkoutReferralAttributionContract,
 } from "@/lib/referral-checkout-attribution";
-import { postPurchaseDecisionContract, postPurchaseDecisionsUpdatedAt } from "@/lib/post-purchase-decisions";
+import { postPurchaseDecisionContract } from "@/lib/post-purchase-decisions";
+import { selfServePricingContract, selfServePricingUpdatedAt } from "@/lib/pricing-plans";
 
 export type CommerceObjectStatus = "live" | "planned";
 
@@ -27,7 +28,7 @@ export type CommerceDecision = {
   evidence: string[];
 };
 
-export const stripeCommerceUpdatedAt = postPurchaseDecisionsUpdatedAt;
+export const stripeCommerceUpdatedAt = selfServePricingUpdatedAt;
 
 export const stripeNodeVersion = "22.1.1";
 
@@ -40,12 +41,13 @@ export const stripeCommerceContract = {
   status: "live" as const,
   activeMode: "sandbox" as StripeMode,
   summary:
-    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, sandbox Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, owner-confirmed non-destructive product revocation intent records, and protected content readiness. Live payment and payout rollout remains deliberately disabled.",
+    "Bumpgrade has a Stripe architecture, secret mapping, D1 commerce schema, billing-safe agent contract, self-serve live subscription checkout for Bumpgrade plans, sandbox publisher-offer Checkout Session path, constrained order-bump checkout start, sandbox webhook-backed entitlement grants, optional referral-click attribution evidence, review-only commission ledger evidence, owner review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, owner-confirmed non-destructive product revocation intent records, and protected content readiness. Publisher-offer live billing and payout rollout remain deliberately separated.",
   notLiveYet: [
-    "No live-mode checkout path is enabled.",
-    "No customer-facing checkout button is published outside the sandbox smoke path yet.",
+    "Publisher-offer live checkout is not enabled through /api/commerce/checkout.",
     "No publisher payout or connected-account onboarding flow exists yet.",
+    "A live Stripe webhook signing secret is not currently listed in Cloudflare secret inventory.",
   ],
+  selfServePricing: selfServePricingContract,
   sandboxCheckout: {
     issue: 34,
     orderBumpIssue: 99,

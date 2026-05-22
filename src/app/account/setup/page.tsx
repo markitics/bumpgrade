@@ -107,8 +107,8 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
             <h2>Reserve a unique Bumpgrade hostname.</h2>
           </div>
           <p>
-            Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan or
-            launch-pilot entitlement. System names like api, www, login, pricing, and features stay unavailable.
+            Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan
+            entitlement. System names like api, www, login, pricing, and features stay unavailable.
           </p>
         </div>
 
@@ -138,8 +138,8 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
             <h3>{state.entitlement ? state.entitlement.planSlug : "Paid plan required"}</h3>
             <p>
               {state.entitlement
-                ? "This account has an active plan or launch-pilot entitlement for subdomain reservation."
-                : "Choose a paid plan or activate the launch pilot before selecting a Bumpgrade subdomain."}
+                ? "This account has an active plan entitlement for subdomain reservation."
+                : "Choose a paid plan before selecting a Bumpgrade subdomain."}
             </p>
             {!state.entitlement ? (
               <Link href="/pricing" className="secondary-action">

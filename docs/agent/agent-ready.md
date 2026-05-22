@@ -126,8 +126,9 @@ clients, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing
-tracks. Pricing tracks are positioning hypotheses, not published plan names,
-amounts, limits, trials, or live billing availability.
+tracks. Experiment, Grow, Enterprise, and White glove setup are current public
+pricing records; future limits, trials, and usage-meter rates still require
+fresh source evidence before agents cite them as current.
 
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template
