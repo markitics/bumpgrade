@@ -45,6 +45,12 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     label: "Available now",
     cta: "Read notes",
   },
+  "resource-brand-system": {
+    title: "Brand system",
+    summary: "Bumpgrade logo assets, favicon, colors, typography, and writing principles for humans and agents.",
+    label: "Available now",
+    cta: "Open brand",
+  },
   "resource-agent-contracts": {
     title: "AI helper setup notes",
     summary: "How Bumpgrade keeps product, offer, customer, and launch context readable enough for AI helpers to assist safely.",

@@ -64,6 +64,13 @@ export const topNavItems: NavItem[] = [
     status: "live",
   },
   {
+    label: "Brand",
+    href: "/brand",
+    description: "Bumpgrade logo, colors, voice, usage notes, and public source-data references.",
+    icon: FileText,
+    status: "live",
+  },
+  {
     label: "Pricing",
     href: "/pricing",
     description: "Self-serve pricing and checkout for publishers starting Bumpgrade.",
@@ -163,6 +170,7 @@ export const scaffoldRoutes = [
   "/users",
   "/developers-and-agents",
   "/resources",
+  "/brand",
   "/pricing",
   "/pricing-v2",
   "/pricing/success",

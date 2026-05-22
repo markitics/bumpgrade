@@ -11,6 +11,14 @@ export const metadata: Metadata = {
     template: "%s | Bumpgrade",
   },
   description: site.description,
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/bumpgrade-mark.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/brand/bumpgrade-mark.svg",
+  },
   alternates: {
     canonical: site.url,
   },

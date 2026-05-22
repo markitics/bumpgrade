@@ -5,7 +5,8 @@ import { Menu } from "lucide-react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { authClient } from "@/lib/auth-client";
-import { accountNavItem, loginNavItem, site, topNavItems } from "@/lib/site";
+import { BrandLockup } from "@/components/brand-logo";
+import { accountNavItem, loginNavItem, topNavItems } from "@/lib/site";
 
 function subscribeToHydrationStore() {
   return () => undefined;
@@ -64,13 +65,7 @@ export function TopNav() {
   return (
     <header className="site-header">
       <Link href="/" className="brand-link" aria-label="Bumpgrade home">
-        <span className="brand-mark" aria-hidden="true">
-          B
-        </span>
-        <span>
-          <span className="brand-name">{site.name}</span>
-          <span className="brand-subtitle">publisher growth OS</span>
-        </span>
+        <BrandLockup />
       </Link>
 
       <nav className="desktop-nav" aria-label="Main navigation">
