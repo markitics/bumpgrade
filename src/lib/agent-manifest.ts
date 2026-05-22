@@ -611,6 +611,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "leadMagnetId",
       "subscriberTagId",
       "emailSequenceId",
+      "sequenceEnrollmentPauseId",
       "automationRuleId",
       "broadcastDraftId",
       "broadcastReadinessId",
@@ -639,6 +640,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read seeded opt-in form",
       "Inspect tags and segments",
       "Inspect consent-backed capture boundary",
+      "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
       "Inspect aggregate owner-subscriber, suppression, and timeline counts with redaction flags",
       "Inspect suppression-aware broadcast readiness without recipient exposure",
       "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
@@ -662,7 +664,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, redacted import intents, and redacted import preflights, and record dry-run schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, non-destructive import intents, and aggregate import preflights in /admin/audience; real contact imports, real email delivery, private exports, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload bodies, recipient payloads, personalized bodies, provider responses, and provider message IDs require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; known subscriber unsubscribe also pauses draft sequence enrollment state while public responses stay membership-safe. Verified owners can inspect private subscriber rows, create private CRM notes, view broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, redacted import intents, and redacted import preflights, and record dry-run schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, non-destructive import intents, and aggregate import preflights in /admin/audience; real contact imports, real email delivery, private exports, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload bodies, recipient payloads, personalized bodies, provider responses, and provider message IDs require future confirmed-write APIs.",
   },
   {
     id: "create-owner-broadcast-schedule-intent",
@@ -755,16 +757,17 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/api/audience/unsubscribe",
     kind: "api",
     auth: "public",
-    sourceOfTruth: "D1 table audience_suppression_entries and subscriber status in audience_subscribers",
-    stableIds: ["suppressionEntryId", "idempotencyKey"],
+    sourceOfTruth: "D1 table audience_suppression_entries, subscriber status in audience_subscribers, and paused rows in audience_sequence_enrollments",
+    stableIds: ["suppressionEntryId", "sequenceEnrollmentPauseId", "idempotencyKey"],
     safeForAgents: [
       "Inspect the unsubscribe/suppression confirmation contract",
       "Record a public-safe unsubscribe preference only for the submitted email",
       "Confirm responses do not reveal whether the email was already subscribed",
+      "Confirm sequence enrollment pause state is exposed only through aggregate source-data or owner views",
       "Use idempotency before replaying a preference write",
     ],
     writeBoundary:
-      "This public API records hashed unsubscribe/suppression evidence and marks known subscribers unsubscribed without revealing list membership. It does not send email, export subscribers, expose suppression hashes or reasons publicly, or authorize direct agent subscriber management.",
+      "This public API records hashed unsubscribe/suppression evidence, marks known subscribers unsubscribed, and pauses known draft sequence enrollments without revealing list membership. It does not send email, export subscribers, expose suppression hashes or reasons publicly, include sequence state in public responses, or authorize direct agent subscriber management.",
   },
   {
     id: "create-owner-audience-crm-note",
@@ -1822,6 +1825,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "optInFormId",
       "leadMagnetId",
       "emailSequenceId",
+      "sequenceEnrollmentPauseId",
       "automationRuleId",
       "broadcastReadinessId",
       "broadcastScheduleIntentId",
@@ -1842,7 +1846,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "audienceImportPreflightId",
     ],
     volatileClaims:
-      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, owner-confirmed import intents, and owner-confirmed import preflights; it is not contact import, raw import row storage, raw email storage, subscriber creation from imports, live email sending, private export, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload body creation or reading, ack/retry/dead-letter row creation, recipient payload creation, raw payload body storage, provider response creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
+      "The audience automation contract includes consent-backed opt-in capture, aggregate owner-inspection evidence, unsubscribe/suppression evidence, unsubscribe-paused sequence enrollment aggregates, private owner-note counts, broadcast readiness, dry-run schedule intent counts, preview/footer safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, owner-confirmed import intents, and owner-confirmed import preflights; it is not contact import, raw import row storage, raw email storage, subscriber creation from imports, live email sending, private export, private DNS/provider setup, provider webhook processing, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload body creation or reading, ack/retry/dead-letter row creation, recipient payload creation, raw payload body storage, provider response creation, provider message creation, personalized body generation, or direct public agent subscriber write capability.",
   },
   {
     id: "evidence-analytics-experiments",
