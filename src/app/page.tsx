@@ -47,12 +47,12 @@ const launchOutcomes = [
 const proofPoints = [
   "Feature examples and self-serve pricing are ready for publishers who want to start today.",
   "Funnels, checkout paths, products, audience, analytics, and partner tracking are connected.",
-  "Customer payments and sends stay reviewed until each live path is verified.",
+  "Customer payments, product access, and email sends stay deliberate and private.",
 ];
 
 function availabilityLabel(status: string) {
   if (status === "live" || status === "launch-preview") return "Available now";
-  return "In build";
+  return "Next release";
 }
 
 function availabilityClass(status: string) {
@@ -129,7 +129,13 @@ export default function HomePage() {
             if (!feature) return null;
             return (
               <article key={feature.slug} className="launch-feature-card">
-                <Image src={feature.imageUrl} alt={feature.imageAlt} width={1200} height={650} unoptimized />
+                <Image
+                  src={feature.cardImageUrl ?? feature.imageUrl}
+                  alt={feature.cardImageAlt ?? feature.imageAlt}
+                  width={1200}
+                  height={650}
+                  unoptimized
+                />
                 <div>
                   <span className={`status-badge ${availabilityClass(feature.status)}`}>
                     {availabilityLabel(feature.status)}
@@ -189,7 +195,7 @@ export default function HomePage() {
           </div>
           <div>
             <strong>Safety boundaries</strong>
-            <span>Live billing and provider sends are only claimed once their production evidence is verified.</span>
+            <span>Payment details, customer access, and email sends stay private and deliberate.</span>
           </div>
         </div>
       </section>

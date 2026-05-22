@@ -8,7 +8,6 @@ import {
   planIncludesFeature,
   pricingFeatureMatrix,
   pricingPlans,
-  selfServePricingContract,
   whiteGloveSetupAddon,
   type PricingPlan,
 } from "@/lib/pricing-plans";
@@ -84,7 +83,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link href="/pricing-v2" className="secondary-action">
-              Usage-based draft
+              Compare usage pricing
               <Sparkles aria-hidden="true" />
             </Link>
           </div>
@@ -99,8 +98,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           <CreditCard aria-hidden="true" />
           <strong>Self-serve Stripe checkout</strong>
           <p>
-            Experiment and Grow start through live Stripe Checkout. Successful checkout activates a publisher plan
-            entitlement by email so account setup can unlock the workspace.
+            Experiment and Grow start through live Stripe Checkout. Successful checkout activates the paid publisher
+            account by email so setup can unlock the workspace.
           </p>
         </aside>
       </section>
@@ -112,8 +111,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             <h2>Pick the amount of launch surface you need now.</h2>
           </div>
           <p>
-            Plan features are data-driven, so Bumpgrade can move capabilities between plans later without rewriting the
-            page or checkout contract.
+            Start with the plan that matches today’s launch. Bumpgrade keeps the plan structure flexible, so your account
+            can grow as you add more offers, domains, partners, and reporting needs.
           </p>
         </div>
         <div className="pricing-card-grid">
@@ -152,8 +151,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
         <div className="payment-option-grid">
           <article className="payment-option-card">
             <ShieldCheck aria-hidden="true" />
-            <h3>Plan entitlement</h3>
-            <p>Stripe success activates the paid publisher entitlement that account setup uses for subdomain access.</p>
+            <h3>Paid plan access</h3>
+            <p>Stripe success activates the paid publisher account that setup uses for subdomain access.</p>
           </article>
           <article className="payment-option-card">
             <Globe2 aria-hidden="true" />
@@ -162,8 +161,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           </article>
           <article className="payment-option-card">
             <CreditCard aria-hidden="true" />
-            <h3>Billing boundary</h3>
-            <p>Provider identifiers stay private; public contract notes expose plan IDs, status, and safe billing boundaries.</p>
+            <h3>Private billing details</h3>
+            <p>Stripe handles card and payment details. Bumpgrade uses the checkout result to open the right plan.</p>
           </article>
         </div>
       </section>
@@ -175,8 +174,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             <h2>Current plan boundaries are explicit and adjustable.</h2>
           </div>
           <p>
-            These boundaries are intentionally conservative for the first self-serve rollout. The entitlement framework
-            keeps future plan changes as configuration changes.
+            These boundaries are intentionally conservative for the first self-serve rollout. The plan access framework
+            keeps future plan changes adjustable without a custom rebuild.
           </p>
         </div>
         <div className="pricing-feature-table" role="table" aria-label="Bumpgrade plan feature matrix">
@@ -208,12 +207,12 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
       <section className="content-band dark-band pricing-cta-band">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Checkout contract</p>
-            <h2>Self-serve plans now have a live billing path.</h2>
+            <p className="eyebrow">Start today</p>
+            <h2>Experiment and Grow are ready for self-serve checkout.</h2>
           </div>
           <p>
-            Contract {selfServePricingContract.id} uses {selfServePricingContract.checkoutRoute} and verifies successful
-            sessions on {selfServePricingContract.successRoute}.
+            Choose a plan, complete checkout, then set up your Bumpgrade workspace, subdomain, funnel, checkout, audience,
+            products, analytics, and AI launch context.
           </p>
         </div>
       </section>

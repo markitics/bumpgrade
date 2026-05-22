@@ -108,7 +108,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </div>
           <p>
             Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan
-            entitlement. System names like api, www, login, pricing, and features stay unavailable.
+            on the account. System names like api, www, login, pricing, and features stay unavailable.
           </p>
         </div>
 
@@ -134,11 +134,11 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
 
           <article className="account-setup-card">
             <BadgeCheck aria-hidden="true" />
-            <p className="eyebrow">Paid plan gate</p>
+            <p className="eyebrow">Paid plan</p>
             <h3>{state.entitlement ? state.entitlement.planSlug : "Paid plan required"}</h3>
             <p>
               {state.entitlement
-                ? "This account has an active plan entitlement for subdomain reservation."
+                ? "This account has an active paid plan for subdomain reservation."
                 : "Choose a paid plan before selecting a Bumpgrade subdomain."}
             </p>
             {!state.entitlement ? (

@@ -87,13 +87,13 @@ export const productAccessCatalog: ProductAccessCatalog = {
   commerceContractRoute: "/commerce/source-data",
   revisionId: "product-access-revision-indie-launch-2026-05-19",
   summary:
-    "A product/access library covering downloads, courses, memberships, services, events, bundles, trusted payment-backed entitlement grants, subscription-backed membership access, the first private delivery path, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped protected content fixture delivery.",
+    "A product and access library for downloads, courses, memberships, services, events, bundles, payment-backed access, and protected delivery.",
   assets: [
     {
       id: "asset-launch-checklist-pdf",
       kind: "file",
       title: "Launch checklist PDF",
-      publicDescription: "A downloadable checklist asset delivered through a private R2-backed fixture without exposing object keys or signed URLs.",
+      publicDescription: "A downloadable checklist asset delivered only after customer access is confirmed.",
       storageBoundary:
         "Issue #146 stores and reads the safe fixture through the PRODUCT_ASSETS R2 binding server-side; private object keys and signed URLs stay out of public source-data and token responses.",
     },
@@ -115,22 +115,22 @@ export const productAccessCatalog: ProductAccessCatalog = {
       id: "asset-launch-coaching-booking",
       kind: "booking",
       title: "Launch coaching booking",
-      publicDescription: "Manual scheduling placeholder for service delivery.",
+      publicDescription: "Manual scheduling path for service delivery.",
       storageBoundary: "Calendar links, private notes, buyer details, and meeting URLs stay server-private.",
     },
     {
       id: "asset-launch-webinar-seat",
       kind: "event",
       title: "Launch webinar seat",
-      publicDescription: "Event access placeholder for webinar or live workshop delivery.",
+      publicDescription: "Event access path for webinar or live workshop delivery.",
       storageBoundary: "Private join URLs, attendee lists, and replay URLs require confirmed entitlement state.",
     },
   ],
   accessRules: [
     {
       id: "access-rule-download-after-paid-webhook",
-      title: "Grant download after paid webhook",
-      grants: "Digital download access after trusted checkout.session.completed evidence.",
+      title: "Grant download after paid checkout",
+      grants: "Digital download access after trusted checkout completion.",
       timing: "after_webhook_paid",
       revocable: true,
       sourceEvent: "checkout.session.completed",
@@ -139,7 +139,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
     {
       id: "access-rule-course-after-paid-webhook",
-      title: "Grant course after paid webhook",
+      title: "Grant course after paid checkout",
       grants: "Course enrollment after paid checkout evidence.",
       timing: "after_webhook_paid",
       revocable: true,
@@ -166,7 +166,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
     {
       id: "access-rule-event-after-paid-webhook",
-      title: "Grant event seat after paid webhook",
+      title: "Grant event seat after paid checkout",
       grants: "Event or webinar seat after trusted payment evidence.",
       timing: "after_webhook_paid",
       revocable: true,
@@ -217,7 +217,7 @@ export const productAccessCatalog: ProductAccessCatalog = {
       kind: "coaching_service",
       title: "Launch coaching session",
       status: "draft",
-      summary: "Manual service fulfillment placeholder for coaching or implementation support.",
+      summary: "Manual service fulfillment path for coaching or implementation support.",
       linkedOfferIds: ["offer-downsell-launch-review"],
       assetIds: ["asset-launch-coaching-booking"],
       accessRuleIds: ["access-rule-service-manual-review"],

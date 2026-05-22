@@ -60,7 +60,7 @@ export const pricingPlans: PricingPlan[] = [
       "1 Bumpgrade publisher workspace",
       "Landing pages, funnel steps, checkout handoff, products, and audience capture",
       "Bumpgrade subdomain reservation after payment",
-      "Basic launch analytics and agent-readable launch context",
+      "Basic launch analytics and AI-ready launch context",
       "AI coach context for launch planning and review",
     ],
   },
@@ -76,14 +76,14 @@ export const pricingPlans: PricingPlan[] = [
     priceId: "price-bumpgrade-grow-monthly-usd",
     cta: "Start Grow",
     description:
-      "For publishers who need richer automation, custom domain setup, affiliate tracking, and optimization evidence.",
+      "For publishers who need richer automation, custom domain setup, affiliate tracking, and optimization reports.",
     bestFor: "Operators growing multiple offers, partners, or repeated launches.",
     included: [
       "Everything in Experiment",
       "Custom-domain onboarding for domains you already own",
-      "Affiliate/referral tracking and partner evidence",
-      "Advanced analytics, experiments, and alert readiness",
-      "Higher plan limits through the entitlement framework",
+      "Affiliate/referral tracking and partner reporting",
+      "Advanced analytics, experiments, and launch alerts",
+      "Higher plan limits through configurable plan access",
     ],
   },
   {
@@ -140,7 +140,7 @@ export const pricingFeatureMatrix: PricingFeature[] = [
     minimumPlan: "experiment",
     availability: {
       experiment: "Included",
-      grow: "Included with richer automation readiness",
+      grow: "Included with richer automation controls",
       enterprise: "Included with team workflow support",
     },
   },
@@ -158,7 +158,7 @@ export const pricingFeatureMatrix: PricingFeature[] = [
   {
     id: "affiliates-analytics",
     label: "Affiliates, experiments, and advanced analytics",
-    summary: "Track partners, attribution, experiments, cohorts, and launch notification evidence.",
+    summary: "Track partners, attribution, experiments, cohorts, and launch alerts.",
     minimumPlan: "grow",
     availability: {
       experiment: "Basic analytics",

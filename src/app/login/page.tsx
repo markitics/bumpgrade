@@ -6,7 +6,7 @@ import { getCurrentAdminState } from "@/lib/admin-auth";
 
 export const metadata: Metadata = {
   title: "Log in / sign up",
-  description: "Bumpgrade publisher and owner authentication.",
+  description: "Log in or create a Bumpgrade publisher account.",
 };
 
 export const dynamic = "force-dynamic";
@@ -48,17 +48,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <p className="eyebrow">Account access</p>
           <h1>Publisher account access for Bumpgrade.</h1>
           <p className="lede">
-            Sign in or create an account to set up your publisher workspace, reserve your Bumpgrade subdomain, and
-            connect the paid plan from checkout.
+            Sign in or create an account to set up your publisher workspace, connect the paid plan from checkout,
+            reserve your Bumpgrade subdomain, and manage your launch.
           </p>
         </div>
         <div className="route-status-panel">
           <LockKeyhole aria-hidden="true" />
-          <p>Auth status</p>
-          <strong>{adminState.identity ? "Owner session" : "Publisher account"}</strong>
+          <p>Account status</p>
+          <strong>{adminState.identity ? "Signed in" : "Ready for account access"}</strong>
           <span>
             {adminState.identity
-              ? "Owner routes will open for this session."
+              ? "Your publisher workspace can open from this session."
               : "Sign in or create a publisher account to continue setup."}
           </span>
         </div>

@@ -84,6 +84,8 @@ then open the relevant shelf for the task.
   rediscover from chat.
 - `keep-working/README.md`: how to use the repo-tracked `goal-runner` and
   `status-update` skills.
+- `how-i-built-this/README.md`: internal implementation notes that should not be
+  surfaced as customer-facing product copy.
 
 ## Suggested Future Shelves
 
