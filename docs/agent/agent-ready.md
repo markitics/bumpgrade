@@ -252,7 +252,9 @@ subscriber/suppression/timeline inspection redaction flags.
 `/audience/indie-launch-waitlist` can capture explicit-consent waitlist
 opt-ins, normalize the submitted email, assign seeded tags, record draft
 sequence enrollment evidence, and record an unsubscribe preference without
-revealing list membership. `/admin/audience` lets verified owners inspect
+revealing list membership. Known unsubscribes also pause draft sequence
+enrollment state while public source-data exposes only aggregate paused-sequence
+counts. `/admin/audience` lets verified owners inspect
 private subscriber rows, consent counts, active tags, draft sequence enrollments,
 suppression totals, private CRM timeline notes, broadcast readiness, preview
 safety, queue readiness, sender-domain readiness, provider-event readiness,

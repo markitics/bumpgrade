@@ -16,6 +16,7 @@ type CountRow = {
   consent_count: number | string | null;
   tag_assignment_count: number | string | null;
   sequence_enrollment_count: number | string | null;
+  paused_sequence_enrollment_count: number | string | null;
   suppression_count: number | string | null;
   active_suppression_count: number | string | null;
   timeline_count: number | string | null;
@@ -77,6 +78,7 @@ export type AudienceInspectionSummary = {
     consentEvents: number;
     tagAssignments: number;
     sequenceEnrollments: number;
+    pausedSequenceEnrollments: number;
     suppressionEntries: number;
     activeSuppressionEntries: number;
     timelineEntries: number;
@@ -189,6 +191,7 @@ function emptySummary(source: AudienceInspectionSummary["source"], loadError: st
       consentEvents: 0,
       tagAssignments: 0,
       sequenceEnrollments: 0,
+      pausedSequenceEnrollments: 0,
       suppressionEntries: 0,
       activeSuppressionEntries: 0,
       timelineEntries: 0,
@@ -299,6 +302,7 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
           (SELECT COUNT(*) FROM audience_consent_events) AS consent_count,
           (SELECT COUNT(*) FROM audience_tag_assignments) AS tag_assignment_count,
           (SELECT COUNT(*) FROM audience_sequence_enrollments) AS sequence_enrollment_count,
+          (SELECT COUNT(*) FROM audience_sequence_enrollments WHERE status = 'unsubscribe_paused') AS paused_sequence_enrollment_count,
           (SELECT COUNT(*) FROM audience_suppression_entries) AS suppression_count,
           (SELECT COUNT(*) FROM audience_suppression_entries WHERE status = 'active') AS active_suppression_count,
           (SELECT COUNT(*) FROM audience_timeline_entries) AS timeline_count,
@@ -359,6 +363,7 @@ export async function getAudienceSubscriberInspectionSummary(): Promise<Audience
         consentEvents: numberValue(counts?.consent_count),
         tagAssignments: numberValue(counts?.tag_assignment_count),
         sequenceEnrollments: numberValue(counts?.sequence_enrollment_count),
+        pausedSequenceEnrollments: numberValue(counts?.paused_sequence_enrollment_count),
         suppressionEntries: numberValue(counts?.suppression_count),
         activeSuppressionEntries: numberValue(counts?.active_suppression_count),
         timelineEntries: numberValue(counts?.timeline_count),

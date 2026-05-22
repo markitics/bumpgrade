@@ -80,6 +80,11 @@ import {
 import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
 import {
+  audienceUnsubscribeIssue,
+  audienceUnsubscribeStatus,
+  audienceUnsubscribeSuppressionIssue,
+} from "../src/lib/audience-unsubscribe";
+import {
   audienceImportIntentApiRoute,
   audienceImportIntentConfirmationText,
   audienceImportIntentIssue,
@@ -2534,6 +2539,7 @@ test.describe("Bumpgrade scaffold", () => {
           consentEvents: expect.any(Number),
           tagAssignments: expect.any(Number),
           sequenceEnrollments: expect.any(Number),
+          pausedSequenceEnrollments: expect.any(Number),
           suppressionEntries: expect.any(Number),
           activeSuppressionEntries: expect.any(Number),
           timelineEntries: expect.any(Number),
@@ -3162,6 +3168,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     const beforeSubscriberCount = payload.subscriberInspection.counts.subscribers;
     const beforeSuppressionCount = payload.subscriberInspection.counts.suppressionEntries;
+    const beforePausedSequenceCount = payload.subscriberInspection.counts.pausedSequenceEnrollments;
     const beforeBroadcastScopedCount = payload.broadcastReadiness.counts.scopedSubscribers;
     const beforeBroadcastSuppressionCount = payload.broadcastReadiness.counts.activeSuppressionEntries;
     expect(payload.broadcastReadiness).toEqual(
@@ -3210,10 +3217,12 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.unsubscribeWrites).toEqual(
       expect.objectContaining({
-        status: "unsubscribe-suppression-ready",
-        issue: 167,
+        status: audienceUnsubscribeStatus,
+        issue: audienceUnsubscribeIssue,
+        suppressionIssue: audienceUnsubscribeSuppressionIssue,
+        sequencePauseIssue: audienceUnsubscribeIssue,
         apiRoute: "/api/audience/unsubscribe",
-        tables: expect.arrayContaining(["audience_subscribers", "audience_suppression_entries"]),
+        tables: expect.arrayContaining(["audience_subscribers", "audience_suppression_entries", "audience_sequence_enrollments"]),
         redaction: expect.objectContaining({
           privateContactDataIncluded: false,
           subscriberExistenceRevealed: false,
@@ -3255,7 +3264,8 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           unsubscribeManagement: expect.objectContaining({
             apiRoute: "/api/audience/unsubscribe",
-            issue: 167,
+            issue: audienceUnsubscribeIssue,
+            suppressionIssue: audienceUnsubscribeSuppressionIssue,
           }),
           crmTimeline: expect.objectContaining({
             apiRoute: "/api/admin/audience/notes",
@@ -3278,9 +3288,11 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain("Issue #103 can capture explicit-consent opt-ins");
+    expect(payload.writeBoundary).toContain("Issue #343 pauses known draft sequence enrollments");
     expect(payload.writeBoundary).toContain("Issue #253 can record owner-confirmed import intent metadata");
     expect(payload.writeBoundary).toContain("Issue #259 can record owner-confirmed import preflight evidence");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
+    expect(payload.caveat).toContain("unsubscribe-paused sequence enrollment aggregates");
     expect(payload.caveat).toContain("owner-confirmed import intent evidence");
     expect(payload.caveat).toContain("owner-confirmed import preflight evidence");
 
@@ -3313,6 +3325,14 @@ test.describe("Bumpgrade scaffold", () => {
     const afterPayload = await afterResponse.json();
     expect(afterPayload.subscriberInspection.counts.subscribers).toBeGreaterThanOrEqual(beforeSubscriberCount + 1);
     expect(afterPayload.subscriberInspection.counts.suppressionEntries).toBeGreaterThanOrEqual(beforeSuppressionCount + 1);
+    expect(afterPayload.subscriberInspection.counts.pausedSequenceEnrollments).toBeGreaterThanOrEqual(
+      beforePausedSequenceCount + 1,
+    );
+    expect(afterPayload.subscriberInspection.sequenceCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "sequence-indie-launch-nurture", status: "unsubscribe_paused" }),
+      ]),
+    );
     expect(afterPayload.broadcastReadiness.counts.scopedSubscribers).toBeGreaterThanOrEqual(beforeBroadcastScopedCount + 1);
     expect(afterPayload.broadcastReadiness.counts.activeSuppressionEntries).toBeGreaterThanOrEqual(
       beforeBroadcastSuppressionCount + 1,
@@ -3847,6 +3867,7 @@ test.describe("Bumpgrade scaffold", () => {
           privateContactDataIncluded: false,
           providerIdsIncluded: false,
           subscriberExistenceRevealed: false,
+          sequenceEnrollmentStateIncluded: false,
         }),
       }),
     );
@@ -3893,6 +3914,12 @@ test.describe("Bumpgrade scaffold", () => {
     const sourcePayload = await sourceResponse.json();
     expect(sourcePayload.subscriberInspection.counts.suppressionEntries).toBeGreaterThanOrEqual(2);
     expect(sourcePayload.subscriberInspection.counts.unsubscribedSubscribers).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.subscriberInspection.counts.pausedSequenceEnrollments).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.subscriberInspection.sequenceCounts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "sequence-indie-launch-nurture", status: "unsubscribe_paused" }),
+      ]),
+    );
     const sourceText = JSON.stringify(sourcePayload);
     expect(sourceText).not.toContain(knownEmail);
     expect(sourceText).not.toContain(unknownEmail);
@@ -15430,10 +15457,12 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastSendPayloadReadinessId",
             "broadcastQueueProducerReadinessId",
             "broadcastQueueConsumerReadinessId",
+            "sequenceEnrollmentPauseId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
           ]),
           safeForAgents: expect.arrayContaining([
+            "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
             "Inspect suppression-aware broadcast readiness without recipient exposure",
             "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
             "Inspect broadcast preview and unsubscribe-footer safety without personalized body or recipient exposure",
@@ -15457,6 +15486,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "create-audience-unsubscribe-suppression",
           route: "/api/audience/unsubscribe",
           auth: "public",
+          stableIds: expect.arrayContaining(["sequenceEnrollmentPauseId"]),
         }),
         expect.objectContaining({
           id: "create-owner-audience-crm-note",
@@ -17199,6 +17229,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(audienceCard.getByText("First name: Owner Contact")).toBeVisible();
     await expect(audienceCard.getByText("lead-magnet:launch-checklist")).toBeVisible();
     await expect(audienceCard.getByText("Indie launch nurture sequence")).toBeVisible();
+    await expect(audienceCard.getByText("unsubscribe_paused")).toBeVisible();
     await expect(audienceCard.getByText(ownerNoteBody)).toBeVisible();
 
     const seedResponse = await page.request.post("/api/admin/funnels/drafts", {

@@ -79,6 +79,7 @@ function publicResponse(input: {
       privateContactDataIncluded: false,
       providerIdsIncluded: false,
       subscriberExistenceRevealed: false,
+      sequenceEnrollmentStateIncluded: false,
     },
   });
 }
@@ -122,6 +123,14 @@ export async function POST(request: NextRequest) {
       .prepare("UPDATE audience_subscribers SET status = 'unsubscribed', updated_at = unixepoch() WHERE id = ?")
       .bind(subscriber.id)
       .run();
+    await db
+      .prepare(
+        `UPDATE audience_sequence_enrollments
+        SET status = 'unsubscribe_paused', next_step_id = NULL, updated_at = unixepoch()
+        WHERE subscriber_id = ?`,
+      )
+      .bind(subscriber.id)
+      .run();
   }
 
   const suppressionId = `suppression-${crypto.randomUUID()}`;
@@ -145,6 +154,8 @@ export async function POST(request: NextRequest) {
         privateContactDataIncluded: false,
         subscriberExistenceRevealed: false,
         emailDeliveryEnabled: false,
+        sequenceEnrollmentsPaused: Boolean(subscriber),
+        sequenceEnrollmentStateIncludedInResponse: false,
       }),
     )
     .run();

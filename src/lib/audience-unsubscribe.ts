@@ -4,17 +4,20 @@ export const audienceUnsubscribeUpdatedAt = "2026-05-19";
 
 export const audienceUnsubscribeApiRoute = "/api/audience/unsubscribe";
 
-export const audienceUnsubscribeIssue = 167;
+export const audienceUnsubscribeSuppressionIssue = 167;
+export const audienceUnsubscribeIssue = 343;
 
-export const audienceUnsubscribeStatus = "unsubscribe-suppression-ready";
+export const audienceUnsubscribeStatus = "unsubscribe-sequence-pause-ready";
 
 export const audienceUnsubscribeWriteContract = {
   id: "audience-unsubscribe-suppression-contract",
   status: audienceUnsubscribeStatus,
   issue: audienceUnsubscribeIssue,
+  suppressionIssue: audienceUnsubscribeSuppressionIssue,
+  sequencePauseIssue: audienceUnsubscribeIssue,
   parentIssue: 17,
   apiRoute: audienceUnsubscribeApiRoute,
-  tables: ["audience_subscribers", "audience_suppression_entries"],
+  tables: ["audience_subscribers", "audience_suppression_entries", "audience_sequence_enrollments"],
   publicSafeFields: [
     "suppressionEntryId",
     "normalizedEmail",
@@ -22,6 +25,7 @@ export const audienceUnsubscribeWriteContract = {
     "duplicate",
     "emailDeliveryEnabled",
     "subscriberExistenceRevealed",
+    "sequenceEnrollmentStateIncluded",
   ],
   serverPrivateFields: [
     "email_hash",
@@ -40,7 +44,7 @@ export const audienceUnsubscribeWriteContract = {
     rawUserAgentIncluded: false,
   },
   writeBoundary:
-    "Issue #167 can record unsubscribe/suppression evidence for a normalized email with idempotency and can mark known subscribers unsubscribed without revealing list membership. Email sending, imports, broadcasts, CRM notes, private exports, and direct agent subscriber writes still require authenticated confirmed-write APIs with suppression checks.",
+    "Issue #167 can record unsubscribe/suppression evidence for a normalized email with idempotency and can mark known subscribers unsubscribed without revealing list membership. Issue #343 also pauses known draft sequence enrollments as aggregate owner evidence while keeping the public response membership-safe. Email sending, imports, broadcasts, CRM notes, private exports, and direct agent subscriber writes still require authenticated confirmed-write APIs with suppression checks.",
 };
 
 export function normalizeUnsubscribeEmail(value: unknown) {
