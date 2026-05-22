@@ -164,6 +164,30 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
         </div>
       </section>
 
+      {feature.examples?.length ? (
+        <section className="content-band alternate">
+          <div className="split-heading">
+            <div>
+              <p className="eyebrow">Examples</p>
+              <h2>Concrete requests the coach can help with</h2>
+            </div>
+            <p>
+              Each request stays grounded in Bumpgrade source evidence and keeps customer-facing changes behind review.
+            </p>
+          </div>
+          <div className="feature-example-grid">
+            {feature.examples.map((example) => (
+              <article key={example.title}>
+                <span>Example request</span>
+                <h3>{example.title}</h3>
+                <p>{example.body}</p>
+                <blockquote>{example.request}</blockquote>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="content-band dark-band feature-proof-band">
         <div className="split-heading">
           <div>

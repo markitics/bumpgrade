@@ -249,7 +249,7 @@ const routes = [
   { path: "/features", heading: "Everything a publisher needs" },
   { path: "/features/email-campaigns", heading: "Capture subscribers and prepare campaigns" },
   { path: "/features/order-bump", heading: "Offer the right bump" },
-  { path: "/features/ai-business-coach", heading: "Turn scattered launch ideas" },
+  { path: "/features/ai-business-coach", heading: "Ask an AI launch advisor" },
   { path: "/features/simple-landing-page", heading: "Give a launch idea a public page" },
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },

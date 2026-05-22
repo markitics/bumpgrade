@@ -22,6 +22,11 @@ export type MarketingFeature = {
   proofRoutes: string[];
   benefits: string[];
   useCases: string[];
+  examples?: {
+    title: string;
+    body: string;
+    request: string;
+  }[];
   replaces: string[];
   nextStep: {
     label: string;
@@ -61,31 +66,54 @@ export const marketingFeatures: MarketingFeature[] = [
     shortTitle: "AI coach",
     category: "Launch planning",
     status: "launch-preview",
-    availability: "Launch-planning context and guided AI review are available for the first invite wave.",
+    availability:
+      "AI-assisted launch review is available as a guided planning surface; public, billing, send, and product changes still require owner confirmation.",
     eyebrow: "Decide faster",
-    hero: "Turn scattered launch ideas into a cleaner plan.",
+    hero: "Ask an AI launch advisor what to do next.",
     summary:
-      "Bumpgrade organizes the feature, competitor, funnel, offer, product, audience, and analytics context an AI coach needs to make practical launch recommendations.",
-    audience: "Solo publishers, coaches, course sellers, and operators who want help choosing the next best launch move.",
-    problem: "AI tools can draft advice, but they usually cannot see the funnel, offer, evidence, and safety boundaries behind the advice.",
-    outcome: "Ask for a launch plan, funnel outline, offer critique, or competitor-informed next step grounded in the real state of your launch.",
+      "Bumpgrade's AI coach helps publishers turn an offer idea into a practical launch plan using the real funnel, checkout, audience, product, analytics, and source evidence already inside Bumpgrade.",
+    audience: "Solo publishers, coaches, course sellers, and operators who want a clearer launch plan without stitching together private notes, screenshots, and generic AI prompts.",
+    problem:
+      "Generic AI tools can write advice, but they usually cannot see what has already been built, what is ready to publish, what still needs review, or which launch evidence is safe to act on.",
+    outcome:
+      "Ask for a launch plan, funnel sequence, offer-page rewrite, missing-step review, analytics readout, or email follow-up outline grounded in your actual Bumpgrade launch state.",
     imageUrl: "/pr-screenshots/issue-12-agent-docs-index-desktop.png",
     imageAlt: "Bumpgrade agent docs index showing source-grounded read contracts for AI launch guidance.",
     featureIds: ["feature-agent-ready-contracts", "feature-compare-source-data"],
     issueIds: [12, 217],
     proofRoutes: ["/agent-docs", "/agent-docs/source-data", "/compare/source-data"],
     benefits: [
-      "Ground AI recommendations in launch context, competitor references, funnel notes, offer structure, and availability boundaries.",
-      "Keep public, billing, and creator-speech changes behind confirmation boundaries.",
-      "Make recommendations easier for the owner to review before they affect a real launch.",
+      "Turn offer notes into a launch plan that references the real funnel, offer stack, product access, audience, and analytics surfaces.",
+      "Spot missing checkout, product, audience, or analytics steps before a publisher sends traffic to the launch.",
+      "Keep public copy, billing-impacting actions, customer sends, and product access changes behind explicit owner confirmation.",
     ],
     useCases: [
-      "Ask what to build next for a product launch.",
-      "Draft a funnel outline from a known offer stack.",
-      "Compare Bumpgrade with ClickFunnels, SamCart, Kit, Shopify, Kajabi, and other alternatives.",
+      "Turn an offer idea into a launch plan.",
+      "Draft a funnel sequence from the current offer stack.",
+      "Find missing checkout, product, audience, or analytics steps.",
+      "Review launch analytics and suggest next actions.",
+      "Rewrite an offer page for a clearer buyer promise.",
+      "Prepare an email follow-up outline after opt-in or purchase.",
+    ],
+    examples: [
+      {
+        title: "Plan the launch",
+        body: "Start with a rough product idea and get a step-by-step launch path that names the page, checkout, follow-up, product delivery, and measurement work.",
+        request: "Turn this offer idea into a first launch plan and flag the missing Bumpgrade setup steps.",
+      },
+      {
+        title: "Improve the funnel",
+        body: "Review the current funnel and offer stack, then ask for the next page, bump, upsell, or follow-up change that would make the launch easier to buy.",
+        request: "Read the current funnel and offer stack, then suggest the next three changes to improve conversion.",
+      },
+      {
+        title: "Decide from evidence",
+        body: "Use source, conversion, audience, and product-access evidence to choose what to change next without exposing private customer or billing details.",
+        request: "Summarize what the latest launch evidence says and recommend the next action I should approve.",
+      },
     ],
     replaces: ["Generic AI prompts", "Scattered launch docs", "Private chat-only project memory"],
-    nextStep: { label: "Compare alternatives", href: "/compare" },
+    nextStep: { label: "Open agent docs", href: "/agent-docs" },
   },
   {
     slug: "simple-landing-page",
