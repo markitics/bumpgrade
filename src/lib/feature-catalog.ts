@@ -125,6 +125,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Public sandbox checkout start rendering on published linked checkout blocks from issue #165.",
       "Webinar and resource funnel template/page-block contracts from issue #213.",
       "Owner-confirmed private draft duplication from issue #215.",
+      "Owner-confirmed archive/unpublish lifecycle actions from issue #341.",
       "Funnel steps for opt-in, sales, checkout, upsell, webinar, resource, thank-you, and future nurture paths.",
       "Reusable template and block metadata for opt-ins, sales pages, checkout handoffs, webinars, resources, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
@@ -143,9 +144,10 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #165 lets published funnel routes render the existing sandbox checkout start panel when a checkout block carries owner-confirmed checkoutLink metadata.",
       "Issue #213 adds webinar/resource funnel templates, page-block metadata, admin step-kind options, and D1 step-kind storage readiness.",
       "Issue #215 lets verified owners duplicate private D1 drafts after exact confirmation, idempotency, and a fresh revision check while stripping checkout-link metadata.",
+      "Issue #341 lets verified owners archive private D1 drafts or unpublish public D1 draft routes after exact confirmation, idempotency, and a fresh revision check while preserving draft, step, block, checkout-link, and audit evidence.",
     ],
     agentContract:
-      "Agents may read reusable template, block-template, webinar/resource template, draft duplication, checkout-link, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, duplicate, update, reorder, link checkout offers, preview, and publish private draft funnel steps with confirmation and stale-state checks; duplicated drafts stay private and strip checkout-link metadata, and published linked checkout blocks can render the sandbox checkout start surface, while future direct agent writes must require confirmation before creating drafts directly, duplicating drafts directly, editing creator-speech, linking billing-sensitive offers, scheduling webinars, delivering private resources, or publishing public funnel pages.",
+      "Agents may read reusable template, block-template, webinar/resource template, draft duplication, archive/unpublish lifecycle, checkout-link, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, duplicate, update, reorder, link checkout offers, preview, publish, archive, and unpublish private draft funnel steps with confirmation and stale-state checks; duplicated drafts stay private and strip checkout-link metadata, archived drafts preserve evidence and leave public source-data when unpublished, and published linked checkout blocks can render the sandbox checkout start surface, while future direct agent writes must require confirmation before creating drafts directly, duplicating drafts directly, archiving/unpublishing directly, editing creator-speech, linking billing-sensitive offers, scheduling webinars, delivering private resources, or publishing public funnel pages.",
   },
   {
     id: "feature-checkout-offers",

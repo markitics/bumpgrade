@@ -11,7 +11,8 @@ Issue #163 adds owner-confirmed checkout-offer links on private draft checkout
 blocks. Issue #165 renders linked checkout blocks on published funnel routes as
 the existing sandbox checkout start surface. Issue #213 adds webinar and
 resource funnel template/page-block contracts plus D1 step-kind storage
-readiness. Issue #215 adds owner-confirmed private draft duplication.
+readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
+#341 adds owner-confirmed archive/unpublish lifecycle actions.
 
 Live in this slice:
 
@@ -19,7 +20,8 @@ Live in this slice:
   steps, block IDs, reusable funnel templates, block-template records, revision
   ID, preview route, webinar/resource page-shape metadata, owner-session
   editable draft capability metadata, owner-session checkout-link capability
-  metadata, published D1 funnel summaries, and write boundary.
+  metadata, owner-session archive/unpublish lifecycle metadata, published D1
+  funnel summaries, and write boundary.
 - `/funnels/indie-launch-sandbox`: crawlable semantic preview of the seeded
   opt-in, sales, and thank-you funnel, including reusable template and block
   library cards.
@@ -30,14 +32,15 @@ Live in this slice:
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, duplicate private
   drafts, attach the seeded sandbox checkout offer to checkout blocks, and
-  publish private D1 draft funnels with ordered steps.
+  publish, archive, or unpublish private D1 draft funnels with ordered steps.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
-  checkout-link, and exact-confirmed publish actions with idempotency, revision
-  checks, and audit rows. Reusable webinar/resource templates use the same
-  exact-confirmed template-to-draft path.
+  checkout-link, exact-confirmed publish, and exact-confirmed archive/unpublish
+  actions with idempotency, revision checks, and audit rows. Reusable
+  webinar/resource templates use the same exact-confirmed template-to-draft
+  path.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, and `funnel_audit_events`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
   draft capability, and future MCP resources/tools.
@@ -45,7 +48,7 @@ Live in this slice:
 Not live in this slice:
 
 - Drag-and-drop visual editing or granular block editing.
-- Deleting, archiving, or unpublishing funnels.
+- Physical deletion of funnels.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
 - Private resource file delivery, R2 object selection, signed URLs, or
@@ -71,8 +74,13 @@ existing sandbox checkout start panel on the public funnel route; that path
 remains exact-confirmed, idempotent, redacted, and constrained to the seeded
 offer stack. Current draft preview requires an owner session and does not
 publish private copy publicly. Publishing requires an owner session, the exact
-publish confirmation text, an idempotency key, and a current revision ID. Future
-direct agent writes, unpublishing, checkout-link deletion, live billing, live
-webinar integrations, private resource delivery, and destructive draft actions
-must add explicit confirmation, stale-state checks, audit correlation,
-redaction, and rollback notes before acting on draft state.
+publish confirmation text, an idempotency key, and a current revision ID.
+Archiving or unpublishing requires an owner session, the exact archive
+confirmation text, an idempotency key, and a current revision ID; it changes the
+draft status to `archived`, clears the public route, removes the route from
+published D1 funnel source data, and preserves draft rows, ordered steps, block
+metadata, checkout-link metadata, and audit rows. Future direct agent writes,
+checkout-link deletion, live billing, live webinar integrations, private
+resource delivery, physical deletion, and destructive draft actions must add
+explicit confirmation, stale-state checks, audit correlation, redaction, and
+rollback notes before acting on draft state.
