@@ -157,12 +157,12 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(9),
     group: "Accounts and domains",
     summary:
-      "Signed-in, email-confirmed publishers with an active paid plan or launch-pilot entitlement can reserve a unique default `*.bumpgrade.com` subdomain backed by D1 tenant, reservation, and audit records.",
+      "Signed-in, email-confirmed publishers with an active paid plan entitlement can reserve a unique default `*.bumpgrade.com` subdomain backed by D1 tenant, reservation, and audit records.",
     publicEvidence: [
       "Issue #222 tracks the paid publisher tenant and default Bumpgrade subdomain slice.",
       "`/account/setup` is the signed-in publisher setup surface.",
       "`/account/source-data` exposes the public-safe tenant/subdomain contract.",
-      "`POST /api/account/publisher/subdomain` reserves a unique Bumpgrade hostname only after email verification and active paid-plan or launch-pilot entitlement.",
+      "`POST /api/account/publisher/subdomain` reserves a unique Bumpgrade hostname only after email verification and active paid-plan entitlement.",
       "Better Auth is configured with the `https://*.bumpgrade.com` trusted origin pattern and `bumpgrade.com` cross-subdomain cookie domain in production.",
     ],
     nextMilestone:

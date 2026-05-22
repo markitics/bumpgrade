@@ -9,13 +9,17 @@ surfaces instead of placeholders:
   and write-safety boundaries.
 - `/resources`: comparison, migration, launch, product, blog-index, and agent
   resources with evidence routes.
-- `/pricing`: pricing direction and explicit not-yet-claimed billing caveats.
+- `/pricing`: self-serve Experiment and Grow plans, Enterprise contact path,
+  optional White glove setup, and current billing boundaries.
+- `/pricing-v2`: an alternate usage-based pricing draft for future packaging
+  decisions.
 - `/content/source-data`: public-safe JSON mirror for audiences, resources,
   pricing principles, and planned pricing tracks.
 
-Pricing tracks are positioning hypotheses only. Do not describe plan names,
-amounts, limits, trials, or live billing availability as shipped until a later
-billing rollout issue adds source evidence.
+Issue #316 makes Experiment and Grow self-serve account-plan checkout records.
+Issue #317 adds the usage-based draft as an alternate, not the default. Future
+limits, trials, usage-meter rates, and package changes still need source-data
+updates before agents cite them as current.
 
 Agents may read `/content/source-data` and cite its stable IDs. They still need
 source URLs, issue links, shipped-product evidence, or work-log evidence before

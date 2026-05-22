@@ -11,7 +11,7 @@ onboarding, and auth-boundary contract.
   boundaries.
 - `POST /api/account/publisher/subdomain`: reserves a unique
   `*.bumpgrade.com` hostname for an email-confirmed account with an active
-  paid-plan or launch-pilot entitlement.
+  paid plan entitlement.
 - `POST /api/account/publisher/custom-domain`: starts onboarding for a domain
   the publisher already owns, returns CNAME instructions, and re-checks DNS
   verification state.
@@ -23,8 +23,8 @@ already-taken subdomain requests.
 ## Paid Gate
 
 Default Bumpgrade subdomains are not free-account inventory. Reservation requires
-an active row in `publisher_plan_entitlements`, either from live billing later
-or from a launch-pilot/manual entitlement during the invite wave.
+an active row in `publisher_plan_entitlements`, created after a verified
+Bumpgrade plan checkout or an owner-approved manual entitlement.
 
 ## Auth Boundary
 

@@ -2,7 +2,8 @@
 
 Architecture issue: #11
 Sandbox checkout issue: #34
-Last reviewed: 2026-05-19
+Self-serve plan checkout issue: #316
+Last reviewed: 2026-05-22
 
 Bumpgrade will use Stripe Checkout Sessions first, backed by Cloudflare Workers
 and D1. This keeps Bumpgrade out of raw card-data handling, gives publishers a
@@ -10,6 +11,23 @@ hosted payment surface early, and leaves room for embedded Checkout or Payment
 Element work after the product model is stable.
 
 ## Current Shipped State
+
+Issue #316 adds the first self-serve Bumpgrade account-plan checkout path:
+
+- `/pricing` renders Experiment at `$97/mo`, Grow at `$197/mo`, Enterprise as a
+  contact path, and an optional one-time White glove setup add-on at `$1,000`.
+- `POST /api/billing/checkout` starts live Stripe Checkout for Experiment or
+  Grow, optionally including White glove setup on the first invoice.
+- `/pricing/success` verifies the returned Stripe Checkout Session server-side
+  before creating an active `publisher_plan_entitlements` row by buyer email.
+- `/pricing-v2` is a public alternate usage-based pricing draft, not the default
+  packaging decision.
+
+The deployed Worker has live Stripe secret material available, but the live
+webhook signing secret was not listed in Cloudflare secret inventory during this
+implementation. Initial activation therefore verifies the Checkout Session on
+the success page. Renewal, cancellation, and customer-portal automation still
+need the live webhook/customer-portal follow-up.
 
 Issue #34 adds the first sandbox-only checkout path:
 
@@ -24,9 +42,11 @@ Issue #34 adds the first sandbox-only checkout path:
 - A seeded sandbox smoke product/price exists:
   `price-bumpgrade-sandbox-launch-pass-usd`.
 
-This is not live billing parity. `STRIPE_ACTIVE_MODE` remains `sandbox`, live
-mode is rejected by the checkout route, and public checkout starts must still
-use exact confirmation plus the Bumpgrade redirect wrapper.
+This publisher-offer checkout path is not live billing parity.
+`STRIPE_ACTIVE_MODE` remains `sandbox`, live mode is rejected by the
+`/api/commerce/checkout` route, and public offer checkout starts must still use
+exact confirmation plus the Bumpgrade redirect wrapper. That is deliberately
+separate from the self-serve Bumpgrade account-plan checkout route above.
 
 Issue #81 adds the first checkout-offer contract and issue #99 adds the first
 confirmed sandbox checkout start with the seeded order bump:

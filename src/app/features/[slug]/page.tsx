@@ -195,7 +195,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
             <h2>Open the related examples and decide whether this fits your launch.</h2>
           </div>
           <Link href="/pricing" className="secondary-action">
-            Plan launch access
+            Start with Bumpgrade
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>

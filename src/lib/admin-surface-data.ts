@@ -438,7 +438,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #242", url: "https://github.com/markitics/bumpgrade/issues/242", kind: "issue" },
     ],
     notes: [
-      "Pricing remains launch/pilot positioning until Mark confirms the live self-serve checkout rollout in issue #219.",
+      "Issue #316 moves pricing from launch conversation copy to self-serve Experiment and Grow subscriptions plus the White glove setup option.",
     ],
   },
   "journey-publisher-checks-mobile-admin": {
@@ -477,7 +477,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     environment: "Sandbox checkout contract evidence, GitHub Actions CI, merged PR #244, deployed screenshots, and production POST-interception smoke.",
     method: "Commerce source-data inspection, offer route smoke, checkout start smoke, checkout success proof, post-purchase decision proof, and safe production payload interception.",
     summary:
-      "Publishers can inspect the first paid-offer stack, order bump, post-purchase options, and payment boundaries with current proof; live self-serve checkout remains explicitly gated.",
+      "Publishers can inspect the first paid-offer stack, order bump, post-purchase options, Bumpgrade account-plan checkout, and payment boundaries with current proof.",
     ciLinks: [
       { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
@@ -506,7 +506,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: launchProofUpdatedAt,
     environment: "Local launch branch, GitHub Actions CI, merged PRs #218 and #233, deployed screenshots, and production route smoke.",
     method: "Public route smoke tests, sitemap checks, feature source-data checks, production visible-text smoke, and launch screenshots.",
-    summary: "Homepage, feature index, feature detail, pricing, account setup, and source-data routes have route, CI, and screenshot proof for the invite wave.",
+    summary: "Homepage, feature index, feature detail, pricing, account setup, and source-data routes have route, CI, and screenshot proof for publishers evaluating Bumpgrade.",
     ciLinks: [
       { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
       { label: "PR #233 CI run", url: issue226CiRunUrl, kind: "ci" },
@@ -532,7 +532,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: launchProofUpdatedAt,
     environment: "Local launch branch, GitHub Actions CI, merged launch PRs, and production route smoke.",
     method: "Pricing route smoke test, content review, commerce boundary inspection, account setup source-data inspection, and domain-policy proof.",
-    summary: "Pricing explains invite access, paid pilots, Bumpgrade subdomains, existing-domain setup, no domain purchase, and live-checkout boundaries without exposing an unverified checkout button.",
+    summary: "Pricing explains self-serve Experiment and Grow checkout, Enterprise contact, White glove setup, Bumpgrade subdomains, existing-domain setup, no domain purchase, and billing boundaries.",
     ciLinks: [
       { label: "PR #218 CI run", url: issue217CiRunUrl, kind: "ci" },
       { label: "PR #232 CI run", url: issue225CiRunUrl, kind: "ci" },
@@ -553,8 +553,8 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #234", url: "https://github.com/markitics/bumpgrade/issues/234", kind: "issue" },
     ],
     notes: [
-      "Bumpgrade pilot payment can be handled through a confirmed payment path, but customer-facing publisher checkout remains offer-specific.",
-      "Live self-serve customer checkout remains gated until live Stripe smoke proof is available for the specific offer.",
+      "Bumpgrade account-plan checkout is separate from customer-facing checkout for a publisher's own offer.",
+      "Live webhook-backed renewal and cancellation automation remains a follow-up until a live Stripe webhook signing secret is configured.",
     ],
   },
   "journey-publisher-reserves-bumpgrade-subdomain": {
@@ -814,7 +814,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "npm run test:browser",
     ],
     flagsAttention:
-      "Live self-serve checkout is still not claimed until the production Stripe path has a linked live smoke test. The Documents checkout stayed blocked by macOS TCC in this running Codex process, so this branch was built from /tmp/bumpgrade-launch.",
+      "Publisher-offer checkout remains sandbox-only; Bumpgrade account-plan checkout now has a self-serve Stripe path.",
     firstPromptAt: "2026-05-20T08:18:39.622Z",
     completedAt: "2026-05-20T09:41:40.000Z",
     relevantUrls: [
@@ -854,7 +854,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureId: "feature-public-feature-catalog",
     featureStatus: "live",
     issueNumbers: [6, 14, 15, 16, 17, 18, 19, 217, 226, 234],
-    primaryUser: "Publisher invited to try Bumpgrade",
+    primaryUser: "Publisher evaluating Bumpgrade",
     userGoal: "Understand what Bumpgrade can do for a launch without needing to decode project management notes.",
     sourceEvidence: [
       "https://bumpgrade.com/",
@@ -869,7 +869,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Open /features to see customer-facing feature groups organized by launch job.",
       "Open a dedicated feature page such as /features/email-campaigns or /features/order-bump.",
       "Follow feature examples or related launch previews when the feature fits the offer.",
-      "Open /pricing to understand invite access and payment options.",
+      "Open /pricing to understand self-serve plans and payment options.",
     ],
     edgeCases: [
       "Live billing must not be promoted until live Stripe smoke evidence is linked.",
@@ -978,16 +978,16 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Open /users to find the relevant audience segment and linked feature IDs.",
       "Open /resources to find live comparison, commerce, and agent contract resources.",
-      "Open /pricing to read direction and explicit not-yet-claimed billing caveats.",
+      "Open /pricing to read current Experiment, Grow, Enterprise, and White glove setup options.",
       "Fetch /content/source-data to cite stable IDs, issue numbers, evidence routes, and agent boundaries.",
     ],
     edgeCases: [
-      "Pricing tracks are positioning hypotheses, not published plans or live billing availability.",
+      "Future limits, trials, and usage-meter rates need source-data updates before agents cite them as current.",
       "Migration guides and launch playbooks are planned until the related funnel, checkout, automation, and analytics issues ship.",
       "Agents must not treat content copy as permission to perform public, billing-impacting, or creator-speech writes.",
     ],
     agentAccess:
-      "Agents can read /content/source-data for audience, resource, and pricing-direction records. Public copy changes still need source evidence, issue links, or shipped-product proof.",
+      "Agents can read /content/source-data for audience, resource, and pricing records. Public copy changes still need source evidence, issue links, or shipped-product proof.",
     validation: [
       "Playwright covers /users, /resources, /pricing, /content/source-data, sitemap discovery, and agent manifest read-contract discovery.",
       "Issue #20 updates public route metadata and source-data contracts.",
@@ -1002,8 +1002,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureId: "feature-resources-use-cases-pricing",
     featureStatus: "live",
     issueNumbers: [20, 46, 217, 222, 223, 225, 226, 234],
-    primaryUser: "Publisher deciding whether to request Bumpgrade access",
-    userGoal: "Understand how early access, paid pilots, and live payment handling work before inviting buyers.",
+    primaryUser: "Publisher ready to start a Bumpgrade workspace",
+    userGoal: "Understand Experiment, Grow, Enterprise, White glove setup, and live payment handling before starting the account plan checkout.",
     sourceEvidence: [
       "https://bumpgrade.com/pricing",
       "https://bumpgrade.com/commerce/source-data",
@@ -1012,14 +1012,14 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     happyPath: [
       "Open /pricing.",
-      "Read launch preview, publisher pilot, and operator stack options.",
-      "Review payment option language for pilot payments, Stripe invoices, subdomains, custom domains, and manual approval.",
-      "Use the access CTA when ready to discuss the first live offer.",
+      "Compare Experiment, Grow, Enterprise, and the optional White glove setup add-on.",
+      "Submit Experiment or Grow to start Stripe Checkout for the Bumpgrade account plan.",
+      "Return from Stripe to /pricing/success and continue to account setup with the same email.",
     ],
     edgeCases: [
-      "No self-serve live checkout button should appear until live checkout smoke proof is linked.",
-      "Pricing should not invent fixed plan amounts before the launch wave confirms packaging.",
-      "Sandbox checkout proof is not the same as live-mode product payment proof.",
+      "Enterprise is a contact path, not self-serve checkout.",
+      "/pricing-v2 is an alternate usage-based draft and is not the default pricing model.",
+      "Successful Checkout Sessions are verified server-side before a publisher plan entitlement is activated.",
       "Bumpgrade connects domains customers already own; it does not sell, register, renew, transfer, or price domains today.",
     ],
     agentAccess:
@@ -1029,7 +1029,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #225 clarifies the domain purchase policy.",
       "Issue #226 refreshes launch signup and pricing copy for paid domain readiness.",
       "Issue #234 refreshes pricing user-journey proof with the latest PR #233 CI and issue #226 screenshot links.",
-      "The pricing page links to human contact paths instead of an unverified live checkout button.",
+      "Issue #316 adds live self-serve Bumpgrade plan checkout, success verification, and seeded product/price records.",
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
     sortOrder: 43,
@@ -1041,7 +1041,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureId: "feature-better-auth",
     featureStatus: "live",
     issueNumbers: [9, 221, 222],
-    primaryUser: "Publisher who has activated a paid plan or launch pilot",
+    primaryUser: "Publisher who has activated a paid plan",
     userGoal:
       "Sign in, confirm email, and reserve a unique Bumpgrade subdomain that can become the default public hostname for the publisher workspace.",
     sourceEvidence: [
@@ -1053,7 +1053,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Create or sign into a Bumpgrade publisher account.",
       "Confirm the account email.",
-      "Activate a paid plan or launch-pilot entitlement.",
+      "Activate a paid plan entitlement.",
       "Open /account/setup.",
       "Enter the desired subdomain, such as studio, and submit the reservation.",
       "See the reserved hostname, such as studio.bumpgrade.com, recorded for the publisher tenant.",
@@ -1094,7 +1094,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Create or sign into a Bumpgrade publisher account.",
       "Confirm the account email.",
-      "Activate a paid plan or launch-pilot entitlement.",
+      "Activate a paid plan entitlement.",
       "Reserve the default Bumpgrade subdomain first.",
       "Open /account/setup and enter the existing domain.",
       "Copy the CNAME record name and target shown by Bumpgrade.",

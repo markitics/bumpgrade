@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, FileText, FileSearch, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, FileText, FileSearch, Sparkles } from "lucide-react";
 
 import { resourceHubItems } from "@/lib/content-surfaces";
 import { site } from "@/lib/site";
@@ -41,7 +41,7 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
   },
   "resource-commerce-notes": {
     title: "Checkout setup notes",
-    summary: "Plain-English notes on checkout, payment review, offer safety, and what has to be true before inviting buyers.",
+    summary: "Plain-English notes on Bumpgrade plan checkout, publisher-offer checkout, payment review, and offer safety.",
     label: "Available now",
     cta: "Read notes",
   },
@@ -74,7 +74,7 @@ export default function ResourcesPage() {
           <p className="lede">
             Start with platform comparisons, checkout notes, and practical launch resources. The goal is simple: help
             you decide what to sell, where the buyer goes next, and which Bumpgrade features should support the first
-            invite wave.
+            launch.
           </p>
           <div className="hero-actions">
             <Link href="/compare" className="primary-action">
@@ -133,9 +133,9 @@ export default function ResourcesPage() {
             <p className="eyebrow">Reading path</p>
             <h2>Use the resources to shorten the path from research to launch.</h2>
           </div>
-          <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20resource%20request" className="text-link compact-link">
-            Request a guide
-            <Mail aria-hidden="true" />
+          <Link href="/features" className="text-link compact-link">
+            Browse features
+            <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="feature-proof-grid">
@@ -151,8 +151,8 @@ export default function ResourcesPage() {
           </div>
           <div>
             <Sparkles aria-hidden="true" />
-            <h3>Ask for the missing guide</h3>
-            <p>Early publishers can request the migration or launch worksheet that matches their current stack.</p>
+            <h3>Choose the missing piece</h3>
+            <p>Use the feature pages and comparison hub to pick the next launch, checkout, audience, or product step.</p>
           </div>
         </div>
       </section>

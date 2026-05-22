@@ -16,6 +16,7 @@ import {
   stripeNodeVersion,
 } from "@/lib/commerce";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
+import { pricingPlans, selfServePricingContract, whiteGloveSetupAddon } from "@/lib/pricing-plans";
 import {
   loadPostPurchaseDecisionSummary,
   postPurchaseDecisionContract,
@@ -44,6 +45,11 @@ export async function GET() {
     contract: stripeCommerceContract,
     decisions: commerceDecisions,
     tables: commerceTables,
+    selfServePricing: {
+      contract: selfServePricingContract,
+      plans: pricingPlans,
+      setupAddon: whiteGloveSetupAddon,
+    },
     sandboxCheckout: {
       offer: sandboxCheckoutOffer,
       orderBumps: checkoutOfferStack.orderBumps.map((offer) => ({
