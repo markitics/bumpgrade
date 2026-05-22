@@ -164,6 +164,11 @@ import {
   analyticsNotificationProviderPollingReadinessStatus,
 } from "../src/lib/analytics-notification-provider-polling-readiness";
 import {
+  analyticsNotificationReceiptPayloadReadinessApiRoute,
+  analyticsNotificationReceiptPayloadReadinessConfirmationText,
+  analyticsNotificationReceiptPayloadReadinessStatus,
+} from "../src/lib/analytics-notification-receipt-payload-readiness";
+import {
   analyticsAlertAnomalyIssue,
   analyticsAlertAnomalyStatus,
   analyticsCohortComparisonIssue,
@@ -3814,6 +3819,7 @@ test.describe("Bumpgrade scaffold", () => {
         analyticsNotificationProviderDomainReadinessApiRoute,
         analyticsNotificationContentConsentReadinessApiRoute,
         analyticsNotificationSendPayloadReadinessApiRoute,
+        analyticsNotificationReceiptPayloadReadinessApiRoute,
         "/admin/analytics",
         "/funnels/indie-launch-sandbox",
         "/analytics/indie-launch-dashboard",
@@ -3840,6 +3846,9 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsNotificationSendPayloadReadinessId",
         "analyticsNotificationSendPayloadReadinessStatus",
         "analyticsNotificationSendPayloadReadinessDisposition",
+        "analyticsNotificationReceiptPayloadReadinessId",
+        "analyticsNotificationReceiptPayloadReadinessStatus",
+        "notificationReceiptPayloadReadinessDisposition",
         "analyticsReportExportId",
         "analyticsReportExportSectionId",
         "analyticsCohortFixtureId",
@@ -3937,6 +3946,16 @@ test.describe("Bumpgrade scaffold", () => {
         auth: "owner-session",
         confirmationText: analyticsNotificationSendPayloadReadinessConfirmationText,
         tables: expect.arrayContaining(["analytics_notification_send_payload_readiness_records"]),
+      }),
+    );
+    expect(payload.notificationReceiptPayloadReadinessWrites).toEqual(
+      expect.objectContaining({
+        status: analyticsNotificationReceiptPayloadReadinessStatus,
+        issue: 307,
+        apiRoute: analyticsNotificationReceiptPayloadReadinessApiRoute,
+        auth: "owner-session",
+        confirmationText: analyticsNotificationReceiptPayloadReadinessConfirmationText,
+        tables: expect.arrayContaining(["analytics_notification_receipt_payload_readiness_records"]),
       }),
     );
     expect(payload.experimentDecisions).toEqual(
@@ -4501,7 +4520,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, and #305 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, and #307 can capture seeded analytics events",
     );
     expect(payload.writeBoundary).toContain("record owner-reviewed content/consent readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed send-payload readiness evidence");
@@ -4512,6 +4531,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("record owner-reviewed delivery-result readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed delivery-status-webhook readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed provider-polling readiness evidence");
+    expect(payload.writeBoundary).toContain("record owner-reviewed receipt-payload readiness evidence");
     expect(payload.caveat).toContain("fixed-window aggregate source and conversion filters");
     expect(payload.timeWindows).toEqual(
       expect.objectContaining({
@@ -6629,13 +6649,13 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
   });
 
-  test("owner analytics notification send-payload, queue-producer, queue-consumer, provider-call, delivery-attempt, delivery-result, delivery-status-webhook, and provider-polling readiness require auth, evidence, idempotency, and redaction", async ({
+  test("owner analytics notification send-payload, queue-producer, queue-consumer, provider-call, delivery-attempt, delivery-result, delivery-status-webhook, provider-polling, and receipt-payload readiness require auth, evidence, idempotency, and redaction", async ({
     page,
     request,
   }, testInfo) => {
     test.skip(
       testInfo.project.name !== "chromium",
-      "Owner analytics notification send-payload, queue-producer, queue-consumer, provider-call, delivery-attempt, delivery-result, delivery-status-webhook, and provider-polling readiness auth flows are covered once on desktop.",
+      "Owner analytics notification send-payload, queue-producer, queue-consumer, provider-call, delivery-attempt, delivery-result, delivery-status-webhook, provider-polling, and receipt-payload readiness auth flows are covered once on desktop.",
     );
 
     const suffix = Date.now();
@@ -6651,6 +6671,7 @@ test.describe("Bumpgrade scaffold", () => {
     const deliveryResultPrivateNote = `Private analytics notification delivery result readiness note for m@rkmoriarty.com ${suffix}`;
     const deliveryStatusWebhookPrivateNote = `Private analytics notification delivery status webhook readiness note for m@rkmoriarty.com ${suffix}`;
     const providerPollingPrivateNote = `Private analytics notification provider polling readiness note for m@rkmoriarty.com ${suffix}`;
+    const receiptPayloadPrivateNote = `Private analytics notification receipt payload readiness note for m@rkmoriarty.com ${suffix}`;
 
     const sourceResponse = await request.get("/analytics/source-data");
     expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
@@ -6863,6 +6884,32 @@ test.describe("Bumpgrade scaffold", () => {
       privateNote: providerPollingPrivateNote,
       confirmationText: analyticsNotificationProviderPollingReadinessConfirmationText,
       idempotencyKey: `playwright-analytics-notification-provider-polling-readiness-${suffix}`,
+    };
+    const baseReceiptPayloadRequestBody = {
+      dashboardId: analyticsDashboard.id,
+      readinessId: analyticsNotificationReadinessId,
+      channelId: analyticsNotificationAdminInboxChannelId,
+      inboxRecordId: "analytics-notification-inbox-record-not-yet-created",
+      dispatchPreflightId: "analytics-notification-dispatch-preflight-not-yet-created",
+      providerDomainReadinessId: "analytics-notification-provider-domain-readiness-not-yet-created",
+      sendPayloadReadinessId: "analytics-notification-send-payload-readiness-not-yet-created",
+      providerPollingReadinessId: "analytics-notification-provider-polling-readiness-not-yet-created",
+      timeWindowKey: inboxEvidence.timeWindow.key,
+      notificationReceiptPayloadReadinessDisposition: "blocked_pending_receipt_payload_review",
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedReadinessStatus: analyticsNotificationReadinessStatus,
+      expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+      expectedNotificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+      expectedNotificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+      expectedNotificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+      expectedNotificationProviderPollingReadinessStatus: analyticsNotificationProviderPollingReadinessStatus,
+      expectedOwnerReviewStatus: inboxEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: inboxEvidence.alertThresholdCount,
+      expectedConversionSampleSize: inboxEvidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote: receiptPayloadPrivateNote,
+      confirmationText: analyticsNotificationReceiptPayloadReadinessConfirmationText,
+      idempotencyKey: `playwright-analytics-notification-receipt-payload-readiness-${suffix}`,
     };
 
     const unauthorizedGet = await request.get(analyticsNotificationSendPayloadReadinessApiRoute);
@@ -7155,6 +7202,44 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedProviderPollingPost.status()).toBe(401);
     await expect(unauthorizedProviderPollingPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+    const unauthorizedReceiptPayloadGet = await request.get(analyticsNotificationReceiptPayloadReadinessApiRoute);
+    expect(unauthorizedReceiptPayloadGet.status()).toBe(401);
+    await expect(unauthorizedReceiptPayloadGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          queuePayloadBodyIncluded: false,
+          queueProducerEnabled: false,
+          queueConsumerEnabled: false,
+          providerCallEnabled: false,
+          providerPollingEnabled: false,
+          receiptPayloadEnabled: false,
+          receiptPayloadRecorded: false,
+          providerSendEnabled: false,
+          providerCalled: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerResponseIncluded: false,
+          deliveryReceiptCreated: false,
+          deliveryReceiptPayloadIncluded: false,
+          statusWebhookEnabled: false,
+          statusWebhookReceived: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedReceiptPayloadPost = await request.post(analyticsNotificationReceiptPayloadReadinessApiRoute, {
+      data: baseReceiptPayloadRequestBody,
+    });
+    expect(unauthorizedReceiptPayloadPost.status()).toBe(401);
+    await expect(unauthorizedReceiptPayloadPost.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
 
@@ -10348,6 +10433,342 @@ test.describe("Bumpgrade scaffold", () => {
     expect(providerPollingSourceText).not.toContain(inboxPrivateNote);
     expect(providerPollingSourceText).not.toContain("m@rkmoriarty.com");
 
+    const receiptPayloadEvidence =
+      sourceAfterProviderPollingPayload.notificationReceiptPayloadReadiness.currentEvidenceByWindow.find(
+        (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+      );
+    expect(receiptPayloadEvidence).toEqual(
+      expect.objectContaining({
+        latestProviderPollingReadinessRecord: expect.objectContaining({
+          id: providerPollingCreatedPayload.record.id,
+          deliveryStatusWebhookReadinessId: deliveryStatusWebhookCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          inboxRecordId: inboxCreatedPayload.record.id,
+        }),
+        providerPollingReadinessRecordRequired: true,
+        providerPollingReadinessRecordCurrent: true,
+        ownerRecordAllowed: true,
+        receiptPayloadEnabled: false,
+        receiptPayloadRecorded: false,
+        providerSendEnabled: false,
+        providerConfigured: false,
+        providerResponseCreated: false,
+      }),
+    );
+    const receiptPayloadRequestBody = {
+      ...baseReceiptPayloadRequestBody,
+      inboxRecordId: inboxCreatedPayload.record.id,
+      dispatchPreflightId: dispatchCreatedPayload.record.id,
+      providerDomainReadinessId: providerCreatedPayload.record.id,
+      sendPayloadReadinessId: createdPayload.record.id,
+      providerPollingReadinessId: providerPollingCreatedPayload.record.id,
+      timeWindowKey: receiptPayloadEvidence.timeWindow.key,
+      expectedOwnerReviewStatus: receiptPayloadEvidence.ownerReviewStatus,
+      expectedAlertThresholdCount: receiptPayloadEvidence.alertThresholdCount,
+      expectedConversionSampleSize: receiptPayloadEvidence.conversionSampleSize,
+    };
+
+    const receiptPayloadContractResponse = await page.request.get(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+    );
+    expect(receiptPayloadContractResponse.ok(), await receiptPayloadContractResponse.text()).toBeTruthy();
+    await expect(receiptPayloadContractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: analyticsNotificationReceiptPayloadReadinessStatus,
+        route: analyticsNotificationReceiptPayloadReadinessApiRoute,
+        confirmation: expect.objectContaining({ text: analyticsNotificationReceiptPayloadReadinessConfirmationText }),
+        contract: expect.objectContaining({
+          readiness: expect.objectContaining({
+            id: analyticsNotificationReadinessId,
+            notificationInboxStatus: analyticsNotificationInboxStatus,
+            notificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+            notificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+            notificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+            notificationProviderPollingReadinessStatus: analyticsNotificationProviderPollingReadinessStatus,
+            channelId: analyticsNotificationAdminInboxChannelId,
+          }),
+          redaction: expect.objectContaining({
+            privateNoteIncluded: false,
+            notificationRecipientIncluded: false,
+            recipientPayloadIncluded: false,
+            personalizedBodyIncluded: false,
+            rawPayloadBodyIncluded: false,
+            emailBodyIncluded: false,
+            bodyTemplateIncluded: false,
+            unsubscribeUrlIncluded: false,
+            providerMessageIdIncluded: false,
+            providerResponseIncluded: false,
+            deliveryReceiptCreated: false,
+            deliveryReceiptPayloadIncluded: false,
+            statusWebhookEnabled: false,
+            statusWebhookReceived: false,
+            providerPollingEnabled: false,
+            receiptPayloadEnabled: false,
+            receiptPayloadRecorded: false,
+            providerSendEnabled: false,
+            providerConfigured: false,
+            providerSecretIncluded: false,
+            senderCredentialIncluded: false,
+            privateDnsCredentialsIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingReceiptPayloadConfirmation = await page.request.post(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+      {
+        data: {
+          ...receiptPayloadRequestBody,
+          confirmationText: "Store analytics notification receipt payload now",
+          idempotencyKey: `${receiptPayloadRequestBody.idempotencyKey}-missing`,
+        },
+      },
+    );
+    expect(missingReceiptPayloadConfirmation.status()).toBe(400);
+    await expect(missingReceiptPayloadConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const missingReceiptPayloadCaveat = await page.request.post(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+      {
+        data: {
+          ...receiptPayloadRequestBody,
+          sampleSizeCaveatAcknowledged: false,
+          idempotencyKey: `${receiptPayloadRequestBody.idempotencyKey}-caveat`,
+        },
+      },
+    );
+    expect(missingReceiptPayloadCaveat.status()).toBe(400);
+    await expect(missingReceiptPayloadCaveat.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "sample_size_caveat_required" }),
+    );
+
+    const staleReceiptPayloadProviderPollingStatus = await page.request.post(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+      {
+        data: {
+          ...receiptPayloadRequestBody,
+          expectedNotificationProviderPollingReadinessStatus: "stale-provider-polling-readiness-status",
+          idempotencyKey: `${receiptPayloadRequestBody.idempotencyKey}-stale-provider-polling-status`,
+        },
+      },
+    );
+    expect(staleReceiptPayloadProviderPollingStatus.status()).toBe(409);
+    await expect(staleReceiptPayloadProviderPollingStatus.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_notification_provider_polling_readiness_status",
+        currentNotificationProviderPollingReadinessStatus: analyticsNotificationProviderPollingReadinessStatus,
+      }),
+    );
+
+    const staleReceiptPayloadEvidence = await page.request.post(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+      {
+        data: {
+          ...receiptPayloadRequestBody,
+          providerPollingReadinessId: "analytics-notification-provider-polling-readiness-not-current",
+          idempotencyKey: `${receiptPayloadRequestBody.idempotencyKey}-provider-polling`,
+        },
+      },
+    );
+    expect(staleReceiptPayloadEvidence.status()).toBe(409);
+    await expect(staleReceiptPayloadEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_notification_provider_polling_readiness_evidence" }),
+    );
+
+    const unsupportedReceiptPayloadDisposition = await page.request.post(
+      analyticsNotificationReceiptPayloadReadinessApiRoute,
+      {
+        data: {
+          ...receiptPayloadRequestBody,
+          notificationReceiptPayloadReadinessDisposition: "store_receipt_payload_now",
+          idempotencyKey: `${receiptPayloadRequestBody.idempotencyKey}-disposition`,
+        },
+      },
+    );
+    expect(unsupportedReceiptPayloadDisposition.status()).toBe(400);
+    await expect(unsupportedReceiptPayloadDisposition.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_notification_receipt_payload_readiness_disposition" }),
+    );
+
+    const receiptPayloadCreated = await page.request.post(analyticsNotificationReceiptPayloadReadinessApiRoute, {
+      data: receiptPayloadRequestBody,
+    });
+    expect(receiptPayloadCreated.status(), await receiptPayloadCreated.text()).toBe(201);
+    const receiptPayloadCreatedPayload = await receiptPayloadCreated.json();
+    expect(receiptPayloadCreatedPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_receipt_payload_readiness_recorded",
+        duplicate: false,
+        record: expect.objectContaining({
+          dashboardId: analyticsDashboard.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          providerPollingReadinessId: providerPollingCreatedPayload.record.id,
+          timeWindowKey: "all",
+          notificationReceiptPayloadReadinessDisposition: "blocked_pending_receipt_payload_review",
+          expectedReadinessStatus: analyticsNotificationReadinessStatus,
+          expectedNotificationInboxStatus: analyticsNotificationInboxStatus,
+          expectedNotificationDispatchPreflightStatus: analyticsNotificationDispatchPreflightStatus,
+          expectedNotificationProviderDomainReadinessStatus: analyticsNotificationProviderDomainReadinessStatus,
+          expectedNotificationSendPayloadReadinessStatus: analyticsNotificationSendPayloadReadinessStatus,
+          expectedNotificationProviderPollingReadinessStatus: analyticsNotificationProviderPollingReadinessStatus,
+          expectedOwnerReviewStatus: receiptPayloadEvidence.ownerReviewStatus,
+          expectedAlertThresholdCount: receiptPayloadEvidence.alertThresholdCount,
+          expectedConversionSampleSize: receiptPayloadEvidence.conversionSampleSize,
+          sampleSizeCaveatAcknowledged: true,
+          privateNoteRecorded: true,
+          ownerReceiptPayloadReadinessRecorded: true,
+          queueBindingReviewed: true,
+          consumerModeReviewed: true,
+          producerDependencyReviewed: true,
+          payloadReadPolicyReviewed: true,
+          ackPolicyReviewed: true,
+          idempotencyPolicyReviewed: true,
+          retryDeadLetterPolicyReviewed: true,
+          providerHandoffDependencyReviewed: true,
+          backpressurePolicyReviewed: true,
+          auditCorrelationReviewed: true,
+          retentionPolicyReviewed: true,
+          ownerEmailSendEnabled: false,
+          queueDispatchEnabled: false,
+          queueProducerEnabled: false,
+          queueConsumerEnabled: false,
+          receiptPayloadEnabled: false,
+          queueMessageCreated: false,
+          queueMessageConsumed: false,
+          queueMessageAcknowledged: false,
+          retryDeadLetterRowCreated: false,
+          queuePayloadBodyRead: false,
+          queuePayloadBodyCreated: false,
+          customerAlertEnabled: false,
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          revenueClaimEnabled: false,
+          rawAnalyticsRowsExposed: false,
+          recipientIdentityIncluded: false,
+          recipientPayloadCreated: false,
+          personalizedBodyCreated: false,
+          rawPayloadBodyStored: false,
+          emailBodyIncluded: false,
+          providerMessageIdIncluded: false,
+          queuePayloadIncluded: false,
+          providerSendEnabled: false,
+          receiptPayloadRecorded: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          notificationRecipientIncluded: false,
+          recipientPayloadIncluded: false,
+          personalizedBodyIncluded: false,
+          rawPayloadBodyIncluded: false,
+          emailBodyIncluded: false,
+          bodyTemplateIncluded: false,
+          unsubscribeUrlIncluded: false,
+          providerMessageIdIncluded: false,
+          providerResponseIncluded: false,
+          deliveryReceiptPayloadIncluded: false,
+          receiptPayloadEnabled: false,
+          receiptPayloadRecorded: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+      }),
+    );
+
+    const receiptPayloadReplay = await page.request.post(analyticsNotificationReceiptPayloadReadinessApiRoute, {
+      data: receiptPayloadRequestBody,
+    });
+    expect(receiptPayloadReplay.status(), await receiptPayloadReplay.text()).toBe(200);
+    await expect(receiptPayloadReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_notification_receipt_payload_readiness_replayed",
+        duplicate: true,
+        record: expect.objectContaining({ id: receiptPayloadCreatedPayload.record.id }),
+      }),
+    );
+
+    const receiptPayloadConflict = await page.request.post(analyticsNotificationReceiptPayloadReadinessApiRoute, {
+      data: { ...receiptPayloadRequestBody, privateNote: `${receiptPayloadPrivateNote} changed` },
+    });
+    expect(receiptPayloadConflict.status()).toBe(409);
+    await expect(receiptPayloadConflict.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "idempotency_conflict" }),
+    );
+
+    const sourceAfterReceiptPayload = await page.request.get("/analytics/source-data");
+    expect(sourceAfterReceiptPayload.ok(), await sourceAfterReceiptPayload.text()).toBeTruthy();
+    const sourceAfterReceiptPayloadPayload = await sourceAfterReceiptPayload.json();
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.ownerConfirmedRecords).toBeGreaterThanOrEqual(1);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.receiptPayloadEnabledRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.receiptPayloadRecordedRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.providerSendEnabledRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.providerConfiguredRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.providerResponseCreatedRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.providerSecretIncludedRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.senderCredentialIncludedRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.counts.privateDnsCredentialsIncludedRecords).toBe(0);
+    expect(sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness.latestRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: receiptPayloadCreatedPayload.record.id,
+          providerPollingReadinessId: providerPollingCreatedPayload.record.id,
+          sendPayloadReadinessId: createdPayload.record.id,
+          providerDomainReadinessId: providerCreatedPayload.record.id,
+          dispatchPreflightId: dispatchCreatedPayload.record.id,
+          inboxRecordId: inboxCreatedPayload.record.id,
+          readinessId: analyticsNotificationReadinessId,
+          channelId: analyticsNotificationAdminInboxChannelId,
+          ownerReceiptPayloadReadinessRecorded: true,
+          receiptPayloadEnabled: false,
+          receiptPayloadRecorded: false,
+          providerSendEnabled: false,
+          providerConfigured: false,
+          providerResponseCreated: false,
+          providerSecretIncluded: false,
+          senderCredentialIncluded: false,
+          privateDnsCredentialsIncluded: false,
+        }),
+      ]),
+    );
+    const receiptPayloadSourceText = JSON.stringify(
+      sourceAfterReceiptPayloadPayload.notificationReceiptPayloadReadiness,
+    );
+    expect(receiptPayloadSourceText).not.toContain(receiptPayloadPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(providerPollingPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(deliveryStatusWebhookPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(deliveryResultPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(deliveryAttemptPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(providerCallPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(queueConsumerPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(queuePrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(privateNote);
+    expect(receiptPayloadSourceText).not.toContain(contentPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(providerPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(dispatchPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain(inboxPrivateNote);
+    expect(receiptPayloadSourceText).not.toContain("m@rkmoriarty.com");
+
     await page.goto("/admin/analytics");
     await expect(page.getByRole("heading", { name: /Record send-payload readiness without creating recipient payloads/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record send-payload readiness/i })).toBeVisible();
@@ -10365,6 +10786,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("button", { name: /Record delivery-status-webhook readiness/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Record provider-polling readiness without polling providers/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record provider-polling readiness/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Record receipt-payload readiness without storing provider payloads/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record receipt-payload readiness/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: analyticsNotificationAdminInboxChannelId }).first()).toBeVisible();
   });
 
@@ -13173,6 +13596,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(analyticsRoadmap)).toContain("303");
     expect(JSON.stringify(analyticsRoadmap)).toContain("provider-polling");
     expect(JSON.stringify(analyticsRoadmap)).toContain("305");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("receipt-payload");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("307");
     if (payload.source !== "fixture") {
       expect(payload.workLogEntries).toEqual(
         expect.arrayContaining([
@@ -13191,6 +13616,10 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({
             id: "work-log-2026-05-21-analytics-notification-provider-polling-readiness",
             title: expect.stringContaining("provider-polling"),
+          }),
+          expect.objectContaining({
+            id: "work-log-2026-05-21-analytics-notification-receipt-payload-readiness",
+            title: expect.stringContaining("receipt-payload"),
           }),
         ]),
       );
@@ -13332,7 +13761,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-analytics-testing",
           issueNumbers: [
             18, 87, 105, 107, 119, 121, 123, 125, 127, 129, 261, 263, 265, 267, 269, 271, 284, 286, 288, 290,
-            292, 294, 297, 299, 301, 303, 305,
+            292, 294, 297, 299, 301, 303, 305, 307,
           ],
           sourceEvidence: expect.arrayContaining([
             "https://bumpgrade.com/api/admin/analytics/notification-queue-consumer-readiness",
@@ -13341,12 +13770,14 @@ test.describe("Bumpgrade scaffold", () => {
             "https://bumpgrade.com/api/admin/analytics/notification-delivery-result-readiness",
             "https://bumpgrade.com/api/admin/analytics/notification-delivery-status-webhook-readiness",
             "https://bumpgrade.com/api/admin/analytics/notification-provider-polling-readiness",
+            "https://bumpgrade.com/api/admin/analytics/notification-receipt-payload-readiness",
             "https://github.com/markitics/bumpgrade/issues/294",
             "https://github.com/markitics/bumpgrade/issues/297",
             "https://github.com/markitics/bumpgrade/issues/299",
             "https://github.com/markitics/bumpgrade/issues/301",
             "https://github.com/markitics/bumpgrade/issues/303",
             "https://github.com/markitics/bumpgrade/issues/305",
+            "https://github.com/markitics/bumpgrade/issues/307",
           ]),
         }),
         expect.objectContaining({
@@ -13565,6 +13996,9 @@ test.describe("Bumpgrade scaffold", () => {
               expect.objectContaining({
                 url: "https://bumpgrade.com/pr-screenshots/issue-305-admin-analytics-provider-polling-readiness.png",
               }),
+              expect.objectContaining({
+                url: "https://bumpgrade.com/pr-screenshots/issue-307-admin-analytics-receipt-payload-readiness.png",
+              }),
             ]),
           }),
         }),
@@ -13735,6 +14169,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-analytics-notification-delivery-result-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-delivery-status-webhook-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-provider-polling-readiness", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-notification-receipt-payload-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-inbox-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-dispatch-preflight", status: "planned" }),
@@ -13748,6 +14183,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-delivery-result-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-provider-polling-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-delivery-status-webhook-readiness", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-analytics-notification-receipt-payload-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-affiliate-referrals", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-payout-preparation-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-affiliate-fraud-review-record", status: "planned" }),
@@ -14125,6 +14561,22 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
         }),
         expect.objectContaining({
+          id: "create-owner-analytics-notification-receipt-payload-readiness",
+          route: analyticsNotificationReceiptPayloadReadinessApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "analyticsNotificationReceiptPayloadReadinessId",
+            "analyticsNotificationProviderPollingReadinessId",
+            "analyticsNotificationSendPayloadReadinessId",
+            "analyticsNotificationProviderDomainReadinessId",
+            "analyticsNotificationDispatchPreflightId",
+            "analyticsNotificationInboxRecordId",
+            "analyticsNotificationReadinessId",
+            "analyticsTimeWindow",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
           id: "read-affiliate-referrals",
           route: "/affiliates/source-data",
           auth: "public",
@@ -14259,6 +14711,9 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsNotificationProviderPollingReadinessId",
             "analyticsNotificationProviderPollingReadinessStatus",
             "analyticsNotificationProviderPollingReadinessDisposition",
+            "analyticsNotificationReceiptPayloadReadinessId",
+            "analyticsNotificationReceiptPayloadReadinessStatus",
+            "analyticsNotificationReceiptPayloadReadinessDisposition",
             "analyticsFunnelConversionReportId",
             "analyticsPageViewBeaconId",
           ]),
@@ -14271,6 +14726,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-reviewed notification queue-producer readiness without Queue producer execution, queue messages, queue payload bodies, provider responses, provider sends, queue dispatch, or email sends",
             "Inspect owner-reviewed notification delivery-status-webhook readiness without delivery status webhooks, delivery receipts, receipt payloads, status webhook payloads, provider polling, provider responses, provider message IDs, provider secrets, sender credentials, private DNS credentials, queue dispatch, or email sends",
             "Inspect owner-reviewed notification provider-polling readiness without provider polling execution, delivery receipts, receipt payloads, status webhook payloads, provider responses, provider message IDs, provider secrets, sender credentials, private DNS credentials, queue dispatch, or email sends",
+            "Inspect owner-reviewed notification receipt-payload readiness without receipt payload capture, delivery receipts, status webhook payloads, provider polling execution, provider responses, provider message IDs, provider secrets, sender credentials, private DNS credentials, queue dispatch, or email sends",
             "Inspect owner-reviewed notification delivery readiness without sending alerts or writing inbox rows",
             "Inspect owner-confirmed notification inbox records without recipients, email bodies, queue dispatch, or email sends",
             "Inspect owner-confirmed notification dispatch preflights without recipients, email bodies, provider message IDs, queue payloads, queue dispatch, or email sends",
