@@ -714,9 +714,10 @@ test.describe("Bumpgrade scaffold", () => {
     const emailCampaignsFeature = payload.marketingFeatures.find((feature: { slug: string }) => feature.slug === "email-campaigns");
     expect(emailCampaignsFeature).toEqual(
       expect.objectContaining({
-        issueIds: expect.arrayContaining([343]),
+        issueIds: expect.arrayContaining([343, 351]),
         availability: expect.stringContaining("unsubscribe-paused sequence evidence"),
-        benefits: expect.arrayContaining([expect.stringContaining("unsubscribe-paused sequence evidence")]),
+        summary: expect.stringContaining("aggregate sequence delivery readiness"),
+        benefits: expect.arrayContaining([expect.stringContaining("aggregate sequence delivery readiness")]),
       }),
     );
   });
