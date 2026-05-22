@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, and #305 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, and #307 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -20,7 +20,8 @@ owner-reviewed notification provider-call readiness evidence,
 owner-reviewed notification delivery-attempt readiness evidence, and
 owner-reviewed notification delivery-result readiness evidence,
 owner-reviewed notification delivery-status-webhook readiness evidence, and
-owner-reviewed notification provider-polling readiness evidence
+owner-reviewed notification provider-polling readiness evidence, and
+owner-reviewed notification receipt-payload readiness evidence
 for issue #18.
 
 ## Live Routes
@@ -66,12 +67,15 @@ for issue #18.
 - `/api/admin/analytics/notification-provider-polling-readiness`: owner-gated
   GET/POST endpoint for reviewed notification provider-polling readiness
   evidence.
+- `/api/admin/analytics/notification-receipt-payload-readiness`: owner-gated
+  GET/POST endpoint for reviewed notification receipt-payload readiness
+  evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
   and notification inbox, dispatch preflight, provider/domain readiness, and
   content/consent readiness, send-payload readiness, queue-producer readiness,
   queue-consumer readiness, provider-call readiness, delivery-attempt,
-  delivery-result, delivery-status-webhook readiness, and provider-polling
-  readiness evidence.
+  delivery-result, delivery-status-webhook readiness, provider-polling
+  readiness, and receipt-payload readiness evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -200,6 +204,17 @@ The first dashboard includes stable IDs for:
   message consumption, acknowledgements, retry/dead-letter rows, queue payload
   body reads, queue payloads, queues, recipients, email bodies, provider message
   IDs, customer alerts, traffic routing, winner selection, or revenue claims.
+- owner-reviewed notification receipt-payload readiness records with current
+  provider-polling readiness checks, selected fixed windows, sample-size
+  caveats, and no provider sends, provider calls, delivery attempts, delivery
+  results, delivery status webhooks, provider polling execution, delivery
+  receipts, receipt payload capture, status webhooks, provider configuration,
+  provider responses, provider secrets, sender credentials, private DNS
+  credentials, Queue producer execution, Queue consumer execution, queue
+  messages, queue message consumption, acknowledgements, retry/dead-letter rows,
+  queue payload body reads, queue payloads, queues, recipients, email bodies,
+  provider message IDs, customer alerts, traffic routing, winner selection, or
+  revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -272,6 +287,11 @@ after exact confirmation, idempotency, dashboard revision checks, notification
 readiness checks, current notification delivery-status-webhook readiness checks,
 selected fixed-window sample-size checks, and sample-size caveat
 acknowledgement.
+Owner sessions can record notification receipt-payload readiness evidence only
+after exact confirmation, idempotency, dashboard revision checks, notification
+readiness checks, current notification provider-polling readiness checks,
+selected fixed-window sample-size checks, and sample-size caveat
+acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
@@ -285,14 +305,16 @@ owner-reviewed queue-producer readiness evidence, owner-reviewed
 queue-consumer readiness evidence, owner-reviewed provider-call readiness
 evidence, owner-reviewed delivery-attempt readiness evidence, and
 owner-reviewed delivery-result readiness evidence, owner-reviewed
-delivery-status-webhook readiness evidence, and owner-reviewed
-provider-polling readiness evidence. The cohort comparison, threshold
+delivery-status-webhook readiness evidence, owner-reviewed provider-polling
+readiness evidence, and owner-reviewed receipt-payload readiness evidence. The
+cohort comparison, threshold
 review, notification readiness, notification inbox records, dispatch preflights,
 provider/domain readiness records, content/consent readiness records,
 send-payload readiness records, queue-producer readiness records,
 queue-consumer readiness records, provider-call readiness records,
 delivery-attempt readiness records, delivery-result readiness records,
-delivery-status-webhook readiness records, and provider-polling readiness records
+delivery-status-webhook readiness records, provider-polling readiness records,
+and receipt-payload readiness records
 are directional evidence with sample-size
 caveats; agents must not treat them as winner decisions, statistically
 meaningful proof, customer alert triggers, owner email sends, provider sends,
@@ -332,7 +354,8 @@ owner-reviewed provider-call readiness aggregate evidence, plus
 owner-reviewed delivery-attempt readiness aggregate evidence, plus
 owner-reviewed delivery-result readiness aggregate evidence, plus
 owner-reviewed delivery-status-webhook readiness aggregate evidence, plus
-owner-reviewed provider-polling readiness aggregate evidence, to understand
+owner-reviewed provider-polling readiness aggregate evidence, plus
+owner-reviewed receipt-payload readiness aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
 exports, automated alert sends, owner email sends, provider sends, provider
