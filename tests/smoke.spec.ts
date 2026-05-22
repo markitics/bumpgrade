@@ -33,6 +33,7 @@ import {
 import { affiliateProgram, affiliateReferralsSourceData } from "../src/lib/affiliate-referrals";
 import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
+import { publicAnalyticsAttributionLabel, publicAnalyticsCampaignLabel } from "../src/lib/public-analytics-labels";
 import { brandAssets, brandColors, brandSourceData } from "../src/lib/brand";
 import {
   audienceBroadcastDeliveryBatchApiRoute,
@@ -541,6 +542,17 @@ test.describe("Bumpgrade scaffold", () => {
       const visibleText = await page.locator("body").innerText();
       expect(visibleText).not.toMatch(testFixtureTerms);
     }
+  });
+
+  test("public analytics attribution labels hide internal campaign markers", () => {
+    expect(publicAnalyticsAttributionLabel("qa", "Direct / unknown", "Private traffic")).toBe("Private traffic");
+    expect(publicAnalyticsAttributionLabel("newsletter", "Direct / unknown", "Private traffic")).toBe("newsletter");
+    expect(publicAnalyticsCampaignLabel(["email", "issue-125-live", "smoke-button", "source-attribution"])).toBe(
+      "Campaign details withheld",
+    );
+    expect(publicAnalyticsCampaignLabel(["email", "Launch Week", "button-top", "creator course"])).toBe(
+      "email / Launch Week / button-top / creator course",
+    );
   });
 
   test("comparison hub links to every first-wave alternative", async ({ page }) => {
