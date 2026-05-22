@@ -380,6 +380,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #211 adds Queue consumer readiness gates without enabling Cloudflare Queue consumers, Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, recipient payloads, provider sends, provider responses, or provider message IDs.",
       "Issue #253 adds owner-confirmed import intent records without creating contacts, storing raw rows/emails, enrolling sequences, or sending email.",
       "Issue #259 adds owner-confirmed import preflight evidence without creating contacts, storing raw rows/emails, creating subscriber rows, exporting private data, enrolling sequences, or sending email.",
+      "Issue #347 adds aggregate audience export readiness without creating export files, exposing raw emails, subscriber IDs, or export URLs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CalendarClock,
   Database,
+  FileDown,
   FileUp,
   FileText,
   Gauge,
@@ -56,6 +57,7 @@ import {
   getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
 } from "@/lib/audience-broadcasts";
+import { audienceExportReadinessIssue, getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import {
   audienceImportIntentIssue,
   audienceImportPreflightIssue,
@@ -103,6 +105,7 @@ export default async function AdminAudiencePage() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    audienceExportReadiness,
     importIntents,
     importPreflights,
   ] = await Promise.all([
@@ -122,6 +125,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastSendPayloadReadinessSummary(),
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
+    getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
   ]);
@@ -149,7 +153,8 @@ export default async function AdminAudiencePage() {
             idempotency, and provider-handoff gates explicit before any consumer is enabled. Import intents stay
             owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
-            are allowed. Public source-data stays aggregate-only.
+            are allowed. Export readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts
+            before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -162,6 +167,10 @@ export default async function AdminAudiencePage() {
             </Link>
             <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceImportPreflightIssue}`} className="secondary-action">
               Issue #{audienceImportPreflightIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceExportReadinessIssue}`} className="secondary-action">
+              Issue #{audienceExportReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -223,6 +232,14 @@ export default async function AdminAudiencePage() {
               {importPreflights.counts.importPreflights} preflight
               {importPreflights.counts.importPreflights === 1 ? "" : "s"} recorded;{" "}
               {importPreflights.counts.subscriberRowsCreatedRecords} subscriber-write records created.
+            </p>
+          </div>
+          <div>
+            <FileDown aria-hidden="true" />
+            <h3>Export readiness</h3>
+            <p>
+              {audienceExportReadiness.counts.exportEligibleSubscribers} export-eligible contacts;{" "}
+              {audienceExportReadiness.counts.exportFilesCreatedRecords} export files created.
             </p>
           </div>
           <div>
@@ -446,6 +463,56 @@ export default async function AdminAudiencePage() {
               </p>
             </article>
           )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Audience export readiness</p>
+            <h2>Private exports stay disabled until confirmed export APIs exist</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceExportReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceExportReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{audienceExportReadiness.status.replaceAll("-", " ")}</span>
+              <span className="admin-pill">No export files</span>
+            </div>
+            <FileDown aria-hidden="true" />
+            <h3>CSV export readiness is aggregate-only</h3>
+            <p>{audienceExportReadiness.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Eligible</strong>
+              <span>{audienceExportReadiness.counts.exportEligibleSubscribers} contacts</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Held back</strong>
+              <span>
+                {audienceExportReadiness.counts.suppressedSubscribers} suppressed,{" "}
+                {audienceExportReadiness.counts.unsubscribedSubscribers} unsubscribed
+              </span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Paused sequences</strong>
+              <span>{audienceExportReadiness.counts.pausedSequenceSubscribers}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Files</strong>
+              <span>{audienceExportReadiness.counts.exportFilesCreatedRecords} created</span>
+            </div>
+            <p className="card-note">
+              Raw emails, subscriber IDs, export object keys, export URLs, actor emails, suppression hashes, and private
+              notes are excluded from public source-data.
+            </p>
+          </article>
         </div>
       </section>
 
