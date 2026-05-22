@@ -21,6 +21,7 @@ const sourceDataRoutes = [
   "/compare/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/brand/source-data",
   "/account/source-data",
   "/api/billing/checkout",
   "/api/account/publisher/subdomain",
@@ -44,7 +45,7 @@ const sourceDataRoutes = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-05-18T00:00:00.000Z");
+  const lastModified = new Date("2026-05-22T00:00:00.000Z");
   const funnelRoutes = seededFunnels.map((funnel) => funnel.previewRoute);
   const offerRoutes = checkoutOfferStacks.map((stack) => stack.previewRoute);
   const productRoutes = productAccessCatalogs.map((catalog) => catalog.previewRoute);

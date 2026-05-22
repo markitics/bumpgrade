@@ -15,7 +15,7 @@ export type AudienceSegment = {
 export type ResourceHubItem = {
   id: string;
   title: string;
-  type: "comparison" | "migration" | "launch" | "product" | "agent" | "blog";
+  type: "comparison" | "migration" | "launch" | "product" | "agent" | "blog" | "brand";
   status: ContentSurfaceStatus;
   route: string;
   summary: string;
@@ -194,6 +194,17 @@ export const resourceHubItems: ResourceHubItem[] = [
     issueNumbers: [12],
     agentBoundary: "The manifest is read-only discovery metadata, not permission to perform writes.",
   },
+  {
+    id: "resource-brand-kit",
+    title: "Brand kit",
+    type: "brand",
+    status: "live",
+    route: "/brand",
+    summary: "Logo, favicon, social card, colors, typography, voice, and UI principles for Bumpgrade surfaces.",
+    evidenceRoutes: ["/brand/source-data", "/content/source-data"],
+    issueNumbers: [318],
+    agentBoundary: "Agents may cite brand assets and principles, but new public claims still need source evidence.",
+  },
 ];
 
 export const pricingPrinciples: PricingPrinciple[] = [
@@ -287,7 +298,7 @@ export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/pricing-v2", "/account/setup", "/content/source-data"],
+  routes: ["/users", "/developers-and-agents", "/resources", "/brand", "/pricing", "/pricing-v2", "/account/setup", "/content/source-data"],
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,
