@@ -18,8 +18,19 @@ an explicit plus-address route is proven.
 
 ## Outbound
 
-After a substantive merged PR, deploy and smoke-test first, then send a short
-notice:
+Send shipped notices only for merged work that is user-visible, owner-visible,
+or materially actionable for Mark. Good reasons include product UI/content
+changes, live feature launches, user-impacting bug fixes, roadmap/status
+movement, production incidents resolved, and anything Mark explicitly asked to
+hear about by email.
+
+Use the quiet path for low-signal internal work: PR comment, issue update, and
+`/admin/work-log` entry when durable recordkeeping is useful. Do not send a
+shipped notice for docs-only edits, tests, lint, refactors, plumbing, dependency
+housekeeping, or agent workflow tweaks unless they are bundled with a qualifying
+user-facing change or need Mark's action.
+
+For qualifying shipped notices, deploy and smoke-test first, then send:
 
 ```bash
 npm run codex:email-pr -- --pr <number> --version "<worker-version>"

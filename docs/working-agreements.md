@@ -54,22 +54,25 @@ Expected feature flow:
 4. For large features, create a parent issue plus linked child issues. Each child
    should be independently shippable and have its own branch, PR, validation, and
    evidence.
-5. Create a feature branch even for small changes, usually
+5. Bundle genuinely related internal, documentation, and plumbing changes into
+   one coherent PR when they serve the same user-visible or owner-visible
+   outcome. Split unrelated work instead of hiding it behind the same PR.
+6. Create a feature branch even for small changes, usually
    `codex/<short-description>`.
-6. Use a separate worktree for feature branches when practical, under
+7. Use a separate worktree for feature branches when practical, under
    `/Users/mark/Documents/code/2026/bumpgrade-worktrees`.
-7. Make focused milestone commits. The branch history should show the real work,
+8. Make focused milestone commits. The branch history should show the real work,
    not one giant commit plus a long PR summary.
-8. Push the branch to GitHub. Branch work left only on one laptop is fragile.
-9. Open a PR with a real multiline body and clear validation notes.
-10. Keep meaningful PRs as drafts while CI settles.
-11. When CI is green, mark the PR ready and wait briefly for Codex/GitHub review
+9. Push the branch to GitHub. Branch work left only on one laptop is fragile.
+10. Open a PR with a real multiline body and clear validation notes.
+11. Keep meaningful PRs as drafts while CI settles.
+12. When CI is green, mark the PR ready and wait briefly for Codex/GitHub review
     if available.
-12. Address important review feedback before merge.
-13. Squash-merge into `main`.
-14. Delete the source branch and local worktree after merge unless Mark asks to
+13. Address important review feedback before merge.
+14. Squash-merge into `main`.
+15. Delete the source branch and local worktree after merge unless Mark asks to
     keep them.
-15. Fast-forward local `main` from GitHub.
+16. Fast-forward local `main` from GitHub.
 
 Squash merge keeps `main` readable while the closed PR remains the place to
 inspect branch commits, screenshots, discussion, and checks. A PR with one branch
@@ -117,7 +120,9 @@ Agent readiness is a first-class product surface.
 
 ## PR Screenshots
 
-- Visible UI work needs screenshots in the PR description.
+- Visible UI work needs actual embedded screenshots in the PR description using
+  Markdown image syntax, such as `![alt](url)`. Bare screenshot links alone are
+  not enough when screenshots exist.
 - GitHub `blob` URLs and private `raw.githubusercontent.com` URLs can 404 for
   reviewers without repo auth. Do not rely on them as durable screenshot links.
 - Branch-scoped screenshot links become brittle after branch deletion.
@@ -130,6 +135,8 @@ Agent readiness is a first-class product surface.
 - Verify screenshot URLs with a browser or `curl -I` before marking the PR ready
   or sending a ship notice.
 - Refresh PR screenshot links after follow-up commits if the UI changed.
+- If a PR has no visible UI change, say `No screenshots; docs/tooling/API-only`
+  or the relevant reason in the screenshot section.
 
 ## CI And Verification
 
@@ -154,6 +161,9 @@ After a substantive work burst, shipped feature, merged PR, or roadmap movement:
 - Cross-post a concise version as a PR comment when a PR was involved.
 - Include issues, PRs, docs updated, validation, production URLs, screenshots,
   blockers, and what another agent should know next.
+- If roadmap state changed, include the item name/ID, previous status, new
+  status, issue/PR, and live or admin URL. Use plain status movement such as
+  `backlog -> doing` or `doing -> done`.
 - Treat work-log entries as durable project memory. Do not include secrets,
   private inbox bodies, raw tokens, or private user data.
 
@@ -169,7 +179,19 @@ the item in the agreed project attention surface or email it, then keep moving.
 
 ## Codex Email And Replies
 
-After a substantive merged PR, deploy and smoke-test first, then send Mark a
+Send shipped email only when a merged PR is user-visible, owner-visible, or
+materially actionable for Mark. Qualifying work includes product UI/content
+changes, live feature launches, user-impacting bug fixes, roadmap/status
+movement, production incidents resolved, and anything Mark explicitly asked to
+hear about by email.
+
+Do not send low-signal shipped email for tiny internal PRs, docs-only edits,
+tests, lint, refactors, plumbing, dependency housekeeping, or agent workflow
+tweaks unless they are bundled with a qualifying user-facing change or need
+Mark's action. Use the quiet path instead: PR comment, issue update, and
+`/admin/work-log` entry when the work should be durable.
+
+For qualifying shipped email, deploy and smoke-test first, then send Mark a
 short notice from `codex@bumpgrade.com`:
 
 ```bash
