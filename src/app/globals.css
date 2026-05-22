@@ -2322,6 +2322,7 @@ h3 {
 .marketing-features-page,
 .marketing-feature-detail-page,
 .pricing-page,
+.pricing-v2-page,
 .account-setup-page {
   min-height: calc(100vh - 72px);
 }
@@ -2544,6 +2545,9 @@ h3 {
 .spotlight-feature-grid,
 .marketing-feature-grid,
 .pricing-card-grid,
+.pricing-model-grid,
+.usage-meter-grid,
+.pricing-source-grid,
 .payment-option-grid,
 .feature-benefit-grid,
 .feature-example-grid,
@@ -2562,6 +2566,9 @@ h3 {
 .launch-outcome-card,
 .marketing-feature-card,
 .pricing-card,
+.pricing-model-card,
+.usage-meter-card,
+.pricing-source-card,
 .payment-option-card,
 .feature-benefit-grid article,
 .feature-story-grid article,
@@ -2587,6 +2594,8 @@ h3 {
 }
 
 .launch-outcome-card span,
+.pricing-model-card span,
+.usage-meter-card span,
 .pricing-card span {
   display: inline-block;
   margin-top: 16px;
@@ -2599,6 +2608,10 @@ h3 {
 .launch-outcome-card p,
 .launch-feature-card p,
 .marketing-feature-card p,
+.pricing-model-card p,
+.pricing-model-card dd,
+.usage-meter-card p,
+.pricing-source-card p,
 .payment-option-card p,
 .feature-benefit-grid p,
 .feature-example-grid p,
@@ -3119,6 +3132,151 @@ h3 {
   align-self: end;
 }
 
+.pricing-v2-note {
+  background: #fbf9f2;
+}
+
+.pricing-model-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pricing-model-card,
+.usage-meter-card,
+.pricing-source-card {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+  padding: 18px;
+}
+
+.pricing-model-card {
+  min-height: 370px;
+}
+
+.pricing-model-card dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.pricing-model-card div {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.pricing-model-card dt {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pricing-model-card dd {
+  margin: 6px 0 0;
+}
+
+.usage-meter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.usage-meter-card {
+  min-height: 330px;
+}
+
+.usage-meter-card > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.usage-meter-card > div:first-child svg,
+.pricing-source-card > svg {
+  width: 28px;
+  height: 28px;
+  color: var(--green);
+}
+
+.usage-meter-card strong {
+  display: block;
+  color: var(--blue);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.pricing-source-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pricing-source-card {
+  min-height: 290px;
+}
+
+.pricing-decision-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.pricing-decision-list article {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.pricing-decision-list span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(31, 83, 107, 0.22);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.pricing-decision-list h3 {
+  margin: 0;
+}
+
+.pricing-decision-list p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pricing-v2-proof-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.pricing-v2-proof-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  color: #fbf8f0;
+  font-weight: 900;
+}
+
+.pricing-v2-proof-strip svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
 .payment-option-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -3437,6 +3595,9 @@ h3 {
   .spotlight-feature-grid,
   .marketing-feature-grid,
   .pricing-card-grid,
+  .pricing-model-grid,
+  .usage-meter-grid,
+  .pricing-source-grid,
   .payment-option-grid,
   .feature-benefit-grid,
   .feature-example-grid,
@@ -3536,6 +3697,9 @@ h3 {
   .spotlight-feature-grid,
   .marketing-feature-grid,
   .pricing-card-grid,
+  .pricing-model-grid,
+  .usage-meter-grid,
+  .pricing-source-grid,
   .payment-option-grid,
   .feature-benefit-grid,
   .feature-example-grid,
@@ -3561,6 +3725,10 @@ h3 {
   }
 
   .dns-record-list div {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-decision-list article {
     grid-template-columns: 1fr;
   }
 

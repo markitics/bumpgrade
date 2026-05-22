@@ -98,7 +98,7 @@ import {
   publisherTenantParentIssue,
 } from "@/lib/publisher-tenants";
 
-export const agentManifestUpdatedAt = "2026-05-21";
+export const agentManifestUpdatedAt = "2026-05-22";
 
 export type AgentReadContract = {
   id: string;
@@ -300,6 +300,18 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
     safeForAgents: ["Read use-case records", "Read resource hub records", "Read pricing caveats"],
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
+  },
+  {
+    id: "read-usage-pricing-exploration",
+    title: "Usage-based pricing exploration",
+    route: "/pricing-v2/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/pricing-v2.ts",
+    stableIds: ["pricingV2ModelId", "pricingV2MeterId", "pricingV2SourceReferenceId", "pricingV2DecisionQuestionId"],
+    safeForAgents: ["Read usage-meter options", "Read pricing decision questions", "Read source references and caveats"],
+    writeBoundary:
+      "This route is read-only exploration data. Agents must not claim final prices, live subscriptions, entitlements, checkout availability, or billing writes from it.",
   },
   {
     id: "read-publisher-account-setup",
@@ -1682,6 +1694,15 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     volatileClaims: "Pricing tracks are positioning hypotheses; plan names, amounts, limits, trials, and live billing are not claimed.",
   },
   {
+    id: "evidence-usage-pricing-exploration",
+    route: "/pricing-v2/source-data",
+    resolves:
+      "Usage-based pricing models, meters, source references, decision questions, related routes, and billing caveats for issue #317.",
+    stableIds: ["pricingV2ModelId", "pricingV2MeterId", "pricingV2SourceReferenceId", "pricingV2DecisionQuestionId"],
+    volatileClaims:
+      "The page is an exploration only; final plan amounts, Stripe subscription state, entitlements, and checkout availability still require later billing proof.",
+  },
+  {
     id: "evidence-publisher-account-setup",
     route: "/account/source-data",
     resolves:
@@ -1944,6 +1965,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/content/source-data",
     purpose: "Expose personas, resource records, pricing caveats, and content-surface issue evidence.",
     safetyBoundary: "Read-only; public resource and pricing claims still require source evidence or shipped product proof.",
+  },
+  {
+    id: "mcp-resource-usage-pricing-exploration",
+    resourceOrTool: "resource bumpgrade://pricing-v2",
+    status: "ready-contract",
+    backedBy: "/pricing-v2/source-data",
+    purpose: "Expose usage-based pricing models, meters, source references, and Mark decision questions from issue #317.",
+    safetyBoundary:
+      "Read-only exploration; no live checkout, final price, entitlement enforcement, Stripe subscription, or billing write claim may be made from this resource.",
   },
   {
     id: "mcp-resource-funnels",

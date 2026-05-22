@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, CircleDollarSign, CreditCard, Globe2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  ChartNoAxesCombined,
+  CircleDollarSign,
+  CreditCard,
+  Globe2,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
 import { site } from "@/lib/site";
 
@@ -111,6 +121,10 @@ export default function PricingPage() {
             <Link href="/features" className="secondary-action">
               Review features
               <Sparkles aria-hidden="true" />
+            </Link>
+            <Link href="/pricing-v2" className="secondary-action">
+              Explore usage-based option
+              <ChartNoAxesCombined aria-hidden="true" />
             </Link>
           </div>
         </div>

@@ -588,11 +588,13 @@ export const featureCatalog: FeatureRecord[] = [
       "Developer and agent pages backed by real contracts.",
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
       "Pricing page that avoids invented plan details until packaging is set.",
+      "Usage-based pricing exploration with public-safe meters and caveats.",
       "Agent-readable `/content/source-data` records for personas, resources, and pricing caveats.",
     ],
     evidence: [
       "Tracked by issue #20.",
-      "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
+      "Issue #317 adds `/pricing-v2` and `/pricing-v2/source-data` as a usage-based pricing exploration.",
+      "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, and `/pricing-v2` are live public destinations.",
       "`/content/source-data` exposes stable audience, resource, and pricing-direction records.",
     ],
     agentContract:

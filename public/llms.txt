@@ -14,6 +14,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Users and use cases: https://bumpgrade.com/users
 - Resources: https://bumpgrade.com/resources
 - Pricing direction: https://bumpgrade.com/pricing
+- Usage-based pricing exploration: https://bumpgrade.com/pricing-v2
+- Usage-based pricing source data: https://bumpgrade.com/pricing-v2/source-data
 - Content surface source data: https://bumpgrade.com/content/source-data
 - Publisher account setup: https://bumpgrade.com/account/setup
 - Publisher account source data: https://bumpgrade.com/account/source-data
@@ -131,6 +133,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Treat pricing tracks as positioning
   hypotheses, not published plan names, amounts, trials, limits, or live billing
   availability.
+- `/pricing-v2/source-data` exposes the usage-based pricing exploration from
+  issue #317. Treat it as read-only structure, not final plan pricing, live
+  checkout, Stripe subscription state, or entitlement enforcement.
 - `/account/source-data` exposes paid publisher tenant setup, default
   `*.bumpgrade.com` subdomain reservation policy, existing custom-domain DNS
   onboarding policy, D1 table boundaries, and cross-subdomain Better Auth

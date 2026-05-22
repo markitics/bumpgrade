@@ -21,6 +21,7 @@ const sourceDataRoutes = [
   "/compare/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/pricing-v2/source-data",
   "/account/source-data",
   "/api/account/publisher/subdomain",
   "/api/account/publisher/custom-domain",

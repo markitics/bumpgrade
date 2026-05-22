@@ -465,11 +465,12 @@ export const roadmapItems: RoadmapItem[] = [
       "Use-case page, developer/agent page, resource and blog hub, pricing direction, metadata, sitemap entries, and `/content/source-data` contract.",
     publicEvidence: [
       "Tracked by issue #20.",
-      "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
+      "Issue #317 adds `/pricing-v2` and `/pricing-v2/source-data` as a usage-based pricing exploration.",
+      "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, and `/pricing-v2` are live public destinations.",
       "`/content/source-data` exposes stable audience, resource, and pricing-direction records for agents.",
     ],
     nextMilestone:
-      "Promote planned migration guides, launch playbooks, and blog posts into dedicated pages as funnel, checkout, automation, and analytics slices ship.",
+      "Choose whether launch pricing or usage-based pricing should become the self-serve checkout model after issue #316 adds Stripe-backed proof.",
   },
 ];
 

@@ -55,7 +55,7 @@ export type LaunchSignupPolicy = {
   evidenceRoutes: string[];
 };
 
-export const contentSurfacesUpdatedAt = "2026-05-20";
+export const contentSurfacesUpdatedAt = "2026-05-22";
 
 export const audienceSegments: AudienceSegment[] = [
   {
@@ -201,21 +201,21 @@ export const pricingPrinciples: PricingPrinciple[] = [
     title: "No invented plan names or price points",
     status: "live",
     summary: "Bumpgrade can explain pricing direction, but published plan names, limits, and amounts wait for packaging evidence.",
-    evidenceRoutes: ["/commerce/source-data", "/roadmap/source-data"],
+    evidenceRoutes: ["/pricing-v2/source-data", "/commerce/source-data", "/roadmap/source-data"],
   },
   {
     id: "pricing-checkout-first",
     title: "Checkout and webhook evidence before live billing claims",
     status: "live",
     summary: "Stripe Checkout, D1 commerce records, and webhook idempotency are the foundation before live subscription rollout.",
-    evidenceRoutes: ["/commerce/source-data", "/agent-docs/bumpgrade-commerce-contract"],
+    evidenceRoutes: ["/pricing-v2/source-data", "/commerce/source-data", "/agent-docs/bumpgrade-commerce-contract"],
   },
   {
     id: "pricing-agent-safe",
     title: "Agent-started billing needs stronger confirmation",
     status: "live",
     summary: "Billing-impacting writes require exact confirmation, idempotency, stale-state checks, audit correlation, and redaction.",
-    evidenceRoutes: ["/agent-docs/source-data", "/commerce/source-data"],
+    evidenceRoutes: ["/pricing-v2/source-data", "/agent-docs/source-data", "/commerce/source-data"],
   },
 ];
 
@@ -247,6 +247,21 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
     issueNumbers: [17, 18, 19, 20],
   },
   {
+    id: "pricing-track-usage-based-exploration",
+    title: "Usage-based pricing exploration",
+    status: "live",
+    intendedFor: "Mark evaluating whether Bumpgrade pricing should scale with publisher usage before self-serve checkout goes live.",
+    includes: [
+      "Base subscription plus usage-band option",
+      "All-core-features scale-with-growth option",
+      "Custom high-volume package option",
+      "Meters for funnels, contacts, sends, products, checkout volume, agents, domains, and setup/support",
+    ],
+    notYetClaimed:
+      "This is a public exploration, not final plan pricing, checkout availability, Stripe subscription state, or entitlement enforcement.",
+    issueNumbers: [313, 317],
+  },
+  {
     id: "pricing-track-agent",
     title: "Agent-enabled operations",
     status: "planned",
@@ -276,14 +291,22 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   ],
   customerCheckout:
     "Customer-facing checkout is offer-specific: the sandbox flow is proven, while live-mode customer charges require a separate live Stripe smoke before launch copy may claim they are active.",
-  evidenceRoutes: ["/pricing", "/account/setup", "/account/source-data", "/commerce/source-data", "/admin/user-journeys/source-data"],
+  evidenceRoutes: [
+    "/pricing",
+    "/pricing-v2",
+    "/pricing-v2/source-data",
+    "/account/setup",
+    "/account/source-data",
+    "/commerce/source-data",
+    "/admin/user-journeys/source-data",
+  ],
 };
 
 export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/account/setup", "/content/source-data"],
+  routes: ["/users", "/developers-and-agents", "/resources", "/pricing", "/pricing-v2", "/account/setup", "/content/source-data"],
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,
