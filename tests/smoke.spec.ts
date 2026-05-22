@@ -493,7 +493,8 @@ test.describe("Bumpgrade scaffold", () => {
   });
 
   test("public launch pages avoid internal build language", async ({ page }) => {
-    const internalTerms = /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox)\b|source-data|launch-preview/i;
+    const internalTerms =
+      /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access/i;
 
     const publicCopyRoutes = [
       "/",
@@ -503,8 +504,11 @@ test.describe("Bumpgrade scaffold", () => {
       ...competitors.map((competitor) => `/compare/${competitor.slug}`),
       "/users",
       "/resources",
+      "/brand",
       "/pricing",
+      "/pricing-v2",
       "/account/setup",
+      "/login",
     ];
 
     for (const path of publicCopyRoutes) {
