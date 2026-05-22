@@ -50,8 +50,12 @@ then open the relevant shelf for the task.
   owner-reviewed alert threshold/anomaly-review evidence, and owner-reviewed
   notification delivery readiness evidence, owner-confirmed notification
   inbox records, dispatch preflights, provider/domain readiness, and
-  content/consent readiness, send-payload readiness, queue-producer readiness, queue-consumer readiness, and provider-call readiness from issues #87, #105, #107, #119,
-  #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, and #297, including
+  content/consent readiness, send-payload readiness, queue-producer readiness,
+  queue-consumer readiness, provider-call readiness, delivery-attempt readiness,
+  delivery-result readiness, delivery-status-webhook readiness, and
+  provider-polling readiness from issues #87, #105, #107, #119,
+  #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286,
+  #288, #290, #292, #294, #297, #299, #301, #303, and #305, including
   fixed all-time, 24-hour, 7-day, and 30-day aggregate source/conversion
   windows.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
