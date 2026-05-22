@@ -1,34 +1,80 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bot, Database, FileSearch, ShieldCheck } from "lucide-react";
+import { Bot, Database, FileSearch, FileText, ServerCog, ShieldCheck } from "lucide-react";
 
 import { agentDocs, agentMcpPlan, agentReadContracts } from "@/lib/agent-manifest";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Developers and agents",
-  description: "Bumpgrade APIs, manifests, MCP direction, source evidence, webhooks, and agent-safe action contracts.",
+  description:
+    "Start a coding agent with Bumpgrade's public docs, source-data routes, manifest, MCP direction, and confirmed-write boundaries.",
   alternates: {
     canonical: `${site.url}/developers-and-agents`,
   },
 };
 
+const agentSetupPrompt = `You are helping with Bumpgrade.
+
+Start with these public resources:
+- https://bumpgrade.com/llms.txt
+- https://bumpgrade.com/agent-docs
+- https://bumpgrade.com/agent-docs/source-data
+- https://bumpgrade.com/features/source-data
+
+Use source-data routes and stable IDs for claims. Treat public routes as read-only. Do not perform customer-facing, billing, email, product-access, admin, or creator-speech writes unless an owner-confirmed API and exact instructions exist.`;
+
+const agentStartResources = [
+  {
+    title: "Agent docs",
+    body: "Start with the public index for Bumpgrade read contracts, source evidence, MCP direction, and write boundaries.",
+    href: "/agent-docs",
+    icon: Bot,
+  },
+  {
+    title: "Manifest JSON",
+    body: "Read stable IDs, source-of-truth files, public routes, auth requirements, and future MCP resource boundaries.",
+    href: "/agent-docs/source-data",
+    icon: Database,
+  },
+  {
+    title: "llms.txt",
+    body: "Use the public machine-readable index before scraping pages or guessing what Bumpgrade exposes.",
+    href: "/llms.txt",
+    icon: FileText,
+  },
+  {
+    title: "Source evidence",
+    body: "Resolve public product claims to feature IDs, roadmap items, issue evidence, and caveats.",
+    href: "/agent-docs/bumpgrade-source-evidence",
+    icon: FileSearch,
+  },
+  {
+    title: "MCP roadmap",
+    body: "See which read contracts are ready to wrap and which tools wait for confirmed-write APIs.",
+    href: "/agent-docs/bumpgrade-mcp",
+    icon: ServerCog,
+  },
+];
+
 export default function DevelopersAndAgentsPage() {
   const publicContracts = agentReadContracts.filter((contract) => contract.auth === "public");
+  const contractHighlights = publicContracts.slice(0, 6);
 
   return (
     <main className="route-page">
       <section className="route-hero">
         <div>
           <p className="eyebrow">Developers and agents</p>
-          <h1>APIs and manifests come before agent browser tricks.</h1>
+          <h1>Give your coding agent the Bumpgrade public contracts first.</h1>
           <p className="lede">
-            Bumpgrade publishes source-data routes, an agent manifest, public docs, and write-safety rules so agents
-            can cite evidence and respect permission boundaries while the product grows toward full platform parity.
+            Bumpgrade publishes source-data routes, an agent manifest, public docs, llms.txt, and write-safety rules
+            so agents can cite evidence, follow stable IDs, and respect permission boundaries before they suggest
+            changes.
           </p>
           <div className="hero-actions">
             <Link href="/agent-docs" className="primary-action">
-              Agent docs
+              Start with agent docs
               <Bot aria-hidden="true" />
             </Link>
             <Link href="/agent-docs/source-data" className="secondary-action">
@@ -37,11 +83,37 @@ export default function DevelopersAndAgentsPage() {
             </Link>
           </div>
         </div>
-        <div className="route-status-panel">
-          <Database aria-hidden="true" />
-          <p>Status</p>
-          <strong>{publicContracts.length} public contracts</strong>
-          <span>Current write APIs are limited; confirmed-write and MCP tooling remain explicit roadmap work.</span>
+        <aside className="agent-setup-panel" aria-label="Copy-paste agent setup prompt">
+          <div>
+            <span>Already have an agent?</span>
+            <strong>Paste this prompt first.</strong>
+          </div>
+          <pre>{agentSetupPrompt}</pre>
+        </aside>
+      </section>
+
+      <section className="content-band agent-start-band">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Start here</p>
+            <h2>What agents can read and where to begin</h2>
+          </div>
+          <p>
+            Public resources are safe to read. Writes remain owner-gated until a route names the confirmation,
+            idempotency, stale-state, audit, and redaction rules.
+          </p>
+        </div>
+        <div className="agent-resource-grid">
+          {agentStartResources.map((resource) => {
+            const Icon = resource.icon;
+            return (
+              <Link key={resource.href} href={resource.href} className="agent-resource-card">
+                <Icon aria-hidden="true" />
+                <span>{resource.title}</span>
+                <p>{resource.body}</p>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
@@ -49,7 +121,11 @@ export default function DevelopersAndAgentsPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Read contracts</p>
-            <h2>What developers and agents can read now</h2>
+            <h2>Core public contracts</h2>
+            <p>
+              The full manifest lists {publicContracts.length} public contracts. Start with these high-signal routes,
+              then use the manifest when an agent needs exact stable IDs or boundaries.
+            </p>
           </div>
           <Link href="/agent-docs/bumpgrade-agent-surface" className="text-link compact-link">
             Surface overview
@@ -57,7 +133,7 @@ export default function DevelopersAndAgentsPage() {
           </Link>
         </div>
         <div className="feature-grid">
-          {publicContracts.map((contract) => (
+          {contractHighlights.map((contract) => (
             <article key={contract.id} className="feature-card">
               <div className="feature-card-top">
                 <span className="status-badge live">Public</span>
