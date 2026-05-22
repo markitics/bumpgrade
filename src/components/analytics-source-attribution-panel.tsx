@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MapPinned } from "lucide-react";
 
 import { AnalyticsTimeWindowSelector } from "@/components/analytics-time-window-selector";
+import { publicAnalyticsAttributionLabel, publicAnalyticsCampaignLabel } from "@/lib/public-analytics-labels";
 import type { AnalyticsTimeWindow, AnalyticsTimeWindowKey } from "@/lib/analytics-time-windows";
 
 type AnalyticsSourceAggregateRow = {
@@ -26,12 +27,15 @@ type AnalyticsSourceAttributionPanelProps = {
 };
 
 function sourceLabel(row: AnalyticsSourceAggregateRow) {
-  return row.utm_source ?? row.referrer_host ?? "Direct / unknown";
+  return publicAnalyticsAttributionLabel(row.utm_source ?? row.referrer_host, "Direct / unknown", "Private traffic");
 }
 
 function campaignLabel(row: AnalyticsSourceAggregateRow) {
-  const parts = [row.utm_medium, row.utm_campaign, row.utm_content, row.utm_term].filter(Boolean);
-  return parts.length > 0 ? parts.join(" / ") : "No campaign label";
+  return publicAnalyticsCampaignLabel([row.utm_medium, row.utm_campaign, row.utm_content, row.utm_term]);
+}
+
+function referrerLabel(row: AnalyticsSourceAggregateRow) {
+  return publicAnalyticsAttributionLabel(row.referrer_host, "None captured", "Private referrer");
 }
 
 export function AnalyticsSourceAttributionPanel({
@@ -113,7 +117,7 @@ export function AnalyticsSourceAttributionPanel({
                 {campaignLabel(row)}
               </span>
               <span role="cell" data-label="Referrer host">
-                {row.referrer_host ?? "None captured"}
+                {referrerLabel(row)}
               </span>
               <span role="cell" data-label="Views">
                 {row.total_events}
