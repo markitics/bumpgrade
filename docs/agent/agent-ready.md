@@ -246,6 +246,7 @@ Queue producer readiness records,
 Queue consumer readiness records,
 owner-confirmed import intent records,
 owner-confirmed import preflight records,
+aggregate sequence delivery-readiness records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
@@ -255,13 +256,16 @@ opt-ins, normalize the submitted email, assign seeded tags, record draft
 sequence enrollment evidence, and record an unsubscribe preference without
 revealing list membership. Known unsubscribes also pause draft sequence
 enrollment state while public source-data exposes only aggregate paused-sequence
-counts. `/admin/audience` lets verified owners inspect
+counts. Sequence delivery readiness exposes aggregate step and enrollment safety
+counts without recipient payloads, personalized bodies, body templates,
+unsubscribe URLs, queue payloads, provider sends, or provider message IDs.
+`/admin/audience` lets verified owners inspect
 private subscriber rows, consent counts, active tags, draft sequence enrollments,
 suppression totals, private CRM timeline notes, broadcast readiness, preview
 safety, queue readiness, sender-domain readiness, provider-event readiness,
 provider rate-limit readiness, provider response readiness, send-payload
-readiness, Queue producer readiness, Queue consumer readiness, import intent,
-import preflight, and export readiness
+readiness, Queue producer readiness, Queue consumer readiness, sequence delivery
+readiness, import intent, import preflight, and export readiness
 records from D1. It can record private CRM notes, dry-run schedule intents,
 delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
 evidence, dispatch attempt receipts, import intents, and import preflights, but those records do
@@ -275,10 +279,11 @@ delivery-batch dry-run semantics, queue-message semantics, dispatch-preflight
 semantics, dispatch-attempt semantics, sender-domain readiness, provider-event
 readiness, provider-rate-limit readiness, provider-response readiness,
 send-payload readiness, Queue producer readiness, Queue consumer readiness,
+aggregate sequence-delivery-readiness semantics,
 non-destructive import-intent semantics, aggregate import-preflight semantics,
-and aggregate export-readiness semantics, not contact import, live email sending,
+and aggregate export-readiness semantics, not contact import, sequence scheduling, live email sending,
 live Cloudflare Queue producer or consumer execution or dispatch, recipient
-payloads, CRM automation, private export, suppression-list administration, or
+payloads, body templates, unsubscribe URLs, CRM automation, private export, suppression-list administration, or
 direct agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
