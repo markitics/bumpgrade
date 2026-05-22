@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, and #301 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, and #303 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -18,7 +18,8 @@ owner-reviewed notification queue-producer readiness evidence,
 owner-reviewed notification queue-consumer readiness evidence,
 owner-reviewed notification provider-call readiness evidence,
 owner-reviewed notification delivery-attempt readiness evidence, and
-owner-reviewed notification delivery-result readiness evidence
+owner-reviewed notification delivery-result readiness evidence, and
+owner-reviewed notification delivery-status-webhook readiness evidence
 for issue #18.
 
 ## Live Routes
@@ -58,11 +59,14 @@ for issue #18.
 - `/api/admin/analytics/notification-delivery-result-readiness`: owner-gated
   GET/POST endpoint for reviewed notification delivery-result readiness
   evidence.
+- `/api/admin/analytics/notification-delivery-status-webhook-readiness`:
+  owner-gated GET/POST endpoint for reviewed notification delivery-status
+  webhook readiness evidence.
 - `/admin/analytics`: owner-gated page for aggregate experiment decision
   and notification inbox, dispatch preflight, provider/domain readiness, and
   content/consent readiness, send-payload readiness, queue-producer readiness,
-  queue-consumer readiness, provider-call readiness, delivery-attempt, and delivery-result
-  readiness evidence.
+  queue-consumer readiness, provider-call readiness, delivery-attempt,
+  delivery-result, and delivery-status-webhook readiness evidence.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
@@ -152,6 +156,35 @@ The first dashboard includes stable IDs for:
   alerts, recipient identity, email bodies, body templates, unsubscribe URLs,
   provider message IDs, queue payloads, traffic routing, winner selection, or
   revenue claims.
+- owner-reviewed notification delivery-attempt readiness records with current
+  provider-call readiness checks, selected fixed windows, sample-size caveats,
+  and no provider sends, provider calls, delivery attempts, provider
+  configuration, provider responses, provider secrets, sender credentials,
+  private DNS credentials, Queue producer execution, Queue consumer execution,
+  queue messages, queue message consumption, acknowledgements, retry/dead-letter
+  rows, queue payload body reads, queue payloads, queues, recipients, email
+  bodies, provider message IDs, customer alerts, traffic routing, winner
+  selection, or revenue claims.
+- owner-reviewed notification delivery-result readiness records with current
+  delivery-attempt readiness checks, selected fixed windows, sample-size
+  caveats, and no provider sends, provider calls, delivery attempts, delivery
+  results, delivery receipts, receipt payloads, status webhooks, provider
+  polling, provider configuration, provider responses, provider secrets, sender
+  credentials, private DNS credentials, Queue producer execution, Queue
+  consumer execution, queue messages, queue message consumption,
+  acknowledgements, retry/dead-letter rows, queue payload body reads, queue
+  payloads, queues, recipients, email bodies, provider message IDs, customer
+  alerts, traffic routing, winner selection, or revenue claims.
+- owner-reviewed notification delivery-status-webhook readiness records with
+  current delivery-result readiness checks, selected fixed windows, sample-size
+  caveats, and no provider sends, provider calls, delivery attempts, delivery
+  results, delivery receipts, receipt payloads, status webhooks, provider
+  polling, provider configuration, provider responses, provider secrets, sender
+  credentials, private DNS credentials, Queue producer execution, Queue
+  consumer execution, queue messages, queue message consumption,
+  acknowledgements, retry/dead-letter rows, queue payload body reads, queue
+  payloads, queues, recipients, email bodies, provider message IDs, customer
+  alerts, traffic routing, winner selection, or revenue claims.
 
 The current write paths store seeded analytics events and seeded experiment
 assignments with source-route validation, idempotency, public-safe responses,
@@ -214,6 +247,11 @@ after exact confirmation, idempotency, dashboard revision checks, notification
 readiness checks, current notification delivery-attempt readiness checks,
 selected fixed-window sample-size checks, and sample-size caveat
 acknowledgement.
+Owner sessions can record notification delivery-status-webhook readiness
+evidence only after exact confirmation, idempotency, dashboard revision checks,
+notification readiness checks, current notification delivery-result readiness
+checks, selected fixed-window sample-size checks, and sample-size caveat
+acknowledgement.
 The current export contract exposes aggregate report section metadata only:
 event aggregates, source attribution aggregates, variant aggregates, assignment
 aggregates, funnel conversion rows, experiment decision evidence, fixture
@@ -226,19 +264,21 @@ readiness evidence, owner-reviewed send-payload readiness evidence,
 owner-reviewed queue-producer readiness evidence, owner-reviewed
 queue-consumer readiness evidence, owner-reviewed provider-call readiness
 evidence, owner-reviewed delivery-attempt readiness evidence, and
-owner-reviewed delivery-result readiness evidence. The cohort
-comparison, threshold review, notification readiness, notification inbox
-records, dispatch preflights, provider/domain readiness records, and
-content/consent readiness records, send-payload readiness records,
-queue-producer readiness records, queue-consumer readiness records, and
-provider-call readiness records, and delivery-attempt readiness records are
-directional evidence with sample-size
+owner-reviewed delivery-result readiness evidence, and owner-reviewed
+delivery-status-webhook readiness evidence. The cohort comparison, threshold
+review, notification readiness, notification inbox records, dispatch preflights,
+provider/domain readiness records, content/consent readiness records,
+send-payload readiness records, queue-producer readiness records,
+queue-consumer readiness records, provider-call readiness records,
+delivery-attempt readiness records, delivery-result readiness records, and
+delivery-status-webhook readiness records are directional evidence with sample-size
 caveats; agents must not treat them as winner decisions, statistically
 meaningful proof, customer alert triggers, owner email sends, provider sends,
 provider configuration, verified sender-domain claims, body template delivery,
 unsubscribe URL delivery, Queue producer execution, Queue consumer execution,
 Queue message consumption, acknowledgements, retry/dead-letter rows, queue
-payload body reads, queue dispatch, or
+payload body reads, queue dispatch, delivery results, delivery receipts,
+receipt payloads, status webhooks, provider polling, or
 revenue claims. These paths do not assign cookies, expose contact-level
 analytics, expose
 raw event or assignment rows, expose raw campaign/referrer payloads, create raw
@@ -246,7 +286,8 @@ analytics exports, send automated alerts, send owner email, call providers, disp
 enable Queue producers, enable Queue consumers, create queue messages, consume
 or acknowledge queue messages, create retry/dead-letter rows, read queue payload
 bodies, create queue payload bodies, create recipient payloads, create personalized bodies,
-store raw payload bodies, create customer alerts, expose body templates,
+store raw payload bodies, create delivery results, create delivery receipts,
+process status webhooks, poll providers, create customer alerts, expose body templates,
 expose unsubscribe URLs, route experiment traffic, make automated winner decisions, make revenue
 claims, or prove statistical significance.
 
@@ -266,11 +307,14 @@ aggregate evidence, plus owner-reviewed send-payload readiness aggregate
 evidence, plus owner-reviewed queue-producer readiness aggregate evidence, plus
 owner-reviewed queue-consumer readiness aggregate evidence, plus
 owner-reviewed provider-call readiness aggregate evidence, plus
-owner-reviewed delivery-attempt readiness aggregate evidence, to understand
+owner-reviewed delivery-attempt readiness aggregate evidence, plus
+owner-reviewed delivery-result readiness aggregate evidence, plus
+owner-reviewed delivery-status-webhook readiness aggregate evidence, to understand
 analytics and experiment semantics. Direct public agent analytics writes,
 custom events, raw campaign/referrer reporting, tracking cookies, raw analytics
 exports, automated alert sends, owner email sends, provider sends, provider
-calls, delivery attempts, provider configuration, provider secrets, private DNS credentials, body templates,
+calls, delivery attempts, delivery results, delivery receipts, status webhooks,
+provider polling, provider configuration, provider secrets, private DNS credentials, body templates,
 unsubscribe URLs, Queue producer execution, Queue consumer execution, queue
 dispatch, queue messages, queue message consumption, acknowledgements,
 retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads,
