@@ -534,7 +534,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public example routes avoid test-fixture wording", async ({ page }) => {
     const testFixtureTerms =
-      /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox|scaffold|fixture|issue|PR|implementation)\b|source-data|source data|api route|draft records|no email send path|how I built|contract shipped|launch-preview|confirmed-write|read contract/i;
+      /\b(?:Cloudflare|D1|database|admin|roadmap|pending|planned|preview|sandbox|scaffold|fixture|issue|PR|implementation)\b|source-data|source data|api route|draft records|no email send path|how I built|contract shipped|launch-preview|confirmed-write|read contract|review-only|review only|read-only|read only/i;
     const publicExampleRoutes = [
       "/funnels/indie-launch-sandbox",
       "/offers/indie-launch-stack",
@@ -1238,7 +1238,10 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Launch accelerator upsell" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Launch review downsell" })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
-    await page.getByLabel(/Review phrase/i).fill(checkoutConfirmationText);
+    await expect(page.getByLabel(/Exact confirmation text/i)).toBeVisible();
+    await expect(page.getByText(/Confirmation required/i)).toBeVisible();
+    await expect(page.getByText(/Paste exact text/i)).toBeVisible();
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
     await page.getByRole("button", { name: /Check checkout setup/i }).click();
     await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
@@ -12454,9 +12457,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Indie launch partner program/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only before payout prep/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Review-only commission evidence stays reversible before payout/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Commission evidence stays reversible before payout/i })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /Payout preparation stays read-only until refund windows and review flags are resolved/i }),
+      page.getByRole("heading", { name: /Payout preparation waits for refund windows and review flags/i }),
     ).toBeVisible();
     await expect(page.getByText("Launch Circle performance report")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payout preparation", exact: true })).toBeVisible();
@@ -17549,7 +17552,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Review the checkout path from this funnel." })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
-    await page.getByLabel(/Review phrase/i).fill(checkoutConfirmationText);
+    await page.getByLabel(/Exact confirmation text/i).fill(checkoutConfirmationText);
     await page.getByRole("button", { name: /Check checkout setup/i }).click();
     await expect(page.getByText(/Checkout setup check/i)).toBeVisible();
     await expect(page.getByText(/\$28\.00 total/i)).toBeVisible();
