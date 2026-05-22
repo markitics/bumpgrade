@@ -12447,8 +12447,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Indie launch partner program/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner links can connect privacy-safe clicks to checkout evidence/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Partner performance reporting stays aggregate-only/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Payout preparation stays read-only/i })).toBeVisible();
-    await expect(page.getByText("Launch Circle public-safe performance report")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Payout preparation waits/i })).toBeVisible();
+    await expect(page.getByText("Launch Circle performance report")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Payout preparation", exact: true })).toBeVisible();
     await expect(page.locator(".admin-pill").filter({ hasText: /^LAUNCHCIRCLE$/ })).toBeVisible();
     await expect(page.getByText("Possible self-referral")).toBeVisible();
