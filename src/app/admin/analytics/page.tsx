@@ -12,6 +12,7 @@ import { AdminAnalyticsNotificationDeliveryStatusWebhookReadinessForm } from "@/
 import { AdminAnalyticsNotificationProviderPollingReadinessForm } from "@/components/admin-analytics-notification-provider-polling-readiness-form";
 import { AdminAnalyticsNotificationReceiptPayloadReadinessForm } from "@/components/admin-analytics-notification-receipt-payload-readiness-form";
 import { AdminAnalyticsNotificationDeliveryReceiptReadinessForm } from "@/components/admin-analytics-notification-delivery-receipt-readiness-form";
+import { AdminAnalyticsNotificationProviderStatusReconciliationReadinessForm } from "@/components/admin-analytics-notification-provider-status-reconciliation-readiness-form";
 import { AdminAnalyticsNotificationProviderCallReadinessForm } from "@/components/admin-analytics-notification-provider-call-readiness-form";
 import { AdminAnalyticsNotificationQueueConsumerReadinessForm } from "@/components/admin-analytics-notification-queue-consumer-readiness-form";
 import { AdminAnalyticsNotificationQueueProducerReadinessForm } from "@/components/admin-analytics-notification-queue-producer-readiness-form";
@@ -79,6 +80,10 @@ import {
   analyticsNotificationDeliveryReceiptReadinessIssue,
   getAnalyticsNotificationDeliveryReceiptReadinessSummary,
 } from "@/lib/analytics-notification-delivery-receipt-readiness";
+import {
+  analyticsNotificationProviderStatusReconciliationReadinessIssue,
+  getAnalyticsNotificationProviderStatusReconciliationReadinessSummary,
+} from "@/lib/analytics-notification-provider-status-reconciliation-readiness";
 
 export const metadata: Metadata = {
   title: "Admin analytics",
@@ -112,6 +117,8 @@ export default async function AdminAnalyticsPage() {
   const providerPollingReadinessSummary = await getAnalyticsNotificationProviderPollingReadinessSummary();
   const receiptPayloadReadinessSummary = await getAnalyticsNotificationReceiptPayloadReadinessSummary();
   const deliveryReceiptReadinessSummary = await getAnalyticsNotificationDeliveryReceiptReadinessSummary();
+  const providerStatusReconciliationReadinessSummary =
+    await getAnalyticsNotificationProviderStatusReconciliationReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
@@ -127,6 +134,8 @@ export default async function AdminAnalyticsPage() {
   const latestProviderPollingReadiness = providerPollingReadinessSummary.latestRecords[0];
   const latestReceiptPayloadReadiness = receiptPayloadReadinessSummary.latestRecords[0];
   const latestDeliveryReceiptReadiness = deliveryReceiptReadinessSummary.latestRecords[0];
+  const latestProviderStatusReconciliationReadiness =
+    providerStatusReconciliationReadinessSummary.latestRecords[0];
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -244,6 +253,13 @@ export default async function AdminAnalyticsPage() {
               Issue #{analyticsNotificationDeliveryReceiptReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationProviderStatusReconciliationReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsNotificationProviderStatusReconciliationReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
         </div>
         <aside className="roadmap-status-panel" aria-label="Analytics decision status summary">
@@ -266,6 +282,7 @@ export default async function AdminAnalyticsPage() {
               providerPollingReadinessSummary.loadError ??
               receiptPayloadReadinessSummary.loadError ??
               deliveryReceiptReadinessSummary.loadError ??
+              providerStatusReconciliationReadinessSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -401,6 +418,22 @@ export default async function AdminAnalyticsPage() {
             <p>
               {deliveryReceiptReadinessSummary.counts.notificationDeliveryReceiptReadinessRecords} readiness records;{" "}
               {deliveryReceiptReadinessSummary.counts.deliveryReceiptRecordedRecords} receipt records.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Provider status</h3>
+            <p>
+              {
+                providerStatusReconciliationReadinessSummary.counts
+                  .notificationProviderStatusReconciliationReadinessRecords
+              }{" "}
+              readiness records;{" "}
+              {
+                providerStatusReconciliationReadinessSummary.counts
+                  .providerStatusReconciliationRecordedRecords
+              }{" "}
+              reconciliation records.
             </p>
           </div>
         </div>
@@ -861,6 +894,43 @@ export default async function AdminAnalyticsPage() {
           ownerReviewStatus={deliveryReceiptReadinessSummary.readiness.ownerReviewStatus}
           alertThresholdCount={deliveryReceiptReadinessSummary.readiness.alertThresholdCount}
           currentEvidenceByWindow={deliveryReceiptReadinessSummary.currentEvidenceByWindow}
+        />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Provider-status reconciliation readiness</p>
+            <h2>Record provider-status reconciliation readiness without reconciling provider statuses.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsNotificationProviderStatusReconciliationReadinessForm
+          dashboardId={providerStatusReconciliationReadinessSummary.readiness.dashboardId}
+          dashboardTitle={summary.dashboard.title}
+          dashboardRevisionId={providerStatusReconciliationReadinessSummary.readiness.dashboardRevisionId}
+          readinessId={providerStatusReconciliationReadinessSummary.readiness.id}
+          readinessStatus={providerStatusReconciliationReadinessSummary.readiness.status}
+          notificationInboxStatus={providerStatusReconciliationReadinessSummary.readiness.notificationInboxStatus}
+          notificationDispatchPreflightStatus={
+            providerStatusReconciliationReadinessSummary.readiness.notificationDispatchPreflightStatus
+          }
+          notificationProviderDomainReadinessStatus={
+            providerStatusReconciliationReadinessSummary.readiness.notificationProviderDomainReadinessStatus
+          }
+          notificationSendPayloadReadinessStatus={
+            providerStatusReconciliationReadinessSummary.readiness.notificationSendPayloadReadinessStatus
+          }
+          notificationDeliveryReceiptReadinessStatus={
+            providerStatusReconciliationReadinessSummary.readiness.notificationDeliveryReceiptReadinessStatus
+          }
+          channelId={providerStatusReconciliationReadinessSummary.readiness.channelId}
+          ownerReviewStatus={providerStatusReconciliationReadinessSummary.readiness.ownerReviewStatus}
+          alertThresholdCount={providerStatusReconciliationReadinessSummary.readiness.alertThresholdCount}
+          currentEvidenceByWindow={providerStatusReconciliationReadinessSummary.currentEvidenceByWindow}
         />
       </section>
 
@@ -1575,6 +1645,53 @@ export default async function AdminAnalyticsPage() {
               <ShieldCheck aria-hidden="true" />
               <h3>Delivery-receipt readiness evidence is ready</h3>
               <p>Record a current receipt-payload readiness before recording delivery-receipt readiness evidence.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest provider-status reconciliation readiness</p>
+            <h2>Provider-status reconciliation records keep provider polling and status processing disabled.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestProviderStatusReconciliationReadiness ? (
+            providerStatusReconciliationReadinessSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">
+                    {record.notificationProviderStatusReconciliationReadinessDisposition.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{record.timeWindowKey}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>{record.channelId}</h3>
+                <p>
+                  Delivery-receipt readiness {record.deliveryReceiptReadinessId} checked with{" "}
+                  {record.expectedConversionSampleSize} conversion samples at {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No provider status reconciliation</strong>
+                  <span>
+                    Provider status reconciliation enabled {String(record.providerStatusReconciliationEnabled)}, recorded{" "}
+                    {String(record.providerStatusReconciliationRecorded)}, provider response{" "}
+                    {String(record.providerResponseCreated)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">Needs delivery receipt</span>
+              </div>
+              <MailCheck aria-hidden="true" />
+              <h3>Provider-status reconciliation readiness evidence is ready</h3>
+              <p>Record a current delivery-receipt readiness before provider-status reconciliation readiness evidence.</p>
             </article>
           )}
         </div>
