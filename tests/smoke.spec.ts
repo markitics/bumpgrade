@@ -14650,6 +14650,15 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
       ]),
     );
+    const funnelRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-funnels");
+    expect(funnelRoadmap).toEqual(
+      expect.objectContaining({
+        publicEvidence: expect.arrayContaining([expect.stringContaining("Issue #341")]),
+        nextMilestone: expect.stringContaining("physical deletion"),
+      }),
+    );
+    expect(funnelRoadmap.nextMilestone).not.toContain("deletion/archive");
+    expect(funnelRoadmap.nextMilestone).not.toContain("unpublishing");
   });
 
   test("admin source data exposes durable admin surface records", async ({ request }) => {
@@ -14946,6 +14955,17 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    const adminFunnelJourney = payload.userJourneys.find(
+      (journey: { id: string }) => journey.id === "journey-owner-seeds-editable-draft-funnel",
+    );
+    expect(adminFunnelJourney).toEqual(
+      expect.objectContaining({
+        title: expect.stringContaining("archives"),
+        issueNumbers: expect.arrayContaining([341]),
+        happyPath: expect.arrayContaining([expect.stringContaining("archive confirmation")]),
+        edgeCases: expect.arrayContaining([expect.stringContaining("does not physically delete data")]),
+      }),
+    );
   });
 
   test("admin user journeys source data exposes launch proof summary", async ({ request }) => {
@@ -15103,6 +15123,15 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         }),
       ]),
+    );
+    const userJourneyFunnelArchive = payload.journeys.find(
+      (journey: { id: string }) => journey.id === "journey-owner-seeds-editable-draft-funnel",
+    );
+    expect(userJourneyFunnelArchive).toEqual(
+      expect.objectContaining({
+        issueNumbers: expect.arrayContaining([341]),
+        agentAccess: expect.stringContaining("archive/unpublish lifecycle metadata"),
+      }),
     );
   });
 
