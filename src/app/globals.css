@@ -2546,6 +2546,7 @@ h3 {
 .pricing-card-grid,
 .payment-option-grid,
 .feature-benefit-grid,
+.feature-example-grid,
 .feature-story-grid,
 .linked-record-grid,
 .launch-proof-grid {
@@ -2600,6 +2601,7 @@ h3 {
 .marketing-feature-card p,
 .payment-option-card p,
 .feature-benefit-grid p,
+.feature-example-grid p,
 .feature-story-grid p,
 .linked-record-grid p,
 .pricing-note p,
@@ -2732,12 +2734,41 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.feature-benefit-grid article {
+.feature-example-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.feature-benefit-grid article,
+.feature-example-grid article {
   display: grid;
   align-content: start;
   gap: 14px;
   min-height: 170px;
   padding: 18px;
+}
+
+.feature-example-grid article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.feature-example-grid span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.feature-example-grid blockquote {
+  margin: 0;
+  padding: 14px;
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  background: #f8fbf6;
+  color: #26332b;
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .linked-record-grid {
@@ -3325,6 +3356,7 @@ h3 {
   .pricing-card-grid,
   .payment-option-grid,
   .feature-benefit-grid,
+  .feature-example-grid,
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
@@ -3422,6 +3454,7 @@ h3 {
   .pricing-card-grid,
   .payment-option-grid,
   .feature-benefit-grid,
+  .feature-example-grid,
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
