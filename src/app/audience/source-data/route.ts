@@ -22,6 +22,7 @@ import { getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import { getAudienceImportIntentSummary, getAudienceImportPreflightSummary } from "@/lib/audience-imports";
 import { getAudienceSequenceDeliveryBatchSummary } from "@/lib/audience-sequence-delivery-batches";
 import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-sequence-delivery-queue-messages";
+import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequence-dispatch-attempts";
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
@@ -53,6 +54,7 @@ export async function GET() {
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
+    audienceSequenceDispatchAttempts,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -78,6 +80,7 @@ export async function GET() {
     getAudienceSequenceDeliveryBatchSummary(),
     getAudienceSequenceDeliveryQueueMessageSummary(),
     getAudienceSequenceDispatchPreflightSummary(),
+    getAudienceSequenceDispatchAttemptSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -97,6 +100,8 @@ export async function GET() {
         audienceSequenceScheduleIntents.apiRoute,
         audienceSequenceDeliveryBatches.apiRoute,
         audienceSequenceDeliveryQueueMessages.apiRoute,
+        audienceSequenceDispatchPreflights.apiRoute,
+        audienceSequenceDispatchAttempts.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -122,6 +127,7 @@ export async function GET() {
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
+    audienceSequenceDispatchAttempts,
     audienceExportReadiness,
     importIntents,
     importPreflights,
