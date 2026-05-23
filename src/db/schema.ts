@@ -1362,6 +1362,67 @@ export const audienceSequenceDispatchPreflights = sqliteTable(
   }),
 );
 
+export const audienceSequenceDispatchAttempts = sqliteTable(
+  "audience_sequence_dispatch_attempts",
+  {
+    id: text("id").primaryKey(),
+    sequenceId: text("sequence_id").notNull(),
+    dispatchPreflightId: text("dispatch_preflight_id").notNull(),
+    deliveryQueueMessageId: text("delivery_queue_message_id").notNull(),
+    deliveryBatchId: text("delivery_batch_id").notNull(),
+    scheduleIntentId: text("schedule_intent_id").notNull(),
+    status: text("status").notNull().default("dispatch_attempt_dry_run_recorded"),
+    queueName: text("queue_name").notNull(),
+    queueMode: text("queue_mode").notNull().default("dry_run_contract"),
+    queueProducerMode: text("queue_producer_mode").notNull(),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedSequenceStatus: text("expected_sequence_status").notNull(),
+    expectedReadyEnrollmentCount: integer("expected_ready_enrollment_count").notNull().default(0),
+    dryRunMessageCount: integer("dry_run_message_count").notNull().default(0),
+    heldEnrollmentCount: integer("held_enrollment_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    providerLimitPolicy: text("provider_limit_policy").notNull(),
+    providerRateLimitWindow: text("provider_rate_limit_window").notNull(),
+    dispatchMode: text("dispatch_mode").notNull(),
+    dispatchResultStatus: text("dispatch_result_status").notNull(),
+    suppressionCheckStatus: text("suppression_check_status").notNull(),
+    unsubscribeFooterCheckStatus: text("unsubscribe_footer_check_status").notNull(),
+    senderDomainGateStatus: text("sender_domain_gate_status").notNull(),
+    auditCorrelationPolicy: text("audit_correlation_policy").notNull(),
+    providerSendEnabled: integer("provider_send_enabled", { mode: "boolean" }).notNull().default(false),
+    deliveryQueueRowsCreated: integer("delivery_queue_rows_created", { mode: "boolean" }).notNull().default(false),
+    cloudflareQueueMessagesCreated: integer("cloudflare_queue_messages_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    queuePayloadBodiesCreated: integer("queue_payload_bodies_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    recipientPayloadsCreated: integer("recipient_payloads_created", { mode: "boolean" }).notNull().default(false),
+    personalizedBodiesCreated: integer("personalized_bodies_created", { mode: "boolean" }).notNull().default(false),
+    unsubscribeUrlsCreated: integer("unsubscribe_urls_created", { mode: "boolean" }).notNull().default(false),
+    providerResponsesCreated: integer("provider_responses_created", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdsCreated: integer("provider_message_ids_created", { mode: "boolean" }).notNull().default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_sequence_dispatch_attempts_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    dispatchPreflightIdx: index("audience_sequence_dispatch_attempts_preflight_idx").on(
+      table.dispatchPreflightId,
+    ),
+    sequenceStatusIdx: index("audience_sequence_dispatch_attempts_sequence_status_idx").on(
+      table.sequenceId,
+      table.status,
+    ),
+  }),
+);
+
 export const audienceBroadcastPreviewSafety = sqliteTable(
   "audience_broadcast_preview_safety",
   {
