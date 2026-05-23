@@ -849,10 +849,7 @@ export default async function AdminAudiencePage() {
                 </div>
                 <div className="roadmap-detail">
                   <strong>Queue artifacts</strong>
-                  <span>
-                    {String(attempt.cloudflareQueueMessagesCreated)} Cloudflare messages;{" "}
-                    {String(attempt.queuePayloadBodiesCreated)} payload bodies
-                  </span>
+                  <span>No Cloudflare messages; no payload bodies</span>
                 </div>
                 <p className="card-note">
                   Dispatch attempt receipts are aggregate evidence only. Cloudflare Queue producers, queue payload
