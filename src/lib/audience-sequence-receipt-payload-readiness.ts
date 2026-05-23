@@ -1,8 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
-import { audienceSequenceProviderPollingReadinessStatus } from "@/lib/audience-sequence-provider-polling-readiness";
-import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 
 export const audienceSequenceReceiptPayloadReadinessIssue = 380;
 export const audienceSequenceReceiptPayloadReadinessStatus = "sequence-receipt-payload-readiness-ready";
@@ -11,6 +9,7 @@ export const audienceSequenceReceiptPayloadReadinessApiRoute =
 export const audienceSequenceReceiptPayloadReadinessConfirmationText =
   "Record Bumpgrade sequence receipt-payload readiness gate";
 
+const providerPollingReadinessDependencyStatus = "sequence-provider-polling-readiness-ready";
 const providerPollingRecordStatus = "sequence_provider_polling_readiness_recorded";
 const receiptPayloadRecordStatus = "sequence_receipt_payload_readiness_recorded";
 
@@ -186,7 +185,7 @@ export type AudienceSequenceReceiptPayloadReadinessSummary = {
   loadError: string | null;
   confirmation: { required: true; text: typeof audienceSequenceReceiptPayloadReadinessConfirmationText };
   dependency: {
-    providerPollingReadinessStatus: typeof audienceSequenceProviderPollingReadinessStatus;
+    providerPollingReadinessStatus: typeof providerPollingReadinessDependencyStatus;
     providerPollingReadinessIssue: 378;
     providerPollingReadinessRequired: true;
   };
@@ -472,7 +471,7 @@ function emptySummary(
     loadError,
     confirmation: { required: true, text: audienceSequenceReceiptPayloadReadinessConfirmationText },
     dependency: {
-      providerPollingReadinessStatus: audienceSequenceProviderPollingReadinessStatus,
+      providerPollingReadinessStatus: providerPollingReadinessDependencyStatus,
       providerPollingReadinessIssue: 378,
       providerPollingReadinessRequired: true,
     },
@@ -779,6 +778,7 @@ export async function createAudienceSequenceReceiptPayloadReadiness(
     return { ok: false, status: "receipt_payload_gate_not_ready", message: "Sequence receipt-payload readiness requires a current dry-run provider-polling readiness record with no provider calls, Queue consumption, acknowledgements, retry/dead-letter rows, payload reads, webhook payloads, provider polling, polling results, receipt payloads, receipts, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, provider responses, provider message IDs, delivery attempts, delivery results, or status webhooks.", redaction };
   }
 
+  const { getAudienceSequenceDeliveryReadinessSummary } = await import("@/lib/audience-sequence-readiness");
   const readiness = await getAudienceSequenceDeliveryReadinessSummary();
   if (readiness.source !== "d1") return { ok: false, status: "readiness_unavailable", message: readiness.loadError ?? "Sequence delivery readiness is unavailable.", redaction };
 
@@ -855,7 +855,7 @@ export async function createAudienceSequenceReceiptPayloadReadiness(
     readiness.workspace.revisionId,
     sequence.status,
     expectedReadyEnrollmentCount,
-    audienceSequenceProviderPollingReadinessStatus,
+    providerPollingReadinessDependencyStatus,
     numberValue(providerPolling.dry_run_message_count),
     numberValue(providerPolling.held_enrollment_count),
     numberValue(providerPolling.active_suppression_count),
