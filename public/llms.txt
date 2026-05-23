@@ -39,6 +39,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded audience unsubscribe API: https://bumpgrade.com/api/audience/unsubscribe
 - Owner audience CRM note API: https://bumpgrade.com/api/admin/audience/notes (human page/API requires Better Auth owner session)
 - Owner audience sequence dispatch preflight API: https://bumpgrade.com/api/admin/audience/sequences/dispatch-preflights (human page/API requires Better Auth owner session)
+- Owner audience sequence dispatch attempt API: https://bumpgrade.com/api/admin/audience/sequences/dispatch-attempts (human page/API requires Better Auth owner session)
 - Owner audience dispatch preflight API: https://bumpgrade.com/api/admin/audience/broadcasts/dispatch-preflights (human page/API requires Better Auth owner session)
 - Owner audience dispatch attempt API: https://bumpgrade.com/api/admin/audience/broadcasts/dispatch-attempts (human page/API requires Better Auth owner session)
 - Admin audience subscriber inspection: https://bumpgrade.com/admin/audience (human page requires Better Auth owner session)
@@ -228,6 +229,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/api/admin/audience/sequences/delivery-batches` and
   `/api/admin/audience/sequences/delivery-queue-messages` and
   `/api/admin/audience/sequences/dispatch-preflights` and
+  `/api/admin/audience/sequences/dispatch-attempts` and
   `/api/admin/audience/broadcasts/schedule-intents` and
   `/api/admin/audience/broadcasts/delivery-batches` and
   `/api/admin/audience/broadcasts/delivery-queue-messages` and
@@ -240,10 +242,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   sequence enrollment evidence. It can also record an unsubscribe preference
   without revealing whether the email is already on the list. `/admin/audience`
   is owner-gated and can inspect private subscriber rows, suppression totals,
-  private CRM timeline notes, broadcast readiness, preview safety, queue readiness, dry-run schedule intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs,
+  private CRM timeline notes, broadcast readiness, preview safety, queue readiness, dry-run schedule intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts,
   delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, non-destructive import intents, aggregate import preflights, aggregate export readiness, and aggregate sequence delivery readiness. Treat the public contract
   as seeded opt-in capture, unsubscribe evidence, owner-only note evidence, and
-  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/import-intent/import-preflight/export-readiness/sequence-delivery-readiness/sequence-delivery-batch/sequence-queue-message/sequence-dispatch-preflight evidence, not live email sending, sequence delivery, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch,
+  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/import-intent/import-preflight/export-readiness/sequence-delivery-readiness/sequence-delivery-batch/sequence-queue-message/sequence-dispatch-preflight/sequence-dispatch-attempt evidence, not live email sending, sequence delivery, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch,
   real contact import, raw contact row storage, subscriber creation from imports, CRM automation, private export, suppression-list
   administration, or a direct agent subscriber-write API.
 - `/analytics/source-data` exposes the first analytics and experimentation

@@ -30,6 +30,7 @@ import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcas
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-delivery-batch-form";
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
+import { AdminSequenceDispatchAttemptForm } from "@/components/admin-sequence-dispatch-attempt-form";
 import { AdminSequenceDispatchPreflightForm } from "@/components/admin-sequence-dispatch-preflight-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -85,6 +86,10 @@ import {
   getAudienceSequenceDispatchPreflightSummary,
 } from "@/lib/audience-sequence-dispatch-preflights";
 import {
+  audienceSequenceDispatchAttemptIssue,
+  getAudienceSequenceDispatchAttemptSummary,
+} from "@/lib/audience-sequence-dispatch-attempts";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -134,6 +139,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
+    audienceSequenceDispatchAttempts,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -159,6 +165,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryBatchSummary(),
     getAudienceSequenceDeliveryQueueMessageSummary(),
     getAudienceSequenceDispatchPreflightSummary(),
+    getAudienceSequenceDispatchAttemptSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -189,8 +196,8 @@ export default async function AdminAudiencePage() {
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
             suppression counts before sequence scheduling or sends exist. Sequence schedule intents, delivery batches,
-            queue-message dry runs, and dispatch preflights record owner dry-run gates while queues, payloads,
-            unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Export readiness shows
+            queue-message dry runs, dispatch preflights, and dispatch attempt receipts record owner dry-run gates while
+            queues, payloads, unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Export readiness shows
             aggregate eligible, suppressed, unsubscribed, and paused-sequence counts before private CSV exports exist.
             Public source-data stays aggregate-only.
           </p>
@@ -316,6 +323,16 @@ export default async function AdminAudiencePage() {
               {audienceSequenceDispatchPreflights.counts.dryRunPreflights} dry-run preflight
               {audienceSequenceDispatchPreflights.counts.dryRunPreflights === 1 ? "" : "s"};{" "}
               {audienceSequenceDispatchPreflights.counts.providerSendEnabledRecords} provider sends enabled.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Sequence attempts</h3>
+            <p>
+              {audienceSequenceDispatchAttempts.counts.dryRunAttempts} dry-run receipt
+              {audienceSequenceDispatchAttempts.counts.dryRunAttempts === 1 ? "" : "s"};{" "}
+              {audienceSequenceDispatchAttempts.counts.cloudflareQueueMessagesCreatedRecords} Cloudflare Queue
+              dispatches.
             </p>
           </div>
           <div>
@@ -768,6 +785,13 @@ export default async function AdminAudiencePage() {
                   rows, recipient payloads, personalized bodies, unsubscribe URLs, and provider message IDs remain
                   disabled.
                 </p>
+                <AdminSequenceDispatchAttemptForm
+                  dispatchPreflightId={preflight.id}
+                  sequenceId={preflight.sequenceId}
+                  expectedWorkspaceRevisionId={preflight.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={preflight.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={preflight.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -787,6 +811,73 @@ export default async function AdminAudiencePage() {
       </section>
 
       <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence dispatch attempt receipts</p>
+            <h2>Sequence handoff stays receipt-only before Queue producers exist</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDispatchAttemptIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDispatchAttemptIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDispatchAttempts.latestAttempts.length > 0 ? (
+            audienceSequenceDispatchAttempts.latestAttempts.map((attempt) => (
+              <article key={attempt.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{attempt.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{attempt.dryRunMessageCount} messages</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>{attempt.queueName}</h3>
+                <p>{attempt.queueProducerMode.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Sequence</strong>
+                  <span>{attempt.sequenceId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Dispatch preflight</strong>
+                  <span>{attempt.dispatchPreflightId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Dispatch result</strong>
+                  <span>{attempt.dispatchResultStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue artifacts</strong>
+                  <span>
+                    {String(attempt.cloudflareQueueMessagesCreated)} Cloudflare messages;{" "}
+                    {String(attempt.queuePayloadBodiesCreated)} payload bodies
+                  </span>
+                </div>
+                <p className="card-note">
+                  Dispatch attempt receipts are aggregate evidence only. Cloudflare Queue producers, queue payload
+                  bodies, delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider
+                  sends, responses, and message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No attempts</span>
+                <span className="admin-pill">Issue #{audienceSequenceDispatchAttemptIssue}</span>
+              </div>
+              <h3>No sequence dispatch attempt receipts yet</h3>
+              <p>
+                Record one from a current sequence dispatch preflight after Queue producer, provider, suppression,
+                unsubscribe, sender-domain, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Audience import intents</p>
