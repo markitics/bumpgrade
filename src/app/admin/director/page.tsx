@@ -5,7 +5,7 @@ import { ArrowRight, BarChart3, BriefcaseBusiness, Clock3, Database, ListChecks,
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
-import { buildDirectorStatusData, type DirectorInitiative, type DirectorStatus } from "@/lib/director-status";
+import { buildDirectorStatusData, type DirectorInitiative, type DirectorStatus, type DirectorWindowChange } from "@/lib/director-status";
 
 export const metadata: Metadata = {
   title: "Director dashboard",
@@ -58,6 +58,21 @@ function InitiativeList({ title, items, empty }: { title: string; items: Directo
         <p>{empty}</p>
       )}
     </div>
+  );
+}
+
+function WindowChangeList({ changes }: { changes: DirectorWindowChange[] }) {
+  if (!changes.length) return <p>No named changes in this window.</p>;
+
+  return (
+    <ul className="director-window-changes">
+      {changes.slice(0, 3).map((change) => (
+        <li key={change.id}>
+          <strong>{change.title}</strong>
+          <span>{change.workstreamTitle}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -214,6 +229,7 @@ export default async function DirectorDashboardPage() {
                   <span>Closed PRs in evidence</span>
                 </div>
               </div>
+              <WindowChangeList changes={window.recentChanges} />
             </article>
           ))}
         </div>

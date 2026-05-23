@@ -16310,8 +16310,8 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.windows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "past-1-day", label: "Past 1 day", hours: 24 }),
-        expect.objectContaining({ id: "past-7-days", label: "Past 7 days", hours: 168 }),
+        expect.objectContaining({ id: "past-1-day", label: "Past 1 day", hours: 24, recentChanges: expect.any(Array) }),
+        expect.objectContaining({ id: "past-7-days", label: "Past 7 days", hours: 168, recentChanges: expect.any(Array) }),
       ]),
     );
     expect(payload.workstreams).toEqual(
@@ -16392,6 +16392,81 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.workstreams.find((workstream) => workstream.id === "marketing")?.sourceRecordIds.workLog).not.toContain(
       "work-log-director-control",
     );
+  });
+
+  test("director recent windows include named change digests", () => {
+    const payload = buildDirectorStatusData(
+      {
+        source: "fixture",
+        loadError: null,
+        roadmapItems: [],
+        userJourneys: [],
+        attentionItems: [],
+        workLogEntries: [
+          {
+            id: "work-log-marketing-change",
+            title: "Updated launch pricing copy",
+            agentName: "Codex",
+            agentKind: "codex",
+            sessionName: "bumpgrade-build-heartbeat",
+            promptFromMark: "Mark asked for clearer recent-change summaries.",
+            githubIssues: [{ number: 396, url: "https://github.com/markitics/bumpgrade/issues/396", kind: "issue" }],
+            closedPrs: [{ number: 397, url: "https://github.com/markitics/bumpgrade/pull/397", kind: "pr" }],
+            featuresUpdated: ["/pricing"],
+            roadmapUpdated: [],
+            userJourneysUpdated: [],
+            documentationUpdated: [],
+            validation: [],
+            flagsAttention: null,
+            firstPromptAt: "2026-05-23T20:00:00.000Z",
+            completedAt: "2026-05-23T21:30:00.000Z",
+            relevantUrls: ["https://bumpgrade.com/pricing"],
+            prCommentUrl: null,
+          },
+          {
+            id: "work-log-security-change",
+            title: "Tightened sender authentication notes",
+            agentName: "Codex",
+            agentKind: "codex",
+            sessionName: "bumpgrade-build-heartbeat",
+            promptFromMark: "Mark asked for clearer recent-change summaries.",
+            githubIssues: [{ number: 396, url: "https://github.com/markitics/bumpgrade/issues/396", kind: "issue" }],
+            closedPrs: [],
+            featuresUpdated: ["/agent-docs/bumpgrade-admin-surfaces"],
+            roadmapUpdated: [],
+            userJourneysUpdated: [],
+            documentationUpdated: [],
+            validation: [],
+            flagsAttention: "Security caveat remains current.",
+            firstPromptAt: "2026-05-22T20:00:00.000Z",
+            completedAt: "2026-05-22T21:30:00.000Z",
+            relevantUrls: ["https://bumpgrade.com/agent-docs/bumpgrade-admin-surfaces"],
+            prCommentUrl: null,
+          },
+        ],
+      },
+      new Date("2026-05-23T22:00:00.000Z"),
+    );
+
+    const dayWindow = payload.windows.find((window) => window.id === "past-1-day");
+    const weekWindow = payload.windows.find((window) => window.id === "past-7-days");
+    expect(dayWindow?.recentChanges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "work-log-marketing-change",
+          workstreamId: "marketing",
+          workstreamTitle: "Marketing",
+          completedAt: "2026-05-23T21:30:00.000Z",
+        }),
+      ]),
+    );
+    expect(weekWindow?.recentChanges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "work-log-marketing-change" }),
+        expect.objectContaining({ id: "work-log-security-change", workstreamId: "security-trust" }),
+      ]),
+    );
+    expect(weekWindow?.needsMark).toBe(1);
   });
 
   test("director executive queue exposes due active and pending workstream lanes", () => {

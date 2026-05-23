@@ -2410,6 +2410,30 @@ h3 {
   min-height: 180px;
 }
 
+.director-window-changes {
+  display: grid;
+  gap: 10px;
+  padding: 12px 0 0;
+  margin: 12px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.director-window-changes li {
+  display: grid;
+  gap: 3px;
+}
+
+.director-window-changes strong {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.director-window-changes span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
 .director-window-card svg,
 .director-policy-panel svg,
 .director-queue-heading svg,
