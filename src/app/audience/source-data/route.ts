@@ -22,6 +22,7 @@ import { getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import { getAudienceImportIntentSummary, getAudienceImportPreflightSummary } from "@/lib/audience-imports";
 import { getAudienceSequenceDeliveryBatchSummary } from "@/lib/audience-sequence-delivery-batches";
 import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-sequence-delivery-queue-messages";
+import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
@@ -51,6 +52,7 @@ export async function GET() {
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
+    audienceSequenceDispatchPreflights,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -75,6 +77,7 @@ export async function GET() {
     getAudienceSequenceScheduleIntentSummary(),
     getAudienceSequenceDeliveryBatchSummary(),
     getAudienceSequenceDeliveryQueueMessageSummary(),
+    getAudienceSequenceDispatchPreflightSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -118,6 +121,7 @@ export async function GET() {
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
+    audienceSequenceDispatchPreflights,
     audienceExportReadiness,
     importIntents,
     importPreflights,

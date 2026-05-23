@@ -39,11 +39,11 @@ then open the relevant shelf for the task.
   provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness,
   Queue consumer readiness, owner-confirmed import intent, owner-confirmed import preflight,
   aggregate export readiness, aggregate sequence delivery readiness, dry-run
-  sequence schedule intents, dry-run sequence delivery batches, and dry-run
-  sequence queue-message evidence
+  sequence schedule intents, dry-run sequence delivery batches, dry-run
+  sequence queue-message evidence, and dry-run sequence dispatch preflight evidence
   contracts from issues #85, #103, #137, #167, #169, #171, #173, #175, #177,
   #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, and
-  #253, #259, #347, #351, #354, #358, and #360.
+  #253, #259, #347, #351, #354, #358, #360, and #362.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,
