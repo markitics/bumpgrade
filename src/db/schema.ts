@@ -2281,6 +2281,7 @@ export const audienceSequenceDeliveryReceiptReadiness = sqliteTable(
     id: text("id").primaryKey(),
     sequenceId: text("sequence_id").notNull(),
     receiptPayloadReadinessId: text("receipt_payload_readiness_id").notNull(),
+    providerPollingReadinessId: text("provider_polling_readiness_id").notNull(),
     deliveryStatusWebhookReadinessId: text("delivery_status_webhook_readiness_id").notNull(),
     deliveryResultReadinessId: text("delivery_result_readiness_id").notNull(),
     deliveryAttemptReadinessId: text("delivery_attempt_readiness_id").notNull(),
@@ -2391,6 +2392,9 @@ export const audienceSequenceDeliveryReceiptReadiness = sqliteTable(
     ),
     receiptPayloadReadinessIdx: index("audience_sequence_delivery_receipt_readiness_receipt_payload_idx").on(
       table.receiptPayloadReadinessId,
+    ),
+    providerPollingReadinessIdx: index("audience_sequence_delivery_receipt_readiness_provider_polling_idx").on(
+      table.providerPollingReadinessId,
     ),
     deliveryStatusWebhookReadinessIdx: index(
       "audience_sequence_delivery_receipt_readiness_status_webhook_readiness_idx",

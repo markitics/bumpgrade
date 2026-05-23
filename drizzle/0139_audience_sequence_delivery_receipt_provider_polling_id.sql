@@ -1,0 +1,5 @@
+ALTER TABLE audience_sequence_delivery_receipt_readiness
+  ADD COLUMN provider_polling_readiness_id TEXT NOT NULL DEFAULT 'provider-polling-readiness-unavailable';
+
+CREATE INDEX IF NOT EXISTS audience_sequence_delivery_receipt_readiness_provider_polling_idx
+  ON audience_sequence_delivery_receipt_readiness(provider_polling_readiness_id);

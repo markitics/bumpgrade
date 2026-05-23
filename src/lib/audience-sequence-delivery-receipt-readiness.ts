@@ -20,6 +20,7 @@ type AudienceRuntime = {
 type ReceiptPayloadReadinessReferenceRow = {
   id: string;
   sequence_id: string;
+  provider_polling_readiness_id: string;
   delivery_status_webhook_readiness_id: string;
   delivery_result_readiness_id: string;
   delivery_attempt_readiness_id: string;
@@ -36,7 +37,7 @@ type ReceiptPayloadReadinessReferenceRow = {
   provider_name: string;
   provider_mode: string;
   receipt_payload_gate_status: string;
-  delivery_status_webhook_dependency_status: string;
+  provider_polling_dependency_status: string;
   provider_response_policy: string;
   provider_message_id_policy: string;
   delivery_attempt_policy: string;
@@ -49,7 +50,7 @@ type ReceiptPayloadReadinessReferenceRow = {
   expected_workspace_revision_id: string;
   expected_sequence_status: string;
   expected_ready_enrollment_count: number | string | null;
-  expected_delivery_status_webhook_readiness_status: string;
+  expected_provider_polling_readiness_status: string;
   dry_run_message_count: number | string | null;
   held_enrollment_count: number | string | null;
   active_suppression_count: number | string | null;
@@ -102,6 +103,7 @@ export type AudienceSequenceDeliveryReceiptReadinessPublic = {
   id: string;
   sequenceId: string;
   receiptPayloadReadinessId: string;
+  providerPollingReadinessId: string;
   deliveryStatusWebhookReadinessId: string;
   deliveryResultReadinessId: string;
   deliveryAttemptReadinessId: string;
@@ -383,6 +385,7 @@ function publicDeliveryReceiptReadiness(
     id: row.id,
     sequenceId: row.sequence_id,
     receiptPayloadReadinessId: row.receipt_payload_readiness_id,
+    providerPollingReadinessId: row.provider_polling_readiness_id,
     deliveryStatusWebhookReadinessId: row.delivery_status_webhook_readiness_id,
     deliveryResultReadinessId: row.delivery_result_readiness_id,
     deliveryAttemptReadinessId: row.delivery_attempt_readiness_id,
@@ -584,14 +587,14 @@ function emptySummary(
 
 function receiptPayloadSelect() {
   return `SELECT
-    id, sequence_id, delivery_status_webhook_readiness_id, delivery_result_readiness_id, delivery_attempt_readiness_id,
+    id, sequence_id, provider_polling_readiness_id, delivery_status_webhook_readiness_id, delivery_result_readiness_id, delivery_attempt_readiness_id,
     provider_call_readiness_id, queue_consumer_readiness_id, queue_producer_readiness_id,
     dispatch_attempt_id, dispatch_preflight_id, delivery_queue_message_id, delivery_batch_id,
     schedule_intent_id, status, queue_name, provider_name, provider_mode, receipt_payload_gate_status,
-    delivery_status_webhook_dependency_status, provider_response_policy, provider_message_id_policy,
+    provider_polling_dependency_status, provider_response_policy, provider_message_id_policy,
     delivery_attempt_policy, delivery_result_policy, delivery_status_webhook_policy, receipt_payload_policy,
     idempotency_policy, audit_correlation_policy, backpressure_policy, expected_workspace_revision_id,
-    expected_sequence_status, expected_ready_enrollment_count, expected_delivery_status_webhook_readiness_status,
+    expected_sequence_status, expected_ready_enrollment_count, expected_provider_polling_readiness_status,
     dry_run_message_count, held_enrollment_count, active_suppression_count, provider_limit_policy,
     provider_rate_limit_window, dispatch_mode, dispatch_result_status, suppression_check_status,
     unsubscribe_footer_check_status, sender_domain_gate_status, delivery_status_webhook_enabled,
@@ -608,7 +611,7 @@ function receiptPayloadSelect() {
 
 function deliveryReceiptSelect() {
   return `SELECT
-    id, sequence_id, receipt_payload_readiness_id, delivery_status_webhook_readiness_id,
+    id, sequence_id, receipt_payload_readiness_id, provider_polling_readiness_id, delivery_status_webhook_readiness_id,
     delivery_result_readiness_id, delivery_attempt_readiness_id, provider_call_readiness_id,
     queue_consumer_readiness_id, queue_producer_readiness_id, dispatch_attempt_id, dispatch_preflight_id,
     delivery_queue_message_id, delivery_batch_id, schedule_intent_id, status, queue_name, provider_name,
@@ -798,7 +801,7 @@ export async function createAudienceSequenceDeliveryReceiptReadiness(
 
   const recordId = `sequence-delivery-receipt-readiness-${crypto.randomUUID()}`;
   const columns = [
-    "id", "sequence_id", "receipt_payload_readiness_id", "delivery_status_webhook_readiness_id",
+    "id", "sequence_id", "receipt_payload_readiness_id", "provider_polling_readiness_id", "delivery_status_webhook_readiness_id",
     "delivery_result_readiness_id", "delivery_attempt_readiness_id", "provider_call_readiness_id",
     "queue_consumer_readiness_id", "queue_producer_readiness_id", "dispatch_attempt_id", "dispatch_preflight_id",
     "delivery_queue_message_id", "delivery_batch_id", "schedule_intent_id", "status", "queue_name",
@@ -824,6 +827,7 @@ export async function createAudienceSequenceDeliveryReceiptReadiness(
     recordId,
     receiptPayload.sequence_id,
     receiptPayload.id,
+    receiptPayload.provider_polling_readiness_id,
     receiptPayload.delivery_status_webhook_readiness_id,
     receiptPayload.delivery_result_readiness_id,
     receiptPayload.delivery_attempt_readiness_id,
@@ -872,6 +876,7 @@ export async function createAudienceSequenceDeliveryReceiptReadiness(
     JSON.stringify({
       issue: audienceSequenceDeliveryReceiptReadinessIssue,
       receiptPayloadReadinessId: receiptPayload.id,
+      providerPollingReadinessId: receiptPayload.provider_polling_readiness_id,
       deliveryStatusWebhookReadinessId: receiptPayload.delivery_status_webhook_readiness_id,
       deliveryResultReadinessId: receiptPayload.delivery_result_readiness_id,
       deliveryAttemptReadinessId: receiptPayload.delivery_attempt_readiness_id,
