@@ -8,7 +8,7 @@ import type {
 } from "@/lib/admin-surface-data";
 
 export type DirectorWindowId = "past-1-day" | "past-7-days";
-export type DirectorQueueLaneId = "due-now" | "in-flight" | "pending-next";
+export type DirectorQueueLaneId = "due-now" | "in-flight" | "pending-next" | "watchlist";
 export type DirectorQueuePriority = "high" | "medium" | "normal";
 export type DirectorWorkstreamId =
   | "marketing"
@@ -84,6 +84,7 @@ export type DirectorWorkstream = {
   shipped: DirectorInitiative[];
   blocked: DirectorInitiative[];
   needsMark: DirectorInitiative[];
+  watchlist: DirectorInitiative[];
   sourceRecordIds: {
     roadmap: string[];
     workLog: string[];
@@ -293,6 +294,14 @@ function roadmapInitiative(item: AdminRoadmapRecord): DirectorInitiative {
   };
 }
 
+function roadmapAttentionInitiative(item: AdminRoadmapRecord, status: DirectorInitiative["status"]): DirectorInitiative {
+  return {
+    ...roadmapInitiative(item),
+    status,
+    summary: item.markAttention ?? item.summary,
+  };
+}
+
 function workLogInitiative(entry: AdminWorkLogEntry): DirectorInitiative {
   const primaryIssue = entry.githubIssues[0];
   return {
@@ -407,6 +416,12 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
     ),
     12,
   );
+  const watchlist = dedupeQueueItems(
+    workstreams.flatMap((workstream) =>
+      workstream.watchlist.map((item) => queueItem(workstream, item, "normal", "Watch", "Live roadmap caveat; not current due-now work.")),
+    ),
+    12,
+  );
 
   return [
     {
@@ -426,6 +441,12 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
       label: "Pending next",
       summary: "Committed or proposed roadmap work waiting behind active slices.",
       items: pendingNext,
+    },
+    {
+      id: "watchlist",
+      label: "Watchlist",
+      summary: "Informational caveats on live roadmap items that should remain visible without becoming due today.",
+      items: watchlist,
     },
   ];
 }
@@ -464,16 +485,16 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
     const pending = bucket.roadmap.filter((item) => item.status === "pending" || item.status === "idea").map(roadmapInitiative);
     const shipped = bucket.roadmap.filter((item) => item.status === "live").map(roadmapInitiative);
     const blocked = bucket.roadmap.filter((item) => item.status === "blocked").map(roadmapInitiative);
+    const roadmapAttentionItems = bucket.roadmap.filter((item) => Boolean(item.markAttention));
     const needsMark = [
       ...bucket.attention.filter((item) => item.state === "open" || item.state === "read").map(attentionInitiative),
-      ...bucket.roadmap
-        .filter((item) => Boolean(item.markAttention))
-        .map((item) => ({
-          ...roadmapInitiative(item),
-          status: "needs_mark" as const,
-          summary: item.markAttention ?? item.summary,
-        })),
+      ...roadmapAttentionItems
+        .filter((item) => item.status !== "live")
+        .map((item) => roadmapAttentionInitiative(item, "needs_mark")),
     ];
+    const watchlist = roadmapAttentionItems
+      .filter((item) => item.status === "live")
+      .map((item) => roadmapAttentionInitiative(item, item.status));
     const recentlyChanged = bucket.workLog
       .filter((entry) => parseTime(entry.completedAt) >= (windowCutoffs.get("past-7-days") ?? 0))
       .sort((a, b) => parseTime(b.completedAt) - parseTime(a.completedAt))
@@ -509,6 +530,7 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       shipped: dedupeInitiatives(shipped, 4),
       blocked: dedupeInitiatives(blocked, 4),
       needsMark: dedupeInitiatives(needsMark, 6),
+      watchlist: dedupeInitiatives(watchlist, 4),
       sourceRecordIds: {
         roadmap: bucket.roadmap.map((item) => item.id),
         workLog: bucket.workLog.map((entry) => entry.id),

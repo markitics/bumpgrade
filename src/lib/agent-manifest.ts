@@ -355,7 +355,7 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read director-level workstream rollups instead of raw niche work-log noise",
       "Inspect past 1 day and past 7 days change windows",
-      "Read due-now, in-flight, and pending-next executive queue lanes with workstream provenance",
+      "Read due-now, in-flight, pending-next, and watchlist executive queue lanes with workstream provenance",
       "Distinguish shipped, in-flight, pending, blocked, at-risk, and needs-Mark items with evidence links",
     ],
     writeBoundary:

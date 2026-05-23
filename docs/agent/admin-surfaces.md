@@ -38,13 +38,16 @@ Use this page for "what changed in the past day/week", "what is in flight",
 the audit trail behind the director summary.
 
 The director source-data route also exposes an `executiveQueue` with stable
-lanes for `due-now`, `in-flight`, and `pending-next`. Each queue item keeps its
-workstream ID/title and evidence links so agents and mobile dashboards can show
-the CEO-level queue without flattening Marketing, Security, Operations, Product,
-or other major categories. `due-now` is intentionally stateful: it comes from
-open/read Mark-attention records, roadmap `markAttention`, and blocked roadmap
-items. Historical work-log `flagsAttention` rows stay in recent-change and
-window evidence, but they should not inflate current due-now decisions.
+lanes for `due-now`, `in-flight`, `pending-next`, and `watchlist`. Each queue
+item keeps its workstream ID/title and evidence links so agents and mobile
+dashboards can show the CEO-level queue without flattening Marketing, Security,
+Operations, Product, or other major categories. `due-now` is intentionally
+stateful: it comes from open/read Mark-attention records, blocked roadmap items,
+and non-live roadmap `markAttention` records. Historical work-log
+`flagsAttention` rows stay in recent-change and window evidence, but they should
+not inflate current due-now decisions. `markAttention` on already-live roadmap
+items belongs in `watchlist` so informational caveats stay visible without being
+presented as due today.
 
 ## Admin `/admin/roadmap`
 

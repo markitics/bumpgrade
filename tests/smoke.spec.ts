@@ -16304,6 +16304,7 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({ id: "due-now", label: "Due now", items: expect.any(Array) }),
           expect.objectContaining({ id: "in-flight", label: "In flight", items: expect.any(Array) }),
           expect.objectContaining({ id: "pending-next", label: "Pending next", items: expect.any(Array) }),
+          expect.objectContaining({ id: "watchlist", label: "Watchlist", items: expect.any(Array) }),
         ]),
       }),
     );
@@ -16450,6 +16451,20 @@ test.describe("Bumpgrade scaffold", () => {
             sortOrder: 20,
             updatedAt: "2026-05-23T21:20:00.000Z",
           },
+          {
+            id: "roadmap-live-caveat",
+            title: "Live billing caveat",
+            status: "live",
+            issueNumber: 394,
+            featureId: "feature-codex-email",
+            groupName: "Checkout and offers",
+            summary: "Billing foundation is live.",
+            publicEvidence: ["/admin/director/source-data"],
+            nextMilestone: "Monitor live billing webhook follow-up.",
+            markAttention: "Live webhook follow-up remains a watch item, not a due-now owner action.",
+            sortOrder: 30,
+            updatedAt: "2026-05-23T21:25:00.000Z",
+          },
         ],
       },
       new Date("2026-05-23T22:00:00.000Z"),
@@ -16458,6 +16473,7 @@ test.describe("Bumpgrade scaffold", () => {
     const dueNow = payload.executiveQueue.find((lane) => lane.id === "due-now");
     const inFlight = payload.executiveQueue.find((lane) => lane.id === "in-flight");
     const pendingNext = payload.executiveQueue.find((lane) => lane.id === "pending-next");
+    const watchlist = payload.executiveQueue.find((lane) => lane.id === "watchlist");
 
     expect(dueNow?.items).toEqual(
       expect.arrayContaining([
@@ -16487,6 +16503,22 @@ test.describe("Bumpgrade scaffold", () => {
           workstreamId: "marketing",
         }),
       ]),
+    );
+    expect(dueNow?.items).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "roadmap-live-caveat" })]),
+    );
+    expect(watchlist?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-live-caveat",
+          queueLabel: "Watch",
+          workstreamId: "product-commerce",
+        }),
+      ]),
+    );
+    expect(payload.workstreams.find((workstream) => workstream.id === "product-commerce")?.needsMark).toEqual([]);
+    expect(payload.workstreams.find((workstream) => workstream.id === "product-commerce")?.watchlist).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "roadmap-live-caveat" })]),
     );
   });
 
@@ -16530,6 +16562,47 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.workstreams.find((workstream) => workstream.id === "operations-control")?.recentlyChanged).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "work-log-historical-caveat", status: "shipped_change" })]),
     );
+  });
+
+  test("director due now keeps non-live roadmap attention out of the watchlist", () => {
+    const payload = buildDirectorStatusData(
+      {
+        source: "fixture",
+        loadError: null,
+        workLogEntries: [],
+        userJourneys: [],
+        attentionItems: [],
+        roadmapItems: [
+          {
+            id: "roadmap-pending-owner-decision",
+            title: "Pending launch decision",
+            status: "pending",
+            issueNumber: 394,
+            featureId: "feature-public-roadmap",
+            groupName: "Marketing surfaces",
+            summary: "A pending launch decision needs owner review.",
+            publicEvidence: ["/admin/director/source-data"],
+            nextMilestone: "Confirm launch direction.",
+            markAttention: "Choose whether this pending launch direction should proceed.",
+            sortOrder: 10,
+            updatedAt: "2026-05-23T21:25:00.000Z",
+          },
+        ],
+      },
+      new Date("2026-05-23T22:00:00.000Z"),
+    );
+
+    expect(payload.totals.needsMark).toBe(1);
+    expect(payload.executiveQueue.find((lane) => lane.id === "due-now")?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-pending-owner-decision",
+          queueLabel: "Needs Mark",
+          workstreamId: "marketing",
+        }),
+      ]),
+    );
+    expect(payload.executiveQueue.find((lane) => lane.id === "watchlist")?.items).toEqual([]);
   });
 
   test("admin user journeys source data exposes launch proof summary", async ({ request }) => {
