@@ -126,6 +126,7 @@ export type AudienceAutomationWorkspace = {
   broadcastDrafts: BroadcastDraft[];
   unsubscribeManagement: typeof audienceUnsubscribeWriteContract;
   crmTimeline: typeof audienceCrmTimelineWriteContract;
+  sequenceScheduleIntentApiRoute: "/api/admin/audience/sequences/schedule-intents";
   broadcastScheduleIntentApiRoute: typeof audienceBroadcastScheduleIntentApiRoute;
   broadcastDeliveryBatchApiRoute: typeof audienceBroadcastDeliveryBatchApiRoute;
   broadcastDeliveryQueueMessageApiRoute: typeof audienceBroadcastDeliveryQueueMessageApiRoute;
@@ -321,6 +322,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   ],
   unsubscribeManagement: audienceUnsubscribeWriteContract,
   crmTimeline: audienceCrmTimelineWriteContract,
+  sequenceScheduleIntentApiRoute: "/api/admin/audience/sequences/schedule-intents",
   broadcastScheduleIntentApiRoute: audienceBroadcastScheduleIntentApiRoute,
   broadcastDeliveryBatchApiRoute: audienceBroadcastDeliveryBatchApiRoute,
   broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
@@ -336,6 +338,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     "/api/audience/opt-in stores normalized subscriber, consent, tag, and draft sequence enrollment evidence.",
     "/api/audience/unsubscribe stores suppression evidence without exposing list membership.",
     "/audience/source-data exposes aggregate sequence delivery readiness without queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, or provider message IDs.",
+    "/api/admin/audience/sequences/schedule-intents stores owner-confirmed dry-run sequence schedule intents without delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, or provider message IDs.",
     "/api/admin/audience/notes stores owner-only CRM timeline notes with public aggregate redaction.",
     "Broadcast readiness is calculated from D1 subscriber, consent, and suppression evidence without creating send queue rows.",
     "/api/admin/audience/broadcasts/schedule-intents stores owner-confirmed dry-run schedule intents without recipient payloads, queues, or provider message IDs.",
@@ -368,8 +371,8 @@ export function getAudienceAutomationWorkspaceBySlug(slug: string) {
 export const audienceAutomationSourceData = {
   id: "bumpgrade-audience-automation-source-data",
   updatedAt: audienceAutomationUpdatedAt,
-  status: "audience-sequence-delivery-readiness-ready",
-  issue: 351,
+  status: "sequence-schedule-intents-ready",
+  issue: 354,
   parentIssue: 17,
   generatedFrom: "src/lib/audience-automation.ts",
   routes: [
@@ -377,6 +380,7 @@ export const audienceAutomationSourceData = {
     audienceOptInApiRoute,
     audienceUnsubscribeApiRoute,
     audienceCrmTimelineApiRoute,
+    "/api/admin/audience/sequences/schedule-intents",
     audienceBroadcastScheduleIntentApiRoute,
     audienceBroadcastDeliveryBatchApiRoute,
     audienceBroadcastDeliveryQueueMessageApiRoute,
@@ -397,6 +401,7 @@ export const audienceAutomationSourceData = {
     "emailSequenceId",
     "sequenceEnrollmentPauseId",
     "sequenceDeliveryReadinessId",
+    "sequenceScheduleIntentId",
     "automationRuleId",
     "broadcastDraftId",
     "consentRecordId",

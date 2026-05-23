@@ -21,6 +21,7 @@ import {
 import { getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import { getAudienceImportIntentSummary, getAudienceImportPreflightSummary } from "@/lib/audience-imports";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
+import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export async function GET() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceSequenceDeliveryReadiness,
+    audienceSequenceScheduleIntents,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -66,6 +68,7 @@ export async function GET() {
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceSequenceDeliveryReadinessSummary(),
+    getAudienceSequenceScheduleIntentSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -82,6 +85,7 @@ export async function GET() {
         broadcastDeliveryQueueMessages.apiRoute,
         broadcastDispatchPreflights.apiRoute,
         broadcastDispatchAttempts.apiRoute,
+        audienceSequenceScheduleIntents.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -103,6 +107,7 @@ export async function GET() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceSequenceDeliveryReadiness,
+    audienceSequenceScheduleIntents,
     audienceExportReadiness,
     importIntents,
     importPreflights,

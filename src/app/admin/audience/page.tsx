@@ -28,6 +28,7 @@ import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broad
 import { AdminBroadcastDispatchAttemptForm } from "@/components/admin-broadcast-dispatch-attempt-form";
 import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcast-dispatch-preflight-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
+import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
   audienceBroadcastDeliveryBatchIssue,
@@ -68,6 +69,10 @@ import {
   audienceSequenceDeliveryReadinessIssue,
   getAudienceSequenceDeliveryReadinessSummary,
 } from "@/lib/audience-sequence-readiness";
+import {
+  audienceSequenceScheduleIntentIssue,
+  getAudienceSequenceScheduleIntentSummary,
+} from "@/lib/audience-sequence-schedule-intents";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -110,6 +115,7 @@ export default async function AdminAudiencePage() {
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
     audienceSequenceDeliveryReadiness,
+    audienceSequenceScheduleIntents,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -131,6 +137,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceSequenceDeliveryReadinessSummary(),
+    getAudienceSequenceScheduleIntentSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -160,9 +167,10 @@ export default async function AdminAudiencePage() {
             owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
-            suppression counts before sequence scheduling or sends exist. Export readiness shows aggregate eligible,
-            suppressed, unsubscribed, and paused-sequence counts before private CSV exports exist. Public source-data
-            stays aggregate-only.
+            suppression counts before sequence scheduling or sends exist. Sequence schedule intents record owner dry-run
+            intent while queues, payloads, unsubscribe URLs, provider sends, and provider IDs stay disabled. Export
+            readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts before private CSV
+            exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -186,6 +194,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceDeliveryReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceScheduleIntentIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceScheduleIntentIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -221,6 +236,15 @@ export default async function AdminAudiencePage() {
             <p>
               {audienceSequenceDeliveryReadiness.counts.readyEnrollments} ready draft enrollments;{" "}
               {audienceSequenceDeliveryReadiness.counts.deliveryQueueRowsCreatedRecords} delivery queues created.
+            </p>
+          </div>
+          <div>
+            <CalendarClock aria-hidden="true" />
+            <h3>Sequence intents</h3>
+            <p>
+              {audienceSequenceScheduleIntents.counts.scheduleIntents} dry-run intent
+              {audienceSequenceScheduleIntents.counts.scheduleIntents === 1 ? "" : "s"} recorded;{" "}
+              {audienceSequenceScheduleIntents.counts.readyEnrollmentsReserved} ready enrollments snapshotted.
             </p>
           </div>
           <div>
@@ -405,6 +429,70 @@ export default async function AdminAudiencePage() {
         </div>
       </section>
 
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence schedule intents</p>
+            <h2>Owner sequence intent is recorded before any queue payload exists</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceScheduleIntentIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceScheduleIntentIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceScheduleIntents.latestIntents.length > 0 ? (
+            audienceSequenceScheduleIntents.latestIntents.map((intent) => (
+              <article key={intent.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{intent.status}</span>
+                  <span className="admin-pill">{intent.readyEnrollmentCount} ready</span>
+                </div>
+                <h3>{intent.scheduleKind.replaceAll("_", " ")}</h3>
+                <p>
+                  Held enrollments: {intent.heldEnrollmentCount}. Active suppression entries snapshotted:{" "}
+                  {intent.activeSuppressionCount}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Sequence</strong>
+                  <span>{intent.sequenceId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Requested start</strong>
+                  <span>{intent.requestedStartAt ?? "Not specified"}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Delivery artifacts</strong>
+                  <span>
+                    {String(intent.recipientPayloadsCreated)} recipient payloads;{" "}
+                    {String(intent.deliveryQueueRowsCreated)} queue rows
+                  </span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Recorded</strong>
+                  <span>{compactDate(intent.createdAt)}</span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No dry runs</span>
+                <span className="admin-pill">Issue #{audienceSequenceScheduleIntentIssue}</span>
+              </div>
+              <h3>No sequence schedule intents yet</h3>
+              <p>
+                Record a dry-run intent from the sequence readiness card after checking the current workspace revision
+                and readiness count.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
       <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
@@ -563,6 +651,12 @@ export default async function AdminAudiencePage() {
                 <strong>Provider send</strong>
                 <span>{String(record.providerSendEnabled)}</span>
               </div>
+              <AdminSequenceScheduleIntentForm
+                sequenceId={record.sequenceId}
+                expectedWorkspaceRevisionId={audienceSequenceDeliveryReadiness.workspace.revisionId}
+                expectedSequenceStatus={record.status}
+                expectedReadyEnrollmentCount={audienceSequenceDeliveryReadiness.counts.readyEnrollments}
+              />
             </article>
           ))}
         </div>

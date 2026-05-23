@@ -1172,6 +1172,41 @@ export const audienceBroadcastScheduleIntents = sqliteTable(
   }),
 );
 
+export const audienceSequenceScheduleIntents = sqliteTable(
+  "audience_sequence_schedule_intents",
+  {
+    id: text("id").primaryKey(),
+    sequenceId: text("sequence_id").notNull(),
+    status: text("status").notNull().default("dry_run_recorded"),
+    scheduleKind: text("schedule_kind").notNull().default("owner_confirmed_dry_run"),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedSequenceStatus: text("expected_sequence_status").notNull(),
+    readyEnrollmentCount: integer("ready_enrollment_count").notNull().default(0),
+    heldEnrollmentCount: integer("held_enrollment_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    requestedStartAt: text("requested_start_at"),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_sequence_schedule_intents_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    sequenceStatusIdx: index("audience_sequence_schedule_intents_sequence_status_idx").on(
+      table.sequenceId,
+      table.status,
+    ),
+    statusCreatedIdx: index("audience_sequence_schedule_intents_status_created_idx").on(
+      table.status,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const audienceBroadcastPreviewSafety = sqliteTable(
   "audience_broadcast_preview_safety",
   {
