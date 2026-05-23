@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, #253, #259, #347, #351, #354, #358, #360, #362, #364, #366, #368, #370, #372, #374, and #376 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, #253, #259, #347, #351, #354, #358, #360, #362, #364, #366, #368, #370, #372, #374, #376, and #378 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, owner-reviewed sequence Queue consumer readiness gates, owner-reviewed sequence provider-call readiness gates, owner-reviewed sequence delivery-attempt readiness gates, owner-reviewed sequence delivery-result readiness gates, owner-reviewed sequence delivery-status webhook readiness gates, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, owner-confirmed audience import intents, owner-confirmed audience import preflights, aggregate export readiness, and aggregate sequence delivery readiness for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, owner-reviewed sequence Queue consumer readiness gates, owner-reviewed sequence provider-call readiness gates, owner-reviewed sequence delivery-attempt readiness gates, owner-reviewed sequence delivery-result readiness gates, owner-reviewed sequence delivery-status webhook readiness gates, owner-reviewed sequence provider-polling readiness gates, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, owner-confirmed audience import intents, owner-confirmed audience import preflights, aggregate export readiness, and aggregate sequence delivery readiness for issue #17.
 
 ## Live Routes
 
@@ -36,6 +36,8 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run seq
   endpoint for sequence delivery-result readiness gates.
 - `/api/admin/audience/sequences/delivery-status-webhook-readiness`: owner-gated
   POST endpoint for sequence delivery-status webhook readiness gates.
+- `/api/admin/audience/sequences/provider-polling-readiness`: owner-gated POST
+  endpoint for sequence provider-polling readiness gates.
 - `/api/admin/audience/broadcasts/schedule-intents`: owner-gated POST endpoint
   for dry-run broadcast schedule intents.
 - `/api/admin/audience/broadcasts/delivery-batches`: owner-gated POST endpoint
@@ -52,7 +54,7 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run seq
   exact-confirmed, aggregate import preflight evidence tied to an import intent.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
   enrollment inspection plus suppression totals, private note context, and
-  broadcast readiness, schedule intent context, sequence delivery-batch context, sequence queue-message context, sequence dispatch preflight context, sequence dispatch attempt context, sequence Queue producer readiness context, sequence Queue consumer readiness context, sequence provider-call readiness context, sequence delivery-attempt readiness context, sequence delivery-result readiness context, sequence delivery-status webhook readiness context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, Queue producer readiness context, Queue consumer readiness context, provider-call readiness context, delivery-attempt readiness context, delivery-result readiness context, delivery-status webhook readiness context, import-intent context, import-preflight context, export-readiness context, and sequence delivery readiness context.
+  broadcast readiness, schedule intent context, sequence delivery-batch context, sequence queue-message context, sequence dispatch preflight context, sequence dispatch attempt context, sequence Queue producer readiness context, sequence Queue consumer readiness context, sequence provider-call readiness context, sequence delivery-attempt readiness context, sequence delivery-result readiness context, sequence delivery-status webhook readiness context, sequence provider-polling readiness context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, Queue producer readiness context, Queue consumer readiness context, provider-call readiness context, delivery-attempt readiness context, delivery-result readiness context, delivery-status webhook readiness context, import-intent context, import-preflight context, export-readiness context, and sequence delivery readiness context.
 
 ## Current Contract
 
@@ -79,6 +81,7 @@ The first workspace includes stable IDs for:
 - owner-reviewed sequence delivery-attempt readiness boundaries;
 - owner-reviewed sequence delivery-result readiness boundaries;
 - owner-reviewed sequence delivery-status webhook readiness boundaries;
+- owner-reviewed sequence provider-polling readiness boundaries;
 - suppression-aware broadcast readiness boundaries;
 - owner-confirmed dry-run schedule intent boundaries;
 - broadcast preview and unsubscribe-footer safety boundaries;
@@ -238,7 +241,17 @@ message IDs, creating no delivery attempts or results, processing no status
 webhooks, reading or creating no webhook payloads, polling no providers,
 creating no receipt payloads or receipts, consuming or acking no Queue messages,
 reading no queue payload bodies, and creating no recipient payloads,
-personalized bodies, or unsubscribe URLs. The
+personalized bodies, or unsubscribe URLs. The sequence provider-polling
+readiness path records provider-polling, polling-result, receipt-payload,
+delivery-receipt, status-reconciliation, idempotency, audit-correlation, and
+backpressure gates from a current sequence delivery-status webhook readiness
+record while still making no provider calls, sending no messages, creating no
+provider responses or message IDs, creating no delivery attempts or results,
+processing no status webhooks, reading or creating no webhook payloads, polling
+no providers, creating no provider polling results, receipt payloads, or
+receipts, consuming or acking no Queue messages, reading no queue payload
+bodies, and creating no recipient payloads, personalized bodies, or unsubscribe
+URLs. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
 note bodies, actor emails, private DNS credentials, raw DNS records, provider
@@ -253,7 +266,7 @@ public aggregate subscriber inspection contract to understand audience automatio
 state, including aggregate suppression counts, broadcast readiness counts, and
 schedule intent counts, plus sequence delivery-batch dry runs, sequence
 queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch
-attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, preview safety, queue readiness, delivery-batch dry runs,
+attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, sequence provider-polling readiness, preview safety, queue readiness, delivery-batch dry runs,
 queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts,
 sender-domain readiness, provider-event readiness, provider rate-limit
 readiness, provider response readiness, send-payload readiness, Queue producer
@@ -262,14 +275,14 @@ counts, export-readiness counts, sequence delivery readiness counts, and the
 unsubscribe/import-intent/import-preflight write boundaries.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
-intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, and sequence delivery-status webhook readiness gates.
+intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, and sequence provider-polling readiness gates.
 They can also inspect preview/footer safety and queue readiness and
-record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, non-destructive import intents, and aggregate import preflights without sending or importing. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Provider-event readiness stays read-only until future provider webhooks can normalize events, update suppression state, redact raw payloads, and preserve audit correlation. Provider rate-limit readiness stays read-only until future provider setup can enforce throttle windows, retry budgets, and queue backpressure. Provider response readiness stays read-only until future provider send handling can capture response classes without raw bodies. Send-payload readiness stays read-only until future Queue producers create recipient payloads with consent, suppression, unsubscribe footer, and audit gates. Queue producer readiness stays read-only until future producer and consumer flows can enforce idempotency, backpressure, payload, and audit gates. Queue consumer readiness stays read-only until future consumers can enforce ack, retry, dead-letter, provider handoff, payload, and audit gates. Provider-call readiness stays read-only until future provider calls can enforce response, message-ID, delivery-attempt, receipt, and audit gates. Delivery-attempt readiness stays read-only until future delivery-attempt execution can prove result, webhook, receipt, retry, and audit safety. Delivery-result readiness stays read-only until future delivery-result processing can prove webhook, receipt, retry, status, and audit safety. Delivery-status webhook readiness stays read-only until future webhook receipt, provider polling, receipt-payload, delivery-receipt, and status reconciliation contracts can prove result handling safely. Direct agent subscriber
+record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, non-destructive import intents, and aggregate import preflights without sending or importing. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Provider-event readiness stays read-only until future provider webhooks can normalize events, update suppression state, redact raw payloads, and preserve audit correlation. Provider rate-limit readiness stays read-only until future provider setup can enforce throttle windows, retry budgets, and queue backpressure. Provider response readiness stays read-only until future provider send handling can capture response classes without raw bodies. Send-payload readiness stays read-only until future Queue producers create recipient payloads with consent, suppression, unsubscribe footer, and audit gates. Queue producer readiness stays read-only until future producer and consumer flows can enforce idempotency, backpressure, payload, and audit gates. Queue consumer readiness stays read-only until future consumers can enforce ack, retry, dead-letter, provider handoff, payload, and audit gates. Provider-call readiness stays read-only until future provider calls can enforce response, message-ID, delivery-attempt, receipt, and audit gates. Delivery-attempt readiness stays read-only until future delivery-attempt execution can prove result, webhook, receipt, retry, and audit safety. Delivery-result readiness stays read-only until future delivery-result processing can prove webhook, receipt, retry, status, and audit safety. Delivery-status webhook readiness stays read-only until future webhook receipt, provider polling, receipt-payload, delivery-receipt, and status reconciliation contracts can prove result handling safely. Provider-polling readiness stays read-only until future provider polling, polling-result, receipt-payload, delivery-receipt, and status reconciliation contracts can prove receipt handling safely. Direct agent subscriber
 writes, real imports, real email sends, sequence delivery, CRM automation, private
 exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
 idempotency, audit correlation, stale-state checks, redaction, suppression-list
-checks, unsubscribe footer validation, provider limits, sender-domain safety, provider-event safety, provider rate-limit safety, provider response safety, send-payload safety, Queue producer safety, Queue consumer safety, provider-call safety, delivery-attempt safety, delivery-result safety, delivery-status webhook safety, and queue safety.
+checks, unsubscribe footer validation, provider limits, sender-domain safety, provider-event safety, provider rate-limit safety, provider response safety, send-payload safety, Queue producer safety, Queue consumer safety, provider-call safety, delivery-attempt safety, delivery-result safety, delivery-status webhook safety, provider-polling safety, and queue safety.
 
 Codex project email in issue #10 is separate from customer or publisher email
 automation in issue #17.

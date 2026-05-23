@@ -156,6 +156,12 @@ import {
   audienceSequenceDeliveryStatusWebhookReadinessStatus,
 } from "../src/lib/audience-sequence-delivery-status-webhook-readiness";
 import {
+  audienceSequenceProviderPollingReadinessApiRoute,
+  audienceSequenceProviderPollingReadinessConfirmationText,
+  audienceSequenceProviderPollingReadinessIssue,
+  audienceSequenceProviderPollingReadinessStatus,
+} from "../src/lib/audience-sequence-provider-polling-readiness";
+import {
   audienceSequenceDeliveryReadinessIssue,
   audienceSequenceDeliveryReadinessStatus,
 } from "../src/lib/audience-sequence-readiness";
@@ -2595,8 +2601,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceSequenceDeliveryStatusWebhookReadinessStatus,
-        issue: audienceSequenceDeliveryStatusWebhookReadinessIssue,
+        status: audienceSequenceProviderPollingReadinessStatus,
+        issue: audienceSequenceProviderPollingReadinessIssue,
         parentIssue: 17,
       }),
     );
@@ -2617,6 +2623,7 @@ test.describe("Bumpgrade scaffold", () => {
         audienceSequenceDeliveryAttemptReadinessApiRoute,
         audienceSequenceDeliveryResultReadinessApiRoute,
         audienceSequenceDeliveryStatusWebhookReadinessApiRoute,
+        audienceSequenceProviderPollingReadinessApiRoute,
         audienceBroadcastScheduleIntentApiRoute,
         audienceBroadcastDeliveryBatchApiRoute,
         audienceBroadcastDeliveryQueueMessageApiRoute,
@@ -3066,6 +3073,95 @@ test.describe("Bumpgrade scaffold", () => {
           deliveryStatusWebhookPayloadsReadRecords: 0,
           deliveryStatusWebhookPayloadsCreatedRecords: 0,
           providerPollingEnabledRecords: 0,
+          providerPollingResultsCreatedRecords: 0,
+          receiptPayloadsCreatedRecords: 0,
+          deliveryReceiptsCreatedRecords: 0,
+          cloudflareQueueConsumerEnabledRecords: 0,
+          cloudflareQueueMessagesConsumedRecords: 0,
+          cloudflareQueueMessagesAckedRecords: 0,
+          queueRetryRecordsCreatedRecords: 0,
+          queueDeadLetterRecordsCreatedRecords: 0,
+          queuePayloadBodiesReadRecords: 0,
+          queuePayloadBodiesCreatedRecords: 0,
+          recipientPayloadsCreatedRecords: 0,
+          personalizedBodiesCreatedRecords: 0,
+          unsubscribeUrlsCreatedRecords: 0,
+          providerSendEnabledRecords: 0,
+          providerResponsesCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          rawRecipientNamesIncluded: false,
+          actorEmailIncluded: false,
+          suppressionHashesIncluded: false,
+          deliveryQueuePayloadsIncluded: false,
+          cloudflareQueuePayloadsIncluded: false,
+          queuePayloadBodiesIncluded: false,
+          deliveryAttemptBodiesIncluded: false,
+          deliveryResultBodiesIncluded: false,
+          deliveryStatusWebhookPayloadsIncluded: false,
+          providerPollingPayloadsIncluded: false,
+          receiptPayloadsIncluded: false,
+          deliveryAttemptsIncluded: false,
+          deliveryResultsIncluded: false,
+          deliveryStatusWebhooksIncluded: false,
+          deliveryReceiptsIncluded: false,
+          queueConsumerAckRowsIncluded: false,
+          queueRetryRowsIncluded: false,
+          queueDeadLetterRowsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+          bodyTemplatesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+          providerResponsesIncluded: false,
+          providerMessageIdsIncluded: false,
+          deliveryStatusWebhookEnabled: false,
+          deliveryAttemptsCreated: false,
+          deliveryResultsCreated: false,
+          deliveryStatusWebhooksProcessed: false,
+          deliveryReceiptsCreated: false,
+          cloudflareQueueConsumersEnabled: false,
+          cloudflareQueueMessagesConsumed: false,
+          cloudflareQueueMessagesAcked: false,
+          providerPollingEnabled: false,
+          providerSendEnabled: false,
+        }),
+      }),
+    );
+    expect(payload.audienceSequenceProviderPollingReadiness).toEqual(
+      expect.objectContaining({
+        id: "audience-sequence-provider-polling-readiness-contract",
+        status: audienceSequenceProviderPollingReadinessStatus,
+        issue: audienceSequenceProviderPollingReadinessIssue,
+        parentIssue: 17,
+        apiRoute: audienceSequenceProviderPollingReadinessApiRoute,
+        ownerRoute: "/admin/audience",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceSequenceProviderPollingReadinessConfirmationText,
+        }),
+        dependency: expect.objectContaining({
+          deliveryStatusWebhookReadinessStatus: audienceSequenceDeliveryStatusWebhookReadinessStatus,
+          deliveryStatusWebhookReadinessIssue: audienceSequenceDeliveryStatusWebhookReadinessIssue,
+          deliveryStatusWebhookReadinessRequired: true,
+        }),
+        counts: expect.objectContaining({
+          providerPollingReadinessRecords: expect.any(Number),
+          dryRunProviderPollingContracts: expect.any(Number),
+          dryRunMessagesSnapshotted: expect.any(Number),
+          heldEnrollmentsSnapshotted: expect.any(Number),
+          activeSuppressionsSnapshotted: expect.any(Number),
+          deliveryStatusWebhookEnabledRecords: 0,
+          deliveryAttemptsCreatedRecords: 0,
+          deliveryResultsCreatedRecords: 0,
+          deliveryStatusWebhooksProcessedRecords: 0,
+          deliveryStatusWebhookPayloadsReadRecords: 0,
+          deliveryStatusWebhookPayloadsCreatedRecords: 0,
+          providerPollingEnabledRecords: 0,
+          providerPollingPayloadsReadRecords: 0,
+          providerPollingPayloadsCreatedRecords: 0,
           providerPollingResultsCreatedRecords: 0,
           receiptPayloadsCreatedRecords: 0,
           deliveryReceiptsCreatedRecords: 0,
@@ -4098,6 +4194,7 @@ test.describe("Bumpgrade scaffold", () => {
           sequenceDeliveryAttemptReadinessApiRoute: audienceSequenceDeliveryAttemptReadinessApiRoute,
           sequenceDeliveryResultReadinessApiRoute: audienceSequenceDeliveryResultReadinessApiRoute,
           sequenceDeliveryStatusWebhookReadinessApiRoute: audienceSequenceDeliveryStatusWebhookReadinessApiRoute,
+          sequenceProviderPollingReadinessApiRoute: audienceSequenceProviderPollingReadinessApiRoute,
           broadcastDeliveryBatchApiRoute: audienceBroadcastDeliveryBatchApiRoute,
           broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
           broadcastDispatchPreflightApiRoute: audienceBroadcastDispatchPreflightApiRoute,
@@ -4125,6 +4222,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #372 can record owner-reviewed sequence delivery-attempt readiness");
     expect(payload.writeBoundary).toContain("Issue #374 can record owner-reviewed sequence delivery-result readiness");
     expect(payload.writeBoundary).toContain("Issue #376 can record owner-reviewed sequence delivery-status webhook readiness");
+    expect(payload.writeBoundary).toContain("Issue #378 can record owner-reviewed sequence provider-polling readiness");
     expect(payload.caveat).toContain("consent-backed subscriber capture");
     expect(payload.caveat).toContain("unsubscribe-paused sequence enrollment aggregates");
     expect(payload.caveat).toContain("aggregate export-readiness evidence");
@@ -4137,6 +4235,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("sequence delivery-attempt readiness evidence from issue #372");
     expect(payload.caveat).toContain("sequence delivery-result readiness evidence from issue #374");
     expect(payload.caveat).toContain("sequence delivery-status webhook readiness evidence from issue #376");
+    expect(payload.caveat).toContain("sequence provider-polling readiness evidence from issue #378");
 
     await page.goto("/audience/indie-launch-waitlist");
     await expect(page.getByRole("heading", { name: /Indie launch waitlist and nurture/i })).toBeVisible();
@@ -5024,6 +5123,25 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(unauthorizedSequenceDeliveryStatusWebhookReadinessResponse.status()).toBe(401);
     await expect(unauthorizedSequenceDeliveryStatusWebhookReadinessResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedSequenceProviderPollingReadinessResponse = await request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: "sequence-delivery-status-webhook-readiness-not-public",
+          sequenceId: "sequence-indie-launch-nurture",
+          expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+          expectedSequenceStatus: "draft",
+          expectedReadyEnrollmentCount: 0,
+          confirmationText: audienceSequenceProviderPollingReadinessConfirmationText,
+          idempotencyKey: `${idempotencyKey}-unauthorized-sequence-provider-polling-readiness`,
+        },
+      },
+    );
+    expect(unauthorizedSequenceProviderPollingReadinessResponse.status()).toBe(401);
+    await expect(unauthorizedSequenceProviderPollingReadinessResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
 
@@ -15940,7 +16058,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211, 253, 259, 347, 351, 354, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376,
+            211, 253, 259, 347, 351, 354, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376, 378,
           ],
         }),
         expect.objectContaining({
@@ -16416,6 +16534,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-audience-automation", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-sequence-delivery-result-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-sequence-delivery-status-webhook-readiness", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-sequence-provider-polling-readiness", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
@@ -16590,6 +16709,7 @@ test.describe("Bumpgrade scaffold", () => {
             "sequenceDeliveryAttemptReadinessId",
             "sequenceDeliveryResultReadinessId",
             "sequenceDeliveryStatusWebhookReadinessId",
+            "sequenceProviderPollingReadinessId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
@@ -16605,6 +16725,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect public-safe sequence delivery-attempt readiness without creating delivery attempts, delivery results, webhooks, receipts, provider responses, provider message IDs, recipient payloads, personalized bodies, or unsubscribe URLs",
             "Inspect public-safe sequence delivery-result readiness without creating delivery results, webhooks, receipts, provider responses, provider message IDs, delivery attempts, recipient payloads, personalized bodies, or unsubscribe URLs",
             "Inspect public-safe sequence delivery-status webhook readiness without processing status webhooks, reading webhook payloads, polling providers, creating receipts, provider responses, provider message IDs, delivery attempts, delivery results, recipient payloads, personalized bodies, or unsubscribe URLs",
+            "Inspect public-safe sequence provider-polling readiness without polling providers, reading polling payloads, creating polling results, receipt payloads, receipts, provider responses, provider message IDs, delivery attempts, delivery results, recipient payloads, personalized bodies, or unsubscribe URLs",
             "Inspect suppression-aware broadcast readiness without recipient exposure",
             "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
             "Inspect broadcast preview and unsubscribe-footer safety without personalized body or recipient exposure",
@@ -16747,6 +16868,16 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining([
             "sequenceDeliveryStatusWebhookReadinessId",
             "sequenceDeliveryResultReadinessId",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-sequence-provider-polling-readiness",
+          route: audienceSequenceProviderPollingReadinessApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "sequenceProviderPollingReadinessId",
+            "sequenceDeliveryStatusWebhookReadinessId",
             "idempotencyKey",
           ]),
         }),
@@ -19336,6 +19467,311 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const sequenceProviderPollingReadinessIdempotencyKey =
+      `playwright-sequence-provider-polling-readiness-${Date.now()}`;
+    const providerPollingContractResponse = await page.request.get(audienceSequenceProviderPollingReadinessApiRoute);
+    expect(providerPollingContractResponse.ok(), await providerPollingContractResponse.text()).toBeTruthy();
+    await expect(providerPollingContractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: audienceSequenceProviderPollingReadinessStatus,
+        route: audienceSequenceProviderPollingReadinessApiRoute,
+        confirmation: expect.objectContaining({
+          text: audienceSequenceProviderPollingReadinessConfirmationText,
+        }),
+        contract: expect.objectContaining({
+          id: "audience-sequence-provider-polling-readiness-contract",
+          dependency: expect.objectContaining({
+            deliveryStatusWebhookReadinessStatus: audienceSequenceDeliveryStatusWebhookReadinessStatus,
+            deliveryStatusWebhookReadinessRequired: true,
+          }),
+          redaction: expect.objectContaining({
+            actorEmailIncluded: false,
+            rawRecipientEmailsIncluded: false,
+            deliveryStatusWebhookPayloadsIncluded: false,
+            providerPollingPayloadsIncluded: false,
+            receiptPayloadsIncluded: false,
+            deliveryAttemptsIncluded: false,
+            deliveryResultsIncluded: false,
+            deliveryStatusWebhooksIncluded: false,
+            deliveryReceiptsIncluded: false,
+            queueConsumerAckRowsIncluded: false,
+            queueRetryRowsIncluded: false,
+            queueDeadLetterRowsIncluded: false,
+            queuePayloadBodiesIncluded: false,
+            recipientPayloadsIncluded: false,
+            personalizedBodiesIncluded: false,
+            bodyTemplatesIncluded: false,
+            unsubscribeUrlsIncluded: false,
+            providerResponsesIncluded: false,
+            providerMessageIdsIncluded: false,
+            providerPollingEnabled: false,
+            providerSendEnabled: false,
+          }),
+        }),
+      }),
+    );
+    const missingSequenceProviderPollingConfirmationResponse = await page.request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          sequenceId: sequenceRecord.sequenceId,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          confirmationText: "Poll sequence providers now",
+          idempotencyKey: `${sequenceProviderPollingReadinessIdempotencyKey}-missing-confirmation`,
+        },
+      },
+    );
+    expect(missingSequenceProviderPollingConfirmationResponse.status()).toBe(400);
+    await expect(missingSequenceProviderPollingConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const missingSequenceProviderPollingStatusWebhookResponse = await page.request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: "sequence-delivery-status-webhook-readiness-not-current",
+          sequenceId: sequenceRecord.sequenceId,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          confirmationText: audienceSequenceProviderPollingReadinessConfirmationText,
+          idempotencyKey: `${sequenceProviderPollingReadinessIdempotencyKey}-missing-status-webhook`,
+        },
+      },
+    );
+    expect(missingSequenceProviderPollingStatusWebhookResponse.status()).toBe(404);
+    await expect(missingSequenceProviderPollingStatusWebhookResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "delivery_status_webhook_readiness_not_found" }),
+    );
+
+    const sequenceProviderPollingReadinessResponse = await page.request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          sequenceId: sequenceRecord.sequenceId,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          confirmationText: audienceSequenceProviderPollingReadinessConfirmationText,
+          idempotencyKey: sequenceProviderPollingReadinessIdempotencyKey,
+        },
+      },
+    );
+    expect(sequenceProviderPollingReadinessResponse.ok(), await sequenceProviderPollingReadinessResponse.text()).toBeTruthy();
+    const sequenceProviderPollingReadinessPayload = await sequenceProviderPollingReadinessResponse.json();
+    expect(sequenceProviderPollingReadinessPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "sequence_provider_polling_readiness_recorded",
+        duplicate: false,
+        record: expect.objectContaining({
+          sequenceId: sequenceRecord.sequenceId,
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          deliveryResultReadinessId: sequenceDeliveryResultReadinessPayload.record.id,
+          deliveryAttemptReadinessId: sequenceDeliveryAttemptReadinessPayload.record.id,
+          providerCallReadinessId: sequenceProviderCallReadinessPayload.record.id,
+          queueConsumerReadinessId: sequenceQueueConsumerReadinessPayload.record.id,
+          queueProducerReadinessId: sequenceQueueProducerReadinessPayload.record.id,
+          dispatchAttemptId: sequenceDispatchAttemptPayload.attempt.id,
+          dispatchPreflightId: sequenceDispatchPreflightPayload.preflight.id,
+          deliveryQueueMessageId: sequenceQueueMessagesPayload.messages.id,
+          deliveryBatchId: sequenceDeliveryBatchPayload.batch.id,
+          scheduleIntentId: sequenceScheduleIntentPayload.intent.id,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          expectedDeliveryStatusWebhookReadinessStatus: audienceSequenceDeliveryStatusWebhookReadinessStatus,
+          dryRunMessageCount: sequenceReadiness.counts.readyEnrollments,
+          providerName: "resend_or_cloudflare_email_provider_pending",
+          providerMode: "dry_run_contract_only_no_provider_polling",
+          deliveryStatusWebhookEnabled: false,
+          deliveryAttemptsCreated: false,
+          deliveryResultsCreated: false,
+          deliveryStatusWebhooksProcessed: false,
+          deliveryStatusWebhookPayloadsRead: false,
+          deliveryStatusWebhookPayloadsCreated: false,
+          providerPollingEnabled: false,
+          providerPollingPayloadsRead: false,
+          providerPollingPayloadsCreated: false,
+          providerPollingResultsCreated: false,
+          receiptPayloadsCreated: false,
+          deliveryReceiptsCreated: false,
+          cloudflareQueueConsumerEnabled: false,
+          cloudflareQueueMessagesConsumed: false,
+          cloudflareQueueMessagesAcked: false,
+          queueRetryRecordsCreated: false,
+          queueDeadLetterRecordsCreated: false,
+          queuePayloadBodiesRead: false,
+          queuePayloadBodiesCreated: false,
+          recipientPayloadsCreated: false,
+          personalizedBodiesCreated: false,
+          unsubscribeUrlsCreated: false,
+          providerSendEnabled: false,
+          providerResponsesIncluded: false,
+          providerMessageIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          rawRecipientNamesIncluded: false,
+          suppressionHashesIncluded: false,
+          deliveryAttemptBodiesIncluded: false,
+          deliveryResultBodiesIncluded: false,
+          deliveryStatusWebhookPayloadsIncluded: false,
+          providerPollingPayloadsIncluded: false,
+          receiptPayloadsIncluded: false,
+          deliveryAttemptsIncluded: false,
+          deliveryResultsIncluded: false,
+          deliveryStatusWebhooksIncluded: false,
+          deliveryReceiptsIncluded: false,
+          queuePayloadBodiesIncluded: false,
+          queueConsumerAckRowsIncluded: false,
+          queueRetryRowsIncluded: false,
+          queueDeadLetterRowsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+          bodyTemplatesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+          providerResponsesIncluded: false,
+          providerMessageIdsIncluded: false,
+        }),
+      }),
+    );
+    const replaySequenceProviderPollingReadinessResponse = await page.request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          sequenceId: sequenceRecord.sequenceId,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          confirmationText: audienceSequenceProviderPollingReadinessConfirmationText,
+          idempotencyKey: sequenceProviderPollingReadinessIdempotencyKey,
+        },
+      },
+    );
+    expect(
+      replaySequenceProviderPollingReadinessResponse.ok(),
+      await replaySequenceProviderPollingReadinessResponse.text(),
+    ).toBeTruthy();
+    await expect(replaySequenceProviderPollingReadinessResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        record: expect.objectContaining({ id: sequenceProviderPollingReadinessPayload.record.id }),
+      }),
+    );
+    const staleSequenceProviderPollingReadinessResponse = await page.request.post(
+      audienceSequenceProviderPollingReadinessApiRoute,
+      {
+        data: {
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          sequenceId: sequenceRecord.sequenceId,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments + 1,
+          confirmationText: audienceSequenceProviderPollingReadinessConfirmationText,
+          idempotencyKey: `playwright-sequence-provider-polling-readiness-stale-${Date.now()}`,
+        },
+      },
+    );
+    expect(staleSequenceProviderPollingReadinessResponse.status()).toBe(409);
+    await expect(staleSequenceProviderPollingReadinessResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+      }),
+    );
+
+    const audienceSourceAfterProviderPolling = await page.request.get("/audience/source-data");
+    expect(audienceSourceAfterProviderPolling.ok(), await audienceSourceAfterProviderPolling.text()).toBeTruthy();
+    const audienceSourceAfterProviderPollingPayload = await audienceSourceAfterProviderPolling.json();
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingReadinessRecords,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingPayloadsReadRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingPayloadsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingResultsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .receiptPayloadsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .deliveryReceiptsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueConsumerEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueMessagesConsumedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueMessagesAckedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .queuePayloadBodiesReadRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts.providerSendEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerResponsesCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.counts
+        .providerMessageIdsCreatedRecords,
+    ).toBe(0);
+    expect(audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness.latestRecords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: sequenceProviderPollingReadinessPayload.record.id,
+          deliveryStatusWebhookReadinessId: sequenceDeliveryStatusWebhookReadinessPayload.record.id,
+          deliveryResultReadinessId: sequenceDeliveryResultReadinessPayload.record.id,
+          providerPollingEnabled: false,
+          providerPollingPayloadsRead: false,
+          providerPollingPayloadsCreated: false,
+          providerPollingResultsCreated: false,
+          providerSendEnabled: false,
+          providerResponsesIncluded: false,
+          providerMessageIdsIncluded: false,
+        }),
+      ]),
+    );
+    expect(JSON.stringify(audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness)).not.toContain(
+      "m@rkmoriarty.com",
+    );
+    expect(JSON.stringify(audienceSourceAfterProviderPollingPayload.audienceSequenceProviderPollingReadiness)).not.toContain(
+      audienceEmail,
+    );
+
     const broadcastDraft = audienceSourceAfterNotePayload.broadcastReadiness.drafts.find(
       (draft: { id: string }) => draft.id === "broadcast-draft-launch-window",
     );
@@ -20169,6 +20605,61 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryStatusWebhookReadiness)).not.toContain(
       audienceEmail,
     );
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingReadinessRecords,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.providerPollingEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingPayloadsReadRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingPayloadsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .providerPollingResultsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.receiptPayloadsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.deliveryReceiptsCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueConsumerEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueMessagesConsumedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts
+        .cloudflareQueueMessagesAckedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.queuePayloadBodiesReadRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.providerSendEnabledRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.providerResponsesCreatedRecords,
+    ).toBe(0);
+    expect(
+      audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness.counts.providerMessageIdsCreatedRecords,
+    ).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness)).not.toContain(
+      "m@rkmoriarty.com",
+    );
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceProviderPollingReadiness)).not.toContain(
+      audienceEmail,
+    );
     expect(audienceSourceAfterSchedulePayload.broadcastScheduleIntents.counts.scheduleIntents).toBeGreaterThanOrEqual(1);
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain("m@rkmoriarty.com");
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain(audienceEmail);
@@ -20374,6 +20865,16 @@ test.describe("Bumpgrade scaffold", () => {
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Sequence delivery-status webhook is readiness-only" }).first(),
+    ).toBeVisible();
+    await expect(page.getByText("Sequence provider-polling readiness", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Provider polling stays disabled until receipt and reconciliation gates pass" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Record sequence provider-polling readiness/i }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Sequence provider polling is readiness-only" }).first(),
     ).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
