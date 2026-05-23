@@ -1207,6 +1207,50 @@ export const audienceSequenceScheduleIntents = sqliteTable(
   }),
 );
 
+export const audienceSequenceDeliveryBatches = sqliteTable(
+  "audience_sequence_delivery_batches",
+  {
+    id: text("id").primaryKey(),
+    sequenceId: text("sequence_id").notNull(),
+    scheduleIntentId: text("schedule_intent_id").notNull(),
+    status: text("status").notNull().default("delivery_batch_dry_run_recorded"),
+    queueName: text("queue_name").notNull(),
+    queueMode: text("queue_mode").notNull().default("dry_run_contract"),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedSequenceStatus: text("expected_sequence_status").notNull(),
+    expectedReadyEnrollmentCount: integer("expected_ready_enrollment_count").notNull().default(0),
+    readyEnrollmentCount: integer("ready_enrollment_count").notNull().default(0),
+    heldEnrollmentCount: integer("held_enrollment_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    unsubscribeFooterCheckStatus: text("unsubscribe_footer_check_status").notNull(),
+    senderDomainGateStatus: text("sender_domain_gate_status").notNull(),
+    providerSendEnabled: integer("provider_send_enabled", { mode: "boolean" }).notNull().default(false),
+    deliveryQueueRowsCreated: integer("delivery_queue_rows_created", { mode: "boolean" }).notNull().default(false),
+    recipientPayloadsCreated: integer("recipient_payloads_created", { mode: "boolean" }).notNull().default(false),
+    personalizedBodiesCreated: integer("personalized_bodies_created", { mode: "boolean" }).notNull().default(false),
+    unsubscribeUrlsCreated: integer("unsubscribe_urls_created", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdsCreated: integer("provider_message_ids_created", { mode: "boolean" }).notNull().default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_sequence_delivery_batches_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    scheduleIntentIdx: index("audience_sequence_delivery_batches_schedule_intent_idx").on(
+      table.scheduleIntentId,
+    ),
+    sequenceStatusIdx: index("audience_sequence_delivery_batches_sequence_status_idx").on(
+      table.sequenceId,
+      table.status,
+    ),
+  }),
+);
+
 export const audienceBroadcastPreviewSafety = sqliteTable(
   "audience_broadcast_preview_safety",
   {

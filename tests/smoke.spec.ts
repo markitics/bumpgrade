@@ -96,6 +96,12 @@ import {
 } from "../src/lib/audience-imports";
 import { audienceExportReadinessIssue, audienceExportReadinessStatus } from "../src/lib/audience-exports";
 import {
+  audienceSequenceDeliveryBatchApiRoute,
+  audienceSequenceDeliveryBatchConfirmationText,
+  audienceSequenceDeliveryBatchIssue,
+  audienceSequenceDeliveryBatchStatus,
+} from "../src/lib/audience-sequence-delivery-batches";
+import {
   audienceSequenceDeliveryReadinessIssue,
   audienceSequenceDeliveryReadinessStatus,
 } from "../src/lib/audience-sequence-readiness";
@@ -2535,8 +2541,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: audienceAutomationSourceData.id,
-        status: audienceSequenceScheduleIntentStatus,
-        issue: audienceSequenceScheduleIntentIssue,
+        status: audienceSequenceDeliveryBatchStatus,
+        issue: audienceSequenceDeliveryBatchIssue,
         parentIssue: 17,
       }),
     );
@@ -2547,6 +2553,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/audience/unsubscribe",
         "/api/admin/audience/notes",
         audienceSequenceScheduleIntentApiRoute,
+        audienceSequenceDeliveryBatchApiRoute,
         audienceBroadcastScheduleIntentApiRoute,
         audienceBroadcastDeliveryBatchApiRoute,
         audienceBroadcastDeliveryQueueMessageApiRoute,
@@ -3321,6 +3328,44 @@ test.describe("Bumpgrade scaffold", () => {
           deliveryQueuePayloadsIncluded: false,
           recipientPayloadsIncluded: false,
           personalizedBodiesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+          providerMessageIdsIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.audienceSequenceDeliveryBatches).toEqual(
+      expect.objectContaining({
+        id: "audience-sequence-delivery-batch-contract",
+        status: audienceSequenceDeliveryBatchStatus,
+        issue: audienceSequenceDeliveryBatchIssue,
+        parentIssue: 17,
+        apiRoute: audienceSequenceDeliveryBatchApiRoute,
+        ownerRoute: "/admin/audience",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceSequenceDeliveryBatchConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          deliveryBatches: expect.any(Number),
+          dryRunBatches: expect.any(Number),
+          readyEnrollmentsBatched: expect.any(Number),
+          heldEnrollmentsSnapshotted: expect.any(Number),
+          activeSuppressionsSnapshotted: expect.any(Number),
+          providerSendEnabledBatches: 0,
+          deliveryQueueRowsCreatedBatches: 0,
+          recipientPayloadsCreatedBatches: 0,
+          personalizedBodiesCreatedBatches: 0,
+          unsubscribeUrlsCreatedBatches: 0,
+          providerMessageIdsCreatedBatches: 0,
+        }),
+        redaction: expect.objectContaining({
+          privateContactDataIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          actorEmailIncluded: false,
+          deliveryQueuePayloadsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+          bodyTemplatesIncluded: false,
           unsubscribeUrlsIncluded: false,
           providerMessageIdsIncluded: false,
         }),
@@ -4166,6 +4211,22 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedSequenceScheduleIntentResponse.status()).toBe(401);
     await expect(unauthorizedSequenceScheduleIntentResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedSequenceDeliveryBatchResponse = await request.post(audienceSequenceDeliveryBatchApiRoute, {
+      data: {
+        scheduleIntentId: "sequence-schedule-intent-not-public",
+        sequenceId: "sequence-indie-launch-nurture",
+        expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+        expectedSequenceStatus: "draft",
+        expectedReadyEnrollmentCount: 0,
+        confirmationText: audienceSequenceDeliveryBatchConfirmationText,
+        idempotencyKey: `${idempotencyKey}-unauthorized-sequence-delivery-batch`,
+      },
+    });
+    expect(unauthorizedSequenceDeliveryBatchResponse.status()).toBe(401);
+    await expect(unauthorizedSequenceDeliveryBatchResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
 
@@ -15082,7 +15143,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211, 253, 259, 347, 351, 354,
+            211, 253, 259, 347, 351, 354, 358,
           ],
         }),
         expect.objectContaining({
@@ -15697,6 +15758,7 @@ test.describe("Bumpgrade scaffold", () => {
             "sequenceEnrollmentPauseId",
             "sequenceDeliveryReadinessId",
             "sequenceScheduleIntentId",
+            "sequenceDeliveryBatchId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
@@ -15705,6 +15767,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect aggregate unsubscribe-paused sequence enrollment evidence without contact identity",
             "Inspect aggregate sequence delivery readiness without body templates, unsubscribe URLs, recipient payloads, queue payloads, provider sends, or provider message IDs",
             "Inspect public-safe dry-run sequence schedule intent counts without actor email, recipient payloads, personalized bodies, unsubscribe URLs, queue payloads, provider sends, or provider message IDs",
+            "Inspect public-safe dry-run sequence delivery-batch counts without actor email, delivery queue payloads, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, or provider message IDs",
             "Inspect suppression-aware broadcast readiness without recipient exposure",
             "Inspect public-safe dry-run broadcast schedule intent counts without actor email or recipient payloads",
             "Inspect broadcast preview and unsubscribe-footer safety without personalized body or recipient exposure",
@@ -15753,6 +15816,12 @@ test.describe("Bumpgrade scaffold", () => {
           route: audienceSequenceScheduleIntentApiRoute,
           auth: "owner-session",
           stableIds: expect.arrayContaining(["sequenceScheduleIntentId", "emailSequenceId", "idempotencyKey"]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-sequence-delivery-batch",
+          route: audienceSequenceDeliveryBatchApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["sequenceDeliveryBatchId", "sequenceScheduleIntentId", "idempotencyKey"]),
         }),
         expect.objectContaining({
           id: "create-owner-broadcast-schedule-intent",
@@ -17032,6 +17101,89 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const sequenceDeliveryBatchIdempotencyKey = `playwright-sequence-delivery-batch-${Date.now()}`;
+    const sequenceDeliveryBatchResponse = await page.request.post(audienceSequenceDeliveryBatchApiRoute, {
+      data: {
+        scheduleIntentId: sequenceScheduleIntentPayload.intent.id,
+        sequenceId: sequenceRecord.sequenceId,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+        confirmationText: audienceSequenceDeliveryBatchConfirmationText,
+        idempotencyKey: sequenceDeliveryBatchIdempotencyKey,
+      },
+    });
+    expect(sequenceDeliveryBatchResponse.ok(), await sequenceDeliveryBatchResponse.text()).toBeTruthy();
+    const sequenceDeliveryBatchPayload = await sequenceDeliveryBatchResponse.json();
+    expect(sequenceDeliveryBatchPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "sequence_delivery_batch_recorded",
+        duplicate: false,
+        batch: expect.objectContaining({
+          sequenceId: sequenceRecord.sequenceId,
+          scheduleIntentId: sequenceScheduleIntentPayload.intent.id,
+          expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+          expectedSequenceStatus: sequenceRecord.status,
+          expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          readyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+          queueMode: "dry_run_contract",
+          providerSendEnabled: false,
+          deliveryQueueRowsCreated: false,
+          recipientPayloadsCreated: false,
+          personalizedBodiesCreated: false,
+          unsubscribeUrlsCreated: false,
+          providerMessageIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          rawRecipientEmailsIncluded: false,
+          deliveryQueuePayloadsIncluded: false,
+          recipientPayloadsIncluded: false,
+          personalizedBodiesIncluded: false,
+          unsubscribeUrlsIncluded: false,
+        }),
+      }),
+    );
+    const replaySequenceDeliveryBatchResponse = await page.request.post(audienceSequenceDeliveryBatchApiRoute, {
+      data: {
+        scheduleIntentId: sequenceScheduleIntentPayload.intent.id,
+        sequenceId: sequenceRecord.sequenceId,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+        confirmationText: audienceSequenceDeliveryBatchConfirmationText,
+        idempotencyKey: sequenceDeliveryBatchIdempotencyKey,
+      },
+    });
+    expect(replaySequenceDeliveryBatchResponse.ok(), await replaySequenceDeliveryBatchResponse.text()).toBeTruthy();
+    await expect(replaySequenceDeliveryBatchResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        batch: expect.objectContaining({ id: sequenceDeliveryBatchPayload.batch.id }),
+      }),
+    );
+    const staleSequenceDeliveryBatchResponse = await page.request.post(audienceSequenceDeliveryBatchApiRoute, {
+      data: {
+        scheduleIntentId: sequenceScheduleIntentPayload.intent.id,
+        sequenceId: sequenceRecord.sequenceId,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments + 1,
+        confirmationText: audienceSequenceDeliveryBatchConfirmationText,
+        idempotencyKey: `playwright-sequence-delivery-batch-stale-${Date.now()}`,
+      },
+    });
+    expect(staleSequenceDeliveryBatchResponse.status()).toBe(409);
+    await expect(staleSequenceDeliveryBatchResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+      }),
+    );
+
     const broadcastDraft = audienceSourceAfterNotePayload.broadcastReadiness.drafts.find(
       (draft: { id: string }) => draft.id === "broadcast-draft-launch-window",
     );
@@ -17430,6 +17582,19 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceScheduleIntents)).not.toContain(
       audienceEmail,
     );
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.deliveryBatches).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.providerSendEnabledBatches).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.deliveryQueueRowsCreatedBatches).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.recipientPayloadsCreatedBatches).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.personalizedBodiesCreatedBatches).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.unsubscribeUrlsCreatedBatches).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches.counts.providerMessageIdsCreatedBatches).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches)).not.toContain(
+      "m@rkmoriarty.com",
+    );
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceDeliveryBatches)).not.toContain(
+      audienceEmail,
+    );
     expect(audienceSourceAfterSchedulePayload.broadcastScheduleIntents.counts.scheduleIntents).toBeGreaterThanOrEqual(1);
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain("m@rkmoriarty.com");
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastScheduleIntents)).not.toContain(audienceEmail);
@@ -17545,6 +17710,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Import intents" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Import preflights" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Sequence readiness" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sequence batches", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Export readiness", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Broadcast readiness" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Schedule intents" })).toBeVisible();
@@ -17572,6 +17738,8 @@ test.describe("Bumpgrade scaffold", () => {
       page.getByRole("heading", { name: "Owner sequence intent is recorded before any queue payload exists" }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: /Record dry-run sequence schedule intent/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dry-run sequence batches stay aggregate and unsent" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Record sequence delivery-batch dry run/i }).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Preflights prove import safety before contact writes" })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record import preflight/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Recipient payloads stay disabled before Queue producers" })).toBeVisible();

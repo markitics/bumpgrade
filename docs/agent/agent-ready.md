@@ -224,6 +224,10 @@ email sequences, broadcast drafts, automation rules, the
 `/api/audience/opt-in` write boundary, the `/api/audience/unsubscribe`
 unsubscribe/suppression boundary, the owner-gated `/api/admin/audience/notes`
 CRM note boundary, the owner-gated
+`/api/admin/audience/sequences/schedule-intents` dry-run sequence schedule
+intent boundary, the owner-gated
+`/api/admin/audience/sequences/delivery-batches` dry-run sequence delivery
+batch boundary, the owner-gated
 `/api/admin/audience/broadcasts/schedule-intents` dry-run schedule intent
 boundary, the owner-gated
 `/api/admin/audience/broadcasts/delivery-batches` dry-run batch boundary,
@@ -247,6 +251,7 @@ Queue consumer readiness records,
 owner-confirmed import intent records,
 owner-confirmed import preflight records,
 aggregate sequence delivery-readiness records,
+dry-run sequence delivery-batch records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
@@ -265,9 +270,9 @@ suppression totals, private CRM timeline notes, broadcast readiness, preview
 safety, queue readiness, sender-domain readiness, provider-event readiness,
 provider rate-limit readiness, provider response readiness, send-payload
 readiness, Queue producer readiness, Queue consumer readiness, sequence delivery
-readiness, import intent, import preflight, and export readiness
+readiness, dry-run sequence delivery batches, import intent, import preflight, and export readiness
 records from D1. It can record private CRM notes, dry-run schedule intents,
-delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
+sequence delivery-batch dry runs, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
 evidence, dispatch attempt receipts, import intents, and import preflights, but those records do
 not create recipient payloads, personalized bodies, queue payload bodies, raw
 contact rows, raw emails, subscriber rows, sequence enrollments, provider sends, provider
@@ -280,10 +285,11 @@ semantics, dispatch-attempt semantics, sender-domain readiness, provider-event
 readiness, provider-rate-limit readiness, provider-response readiness,
 send-payload readiness, Queue producer readiness, Queue consumer readiness,
 aggregate sequence-delivery-readiness semantics,
+sequence delivery-batch dry-run semantics,
 non-destructive import-intent semantics, aggregate import-preflight semantics,
 and aggregate export-readiness semantics, not contact import, sequence scheduling, live email sending,
 live Cloudflare Queue producer or consumer execution or dispatch, recipient
-payloads, body templates, unsubscribe URLs, CRM automation, private export, suppression-list administration, or
+payloads, delivery queue rows, body templates, unsubscribe URLs, CRM automation, private export, suppression-list administration, or
 direct agent subscriber write capability.
 
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
