@@ -32,6 +32,7 @@ import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-deli
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
 import { AdminSequenceDispatchAttemptForm } from "@/components/admin-sequence-dispatch-attempt-form";
 import { AdminSequenceDispatchPreflightForm } from "@/components/admin-sequence-dispatch-preflight-form";
+import { AdminSequenceDeliveryAttemptReadinessForm } from "@/components/admin-sequence-delivery-attempt-readiness-form";
 import { AdminSequenceProviderCallReadinessForm } from "@/components/admin-sequence-provider-call-readiness-form";
 import { AdminSequenceQueueConsumerReadinessForm } from "@/components/admin-sequence-queue-consumer-readiness-form";
 import { AdminSequenceQueueProducerReadinessForm } from "@/components/admin-sequence-queue-producer-readiness-form";
@@ -105,6 +106,10 @@ import {
   getAudienceSequenceProviderCallReadinessSummary,
 } from "@/lib/audience-sequence-provider-call-readiness";
 import {
+  audienceSequenceDeliveryAttemptReadinessIssue,
+  getAudienceSequenceDeliveryAttemptReadinessSummary,
+} from "@/lib/audience-sequence-delivery-attempt-readiness";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -158,6 +163,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceQueueProducerReadiness,
     audienceSequenceQueueConsumerReadiness,
     audienceSequenceProviderCallReadiness,
+    audienceSequenceDeliveryAttemptReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -187,6 +193,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceQueueProducerReadinessSummary(),
     getAudienceSequenceQueueConsumerReadinessSummary(),
     getAudienceSequenceProviderCallReadinessSummary(),
+    getAudienceSequenceDeliveryAttemptReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -222,11 +229,13 @@ export default async function AdminAudiencePage() {
             Queue producer readiness records the owner-reviewed producer handoff gate while Cloudflare producers and
             Queue messages remain disabled. Sequence Queue consumer readiness records the owner-reviewed consumer handoff
             gate while Queue consumption, acks, retry/dead-letter rows, payload reads, and provider handoff remain
-            disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and
-            paused-sequence counts before private CSV exports exist. Sequence provider-call readiness records the
+            disabled. Sequence provider-call readiness records the
             owner-reviewed provider handoff gate while provider calls, sends, responses, message IDs, delivery attempts,
-            results, webhooks, receipts, Queue consumption, and payload reads remain disabled. Public source-data stays
-            aggregate-only.
+            results, webhooks, receipts, Queue consumption, and payload reads remain disabled. Sequence delivery-attempt
+            readiness records the owner-reviewed attempt gate from current provider-call readiness while delivery
+            attempts, results, webhooks, receipts, provider responses, message IDs, and recipient payloads remain
+            disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts
+            before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -292,6 +301,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceProviderCallReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryAttemptReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceDeliveryAttemptReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -401,6 +417,15 @@ export default async function AdminAudiencePage() {
               {audienceSequenceProviderCallReadiness.counts.providerCallReadinessRecords} provider-call readiness record
               {audienceSequenceProviderCallReadiness.counts.providerCallReadinessRecords === 1 ? "" : "s"};{" "}
               {audienceSequenceProviderCallReadiness.counts.providerCallEnabledRecords} provider calls enabled.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Delivery attempts</h3>
+            <p>
+              {audienceSequenceDeliveryAttemptReadiness.counts.deliveryAttemptReadinessRecords} attempt-readiness record
+              {audienceSequenceDeliveryAttemptReadiness.counts.deliveryAttemptReadinessRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceDeliveryAttemptReadiness.counts.deliveryAttemptEnabledRecords} attempts enabled.
             </p>
           </div>
           <div>
@@ -1139,6 +1164,13 @@ export default async function AdminAudiencePage() {
                   acks, retry/dead-letter rows, payload reads, recipient payloads, personalized bodies, and unsubscribe
                   URLs remain disabled.
                 </p>
+                <AdminSequenceDeliveryAttemptReadinessForm
+                  providerCallReadinessId={record.id}
+                  sequenceId={record.sequenceId}
+                  expectedWorkspaceRevisionId={record.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={record.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={record.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -1151,6 +1183,71 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from the latest sequence Queue consumer readiness record after provider-response, message-ID,
                 delivery-attempt, receipt, backpressure, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence delivery-attempt readiness</p>
+            <h2>Delivery attempts stay disabled until result and receipt gates pass</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryAttemptReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDeliveryAttemptReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDeliveryAttemptReadiness.latestRecords.length > 0 ? (
+            audienceSequenceDeliveryAttemptReadiness.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.dryRunMessageCount} messages</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>Sequence delivery attempt is readiness-only</h3>
+                <p>{record.deliveryAttemptGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Provider-call readiness</strong>
+                  <span>{record.providerCallReadinessId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider mode</strong>
+                  <span>{record.providerMode.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Message ID policy</strong>
+                  <span>{record.providerMessageIdPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Delivery attempt policy</strong>
+                  <span>{record.deliveryAttemptPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Sequence delivery-attempt readiness records owner-reviewed evidence only. Delivery attempts, provider
+                  sends, provider responses, message IDs, delivery results, webhooks, receipts, Queue consumption, acks,
+                  retry/dead-letter rows, payload reads, recipient payloads, personalized bodies, and unsubscribe URLs
+                  remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No delivery-attempt readiness</span>
+                <span className="admin-pill">Issue #{audienceSequenceDeliveryAttemptReadinessIssue}</span>
+              </div>
+              <h3>No sequence delivery-attempt readiness records yet</h3>
+              <p>
+                Record one from the latest sequence provider-call readiness record after provider-response, message-ID,
+                result, webhook, receipt, backpressure, audit, and stale-state gates are checked.
               </p>
             </article>
           )}
