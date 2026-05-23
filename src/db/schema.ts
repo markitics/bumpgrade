@@ -2275,6 +2275,145 @@ export const audienceSequenceReceiptPayloadReadiness = sqliteTable(
   }),
 );
 
+export const audienceSequenceDeliveryReceiptReadiness = sqliteTable(
+  "audience_sequence_delivery_receipt_readiness",
+  {
+    id: text("id").primaryKey(),
+    sequenceId: text("sequence_id").notNull(),
+    receiptPayloadReadinessId: text("receipt_payload_readiness_id").notNull(),
+    deliveryStatusWebhookReadinessId: text("delivery_status_webhook_readiness_id").notNull(),
+    deliveryResultReadinessId: text("delivery_result_readiness_id").notNull(),
+    deliveryAttemptReadinessId: text("delivery_attempt_readiness_id").notNull(),
+    providerCallReadinessId: text("provider_call_readiness_id").notNull(),
+    queueConsumerReadinessId: text("queue_consumer_readiness_id").notNull(),
+    queueProducerReadinessId: text("queue_producer_readiness_id").notNull(),
+    dispatchAttemptId: text("dispatch_attempt_id").notNull(),
+    dispatchPreflightId: text("dispatch_preflight_id").notNull(),
+    deliveryQueueMessageId: text("delivery_queue_message_id").notNull(),
+    deliveryBatchId: text("delivery_batch_id").notNull(),
+    scheduleIntentId: text("schedule_intent_id").notNull(),
+    status: text("status").notNull().default("sequence_delivery_receipt_readiness_recorded"),
+    queueName: text("queue_name").notNull(),
+    providerName: text("provider_name").notNull(),
+    providerMode: text("provider_mode").notNull(),
+    deliveryReceiptGateStatus: text("delivery_receipt_gate_status").notNull(),
+    receiptPayloadDependencyStatus: text("receipt_payload_dependency_status").notNull(),
+    providerResponsePolicy: text("provider_response_policy").notNull(),
+    providerMessageIdPolicy: text("provider_message_id_policy").notNull(),
+    deliveryAttemptPolicy: text("delivery_attempt_policy").notNull(),
+    deliveryResultPolicy: text("delivery_result_policy").notNull(),
+    deliveryStatusWebhookPolicy: text("delivery_status_webhook_policy").notNull(),
+    receiptPayloadPolicy: text("receipt_payload_policy").notNull(),
+    deliveryReceiptPolicy: text("delivery_receipt_policy").notNull(),
+    idempotencyPolicy: text("idempotency_policy").notNull(),
+    auditCorrelationPolicy: text("audit_correlation_policy").notNull(),
+    backpressurePolicy: text("backpressure_policy").notNull(),
+    expectedWorkspaceRevisionId: text("expected_workspace_revision_id").notNull(),
+    expectedSequenceStatus: text("expected_sequence_status").notNull(),
+    expectedReadyEnrollmentCount: integer("expected_ready_enrollment_count").notNull().default(0),
+    expectedReceiptPayloadReadinessStatus: text("expected_receipt_payload_readiness_status").notNull(),
+    dryRunMessageCount: integer("dry_run_message_count").notNull().default(0),
+    heldEnrollmentCount: integer("held_enrollment_count").notNull().default(0),
+    activeSuppressionCount: integer("active_suppression_count").notNull().default(0),
+    providerLimitPolicy: text("provider_limit_policy").notNull(),
+    providerRateLimitWindow: text("provider_rate_limit_window").notNull(),
+    dispatchMode: text("dispatch_mode").notNull(),
+    dispatchResultStatus: text("dispatch_result_status").notNull(),
+    suppressionCheckStatus: text("suppression_check_status").notNull(),
+    unsubscribeFooterCheckStatus: text("unsubscribe_footer_check_status").notNull(),
+    senderDomainGateStatus: text("sender_domain_gate_status").notNull(),
+    deliveryStatusWebhookEnabled: integer("delivery_status_webhook_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    deliveryAttemptsCreated: integer("delivery_attempts_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    deliveryResultsCreated: integer("delivery_results_created", { mode: "boolean" }).notNull().default(false),
+    deliveryStatusWebhooksProcessed: integer("delivery_status_webhooks_processed", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    deliveryStatusWebhookPayloadsRead: integer("delivery_status_webhook_payloads_read", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    deliveryStatusWebhookPayloadsCreated: integer("delivery_status_webhook_payloads_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    receiptPayloadEnabled: integer("receipt_payload_enabled", { mode: "boolean" }).notNull().default(false),
+    providerPollingPayloadsRead: integer("provider_polling_payloads_read", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    providerPollingPayloadsCreated: integer("provider_polling_payloads_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    providerPollingResultsCreated: integer("provider_polling_results_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    deliveryReceiptEnabled: integer("delivery_receipt_enabled", { mode: "boolean" }).notNull().default(false),
+    receiptPayloadsCreated: integer("receipt_payloads_created", { mode: "boolean" }).notNull().default(false),
+    deliveryReceiptsCreated: integer("delivery_receipts_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    cloudflareQueueConsumerEnabled: integer("cloudflare_queue_consumer_enabled", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    cloudflareQueueMessagesConsumed: integer("cloudflare_queue_messages_consumed", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    cloudflareQueueMessagesAcked: integer("cloudflare_queue_messages_acked", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    queueRetryRecordsCreated: integer("queue_retry_records_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    queueDeadLetterRecordsCreated: integer("queue_dead_letter_records_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    queuePayloadBodiesRead: integer("queue_payload_bodies_read", { mode: "boolean" }).notNull().default(false),
+    queuePayloadBodiesCreated: integer("queue_payload_bodies_created", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    recipientPayloadsCreated: integer("recipient_payloads_created", { mode: "boolean" }).notNull().default(false),
+    personalizedBodiesCreated: integer("personalized_bodies_created", { mode: "boolean" }).notNull().default(false),
+    unsubscribeUrlsCreated: integer("unsubscribe_urls_created", { mode: "boolean" }).notNull().default(false),
+    providerSendEnabled: integer("provider_send_enabled", { mode: "boolean" }).notNull().default(false),
+    providerResponsesCreated: integer("provider_responses_created", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdsCreated: integer("provider_message_ids_created", { mode: "boolean" }).notNull().default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_sequence_delivery_receipt_readiness_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    receiptPayloadReadinessIdx: index("audience_sequence_delivery_receipt_readiness_receipt_payload_idx").on(
+      table.receiptPayloadReadinessId,
+    ),
+    deliveryStatusWebhookReadinessIdx: index(
+      "audience_sequence_delivery_receipt_readiness_status_webhook_readiness_idx",
+    ).on(table.deliveryStatusWebhookReadinessId),
+    deliveryResultReadinessIdx: index("audience_sequence_delivery_receipt_readiness_result_readiness_idx").on(
+      table.deliveryResultReadinessId,
+    ),
+    deliveryAttemptReadinessIdx: index("audience_sequence_delivery_receipt_readiness_attempt_readiness_idx").on(
+      table.deliveryAttemptReadinessId,
+    ),
+    providerCallReadinessIdx: index("audience_sequence_delivery_receipt_readiness_provider_call_idx").on(
+      table.providerCallReadinessId,
+    ),
+    dispatchAttemptIdx: index("audience_sequence_delivery_receipt_readiness_attempt_idx").on(
+      table.dispatchAttemptId,
+    ),
+    sequenceStatusIdx: index("audience_sequence_delivery_receipt_readiness_sequence_status_idx").on(
+      table.sequenceId,
+      table.status,
+    ),
+  }),
+);
+
 export const audienceBroadcastPreviewSafety = sqliteTable(
   "audience_broadcast_preview_safety",
   {
