@@ -562,7 +562,6 @@ function emptySummary(
       "deliveryResultBody",
       "deliveryStatusWebhookPayload",
       "providerPollingPayload",
-      "deliveryReceipt",
       "deliveryAttempt",
       "deliveryResult",
       "deliveryStatusWebhook",
@@ -579,7 +578,7 @@ function emptySummary(
       "metadataJson",
     ],
     writeBoundary:
-      "Issue #383 lets verified owners record sequence delivery-receipt readiness gates from a current sequence receipt-payload readiness record after exact confirmation, idempotency, workspace revision, sequence status, readiness, receipt-payload readiness status, delivery-receipt, delivery-receipt, backpressure, and audit checks. It does not call providers, send messages, create provider responses, create provider message IDs, create delivery attempts or results, process status webhooks, read or create webhook payloads, poll providers, read or create receipt payload payloads, create polling results, create delivery receipts, create receipts, enable Cloudflare Queue consumers, consume or ack Queue messages, create retry or dead-letter rows, read or create Queue payload bodies, create recipient payloads, create personalized bodies, expose body templates or unsubscribe URLs, expose private recipients, or authorize direct public agent sequence writes.",
+      "Issue #383 lets verified owners record sequence delivery-receipt readiness gates from a current sequence receipt-payload readiness record after exact confirmation, idempotency, workspace revision, sequence status, readiness, receipt-payload readiness status, delivery-receipt, backpressure, and audit checks. It does not call providers, send messages, create provider responses, create provider message IDs, create delivery attempts or results, process status webhooks, read or create webhook payloads, poll providers, read or create receipt payloads, create polling results, create delivery receipts, create receipts, enable Cloudflare Queue consumers, consume or ack Queue messages, create retry or dead-letter rows, read or create Queue payload bodies, create recipient payloads, create personalized bodies, expose body templates or unsubscribe URLs, expose private recipients, or authorize direct public agent sequence writes.",
   };
 }
 
@@ -840,7 +839,7 @@ export async function createAudienceSequenceDeliveryReceiptReadiness(
     receiptPayload.queue_name,
     receiptPayload.provider_name,
     "dry_run_contract_only_no_delivery_receipt",
-    "blocked_until_delivery_receipt_delivery_receipt_and_reconciliation_contracts_verified",
+    "blocked_until_delivery_receipt_and_reconciliation_contracts_verified",
     "blocked_until_sequence_receipt_payload_readiness_issue_380_stays_current",
     receiptPayload.provider_response_policy,
     receiptPayload.provider_message_id_policy,
@@ -848,10 +847,10 @@ export async function createAudienceSequenceDeliveryReceiptReadiness(
     receiptPayload.delivery_result_policy,
     receiptPayload.delivery_status_webhook_policy,
     receiptPayload.receipt_payload_policy,
-    "Delivery receipt capture stays disabled until delivery receipt schema, redaction, retention, delivery-receipt, retry, suppression, and audit contracts exist together.",
-    "Future delivery-receipt writes must key idempotency by sequence, receipt-payload readiness, dispatch attempt, provider, provider message ID policy, delivery receipt scope, and delivery-receipt scope before any payload is captured.",
+    "Delivery receipt capture stays disabled until delivery receipt schema, redaction, retention, retry, suppression, and audit contracts exist together.",
+    "Future delivery-receipt writes must key idempotency by sequence, receipt-payload readiness, dispatch attempt, provider, provider message ID policy, delivery receipt scope, and reconciliation scope before any payload is captured.",
     "Future delivery-receipt writes must carry redacted audit correlation from schedule intent through delivery batch, queue-message evidence, dispatch preflight, dispatch attempt, Queue readiness, provider-call readiness, delivery-attempt readiness, delivery-result readiness, delivery-status webhook readiness, receipt-payload readiness, and delivery-receipt readiness.",
-    "Delivery-receipt backpressure must fail closed when receipt payload, delivery-receipt capture, retry/dead-letter capacity, delivery-receipt capacity, or suppression capacity are not explicit.",
+    "Delivery-receipt backpressure must fail closed when receipt payload, delivery-receipt capture, retry/dead-letter capacity, reconciliation capacity, or suppression capacity are not explicit.",
     readiness.workspace.revisionId,
     sequence.status,
     expectedReadyEnrollmentCount,

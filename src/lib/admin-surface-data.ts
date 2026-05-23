@@ -680,10 +680,10 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
   },
   "feature-email-automation-crm": {
     status: "passed",
-    lastTestedAt: "2026-05-23T14:10:00.000Z",
+    lastTestedAt: "2026-05-23T20:35:00.000Z",
     environment: "Production screenshot and audience automation source-data evidence.",
     method:
-      "Opt-in, suppression, CRM note, sequence Queue consumer, sequence provider-call, sequence provider-polling, sequence receipt-payload, broadcast readiness, queue, provider, and dispatch readiness route checks.",
+      "Opt-in, suppression, CRM note, sequence Queue consumer, sequence provider-call, sequence provider-polling, sequence receipt-payload, sequence delivery-receipt, broadcast readiness, queue, provider, and dispatch readiness route checks.",
     summary:
       "Audience capture, sequence handoff, and campaign readiness surfaces have broad screenshot proof; real provider sends remain gated.",
     ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
@@ -724,6 +724,11 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
       {
         label: "Sequence receipt-payload readiness",
         url: "https://bumpgrade.com/pr-screenshots/issue-380-admin-audience-sequence-receipt-payload-readiness.png",
+        kind: "screenshot",
+      },
+      {
+        label: "Sequence delivery-receipt readiness",
+        url: "https://bumpgrade.com/pr-screenshots/issue-383-admin-audience-sequence-delivery-receipt-readiness.png",
         kind: "screenshot",
       },
     ],

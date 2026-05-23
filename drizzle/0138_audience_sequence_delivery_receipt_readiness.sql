@@ -109,7 +109,7 @@ SET
     '$[#]',
     'Issue #383 adds owner-reviewed sequence delivery-receipt readiness gates from current receipt-payload readiness without enabling provider calls, sends, responses, message IDs, delivery attempts, delivery results, status webhooks, webhook payload reads, receipt payload, polling result capture, delivery receipts, receipts, Cloudflare Queue consumption, Queue acknowledgements, retry/dead-letter rows, queue payload body reads, recipient payloads, personalized bodies, or unsubscribe URLs.'
   ),
-  next_milestone = 'Add real contact imports, sequence scheduling, Cloudflare Queue producers/consumers, provider calls, delivery attempts, delivery results, status webhooks, receipt payload, delivery receipts, and delivery receipts only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, provider-call, delivery-attempt, delivery-result, delivery-status webhook, receipt-payload, delivery-receipt, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, sequence delivery-batch gates, sequence queue-message gates, sequence dispatch-preflight gates, and sequence dispatch-attempt receipts stay explicit.',
+  next_milestone = 'Add real contact imports, sequence scheduling, Cloudflare Queue producers/consumers, provider calls, delivery attempts, delivery results, status webhooks, receipt payloads, delivery receipts, and status reconciliation only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, provider-call, delivery-attempt, delivery-result, delivery-status webhook, receipt-payload, delivery-receipt, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, sequence delivery-batch gates, sequence queue-message gates, sequence dispatch-preflight gates, and sequence dispatch-attempt receipts stay explicit.',
   updated_at = unixepoch()
 WHERE id = 'roadmap-email-automation';
 
@@ -131,7 +131,7 @@ SET
   happy_path_json = json_insert(
     COALESCE(happy_path_json, '[]'),
     '$[#]',
-    'Record sequence delivery-receipt readiness from the current sequence receipt-payload readiness record after workspace revision, sequence status, readiness, receipt-payload, delivery receipt, delivery-receipt, backpressure, idempotency, audit, and redaction gates are checked.'
+    'Record sequence delivery-receipt readiness from the current sequence receipt-payload readiness record after workspace revision, sequence status, readiness, receipt-payload, delivery-receipt, backpressure, idempotency, audit, and redaction gates are checked.'
   ),
   edge_cases_json = json_insert(
     COALESCE(edge_cases_json, '[]'),
@@ -146,7 +146,7 @@ SET
   validation_json = json_insert(
     COALESCE(validation_json, '[]'),
     '$[#]',
-    'Issue #383 records the owner-confirmed sequence delivery-receipt readiness path after current sequence receipt-payload readiness, workspace revision, sequence status, readiness, receipt-payload, delivery receipt, delivery-receipt, backpressure, idempotency, audit, and redaction checks.'
+    'Issue #383 records the owner-confirmed sequence delivery-receipt readiness path after current sequence receipt-payload readiness, workspace revision, sequence status, readiness, receipt-payload, delivery-receipt, backpressure, idempotency, audit, and redaction checks.'
   ),
   updated_at = unixepoch()
 WHERE id = 'journey-publisher-previews-audience-automation';
