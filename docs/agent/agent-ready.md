@@ -265,6 +265,7 @@ dry-run sequence dispatch preflight records,
 dry-run sequence dispatch attempt records,
 sequence Queue producer readiness records,
 sequence Queue consumer readiness records,
+sequence provider-call readiness records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
@@ -285,30 +286,30 @@ provider rate-limit readiness, provider response readiness, send-payload
 readiness, Queue producer readiness, Queue consumer readiness, sequence delivery
 readiness, dry-run sequence delivery batches, dry-run sequence queue messages,
 dry-run sequence dispatch preflights, dry-run sequence dispatch attempts,
-sequence Queue producer readiness, sequence Queue consumer readiness, import intent, import preflight, and
+sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, import intent, import preflight, and
 export readiness records from D1. It can record private CRM notes, dry-run
 schedule intents, sequence delivery-batch dry runs, sequence queue-message dry
 runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts,
-sequence Queue producer readiness gates, sequence Queue consumer readiness gates, delivery-batch dry runs, dry-run
+sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, delivery-batch dry runs, dry-run
 queue-message evidence, dispatch preflight evidence, dispatch attempt receipts,
 import intents, and import preflights, but those records do
 not create recipient payloads, personalized bodies, queue payload bodies, raw
 contact rows, raw emails, subscriber rows, sequence enrollments, provider sends, provider
-responses, provider message IDs, exports, or real imports. This proves seeded
+calls, delivery attempts, delivery results, receipts, responses, provider message IDs, exports, or real imports. This proves seeded
 subscriber capture, unsubscribe evidence, owner inspection, private owner-note
 semantics, aggregate broadcast readiness, owner-confirmed dry-run schedule
 intent semantics, preview safety semantics, queue readiness semantics,
 delivery-batch dry-run semantics, queue-message semantics, dispatch-preflight
-semantics, dispatch-attempt semantics, sequence Queue producer readiness, sequence Queue consumer readiness,
+semantics, dispatch-attempt semantics, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness,
 sender-domain readiness, provider-event
 readiness, provider-rate-limit readiness, provider-response readiness,
-send-payload readiness, Queue producer readiness, Queue consumer readiness,
+send-payload readiness, Queue producer readiness, Queue consumer readiness, provider-call readiness,
 aggregate sequence-delivery-readiness semantics,
 sequence delivery-batch dry-run semantics,
 sequence queue-message dry-run semantics,
 non-destructive import-intent semantics, aggregate import-preflight semantics,
 and aggregate export-readiness semantics, not contact import, sequence scheduling, live email sending,
-live Cloudflare Queue producer or consumer execution or dispatch, recipient
+live Cloudflare Queue producer or consumer execution or dispatch, provider calls, delivery attempts, delivery results, webhooks, receipts, recipient
 payloads, delivery queue rows, body templates, unsubscribe URLs, CRM automation, private export, suppression-list administration, or
 direct agent subscriber write capability.
 
