@@ -163,13 +163,15 @@ entitlement writes still need future confirmed-write APIs.
 
 Purpose: owner-gated audience inspection, private CRM notes, broadcast dry-run
 evidence, readiness gates, aggregate sequence delivery readiness, dry-run
-sequence schedule intents, dry-run sequence delivery batches,
+sequence schedule intents, dry-run sequence delivery batches, dry-run sequence
+queue-message evidence,
 non-destructive import intents, and aggregate import preflights on top of the
 public audience automation source contract.
 
 The page reads audience subscriber, consent, tag, sequence, suppression,
 timeline, broadcast, readiness, `audience_sequence_schedule_intents`,
-`audience_sequence_delivery_batches`, `audience_import_intents`, and
+`audience_sequence_delivery_batches`,
+`audience_sequence_delivery_queue_messages`, `audience_import_intents`, and
 `audience_import_preflights` tables. Verified
 owners can inspect private subscriber rows, create private CRM notes, record
 dry-run sequence and broadcast evidence, inspect sender/provider/Queue readiness gates, and
@@ -178,6 +180,10 @@ idempotency, workspace revision/status checks, and selected import-intent
 source-label checks. Sequence delivery readiness stays aggregate-only and does
 not create schedules, recipient payloads, body templates, unsubscribe URLs,
 queue payloads, provider sends, or provider message IDs.
+Sequence queue-message dry runs stay aggregate-only and do not create Cloudflare
+Queue messages, queue payload bodies, delivery queue rows, recipient payloads,
+personalized bodies, unsubscribe URLs, provider responses, or provider message
+IDs.
 
 Public agents should read `/audience/source-data` for aggregate counts,
 redaction flags, and write boundaries. Import intents and import preflights are

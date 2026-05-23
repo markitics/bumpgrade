@@ -29,6 +29,7 @@ import { AdminBroadcastDispatchAttemptForm } from "@/components/admin-broadcast-
 import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcast-dispatch-preflight-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-delivery-batch-form";
+import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -74,6 +75,10 @@ import {
   audienceSequenceDeliveryBatchIssue,
   getAudienceSequenceDeliveryBatchSummary,
 } from "@/lib/audience-sequence-delivery-batches";
+import {
+  audienceSequenceDeliveryQueueMessageIssue,
+  getAudienceSequenceDeliveryQueueMessageSummary,
+} from "@/lib/audience-sequence-delivery-queue-messages";
 import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
@@ -122,6 +127,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryReadiness,
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,
+    audienceSequenceDeliveryQueueMessages,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -145,6 +151,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryReadinessSummary(),
     getAudienceSequenceScheduleIntentSummary(),
     getAudienceSequenceDeliveryBatchSummary(),
+    getAudienceSequenceDeliveryQueueMessageSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -174,10 +181,10 @@ export default async function AdminAudiencePage() {
             owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
-            suppression counts before sequence scheduling or sends exist. Sequence schedule intents and delivery batches
-            record owner dry-run gates while queues, payloads, unsubscribe URLs, provider sends, and provider IDs stay
-            disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts
-            before private CSV exports exist. Public source-data stays aggregate-only.
+            suppression counts before sequence scheduling or sends exist. Sequence schedule intents, delivery batches,
+            and queue-message dry runs record owner dry-run gates while queues, payloads, unsubscribe URLs, provider
+            sends, and provider IDs stay disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed,
+            and paused-sequence counts before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -215,6 +222,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceDeliveryBatchIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryQueueMessageIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceDeliveryQueueMessageIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -268,6 +282,16 @@ export default async function AdminAudiencePage() {
               {audienceSequenceDeliveryBatches.counts.deliveryBatches} dry-run batch
               {audienceSequenceDeliveryBatches.counts.deliveryBatches === 1 ? "" : "es"} recorded;{" "}
               {audienceSequenceDeliveryBatches.counts.deliveryQueueRowsCreatedBatches} delivery queue batches created.
+            </p>
+          </div>
+          <div>
+            <ListChecks aria-hidden="true" />
+            <h3>Sequence queue messages</h3>
+            <p>
+              {audienceSequenceDeliveryQueueMessages.counts.dryRunRecords} dry-run record
+              {audienceSequenceDeliveryQueueMessages.counts.dryRunRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceDeliveryQueueMessages.counts.cloudflareQueueMessagesCreatedRecords} Cloudflare Queue
+              dispatches.
             </p>
           </div>
           <div>
@@ -573,6 +597,13 @@ export default async function AdminAudiencePage() {
                   <strong>Recorded</strong>
                   <span>{compactDate(batch.createdAt)}</span>
                 </div>
+                <AdminSequenceDeliveryQueueMessageForm
+                  deliveryBatchId={batch.id}
+                  sequenceId={batch.sequenceId}
+                  expectedWorkspaceRevisionId={batch.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={batch.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={batch.readyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -585,6 +616,72 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from a sequence schedule-intent card after checking the current workspace revision, sequence
                 status, and ready-enrollment count.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence queue-message dry runs</p>
+            <h2>Sequence queue evidence is recorded before Cloudflare dispatch</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryQueueMessageIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDeliveryQueueMessageIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDeliveryQueueMessages.latestMessages.length > 0 ? (
+            audienceSequenceDeliveryQueueMessages.latestMessages.map((message) => (
+              <article key={message.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{message.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{message.dryRunMessageCount} messages</span>
+                </div>
+                <ListChecks aria-hidden="true" />
+                <h3>{message.queueName}</h3>
+                <p>{message.dispatchPolicy.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Sequence</strong>
+                  <span>{message.sequenceId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Delivery batch</strong>
+                  <span>{message.deliveryBatchId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Retry policy</strong>
+                  <span>{message.retryPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue artifacts</strong>
+                  <span>
+                    {String(message.cloudflareQueueMessagesCreated)} Cloudflare messages;{" "}
+                    {String(message.queuePayloadBodiesCreated)} payload bodies
+                  </span>
+                </div>
+                <p className="card-note">
+                  Cloudflare Queue dispatch, queue payload bodies, recipient payloads, personalized bodies,
+                  unsubscribe URLs, provider sends, and provider message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No queue messages</span>
+                <span className="admin-pill">Issue #{audienceSequenceDeliveryQueueMessageIssue}</span>
+              </div>
+              <h3>No sequence queue-message dry runs yet</h3>
+              <p>
+                Record one from a current sequence delivery-batch card after dry-run queue gates and the current
+                readiness count are checked.
               </p>
             </article>
           )}

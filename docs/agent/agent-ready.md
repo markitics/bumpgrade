@@ -252,6 +252,7 @@ owner-confirmed import intent records,
 owner-confirmed import preflight records,
 aggregate sequence delivery-readiness records,
 dry-run sequence delivery-batch records,
+dry-run sequence queue-message records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
@@ -270,9 +271,9 @@ suppression totals, private CRM timeline notes, broadcast readiness, preview
 safety, queue readiness, sender-domain readiness, provider-event readiness,
 provider rate-limit readiness, provider response readiness, send-payload
 readiness, Queue producer readiness, Queue consumer readiness, sequence delivery
-readiness, dry-run sequence delivery batches, import intent, import preflight, and export readiness
+readiness, dry-run sequence delivery batches, dry-run sequence queue messages, import intent, import preflight, and export readiness
 records from D1. It can record private CRM notes, dry-run schedule intents,
-sequence delivery-batch dry runs, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
+sequence delivery-batch dry runs, sequence queue-message dry runs, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight
 evidence, dispatch attempt receipts, import intents, and import preflights, but those records do
 not create recipient payloads, personalized bodies, queue payload bodies, raw
 contact rows, raw emails, subscriber rows, sequence enrollments, provider sends, provider
@@ -286,6 +287,7 @@ readiness, provider-rate-limit readiness, provider-response readiness,
 send-payload readiness, Queue producer readiness, Queue consumer readiness,
 aggregate sequence-delivery-readiness semantics,
 sequence delivery-batch dry-run semantics,
+sequence queue-message dry-run semantics,
 non-destructive import-intent semantics, aggregate import-preflight semantics,
 and aggregate export-readiness semantics, not contact import, sequence scheduling, live email sending,
 live Cloudflare Queue producer or consumer execution or dispatch, recipient
