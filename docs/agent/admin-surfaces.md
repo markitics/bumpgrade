@@ -25,6 +25,18 @@ Rules:
 - Do not claim a feature is live because code merged. Verify production.
 - Keep copy public-safe. Do not expose admin details, private notes, or secrets.
 
+## Admin `/admin/director`
+
+Purpose: give Mark a director-level one-pager above the work-log noise. The page
+groups roadmap, work-log, and Mark-attention evidence into expandable
+workstreams such as Marketing, Product / Commerce, Audience / Email,
+Analytics / Growth, Mobile Admin, Agent Readiness, Security / Trust,
+Infrastructure, and Operations / Project Control.
+
+Use this page for "what changed in the past day/week", "what is in flight",
+"what is blocked or at risk", and "what needs Mark". Treat `/admin/work-log` as
+the audit trail behind the director summary.
+
 ## Admin `/admin/roadmap`
 
 Purpose: show the main feature set, status, owners/agents, issue/PR links, and
@@ -253,6 +265,7 @@ before merging.
 
 Agents can read the current public-safe admin records from:
 
+- `/admin/director/source-data`
 - `/admin/source-data`
 - `/admin/roadmap/source-data`
 - `/admin/work-log/source-data`

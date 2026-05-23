@@ -5,6 +5,7 @@ import { ArrowRight, Clock3, Database } from "lucide-react";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
+import { buildDirectorStatusData } from "@/lib/director-status";
 
 export const metadata: Metadata = {
   title: "Admin work log",
@@ -19,6 +20,7 @@ export default async function WorkLogPage() {
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/work-log" />;
 
   const data = await getAdminSurfaceData();
+  const director = buildDirectorStatusData(data);
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -47,6 +49,31 @@ export default async function WorkLogPage() {
           <strong>{data.workLogEntries.length} entries</strong>
           <span>{data.loadError ?? "Use npm run work-log:add to append entries and optionally cross-post a PR comment."}</span>
         </aside>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Recent windows</p>
+            <h2>What changed in the past 1 day and 1 week</h2>
+          </div>
+          <Link href="/admin/director" className="text-link compact-link">
+            Director dashboard
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="director-window-grid">
+          {director.windows.map((window) => (
+            <article key={window.id} className="admin-surface-card director-window-card">
+              <Clock3 aria-hidden="true" />
+              <p className="eyebrow">{window.label}</p>
+              <strong>{window.workLogEntries} entries</strong>
+              <span>
+                {window.changedWorkstreams} workstreams changed; {window.needsMark} attention flags.
+              </span>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="content-band">

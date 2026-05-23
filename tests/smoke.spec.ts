@@ -369,6 +369,7 @@ const routes = [
   { path: "/commerce/checkout/success", heading: "checkout returned successfully" },
   { path: "/commerce/checkout/cancel", heading: "checkout was canceled" },
   { path: "/login", heading: "Publisher account access for Bumpgrade" },
+  { path: "/admin/director", heading: "Owner access is required" },
   { path: "/admin/roadmap", heading: "Owner access is required" },
   { path: "/admin/work-log", heading: "Owner access is required" },
   { path: "/admin/user-journeys", heading: "Owner access is required" },
@@ -16277,6 +16278,72 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("director source data exposes nested executive status windows", async ({ request }) => {
+    const response = await request.get("/admin/director/source-data");
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: "bumpgrade-director-status",
+        generatedAt: expect.any(String),
+        source: expect.stringMatching(/^(d1|fixture|mixed)$/),
+        totals: expect.objectContaining({
+          workstreams: 9,
+          changedPastDay: expect.any(Number),
+          changedPastWeek: expect.any(Number),
+          needsMark: expect.any(Number),
+        }),
+        emailPolicy: expect.objectContaining({
+          mode: "digest-first",
+          immediateEmailOnlyFor: expect.arrayContaining([
+            expect.stringContaining("Blocked work requiring Mark action"),
+          ]),
+        }),
+      }),
+    );
+    expect(payload.windows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "past-1-day", label: "Past 1 day", hours: 24 }),
+        expect.objectContaining({ id: "past-7-days", label: "Past 7 days", hours: 168 }),
+      ]),
+    );
+    expect(payload.workstreams).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "marketing",
+          title: "Marketing",
+          counts: expect.objectContaining({
+            active: expect.any(Number),
+            pending: expect.any(Number),
+            changedPastWeek: expect.any(Number),
+          }),
+        }),
+        expect.objectContaining({
+          id: "security-trust",
+          title: "Security / Trust",
+          sourceRecordIds: expect.objectContaining({
+            roadmap: expect.arrayContaining([
+              "roadmap-better-auth",
+              "roadmap-paid-publisher-subdomains",
+              "roadmap-custom-domain-onboarding",
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "operations-control",
+          title: "Operations / Project Control",
+        }),
+      ]),
+    );
+    expect(payload.sourceRoutes).toEqual(
+      expect.arrayContaining([
+        "/admin/director/source-data",
+        "/admin/work-log/source-data",
+        "/admin/roadmap/source-data",
+      ]),
+    );
+  });
+
   test("admin user journeys source data exposes launch proof summary", async ({ request }) => {
     const response = await request.get("/admin/user-journeys/source-data");
     expect(response.ok()).toBeTruthy();
@@ -16688,6 +16755,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
+        expect.objectContaining({ id: "read-director-status", route: "/admin/director/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({

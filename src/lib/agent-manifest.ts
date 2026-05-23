@@ -338,6 +338,22 @@ export const agentReadContracts: AgentReadContract[] = [
     writeBoundary: "Human admin pages require Better Auth; agent writes need approved scripts or future confirmed APIs.",
   },
   {
+    id: "read-director-status",
+    title: "Director status dashboard",
+    route: "/admin/director/source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/director-status.ts over D1 admin records from src/lib/admin-surface-data.ts",
+    stableIds: ["directorWorkstreamId", "directorWindowId", "workLogEntryId", "roadmapItemId", "markAttentionId"],
+    safeForAgents: [
+      "Read director-level workstream rollups instead of raw niche work-log noise",
+      "Inspect past 1 day and past 7 days change windows",
+      "Distinguish shipped, in-flight, pending, blocked, at-risk, and needs-Mark items with evidence links",
+    ],
+    writeBoundary:
+      "This route is a read-only summary. Status changes still require updating roadmap, work-log, For-Mark, issue, PR, or future confirmed-write records.",
+  },
+  {
     id: "read-agent-manifest",
     title: "Agent manifest",
     route: "/agent-docs/source-data",

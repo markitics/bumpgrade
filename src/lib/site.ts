@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Bot,
+  BriefcaseBusiness,
   ChartNoAxesCombined,
   CircleDollarSign,
   FileArchive,
@@ -73,6 +74,12 @@ export const topNavItems: NavItem[] = [
 ];
 
 export const adminNavItems: NavItem[] = [
+  {
+    label: "Director",
+    href: "/admin/director",
+    description: "Executive one-pager for recent changes, risks, due work, and nested workstreams.",
+    icon: BriefcaseBusiness,
+  },
   {
     label: "Admin roadmap",
     href: "/admin/roadmap",
@@ -172,6 +179,7 @@ export const scaffoldRoutes = [
   "/commerce/checkout/success",
   "/commerce/checkout/cancel",
   "/login",
+  "/admin/director",
   "/admin/roadmap",
   "/admin/work-log",
   "/admin/user-journeys",
