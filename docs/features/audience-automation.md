@@ -1,9 +1,9 @@
 # Audience Automation
 
-Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, #253, #259, #347, #351, #354, and #358 add the first audience automation
+Issues #85, #103, #137, #167, #169, #171, #173, #175, #177, #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, #253, #259, #347, #351, #354, #358, and #360 add the first audience automation
 contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
-timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run sequence delivery batches, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed audience import intents, owner-confirmed audience import preflights, aggregate export readiness, and aggregate sequence delivery readiness for issue #17.
+timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed audience import intents, owner-confirmed audience import preflights, aggregate export readiness, and aggregate sequence delivery readiness for issue #17.
 
 ## Live Routes
 
@@ -18,6 +18,8 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run seq
   for dry-run sequence schedule intents.
 - `/api/admin/audience/sequences/delivery-batches`: owner-gated POST endpoint
   for dry-run sequence delivery-batch evidence.
+- `/api/admin/audience/sequences/delivery-queue-messages`: owner-gated POST
+  endpoint for dry-run sequence queue-message evidence.
 - `/api/admin/audience/broadcasts/schedule-intents`: owner-gated POST endpoint
   for dry-run broadcast schedule intents.
 - `/api/admin/audience/broadcasts/delivery-batches`: owner-gated POST endpoint
@@ -34,7 +36,7 @@ timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run seq
   exact-confirmed, aggregate import preflight evidence tied to an import intent.
 - `/admin/audience`: owner-gated subscriber, tag, consent, and draft sequence
   enrollment inspection plus suppression totals, private note context, and
-  broadcast readiness, schedule intent context, sequence delivery-batch context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, Queue producer readiness context, Queue consumer readiness context, import-intent context, import-preflight context, export-readiness context, and sequence delivery readiness context.
+  broadcast readiness, schedule intent context, sequence delivery-batch context, sequence queue-message context, preview safety context, queue readiness context, delivery-batch context, queue-message context, dispatch preflight context, dispatch attempt context, send-payload readiness context, Queue producer readiness context, Queue consumer readiness context, import-intent context, import-preflight context, export-readiness context, and sequence delivery readiness context.
 
 ## Current Contract
 
@@ -52,6 +54,7 @@ The first workspace includes stable IDs for:
 - owner-only CRM timeline note write boundaries;
 - owner-confirmed sequence schedule-intent write boundaries;
 - owner-confirmed sequence delivery-batch dry-run boundaries;
+- owner-confirmed sequence queue-message dry-run boundaries;
 - suppression-aware broadcast readiness boundaries;
 - owner-confirmed dry-run schedule intent boundaries;
 - broadcast preview and unsubscribe-footer safety boundaries;
@@ -147,7 +150,11 @@ IDs, or send/export URLs. The
 sequence delivery-batch path records owner-confirmed aggregate batch evidence
 from a current sequence schedule intent while still creating no delivery queue
 rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends,
-or provider message IDs. The
+or provider message IDs. The sequence queue-message path records owner-confirmed
+aggregate dry-run message evidence from a current sequence delivery batch while
+still creating no Cloudflare Queue messages, queue payload bodies, delivery queue
+rows, recipient payloads, personalized bodies, unsubscribe URLs, provider
+responses, or provider message IDs. The
 public `/audience/source-data` route exposes only aggregate counts and redaction
 flags; email addresses, names, suppression hashes, unsubscribe reasons, private
 note bodies, actor emails, private DNS credentials, raw DNS records, provider
@@ -160,10 +167,18 @@ and private metadata remain excluded from public agent-readable JSON.
 Agents may read the source-data route, preview route, opt-in write boundary, and
 public aggregate subscriber inspection contract to understand audience automation
 state, including aggregate suppression counts, broadcast readiness counts, and
-schedule intent counts, plus sequence delivery-batch dry runs, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, import-intent counts, import-preflight counts, export-readiness counts, sequence delivery readiness counts, and the unsubscribe/import-intent/import-preflight write boundaries.
+schedule intent counts, plus sequence delivery-batch dry runs, sequence
+queue-message dry runs, preview safety, queue readiness, delivery-batch dry runs,
+queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts,
+sender-domain readiness, provider-event readiness, provider rate-limit
+readiness, provider response readiness, send-payload readiness, Queue producer
+readiness, Queue consumer readiness, import-intent counts, import-preflight
+counts, export-readiness counts, sequence delivery readiness counts, and the
+unsubscribe/import-intent/import-preflight write boundaries.
 Owner sessions can inspect private contact rows and create private CRM notes in
 `/admin/audience`, inspect broadcast readiness, and record dry-run schedule
-intents and sequence delivery-batch dry runs. They can also inspect preview/footer safety and queue readiness and
+intents, sequence delivery-batch dry runs, and sequence queue-message dry runs.
+They can also inspect preview/footer safety and queue readiness and
 record delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, non-destructive import intents, and aggregate import preflights without sending or importing. Sender-domain readiness stays read-only until a future provider setup flow verifies SPF/DKIM/DMARC and bounce handling. Provider-event readiness stays read-only until future provider webhooks can normalize events, update suppression state, redact raw payloads, and preserve audit correlation. Provider rate-limit readiness stays read-only until future provider setup can enforce throttle windows, retry budgets, and queue backpressure. Provider response readiness stays read-only until future provider send handling can capture response classes without raw bodies. Send-payload readiness stays read-only until future Queue producers create recipient payloads with consent, suppression, unsubscribe footer, and audit gates. Queue producer readiness stays read-only until future producer and consumer flows can enforce idempotency, backpressure, payload, and audit gates. Queue consumer readiness stays read-only until future consumers can enforce ack, retry, dead-letter, provider handoff, payload, and audit gates. Direct agent subscriber
 writes, real imports, real email sends, sequence delivery, CRM automation, private
 exports, or suppression-list administration require future authenticated
