@@ -162,15 +162,17 @@ entitlement writes still need future confirmed-write APIs.
 ## Admin `/admin/audience`
 
 Purpose: owner-gated audience inspection, private CRM notes, broadcast dry-run
-evidence, readiness gates, aggregate sequence delivery readiness,
+evidence, readiness gates, aggregate sequence delivery readiness, dry-run
+sequence schedule intents, dry-run sequence delivery batches,
 non-destructive import intents, and aggregate import preflights on top of the
 public audience automation source contract.
 
 The page reads audience subscriber, consent, tag, sequence, suppression,
-timeline, broadcast, readiness, `audience_import_intents`, and
+timeline, broadcast, readiness, `audience_sequence_schedule_intents`,
+`audience_sequence_delivery_batches`, `audience_import_intents`, and
 `audience_import_preflights` tables. Verified
 owners can inspect private subscriber rows, create private CRM notes, record
-dry-run broadcast evidence, inspect sender/provider/Queue readiness gates, and
+dry-run sequence and broadcast evidence, inspect sender/provider/Queue readiness gates, and
 record import intents and aggregate import preflights after exact confirmation,
 idempotency, workspace revision/status checks, and selected import-intent
 source-label checks. Sequence delivery readiness stays aggregate-only and does

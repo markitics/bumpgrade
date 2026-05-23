@@ -28,6 +28,7 @@ import { AdminBroadcastDeliveryQueueMessageForm } from "@/components/admin-broad
 import { AdminBroadcastDispatchAttemptForm } from "@/components/admin-broadcast-dispatch-attempt-form";
 import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcast-dispatch-preflight-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
+import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-delivery-batch-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -69,6 +70,10 @@ import {
   audienceSequenceDeliveryReadinessIssue,
   getAudienceSequenceDeliveryReadinessSummary,
 } from "@/lib/audience-sequence-readiness";
+import {
+  audienceSequenceDeliveryBatchIssue,
+  getAudienceSequenceDeliveryBatchSummary,
+} from "@/lib/audience-sequence-delivery-batches";
 import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
@@ -116,6 +121,7 @@ export default async function AdminAudiencePage() {
     broadcastQueueConsumerReadiness,
     audienceSequenceDeliveryReadiness,
     audienceSequenceScheduleIntents,
+    audienceSequenceDeliveryBatches,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -138,6 +144,7 @@ export default async function AdminAudiencePage() {
     getAudienceBroadcastQueueConsumerReadinessSummary(),
     getAudienceSequenceDeliveryReadinessSummary(),
     getAudienceSequenceScheduleIntentSummary(),
+    getAudienceSequenceDeliveryBatchSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -167,10 +174,10 @@ export default async function AdminAudiencePage() {
             owner-confirmed and aggregate-only before any contact import exists. Import preflights prove aggregate
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
-            suppression counts before sequence scheduling or sends exist. Sequence schedule intents record owner dry-run
-            intent while queues, payloads, unsubscribe URLs, provider sends, and provider IDs stay disabled. Export
-            readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts before private CSV
-            exports exist. Public source-data stays aggregate-only.
+            suppression counts before sequence scheduling or sends exist. Sequence schedule intents and delivery batches
+            record owner dry-run gates while queues, payloads, unsubscribe URLs, provider sends, and provider IDs stay
+            disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and paused-sequence counts
+            before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -201,6 +208,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceScheduleIntentIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryBatchIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceDeliveryBatchIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -245,6 +259,15 @@ export default async function AdminAudiencePage() {
               {audienceSequenceScheduleIntents.counts.scheduleIntents} dry-run intent
               {audienceSequenceScheduleIntents.counts.scheduleIntents === 1 ? "" : "s"} recorded;{" "}
               {audienceSequenceScheduleIntents.counts.readyEnrollmentsReserved} ready enrollments snapshotted.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Sequence batches</h3>
+            <p>
+              {audienceSequenceDeliveryBatches.counts.deliveryBatches} dry-run batch
+              {audienceSequenceDeliveryBatches.counts.deliveryBatches === 1 ? "" : "es"} recorded;{" "}
+              {audienceSequenceDeliveryBatches.counts.deliveryQueueRowsCreatedBatches} delivery queue batches created.
             </p>
           </div>
           <div>
@@ -475,6 +498,13 @@ export default async function AdminAudiencePage() {
                   <strong>Recorded</strong>
                   <span>{compactDate(intent.createdAt)}</span>
                 </div>
+                <AdminSequenceDeliveryBatchForm
+                  scheduleIntentId={intent.id}
+                  sequenceId={intent.sequenceId}
+                  expectedWorkspaceRevisionId={intent.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={intent.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={intent.readyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -487,6 +517,74 @@ export default async function AdminAudiencePage() {
               <p>
                 Record a dry-run intent from the sequence readiness card after checking the current workspace revision
                 and readiness count.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence delivery batches</p>
+            <h2>Dry-run sequence batches stay aggregate and unsent</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryBatchIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDeliveryBatchIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDeliveryBatches.latestBatches.length > 0 ? (
+            audienceSequenceDeliveryBatches.latestBatches.map((batch) => (
+              <article key={batch.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{batch.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{batch.readyEnrollmentCount} ready</span>
+                </div>
+                <h3>{batch.queueName}</h3>
+                <p>
+                  Held enrollments: {batch.heldEnrollmentCount}. Active suppression entries snapshotted:{" "}
+                  {batch.activeSuppressionCount}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Sequence</strong>
+                  <span>{batch.sequenceId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Schedule intent</strong>
+                  <span>{batch.scheduleIntentId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue mode</strong>
+                  <span>{batch.queueMode}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Delivery artifacts</strong>
+                  <span>
+                    {String(batch.deliveryQueueRowsCreated)} queue rows; {String(batch.recipientPayloadsCreated)}{" "}
+                    recipient payloads; {String(batch.providerMessageIdsIncluded)} provider IDs
+                  </span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Recorded</strong>
+                  <span>{compactDate(batch.createdAt)}</span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No dry runs</span>
+                <span className="admin-pill">Issue #{audienceSequenceDeliveryBatchIssue}</span>
+              </div>
+              <h3>No sequence delivery batches yet</h3>
+              <p>
+                Record one from a sequence schedule-intent card after checking the current workspace revision, sequence
+                status, and ready-enrollment count.
               </p>
             </article>
           )}
