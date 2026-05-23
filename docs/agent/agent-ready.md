@@ -232,6 +232,10 @@ batch boundary, the owner-gated
 queue-message boundary, the owner-gated
 `/api/admin/audience/sequences/dispatch-preflights` dry-run sequence dispatch
 preflight boundary, the owner-gated
+`/api/admin/audience/sequences/dispatch-attempts` dry-run sequence dispatch
+attempt boundary, the owner-gated
+`/api/admin/audience/sequences/queue-producer-readiness` sequence Queue
+producer readiness boundary, the owner-gated
 `/api/admin/audience/broadcasts/schedule-intents` dry-run schedule intent
 boundary, the owner-gated
 `/api/admin/audience/broadcasts/delivery-batches` dry-run batch boundary,
@@ -258,6 +262,8 @@ aggregate sequence delivery-readiness records,
 dry-run sequence delivery-batch records,
 dry-run sequence queue-message records,
 dry-run sequence dispatch preflight records,
+dry-run sequence dispatch attempt records,
+sequence Queue producer readiness records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
 suppression-aware broadcast readiness, and aggregate
@@ -277,10 +283,12 @@ safety, queue readiness, sender-domain readiness, provider-event readiness,
 provider rate-limit readiness, provider response readiness, send-payload
 readiness, Queue producer readiness, Queue consumer readiness, sequence delivery
 readiness, dry-run sequence delivery batches, dry-run sequence queue messages,
-dry-run sequence dispatch preflights, import intent, import preflight, and
+dry-run sequence dispatch preflights, dry-run sequence dispatch attempts,
+sequence Queue producer readiness, import intent, import preflight, and
 export readiness records from D1. It can record private CRM notes, dry-run
 schedule intents, sequence delivery-batch dry runs, sequence queue-message dry
-runs, sequence dispatch preflight dry runs, delivery-batch dry runs, dry-run
+runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts,
+sequence Queue producer readiness gates, delivery-batch dry runs, dry-run
 queue-message evidence, dispatch preflight evidence, dispatch attempt receipts,
 import intents, and import preflights, but those records do
 not create recipient payloads, personalized bodies, queue payload bodies, raw
@@ -290,7 +298,8 @@ subscriber capture, unsubscribe evidence, owner inspection, private owner-note
 semantics, aggregate broadcast readiness, owner-confirmed dry-run schedule
 intent semantics, preview safety semantics, queue readiness semantics,
 delivery-batch dry-run semantics, queue-message semantics, dispatch-preflight
-semantics, dispatch-attempt semantics, sender-domain readiness, provider-event
+semantics, dispatch-attempt semantics, sequence Queue producer readiness,
+sender-domain readiness, provider-event
 readiness, provider-rate-limit readiness, provider-response readiness,
 send-payload readiness, Queue producer readiness, Queue consumer readiness,
 aggregate sequence-delivery-readiness semantics,

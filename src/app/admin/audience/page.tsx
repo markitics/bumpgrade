@@ -32,6 +32,7 @@ import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-deli
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
 import { AdminSequenceDispatchAttemptForm } from "@/components/admin-sequence-dispatch-attempt-form";
 import { AdminSequenceDispatchPreflightForm } from "@/components/admin-sequence-dispatch-preflight-form";
+import { AdminSequenceQueueProducerReadinessForm } from "@/components/admin-sequence-queue-producer-readiness-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -90,6 +91,10 @@ import {
   getAudienceSequenceDispatchAttemptSummary,
 } from "@/lib/audience-sequence-dispatch-attempts";
 import {
+  audienceSequenceQueueProducerReadinessIssue,
+  getAudienceSequenceQueueProducerReadinessSummary,
+} from "@/lib/audience-sequence-queue-producer-readiness";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -140,6 +145,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
+    audienceSequenceQueueProducerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -166,6 +172,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryQueueMessageSummary(),
     getAudienceSequenceDispatchPreflightSummary(),
     getAudienceSequenceDispatchAttemptSummary(),
+    getAudienceSequenceQueueProducerReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -197,9 +204,10 @@ export default async function AdminAudiencePage() {
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
             suppression counts before sequence scheduling or sends exist. Sequence schedule intents, delivery batches,
             queue-message dry runs, dispatch preflights, and dispatch attempt receipts record owner dry-run gates while
-            queues, payloads, unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Export readiness shows
-            aggregate eligible, suppressed, unsubscribed, and paused-sequence counts before private CSV exports exist.
-            Public source-data stays aggregate-only.
+            queues, payloads, unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Sequence
+            Queue producer readiness records the owner-reviewed producer handoff gate while Cloudflare producers and
+            Queue messages remain disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and
+            paused-sequence counts before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -333,6 +341,15 @@ export default async function AdminAudiencePage() {
               {audienceSequenceDispatchAttempts.counts.dryRunAttempts === 1 ? "" : "s"};{" "}
               {audienceSequenceDispatchAttempts.counts.cloudflareQueueMessagesCreatedRecords} Cloudflare Queue
               dispatches.
+            </p>
+          </div>
+          <div>
+            <Send aria-hidden="true" />
+            <h3>Sequence producers</h3>
+            <p>
+              {audienceSequenceQueueProducerReadiness.counts.queueProducerReadinessRecords} producer-readiness record
+              {audienceSequenceQueueProducerReadiness.counts.queueProducerReadinessRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceQueueProducerReadiness.counts.cloudflareQueueProducerEnabledRecords} producers enabled.
             </p>
           </div>
           <div>
@@ -856,6 +873,13 @@ export default async function AdminAudiencePage() {
                   bodies, delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider
                   sends, responses, and message IDs remain disabled.
                 </p>
+                <AdminSequenceQueueProducerReadinessForm
+                  dispatchAttemptId={attempt.id}
+                  sequenceId={attempt.sequenceId}
+                  expectedWorkspaceRevisionId={attempt.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={attempt.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={attempt.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -875,6 +899,70 @@ export default async function AdminAudiencePage() {
       </section>
 
       <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence Queue producer readiness</p>
+            <h2>Sequence producers stay disabled until payload and consumer gates pass</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceQueueProducerReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceQueueProducerReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceQueueProducerReadiness.latestRecords.length > 0 ? (
+            audienceSequenceQueueProducerReadiness.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.dryRunMessageCount} messages</span>
+                </div>
+                <Send aria-hidden="true" />
+                <h3>Sequence producer handoff is readiness-only</h3>
+                <p>{record.producerGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Binding</strong>
+                  <span>{record.producerBinding}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Dispatch attempt</strong>
+                  <span>{record.dispatchAttemptId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Payload dependency</strong>
+                  <span>{record.payloadDependencyStatus.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Consumer dependency</strong>
+                  <span>{record.consumerDependencyStatus.replaceAll("_", " ")}</span>
+                </div>
+                <p className="card-note">
+                  Sequence Queue producer readiness records owner-reviewed handoff evidence only. Cloudflare Queue
+                  producers, Queue messages, queue payload bodies, recipient payloads, personalized bodies,
+                  unsubscribe URLs, provider sends, provider responses, and provider message IDs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No sequence producer readiness</span>
+                <span className="admin-pill">Issue #{audienceSequenceQueueProducerReadinessIssue}</span>
+              </div>
+              <h3>No sequence Queue producer readiness records yet</h3>
+              <p>
+                Record one from a current sequence dispatch attempt after payload, consumer, provider, suppression,
+                unsubscribe, sender-domain, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Audience import intents</p>
