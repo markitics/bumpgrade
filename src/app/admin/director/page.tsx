@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, BriefcaseBusiness, Clock3, Database, ShieldAlert } from "lucide-react";
+import { ArrowRight, BarChart3, BriefcaseBusiness, Clock3, Database, ListChecks, ShieldAlert } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -58,6 +58,59 @@ function InitiativeList({ title, items, empty }: { title: string; items: Directo
         <p>{empty}</p>
       )}
     </div>
+  );
+}
+
+function ExecutiveQueue({ director }: { director: ReturnType<typeof buildDirectorStatusData> }) {
+  return (
+    <section className="content-band alternate">
+      <div className="roadmap-section-heading">
+        <div>
+          <p className="eyebrow">Executive queue</p>
+          <h2>Due now, in flight, and pending next</h2>
+        </div>
+        <Link href="https://github.com/markitics/bumpgrade/issues/390" className="text-link compact-link">
+          Track issue #390
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
+      <div className="director-queue-grid">
+        {director.executiveQueue.map((lane) => (
+          <article key={lane.id} className={`director-queue-lane ${lane.id}`}>
+            <div className="director-queue-heading">
+              <ListChecks aria-hidden="true" />
+              <div>
+                <p className="eyebrow">{lane.label}</p>
+                <strong>{lane.items.length} items</strong>
+              </div>
+            </div>
+            <p>{lane.summary}</p>
+            {lane.items.length ? (
+              <ul>
+                {lane.items.slice(0, 5).map((item) => (
+                  <li key={`${lane.id}-${item.workstreamId}-${item.id}`}>
+                    <span className={`status-badge ${item.priority === "high" ? "blocked" : item.priority === "medium" ? "active" : "pending"}`}>
+                      {item.queueLabel}
+                    </span>
+                    <strong>{item.title}</strong>
+                    <p>{item.workstreamTitle}</p>
+                    <div className="admin-link-list">
+                      {item.evidence.slice(0, 3).map((link) => (
+                        <Link key={`${lane.id}-${item.id}-${link.url}`} href={link.url}>
+                          {link.label ?? link.title ?? (link.number ? `#${link.number}` : link.kind ?? "Evidence")}
+                        </Link>
+                      ))}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No items in this queue.</p>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -173,6 +226,8 @@ export default async function DirectorDashboardPage() {
           </div>
         </div>
       </section>
+
+      <ExecutiveQueue director={director} />
 
       <section className="content-band">
         <div className="roadmap-section-heading">

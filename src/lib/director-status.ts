@@ -8,6 +8,8 @@ import type {
 } from "@/lib/admin-surface-data";
 
 export type DirectorWindowId = "past-1-day" | "past-7-days";
+export type DirectorQueueLaneId = "due-now" | "in-flight" | "pending-next";
+export type DirectorQueuePriority = "high" | "medium" | "normal";
 export type DirectorWorkstreamId =
   | "marketing"
   | "product-commerce"
@@ -42,6 +44,21 @@ export type DirectorInitiative = {
   summary: string;
   updatedAt: string | null;
   evidence: DirectorEvidenceLink[];
+};
+
+export type DirectorQueueItem = DirectorInitiative & {
+  workstreamId: DirectorWorkstreamId;
+  workstreamTitle: string;
+  priority: DirectorQueuePriority;
+  queueLabel: string;
+  reason: string;
+};
+
+export type DirectorQueueLane = {
+  id: DirectorQueueLaneId;
+  label: string;
+  summary: string;
+  items: DirectorQueueItem[];
 };
 
 export type DirectorWorkstream = {
@@ -91,6 +108,7 @@ export type DirectorStatusData = {
     changedPastWeek: number;
     needsMark: number;
   };
+  executiveQueue: DirectorQueueLane[];
   workstreams: DirectorWorkstream[];
   sourceRoutes: string[];
   emailPolicy: {
@@ -318,6 +336,35 @@ function dedupeInitiatives(items: DirectorInitiative[], limit: number) {
     .slice(0, limit);
 }
 
+function queueItem(
+  workstream: DirectorWorkstream,
+  item: DirectorInitiative,
+  priority: DirectorQueuePriority,
+  queueLabel: string,
+  reason: string,
+): DirectorQueueItem {
+  return {
+    ...item,
+    workstreamId: workstream.id,
+    workstreamTitle: workstream.title,
+    priority,
+    queueLabel,
+    reason,
+  };
+}
+
+function dedupeQueueItems(items: DirectorQueueItem[], limit: number) {
+  const seen = new Set<string>();
+  return items
+    .filter((item) => {
+      const key = `${item.workstreamId}:${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
 function statusForCounts(counts: DirectorWorkstream["counts"]): DirectorStatus {
   if (counts.blocked > 0) return "blocked";
   if (counts.needsMark > 0 || counts.changedPastWeek > 8 || counts.active > 4) return "at_risk";
@@ -336,6 +383,51 @@ function focusForWorkstream(
   if (active.length) return active[0].title;
   if (pending.length) return pending[0].title;
   return config.description;
+}
+
+function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLane[] {
+  const dueNow = dedupeQueueItems(
+    workstreams.flatMap((workstream) => [
+      ...workstream.needsMark.map((item) =>
+        queueItem(workstream, item, "high", "Needs Mark", "Open decision or attention item."),
+      ),
+      ...workstream.blocked.map((item) => queueItem(workstream, item, "high", "Blocked", "Blocked roadmap item.")),
+    ]),
+    12,
+  );
+  const inFlight = dedupeQueueItems(
+    workstreams.flatMap((workstream) =>
+      workstream.inFlight.map((item) => queueItem(workstream, item, "medium", "In flight", "Active roadmap item.")),
+    ),
+    12,
+  );
+  const pendingNext = dedupeQueueItems(
+    workstreams.flatMap((workstream) =>
+      workstream.pending.map((item) => queueItem(workstream, item, "normal", "Pending next", "Committed or proposed roadmap item.")),
+    ),
+    12,
+  );
+
+  return [
+    {
+      id: "due-now",
+      label: "Due now",
+      summary: "Decisions, blockers, and attention items that should be handled before more feature throughput.",
+      items: dueNow,
+    },
+    {
+      id: "in-flight",
+      label: "In flight",
+      summary: "Active roadmap work grouped by the executive workstream that owns the next brief.",
+      items: inFlight,
+    },
+    {
+      id: "pending-next",
+      label: "Pending next",
+      summary: "Committed or proposed roadmap work waiting behind active slices.",
+      items: pendingNext,
+    },
+  ];
 }
 
 export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()): DirectorStatusData {
@@ -474,6 +566,7 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       changedPastWeek: windows.find((window) => window.id === "past-7-days")?.workLogEntries ?? 0,
       needsMark: workstreams.reduce((total, workstream) => total + workstream.counts.needsMark, 0),
     },
+    executiveQueue: buildExecutiveQueue(workstreams),
     workstreams,
     sourceRoutes: [
       "/admin/director/source-data",

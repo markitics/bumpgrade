@@ -344,10 +344,18 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/director-status.ts over D1 admin records from src/lib/admin-surface-data.ts",
-    stableIds: ["directorWorkstreamId", "directorWindowId", "workLogEntryId", "roadmapItemId", "markAttentionId"],
+    stableIds: [
+      "directorWorkstreamId",
+      "directorWindowId",
+      "directorQueueLaneId",
+      "workLogEntryId",
+      "roadmapItemId",
+      "markAttentionId",
+    ],
     safeForAgents: [
       "Read director-level workstream rollups instead of raw niche work-log noise",
       "Inspect past 1 day and past 7 days change windows",
+      "Read due-now, in-flight, and pending-next executive queue lanes with workstream provenance",
       "Distinguish shipped, in-flight, pending, blocked, at-risk, and needs-Mark items with evidence links",
     ],
     writeBoundary:

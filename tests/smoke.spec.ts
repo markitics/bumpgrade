@@ -16300,6 +16300,11 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("Blocked work requiring Mark action"),
           ]),
         }),
+        executiveQueue: expect.arrayContaining([
+          expect.objectContaining({ id: "due-now", label: "Due now", items: expect.any(Array) }),
+          expect.objectContaining({ id: "in-flight", label: "In flight", items: expect.any(Array) }),
+          expect.objectContaining({ id: "pending-next", label: "Pending next", items: expect.any(Array) }),
+        ]),
       }),
     );
     expect(payload.windows).toEqual(
@@ -16385,6 +16390,103 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.workstreams.find((workstream) => workstream.id === "marketing")?.sourceRecordIds.workLog).not.toContain(
       "work-log-director-control",
+    );
+  });
+
+  test("director executive queue exposes due active and pending workstream lanes", () => {
+    const payload = buildDirectorStatusData(
+      {
+        source: "fixture",
+        loadError: null,
+        workLogEntries: [],
+        userJourneys: [],
+        attentionItems: [
+          {
+            id: "attention-security-review",
+            category: "review",
+            state: "open",
+            urgency: "high",
+            title: "Review security launch posture",
+            summary: "Security launch decision needs owner review.",
+            details: null,
+            requiredAction: "Confirm whether the security launch posture is acceptable.",
+            responseInstructions: null,
+            sessionName: "bumpgrade-build-heartbeat",
+            sessionEmail: null,
+            sourceAgent: "Codex",
+            sourceKind: "work-log",
+            links: [{ number: 390, url: "https://github.com/markitics/bumpgrade/issues/390", kind: "issue" }],
+            metadata: {},
+            lastActivityAt: "2026-05-23T21:30:00.000Z",
+            createdAt: "2026-05-23T21:00:00.000Z",
+          },
+        ],
+        roadmapItems: [
+          {
+            id: "roadmap-checkout-active",
+            title: "Checkout offer parity",
+            status: "active",
+            issueNumber: 15,
+            featureId: "feature-checkout-offers",
+            groupName: "Checkout and offers",
+            summary: "Build checkout and order-bump parity.",
+            publicEvidence: ["/offers/source-data"],
+            nextMilestone: "Verify sandbox checkout path.",
+            markAttention: null,
+            sortOrder: 10,
+            updatedAt: "2026-05-23T21:15:00.000Z",
+          },
+          {
+            id: "roadmap-marketing-pending",
+            title: "Marketing weekly brief",
+            status: "pending",
+            issueNumber: 385,
+            featureId: "feature-public-roadmap",
+            groupName: "Marketing surfaces",
+            summary: "Roll recent marketing changes into a weekly executive summary.",
+            publicEvidence: ["/admin/director/source-data"],
+            nextMilestone: "Show pending marketing queue items.",
+            markAttention: null,
+            sortOrder: 20,
+            updatedAt: "2026-05-23T21:20:00.000Z",
+          },
+        ],
+      },
+      new Date("2026-05-23T22:00:00.000Z"),
+    );
+
+    const dueNow = payload.executiveQueue.find((lane) => lane.id === "due-now");
+    const inFlight = payload.executiveQueue.find((lane) => lane.id === "in-flight");
+    const pendingNext = payload.executiveQueue.find((lane) => lane.id === "pending-next");
+
+    expect(dueNow?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "attention-security-review",
+          priority: "high",
+          queueLabel: "Needs Mark",
+          workstreamId: "security-trust",
+          workstreamTitle: "Security / Trust",
+        }),
+      ]),
+    );
+    expect(inFlight?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-checkout-active",
+          queueLabel: "In flight",
+          workstreamId: "product-commerce",
+        }),
+      ]),
+    );
+    expect(pendingNext?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-marketing-pending",
+          queueLabel: "Pending next",
+          workstreamId: "marketing",
+        }),
+      ]),
     );
   });
 
