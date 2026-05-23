@@ -15081,7 +15081,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211, 253, 259,
+            211, 253, 259, 347, 351, 354,
           ],
         }),
         expect.objectContaining({
