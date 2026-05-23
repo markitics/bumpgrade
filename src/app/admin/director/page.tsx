@@ -67,7 +67,7 @@ function ExecutiveQueue({ director }: { director: ReturnType<typeof buildDirecto
       <div className="roadmap-section-heading">
         <div>
           <p className="eyebrow">Executive queue</p>
-          <h2>Due now, in flight, and pending next</h2>
+          <h2>Due now, in flight, pending next, and watchlist</h2>
         </div>
         <Link href="https://github.com/markitics/bumpgrade/issues/390" className="text-link compact-link">
           Track issue #390
@@ -285,6 +285,7 @@ export default async function DirectorDashboardPage() {
                   <InitiativeList title="In flight" items={workstream.inFlight} empty="No active roadmap record in this workstream." />
                   <InitiativeList title="Pending" items={workstream.pending} empty="No pending roadmap record in this workstream." />
                   <InitiativeList title="Needs Mark" items={workstream.needsMark} empty="No open decision or attention item." />
+                  <InitiativeList title="Watchlist" items={workstream.watchlist} empty="No live caveats to monitor." />
                 </div>
               </div>
             </details>
