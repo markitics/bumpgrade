@@ -31,6 +31,7 @@ export type DirectorWindow = {
   shippedPrs: number;
   changedWorkstreams: number;
   needsMark: number;
+  recentChanges: DirectorWindowChange[];
 };
 
 export type DirectorEvidenceLink = AdminLink & {
@@ -44,6 +45,12 @@ export type DirectorInitiative = {
   summary: string;
   updatedAt: string | null;
   evidence: DirectorEvidenceLink[];
+};
+
+export type DirectorWindowChange = DirectorInitiative & {
+  workstreamId: DirectorWorkstreamId;
+  workstreamTitle: string;
+  completedAt: string;
 };
 
 export type DirectorQueueItem = DirectorInitiative & {
@@ -334,7 +341,7 @@ function attentionInitiative(item: MarkAttentionItem): DirectorInitiative {
   };
 }
 
-function dedupeInitiatives(items: DirectorInitiative[], limit: number) {
+function dedupeInitiatives<T extends DirectorInitiative>(items: T[], limit: number): T[] {
   const seen = new Set<string>();
   return items
     .filter((item) => {
@@ -343,6 +350,16 @@ function dedupeInitiatives(items: DirectorInitiative[], limit: number) {
       return true;
     })
     .slice(0, limit);
+}
+
+function windowChange(entry: AdminWorkLogEntry): DirectorWindowChange {
+  const workstreamId = workstreamForWorkLog(entry);
+  return {
+    ...workLogInitiative(entry),
+    workstreamId,
+    workstreamTitle: workstreamConfig[workstreamId].title,
+    completedAt: entry.completedAt,
+  };
 }
 
 function queueItem(
@@ -544,6 +561,10 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
     const entries = data.workLogEntries.filter((entry) => parseTime(entry.completedAt) >= cutoff);
     const changedWorkstreams = new Set(entries.map(workstreamForWorkLog)).size;
     const needsMark = entries.filter((entry) => Boolean(entry.flagsAttention)).length;
+    const recentChanges = dedupeInitiatives(
+      entries.sort((a, b) => parseTime(b.completedAt) - parseTime(a.completedAt)).map(windowChange),
+      5,
+    );
     return {
       id: window.id,
       label: window.label,
@@ -553,6 +574,7 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       shippedPrs: entries.reduce((total, entry) => total + entry.closedPrs.length, 0),
       changedWorkstreams,
       needsMark,
+      recentChanges,
     };
   });
 

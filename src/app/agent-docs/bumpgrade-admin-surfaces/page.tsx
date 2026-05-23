@@ -36,7 +36,8 @@ export default function AdminSurfacesAgentDocPage() {
             Agents should read the director dashboard, admin roadmap, work-log, journey, Mark-attention, draft-funnel, and product-entitlement
             capability state from source-data contracts. Browser-rendered admin pages require Better Auth owner sessions
             and are not a shortcut around permissions. The director contract includes due-now, in-flight,
-            pending-next, and watchlist queue lanes with workstream provenance for executive summaries.
+            pending-next, and watchlist queue lanes plus recent-change digests with workstream provenance for
+            executive summaries.
           </p>
           <Link href="/admin/source-data" className="text-link">
             Admin source data

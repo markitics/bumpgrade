@@ -5,7 +5,7 @@ import { ArrowRight, Clock3, Database } from "lucide-react";
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
-import { buildDirectorStatusData } from "@/lib/director-status";
+import { buildDirectorStatusData, type DirectorWindowChange } from "@/lib/director-status";
 
 export const metadata: Metadata = {
   title: "Admin work log",
@@ -14,6 +14,21 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function WindowChangeList({ changes }: { changes: DirectorWindowChange[] }) {
+  if (!changes.length) return <p>No named changes in this window.</p>;
+
+  return (
+    <ul className="director-window-changes">
+      {changes.slice(0, 3).map((change) => (
+        <li key={change.id}>
+          <strong>{change.title}</strong>
+          <span>{change.workstreamTitle}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default async function WorkLogPage() {
   const adminState = await getCurrentAdminState();
@@ -71,6 +86,7 @@ export default async function WorkLogPage() {
               <span>
                 {window.changedWorkstreams} workstreams changed; {window.needsMark} attention flags.
               </span>
+              <WindowChangeList changes={window.recentChanges} />
             </article>
           ))}
         </div>

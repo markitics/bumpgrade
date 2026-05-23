@@ -37,6 +37,11 @@ Use this page for "what changed in the past day/week", "what is in flight",
 "what is blocked or at risk", and "what needs Mark". Treat `/admin/work-log` as
 the audit trail behind the director summary.
 
+Each recent-change window should include both counts and a compact digest of the
+named work-log changes in that window. Agents should cite those digest records
+for executive summaries, then link to `/admin/work-log` when the audit trail is
+needed.
+
 The director source-data route also exposes an `executiveQueue` with stable
 lanes for `due-now`, `in-flight`, `pending-next`, and `watchlist`. Each queue
 item keeps its workstream ID/title and evidence links so agents and mobile
