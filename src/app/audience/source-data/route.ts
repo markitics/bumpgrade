@@ -25,6 +25,7 @@ import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-s
 import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequence-dispatch-attempts";
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryAttemptReadinessSummary } from "@/lib/audience-sequence-delivery-attempt-readiness";
+import { getAudienceSequenceDeliveryResultReadinessSummary } from "@/lib/audience-sequence-delivery-result-readiness";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 import { getAudienceSequenceProviderCallReadinessSummary } from "@/lib/audience-sequence-provider-call-readiness";
 import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
@@ -63,6 +64,7 @@ export async function GET() {
     audienceSequenceQueueConsumerReadiness,
     audienceSequenceProviderCallReadiness,
     audienceSequenceDeliveryAttemptReadiness,
+    audienceSequenceDeliveryResultReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -93,6 +95,7 @@ export async function GET() {
     getAudienceSequenceQueueConsumerReadinessSummary(),
     getAudienceSequenceProviderCallReadinessSummary(),
     getAudienceSequenceDeliveryAttemptReadinessSummary(),
+    getAudienceSequenceDeliveryResultReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -118,6 +121,7 @@ export async function GET() {
         audienceSequenceQueueConsumerReadiness.apiRoute,
         audienceSequenceProviderCallReadiness.apiRoute,
         audienceSequenceDeliveryAttemptReadiness.apiRoute,
+        audienceSequenceDeliveryResultReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -148,6 +152,7 @@ export async function GET() {
     audienceSequenceQueueConsumerReadiness,
     audienceSequenceProviderCallReadiness,
     audienceSequenceDeliveryAttemptReadiness,
+    audienceSequenceDeliveryResultReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
