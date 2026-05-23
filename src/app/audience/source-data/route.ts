@@ -25,6 +25,7 @@ import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-s
 import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequence-dispatch-attempts";
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
+import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
 import { getAudienceSequenceQueueProducerReadinessSummary } from "@/lib/audience-sequence-queue-producer-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
@@ -57,6 +58,7 @@ export async function GET() {
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
     audienceSequenceQueueProducerReadiness,
+    audienceSequenceQueueConsumerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -84,6 +86,7 @@ export async function GET() {
     getAudienceSequenceDispatchPreflightSummary(),
     getAudienceSequenceDispatchAttemptSummary(),
     getAudienceSequenceQueueProducerReadinessSummary(),
+    getAudienceSequenceQueueConsumerReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -106,6 +109,7 @@ export async function GET() {
         audienceSequenceDispatchPreflights.apiRoute,
         audienceSequenceDispatchAttempts.apiRoute,
         audienceSequenceQueueProducerReadiness.apiRoute,
+        audienceSequenceQueueConsumerReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -133,6 +137,7 @@ export async function GET() {
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
     audienceSequenceQueueProducerReadiness,
+    audienceSequenceQueueConsumerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
