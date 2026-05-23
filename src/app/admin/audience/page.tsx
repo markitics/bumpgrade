@@ -32,6 +32,7 @@ import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-deli
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
 import { AdminSequenceDispatchAttemptForm } from "@/components/admin-sequence-dispatch-attempt-form";
 import { AdminSequenceDispatchPreflightForm } from "@/components/admin-sequence-dispatch-preflight-form";
+import { AdminSequenceQueueConsumerReadinessForm } from "@/components/admin-sequence-queue-consumer-readiness-form";
 import { AdminSequenceQueueProducerReadinessForm } from "@/components/admin-sequence-queue-producer-readiness-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -95,6 +96,10 @@ import {
   getAudienceSequenceQueueProducerReadinessSummary,
 } from "@/lib/audience-sequence-queue-producer-readiness";
 import {
+  audienceSequenceQueueConsumerReadinessIssue,
+  getAudienceSequenceQueueConsumerReadinessSummary,
+} from "@/lib/audience-sequence-queue-consumer-readiness";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -146,6 +151,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
     audienceSequenceQueueProducerReadiness,
+    audienceSequenceQueueConsumerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -173,6 +179,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDispatchPreflightSummary(),
     getAudienceSequenceDispatchAttemptSummary(),
     getAudienceSequenceQueueProducerReadinessSummary(),
+    getAudienceSequenceQueueConsumerReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -206,7 +213,9 @@ export default async function AdminAudiencePage() {
             queue-message dry runs, dispatch preflights, and dispatch attempt receipts record owner dry-run gates while
             queues, payloads, unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Sequence
             Queue producer readiness records the owner-reviewed producer handoff gate while Cloudflare producers and
-            Queue messages remain disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and
+            Queue messages remain disabled. Sequence Queue consumer readiness records the owner-reviewed consumer handoff
+            gate while Queue consumption, acks, retry/dead-letter rows, payload reads, and provider handoff remain
+            disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed, and
             paused-sequence counts before private CSV exports exist. Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
@@ -259,6 +268,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceDispatchPreflightIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceQueueConsumerReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceQueueConsumerReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -350,6 +366,15 @@ export default async function AdminAudiencePage() {
               {audienceSequenceQueueProducerReadiness.counts.queueProducerReadinessRecords} producer-readiness record
               {audienceSequenceQueueProducerReadiness.counts.queueProducerReadinessRecords === 1 ? "" : "s"};{" "}
               {audienceSequenceQueueProducerReadiness.counts.cloudflareQueueProducerEnabledRecords} producers enabled.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Sequence consumers</h3>
+            <p>
+              {audienceSequenceQueueConsumerReadiness.counts.queueConsumerReadinessRecords} consumer-readiness record
+              {audienceSequenceQueueConsumerReadiness.counts.queueConsumerReadinessRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceQueueConsumerReadiness.counts.cloudflareQueueConsumerEnabledRecords} consumers enabled.
             </p>
           </div>
           <div>
@@ -944,6 +969,13 @@ export default async function AdminAudiencePage() {
                   producers, Queue messages, queue payload bodies, recipient payloads, personalized bodies,
                   unsubscribe URLs, provider sends, provider responses, and provider message IDs remain disabled.
                 </p>
+                <AdminSequenceQueueConsumerReadinessForm
+                  queueProducerReadinessId={record.id}
+                  sequenceId={record.sequenceId}
+                  expectedWorkspaceRevisionId={record.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={record.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={record.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -956,6 +988,71 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from a current sequence dispatch attempt after payload, consumer, provider, suppression,
                 unsubscribe, sender-domain, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence Queue consumer readiness</p>
+            <h2>Sequence consumers stay disabled until ack and provider-handoff gates pass</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceQueueConsumerReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceQueueConsumerReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceQueueConsumerReadiness.latestRecords.length > 0 ? (
+            audienceSequenceQueueConsumerReadiness.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.dryRunMessageCount} messages</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>Sequence consumer handoff is readiness-only</h3>
+                <p>{record.consumerGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Producer readiness</strong>
+                  <span>{record.queueProducerReadinessId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Ack policy</strong>
+                  <span>{record.ackPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Retry policy</strong>
+                  <span>{record.retryPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider handoff</strong>
+                  <span>{record.providerHandoffPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Sequence Queue consumer readiness records owner-reviewed evidence only. Cloudflare Queue consumers,
+                  Queue message consumption, acks, retry/dead-letter rows, payload reads, recipient payloads,
+                  personalized bodies, unsubscribe URLs, provider sends, provider responses, and provider message IDs
+                  remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No sequence consumer readiness</span>
+                <span className="admin-pill">Issue #{audienceSequenceQueueConsumerReadinessIssue}</span>
+              </div>
+              <h3>No sequence Queue consumer readiness records yet</h3>
+              <p>
+                Record one from the latest sequence Queue producer readiness record after producer, payload-read, ack,
+                retry, dead-letter, provider-handoff, backpressure, audit, and stale-state gates are checked.
               </p>
             </article>
           )}

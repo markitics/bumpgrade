@@ -15,7 +15,7 @@ export type RoadmapItem = {
   markAttention?: string;
 };
 
-export const roadmapUpdatedAt = "2026-05-21";
+export const roadmapUpdatedAt = "2026-05-23";
 
 export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
   {
@@ -355,7 +355,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(17),
     group: "Growth system",
     summary:
-      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, aggregate sequence delivery readiness, dry-run sequence schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed import intents, owner-confirmed import preflights, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
+      "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, aggregate sequence delivery readiness, dry-run sequence schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, owner-reviewed sequence Queue consumer readiness gates, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, owner-confirmed import intents, owner-confirmed import preflights, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
       "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
@@ -388,10 +388,11 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #362 adds owner-confirmed dry-run sequence dispatch preflight evidence without Cloudflare Queue dispatch, queue payload bodies, delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, provider responses, or provider message IDs.",
       "Issue #364 adds owner-confirmed dry-run sequence dispatch attempt receipts without Cloudflare Queue dispatch, queue payload bodies, delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, provider responses, or provider message IDs.",
       "Issue #366 adds owner-reviewed sequence Queue producer readiness gates without enabling Cloudflare Queue producers, Queue messages, queue payload bodies, delivery queue rows, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, provider responses, or provider message IDs.",
+      "Issue #368 adds owner-reviewed sequence Queue consumer readiness gates without enabling Cloudflare Queue consumers, Queue message consumption, acks, retry/dead-letter rows, queue payload body reads, queue payload body creation, recipient payloads, personalized bodies, unsubscribe URLs, provider sends, provider responses, or provider message IDs.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add real contact imports, sequence scheduling, Cloudflare Queue producers, and consumers only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, sequence delivery-batch gates, sequence queue-message gates, sequence dispatch-preflight gates, sequence dispatch-attempt receipts, sequence Queue producer readiness, delivery-batch gates, queue-message gates, dispatch preflight boundaries, and dispatch-attempt receipts stay explicit.",
+      "Add real contact imports, sequence scheduling, Cloudflare Queue producers, and consumers only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, sequence delivery-batch gates, sequence queue-message gates, sequence dispatch-preflight gates, sequence dispatch-attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, delivery-batch gates, queue-message gates, dispatch preflight boundaries, and dispatch-attempt receipts stay explicit.",
   },
   {
     id: "roadmap-analytics-testing",
