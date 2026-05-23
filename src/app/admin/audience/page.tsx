@@ -37,6 +37,7 @@ import { AdminSequenceDeliveryResultReadinessForm } from "@/components/admin-seq
 import { AdminSequenceDeliveryStatusWebhookReadinessForm } from "@/components/admin-sequence-delivery-status-webhook-readiness-form";
 import { AdminSequenceProviderCallReadinessForm } from "@/components/admin-sequence-provider-call-readiness-form";
 import { AdminSequenceProviderPollingReadinessForm } from "@/components/admin-sequence-provider-polling-readiness-form";
+import { AdminSequenceDeliveryReceiptReadinessForm } from "@/components/admin-sequence-delivery-receipt-readiness-form";
 import { AdminSequenceReceiptPayloadReadinessForm } from "@/components/admin-sequence-receipt-payload-readiness-form";
 import { AdminSequenceQueueConsumerReadinessForm } from "@/components/admin-sequence-queue-consumer-readiness-form";
 import { AdminSequenceQueueProducerReadinessForm } from "@/components/admin-sequence-queue-producer-readiness-form";
@@ -130,6 +131,10 @@ import {
   getAudienceSequenceReceiptPayloadReadinessSummary,
 } from "@/lib/audience-sequence-receipt-payload-readiness";
 import {
+  audienceSequenceDeliveryReceiptReadinessIssue,
+  getAudienceSequenceDeliveryReceiptReadinessSummary,
+} from "@/lib/audience-sequence-delivery-receipt-readiness";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -188,6 +193,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
     audienceSequenceReceiptPayloadReadiness,
+    audienceSequenceDeliveryReceiptReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -222,6 +228,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
     getAudienceSequenceProviderPollingReadinessSummary(),
     getAudienceSequenceReceiptPayloadReadinessSummary(),
+    getAudienceSequenceDeliveryReceiptReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -529,6 +536,16 @@ export default async function AdminAudiencePage() {
               {audienceSequenceReceiptPayloadReadiness.counts.receiptPayloadReadinessRecords === 1 ? "" : "s"};{" "}
               {audienceSequenceReceiptPayloadReadiness.counts.receiptPayloadEnabledRecords} receipt payload capture
               enabled.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Delivery receipts</h3>
+            <p>
+              {audienceSequenceDeliveryReceiptReadiness.counts.deliveryReceiptReadinessRecords} delivery-receipt
+              readiness record
+              {audienceSequenceDeliveryReceiptReadiness.counts.deliveryReceiptReadinessRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceDeliveryReceiptReadiness.counts.deliveryReceiptsCreatedRecords} receipts created.
             </p>
           </div>
           <div>
@@ -1612,6 +1629,13 @@ export default async function AdminAudiencePage() {
                   acks, retry/dead-letter rows, payload reads, recipient payloads, personalized bodies, and unsubscribe
                   URLs remain disabled.
                 </p>
+                <AdminSequenceDeliveryReceiptReadinessForm
+                  receiptPayloadReadinessId={record.id}
+                  sequenceId={record.sequenceId}
+                  expectedWorkspaceRevisionId={record.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={record.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={record.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -1624,6 +1648,67 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from the latest sequence provider-polling readiness record after receipt payload,
                 delivery-receipt, retention, redaction, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence delivery-receipt readiness</p>
+            <h2>Delivery receipts stay disabled until receipt evidence gates pass</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDeliveryReceiptReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDeliveryReceiptReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDeliveryReceiptReadiness.latestRecords.length > 0 ? (
+            audienceSequenceDeliveryReceiptReadiness.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.dryRunMessageCount} messages</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>Sequence delivery receipt is readiness-only</h3>
+                <p>{record.deliveryReceiptGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Receipt-payload readiness</strong>
+                  <span>{record.receiptPayloadReadinessId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider mode</strong>
+                  <span>{record.providerMode.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Delivery receipt policy</strong>
+                  <span>{record.deliveryReceiptPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Sequence delivery-receipt readiness records owner-reviewed evidence only. Receipt payload capture,
+                  delivery receipt creation, provider sends, provider responses, message IDs, delivery attempts,
+                  delivery results, status webhooks, provider polling, Queue consumption, acks, retry/dead-letter rows,
+                  payload reads, recipient payloads, personalized bodies, and unsubscribe URLs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No delivery-receipt readiness</span>
+                <span className="admin-pill">Issue #{audienceSequenceDeliveryReceiptReadinessIssue}</span>
+              </div>
+              <h3>No sequence delivery-receipt readiness records yet</h3>
+              <p>
+                Record one from the latest sequence receipt-payload readiness record after receipt, retention,
+                redaction, retry, audit, and stale-state gates are checked.
               </p>
             </article>
           )}
