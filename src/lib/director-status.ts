@@ -184,6 +184,9 @@ function normalizeText(value: string) {
 
 function workstreamFromText(value: string): DirectorWorkstreamId {
   const text = normalizeText(value);
+  if (/\b(director|status dashboard|project control|project status|work-log|work log|for-mark|attention queue)\b/.test(text)) {
+    return "operations-control";
+  }
   if (/\b(marketing|homepage|compare|comparison|competitor|seo|resource|content|feature catalog|pricing|users)\b/.test(text)) {
     return "marketing";
   }
