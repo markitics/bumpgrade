@@ -16490,6 +16490,48 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("director due now excludes historical work-log attention flags", () => {
+    const payload = buildDirectorStatusData(
+      {
+        source: "fixture",
+        loadError: null,
+        roadmapItems: [],
+        userJourneys: [],
+        attentionItems: [],
+        workLogEntries: [
+          {
+            id: "work-log-historical-caveat",
+            title: "Shipped marketing source-data caveat",
+            agentName: "Codex",
+            agentKind: "codex",
+            sessionName: "bumpgrade-build-heartbeat",
+            promptFromMark: "Mark asked for a better executive overview.",
+            githubIssues: [{ number: 392, url: "https://github.com/markitics/bumpgrade/issues/392", kind: "issue" }],
+            closedPrs: [],
+            featuresUpdated: ["/admin/director/source-data"],
+            roadmapUpdated: [],
+            userJourneysUpdated: [],
+            documentationUpdated: [],
+            validation: [],
+            flagsAttention: "Historical caveat: this should remain audit evidence, not current due-now work.",
+            firstPromptAt: "2026-05-23T21:00:00.000Z",
+            completedAt: "2026-05-23T21:30:00.000Z",
+            relevantUrls: ["https://bumpgrade.com/admin/director/source-data"],
+            prCommentUrl: null,
+          },
+        ],
+      },
+      new Date("2026-05-23T22:00:00.000Z"),
+    );
+
+    expect(payload.totals.needsMark).toBe(0);
+    expect(payload.executiveQueue.find((lane) => lane.id === "due-now")?.items).toEqual([]);
+    expect(payload.windows.find((window) => window.id === "past-7-days")?.needsMark).toBe(1);
+    expect(payload.workstreams.find((workstream) => workstream.id === "operations-control")?.recentlyChanged).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "work-log-historical-caveat", status: "shipped_change" })]),
+    );
+  });
+
   test("admin user journeys source data exposes launch proof summary", async ({ request }) => {
     const response = await request.get("/admin/user-journeys/source-data");
     expect(response.ok()).toBeTruthy();

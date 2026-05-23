@@ -41,7 +41,10 @@ The director source-data route also exposes an `executiveQueue` with stable
 lanes for `due-now`, `in-flight`, and `pending-next`. Each queue item keeps its
 workstream ID/title and evidence links so agents and mobile dashboards can show
 the CEO-level queue without flattening Marketing, Security, Operations, Product,
-or other major categories.
+or other major categories. `due-now` is intentionally stateful: it comes from
+open/read Mark-attention records, roadmap `markAttention`, and blocked roadmap
+items. Historical work-log `flagsAttention` rows stay in recent-change and
+window evidence, but they should not inflate current due-now decisions.
 
 ## Admin `/admin/roadmap`
 

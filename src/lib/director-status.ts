@@ -412,7 +412,7 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
     {
       id: "due-now",
       label: "Due now",
-      summary: "Decisions, blockers, and attention items that should be handled before more feature throughput.",
+      summary: "Current For-Mark decisions, roadmap blockers, and roadmap attention items to handle before more feature throughput.",
       items: dueNow,
     },
     {
@@ -472,13 +472,6 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
           ...roadmapInitiative(item),
           status: "needs_mark" as const,
           summary: item.markAttention ?? item.summary,
-        })),
-      ...bucket.workLog
-        .filter((entry) => Boolean(entry.flagsAttention))
-        .map((entry) => ({
-          ...workLogInitiative(entry),
-          status: "needs_mark" as const,
-          summary: entry.flagsAttention ?? entry.promptFromMark,
         })),
     ];
     const recentlyChanged = bucket.workLog
