@@ -37,6 +37,12 @@ Use this page for "what changed in the past day/week", "what is in flight",
 "what is blocked or at risk", and "what needs Mark". Treat `/admin/work-log` as
 the audit trail behind the director summary.
 
+The director source-data route also exposes an `executiveQueue` with stable
+lanes for `due-now`, `in-flight`, and `pending-next`. Each queue item keeps its
+workstream ID/title and evidence links so agents and mobile dashboards can show
+the CEO-level queue without flattening Marketing, Security, Operations, Product,
+or other major categories.
+
 ## Admin `/admin/roadmap`
 
 Purpose: show the main feature set, status, owners/agents, issue/PR links, and

@@ -2412,6 +2412,7 @@ h3 {
 
 .director-window-card svg,
 .director-policy-panel svg,
+.director-queue-heading svg,
 .director-owner-note svg {
   width: 28px;
   height: 28px;
@@ -2434,6 +2435,82 @@ h3 {
 .director-policy-panel h3 {
   margin: 4px 0 8px;
   font-size: 22px;
+}
+
+.director-queue-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.director-queue-lane {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 320px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--gold);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.director-queue-lane.due-now {
+  border-top-color: #d35b45;
+}
+
+.director-queue-lane.in-flight {
+  border-top-color: var(--green);
+}
+
+.director-queue-lane.pending-next {
+  border-top-color: var(--gold);
+}
+
+.director-queue-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.director-queue-heading strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.director-queue-lane > p,
+.director-queue-lane li p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.director-queue-lane ul {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.director-queue-lane li {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(18, 23, 19, 0.1);
+}
+
+.director-queue-lane li strong {
+  line-height: 1.35;
+}
+
+.director-queue-lane li strong,
+.director-queue-lane li p,
+.director-queue-lane .admin-link-list a {
+  overflow-wrap: anywhere;
 }
 
 .director-workstream-list {
@@ -4055,6 +4132,10 @@ h3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .director-queue-grid {
+    grid-template-columns: 1fr;
+  }
+
   .director-workstream summary {
     grid-template-columns: 1fr;
   }
@@ -4138,6 +4219,7 @@ h3 {
   .roadmap-proof-grid,
   .director-kpi-strip,
   .director-window-grid,
+  .director-queue-grid,
   .director-initiative-grid,
   .admin-action-grid,
   .launch-outcome-grid,
