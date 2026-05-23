@@ -37,14 +37,14 @@ then open the relevant shelf for the task.
   queue readiness, delivery-batch, queue-message, dispatch-preflight, and
   dispatch-attempt, sender-domain readiness, provider-event readiness,
   provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness,
-  Queue consumer readiness, provider-call readiness, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, owner-confirmed import intent, owner-confirmed import preflight,
+  Queue consumer readiness, provider-call readiness, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, owner-confirmed import intent, owner-confirmed import preflight,
   aggregate export readiness, aggregate sequence delivery readiness, dry-run
   sequence schedule intents, dry-run sequence delivery batches, dry-run
   sequence queue-message evidence, dry-run sequence dispatch preflight evidence,
-  dry-run sequence dispatch attempt evidence, sequence Queue producer readiness evidence, sequence Queue consumer readiness evidence, and sequence provider-call readiness evidence
+  dry-run sequence dispatch attempt evidence, sequence Queue producer readiness evidence, sequence Queue consumer readiness evidence, sequence provider-call readiness evidence, and sequence delivery-attempt readiness evidence
   contracts from issues #85, #103, #137, #167, #169, #171, #173, #175, #177,
   #183, #189, #191, #197, #199, #201, #203, #205, #207, #209, #211, and
-  #253, #259, #347, #351, #354, #358, #360, #362, #364, #366, #368, and #370.
+  #253, #259, #347, #351, #354, #358, #360, #362, #364, #366, #368, #370, and #372.
 - `features/analytics-experiments.md`: event, metric, aggregate conversion
   report, variant, assignment-rule, aggregate count, seeded event capture,
   browser-side page-view beacon, aggregate source attribution evidence,

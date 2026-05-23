@@ -43,6 +43,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Owner audience sequence Queue producer readiness API: https://bumpgrade.com/api/admin/audience/sequences/queue-producer-readiness (human page/API requires Better Auth owner session)
 - Owner audience sequence Queue consumer readiness API: https://bumpgrade.com/api/admin/audience/sequences/queue-consumer-readiness (human page/API requires Better Auth owner session)
 - Owner audience sequence provider-call readiness API: https://bumpgrade.com/api/admin/audience/sequences/provider-call-readiness (human page/API requires Better Auth owner session)
+- Owner audience sequence delivery-attempt readiness API: https://bumpgrade.com/api/admin/audience/sequences/delivery-attempt-readiness (human page/API requires Better Auth owner session)
 - Owner audience dispatch preflight API: https://bumpgrade.com/api/admin/audience/broadcasts/dispatch-preflights (human page/API requires Better Auth owner session)
 - Owner audience dispatch attempt API: https://bumpgrade.com/api/admin/audience/broadcasts/dispatch-attempts (human page/API requires Better Auth owner session)
 - Admin audience subscriber inspection: https://bumpgrade.com/admin/audience (human page requires Better Auth owner session)
@@ -222,10 +223,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression
   counts, aggregate CRM timeline counts, broadcast readiness counts, dry-run
-  schedule intent counts, sequence delivery-batch dry-run records, sequence queue-message dry-run records, sequence dispatch preflight records, sequence dispatch attempt records, sequence Queue producer readiness records, sequence Queue consumer readiness records, sequence provider-call readiness records, preview/footer safety records, queue readiness records, delivery-batch dry-run records,
+  schedule intent counts, sequence delivery-batch dry-run records, sequence queue-message dry-run records, sequence dispatch preflight records, sequence dispatch attempt records, sequence Queue producer readiness records, sequence Queue consumer readiness records, sequence provider-call readiness records, sequence delivery-attempt readiness records, preview/footer safety records, queue readiness records, delivery-batch dry-run records,
   dry-run queue-message records, dispatch preflight records, dispatch attempt records,
   sender-domain readiness records, provider-event readiness records, provider rate-limit readiness records,
-  provider response readiness records, send-payload readiness records, Queue producer readiness records, Queue consumer readiness records, provider-call readiness records, owner-confirmed import intent records, owner-confirmed import preflight records, aggregate export readiness records, aggregate sequence delivery readiness records, redaction flags, the
+  provider response readiness records, send-payload readiness records, Queue producer readiness records, Queue consumer readiness records, provider-call readiness records, delivery-attempt readiness records, owner-confirmed import intent records, owner-confirmed import preflight records, aggregate export readiness records, aggregate sequence delivery readiness records, redaction flags, the
   `/api/audience/opt-in` write boundary, the `/api/audience/unsubscribe`
   suppression write boundary, and the owner-gated `/api/admin/audience/notes`
   CRM note boundary plus `/api/admin/audience/sequences/schedule-intents` and
@@ -236,6 +237,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/api/admin/audience/sequences/queue-producer-readiness` and
   `/api/admin/audience/sequences/queue-consumer-readiness` and
   `/api/admin/audience/sequences/provider-call-readiness` and
+  `/api/admin/audience/sequences/delivery-attempt-readiness` and
   `/api/admin/audience/broadcasts/schedule-intents` and
   `/api/admin/audience/broadcasts/delivery-batches` and
   `/api/admin/audience/broadcasts/delivery-queue-messages` and
@@ -248,10 +250,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   sequence enrollment evidence. It can also record an unsubscribe preference
   without revealing whether the email is already on the list. `/admin/audience`
   is owner-gated and can inspect private subscriber rows, suppression totals,
-  private CRM timeline notes, broadcast readiness, preview safety, queue readiness, dry-run schedule intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness,
-  delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, provider-call readiness, non-destructive import intents, aggregate import preflights, aggregate export readiness, and aggregate sequence delivery readiness. Treat the public contract
+  private CRM timeline notes, broadcast readiness, preview safety, queue readiness, dry-run schedule intents, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness,
+  delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, provider-call readiness, delivery-attempt readiness, non-destructive import intents, aggregate import preflights, aggregate export readiness, and aggregate sequence delivery readiness. Treat the public contract
   as seeded opt-in capture, unsubscribe evidence, owner-only note evidence, and
-  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/provider-call/import-intent/import-preflight/export-readiness/sequence-delivery-readiness/sequence-delivery-batch/sequence-queue-message/sequence-dispatch-preflight/sequence-dispatch-attempt/sequence-Queue-producer-readiness/sequence-Queue-consumer-readiness/sequence-provider-call-readiness evidence, not live email sending, sequence delivery, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch, Queue message consumption or acknowledgements, retry/dead-letter rows, provider calls, delivery attempts, delivery results, webhooks, receipts,
+  aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/provider-call/delivery-attempt/import-intent/import-preflight/export-readiness/sequence-delivery-readiness/sequence-delivery-batch/sequence-queue-message/sequence-dispatch-preflight/sequence-dispatch-attempt/sequence-Queue-producer-readiness/sequence-Queue-consumer-readiness/sequence-provider-call-readiness/sequence-delivery-attempt-readiness evidence, not live email sending, sequence delivery, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch, Queue message consumption or acknowledgements, retry/dead-letter rows, provider calls, delivery attempts, delivery results, webhooks, receipts,
   real contact import, raw contact row storage, subscriber creation from imports, CRM automation, private export, suppression-list
   administration, or a direct agent subscriber-write API.
 - `/analytics/source-data` exposes the first analytics and experimentation
