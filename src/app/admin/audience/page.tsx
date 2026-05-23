@@ -30,6 +30,7 @@ import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcas
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-delivery-batch-form";
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
+import { AdminSequenceDispatchPreflightForm } from "@/components/admin-sequence-dispatch-preflight-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -80,6 +81,10 @@ import {
   getAudienceSequenceDeliveryQueueMessageSummary,
 } from "@/lib/audience-sequence-delivery-queue-messages";
 import {
+  audienceSequenceDispatchPreflightIssue,
+  getAudienceSequenceDispatchPreflightSummary,
+} from "@/lib/audience-sequence-dispatch-preflights";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -128,6 +133,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,
     audienceSequenceDeliveryQueueMessages,
+    audienceSequenceDispatchPreflights,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -152,6 +158,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceScheduleIntentSummary(),
     getAudienceSequenceDeliveryBatchSummary(),
     getAudienceSequenceDeliveryQueueMessageSummary(),
+    getAudienceSequenceDispatchPreflightSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -182,9 +189,10 @@ export default async function AdminAudiencePage() {
             eligibility, suppression, consent, and malformed-row checks before subscriber writes, exports, or delivery
             are allowed. Sequence delivery readiness shows aggregate step, ready-enrollment, paused, unsubscribed, and
             suppression counts before sequence scheduling or sends exist. Sequence schedule intents, delivery batches,
-            and queue-message dry runs record owner dry-run gates while queues, payloads, unsubscribe URLs, provider
-            sends, and provider IDs stay disabled. Export readiness shows aggregate eligible, suppressed, unsubscribed,
-            and paused-sequence counts before private CSV exports exist. Public source-data stays aggregate-only.
+            queue-message dry runs, and dispatch preflights record owner dry-run gates while queues, payloads,
+            unsubscribe URLs, provider sends, responses, and provider IDs stay disabled. Export readiness shows
+            aggregate eligible, suppressed, unsubscribed, and paused-sequence counts before private CSV exports exist.
+            Public source-data stays aggregate-only.
           </p>
           <div className="hero-actions">
             <Link href="/audience/source-data" className="primary-action">
@@ -229,6 +237,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceDeliveryQueueMessageIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDispatchPreflightIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceDispatchPreflightIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -292,6 +307,15 @@ export default async function AdminAudiencePage() {
               {audienceSequenceDeliveryQueueMessages.counts.dryRunRecords === 1 ? "" : "s"};{" "}
               {audienceSequenceDeliveryQueueMessages.counts.cloudflareQueueMessagesCreatedRecords} Cloudflare Queue
               dispatches.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Sequence preflights</h3>
+            <p>
+              {audienceSequenceDispatchPreflights.counts.dryRunPreflights} dry-run preflight
+              {audienceSequenceDispatchPreflights.counts.dryRunPreflights === 1 ? "" : "s"};{" "}
+              {audienceSequenceDispatchPreflights.counts.providerSendEnabledRecords} provider sends enabled.
             </p>
           </div>
           <div>
@@ -670,6 +694,13 @@ export default async function AdminAudiencePage() {
                   Cloudflare Queue dispatch, queue payload bodies, recipient payloads, personalized bodies,
                   unsubscribe URLs, provider sends, and provider message IDs remain disabled.
                 </p>
+                <AdminSequenceDispatchPreflightForm
+                  deliveryQueueMessageId={message.id}
+                  sequenceId={message.sequenceId}
+                  expectedWorkspaceRevisionId={message.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={message.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={message.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -689,6 +720,73 @@ export default async function AdminAudiencePage() {
       </section>
 
       <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence dispatch preflight dry runs</p>
+            <h2>Sequence dispatch gates are checked before Queue handoff</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceDispatchPreflightIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceDispatchPreflightIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceDispatchPreflights.latestPreflights.length > 0 ? (
+            audienceSequenceDispatchPreflights.latestPreflights.map((preflight) => (
+              <article key={preflight.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{preflight.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{preflight.dryRunMessageCount} messages</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>{preflight.queueName}</h3>
+                <p>{preflight.dispatchMode.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Sequence</strong>
+                  <span>{preflight.sequenceId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue message</strong>
+                  <span>{preflight.deliveryQueueMessageId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider limit</strong>
+                  <span>{preflight.providerLimitPolicy}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Queue artifacts</strong>
+                  <span>
+                    {String(preflight.cloudflareQueueMessagesCreated)} Cloudflare messages;{" "}
+                    {String(preflight.queuePayloadBodiesCreated)} payload bodies
+                  </span>
+                </div>
+                <p className="card-note">
+                  Provider sends, provider responses, Cloudflare Queue dispatch, queue payload bodies, delivery queue
+                  rows, recipient payloads, personalized bodies, unsubscribe URLs, and provider message IDs remain
+                  disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No preflights</span>
+                <span className="admin-pill">Issue #{audienceSequenceDispatchPreflightIssue}</span>
+              </div>
+              <h3>No sequence dispatch preflights yet</h3>
+              <p>
+                Record one from a current sequence queue-message card after provider-limit, sender-domain,
+                unsubscribe, suppression, audit, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Audience import intents</p>
