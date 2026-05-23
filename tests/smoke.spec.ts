@@ -35,6 +35,7 @@ import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
 import { publicAnalyticsAttributionLabel, publicAnalyticsCampaignLabel } from "../src/lib/public-analytics-labels";
 import { brandAssets, brandColors, brandSourceData } from "../src/lib/brand";
+import { buildDirectorStatusData } from "../src/lib/director-status";
 import {
   audienceBroadcastDeliveryBatchApiRoute,
   audienceBroadcastDeliveryBatchConfirmationText,
@@ -16341,6 +16342,49 @@ test.describe("Bumpgrade scaffold", () => {
         "/admin/work-log/source-data",
         "/admin/roadmap/source-data",
       ]),
+    );
+  });
+
+  test("director status keeps project-control work logs in operations", () => {
+    const payload = buildDirectorStatusData(
+      {
+        source: "fixture",
+        loadError: null,
+        roadmapItems: [],
+        userJourneys: [],
+        attentionItems: [],
+        workLogEntries: [
+          {
+            id: "work-log-director-control",
+            title: "Shipped director-level status dashboard",
+            agentName: "Codex",
+            agentKind: "codex",
+            sessionName: "bumpgrade-build-heartbeat",
+            promptFromMark:
+              "Mark asked for expandable categories like Marketing and Security, but this record belongs to project control.",
+            githubIssues: [{ number: 388, url: "https://github.com/markitics/bumpgrade/issues/388", kind: "issue" }],
+            closedPrs: [],
+            featuresUpdated: ["/admin/director", "/admin/director/source-data", "/admin/work-log"],
+            roadmapUpdated: [],
+            userJourneysUpdated: [],
+            documentationUpdated: [],
+            validation: [],
+            flagsAttention: null,
+            firstPromptAt: "2026-05-23T21:00:00.000Z",
+            completedAt: "2026-05-23T21:30:00.000Z",
+            relevantUrls: ["https://bumpgrade.com/admin/director/source-data"],
+            prCommentUrl: null,
+          },
+        ],
+      },
+      new Date("2026-05-23T22:00:00.000Z"),
+    );
+
+    expect(payload.workstreams.find((workstream) => workstream.id === "operations-control")?.sourceRecordIds.workLog).toContain(
+      "work-log-director-control",
+    );
+    expect(payload.workstreams.find((workstream) => workstream.id === "marketing")?.sourceRecordIds.workLog).not.toContain(
+      "work-log-director-control",
     );
   });
 
