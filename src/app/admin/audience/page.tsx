@@ -36,6 +36,7 @@ import { AdminSequenceDeliveryAttemptReadinessForm } from "@/components/admin-se
 import { AdminSequenceDeliveryResultReadinessForm } from "@/components/admin-sequence-delivery-result-readiness-form";
 import { AdminSequenceDeliveryStatusWebhookReadinessForm } from "@/components/admin-sequence-delivery-status-webhook-readiness-form";
 import { AdminSequenceProviderCallReadinessForm } from "@/components/admin-sequence-provider-call-readiness-form";
+import { AdminSequenceProviderPollingReadinessForm } from "@/components/admin-sequence-provider-polling-readiness-form";
 import { AdminSequenceQueueConsumerReadinessForm } from "@/components/admin-sequence-queue-consumer-readiness-form";
 import { AdminSequenceQueueProducerReadinessForm } from "@/components/admin-sequence-queue-producer-readiness-form";
 import { AdminSequenceScheduleIntentForm } from "@/components/admin-sequence-schedule-intent-form";
@@ -120,6 +121,10 @@ import {
   getAudienceSequenceDeliveryStatusWebhookReadinessSummary,
 } from "@/lib/audience-sequence-delivery-status-webhook-readiness";
 import {
+  audienceSequenceProviderPollingReadinessIssue,
+  getAudienceSequenceProviderPollingReadinessSummary,
+} from "@/lib/audience-sequence-provider-polling-readiness";
+import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
@@ -176,6 +181,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryAttemptReadiness,
     audienceSequenceDeliveryResultReadiness,
     audienceSequenceDeliveryStatusWebhookReadiness,
+    audienceSequenceProviderPollingReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -208,6 +214,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryAttemptReadinessSummary(),
     getAudienceSequenceDeliveryResultReadinessSummary(),
     getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
+    getAudienceSequenceProviderPollingReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -341,6 +348,13 @@ export default async function AdminAudiencePage() {
               className="secondary-action"
             >
               Issue #{audienceSequenceDeliveryStatusWebhookReadinessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceProviderPollingReadinessIssue}`}
+              className="secondary-action"
+            >
+              Issue #{audienceSequenceProviderPollingReadinessIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -481,6 +495,15 @@ export default async function AdminAudiencePage() {
                 : "s"}
               ; {audienceSequenceDeliveryStatusWebhookReadiness.counts.deliveryStatusWebhooksProcessedRecords} webhooks
               processed.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Provider polling</h3>
+            <p>
+              {audienceSequenceProviderPollingReadiness.counts.providerPollingReadinessRecords} polling readiness record
+              {audienceSequenceProviderPollingReadiness.counts.providerPollingReadinessRecords === 1 ? "" : "s"};{" "}
+              {audienceSequenceProviderPollingReadiness.counts.providerPollingEnabledRecords} provider polling enabled.
             </p>
           </div>
           <div>
@@ -1427,6 +1450,13 @@ export default async function AdminAudiencePage() {
                   payload reads, provider polling, receipts, Queue consumption, acks, retry/dead-letter rows, payload
                   reads, recipient payloads, personalized bodies, and unsubscribe URLs remain disabled.
                 </p>
+                <AdminSequenceProviderPollingReadinessForm
+                  deliveryStatusWebhookReadinessId={record.id}
+                  sequenceId={record.sequenceId}
+                  expectedWorkspaceRevisionId={record.expectedWorkspaceRevisionId}
+                  expectedSequenceStatus={record.expectedSequenceStatus}
+                  expectedReadyEnrollmentCount={record.expectedReadyEnrollmentCount}
+                />
               </article>
             ))
           ) : (
@@ -1438,6 +1468,67 @@ export default async function AdminAudiencePage() {
               <h3>No sequence delivery-status webhook readiness records yet</h3>
               <p>
                 Record one from the latest sequence delivery-result readiness record after webhook, polling, receipt,
+                backpressure, audit, redaction, and stale-state gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Sequence provider-polling readiness</p>
+            <h2>Provider polling stays disabled until receipt and reconciliation gates pass</h2>
+          </div>
+          <Link
+            href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceProviderPollingReadinessIssue}`}
+            className="text-link compact-link"
+          >
+            Issue #{audienceSequenceProviderPollingReadinessIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          {audienceSequenceProviderPollingReadiness.latestRecords.length > 0 ? (
+            audienceSequenceProviderPollingReadiness.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{record.status.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.dryRunMessageCount} messages</span>
+                </div>
+                <ShieldCheck aria-hidden="true" />
+                <h3>Sequence provider polling is readiness-only</h3>
+                <p>{record.providerPollingGateStatus.replaceAll("_", " ")}</p>
+                <div className="roadmap-detail">
+                  <strong>Delivery-status webhook readiness</strong>
+                  <span>{record.deliveryStatusWebhookReadinessId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider mode</strong>
+                  <span>{record.providerMode.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Provider polling policy</strong>
+                  <span>{record.providerPollingPolicy}</span>
+                </div>
+                <p className="card-note">
+                  Sequence provider-polling readiness records owner-reviewed evidence only. Provider sends, provider
+                  calls, responses, message IDs, delivery attempts, delivery results, status webhooks, webhook payloads,
+                  provider polling, polling results, receipts, Queue consumption, acks, retry/dead-letter rows, payload
+                  reads, recipient payloads, personalized bodies, and unsubscribe URLs remain disabled.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No provider-polling readiness</span>
+                <span className="admin-pill">Issue #{audienceSequenceProviderPollingReadinessIssue}</span>
+              </div>
+              <h3>No sequence provider-polling readiness records yet</h3>
+              <p>
+                Record one from the latest sequence delivery-status webhook readiness record after polling, receipt,
                 backpressure, audit, redaction, and stale-state gates are checked.
               </p>
             </article>
