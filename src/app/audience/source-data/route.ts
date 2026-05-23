@@ -25,6 +25,7 @@ import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-s
 import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequence-dispatch-attempts";
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
+import { getAudienceSequenceProviderCallReadinessSummary } from "@/lib/audience-sequence-provider-call-readiness";
 import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
 import { getAudienceSequenceQueueProducerReadinessSummary } from "@/lib/audience-sequence-queue-producer-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
@@ -59,6 +60,7 @@ export async function GET() {
     audienceSequenceDispatchAttempts,
     audienceSequenceQueueProducerReadiness,
     audienceSequenceQueueConsumerReadiness,
+    audienceSequenceProviderCallReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -87,6 +89,7 @@ export async function GET() {
     getAudienceSequenceDispatchAttemptSummary(),
     getAudienceSequenceQueueProducerReadinessSummary(),
     getAudienceSequenceQueueConsumerReadinessSummary(),
+    getAudienceSequenceProviderCallReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -110,6 +113,7 @@ export async function GET() {
         audienceSequenceDispatchAttempts.apiRoute,
         audienceSequenceQueueProducerReadiness.apiRoute,
         audienceSequenceQueueConsumerReadiness.apiRoute,
+        audienceSequenceProviderCallReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -138,6 +142,7 @@ export async function GET() {
     audienceSequenceDispatchAttempts,
     audienceSequenceQueueProducerReadiness,
     audienceSequenceQueueConsumerReadiness,
+    audienceSequenceProviderCallReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
