@@ -26,6 +26,7 @@ import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequen
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryAttemptReadinessSummary } from "@/lib/audience-sequence-delivery-attempt-readiness";
 import { getAudienceSequenceDeliveryResultReadinessSummary } from "@/lib/audience-sequence-delivery-result-readiness";
+import { getAudienceSequenceDeliveryStatusWebhookReadinessSummary } from "@/lib/audience-sequence-delivery-status-webhook-readiness";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 import { getAudienceSequenceProviderCallReadinessSummary } from "@/lib/audience-sequence-provider-call-readiness";
 import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
@@ -65,6 +66,7 @@ export async function GET() {
     audienceSequenceProviderCallReadiness,
     audienceSequenceDeliveryAttemptReadiness,
     audienceSequenceDeliveryResultReadiness,
+    audienceSequenceDeliveryStatusWebhookReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -96,6 +98,7 @@ export async function GET() {
     getAudienceSequenceProviderCallReadinessSummary(),
     getAudienceSequenceDeliveryAttemptReadinessSummary(),
     getAudienceSequenceDeliveryResultReadinessSummary(),
+    getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -122,6 +125,7 @@ export async function GET() {
         audienceSequenceProviderCallReadiness.apiRoute,
         audienceSequenceDeliveryAttemptReadiness.apiRoute,
         audienceSequenceDeliveryResultReadiness.apiRoute,
+        audienceSequenceDeliveryStatusWebhookReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -153,6 +157,7 @@ export async function GET() {
     audienceSequenceProviderCallReadiness,
     audienceSequenceDeliveryAttemptReadiness,
     audienceSequenceDeliveryResultReadiness,
+    audienceSequenceDeliveryStatusWebhookReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
