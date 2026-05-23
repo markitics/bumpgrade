@@ -28,6 +28,7 @@ import { getAudienceSequenceDeliveryAttemptReadinessSummary } from "@/lib/audien
 import { getAudienceSequenceDeliveryResultReadinessSummary } from "@/lib/audience-sequence-delivery-result-readiness";
 import { getAudienceSequenceDeliveryStatusWebhookReadinessSummary } from "@/lib/audience-sequence-delivery-status-webhook-readiness";
 import { getAudienceSequenceProviderPollingReadinessSummary } from "@/lib/audience-sequence-provider-polling-readiness";
+import { getAudienceSequenceReceiptPayloadReadinessSummary } from "@/lib/audience-sequence-receipt-payload-readiness";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
 import { getAudienceSequenceProviderCallReadinessSummary } from "@/lib/audience-sequence-provider-call-readiness";
 import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
@@ -69,6 +70,7 @@ export async function GET() {
     audienceSequenceDeliveryResultReadiness,
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
+    audienceSequenceReceiptPayloadReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -102,6 +104,7 @@ export async function GET() {
     getAudienceSequenceDeliveryResultReadinessSummary(),
     getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
     getAudienceSequenceProviderPollingReadinessSummary(),
+    getAudienceSequenceReceiptPayloadReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -130,6 +133,7 @@ export async function GET() {
         audienceSequenceDeliveryResultReadiness.apiRoute,
         audienceSequenceDeliveryStatusWebhookReadiness.apiRoute,
         audienceSequenceProviderPollingReadiness.apiRoute,
+        audienceSequenceReceiptPayloadReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -163,6 +167,7 @@ export async function GET() {
     audienceSequenceDeliveryResultReadiness,
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
+    audienceSequenceReceiptPayloadReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
