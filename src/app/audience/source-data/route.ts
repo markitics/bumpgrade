@@ -25,6 +25,7 @@ import { getAudienceSequenceDeliveryQueueMessageSummary } from "@/lib/audience-s
 import { getAudienceSequenceDispatchAttemptSummary } from "@/lib/audience-sequence-dispatch-attempts";
 import { getAudienceSequenceDispatchPreflightSummary } from "@/lib/audience-sequence-dispatch-preflights";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
+import { getAudienceSequenceQueueProducerReadinessSummary } from "@/lib/audience-sequence-queue-producer-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
 
@@ -55,6 +56,7 @@ export async function GET() {
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
+    audienceSequenceQueueProducerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -81,6 +83,7 @@ export async function GET() {
     getAudienceSequenceDeliveryQueueMessageSummary(),
     getAudienceSequenceDispatchPreflightSummary(),
     getAudienceSequenceDispatchAttemptSummary(),
+    getAudienceSequenceQueueProducerReadinessSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -102,6 +105,7 @@ export async function GET() {
         audienceSequenceDeliveryQueueMessages.apiRoute,
         audienceSequenceDispatchPreflights.apiRoute,
         audienceSequenceDispatchAttempts.apiRoute,
+        audienceSequenceQueueProducerReadiness.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -128,6 +132,7 @@ export async function GET() {
     audienceSequenceDeliveryQueueMessages,
     audienceSequenceDispatchPreflights,
     audienceSequenceDispatchAttempts,
+    audienceSequenceQueueProducerReadiness,
     audienceExportReadiness,
     importIntents,
     importPreflights,
