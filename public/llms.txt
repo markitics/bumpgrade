@@ -375,6 +375,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   event or assignment exposure, raw analytics exports, automated winners,
   direct public agent analytics writes, revenue claims, or statistically
   meaningful proof.
+- Issue #18 is the live analytics MVP boundary. Issue #422 tracks the
+  remaining live analytics automation, experiment routing, notification
+  execution, Queue producer/consumer execution, provider calls, delivery
+  attempts/results, webhooks, polling, receipts, raw/private exports, and
+  agent-safe write parity work as one pending bucket.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, aggregate click
   counts, checkout attribution evidence, aggregate review-only commission ledger
