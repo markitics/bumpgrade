@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, and #309 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -25,6 +25,12 @@ owner-reviewed notification receipt-payload readiness evidence, and
 owner-reviewed notification delivery-receipt readiness evidence, and
 owner-reviewed notification provider-status reconciliation readiness evidence
 for issue #18.
+
+Issue #18 is now the live analytics MVP boundary. Issue #422 tracks the
+remaining live analytics automation, experiment routing, notification
+execution, Queue producer/consumer execution, provider calls, delivery
+attempts/results, webhooks, polling, receipts, raw/private exports, and
+agent-safe write parity work as one pending post-MVP execution bucket.
 
 ## Live Routes
 

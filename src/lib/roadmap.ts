@@ -465,7 +465,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-analytics-testing",
     title: "Analytics, A/B testing, and conversion tracking",
-    status: "active",
+    status: "shipped",
     issue: 18,
     featureId: featureIdFor(18),
     group: "Optimization",
@@ -502,9 +502,27 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #307 adds owner-reviewed receipt-payload readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, creating delivery receipts, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
       "Issue #309 adds owner-reviewed delivery-receipt readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, creating delivery receipts, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
       "Issue #311 adds owner-reviewed provider-status reconciliation readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, processing delivery receipts, reconciling provider statuses, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
+      "Issue #422 tracks live analytics automation, experiment routing, notification execution, and direct agent-safe write parity as one pending post-MVP execution bucket.",
     ],
     nextMilestone:
-      "Promote provider-status reconciliation from readiness evidence to a future confirmed execution contract only after provider sends/calls, provider responses, provider message IDs, delivery receipts, status webhooks, provider polling, raw receipt payloads, provider secrets, sender credentials, recipients, email bodies, queues, customer alerts, and sends stay disabled by default.",
+      "Keep live analytics automation, experiment routing, notification execution, Queue producer/consumer execution, provider calls, delivery results, raw exports, and agent-safe write tools in issue #422 instead of reopening more isolated readiness-gate slices.",
+  },
+  {
+    id: "roadmap-live-analytics-execution",
+    title: "Live analytics automation, experiment routing, notification execution, and agent-safe writes",
+    status: "planned",
+    issue: 422,
+    featureId: featureIdFor(18),
+    group: "Optimization",
+    summary:
+      "Pending post-MVP execution bucket for custom/non-seeded analytics event schemas, live experiment traffic routing, holdouts, winner selection, rollback and audit logs, automated alert/notification execution, Cloudflare Queue producer and consumer execution, provider calls, delivery attempts, results, webhooks, polling, receipts, raw/private exports, and direct agent-safe analytics write APIs.",
+    publicEvidence: [
+      "Issue #422 tracks this pending post-MVP execution bucket.",
+      "Issue #18 remains the shipped analytics MVP for privacy-safe events, deterministic assignments, aggregate conversion reporting, fixed-window attribution, owner decision evidence, aggregate exports, and notification readiness proof.",
+      "The issue #18 closeout deliberately stops creating more single-gate proof slices unless they directly unlock live execution.",
+    ],
+    nextMilestone:
+      "Design and ship live analytics execution as one coherent workflow with privacy review, idempotency, audit correlation, stale-state checks, redaction, Queue/provider safety, rollback, sample-size caveats, and confirmed-write checks.",
   },
   {
     id: "roadmap-affiliates-referrals",

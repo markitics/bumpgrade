@@ -563,6 +563,12 @@ exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.
 
+Issue #18 is the live analytics MVP boundary. Issue #422 tracks the remaining
+live analytics automation, experiment routing, notification execution,
+Cloudflare Queue producer/consumer execution, provider calls, delivery
+attempts/results, webhooks, polling, receipts, raw/private exports, and
+agent-safe write parity work as one pending bucket.
+
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
