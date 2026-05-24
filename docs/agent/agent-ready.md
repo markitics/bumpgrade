@@ -44,6 +44,8 @@ Recommended stable concepts:
 - `checkoutId`: stable id for a checkout experience.
 - `checkoutIntentId`: stable id for an idempotent checkout-start request.
 - `productId`: stable id for a digital product, membership, service, or event.
+- `productPaymentPlanId`: stable id for public-safe product pay-in-full,
+  installment, or subscription plan records.
 - `priceId`: stable id for a Bumpgrade price record; Stripe Price ids stay
   provider metadata.
 - `subscriptionPlanId`: stable id for pricing/billing plans.
@@ -171,7 +173,8 @@ capability.
 
 Current product/access boundary: `/products/source-data` is the public-safe
 contract for seeded downloads, courses, memberships, services, events, bundles,
-assets, access rules, entitlement templates, and sandbox webhook grant mappings.
+assets, access rules, entitlement templates, payment-plan records, and sandbox
+webhook grant mappings.
 `/products/indie-launch-library` is the read-only preview. Trusted paid sandbox
 webhooks can grant idempotent `product_entitlements` rows and queue public-safe
 `product_fulfillment_tasks`. `/admin/products` lets verified owners inspect
@@ -187,7 +190,8 @@ metadata, owner-created product delivery-gate metadata, owner-created product
 direct test grant metadata, owner upload intent metadata, owner-confirmed
 non-destructive revocation intent records, protected content readiness,
 checkout-scoped protected fixture delivery metadata,
-subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
+subscription-backed membership access metadata, seeded payment-plan read records,
+and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
@@ -224,10 +228,11 @@ protected fixture delivery, owner-confirmed product creation, owner-created
 product test checkout evidence, owner-created product delivery-gate link
 evidence, owner-confirmed private upload-record semantics, owner-confirmed
 non-destructive revocation intent semantics, and
-subscription-backed membership access state, not signed object URLs, customer
-delivery of arbitrary uploads, real protected media delivery, destructive
-revocation, Customer Portal actions, live fulfillment automation, live Stripe
-product/price mutation, or direct unconfirmed agent write capability.
+subscription-backed membership access state, and payment-plan read semantics,
+not live product payment-plan checkout, signed object URLs, customer delivery of
+arbitrary uploads, real protected media delivery, destructive revocation,
+Customer Portal actions, live fulfillment automation, live Stripe product/price
+mutation, or direct unconfirmed agent write capability.
 `product_entitlement_revocation_intents`
 records are non-destructive intent records only until future exact-confirmed
 destructive APIs enforce owner identity, idempotency, stale-state checks, reason

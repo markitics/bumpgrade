@@ -156,7 +156,7 @@ import {
   publisherTenantParentIssue,
 } from "@/lib/publisher-tenants";
 
-export const agentManifestUpdatedAt = "2026-05-23";
+export const agentManifestUpdatedAt = "2026-05-24";
 
 export type AgentReadContract = {
   id: string;
@@ -536,6 +536,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
+      "productPaymentPlanId",
       "subscriptionPlanId",
       "subscriptionMembershipAccessId",
       "fulfillmentId",
@@ -553,10 +554,11 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect owner-confirmed non-destructive revocation intent records",
       "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
       "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
+      "Inspect seeded product payment-plan read records without live amount, Stripe Price, or customer data exposure",
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can create draft products, create owner-created product test checkout links, link those links to seeded offer/funnel delivery gates, create owner-created product test offer/access grants, inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live offer/funnel publishing, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; public source-data exposes seeded pay-in-full, installment, and subscription payment-plan read records without live amounts or provider IDs; verified owners can create draft products, create owner-created product test checkout links, link those links to seeded offer/funnel delivery gates, create owner-created product test offer/access grants, inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; Stripe Price creation, live payment-plan checkout, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live offer/funnel publishing, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -2414,7 +2416,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, owner-confirmed non-destructive revocation intent contract, protected content readiness, checkout-intent-scoped protected fixture delivery, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+      "Seeded product catalog, assets, access rules, entitlement templates, payment-plan records, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, owner-confirmed non-destructive revocation intent contract, protected content readiness, checkout-intent-scoped protected fixture delivery, redaction flags, preview route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "productId",
       "assetId",
@@ -2431,10 +2433,12 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
+      "productPaymentPlanId",
+      "subscriptionPlanId",
       "fulfillmentId",
     ],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-created product test checkout links, owner product delivery-gate links, owner-confirmed private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped seeded protected fixture delivery; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, subscription access mutation, live offer/funnel publishing, live charges, or live fulfillment automation.",
+      "The product/access contract includes seeded payment-plan read records, sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-created product test checkout links, owner product delivery-gate links, owner-confirmed private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped seeded protected fixture delivery; it is not live payment-plan checkout, signed object URL access, customer delivery of arbitrary uploads, destructive revocation, subscription access mutation, live offer/funnel publishing, live charges, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",
@@ -2699,9 +2703,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-created product test checkout and offer/access grant boundaries, owner-created product delivery-gate boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, payment-plan records, revision IDs, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-created product test checkout and offer/access grant boundaries, owner-created product delivery-gate boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
     safetyBoundary:
-      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner product creation, owner-created product test checkout links, owner-created product delivery-gate links, and owner-created product test grants require owner auth, exact confirmation, idempotency, stale-state checks where applicable, and redaction. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, live offer/funnel publishing, live charges, and fulfillment actions remain unavailable.",
+      "Read-mostly for public agents; payment-plan records are seeded read semantics without live amounts, Stripe Price creation, Checkout Sessions, customer records, or provider IDs. Customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner product creation, owner-created product test checkout links, owner-created product delivery-gate links, and owner-created product test grants require owner auth, exact confirmation, idempotency, stale-state checks where applicable, and redaction. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, live offer/funnel publishing, live charges, and fulfillment actions remain unavailable.",
   },
   {
     id: "mcp-tool-create-product-delivery-gate-link",

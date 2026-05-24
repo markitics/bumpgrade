@@ -197,8 +197,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   mutation, or a confirmed-write agent API.
 - `/products/source-data` exposes the product/access catalog with digital
   download, course, membership, service, event, bundle, entitlement template,
-  and sandbox webhook grant records. Trusted paid sandbox webhooks can create
-  idempotent entitlement rows and public-safe fulfillment task evidence.
+  payment-plan, and sandbox webhook grant records. Trusted paid sandbox
+  webhooks can create idempotent entitlement rows and public-safe fulfillment
+  task evidence.
   `/admin/products` is owner-gated and can inspect private entitlement rows,
   buyer email, checkout state, product and price context, access rules, and
   queued fulfillment evidence. `/products/entitlements` and
@@ -219,7 +220,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   intent metadata, owner-created product delivery-gate metadata,
   owner-confirmed non-destructive revocation intent metadata, protected content
   readiness, protected fixture delivery metadata, subscription-backed
-  membership access metadata, and redaction
+  membership access metadata, seeded payment-plan read records, and redaction
   flags only. `/api/admin/products/catalog` lets verified owners create draft
   product records after exact confirmation and idempotency without Stripe
   product/price creation or fulfillment mutation.
@@ -251,11 +252,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   fixture delivery, protected fixture delivery, owner product creation,
   owner-created product test checkout,
   owner-created product delivery-gate links, owner-created product test grants,
-  owner upload-intent, revocation-intent, protected-content-readiness, and
-  subscription-membership access evidence, not signed object URLs, customer
-  delivery of arbitrary uploads, arbitrary protected body delivery, destructive
-  revocation, live offer/funnel publishing, live charges, live fulfillment
-  automation, Customer Portal actions, or a confirmed-write agent API.
+  owner upload-intent, revocation-intent, protected-content-readiness,
+  payment-plan read records, and subscription-membership access evidence, not
+  live product payment-plan checkout, signed object URLs, customer delivery of
+  arbitrary uploads, arbitrary protected body delivery, destructive revocation,
+  live offer/funnel publishing, live charges, live fulfillment automation,
+  Customer Portal actions, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression

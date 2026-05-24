@@ -208,7 +208,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-created product test offer/access grants from issue #405.",
       "Buyer-facing test checkout links for owner-created products from issue #407.",
       "Owner-created product delivery-gate links from issue #409.",
-      "Stable product, offer, asset, access rule, and subscription plan IDs.",
+      "Seeded pay-in-full, installment, and subscription payment-plan read records from issue #16.",
+      "Stable product, offer, asset, access rule, payment-plan, and subscription plan IDs.",
       "Downloads, protected content, courses, memberships, and bundles.",
       "Fulfillment status connected to checkout events.",
       "Public-safe product metadata for agent and SEO surfaces.",
@@ -232,6 +233,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #405 records owner-created product test offer/funnel links, synthetic paid checkout intents, entitlement rows, fulfillment task evidence, and audit events without Stripe Checkout Sessions, live charges, or public buyer exposure.",
       "Issue #407 records owner-created product test checkout links and public test checkout completion with synthetic paid checkout/access evidence, link-revision checks, and no Stripe Checkout Sessions or live charges.",
       "Issue #409 records owner-created product delivery-gate links for the seeded offer/funnel path with product and checkout-link stale-state checks.",
+      "Issue #16 exposes seeded product payment-plan read semantics without live amounts, Stripe Price creation, Checkout Sessions, or customer data exposure.",
     ],
     agentContract:
       "Agents may read public product metadata, aggregate entitlement counts, aggregate owner-created product/test checkout/delivery-gate/test grant counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, checkout-scoped protected fixture delivery boundaries, subscription-backed membership access state, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, arbitrary protected bodies, private revocation notes, destructive revocation, customer delivery of arbitrary uploads, live offer/funnel publishing, Customer Portal actions, and billing data must stay behind authenticated contracts.",
