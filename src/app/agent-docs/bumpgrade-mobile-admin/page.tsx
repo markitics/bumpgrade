@@ -65,6 +65,11 @@ export default function MobileAdminAgentDocPage() {
             <h3>{mobileAdminContract.privateAuth.status}</h3>
             <p>{mobileAdminContract.privateAuth.sessionSemantics}</p>
           </div>
+          <div>
+            <Database aria-hidden="true" />
+            <h3>{mobileAdminContract.actionIntentApi.status}</h3>
+            <p>{mobileAdminContract.actionIntentApi.intentBoundary}</p>
+          </div>
           {mobileAdminContract.confirmedActions.map((action) => (
             <div key={action.id}>
               <ShieldCheck aria-hidden="true" />

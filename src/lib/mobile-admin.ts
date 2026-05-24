@@ -14,7 +14,7 @@ export type MobileApiDependency = {
   id: string;
   route: string;
   purpose: string;
-  authBoundary: "public-safe" | "owner-session" | "future-confirmed-write";
+  authBoundary: "public-safe" | "owner-session" | "owner-confirmed-intent" | "future-confirmed-write";
   stableIds: string[];
 };
 
@@ -36,12 +36,25 @@ export type MobileConfirmedAction = {
   id: string;
   issue: number;
   title: string;
-  status: "mobile-ui-contract-ready" | "future-api-required";
+  status: "mobile-ui-contract-ready" | "owner-intent-api-ready" | "future-api-required";
   surface: string;
   confirmationText: string;
   requiredInputs: string[];
   safetyRules: string[];
   mutationBoundary: string;
+};
+
+export type MobileActionIntentApi = {
+  id: string;
+  issue: number;
+  status: "owner-mobile-action-intent-ready";
+  route: string;
+  authBoundary: "owner-session";
+  purpose: string;
+  intentBoundary: string;
+  publicSourceDataSummary: string;
+  requiredInputs: string[];
+  redactionFlags: string[];
 };
 
 export type MobilePlatformSlice = {
@@ -82,6 +95,7 @@ export type MobileAdminContract = {
   scaffoldBoundary: string;
   liveDashboard: MobileLiveDashboard;
   privateAuth: MobilePrivateAuth;
+  actionIntentApi: MobileActionIntentApi;
   confirmedActions: MobileConfirmedAction[];
   childIssues: MobilePlatformSlice[];
   jobs: MobileJob[];
@@ -102,7 +116,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session and confirmed-action UI contract to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, live mobile mutations, App Store distribution, or Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, production mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -143,22 +157,65 @@ export const mobileAdminContract: MobileAdminContract = {
     redactionBoundary:
       "Mobile auth source-data may name routes, roles, denial states, and issue evidence, but it must not expose owner email values, session IDs, cookies, tokens, raw Better Auth payloads, or private admin rows.",
   },
+  actionIntentApi: {
+    id: "mobile-action-intent-api",
+    issue: 414,
+    status: "owner-mobile-action-intent-ready",
+    route: "/api/mobile-admin/actions",
+    authBoundary: "owner-session",
+    purpose:
+      "Let a verified owner record an audit-only mobile action intent after exact confirmation, idempotency, stale-state, contract revision, source-route, and audit-correlation checks.",
+    intentBoundary:
+      "The endpoint records redacted action intent evidence only. It creates no production admin mutation, billing mutation, push notification, distribution state change, private mobile row exposure, or direct public agent write.",
+    publicSourceDataSummary:
+      "/mobile-admin/source-data and /mobile-admin/dashboard/source-data may expose route, status, counts, and redaction flags; owner-only GET /api/mobile-admin/actions is required before stale-state tokens are returned.",
+    requiredInputs: [
+      "actionId",
+      "sourceRoute",
+      "expectedContractUpdatedAt",
+      "staleStateToken",
+      "confirmationText",
+      "idempotencyKey",
+      "auditCorrelationId",
+    ],
+    redactionFlags: [
+      "actorEmailIncluded=false",
+      "actorEmailHashIncluded=false",
+      "actorUserIdIncluded=false",
+      "privateNoteIncluded=false",
+      "idempotencyKeysIncluded=false",
+      "staleStateTokenHashIncluded=false",
+      "productionMutationCreated=false",
+      "billingMutationCreated=false",
+      "pushNotificationSent=false",
+      "distributionStateChanged=false",
+    ],
+  },
   confirmedActions: [
     {
       id: "mobile-confirm-review-agent-work",
       issue: 414,
       title: "Review and confirm agent work",
-      status: "mobile-ui-contract-ready",
+      status: "owner-intent-api-ready",
       surface: "For-Mark and work-log inbox",
       confirmationText: "CONFIRM MOBILE ADMIN ACTION",
-      requiredInputs: ["actorUserId", "role", "actionId", "idempotencyKey", "staleStateToken", "auditCorrelationId"],
+      requiredInputs: [
+        "actorUserId",
+        "role",
+        "actionId",
+        "sourceRoute",
+        "expectedContractUpdatedAt",
+        "idempotencyKey",
+        "staleStateToken",
+        "auditCorrelationId",
+      ],
       safetyRules: [
         "Require exact confirmation before public, billing-impacting, publishing, moderation, source-editing, or creator-speech writes.",
         "Check the current source-data revision before accepting stale mobile approvals.",
         "Return redacted result metadata only; never return raw private payloads to public source-data.",
       ],
       mutationBoundary:
-        "The current mobile scaffolds render this confirmation contract only. The future /api/mobile-admin/actions endpoint must implement the write before any mobile approval mutates production state.",
+        "The current /api/mobile-admin/actions endpoint can record owner-gated, audit-only intent evidence for this action. Future domain-specific confirmed-write endpoints must implement any production mutation before a mobile approval can change production state.",
     },
     {
       id: "mobile-confirm-commerce-change",
@@ -293,14 +350,15 @@ export const mobileAdminContract: MobileAdminContract = {
     },
     {
       id: "mobile-api-confirmed-writes",
-      route: "future /api/mobile-admin/actions",
-      purpose: "Mobile confirmation endpoint for admin, publishing, commerce, and agent-proposal writes after the shared confirmed-action contract is implemented server-side.",
-      authBoundary: "future-confirmed-write",
+      route: "/api/mobile-admin/actions",
+      purpose:
+        "Owner-gated mobile action-intent endpoint for redacted audit-only confirmation evidence before future domain-specific confirmed-write APIs mutate admin, publishing, commerce, or agent-proposal state.",
+      authBoundary: "owner-confirmed-intent",
       stableIds: ["agentActionId", "idempotencyKey", "auditCorrelationId", "staleStateToken"],
     },
   ],
   confirmedWriteRules: [
-    "The first mobile app slices are read-only until a confirmed-write API exists.",
+    "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but production mutations remain disabled until domain-specific confirmed-write APIs exist.",
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",
     "Billing-impacting mobile actions require amount, currency, price/product stale-state checks, idempotency, audit correlation, redaction, and webhook evidence.",
