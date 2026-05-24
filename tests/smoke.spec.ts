@@ -325,6 +325,12 @@ import {
   productCreationStatus,
 } from "../src/lib/product-creation";
 import {
+  productDeliveryGateApiRoute,
+  productDeliveryGateConfirmationText,
+  productDeliveryGateIssue,
+  productDeliveryGateStatus,
+} from "../src/lib/product-delivery-gates";
+import {
   productOfferAccessApiRoute,
   productOfferAccessConfirmationText,
   productOfferAccessIssue,
@@ -1220,7 +1226,20 @@ test.describe("Bumpgrade scaffold", () => {
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
+        "productDeliveryGateLinkId",
       ]),
+    );
+    expect(payload.ownerProductDeliveryGates).toEqual(
+      expect.objectContaining({
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        apiRoute: productDeliveryGateApiRoute,
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          deliveryGateLinks: expect.any(Number),
+          activeDeliveryGateLinks: expect.any(Number),
+        }),
+      }),
     );
     expect(payload.templates).toEqual(
       expect.arrayContaining([
@@ -1342,7 +1361,12 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/offers/source-data", "/offers/indie-launch-stack", "/api/commerce/post-purchase-decisions"]),
+      expect.arrayContaining([
+        "/offers/source-data",
+        "/offers/indie-launch-stack",
+        "/api/commerce/post-purchase-decisions",
+        productDeliveryGateApiRoute,
+      ]),
     );
     expect(payload.sandboxCheckout).toEqual(
       expect.objectContaining({
@@ -1379,6 +1403,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #113 allows review-only commission ledger evidence");
     expect(payload.writeBoundary).toContain("Issue #115 allows owner-gated review");
     expect(payload.writeBoundary).toContain("Issue #117 allows non-billing post-purchase");
+    expect(payload.writeBoundary).toContain("Issue #409 allows owner-created product test checkout links");
     expect(payload.postPurchaseDecisions).toEqual(
       expect.objectContaining({
         status: "non-billing-decision-ready",
@@ -1396,8 +1421,21 @@ test.describe("Bumpgrade scaffold", () => {
         entitlementRowsIncluded: false,
       }),
     );
+    expect(payload.ownerProductDeliveryGates).toEqual(
+      expect.objectContaining({
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        apiRoute: productDeliveryGateApiRoute,
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          deliveryGateLinks: expect.any(Number),
+          activeDeliveryGateLinks: expect.any(Number),
+        }),
+      }),
+    );
     expect(payload.caveat).toContain("confirmed sandbox checkout start");
     expect(payload.caveat).toContain("non-billing post-purchase");
+    expect(payload.caveat).toContain("delivery-gate");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
 
     await page.goto("/offers/indie-launch-stack");
@@ -1423,8 +1461,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: productTestCheckoutStatus,
-        issue: productTestCheckoutIssue,
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
         parentIssue: 16,
       }),
     );
@@ -1440,6 +1478,7 @@ test.describe("Bumpgrade scaffold", () => {
         productTestCheckoutApiRoute,
         "/api/admin/products/assets",
         productCreationApiRoute,
+        productDeliveryGateApiRoute,
         productOfferAccessApiRoute,
         productTestCheckoutLinkApiRoute,
         productEntitlementRevocationIntentApiRoute,
@@ -1558,6 +1597,40 @@ test.describe("Bumpgrade scaffold", () => {
           liveBillingEnabled: false,
           stripeCheckoutSessionCreated: false,
           fulfillmentDeliveryEnabled: false,
+        }),
+      }),
+    );
+    expect(payload.productDeliveryGates).toEqual(
+      expect.objectContaining({
+        id: "owner-product-delivery-gates",
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        parentIssue: 16,
+        apiRoute: productDeliveryGateApiRoute,
+        ownerRoute: "/admin/products",
+        offerSourceDataRoute: "/offers/source-data",
+        funnelSourceDataRoute: "/funnels/source-data",
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          deliveryGateLinks: expect.any(Number),
+          activeDeliveryGateLinks: expect.any(Number),
+          liveBillingEnabled: expect.any(Number),
+          liveFulfillmentDeliveryEnabled: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          checkoutLinkIdsIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          liveBillingEnabled: false,
+          liveFulfillmentDeliveryEnabled: false,
         }),
       }),
     );
@@ -2575,7 +2648,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("m@rkmoriarty.com");
 
     await page.goto("/admin/products");
-    await expect(page.getByRole("heading", { name: /Owners can create products and prove a test grant path/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Owners can create products and prove a delivery-gated test path/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Create draft product/i })).toBeVisible();
     await expect(page.locator("body")).toContainText(productName);
     await expect(page.locator("body")).toContainText(productSlug);
@@ -2809,7 +2882,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain(grantPayload.record.entitlementId);
 
     await page.goto("/admin/products");
-    await expect(page.getByRole("heading", { name: /Owners can create products and prove a test grant path/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Owners can create products and prove a delivery-gated test path/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Create test grant/i })).toBeVisible();
     await expect(page.locator("body")).toContainText(productName);
     await expect(page.locator("body")).toContainText(grantBody.offerId);
@@ -2860,6 +2933,31 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const unauthorizedGate = await request.post(productDeliveryGateApiRoute, {
+      data: {
+        productId: `product-owner-${productSlug}`,
+        checkoutLinkId: `product-test-checkout-link-${productSlug}`,
+        expectedProductUpdatedAt: new Date().toISOString(),
+        expectedLinkRevisionId: `product-test-checkout-revision-${productSlug}`,
+        confirmationText: productDeliveryGateConfirmationText,
+        idempotencyKey: `product-delivery-gate-idempotency-${unique}`,
+      },
+    });
+    expect(unauthorizedGate.status()).toBe(401);
+    await expect(unauthorizedGate.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          checkoutLinkIdsIncluded: false,
+          buyerEmailIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
     await signInOrCreateOwner(page);
     const contract = await page.request.get(productTestCheckoutLinkApiRoute);
     expect(contract.ok(), await contract.text()).toBeTruthy();
@@ -2895,6 +2993,33 @@ test.describe("Bumpgrade scaffold", () => {
         issue: productTestCheckoutIssue,
         route: productTestCheckoutApiRoute,
         confirmation: expect.objectContaining({ text: productTestCheckoutConfirmationText }),
+      }),
+    );
+
+    const deliveryGateContract = await page.request.get(productDeliveryGateApiRoute);
+    expect(deliveryGateContract.ok(), await deliveryGateContract.text()).toBeTruthy();
+    await expect(deliveryGateContract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        route: productDeliveryGateApiRoute,
+        confirmation: expect.objectContaining({ text: productDeliveryGateConfirmationText }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          checkoutLinkIdsIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          liveBillingEnabled: false,
+          liveFulfillmentDeliveryEnabled: false,
+        }),
       }),
     );
 
@@ -2971,6 +3096,89 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(linkConflict.status(), await linkConflict.text()).toBe(409);
     await expect(linkConflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const deliveryGateBody = {
+      productId,
+      checkoutLinkId: linkPayload.link.id,
+      expectedProductUpdatedAt,
+      expectedLinkRevisionId: linkPayload.link.revisionId,
+      confirmationText: productDeliveryGateConfirmationText,
+      idempotencyKey: `product-delivery-gate-idempotency-${unique}`,
+    };
+
+    const staleGateProduct = await page.request.post(productDeliveryGateApiRoute, {
+      data: {
+        ...deliveryGateBody,
+        expectedProductUpdatedAt: "2020-01-01T00:00:00.000Z",
+        idempotencyKey: `${deliveryGateBody.idempotencyKey}-stale-product`,
+      },
+    });
+    expect(staleGateProduct.status(), await staleGateProduct.text()).toBe(409);
+    await expect(staleGateProduct.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_product_state" }));
+
+    const staleGateLink = await page.request.post(productDeliveryGateApiRoute, {
+      data: {
+        ...deliveryGateBody,
+        expectedLinkRevisionId: "stale-link-revision",
+        idempotencyKey: `${deliveryGateBody.idempotencyKey}-stale-link`,
+      },
+    });
+    expect(staleGateLink.status(), await staleGateLink.text()).toBe(409);
+    await expect(staleGateLink.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_link_state" }));
+
+    const createdGate = await page.request.post(productDeliveryGateApiRoute, { data: deliveryGateBody });
+    expect(createdGate.status(), await createdGate.text()).toBe(201);
+    const gatePayload = await createdGate.json();
+    expect(gatePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        duplicate: false,
+        record: expect.objectContaining({
+          id: expect.stringMatching(/^product-delivery-gate-/),
+          productId,
+          productSlug,
+          productName,
+          checkoutLinkId: linkPayload.link.id,
+          checkoutPublicPath: linkPayload.link.publicPath,
+          offerStackId: "checkout-stack-indie-launch-sandbox",
+          offerId: "offer-primary-sandbox-launch-pass",
+          funnelId: "funnel-indie-launch-sandbox",
+          deliveryMode: "owner_created_product_test_checkout",
+          billingMutationEnabled: false,
+          stripeCheckoutSessionCreated: false,
+          liveChargeCreated: false,
+          liveFulfillmentDeliveryEnabled: false,
+          rawBuyerEmailIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+        }),
+      }),
+    );
+    const gateText = JSON.stringify(gatePayload);
+    expect(gateText).not.toContain(deliveryGateBody.idempotencyKey);
+    expect(gateText).not.toContain("m@rkmoriarty.com");
+
+    const gateReplay = await page.request.post(productDeliveryGateApiRoute, { data: deliveryGateBody });
+    expect(gateReplay.status(), await gateReplay.text()).toBe(200);
+    await expect(gateReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-product-delivery-gate-replayed",
+        duplicate: true,
+        record: expect.objectContaining({
+          id: gatePayload.record.id,
+          checkoutPublicPath: linkPayload.link.publicPath,
+        }),
+      }),
+    );
+
+    const gateConflict = await page.request.post(productDeliveryGateApiRoute, {
+      data: { ...deliveryGateBody, checkoutLinkId: `${linkPayload.link.id}-changed` },
+    });
+    expect(gateConflict.status(), await gateConflict.text()).toBe(409);
+    await expect(gateConflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
 
     const publicPage = await request.get(linkPayload.link.publicPath);
     const publicPageText = await publicPage.text();
@@ -3104,19 +3312,35 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(sourcePayload.productTestCheckout.counts.checkoutLinks).toBeGreaterThanOrEqual(1);
     expect(sourcePayload.productTestCheckout.counts.testPurchases).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.productDeliveryGates).toEqual(
+      expect.objectContaining({
+        status: productDeliveryGateStatus,
+        issue: productDeliveryGateIssue,
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          deliveryGateLinks: expect.any(Number),
+          activeDeliveryGateLinks: expect.any(Number),
+        }),
+      }),
+    );
+    expect(sourcePayload.productDeliveryGates.counts.deliveryGateLinks).toBeGreaterThanOrEqual(1);
     const sourceText = JSON.stringify(sourcePayload);
     expect(sourceText).not.toContain(productName);
     expect(sourceText).not.toContain(buyerEmail);
     expect(sourceText).not.toContain(linkBody.idempotencyKey);
+    expect(sourceText).not.toContain(deliveryGateBody.idempotencyKey);
+    expect(sourceText).not.toContain(gatePayload.record.id);
     expect(sourceText).not.toContain(checkoutBody.idempotencyKey);
     expect(sourceText).not.toContain(linkPayload.link.id);
     expect(sourceText).not.toContain(checkoutPayload.checkout.checkoutIntentId);
     expect(sourceText).not.toContain(checkoutPayload.checkout.entitlementId);
 
     await page.goto("/admin/products");
-    await expect(page.getByRole("heading", { name: /Owners can create products and prove a test grant path/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Owners can create products and prove a delivery-gated test path/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Create test checkout link/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Offer and delivery gate link/i })).toBeVisible();
     await expect(page.locator("body")).toContainText(productName);
+    await expect(page.locator("body")).toContainText("delivery gate");
     await expect(page.locator("body")).toContainText("test checkout link");
     await expect(page.locator("body")).toContainText("buyer test checkout");
   });
@@ -16951,17 +17175,21 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-buyer-chooses-post-purchase-offer",
           featureId: "feature-checkout-offers",
-          issueNumbers: [15, 99, 117],
+          issueNumbers: expect.arrayContaining([15, 99, 117]),
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407],
+          issueNumbers: expect.arrayContaining([
+            16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407, 409,
+          ]),
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407],
+          issueNumbers: expect.arrayContaining([
+            16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407, 409,
+          ]),
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
@@ -17928,6 +18156,7 @@ test.describe("Bumpgrade scaffold", () => {
           purpose: expect.stringContaining("aggregate post-purchase decision evidence"),
         }),
         expect.objectContaining({ id: "mcp-resource-product-access", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-tool-create-product-delivery-gate-link", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-product-asset-upload-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-product-revocation-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-mobile-admin-dashboard", status: "ready-contract" }),
@@ -18017,11 +18246,13 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelWebinarResourceTemplateId",
             "funnelDraftDuplicateId",
             "funnelDraftArchiveId",
+            "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Discover webinar and resource page-shape templates from issue #213",
             "Discover owner-session private draft duplication from issue #215",
             "Discover owner-session private draft archive/unpublish from issue #341",
+            "Discover aggregate owner-created product delivery-gate links from issue #409",
           ]),
         }),
         expect.objectContaining({
@@ -18036,11 +18267,13 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/products/source-data",
           auth: "public",
           stableIds: expect.arrayContaining([
+            "productDeliveryGateLinkId",
             "productEntitlementRevocationIntentId",
             "productProtectedContentId",
             "subscriptionMembershipAccessId",
           ]),
           safeForAgents: expect.arrayContaining([
+            "Inspect aggregate owner-created product, test checkout, delivery-gate, and test access-grant counts",
             "Inspect owner-confirmed non-destructive revocation intent records",
             "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
             "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
@@ -18068,6 +18301,12 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["subscriptionMembershipAccessId", "subscriptionPlanId"]),
         }),
         expect.objectContaining({ id: "read-admin-product-entitlements", route: "/admin/products", auth: "owner-session" }),
+        expect.objectContaining({
+          id: "create-owner-product-delivery-gate-link",
+          route: productDeliveryGateApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["productDeliveryGateLinkId", "productTestCheckoutLinkId", "linkRevisionId"]),
+        }),
         expect.objectContaining({
           id: "create-owner-product-asset-upload-intent",
           route: "/api/admin/products/assets",
