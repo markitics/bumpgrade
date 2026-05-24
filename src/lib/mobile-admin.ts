@@ -18,6 +18,32 @@ export type MobileApiDependency = {
   stableIds: string[];
 };
 
+export type MobilePrivateAuth = {
+  id: string;
+  issue: number;
+  status: "owner-session-contract-ready";
+  sessionRoute: string;
+  loginRoute: string;
+  callbackSurface: string;
+  acceptedRoles: string[];
+  sessionSemantics: string;
+  deniedStates: string[];
+  platformBehavior: string[];
+  redactionBoundary: string;
+};
+
+export type MobileConfirmedAction = {
+  id: string;
+  issue: number;
+  title: string;
+  status: "mobile-ui-contract-ready" | "future-api-required";
+  surface: string;
+  confirmationText: string;
+  requiredInputs: string[];
+  safetyRules: string[];
+  mutationBoundary: string;
+};
+
 export type MobilePlatformSlice = {
   platform: MobilePlatformId;
   issue: number;
@@ -55,13 +81,15 @@ export type MobileAdminContract = {
   stackDecision: string;
   scaffoldBoundary: string;
   liveDashboard: MobileLiveDashboard;
+  privateAuth: MobilePrivateAuth;
+  confirmedActions: MobileConfirmedAction[];
   childIssues: MobilePlatformSlice[];
   jobs: MobileJob[];
   apiDependencies: MobileApiDependency[];
   confirmedWriteRules: string[];
 };
 
-export const mobileAdminUpdatedAt = "2026-05-19";
+export const mobileAdminUpdatedAt = "2026-05-24";
 
 export const mobileAdminContract: MobileAdminContract = {
   id: "bumpgrade-mobile-admin-contract",
@@ -74,7 +102,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 is the current active follow-up for private auth, confirmed writes, device proof, and distribution readiness. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session and confirmed-action UI contract to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, live mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -96,6 +124,59 @@ export const mobileAdminContract: MobileAdminContract = {
     redactionBoundary:
       "The dashboard exposes counts, statuses, route IDs, issue evidence, and recent public-safe work-log metadata only. It excludes private buyer rows, raw inbox bodies, owner email values, session IDs, R2 object keys, signed URLs, upload bodies, secret values, and write tokens.",
   },
+  privateAuth: {
+    id: "mobile-private-owner-session",
+    issue: 414,
+    status: "owner-session-contract-ready",
+    sessionRoute: "/api/auth/[...all]",
+    loginRoute: "/login",
+    callbackSurface: "/admin/director",
+    acceptedRoles: ["owner"],
+    sessionSemantics:
+      "Mobile private views reuse the same Better Auth cookie/session, owner allowlist, verified-email gate, and admin role mapping as web admin. The mobile app must not invent mobile-only roles or bypass the web/admin owner boundary.",
+    deniedStates: ["signed_out", "not_allowlisted", "email_unverified", "session_unavailable"],
+    platformBehavior: [
+      "iOS and Android show public-safe dashboard data while signed out.",
+      "Private mobile rows stay hidden until an owner session is accepted by the same admin auth contract as web.",
+      "A denied mobile session should route the owner through the shared login/callback flow rather than storing mobile-only credentials.",
+    ],
+    redactionBoundary:
+      "Mobile auth source-data may name routes, roles, denial states, and issue evidence, but it must not expose owner email values, session IDs, cookies, tokens, raw Better Auth payloads, or private admin rows.",
+  },
+  confirmedActions: [
+    {
+      id: "mobile-confirm-review-agent-work",
+      issue: 414,
+      title: "Review and confirm agent work",
+      status: "mobile-ui-contract-ready",
+      surface: "For-Mark and work-log inbox",
+      confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+      requiredInputs: ["actorUserId", "role", "actionId", "idempotencyKey", "staleStateToken", "auditCorrelationId"],
+      safetyRules: [
+        "Require exact confirmation before public, billing-impacting, publishing, moderation, source-editing, or creator-speech writes.",
+        "Check the current source-data revision before accepting stale mobile approvals.",
+        "Return redacted result metadata only; never return raw private payloads to public source-data.",
+      ],
+      mutationBoundary:
+        "The current mobile scaffolds render this confirmation contract only. The future /api/mobile-admin/actions endpoint must implement the write before any mobile approval mutates production state.",
+    },
+    {
+      id: "mobile-confirm-commerce-change",
+      issue: 414,
+      title: "Confirm commerce or fulfillment changes",
+      status: "future-api-required",
+      surface: "Commerce health summary",
+      confirmationText: "CONFIRM MOBILE COMMERCE ACTION",
+      requiredInputs: ["actorUserId", "role", "priceId", "amount", "currency", "idempotencyKey", "staleStateToken", "auditCorrelationId"],
+      safetyRules: [
+        "Verify amount, currency, product, price, and checkout mode before any billing-impacting action.",
+        "Record audit correlation and webhook evidence for live billing actions.",
+        "Keep buyer identity, entitlement rows, signed URLs, and R2 object keys out of public mobile output.",
+      ],
+      mutationBoundary:
+        "No mobile checkout, refund, subscription, price, fulfillment, or entitlement mutation is live until the shared confirmed-write API and platform evidence exist.",
+    },
+  ],
   childIssues: [
     {
       platform: "ios",
@@ -213,7 +294,7 @@ export const mobileAdminContract: MobileAdminContract = {
     {
       id: "mobile-api-confirmed-writes",
       route: "future /api/mobile-admin/actions",
-      purpose: "Mobile confirmation endpoint for admin, publishing, commerce, and agent-proposal writes.",
+      purpose: "Mobile confirmation endpoint for admin, publishing, commerce, and agent-proposal writes after the shared confirmed-action contract is implemented server-side.",
       authBoundary: "future-confirmed-write",
       stableIds: ["agentActionId", "idempotencyKey", "auditCorrelationId", "staleStateToken"],
     },

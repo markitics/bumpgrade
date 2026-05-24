@@ -33,7 +33,9 @@ public class MainActivity extends Activity {
       JSONObject contract = new JSONObject(readAsset("mobile-admin-contract.json"));
       JSONObject androidSlice = findPlatformSlice(contract.getJSONArray("childIssues"), "android");
       JSONObject liveDashboard = contract.getJSONObject("liveDashboard");
+      JSONObject privateAuth = contract.getJSONObject("privateAuth");
       JSONArray jobs = contract.getJSONArray("jobs");
+      JSONArray confirmedActions = contract.getJSONArray("confirmedActions");
 
       ScrollView scrollView = new ScrollView(this);
       scrollView.setBackgroundColor(COLOR_BG);
@@ -76,6 +78,17 @@ public class MainActivity extends Activity {
       content.addView(dashboardPanel);
       fetchLiveDashboard(contract, liveDashboard, dashboardTitle, dashboardBody, dashboardStatus, dashboardSource, dashboardBoundary);
 
+      LinearLayout authPanel = panel();
+      authPanel.addView(kicker("Private auth"));
+      authPanel.addView(panelTitle(privateAuth.getString("status")));
+      authPanel.addView(body(privateAuth.getString("sessionSemantics")));
+      authPanel.addView(meta("Session: " + privateAuth.getString("sessionRoute")));
+      authPanel.addView(meta("Login: " + privateAuth.getString("loginRoute") + " -> " + privateAuth.getString("callbackSurface")));
+      authPanel.addView(meta("Roles: " + joinStrings(privateAuth.getJSONArray("acceptedRoles"))));
+      authPanel.addView(meta("Denied: " + joinStrings(privateAuth.getJSONArray("deniedStates"))));
+      authPanel.addView(meta("Boundary: " + privateAuth.getString("redactionBoundary")));
+      content.addView(authPanel);
+
       content.addView(sectionLabel("Phone jobs"));
       for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {
         JSONObject job = jobs.getJSONObject(index);
@@ -86,6 +99,19 @@ public class MainActivity extends Activity {
         card.addView(meta("User: " + job.getString("primaryUser")));
         card.addView(meta("Routes: " + joinStrings(job.getJSONArray("sourceRoutes"))));
         card.addView(meta("Boundary: " + job.getString("writeBoundary")));
+        content.addView(card);
+      }
+
+      content.addView(sectionLabel("Confirmed mobile actions"));
+      for (int index = 0; index < Math.min(2, confirmedActions.length()); index += 1) {
+        JSONObject action = confirmedActions.getJSONObject(index);
+        LinearLayout card = panel();
+        card.addView(badge(action.getString("status")));
+        card.addView(cardTitle(action.getString("title")));
+        card.addView(body(action.getString("mutationBoundary")));
+        card.addView(meta("Surface: " + action.getString("surface")));
+        card.addView(meta("Confirmation: " + action.getString("confirmationText")));
+        card.addView(meta("Inputs: " + joinStrings(action.getJSONArray("requiredInputs"))));
         content.addView(card);
       }
 

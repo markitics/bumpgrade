@@ -2256,9 +2256,15 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin.ts",
-    stableIds: ["mobileJobId", "mobileApiDependencyId", "platformIssue", "featureId"],
-    safeForAgents: ["Read iOS and Android scope", "Find API dependencies", "Understand mobile write boundaries"],
-    writeBoundary: "Mobile app writes remain read-only until a future confirmed-write API exists.",
+    stableIds: ["mobileJobId", "mobileApiDependencyId", "mobilePrivateAuthId", "mobileConfirmedActionId", "platformIssue", "featureId"],
+    safeForAgents: [
+      "Read iOS and Android scope",
+      "Find API dependencies",
+      "Understand mobile owner-session requirements",
+      "Understand mobile confirmed-action write boundaries",
+    ],
+    writeBoundary:
+      "Mobile app writes remain read-only until a future confirmed-write API exists; issue #414 now exposes the shared owner-session and confirmed-action UI contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2274,7 +2280,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Read-only public-safe digest; private mobile auth, push notifications, and confirmed mobile writes require future authenticated APIs.",
+      "Read-only public-safe digest; issue #414 exposes owner-session and confirmed-action requirements, but private mobile rows, push notifications, and confirmed mobile writes require future authenticated APIs.",
   },
   {
     id: "read-ios-mobile-admin",
@@ -2590,7 +2596,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "Public-safe mobile dashboard digest with feature counts, roadmap counts, recent work-log metadata, attention counts, commerce table counts, agent-readiness counts, and platform source-data routes.",
     stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
     volatileClaims:
-      "The dashboard is a public-safe read contract, not private mobile auth, push notifications, confirmed writes, App Store distribution, or Play Store distribution.",
+      "The dashboard is a public-safe read contract with owner-session and confirmed-action requirements, not private mobile rows, push notifications, live confirmed writes, App Store distribution, or Play Store distribution.",
   },
   {
     id: "evidence-ios-mobile-admin",
@@ -2598,7 +2604,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     resolves: "iOS scaffold path, generated fixture, simulator target, validation command, smoke command, and screenshot evidence.",
     stableIds: ["platformIssue", "fixturePath", "simulatorBundleId"],
     volatileClaims:
-      "The iOS simulator smoke target is not App Store distribution, push notification support, private mobile auth, or confirmed-write capability.",
+      "The iOS simulator smoke target renders owner-session and confirmed-action requirements, but it is not App Store distribution, push notification support, private mobile rows, or live confirmed-write capability.",
   },
   {
     id: "evidence-android-mobile-admin",
@@ -2606,7 +2612,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     resolves: "Android scaffold path, generated fixture asset, native package, emulator target, validation command, smoke command, and screenshot evidence.",
     stableIds: ["platformIssue", "fixturePath", "nativePackage", "defaultAvd"],
     volatileClaims:
-      "The Android emulator smoke target is not Play Store distribution, push notification support, private mobile auth, or confirmed-write capability.",
+      "The Android emulator smoke target renders owner-session and confirmed-action requirements, but it is not Play Store distribution, push notification support, private mobile rows, or live confirmed-write capability.",
   },
 ];
 

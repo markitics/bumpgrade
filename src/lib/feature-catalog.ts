@@ -594,7 +594,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 414,
     summary:
-      "Read-only live mobile dashboard hydration and iOS/Android scaffolds are proven; installable private mobile admin parity is still tracked as the current follow-up.",
+      "Read-only live mobile dashboard hydration, iOS/Android scaffolds, and the shared owner-session/confirmed-action contract are proven; installable private mobile admin parity is still tracked as the current follow-up.",
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
       "Shared `/mobile-admin/source-data` contract for iOS and Android.",
@@ -602,6 +602,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Independently shippable iOS issue #67 and Android issue #68.",
       "iOS, Android, and Expo scaffolds render the live dashboard panel from issue #155.",
       "iOS, Android, and Expo scaffolds live-read the dashboard with fixture fallback from issue #157.",
+      "iOS, Android, and Expo scaffolds render the issue #414 owner-session and confirmed-action contract without enabling mobile mutations.",
       "Roadmap and notification-aware mobile admin flows.",
       "Offer, checkout, product, and customer summaries.",
       "Agent handoff and approval queues.",
@@ -615,13 +616,14 @@ export const featureCatalog: FeatureRecord[] = [
       "Live dashboard source-data bridge tracked by issue #153.",
       "Mobile dashboard scaffold rendering tracked by issue #155.",
       "Mobile dashboard live hydration tracked by issue #157.",
+      "Mobile owner-session and confirmed-action UI contract tracked by issue #414.",
       "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
       "`/mobile-admin/dashboard/source-data` exposes a public-safe digest of feature, roadmap, work-log, attention, commerce, agent, and platform status for mobile clients.",
       "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
-      "Mobile apps can read the shared public-safe dashboard digest, but issue #414 tracks the remaining private mobile auth, distribution, push notification, and confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
+      "Mobile apps can read the shared public-safe dashboard digest and render the shared owner-session plus confirmed-action requirements, but issue #414 still tracks private mobile rows, distribution, push notification, and live confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",

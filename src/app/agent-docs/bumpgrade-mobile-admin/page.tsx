@@ -26,7 +26,7 @@ export default function MobileAdminAgentDocPage() {
           <p className="lede">
             Bumpgrade will build native publisher/admin apps from the same feature, roadmap, commerce, admin, and
             agent contracts used by the web app. This page defines the shared scope and the first platform smoke
-            paths for #67 and #68.
+            paths for #67 and #68 plus the issue #414 owner-session and confirmed-action contract.
           </p>
           <Link href="/mobile-admin/source-data" className="text-link">
             Mobile admin source data
@@ -45,6 +45,33 @@ export default function MobileAdminAgentDocPage() {
             Issue #{mobileAdminContract.parentIssue} splits platform work into iOS issue #67, Android issue #68, and
             dashboard issue #{mobileAdminContract.liveDashboard.issue}.
           </span>
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Private auth and actions</p>
+            <h2>Mobile uses the same owner-session and confirmation rules.</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/414" className="text-link compact-link">
+            Track issue #414
+            <ShieldCheck aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <KeyRound aria-hidden="true" />
+            <h3>{mobileAdminContract.privateAuth.status}</h3>
+            <p>{mobileAdminContract.privateAuth.sessionSemantics}</p>
+          </div>
+          {mobileAdminContract.confirmedActions.map((action) => (
+            <div key={action.id}>
+              <ShieldCheck aria-hidden="true" />
+              <h3>{action.title}</h3>
+              <p>{action.mutationBoundary}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -253,7 +280,7 @@ export default function MobileAdminAgentDocPage() {
           <div>
             <KeyRound aria-hidden="true" />
             <h3>Auth boundary</h3>
-            <p>Private mobile views reuse Better Auth owner or publisher sessions after the child slices wire mobile auth.</p>
+            <p>{mobileAdminContract.privateAuth.redactionBoundary}</p>
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />

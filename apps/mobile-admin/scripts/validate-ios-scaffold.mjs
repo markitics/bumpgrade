@@ -48,11 +48,16 @@ assert(fixture.publicBaseUrl === "https://bumpgrade.com", "Fixture does not incl
 assert(fixture.liveDashboard?.route === "/mobile-admin/dashboard/source-data", "Fixture does not include the live mobile dashboard route.");
 assert(fixture.liveDashboard?.renderedInScaffoldsIssue === 155, "Fixture does not record issue #155 as the mobile dashboard scaffold render slice.");
 assert(fixture.liveDashboard?.liveHydrationIssue === 157, "Fixture does not record issue #157 as the mobile dashboard live hydration slice.");
+assert(fixture.privateAuth?.issue === 414, "Fixture does not include the issue #414 mobile private-auth contract.");
+assert(fixture.privateAuth?.sessionRoute === "/api/auth/[...all]", "Fixture does not reuse the Better Auth session route.");
+assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
 
 const appSource = readFileSync(appSourcePath, "utf8");
 assert(appSource.includes("mobileAdminContractFixture"), "Expo app does not read the generated fixture.");
 assert(appSource.includes("Bumpgrade mobile admin"), "Expo app title is missing.");
 assert(appSource.includes("Live dashboard"), "Expo app does not render the live dashboard panel.");
+assert(appSource.includes("Private auth"), "Expo app does not render the private auth panel.");
+assert(appSource.includes("Confirmed mobile actions"), "Expo app does not render the confirmed actions panel.");
 assert(appSource.includes("fetch(url)"), "Expo app does not fetch the live dashboard route.");
 assert(appSource.includes("Live network"), "Expo app does not distinguish live network hydration from fixture fallback.");
 

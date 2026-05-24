@@ -28,6 +28,30 @@ export type MobileAdminContractFixture = {
     renderedInScaffoldsIssue?: number;
     liveHydrationIssue?: number;
   };
+  privateAuth: {
+    id: string;
+    issue: number;
+    status: string;
+    sessionRoute: string;
+    loginRoute: string;
+    callbackSurface: string;
+    acceptedRoles: string[];
+    sessionSemantics: string;
+    deniedStates: string[];
+    platformBehavior: string[];
+    redactionBoundary: string;
+  };
+  confirmedActions: Array<{
+    id: string;
+    issue: number;
+    title: string;
+    status: string;
+    surface: string;
+    confirmationText: string;
+    requiredInputs: string[];
+    safetyRules: string[];
+    mutationBoundary: string;
+  }>;
   childIssues: Array<{
     platform: "ios" | "android";
     issue: number;
