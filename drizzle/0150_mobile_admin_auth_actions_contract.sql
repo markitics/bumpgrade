@@ -44,7 +44,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-build-heartbeat',
   'Mark asked for fewer niche technical ships and clearer Director-level status; this advances the active Mobile Admin bucket with one owner-visible auth/actions contract slice instead of claiming full app parity early.',
   '[{"number":414,"url":"https://github.com/markitics/bumpgrade/issues/414"},{"number":13,"url":"https://github.com/markitics/bumpgrade/issues/13"},{"number":67,"url":"https://github.com/markitics/bumpgrade/issues/67"},{"number":68,"url":"https://github.com/markitics/bumpgrade/issues/68"},{"number":153,"url":"https://github.com/markitics/bumpgrade/issues/153"},{"number":155,"url":"https://github.com/markitics/bumpgrade/issues/155"},{"number":157,"url":"https://github.com/markitics/bumpgrade/issues/157"}]',
-  '[]',
+  '[{"number":419,"url":"https://github.com/markitics/bumpgrade/pull/419"}]',
   '["feature-mobile-admin"]',
   '["roadmap-mobile-admin active: owner-session and confirmed-action contract rendered; private rows, live writes, device proof, push, and distribution remain next"]',
   '["journey-publisher-checks-mobile-admin updated with owner-session and confirmed-action requirements"]',
@@ -53,8 +53,8 @@ INSERT INTO admin_work_log_entries (
   NULL,
   unixepoch() - 3600,
   unixepoch(),
-  '["https://bumpgrade.com/mobile-admin/source-data","https://bumpgrade.com/mobile-admin/dashboard/source-data","https://bumpgrade.com/mobile-admin/ios/source-data","https://bumpgrade.com/mobile-admin/android/source-data","https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin","https://bumpgrade.com/pr-screenshots/issue-67-ios-mobile-admin-simulator.png","https://bumpgrade.com/pr-screenshots/issue-68-android-mobile-admin-emulator.png","https://bumpgrade.com/pr-screenshots/issue-414-mobile-auth-actions-agent-docs.png"]',
-  NULL,
+  '["https://github.com/markitics/bumpgrade/pull/419","https://bumpgrade.com/mobile-admin/source-data","https://bumpgrade.com/mobile-admin/dashboard/source-data","https://bumpgrade.com/mobile-admin/ios/source-data","https://bumpgrade.com/mobile-admin/android/source-data","https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin","https://bumpgrade.com/pr-screenshots/issue-67-ios-mobile-admin-simulator.png","https://bumpgrade.com/pr-screenshots/issue-68-android-mobile-admin-emulator.png","https://bumpgrade.com/pr-screenshots/issue-414-mobile-auth-actions-agent-docs.png"]',
+  'https://github.com/markitics/bumpgrade/pull/419',
   unixepoch()
 )
 ON CONFLICT(id) DO UPDATE SET
