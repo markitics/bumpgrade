@@ -75,6 +75,17 @@ type PrivateRowsApiContract = {
   publicSourceDataSummary: string;
 };
 
+type PrivateRowActionsApiContract = {
+  id: string;
+  issue: number;
+  status: string;
+  route: string;
+  authBoundary: string;
+  purpose: string;
+  actionBoundary: string;
+  requiredInputs: string[];
+};
+
 function Badge({ children }: { children: string }) {
   return (
     <View style={styles.badge}>
@@ -119,6 +130,7 @@ export default function App() {
   const jobs = mobileAdminContractFixture.jobs.slice(0, 3);
   const privateAuth = mobileAdminContractFixture.privateAuth as PrivateAuthContract;
   const privateRowsApi = mobileAdminContractFixture.privateRowsApi as PrivateRowsApiContract;
+  const privateRowActionsApi = mobileAdminContractFixture.privateRowActionsApi as PrivateRowActionsApiContract;
   const actionIntentApi = mobileAdminContractFixture.actionIntentApi as ActionIntentApiContract;
   const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 2) as ConfirmedActionContract[];
   const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
@@ -196,6 +208,18 @@ export default function App() {
           </Text>
           <Text style={styles.meta}>Auth: {privateRowsApi.authBoundary}</Text>
           <Text style={styles.meta}>Boundary: {privateRowsApi.readBoundary}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Private row actions API</Text>
+          <Text style={styles.panelTitle}>{privateRowActionsApi.route}</Text>
+          <Text style={styles.body}>{privateRowActionsApi.purpose}</Text>
+          <Text style={styles.meta}>
+            Status: {privateRowActionsApi.status} · issue #{privateRowActionsApi.issue}
+          </Text>
+          <Text style={styles.meta}>Auth: {privateRowActionsApi.authBoundary}</Text>
+          <Text style={styles.meta}>Boundary: {privateRowActionsApi.actionBoundary}</Text>
+          <Text style={styles.meta}>Inputs: {privateRowActionsApi.requiredInputs.join(", ")}</Text>
         </View>
 
         <View style={styles.panel}>

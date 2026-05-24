@@ -60,6 +60,8 @@ assert(fixture.privateAuth?.issue === 414, "Fixture does not include the issue #
 assert(fixture.privateAuth?.sessionRoute === "/api/auth/[...all]", "Fixture does not reuse the Better Auth session route.");
 assert(fixture.privateRowsApi?.route === "/api/mobile-admin/private-rows", "Fixture does not include the mobile private rows API route.");
 assert(fixture.privateRowsApi?.status === "owner-mobile-private-rows-ready", "Fixture does not include the mobile private rows API status.");
+assert(fixture.privateRowActionsApi?.route === "/api/mobile-admin/private-rows/actions", "Fixture does not include the mobile private row actions API route.");
+assert(fixture.privateRowActionsApi?.status === "owner-mobile-private-row-actions-ready", "Fixture does not include the mobile private row actions API status.");
 assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
 assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
 assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
@@ -75,6 +77,7 @@ assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity titl
 assert(activitySource.includes("Live dashboard"), "Android activity does not render the live dashboard panel.");
 assert(activitySource.includes("Private auth"), "Android activity does not render the private auth panel.");
 assert(activitySource.includes("Private rows API"), "Android activity does not render the mobile private rows API panel.");
+assert(activitySource.includes("Private row actions API"), "Android activity does not render the mobile private row actions API panel.");
 assert(activitySource.includes("Action intent API"), "Android activity does not render the mobile action intent API panel.");
 assert(activitySource.includes("Confirmed mobile actions"), "Android activity does not render the confirmed actions panel.");
 assert(activitySource.includes("HttpURLConnection"), "Android activity does not fetch the live dashboard route.");

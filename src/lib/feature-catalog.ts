@@ -602,7 +602,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 414,
     summary:
-      "Read-only live mobile dashboard hydration, iOS/Android scaffolds, owner-session private-row inspection, and the shared confirmed-action contract are proven; installable private mobile admin parity is still tracked as the current follow-up.",
+      "Read-only live mobile dashboard hydration, iOS/Android scaffolds, owner-session private-row inspection, low-risk private-row actions, and the shared confirmed-action contract are proven; installable private mobile admin parity is still tracked as the current follow-up.",
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
       "Shared `/mobile-admin/source-data` contract for iOS and Android.",
@@ -612,6 +612,7 @@ export const featureCatalog: FeatureRecord[] = [
       "iOS, Android, and Expo scaffolds live-read the dashboard with fixture fallback from issue #157.",
       "iOS, Android, and Expo scaffolds render the issue #414 owner-session and confirmed-action contract without enabling mobile mutations.",
       "Owner-gated `/api/mobile-admin/private-rows` exposes read-only private mobile row inspection from issue #414 without exposing owner-only notes in public source-data.",
+      "Owner-gated `/api/mobile-admin/private-rows/actions` marks private rows read or deferred from issue #428 without enabling billing, commerce, publishing, moderation, push, distribution, creator-speech, or public agent writes.",
       "Owner-gated `/api/mobile-admin/actions` records audit-only mobile action intent evidence from issue #414 without enabling production mutations.",
       "Roadmap and notification-aware mobile admin flows.",
       "Offer, checkout, product, and customer summaries.",
@@ -628,16 +629,18 @@ export const featureCatalog: FeatureRecord[] = [
       "Mobile dashboard live hydration tracked by issue #157.",
       "Mobile owner-session and confirmed-action UI contract tracked by issue #414.",
       "Mobile owner-session private-row inspection API tracked by issue #414.",
+      "Mobile owner-confirmed private-row workflow action API tracked by issue #428.",
       "Mobile audit-only action intent API tracked by issue #414.",
       "`/mobile-admin/source-data` exposes jobs, API dependencies, stack decision, and confirmed-write boundaries.",
       "`/mobile-admin/dashboard/source-data` exposes a public-safe digest of feature, roadmap, work-log, attention, commerce, agent, private-row, and platform status for mobile clients.",
       "`/api/mobile-admin/private-rows` is owner-session-only and returns read-only private rows without production mutations.",
+      "`/api/mobile-admin/private-rows/actions` is owner-session-only and mutates only low-risk private-row workflow state with redacted audit evidence.",
       "`/api/mobile-admin/actions` is owner-gated and records redacted action intent evidence without production admin, billing, push, distribution, or private-row mutation.",
       "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
-      "Mobile apps can read the shared public-safe dashboard digest, render the shared owner-session plus confirmed-action requirements, inspect owner-gated read-only private rows through /api/mobile-admin/private-rows, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Issue #414 still tracks distribution, push notification, physical-device proof, and domain-specific production confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
+      "Mobile apps can read the shared public-safe dashboard digest, render the shared owner-session plus confirmed-action requirements, inspect owner-gated read-only private rows through /api/mobile-admin/private-rows, mark private rows read or deferred through /api/mobile-admin/private-rows/actions, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Issue #414 still tracks distribution, push notification, physical-device proof, and high-risk domain-specific production confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",

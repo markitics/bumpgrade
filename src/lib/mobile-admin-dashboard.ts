@@ -3,6 +3,7 @@ import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
+import { getMobileAdminPrivateRowActionSummary } from "@/lib/mobile-admin-private-row-actions";
 import { getMobileAdminPrivateRowsSummary } from "@/lib/mobile-admin-private-rows";
 import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
@@ -49,6 +50,7 @@ export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
   const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
   const privateRowsSummary = await getMobileAdminPrivateRowsSummary();
+  const privateRowActionSummary = await getMobileAdminPrivateRowActionSummary();
   const mobileFeature = featureCatalog.find((feature) => feature.id === mobileAdminContract.featureId);
   const mobileRoadmapItem = roadmapItems.find((item) => item.issue === mobileAdminContract.parentIssue);
 
@@ -68,6 +70,7 @@ export async function getMobileAdminDashboardSourceData() {
       androidMobileAdminSourceData.sourceDataRoute,
       mobileAdminContract.privateAuth.sessionRoute,
       mobileAdminContract.privateRowsApi.route,
+      mobileAdminContract.privateRowActionsApi.route,
       mobileAdminContract.actionIntentApi.route,
       "/features/source-data",
       "/roadmap/source-data",
@@ -76,7 +79,7 @@ export async function getMobileAdminDashboardSourceData() {
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe and read-only. It gives mobile clients one live digest route and public-safe private-row counts, but it is not push notifications, production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe. It gives mobile clients one live digest route, public-safe private-row counts, and redacted low-risk private-row action summaries, but it is not push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -143,6 +146,31 @@ export async function getMobileAdminDashboardSourceData() {
         requiresAction: row.requiresAction,
         privateFieldsAvailable: row.privateFieldsAvailable,
         createdAt: row.createdAt,
+      })),
+    },
+    privateRowActionsApi: {
+      id: mobileAdminContract.privateRowActionsApi.id,
+      issue: mobileAdminContract.privateRowActionsApi.issue,
+      status: mobileAdminContract.privateRowActionsApi.status,
+      route: mobileAdminContract.privateRowActionsApi.route,
+      authBoundary: mobileAdminContract.privateRowActionsApi.authBoundary,
+      actionBoundary: mobileAdminContract.privateRowActionsApi.actionBoundary,
+      summarySource: privateRowActionSummary.source,
+      loadError: privateRowActionSummary.loadError,
+      counts: privateRowActionSummary.counts,
+      redaction: privateRowActionSummary.redaction,
+      latestActions: privateRowActionSummary.latestActions.map((action) => ({
+        id: action.id,
+        rowId: action.rowId,
+        actionId: action.actionId,
+        actionTitle: action.actionTitle,
+        previousReadState: action.previousReadState,
+        nextReadState: action.nextReadState,
+        previousRequiresAction: action.previousRequiresAction,
+        nextRequiresAction: action.nextRequiresAction,
+        auditCorrelationId: action.auditCorrelationId,
+        privateNoteRecorded: action.privateNoteRecorded,
+        createdAt: action.createdAt,
       })),
     },
     confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
@@ -236,7 +264,7 @@ export async function getMobileAdminDashboardSourceData() {
         })),
     },
     nextMobileMilestones: [
-      "Add domain-specific confirmed-write APIs before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
+      "Add higher-risk domain-specific confirmed-write APIs before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
       "Add physical-device proof for private mobile row inspection beyond simulator/emulator scaffolds.",
       "Add distribution and push-notification readiness after the read-only mobile surface stabilizes.",
     ],
