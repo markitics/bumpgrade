@@ -658,8 +658,8 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [{ label: "Funnels source data", url: "https://bumpgrade.com/funnels/source-data", kind: "source-data" }],
     notes: [
-      "Issue #14 is the shipped funnel MVP proof. Live billing stays in issue #219; physical deletion, drag-and-drop editing, private resource delivery, webinar integrations, checkout unlinking, and direct public agent writes stay in issue #417.",
-      "Issue #215 adds owner-confirmed private draft duplication without copying checkout-link metadata; issue #341 adds owner-confirmed archive/unpublish without deleting evidence; issue #430 adds owner-session block title/body editing while preserving block metadata; issue #432 adds owner-session reusable block add/remove while refusing checkout-linked block removal.",
+      "Issue #14 is the shipped funnel MVP proof. Issue #417 now includes owner-confirmed checkout unlinking; live billing stays in issue #219; physical deletion, drag-and-drop editing, private resource delivery, webinar integrations, and direct public agent writes stay in issue #417.",
+      "Issue #215 adds owner-confirmed private draft duplication without copying checkout-link metadata; issue #341 adds owner-confirmed archive/unpublish without deleting evidence; issue #417 adds owner-confirmed checkout unlinking; issue #430 adds owner-session block title/body editing while preserving block metadata; issue #432 adds owner-session reusable block add/remove while refusing checkout-linked block removal.",
     ],
   },
   "feature-checkout-offers": {
@@ -1246,11 +1246,11 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Find the seeded draft funnel, revision ID, ordered step IDs, block IDs, preview route, private draft duplication capability, archive/unpublish capability, public checkout-start capability, and write boundary.",
       "Inspect reusable funnel templates and block-template records, including webinar/resource templates, owner-session draftCreation, and block write boundaries.",
       "Open /funnels/indie-launch-sandbox to inspect semantic preview sections.",
-      "Use the write boundary to avoid claiming live billing, physical deletion, checkout unlinking, direct agent archive/unpublish, direct agent checkout-link, direct agent block editing, direct agent block add/remove, or direct agent-write capability.",
+      "Use the write boundary to avoid claiming live billing, physical deletion, direct agent checkout unlinking, direct agent archive/unpublish, direct agent checkout-link, direct agent block editing, direct agent block add/remove, or direct agent-write capability.",
     ],
     edgeCases: [
       "The seeded funnel is read-only and not an authenticated builder UI.",
-      "Owner-session template-to-draft creation, private draft duplication, granular block copy editing, reusable block add/remove, checkout-offer linking, and archive/unpublish lifecycle actions are available from /admin/funnels, and published linked checkout blocks can render the existing sandbox checkout start surface. Block copy edits preserve IDs, kinds, and checkout-link metadata. Block removal refuses checkout-linked blocks. Duplicates stay private and strip checkout-link metadata. Webinar/resource templates do not schedule webinars, host replays, deliver private files, or grant entitlements. Physical deletion, checkout unlinking, live billing, direct agent archive/unpublish, direct agent block editing, direct agent block add/remove, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session template-to-draft creation, private draft duplication, granular block copy editing, reusable block add/remove, checkout-offer linking, checkout unlinking, and archive/unpublish lifecycle actions are available from /admin/funnels, and published linked checkout blocks can render the existing sandbox checkout start surface. Block copy edits preserve IDs, kinds, and checkout-link metadata. Block removal refuses checkout-linked blocks until the dedicated unlink action clears checkout metadata. Duplicates stay private and strip checkout-link metadata. Webinar/resource templates do not schedule webinars, host replays, deliver private files, or grant entitlements. Physical deletion, live billing, direct agent archive/unpublish, direct agent checkout unlinking, direct agent block editing, direct agent block add/remove, and direct agent edits require future confirmed-write APIs.",
       "Generated copy remains draft until a publisher confirms it.",
     ],
     agentAccess:
@@ -1268,7 +1268,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #430 records owner-session granular draft block title/body editing.",
       "Issue #432 records owner-session reusable block add/remove controls with checkout-linked block protection.",
       "Issue #409 records owner-created product delivery-gate links for the seeded offer/funnel path.",
-      "Issue #417 records the advanced funnel parity follow-up after MVP closeout.",
+      "Issue #417 records owner-confirmed checkout unlinking plus the remaining advanced funnel parity follow-up after MVP closeout.",
     ],
     sortOrder: 46,
     updatedAt: null,
@@ -1346,7 +1346,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #215 records owner-confirmed private draft duplication.",
       "Issue #341 records owner-confirmed archive/unpublish lifecycle actions.",
       "Issue #409 records owner-created product delivery-gate links for the seeded offer/funnel path.",
-      "Issue #417 records the advanced funnel parity follow-up after MVP closeout.",
+      "Issue #417 records owner-confirmed checkout unlinking plus the remaining advanced funnel parity follow-up after MVP closeout.",
       "Issue #430 records owner-session granular draft block title/body editing.",
       "Issue #432 records owner-session reusable block add/remove controls with checkout-linked block protection.",
     ],

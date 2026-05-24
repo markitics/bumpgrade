@@ -167,9 +167,9 @@ the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
 granular block title/body edit, block add/remove, private preview,
-exact-confirmed publish, and exact-confirmed archive/unpublish surface from
-issues #91, #93, #95, #135, #159, #161, #163, #165, #213, #215, #341, #430,
-and #432. This proves ordered
+exact-confirmed publish, exact-confirmed archive/unpublish, and
+exact-confirmed checkout-unlink surface from issues #91, #93, #95, #135, #159,
+#161, #163, #165, #213, #215, #341, #417, #430, and #432. This proves ordered
 funnel/page-block semantics,
 read-only template and block-template discovery, owner-confirmed
 template-to-draft creation from issue #161, owner-confirmed checkout-offer
@@ -177,7 +177,8 @@ linking on private checkout blocks from issue #163, private draft
 seed/create/update/reorder and preview state, owner-session block copy editing
 from issue #430 while preserving block IDs, kinds, and checkout-link metadata,
 owner-session block add/remove from issue #432 while refusing checkout-linked
-block removal,
+block removal, owner-session checkout unlinking from issue #417 while
+preserving block IDs, kinds, title/body copy, step order, and audit evidence,
 and public D1 funnel publishing to `/funnels/{slug}` after owner confirmation
 and revision checks. Issue #341 lets
 owners archive private drafts or unpublish public D1 draft routes without
@@ -185,14 +186,14 @@ deleting draft, step, block, checkout-link, or audit evidence; archived drafts
 become read-only owner evidence. Issue #165 lets published funnel routes render
 the existing sandbox checkout start surface when a checkout block carries
 owner-confirmed `checkoutLink` metadata. It is not direct agent template
-creation, direct agent block editing, direct agent block add/remove, checkout
-unlinking, live billing mutation, drag-and-drop editing, destructive deletion,
-direct agent archive/unpublish, one-click upsell charging, or a direct agent
-write API. Issue #14 is the shipped
-MVP boundary; issue #417 is the pending advanced funnel parity bucket for
-drag-and-drop editing, private resource delivery, webinar integrations,
-physical deletion policy, checkout unlinking, and direct agent-safe write tools. Live
-publisher-offer billing remains separate in issue #219.
+creation, direct agent block editing, direct agent block add/remove, direct
+agent checkout unlinking, live billing mutation, drag-and-drop editing,
+destructive deletion, direct agent archive/unpublish, one-click upsell charging,
+or a direct agent write API. Issue #14 is the shipped MVP boundary; issue #417
+now includes owner-confirmed checkout unlinking and remains the pending advanced
+funnel parity bucket for drag-and-drop editing, private resource delivery,
+webinar integrations, physical deletion policy, and direct agent-safe write
+tools. Live publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
 contract for the first seeded primary offer, constrained order bump, upsell, and

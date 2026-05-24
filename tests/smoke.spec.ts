@@ -288,12 +288,14 @@ import { marketingFeatures } from "../src/lib/marketing-features";
 import {
   draftFunnelArchiveConfirmationText,
   draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPublishConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
 } from "../src/lib/funnel-drafts";
 import {
   checkoutLinkingCapability,
+  draftFunnelCheckoutUnlinkCapability,
   draftFunnelArchiveCapability,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockStructureCapability,
@@ -1120,8 +1122,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-block-structure-ready",
-        issue: 432,
+        status: "draft-checkout-unlink-ready",
+        issue: 417,
         parentIssue: 14,
       }),
     );
@@ -1140,6 +1142,7 @@ test.describe("Bumpgrade scaffold", () => {
         publishEndpoint: "/api/admin/funnels/drafts",
         archiveEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
+        checkoutUnlinkEndpoint: "/api/admin/funnels/drafts",
         blockEditEndpoint: "/api/admin/funnels/drafts",
         blockStructureEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
@@ -1248,6 +1251,27 @@ test.describe("Bumpgrade scaffold", () => {
         liveBillingEnabled: false,
       }),
     );
+    expect(payload.draftFunnelCheckoutUnlinkCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelCheckoutUnlinkCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 417,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        removesCheckoutLink: true,
+        preservesBlock: true,
+        preservesBlockId: true,
+        preservesBlockKind: true,
+        preservesBlockTitle: true,
+        preservesBlockBody: true,
+        liveBillingEnabled: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
     expect(payload.webinarResourceTemplateCapability).toEqual(
       expect.objectContaining({
         id: webinarResourceTemplateCapability.id,
@@ -1284,6 +1308,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelTemplateId",
         "funnelBlockTemplateId",
         "funnelCheckoutLinkId",
+        "funnelCheckoutUnlinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
         "funnelDraftArchiveId",
@@ -1375,6 +1400,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #79 is read-only");
     expect(payload.caveat).toContain("exact-confirmed public publishing");
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
+    expect(payload.caveat).toContain("owner-session checkout unlinking");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
@@ -17113,7 +17139,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
         expect.objectContaining({ id: "roadmap-funnels", status: "shipped", issue: 14 }),
-        expect.objectContaining({ id: "roadmap-advanced-funnel-builder-parity", status: "planned", issue: 417 }),
+        expect.objectContaining({ id: "roadmap-advanced-funnel-builder-parity", status: "active", issue: 417 }),
         expect.objectContaining({ id: "roadmap-checkout-offers", status: "shipped", issue: 15 }),
         expect.objectContaining({ id: "roadmap-live-publisher-offer-billing", status: "planned", issue: 219 }),
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
@@ -18597,12 +18623,14 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftArchiveId",
             "funnelDraftBlockEditId",
             "funnelDraftBlockStructureEditId",
+            "funnelCheckoutUnlinkId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Discover webinar and resource page-shape templates from issue #213",
             "Discover owner-session private draft duplication from issue #215",
             "Discover owner-session private draft archive/unpublish from issue #341",
+            "Discover owner-session checkout unlinking from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -18612,7 +18640,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-draft-funnels",
           route: "/admin/funnels",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["funnelDraftDuplicateId", "funnelDraftArchiveId", "funnelDraftBlockId"]),
+          stableIds: expect.arrayContaining([
+            "funnelDraftDuplicateId",
+            "funnelDraftArchiveId",
+            "funnelCheckoutUnlinkId",
+            "funnelDraftBlockId",
+          ]),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
@@ -24024,6 +24057,152 @@ test.describe("Bumpgrade scaffold", () => {
     const templateDraftReplayPayload = await templateDraftReplay.json();
     expect(templateDraftReplayPayload.draft.id).toBe(templateDraftPayload.draft.id);
 
+    const templateCheckoutStep = templateDraftPayload.draft.steps.find((step: { kind: string }) => step.kind === "checkout");
+    expect(templateCheckoutStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    const templateCheckoutBlock = templateCheckoutStep.blocks.find((block: { kind: string }) => block.kind === "checkout");
+    expect(templateCheckoutBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "checkout" }));
+    const templateCheckoutLinkIdempotencyKey = `playwright-template-checkout-link-${Date.now()}`;
+    const templateCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-checkout",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        offerId: checkoutOfferStack.primaryOffer.id,
+        expectedRevisionId: templateDraftPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutLinkConfirmationText,
+        idempotencyKey: templateCheckoutLinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(templateCheckoutLinkResponse.ok(), await templateCheckoutLinkResponse.text()).toBeTruthy();
+    const templateCheckoutLinkPayload = await templateCheckoutLinkResponse.json();
+    const linkedTemplateCheckoutStep = templateCheckoutLinkPayload.draft.steps.find(
+      (step: { id: string }) => step.id === templateCheckoutStep.id,
+    );
+    const linkedTemplateCheckoutBlock = linkedTemplateCheckoutStep.blocks.find(
+      (block: { id: string }) => block.id === templateCheckoutBlock.id,
+    );
+    expect(linkedTemplateCheckoutBlock).toEqual(
+      expect.objectContaining({
+        id: templateCheckoutBlock.id,
+        kind: "checkout",
+        checkoutLink: expect.objectContaining({ offerId: checkoutOfferStack.primaryOffer.id }),
+      }),
+    );
+
+    const staleCheckoutUnlinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "unlink-checkout",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        blockId: templateCheckoutBlock.id,
+        expectedRevisionId: templateDraftPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutUnlinkConfirmationText,
+        idempotencyKey: `playwright-checkout-unlink-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleCheckoutUnlinkResponse.status()).toBe(503);
+    await expect(staleCheckoutUnlinkResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const missingCheckoutUnlinkConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "unlink-checkout",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        blockId: templateCheckoutBlock.id,
+        expectedRevisionId: templateCheckoutLinkPayload.draft.revisionId,
+        confirmationText: "unlink checkout",
+        idempotencyKey: `playwright-checkout-unlink-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingCheckoutUnlinkConfirmationResponse.status()).toBe(503);
+    await expect(missingCheckoutUnlinkConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
+
+    const checkoutUnlinkIdempotencyKey = `playwright-checkout-unlink-${Date.now()}`;
+    const checkoutUnlinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "unlink-checkout",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        blockId: templateCheckoutBlock.id,
+        expectedRevisionId: templateCheckoutLinkPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutUnlinkConfirmationText,
+        idempotencyKey: checkoutUnlinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(checkoutUnlinkResponse.ok(), await checkoutUnlinkResponse.text()).toBeTruthy();
+    const checkoutUnlinkPayload = await checkoutUnlinkResponse.json();
+    expect(checkoutUnlinkPayload.mode).toBe("unlink-checkout");
+    const unlinkedTemplateCheckoutStep = checkoutUnlinkPayload.draft.steps.find(
+      (step: { id: string }) => step.id === templateCheckoutStep.id,
+    );
+    const unlinkedTemplateCheckoutBlock = unlinkedTemplateCheckoutStep.blocks.find(
+      (block: { id: string }) => block.id === templateCheckoutBlock.id,
+    );
+    expect(unlinkedTemplateCheckoutBlock).toEqual(
+      expect.objectContaining({
+        id: templateCheckoutBlock.id,
+        kind: "checkout",
+        title: linkedTemplateCheckoutBlock.title,
+        body: linkedTemplateCheckoutBlock.body,
+      }),
+    );
+    expect(unlinkedTemplateCheckoutBlock.checkoutLink).toBeUndefined();
+
+    const checkoutUnlinkReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "unlink-checkout",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        blockId: templateCheckoutBlock.id,
+        expectedRevisionId: templateCheckoutLinkPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutUnlinkConfirmationText,
+        idempotencyKey: checkoutUnlinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(checkoutUnlinkReplay.ok(), await checkoutUnlinkReplay.text()).toBeTruthy();
+    const checkoutUnlinkReplayPayload = await checkoutUnlinkReplay.json();
+    const replayUnlinkedTemplateCheckoutStep = checkoutUnlinkReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === templateCheckoutStep.id,
+    );
+    const replayUnlinkedTemplateCheckoutBlock = replayUnlinkedTemplateCheckoutStep.blocks.find(
+      (block: { id: string }) => block.id === templateCheckoutBlock.id,
+    );
+    expect(replayUnlinkedTemplateCheckoutBlock.checkoutLink).toBeUndefined();
+
+    const unlinkedCheckoutRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "remove-block",
+        draftId: templateDraftPayload.draft.id,
+        stepId: templateCheckoutStep.id,
+        blockId: templateCheckoutBlock.id,
+        expectedRevisionId: checkoutUnlinkPayload.draft.revisionId,
+        idempotencyKey: `playwright-unlinked-checkout-remove-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(unlinkedCheckoutRemoveResponse.ok(), await unlinkedCheckoutRemoveResponse.text()).toBeTruthy();
+    const unlinkedCheckoutRemovePayload = await unlinkedCheckoutRemoveResponse.json();
+    const removedTemplateCheckoutStep = unlinkedCheckoutRemovePayload.draft.steps.find(
+      (step: { id: string }) => step.id === templateCheckoutStep.id,
+    );
+    expect(removedTemplateCheckoutStep.blocks.map((block: { id: string }) => block.id)).not.toContain(templateCheckoutBlock.id);
+    expect(removedTemplateCheckoutStep.blocks.length).toBeGreaterThan(0);
+
     const webinarDraftResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
@@ -24584,7 +24763,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByRole("button", { name: /Save block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Add block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
-    await expect(draftCard.getByText("Checkout-linked blocks are protected in this slice.")).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Unlink checkout/i }).first()).toBeVisible();
+    await expect(draftCard.getByText("Unlink checkout before removing this block.")).toBeVisible();
     await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
       "href",
       "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
@@ -24782,6 +24962,23 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedCheckoutUnlinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "unlink-checkout",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        confirmationText: draftFunnelCheckoutUnlinkConfirmationText,
+        idempotencyKey: `playwright-archived-checkout-unlink-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedCheckoutUnlinkResponse.status()).toBe(503);
+    await expect(archivedCheckoutUnlinkResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedSourceResponse = await page.request.get("/funnels/source-data");
     expect(archivedSourceResponse.ok(), await archivedSourceResponse.text()).toBeTruthy();
     const archivedSource = await archivedSourceResponse.json();
@@ -24801,6 +24998,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Save block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Add block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Unlink checkout/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
   });
 

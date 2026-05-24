@@ -299,29 +299,30 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #430 adds owner-session granular block title/body editing while preserving block IDs, kinds, ordered step structure, and checkout-link metadata.",
       "Issue #432 adds owner-session block add/remove controls from the reusable block library while refusing checkout-linked block removal.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
-      "Issue #417 tracks advanced funnel editing, resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools after the MVP closeout.",
+      "Issue #417 adds owner-confirmed checkout unlinking and tracks remaining advanced funnel editing, resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools after the MVP closeout.",
     ],
     nextMilestone:
-      "Keep advanced drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion policy, checkout unlinking, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
+      "Keep advanced drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion policy, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
   },
   {
     id: "roadmap-advanced-funnel-builder-parity",
     title: "Advanced funnel editing, resource delivery, and agent-safe writes",
-    status: "planned",
+    status: "active",
     issue: 417,
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Pending post-MVP funnel parity for drag-and-drop visual block editing, private resource delivery, webinar integrations, physical deletion policy, checkout unlinking, and direct agent-safe write tools.",
+      "Active post-MVP funnel parity for drag-and-drop visual block editing, private resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools; owner-confirmed checkout unlinking is now part of this bucket's shipped evidence.",
     publicEvidence: [
       "Issue #417 tracks the advanced funnel parity bucket after issue #14 MVP closeout.",
       "Issue #430 moves granular existing-block title/body editing into the owner-session builder while keeping direct agent block edits pending.",
-      "Issue #432 moves reusable block add/remove controls into the owner-session builder while keeping checkout unlinking and direct agent block structure edits pending.",
+      "Issue #432 moves reusable block add/remove controls into the owner-session builder while keeping direct agent block structure edits pending.",
+      "Issue #417 adds owner-confirmed checkout unlinking from private draft blocks while preserving block IDs, kinds, title/body copy, step order, and audit evidence.",
       "Issue #14 remains the shipped MVP covering D1 draft funnels, owner-gated edits, private preview, exact-confirmed publishing, duplication, archive/unpublish, templates, source-data, and public semantic routes.",
       "Issue #219 tracks live publisher-offer billing separately from advanced funnel editing and resource delivery.",
     ],
     nextMilestone:
-      "Design drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion, checkout unlinking, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
+      "Design drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
   },
   {
     id: "roadmap-checkout-offers",

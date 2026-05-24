@@ -14,12 +14,14 @@ import type {
 } from "@/lib/funnels";
 import {
   checkoutLinkingCapability,
+  draftFunnelAdvancedParityIssue,
   draftFunnelArchiveCapability,
   draftFunnelArchiveIssue,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockEditingIssue,
   draftFunnelBlockStructureCapability,
   draftFunnelBlockStructureIssue,
+  draftFunnelCheckoutUnlinkCapability,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -118,6 +120,7 @@ const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
 export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
+export const draftFunnelCheckoutUnlinkConfirmationText = "Unlink this checkout offer from this draft block";
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
 
@@ -1141,6 +1144,94 @@ export async function linkDraftFunnelStepToCheckoutOffer(
         },
         liveBillingEnabled: false,
         rawStripeIdsIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function unlinkDraftFunnelCheckoutLink(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelCheckoutUnlinkConfirmationText) {
+    throw new Error("Exact checkout unlink confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "unlinked from checkout");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before unlinking checkout.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  if (!block.checkoutLink) {
+    throw new Error("Draft funnel block does not have a checkout link to unlink.");
+  }
+
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      checkoutLink: undefined,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-checkout-unlink-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} unlinked checkout metadata from block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "checkout_unlink",
+        draftFunnelCheckoutUnlinkCapability: draftFunnelCheckoutUnlinkCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        removedCheckoutLink: block.checkoutLink,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          checkoutLink: undefined,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        blockTitlePreserved: true,
+        blockBodyPreserved: true,
+        orderedStepStructureChanged: false,
+        liveBillingEnabled: false,
+        rawStripeIdsIncluded: false,
+        privateAuthDataIncluded: false,
       },
     ),
   ]);

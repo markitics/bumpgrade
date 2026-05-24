@@ -19,9 +19,10 @@ owner-session block add/remove controls backed by the reusable block library
 while refusing checkout-linked block removal. Issue #409 links owner-created
 product test checkout links to the seeded offer/funnel delivery gates without
 live billing, signed URLs, private R2 delivery, or arbitrary customer
-fulfillment. Issue #417 is the single pending post-MVP bucket for advanced
-drag-and-drop editing, private resource delivery, webinar integrations,
-physical deletion policy, checkout unlinking, and direct agent-safe write tools.
+fulfillment. Issue #417 adds owner-confirmed checkout unlinking and remains the
+single post-MVP bucket for advanced drag-and-drop editing, private resource
+delivery, webinar integrations, physical deletion policy, and direct agent-safe
+write tools.
 
 Live in this slice:
 
@@ -43,16 +44,16 @@ Live in this slice:
   reorder, create private drafts from reusable templates, duplicate private
   drafts, edit existing block title/body copy, add reusable block-library blocks,
   remove safe unlinked blocks, attach the seeded sandbox checkout offer to
-  checkout blocks, and publish, archive, or unpublish private D1 draft funnels
-  with ordered steps.
+  checkout blocks, unlink checkout metadata from draft blocks, and publish,
+  archive, or unpublish private D1 draft funnels with ordered steps.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
-  block update, block add, block remove, checkout-link, exact-confirmed publish,
-  and exact-confirmed archive/unpublish actions with idempotency, revision
-  checks, and audit rows. Reusable webinar/resource templates use the same
-  exact-confirmed template-to-draft path.
+  block update, block add, block remove, checkout-link, checkout-unlink,
+  exact-confirmed publish, and exact-confirmed archive/unpublish actions with
+  idempotency, revision checks, and audit rows. Reusable webinar/resource
+  templates use the same exact-confirmed template-to-draft path.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, and `funnel_audit_events`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
   draft capability, and future MCP resources/tools.
@@ -60,7 +61,8 @@ Live in this slice:
 Not live in this slice:
 
 - Drag-and-drop visual editing.
-- Checkout unlinking or removal of checkout-linked blocks.
+- Direct removal of checkout-linked blocks without first unlinking checkout
+  metadata.
 - Physical deletion of funnels.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
@@ -94,13 +96,17 @@ must keep at least one block. Linking the seeded sandbox checkout offer
 additionally requires exact checkout-link
 confirmation text, idempotency, and a current revision ID; it stores public-safe
 metadata in private draft step blocks and does not start checkout or enable live
-billing by itself. After publishing, a linked checkout block can render the
-existing sandbox checkout start panel on the public funnel route; that path
-remains exact-confirmed, idempotent, redacted, and constrained to the seeded
-offer stack. Owner product delivery-gate links can connect an owner-created
-product test checkout link to the seeded offer/funnel path, but only as
-redacted delivery-intent evidence. Current draft preview requires an owner
-session and does not
+billing by itself. Unlinking checkout metadata additionally requires exact
+checkout-unlink confirmation text, idempotency, and a current revision ID; it
+preserves the block ID, kind, title, body, step order, and audit evidence while
+removing `checkoutLink` metadata so the block can be edited, relinked, or
+removed through the normal unlinked-block path. After publishing, a linked
+checkout block can render the existing sandbox checkout start panel on the
+public funnel route; that path remains exact-confirmed, idempotent, redacted,
+and constrained to the seeded offer stack. Owner product delivery-gate links can
+connect an owner-created product test checkout link to the seeded offer/funnel
+path, but only as redacted delivery-intent evidence. Current draft preview
+requires an owner session and does not
 publish private copy publicly. Publishing requires an owner session, the exact
 publish confirmation text, an idempotency key, and a current revision ID.
 Archiving or unpublishing requires an owner session, the exact archive
@@ -108,7 +114,7 @@ confirmation text, an idempotency key, and a current revision ID; it changes the
 draft status to `archived`, clears the public route, removes the route from
 published D1 funnel source data, and preserves draft rows, ordered steps, block
 metadata, checkout-link metadata, and audit rows. Future direct agent writes,
-checkout-link deletion, live billing, live webinar integrations, private
-resource delivery, physical deletion, and destructive draft actions must add
-explicit confirmation, stale-state checks, audit correlation, redaction, and
+direct agent checkout unlinking, live billing, live webinar integrations,
+private resource delivery, physical deletion, and destructive draft actions must
+add explicit confirmation, stale-state checks, audit correlation, redaction, and
 rollback notes before acting on draft state.
