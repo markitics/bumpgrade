@@ -45,6 +45,13 @@ export const androidMobileAdminSourceData = {
     authBoundary: mobileAdminContract.privateRowsApi.authBoundary,
     readBoundary: mobileAdminContract.privateRowsApi.readBoundary,
   },
+  privateRowActionsApi: {
+    issue: mobileAdminContract.privateRowActionsApi.issue,
+    status: mobileAdminContract.privateRowActionsApi.status,
+    route: mobileAdminContract.privateRowActionsApi.route,
+    authBoundary: mobileAdminContract.privateRowActionsApi.authBoundary,
+    actionBoundary: mobileAdminContract.privateRowActionsApi.actionBoundary,
+  },
   actionIntentApi: {
     issue: mobileAdminContract.actionIntentApi.issue,
     status: mobileAdminContract.actionIntentApi.status,
@@ -82,6 +89,13 @@ export const androidMobileAdminSourceData = {
         "A verified owner can inspect read-only Mobile Admin private rows through the shared Better Auth owner session without exposing owner-only notes or private payloads in public source-data.",
     },
     {
+      id: "android-record-mobile-private-row-action",
+      route: "/api/mobile-admin/private-rows/actions",
+      fixturePath: null,
+      purpose:
+        "A verified owner can mark private rows read or deferred after exact confirmation, idempotency, stale row revision, stale-state token, and audit-correlation checks.",
+    },
+    {
       id: "android-record-mobile-action-intent",
       route: "/api/mobile-admin/actions",
       fixturePath: null,
@@ -97,7 +111,7 @@ export const androidMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only private rows can be inspected through /api/mobile-admin/private-rows and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared owner-session, private-row API, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and production mutations stay disabled until domain-specific confirmed-write APIs exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared owner-session, private-row API, private-row action API, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs exist.",
   caveat:
-    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, owner-session/private-row/confirmed-action UI contract, and audit-only action-intent route. It does not mean Play Store distribution, push notifications, physical-device private row proof, or production write actions are live.",
+    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, and audit-only action-intent route. It does not mean Play Store distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

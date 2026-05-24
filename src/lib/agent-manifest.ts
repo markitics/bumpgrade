@@ -144,6 +144,10 @@ import {
   affiliatePartnerNotificationSendPreflightRecordIssue,
 } from "@/lib/affiliate-partner-notification-send-preflight-records";
 import { mobileAdminActionIntentApiRoute, mobileAdminActionIntentIssue } from "@/lib/mobile-admin-actions";
+import {
+  mobileAdminPrivateRowActionApiRoute,
+  mobileAdminPrivateRowActionIssue,
+} from "@/lib/mobile-admin-private-row-actions";
 import { mobileAdminPrivateRowsApiRoute, mobileAdminPrivateRowsIssue } from "@/lib/mobile-admin-private-rows";
 import {
   analyticsAlertAnomalyIssue,
@@ -2263,6 +2267,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobileApiDependencyId",
       "mobilePrivateAuthId",
       "mobilePrivateRowsApiId",
+      "mobilePrivateRowActionsApiId",
       "mobileActionIntentApiId",
       "mobileConfirmedActionId",
       "platformIssue",
@@ -2273,11 +2278,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Find API dependencies",
       "Understand mobile owner-session requirements",
       "Understand the owner-gated read-only mobile private-row boundary",
+      "Understand the low-risk owner-confirmed mobile private-row action boundary",
       "Understand the owner-gated audit-only mobile action intent boundary",
       "Understand mobile confirmed-action write boundaries",
     ],
     writeBoundary:
-      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows and record owner-gated audit-only action intents through /api/mobile-admin/actions, but production writes remain disabled until future domain-specific confirmed-write APIs exist; issue #414 exposes the shared owner-session, private-row, action-intent, and confirmed-action contract.",
+      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, and record owner-gated audit-only action intents through /api/mobile-admin/actions, but high-risk production writes remain disabled until future domain-specific confirmed-write APIs exist; issue #414 exposes the shared owner-session, private-row, private-row action, action-intent, and confirmed-action contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2286,15 +2292,39 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin-dashboard.ts",
-    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "mobilePrivateRowId", "agentReadContractId"],
+    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "mobilePrivateRowId", "mobilePrivateRowActionId", "agentReadContractId"],
     safeForAgents: [
       "Read one public-safe mobile dashboard digest",
       "Inspect live feature, roadmap, admin, commerce, and agent-readiness counts",
       "Inspect public-safe private-row counts and labels without owner-only notes or payloads",
+      "Inspect redacted private-row workflow action counts without actor, note, idempotency, or stale-token details",
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Read-only public-safe digest; issue #414 exposes owner-session, private-row, action-intent, and confirmed-action requirements, but push notifications, physical-device proof, and production confirmed mobile writes require future authenticated APIs.",
+      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, action-intent, and confirmed-action requirements, but push notifications, physical-device proof, and high-risk production confirmed mobile writes require future authenticated APIs.",
+  },
+  {
+    id: "create-owner-mobile-admin-private-row-action",
+    title: "Mobile admin private-row actions API",
+    route: mobileAdminPrivateRowActionApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "src/lib/mobile-admin-private-row-actions.ts",
+    stableIds: [
+      "mobilePrivateRowActionId",
+      "mobilePrivateRowId",
+      "auditCorrelationId",
+      "idempotencyKey",
+      "staleStateToken",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only private-row action confirmation contract",
+      "Mark owner-only mobile private rows read or deferred only with an owner session",
+      "Use exact confirmation, idempotency, stale row revision checks, stale-state token checks, and audit correlation before writing",
+      "Confirm public source-data omits actor email, actor hash, actor user id, idempotency keys, private notes, owner-only notes, private payloads, stale-state tokens, stale-state token hashes, and raw rows",
+    ],
+    writeBoundary:
+      `This owner-session API mutates only Mobile Admin private-row workflow state after exact confirmation, idempotency, stale row revision checks, stale-state token checks, audit correlation, and redaction. It does not create billing mutations, commerce mutations, publishing mutations, moderation actions, creator-speech actions, push notifications, distribution state changes, direct public agent writes, or high-risk production confirmed-write side effects. Issue #${mobileAdminPrivateRowActionIssue} tracks this slice.`,
   },
   {
     id: "read-owner-mobile-admin-private-rows",

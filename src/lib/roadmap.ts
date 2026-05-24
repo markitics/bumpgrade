@@ -252,7 +252,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(414),
     group: "Mobile",
     summary:
-      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, iOS scaffold, Android scaffold, live-hydration, owner-session/confirmed-action contract, owner-gated private-row inspection, and owner-gated audit-only action-intent API slices.",
+      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, iOS scaffold, Android scaffold, live-hydration, owner-session/confirmed-action contract, owner-gated private-row inspection, low-risk private-row workflow actions, and owner-gated audit-only action-intent API slices.",
     publicEvidence: [
       "Current active follow-up tracked by issue #414.",
       "Original scaffold contract tracked by issue #13.",
@@ -263,14 +263,15 @@ export const roadmapItems: RoadmapItem[] = [
       "Mobile dashboard live network hydration tracked by issue #157.",
       "Issue #414 renders the owner-session and confirmed-action contract in the Expo, iOS, and Android app scaffolds while keeping production mobile mutations disabled.",
       "Issue #414 now adds owner-gated GET /api/mobile-admin/private-rows for read-only private mobile row inspection through the shared Better Auth owner session.",
+      "Issue #428 now adds owner-gated POST /api/mobile-admin/private-rows/actions for low-risk private-row workflow actions with exact confirmation, idempotency, stale row revision, stale-state token, audit-correlation, and redaction checks.",
       "Issue #414 now adds owner-gated POST /api/mobile-admin/actions for audit-only action intents with exact confirmation, idempotency, stale-state, contract revision, source-route, audit-correlation, and redaction checks.",
-      "`/mobile-admin/source-data` exposes the shared mobile contract, private-auth boundary, private-row API summary, action-intent API summary, confirmed-action requirements, and no-installable-app caveat.",
-      "`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest plus redacted private-row and action-intent summaries for mobile clients.",
-      "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, owner-session contract, private-row API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
-      "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, owner-session contract, private-row API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
+      "`/mobile-admin/source-data` exposes the shared mobile contract, private-auth boundary, private-row API summary, private-row action API summary, action-intent API summary, confirmed-action requirements, and no-installable-app caveat.",
+      "`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest plus redacted private-row, private-row action, and action-intent summaries for mobile clients.",
+      "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, owner-session contract, private-row API panel, private-row action API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
+      "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, owner-session contract, private-row API panel, private-row action API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
     ],
     nextMilestone:
-      "Add domain-specific production confirmed-write APIs, device proof, push-notification boundaries, and eventual distribution readiness without claiming App Store or Play Store parity early.",
+      "Add higher-risk domain-specific production confirmed-write APIs, device proof, push-notification boundaries, and eventual distribution readiness without claiming App Store or Play Store parity early.",
   },
   {
     id: "roadmap-funnels",
