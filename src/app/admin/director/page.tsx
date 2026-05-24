@@ -8,6 +8,7 @@ import { getAdminSurfaceData } from "@/lib/admin-surface-data";
 import {
   buildDirectorStatusData,
   shouldOpenDirectorWorkstreamByDefault,
+  type DirectorBriefSignal,
   type DirectorInitiative,
   type DirectorStatus,
   type DirectorWindowChange,
@@ -35,6 +36,30 @@ function statusBadgeClass(status: DirectorStatus) {
   if (status === "blocked") return "blocked";
   if (status === "done") return "shipped";
   return "idea";
+}
+
+function signalBadgeClass(state: DirectorBriefSignal["state"]) {
+  if (state === "needs_mark" || state === "blocked") return "blocked";
+  if (state === "active" || state === "changed") return "active";
+  if (state === "watch") return "shipped";
+  if (state === "pending") return "pending";
+  return "idea";
+}
+
+function WorkstreamBriefSignals({ signals }: { signals: DirectorBriefSignal[] }) {
+  const visibleSignals = signals.filter((signal) => signal.id !== "watchlist" || signal.state !== "empty");
+
+  return (
+    <ul className="director-brief-signals" aria-label="Workstream brief">
+      {visibleSignals.map((signal) => (
+        <li key={signal.id} className={`director-brief-signal ${signalBadgeClass(signal.state)}`}>
+          <span>{signal.label}</span>
+          <strong>{signal.title}</strong>
+          <small>{signal.count ? `${signal.count} item${signal.count === 1 ? "" : "s"}` : signal.summary}</small>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function InitiativeList({ title, items, empty }: { title: string; items: DirectorInitiative[]; empty: string }) {
@@ -269,26 +294,15 @@ export default async function DirectorDashboardPage() {
                 <div>
                   <span className={`status-badge ${statusBadgeClass(workstream.status)}`}>{statusLabel(workstream.status)}</span>
                   <h3>{workstream.title}</h3>
-                  <p>{workstream.currentFocus}</p>
+                  <p>{workstream.brief.headline}</p>
+                  <div className="director-workstream-counts" aria-label={`${workstream.title} counts`}>
+                    <span>{workstream.counts.active} active</span>
+                    <span>{workstream.counts.pending} pending</span>
+                    <span>{workstream.counts.changedPastWeek} changed 7d</span>
+                    <span>{workstream.counts.needsMark} needs Mark</span>
+                  </div>
                 </div>
-                <dl>
-                  <div>
-                    <dt>Active</dt>
-                    <dd>{workstream.counts.active}</dd>
-                  </div>
-                  <div>
-                    <dt>Pending</dt>
-                    <dd>{workstream.counts.pending}</dd>
-                  </div>
-                  <div>
-                    <dt>Changed 7d</dt>
-                    <dd>{workstream.counts.changedPastWeek}</dd>
-                  </div>
-                  <div>
-                    <dt>Needs Mark</dt>
-                    <dd>{workstream.counts.needsMark}</dd>
-                  </div>
-                </dl>
+                <WorkstreamBriefSignals signals={workstream.brief.signals} />
                 <span className="director-workstream-toggle" aria-hidden="true">
                   <span className="when-closed">Expand</span>
                   <span className="when-open">Collapse</span>

@@ -42,6 +42,12 @@ named work-log changes in that window. Agents should cite those digest records
 for executive summaries, then link to `/admin/work-log` when the audit trail is
 needed.
 
+Each workstream should also expose a stable `brief` object in
+`/admin/director/source-data`. The brief is the CMO/CISO/product-lead level
+summary: due item, in-flight item, next pending item, latest 7-day change, and
+watchlist item. The browser should show those signals while the workstream row is
+collapsed, then reveal issue/PR/source evidence when expanded.
+
 The browser view should stay compact by default: workstream rows are expandable,
 but only rows with current owner action or blockers should open automatically.
 At-risk/high-churn workstreams should remain visible in summary counts without
