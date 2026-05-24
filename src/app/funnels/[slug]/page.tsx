@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { ArrowRight, PanelsTopLeft, ShieldCheck } from "lucide-react";
 
 import { CheckoutStartPanel } from "@/components/checkout-start-panel";
+import { FunnelExperimentRoutedCopy } from "@/components/funnel-experiment-routed-copy";
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
+import { analyticsDashboard } from "@/lib/analytics-experiments";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
 import {
@@ -83,6 +85,9 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
   }
 
   const published = funnel.status === "published";
+  const routedExperiment = analyticsDashboard.experiments.find(
+    (experiment) => experiment.linkedRoute.split("#")[0] === funnel.previewRoute,
+  );
   const hasLinkedCheckoutBlock = funnel.steps.some((step) =>
     step.blocks.some((block) => block.kind === "checkout" && block.checkoutLink?.offerStackId === checkoutOfferStack.id),
   );
@@ -189,8 +194,25 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                   </span>
                   <span className="admin-pill">{step.title}</span>
                 </div>
-                <h3>{block.title}</h3>
-                <p>{customerFacingCopy(block.body)}</p>
+                {routedExperiment && block.id === "block-opt-in-hero" ? (
+                  <FunnelExperimentRoutedCopy
+                    experimentId={routedExperiment.id}
+                    sourceRoute={funnel.previewRoute}
+                    fallbackTitle={block.title}
+                    fallbackBody={customerFacingCopy(block.body)}
+                    variants={routedExperiment.variants.map((variant) => ({
+                      id: variant.id,
+                      label: variant.label,
+                      routedTitle: variant.routedTitle,
+                      routedBody: variant.routedBody,
+                    }))}
+                  />
+                ) : (
+                  <>
+                    <h3>{block.title}</h3>
+                    <p>{customerFacingCopy(block.body)}</p>
+                  </>
+                )}
                 <div className="feature-detail">
                   <strong>Purpose</strong>
                   <span>{block.kind.replaceAll("_", " ")}</span>

@@ -1,6 +1,6 @@
 # Analytics And Experiments
 
-Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 add the first
+Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, #311, and #422 add the first
 analytics and experimentation contract, the first privacy-safe event capture
 path, the first deterministic experiment assignment path, the first aggregate
 funnel conversion report, the first browser-side funnel page-view beacon, the
@@ -23,14 +23,15 @@ owner-reviewed notification delivery-status-webhook readiness evidence, and
 owner-reviewed notification provider-polling readiness evidence,
 owner-reviewed notification receipt-payload readiness evidence, and
 owner-reviewed notification delivery-receipt readiness evidence, and
-owner-reviewed notification provider-status reconciliation readiness evidence
-for issue #18.
+owner-reviewed notification provider-status reconciliation readiness evidence,
+and the first seeded public funnel copy routing for issue #18.
 
-Issue #18 is now the live analytics MVP boundary. Issue #422 tracks the
-remaining live analytics automation, experiment routing, notification
-execution, Queue producer/consumer execution, provider calls, delivery
-attempts/results, webhooks, polling, receipts, raw/private exports, and
-agent-safe write parity work as one pending post-MVP execution bucket.
+Issue #18 is now the live analytics MVP boundary. Issue #422 has started moving
+from readiness into execution with seeded sandbox funnel routing; it still tracks
+custom/non-seeded analytics schemas, holdouts, winner selection, rollback/audit
+logs, notification execution, Queue producer/consumer execution, provider calls,
+delivery attempts/results, webhooks, polling, receipts, raw/private exports, and
+agent-safe write parity work as the remaining post-MVP execution bucket.
 
 ## Live Routes
 
@@ -94,7 +95,8 @@ agent-safe write parity work as one pending post-MVP execution bucket.
 - `/funnels/indie-launch-sandbox`: emits a session-idempotent seeded funnel
   page-view event through `/api/analytics/events` with deterministic variant
   evidence from `/api/analytics/assignments` and normalized UTM/source
-  attribution when available.
+  attribution when available. The opt-in hero copy is routed through the same
+  session-scoped assignment key without cookies.
 
 ## Current Contract
 
@@ -106,6 +108,7 @@ The first dashboard includes stable IDs for:
 - experiment definitions;
 - variants;
 - assignment rules.
+- seeded sandbox funnel copy routing metadata.
 - aggregate event counts, aggregate variant event counts, aggregate assignment
   counts, aggregate source attribution counts, seeded event ingestion
   boundaries, and seeded assignment boundaries.
@@ -373,13 +376,13 @@ bodies, create queue payload bodies, create recipient payloads, create personali
 store raw payload bodies, create delivery results, create delivery receipts,
 process status webhooks, poll providers, create customer alerts, expose body templates,
 reconcile provider statuses,
-expose unsubscribe URLs, route experiment traffic, make automated winner decisions, make revenue
+expose unsubscribe URLs, route experiment traffic beyond the seeded sandbox copy path, make automated winner decisions, make revenue
 claims, or prove statistical significance.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, event capture boundary,
-page-view beacon boundary, dashboard-visible aggregate source attribution
+page-view beacon boundary, seeded sandbox routing metadata, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
@@ -408,7 +411,7 @@ unsubscribe URLs, Queue producer execution, Queue consumer execution, queue
 dispatch, queue messages, queue message consumption, acknowledgements,
 retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads,
 personalized bodies, raw payload bodies, customer alerts,
-experiment traffic routing, automated winners, or revenue claims require
+experiment traffic routing beyond the seeded sandbox copy path, automated winners, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention
 limits, and sample-size caveats.

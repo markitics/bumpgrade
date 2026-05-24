@@ -34,7 +34,7 @@ export const analyticsEventCaptureWriteContract = {
     "raw referrer URL",
   ],
   writeBoundary:
-    "Issues #105, #121, #123, and #125 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, deterministic variant evidence, normalized campaign/source public properties, and public-safe responses. Cookie assignment, contact-level reporting, arbitrary custom events, raw campaign/referrer exposure, A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
+    "Issues #105, #121, #123, and #125 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, deterministic variant evidence, normalized campaign/source public properties, and public-safe responses. Issue #422 can route seeded sandbox funnel copy through the same deterministic assignment. Cookie assignment, contact-level reporting, arbitrary custom events, raw campaign/referrer exposure, custom A/B traffic routing, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
 };
 
 export const analyticsFunnelPageViewBeaconContract = {

@@ -6671,8 +6671,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "time-windowed-dashboard-ready",
+        status: "seeded-traffic-routing-ready",
         issue: 129,
+        executionIssue: 422,
         parentIssue: 18,
       }),
     );
@@ -6700,6 +6701,7 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsEventVariantAggregateId",
         "analyticsEventSourceAggregateId",
         "analyticsTimeWindow",
+        "analyticsExperimentTrafficRoutingId",
         "experimentAssignmentId",
         "analyticsExperimentDecisionId",
         "analyticsExperimentDecisionKind",
@@ -6763,6 +6765,25 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 107,
         apiRoute: "/api/analytics/assignments",
         tables: expect.arrayContaining(["analytics_experiment_assignments"]),
+      }),
+    );
+    expect(payload.trafficRouting).toEqual(
+      expect.objectContaining({
+        id: "analytics-seeded-funnel-experiment-routing",
+        status: "seeded-session-routing-ready",
+        issue: 422,
+        route: "/funnels/indie-launch-sandbox",
+        experimentId: "experiment-opt-in-hero-promise",
+        linkedBlockId: "block-opt-in-hero",
+        assignmentApiRoute: "/api/analytics/assignments",
+        assignmentStorage: "sessionStorage",
+        cookieAssignmentEnabled: false,
+        rawVisitorKeysIncluded: false,
+        contactAnalyticsIncluded: false,
+        directAgentWriteAllowed: false,
+        holdoutRoutingEnabled: false,
+        automatedWinnerEnabled: false,
+        customRoutingRulesEnabled: false,
       }),
     );
     expect(payload.experimentDecisionWrites).toEqual(
@@ -7416,8 +7437,9 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.writeBoundary).toContain(
-      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 can capture seeded analytics events",
+      "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, #311, and #422 can capture seeded analytics events",
     );
+    expect(payload.writeBoundary).toContain("route the public sandbox funnel opt-in copy");
     expect(payload.writeBoundary).toContain("record owner-reviewed content/consent readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed send-payload readiness evidence");
     expect(payload.writeBoundary).toContain("record owner-reviewed queue-producer readiness evidence");
@@ -7449,7 +7471,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Source attribution stays aggregate-only/i })).toBeVisible();
     await expect(page.getByRole("group", { name: "Conversion window" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Source window" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Deterministic assignment can be audited before traffic writes exist/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Seeded experiment routing changes funnel copy without cookies/i }),
+    ).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
   });
@@ -7707,6 +7731,14 @@ test.describe("Bumpgrade scaffold", () => {
       { referer: "https://newsletter.example/archive?subscriber=private" },
     );
     await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
+    const routedCopy = page.locator('[data-experiment-id="experiment-opt-in-hero-promise"]');
+    await expect(routedCopy).toHaveAttribute("data-experiment-routing", "seeded-session");
+    await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
+    await expect(
+      page.getByRole("heading", {
+        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon/i,
+      }),
+    ).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
     await expect.poll(assignmentCount).toBe(beforeAssignments + 1);
     await expect.poll(variantCount).toBe(beforeVariantEvents + 1);
@@ -7714,6 +7746,12 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.reload();
     await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
+    await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
+    await expect(
+      page.getByRole("heading", {
+        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon/i,
+      }),
+    ).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
     await expect.poll(assignmentCount).toBe(beforeAssignments + 1);
     await expect.poll(variantCount).toBe(beforeVariantEvents + 1);
@@ -8112,7 +8150,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("m@rkmoriarty.com");
 
     await page.goto("/admin/analytics");
-    await expect(page.getByRole("heading", { name: /Experiment decisions stay evidenced before traffic routing/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Experiment decisions stay evidenced before automated winners/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record experiment decision/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: variant.label }).first()).toBeVisible();
   });
@@ -17338,7 +17376,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-live-publisher-offer-billing", status: "planned", issue: 219 }),
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
         expect.objectContaining({ id: "roadmap-analytics-testing", status: "shipped", issue: 18 }),
-        expect.objectContaining({ id: "roadmap-live-analytics-execution", status: "planned", issue: 422 }),
+        expect.objectContaining({ id: "roadmap-live-analytics-execution", status: "active", issue: 422 }),
         expect.objectContaining({ id: "roadmap-affiliates-referrals", status: "shipped", issue: 19 }),
         expect.objectContaining({ id: "roadmap-live-affiliate-execution", status: "planned", issue: 424 }),
       ]),
@@ -19501,6 +19539,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-analytics-experiments",
           stableIds: expect.arrayContaining([
             "analyticsEventVariantAggregateId",
+            "analyticsExperimentTrafficRoutingId",
             "experimentAssignmentId",
             "analyticsExperimentDecisionId",
             "analyticsReportExportId",
@@ -19560,6 +19599,7 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
+            "Inspect seeded sandbox funnel copy routing metadata",
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
             "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",

@@ -23,7 +23,7 @@ export type AnalyticsEventKind =
   | "sequence_started";
 
 export type MetricFormat = "count" | "rate" | "currency";
-export type ExperimentStatus = "draft" | "assignment_ready";
+export type ExperimentStatus = "draft" | "assignment_ready" | "seeded_routing_ready";
 
 export type AnalyticsEventDefinition = {
   id: string;
@@ -61,6 +61,8 @@ export type ExperimentVariant = {
   trafficWeight: number;
   hypothesis: string;
   linkedBlockId: string;
+  routedTitle: string;
+  routedBody: string;
 };
 
 export type ExperimentDefinition = {
@@ -99,7 +101,7 @@ export type AnalyticsDashboard = {
   validation: string[];
 };
 
-export const analyticsExperimentsUpdatedAt = "2026-05-22";
+export const analyticsExperimentsUpdatedAt = "2026-05-24";
 
 export const analyticsDashboard: AnalyticsDashboard = {
   id: "analytics-dashboard-indie-launch",
@@ -114,7 +116,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAudienceRoute: "/audience/indie-launch-waitlist",
   linkedProductRoute: "/products/indie-launch-library",
-  revisionId: "analytics-experiment-revision-indie-launch-2026-05-22-provider-status-reconciliation-readiness",
+  revisionId: "analytics-experiment-revision-indie-launch-2026-05-24-seeded-experiment-routing",
   summary:
     "A privacy-aware analytics dashboard for source attribution, funnel conversion, checkout revenue, audience opt-ins, time-window reports, experiment assignments, alerts, and launch decisions.",
   events: [
@@ -266,7 +268,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     {
       id: "experiment-opt-in-hero-promise",
       title: "Opt-in hero promise test",
-      status: "assignment_ready",
+      status: "seeded_routing_ready",
       linkedRoute: "/funnels/indie-launch-sandbox#warm-list-opt-in",
       assignmentKey: "anonymousStableVisitorKey",
       assignmentRule:
@@ -280,6 +282,9 @@ export const analyticsDashboard: AnalyticsDashboard = {
           trafficWeight: 50,
           hypothesis: "A concrete launch outcome will increase checklist opt-ins.",
           linkedBlockId: "block-opt-in-hero",
+          routedTitle: "Launch with proof, not crossed fingers",
+          routedBody:
+            "Get the checklist, funnel map, and launch evidence path before the offer opens so your first campaign has a concrete next step.",
         },
         {
           id: "variant-opt-in-speed-first",
@@ -287,22 +292,26 @@ export const analyticsDashboard: AnalyticsDashboard = {
           trafficWeight: 50,
           hypothesis: "A faster setup promise will increase checklist opt-ins without reducing checkout starts.",
           linkedBlockId: "block-opt-in-hero",
+          routedTitle: "Build your launch path in one focused afternoon",
+          routedBody:
+            "Join the waitlist for the checklist and funnel starter that help you move from scattered prep to a ready-to-test launch path.",
         },
       ],
       writeBoundary:
-        "Issue #107 can assign this seeded experiment deterministically through /api/analytics/assignments. Issues #121, #123, and #125 can capture page-view events with the assigned variant ID and normalized source attribution when available. Issue #261 can record owner-confirmed decision evidence with aggregate counts and sample-size caveats, but cookie creation, traffic routing, automated winner execution, and direct public agent experiment writes require future confirmed-write APIs.",
+        "Issue #422 routes the public sandbox funnel opt-in copy through the existing deterministic assignment API with session-scoped anonymous storage and no cookies. Issues #121, #123, and #125 can capture page-view events with the assigned variant ID and normalized source attribution when available. Issue #261 can record owner-confirmed decision evidence with aggregate counts and sample-size caveats, but cookie creation, automated winner execution, custom routing rules, and direct public agent experiment writes require future confirmed-write APIs.",
     },
   ],
   writeBoundary:
-    "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 can capture seeded analytics events, assign seeded experiment variants, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, record owner-confirmed experiment decision evidence, expose aggregate report export metadata, expose owner-reviewed cohort comparison evidence with sample-size caveats, expose owner-reviewed alert threshold/anomaly-review evidence, expose owner-reviewed notification delivery readiness evidence, record owner-confirmed notification inbox evidence, record owner-confirmed notification dispatch preflight evidence, record owner-reviewed provider/domain readiness evidence, record owner-reviewed content/consent readiness evidence, record owner-reviewed send-payload readiness evidence, record owner-reviewed queue-producer readiness evidence, record owner-reviewed queue-consumer readiness evidence, record owner-reviewed provider-call readiness evidence, record owner-reviewed delivery-attempt readiness evidence, record owner-reviewed delivery-result readiness evidence, record owner-reviewed delivery-status-webhook readiness evidence, record owner-reviewed provider-polling readiness evidence, record owner-reviewed receipt-payload readiness evidence, record owner-reviewed delivery-receipt readiness evidence, and record owner-reviewed provider-status reconciliation readiness evidence. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, raw analytics exports, automated alert sends, owner email sends, queue dispatch, Queue producers, Queue consumers, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, body templates, unsubscribe URLs, provider configuration, provider secrets, sender credentials, private DNS credentials, customer alerts, experiment traffic routing, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+    "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, #311, and #422 can capture seeded analytics events, assign seeded experiment variants, route the public sandbox funnel opt-in copy by seeded session assignment, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, record owner-confirmed experiment decision evidence, expose aggregate report export metadata, expose owner-reviewed cohort comparison evidence with sample-size caveats, expose owner-reviewed alert threshold/anomaly-review evidence, expose owner-reviewed notification delivery readiness evidence, record owner-confirmed notification inbox evidence, record owner-confirmed notification dispatch preflight evidence, record owner-reviewed provider/domain readiness evidence, record owner-reviewed content/consent readiness evidence, record owner-reviewed send-payload readiness evidence, record owner-reviewed queue-producer readiness evidence, record owner-reviewed queue-consumer readiness evidence, record owner-reviewed provider-call readiness evidence, record owner-reviewed delivery-attempt readiness evidence, record owner-reviewed delivery-result readiness evidence, record owner-reviewed delivery-status-webhook readiness evidence, record owner-reviewed provider-polling readiness evidence, record owner-reviewed receipt-payload readiness evidence, record owner-reviewed delivery-receipt readiness evidence, and record owner-reviewed provider-status reconciliation readiness evidence. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, raw analytics exports, automated alert sends, owner email sends, queue dispatch, Queue producers, Queue consumers, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, body templates, unsubscribe URLs, provider configuration, provider secrets, sender credentials, private DNS credentials, customer alerts, custom experiment routing rules, holdouts, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
   validation: [
-    "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, and experiment definitions.",
-    "/analytics/indie-launch-dashboard renders the analytics and experiment preview.",
+    "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, experiment definitions, and seeded routing metadata.",
+    "/analytics/indie-launch-dashboard renders the analytics and seeded experiment routing preview.",
     "/analytics/source-data supports fixed all-time, 24-hour, 7-day, and 30-day aggregate windows.",
     "/analytics/indie-launch-dashboard renders fixed-window source and conversion controls.",
     "/analytics/indie-launch-dashboard renders aggregate source attribution rows when captured source evidence exists.",
     `${analyticsEventCaptureApiRoute} stores seeded analytics event capture evidence with idempotency.`,
     `${analyticsFunnelPageViewBeaconContract.sourceRoute} emits a session-idempotent seeded page-view beacon through ${analyticsFunnelPageViewBeaconContract.apiRoute} with deterministic variant evidence from ${analyticsFunnelPageViewBeaconContract.assignmentApiRoute} and normalized source attribution when URL/referrer evidence is present.`,
+    `${analyticsFunnelPageViewBeaconContract.sourceRoute} routes the opt-in hero copy through the same deterministic assignment API and session-scoped anonymous key without cookies.`,
     `${analyticsExperimentAssignmentApiRoute} stores seeded experiment assignment evidence with idempotency.`,
     "/api/admin/analytics/experiment-decisions stores owner-confirmed experiment decision evidence with aggregate counts, sample-size caveats, idempotency, and redaction.",
     "/api/admin/analytics/notification-inbox-records stores owner-confirmed analytics notification inbox records with readiness checks, fixed-window evidence, idempotency, and redaction.",
@@ -320,7 +329,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     "/api/admin/analytics/notification-receipt-payload-readiness stores owner-reviewed analytics notification receipt-payload readiness records with provider-polling readiness checks, fixed-window evidence, idempotency, and redaction.",
     "/api/admin/analytics/notification-delivery-receipt-readiness stores owner-reviewed analytics notification delivery-receipt readiness records with receipt-payload readiness checks, fixed-window evidence, idempotency, and redaction.",
     "/api/admin/analytics/notification-provider-status-reconciliation-readiness stores owner-reviewed analytics notification provider-status reconciliation readiness records with delivery-receipt readiness checks, fixed-window evidence, idempotency, and redaction.",
-    "/analytics/source-data exposes aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox record evidence, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent readiness evidence, owner-reviewed send-payload readiness evidence, owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer readiness evidence, owner-reviewed provider-call readiness evidence, owner-reviewed delivery-attempt readiness evidence, owner-reviewed delivery-result readiness evidence, owner-reviewed delivery-status-webhook readiness evidence, owner-reviewed provider-polling readiness evidence, owner-reviewed receipt-payload readiness evidence, owner-reviewed delivery-receipt readiness evidence, and owner-reviewed provider-status reconciliation readiness evidence without raw event rows, raw assignment rows, visitor keys, contact analytics, recipient identity, recipient payloads, personalized bodies, raw payload bodies, email bodies, body templates, unsubscribe URLs, provider message IDs, provider secrets, private DNS credentials, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, queue payloads, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, delivery receipts, status webhooks, provider polling, receipt payloads, or provider status reconciliation.",
+    "/analytics/source-data exposes aggregate report export metadata, seeded routing metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox record evidence, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent readiness evidence, owner-reviewed send-payload readiness evidence, owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer readiness evidence, owner-reviewed provider-call readiness evidence, owner-reviewed delivery-attempt readiness evidence, owner-reviewed delivery-result readiness evidence, owner-reviewed delivery-status-webhook readiness evidence, owner-reviewed provider-polling readiness evidence, owner-reviewed receipt-payload readiness evidence, owner-reviewed delivery-receipt readiness evidence, and owner-reviewed provider-status reconciliation readiness evidence without raw event rows, raw assignment rows, visitor keys, contact analytics, recipient identity, recipient payloads, personalized bodies, raw payload bodies, email bodies, body templates, unsubscribe URLs, provider message IDs, provider secrets, private DNS credentials, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, queue payloads, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, delivery receipts, status webhooks, provider polling, receipt payloads, or provider status reconciliation.",
     `${analyticsConversionReportContract.sourceDataRoute} reports captured test-event conversion rows without exposing raw events.`,
     "/agent-docs/source-data lists the analytics read contract for future MCP resources.",
   ],
@@ -335,8 +344,9 @@ export function getAnalyticsDashboardBySlug(slug: string) {
 export const analyticsExperimentsSourceData = {
   id: "bumpgrade-analytics-experiments-source-data",
   updatedAt: analyticsExperimentsUpdatedAt,
-  status: "time-windowed-dashboard-ready",
+  status: "seeded-traffic-routing-ready",
   issue: 129,
+  executionIssue: 422,
   parentIssue: 18,
   generatedFrom: "src/lib/analytics-experiments.ts",
   routes: [
@@ -369,6 +379,7 @@ export const analyticsExperimentsSourceData = {
     "analyticsEventVariantAggregateId",
     "analyticsEventSourceAggregateId",
     "analyticsTimeWindow",
+    "analyticsExperimentTrafficRoutingId",
     "experimentAssignmentId",
     "analyticsExperimentDecisionId",
     "analyticsExperimentDecisionKind",
@@ -443,6 +454,27 @@ export const analyticsExperimentsSourceData = {
   eventWrites: analyticsEventCaptureWriteContract,
   pageViewBeacon: analyticsFunnelPageViewBeaconContract,
   assignmentWrites: analyticsExperimentAssignmentWriteContract,
+  trafficRouting: {
+    id: "analytics-seeded-funnel-experiment-routing",
+    status: "seeded-session-routing-ready",
+    issue: 422,
+    parentIssue: 18,
+    route: analyticsFunnelPageViewBeaconContract.sourceRoute,
+    experimentId: "experiment-opt-in-hero-promise",
+    linkedBlockId: "block-opt-in-hero",
+    assignmentApiRoute: analyticsExperimentAssignmentApiRoute,
+    assignmentKey: "anonymousStableVisitorKey",
+    assignmentStorage: "sessionStorage",
+    cookieAssignmentEnabled: false,
+    rawVisitorKeysIncluded: false,
+    contactAnalyticsIncluded: false,
+    directAgentWriteAllowed: false,
+    holdoutRoutingEnabled: false,
+    automatedWinnerEnabled: false,
+    customRoutingRulesEnabled: false,
+    writeBoundary:
+      "Issue #422 routes the public sandbox opt-in hero copy by seeded session assignment through /api/analytics/assignments. The route does not create cookies, expose raw visitor keys, expose raw assignment rows, use contact analytics, run holdouts, choose automated winners, or allow direct public agent writes.",
+  },
   experimentDecisionWrites: {
     id: "analytics-experiment-decision-contract",
     status: "owner-experiment-decision-evidence-ready",

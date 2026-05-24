@@ -32,7 +32,7 @@ export const analyticsExperimentAssignmentWriteContract = {
     "raw visitor keys",
   ],
   writeBoundary:
-    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, but cookie creation, contact-level reporting, experiment traffic routing, winner decisions, and direct agent experiment writes require future confirmed-write APIs.",
+    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, and issue #422 can reuse the same assignment key for seeded sandbox funnel copy routing. Cookie creation, contact-level reporting, custom experiment routing rules, holdouts, winner decisions, and direct agent experiment writes require future confirmed-write APIs.",
 };
 
 export type ExperimentAssignmentVariant = {
