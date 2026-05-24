@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, BriefcaseBusiness, Clock3, Database, ListChecks, ShieldAlert } from "lucide-react";
+import { ArrowRight, BarChart3, BriefcaseBusiness, ChevronDown, Clock3, Database, ListChecks, ShieldAlert } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
-import { buildDirectorStatusData, type DirectorInitiative, type DirectorStatus, type DirectorWindowChange } from "@/lib/director-status";
+import {
+  buildDirectorStatusData,
+  shouldOpenDirectorWorkstreamByDefault,
+  type DirectorInitiative,
+  type DirectorStatus,
+  type DirectorWindowChange,
+} from "@/lib/director-status";
 
 export const metadata: Metadata = {
   title: "Director dashboard",
@@ -253,11 +259,11 @@ export default async function DirectorDashboardPage() {
           </div>
         </div>
         <div className="director-workstream-list">
-          {director.workstreams.map((workstream, index) => (
+          {director.workstreams.map((workstream) => (
             <details
               key={workstream.id}
               className={`director-workstream ${statusBadgeClass(workstream.status)}`}
-              open={index < 3 || workstream.status === "blocked" || workstream.status === "at_risk"}
+              open={shouldOpenDirectorWorkstreamByDefault(workstream)}
             >
               <summary>
                 <div>
@@ -283,6 +289,11 @@ export default async function DirectorDashboardPage() {
                     <dd>{workstream.counts.needsMark}</dd>
                   </div>
                 </dl>
+                <span className="director-workstream-toggle" aria-hidden="true">
+                  <span className="when-closed">Expand</span>
+                  <span className="when-open">Collapse</span>
+                  <ChevronDown aria-hidden="true" />
+                </span>
               </summary>
               <div className="director-workstream-body">
                 <div className="director-owner-note">

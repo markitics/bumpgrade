@@ -2577,7 +2577,7 @@ h3 {
 
 .director-workstream summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr) auto;
   gap: 22px;
   align-items: center;
   padding: 18px;
@@ -2624,6 +2624,43 @@ h3 {
   color: var(--green);
   font-size: 26px;
   font-weight: 900;
+}
+
+.director-workstream-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  gap: 8px;
+  min-width: 104px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8faf7;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.director-workstream-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 160ms ease;
+}
+
+.director-workstream-toggle .when-open,
+.director-workstream[open] .director-workstream-toggle .when-closed {
+  display: none;
+}
+
+.director-workstream[open] .director-workstream-toggle .when-open {
+  display: inline;
+}
+
+.director-workstream[open] .director-workstream-toggle svg {
+  transform: rotate(180deg);
 }
 
 .director-workstream-body {
