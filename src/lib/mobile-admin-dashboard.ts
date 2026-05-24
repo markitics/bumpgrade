@@ -2,6 +2,7 @@ import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-dat
 import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
+import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
 import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
 import { mobileAdminContract, mobileAdminUpdatedAt } from "@/lib/mobile-admin";
@@ -45,6 +46,7 @@ function attentionSummaries(items: Awaited<ReturnType<typeof getAdminSurfaceData
 
 export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
+  const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
   const mobileFeature = featureCatalog.find((feature) => feature.id === mobileAdminContract.featureId);
   const mobileRoadmapItem = roadmapItems.find((item) => item.issue === mobileAdminContract.parentIssue);
 
@@ -63,6 +65,7 @@ export async function getMobileAdminDashboardSourceData() {
       iosMobileAdminSourceData.sourceDataRoute,
       androidMobileAdminSourceData.sourceDataRoute,
       mobileAdminContract.privateAuth.sessionRoute,
+      mobileAdminContract.actionIntentApi.route,
       "/features/source-data",
       "/roadmap/source-data",
       "/admin/source-data",
@@ -125,6 +128,28 @@ export async function getMobileAdminDashboardSourceData() {
       requiredInputs: action.requiredInputs,
       mutationBoundary: action.mutationBoundary,
     })),
+    actionIntentApi: {
+      id: mobileAdminContract.actionIntentApi.id,
+      issue: mobileAdminContract.actionIntentApi.issue,
+      status: mobileAdminContract.actionIntentApi.status,
+      route: mobileAdminContract.actionIntentApi.route,
+      authBoundary: mobileAdminContract.actionIntentApi.authBoundary,
+      intentBoundary: mobileAdminContract.actionIntentApi.intentBoundary,
+      summarySource: actionIntentSummary.source,
+      loadError: actionIntentSummary.loadError,
+      counts: actionIntentSummary.counts,
+      redaction: actionIntentSummary.redaction,
+      latestIntents: actionIntentSummary.latestIntents.map((intent) => ({
+        id: intent.id,
+        actionId: intent.actionId,
+        sourceRoute: intent.sourceRoute,
+        productionMutationCreated: intent.productionMutationCreated,
+        billingMutationCreated: intent.billingMutationCreated,
+        pushNotificationSent: intent.pushNotificationSent,
+        distributionStateChanged: intent.distributionStateChanged,
+        createdAt: intent.createdAt,
+      })),
+    },
     featureSummary: {
       updatedAt: featureCatalogUpdatedAt,
       total: featureCatalog.length,

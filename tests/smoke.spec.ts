@@ -304,6 +304,11 @@ import {
   webinarResourceTemplateCapability,
 } from "../src/lib/funnels";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
+import {
+  mobileAdminActionIntentApiRoute,
+  mobileAdminActionIntentIssue,
+  mobileAdminActionIntentStatus,
+} from "../src/lib/mobile-admin-actions";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import {
   mobileAdminDashboardIssue,
@@ -19102,6 +19107,12 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-dashboard", route: "/mobile-admin/dashboard/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "create-owner-mobile-admin-action-intent",
+          route: mobileAdminActionIntentApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["mobileActionIntentId", "mobileConfirmedActionId", "idempotencyKey"]),
+        }),
         expect.objectContaining({ id: "read-ios-mobile-admin", route: "/mobile-admin/ios/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-android-mobile-admin", route: "/mobile-admin/android/source-data", auth: "public" }),
       ]),
@@ -19275,7 +19286,36 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mobile-api-admin-source", route: "/admin/source-data" }),
         expect.objectContaining({ id: "mobile-api-dashboard", route: "/mobile-admin/dashboard/source-data" }),
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
+        expect.objectContaining({
+          id: "mobile-api-confirmed-writes",
+          route: mobileAdminActionIntentApiRoute,
+          authBoundary: "owner-confirmed-intent",
+        }),
       ]),
+    );
+    expect(payload.actionIntentApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-action-intent-api",
+        issue: mobileAdminActionIntentIssue,
+        status: mobileAdminActionIntentStatus,
+        route: mobileAdminActionIntentApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
+    expect(payload.actionIntentSummary).toEqual(
+      expect.objectContaining({
+        id: "mobile-admin-action-intent-contract",
+        status: mobileAdminActionIntentStatus,
+        apiRoute: mobileAdminActionIntentApiRoute,
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          privateNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+          productionMutationCreated: false,
+          billingMutationCreated: false,
+        }),
+      }),
     );
     expect(payload.privateAuth).toEqual(
       expect.objectContaining({
@@ -19298,7 +19338,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.confirmedWriteRules).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("first mobile app slices are read-only"),
+        expect.stringContaining("audit-only action intents"),
         expect.stringContaining("same feature, roadmap, commerce, admin, and agent contracts as web"),
       ]),
     );
@@ -19326,6 +19366,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/mobile-admin/dashboard/source-data",
         "/mobile-admin/ios/source-data",
         "/mobile-admin/android/source-data",
+        mobileAdminActionIntentApiRoute,
         "/features/source-data",
         "/roadmap/source-data",
         "/admin/source-data",
@@ -19365,10 +19406,30 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "mobile-confirm-review-agent-work",
-          status: "mobile-ui-contract-ready",
+          status: "owner-intent-api-ready",
           requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
         }),
       ]),
+    );
+    expect(payload.actionIntentApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-action-intent-api",
+        status: mobileAdminActionIntentStatus,
+        route: mobileAdminActionIntentApiRoute,
+        counts: expect.objectContaining({
+          actionIntents: expect.any(Number),
+          productionMutationsCreatedRecords: 0,
+          billingMutationsCreatedRecords: 0,
+          pushNotificationsSentRecords: 0,
+          distributionStateChangedRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          privateNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+        }),
+      }),
     );
     expect(payload.featureSummary).toEqual(
       expect.objectContaining({
@@ -19414,6 +19475,190 @@ test.describe("Bumpgrade scaffold", () => {
     expect(text).not.toContain("markmoriarty@stripe.com");
   });
 
+  test("mobile admin action intent API requires owner auth, exact confirmation, idempotency, stale state, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner mobile action-intent auth flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const privateNote = `Private mobile action note for m@rkmoriarty.com ${suffix}`;
+
+    const unauthorizedGet = await request.get(mobileAdminActionIntentApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          privateNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+          productionMutationCreated: false,
+          billingMutationCreated: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(mobileAdminActionIntentApiRoute, {
+      data: {
+        actionId: "mobile-confirm-review-agent-work",
+        sourceRoute: "/admin/work-log/source-data",
+        expectedContractUpdatedAt: mobileAdminContract.updatedAt,
+        staleStateToken: "not-owner-visible-yet",
+        confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+        idempotencyKey: `mobile-action-intent-unauthorized-${suffix}`,
+        auditCorrelationId: `audit-mobile-unauthorized-${suffix}`,
+      },
+    });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(mobileAdminActionIntentApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    const contractPayload = await contractResponse.json();
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: mobileAdminActionIntentStatus,
+        issue: mobileAdminActionIntentIssue,
+        route: mobileAdminActionIntentApiRoute,
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          privateNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+          staleStateTokenHashIncluded: false,
+          productionMutationCreated: false,
+          billingMutationCreated: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+        }),
+      }),
+    );
+    const action = contractPayload.allowedActions.find(
+      (candidate: { id: string }) => candidate.id === "mobile-confirm-review-agent-work",
+    );
+    expect(action).toEqual(
+      expect.objectContaining({
+        id: "mobile-confirm-review-agent-work",
+        confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+        staleStateToken: expect.any(String),
+        sourceRoutes: expect.arrayContaining(["/admin/work-log/source-data", "/admin/director/source-data"]),
+      }),
+    );
+
+    const requestBody = {
+      actionId: "mobile-confirm-review-agent-work",
+      sourceRoute: "/admin/work-log/source-data",
+      targetId: `work-log-mobile-action-${suffix}`,
+      expectedContractUpdatedAt: mobileAdminContract.updatedAt,
+      staleStateToken: action.staleStateToken,
+      confirmationText: action.confirmationText,
+      idempotencyKey: `mobile-action-intent-${suffix}`,
+      auditCorrelationId: `audit-mobile-action-${suffix}`,
+      privateNote,
+    };
+
+    const missingConfirmation = await page.request.post(mobileAdminActionIntentApiRoute, {
+      data: { ...requestBody, confirmationText: "wrong" },
+    });
+    expect(missingConfirmation.status(), await missingConfirmation.text()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "confirmation_required" }));
+
+    const staleContract = await page.request.post(mobileAdminActionIntentApiRoute, {
+      data: { ...requestBody, expectedContractUpdatedAt: "2026-01-01" },
+    });
+    expect(staleContract.status(), await staleContract.text()).toBe(409);
+    await expect(staleContract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_contract_revision",
+        currentContractUpdatedAt: mobileAdminContract.updatedAt,
+      }),
+    );
+
+    const unsupportedSource = await page.request.post(mobileAdminActionIntentApiRoute, {
+      data: { ...requestBody, sourceRoute: "/admin/products/source-data" },
+    });
+    expect(unsupportedSource.status(), await unsupportedSource.text()).toBe(400);
+    await expect(unsupportedSource.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "unsupported_source_route" }),
+    );
+
+    const created = await page.request.post(mobileAdminActionIntentApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_action_intent_recorded",
+        duplicate: false,
+        intent: expect.objectContaining({
+          actionId: "mobile-confirm-review-agent-work",
+          sourceRoute: "/admin/work-log/source-data",
+          targetId: requestBody.targetId,
+          expectedContractUpdatedAt: mobileAdminContract.updatedAt,
+          auditCorrelationId: requestBody.auditCorrelationId,
+          privateNoteRecorded: true,
+          productionMutationCreated: false,
+          billingMutationCreated: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          privateNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(requestBody.idempotencyKey);
+    expect(createdText).not.toContain(requestBody.staleStateToken);
+    expect(createdText).not.toContain(privateNote);
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post(mobileAdminActionIntentApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_action_intent_replayed",
+        duplicate: true,
+        intent: expect.objectContaining({
+          id: createdPayload.intent.id,
+          actionId: "mobile-confirm-review-agent-work",
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post(mobileAdminActionIntentApiRoute, {
+      data: { ...requestBody, privateNote: `${privateNote} changed` },
+    });
+    expect(conflict.status(), await conflict.text()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const sourceData = await request.get("/mobile-admin/source-data");
+    const sourceText = await sourceData.text();
+    expect(sourceData.ok(), sourceText).toBeTruthy();
+    const sourcePayload = JSON.parse(sourceText);
+    expect(sourcePayload.actionIntentSummary.counts.actionIntents).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.actionIntentSummary.counts.productionMutationsCreatedRecords).toBe(0);
+    expect(sourceText).not.toContain(requestBody.staleStateToken);
+    expect(sourceText).not.toContain(requestBody.idempotencyKey);
+    expect(sourceText).not.toContain(privateNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+  });
+
   test("iOS mobile admin source data exposes scaffold and simulator smoke evidence", async ({ request }) => {
     const response = await request.get("/mobile-admin/ios/source-data");
     expect(response.ok()).toBeTruthy();
@@ -19442,9 +19687,17 @@ test.describe("Bumpgrade scaffold", () => {
         sessionRoute: "/api/auth/[...all]",
       }),
     );
+    expect(payload.actionIntentApi).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: mobileAdminActionIntentStatus,
+        route: mobileAdminActionIntentApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "mobile-ui-contract-ready" }),
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
       ]),
     );
     expect(payload.reads).toEqual(
@@ -19457,9 +19710,13 @@ test.describe("Bumpgrade scaffold", () => {
           id: "ios-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
         }),
+        expect.objectContaining({
+          id: "ios-record-mobile-action-intent",
+          route: mobileAdminActionIntentApiRoute,
+        }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Read-only");
+    expect(payload.writeBoundary).toContain("Audit-only action intents");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -19492,9 +19749,17 @@ test.describe("Bumpgrade scaffold", () => {
         sessionRoute: "/api/auth/[...all]",
       }),
     );
+    expect(payload.actionIntentApi).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: mobileAdminActionIntentStatus,
+        route: mobileAdminActionIntentApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "mobile-ui-contract-ready" }),
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
       ]),
     );
     expect(payload.reads).toEqual(
@@ -19507,9 +19772,13 @@ test.describe("Bumpgrade scaffold", () => {
           id: "android-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
         }),
+        expect.objectContaining({
+          id: "android-record-mobile-action-intent",
+          route: mobileAdminActionIntentApiRoute,
+        }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Read-only");
+    expect(payload.writeBoundary).toContain("Audit-only action intents");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {

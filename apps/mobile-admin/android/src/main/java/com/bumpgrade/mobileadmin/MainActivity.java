@@ -34,6 +34,7 @@ public class MainActivity extends Activity {
       JSONObject androidSlice = findPlatformSlice(contract.getJSONArray("childIssues"), "android");
       JSONObject liveDashboard = contract.getJSONObject("liveDashboard");
       JSONObject privateAuth = contract.getJSONObject("privateAuth");
+      JSONObject actionIntentApi = contract.getJSONObject("actionIntentApi");
       JSONArray jobs = contract.getJSONArray("jobs");
       JSONArray confirmedActions = contract.getJSONArray("confirmedActions");
 
@@ -88,6 +89,16 @@ public class MainActivity extends Activity {
       authPanel.addView(meta("Denied: " + joinStrings(privateAuth.getJSONArray("deniedStates"))));
       authPanel.addView(meta("Boundary: " + privateAuth.getString("redactionBoundary")));
       content.addView(authPanel);
+
+      LinearLayout actionIntentPanel = panel();
+      actionIntentPanel.addView(kicker("Action intent API"));
+      actionIntentPanel.addView(panelTitle(actionIntentApi.getString("route")));
+      actionIntentPanel.addView(body(actionIntentApi.getString("purpose")));
+      actionIntentPanel.addView(meta("Status: " + actionIntentApi.getString("status") + " · issue #" + actionIntentApi.getInt("issue")));
+      actionIntentPanel.addView(meta("Auth: " + actionIntentApi.getString("authBoundary")));
+      actionIntentPanel.addView(meta("Boundary: " + actionIntentApi.getString("intentBoundary")));
+      actionIntentPanel.addView(meta("Inputs: " + joinStrings(actionIntentApi.getJSONArray("requiredInputs"))));
+      content.addView(actionIntentPanel);
 
       content.addView(sectionLabel("Phone jobs"));
       for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {

@@ -112,23 +112,32 @@ permission to write.
 Current mobile-admin boundary: `/mobile-admin/source-data` is the shared
 iOS/Android app contract, `/mobile-admin/ios/source-data` and
 `/mobile-admin/android/source-data` describe the first simulator/emulator smoke
-paths, and `/mobile-admin/dashboard/source-data` is the live public-safe
-dashboard digest for mobile clients. The dashboard summarizes feature, roadmap,
-recent work-log, attention, commerce, agent-readiness, and platform status from
-the same contracts as the web app. It returns counts, statuses, route IDs, issue
-evidence, recent public-safe work-log metadata, and redaction flags only. It is
-not private mobile auth, push notifications, confirmed writes, installable app
-distribution, private buyer rows, raw inbox bodies, owner email values, session
-IDs, R2 object keys, signed URLs, upload bodies, secret values, or write tokens.
+paths, `/mobile-admin/dashboard/source-data` is the live public-safe dashboard
+digest for mobile clients, and `/api/mobile-admin/actions` is the owner-gated
+audit-only action-intent API. The dashboard summarizes feature, roadmap, recent
+work-log, attention, commerce, agent-readiness, platform status, and action
+intent counts from the same contracts as the web app. It returns counts,
+statuses, route IDs, issue evidence, recent public-safe work-log metadata, and
+redaction flags only. Owner-authenticated GET `/api/mobile-admin/actions`
+returns exact stale-state tokens for the supported mobile confirmed actions,
+and owner-authenticated POST records redacted action intent evidence after
+exact confirmation, idempotency, contract revision checks, stale-state token
+checks, source-route allowlisting, and audit correlation. This endpoint creates
+no production admin mutation, billing mutation, push notification, distribution
+state change, private mobile row exposure, or direct public agent write. It is
+not push notifications, installable app distribution, private buyer rows, raw
+inbox bodies, owner email values, session IDs, R2 object keys, signed URLs,
+upload bodies, secret values, or production mobile mutation support.
 The Expo, iOS, and Android smoke scaffolds now render the dashboard route,
 fetch the live public-safe dashboard payload, label live-network versus fallback
 fixture hydration, and keep the generated fixture as a deterministic simulator
 or emulator fallback. Issue #414 now also renders the shared owner-session
-contract and confirmed-action requirements in the Expo, iOS, and Android
-scaffolds. Those panels reuse the web/admin Better Auth, owner allowlist,
-verified-email, exact-confirmation, idempotency, stale-state, audit-correlation,
-and redaction rules. They are still not private mobile rows, live mobile write
-clients, push notifications, or installable app distribution.
+contract, action-intent API boundary, and confirmed-action requirements in the
+Expo, iOS, and Android scaffolds. Those panels reuse the web/admin Better Auth,
+owner allowlist, verified-email, exact-confirmation, idempotency, stale-state,
+audit-correlation, and redaction rules. They are still not private mobile rows,
+production mobile write clients, push notifications, or installable app
+distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing

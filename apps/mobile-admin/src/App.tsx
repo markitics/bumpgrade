@@ -52,6 +52,18 @@ type ConfirmedActionContract = {
   mutationBoundary: string;
 };
 
+type ActionIntentApiContract = {
+  id: string;
+  issue: number;
+  status: string;
+  route: string;
+  authBoundary: string;
+  purpose: string;
+  intentBoundary: string;
+  publicSourceDataSummary: string;
+  requiredInputs: string[];
+};
+
 function Badge({ children }: { children: string }) {
   return (
     <View style={styles.badge}>
@@ -95,6 +107,7 @@ function liveDashboardPanel(payload: LiveDashboardPayload): DashboardPanel {
 export default function App() {
   const jobs = mobileAdminContractFixture.jobs.slice(0, 3);
   const privateAuth = mobileAdminContractFixture.privateAuth as PrivateAuthContract;
+  const actionIntentApi = mobileAdminContractFixture.actionIntentApi as ActionIntentApiContract;
   const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 2) as ConfirmedActionContract[];
   const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
 
@@ -160,6 +173,18 @@ export default function App() {
           <Text style={styles.meta}>Roles: {privateAuth.acceptedRoles.join(", ")}</Text>
           <Text style={styles.meta}>Denied: {privateAuth.deniedStates.join(", ")}</Text>
           <Text style={styles.meta}>Boundary: {privateAuth.redactionBoundary}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Action intent API</Text>
+          <Text style={styles.panelTitle}>{actionIntentApi.route}</Text>
+          <Text style={styles.body}>{actionIntentApi.purpose}</Text>
+          <Text style={styles.meta}>
+            Status: {actionIntentApi.status} · issue #{actionIntentApi.issue}
+          </Text>
+          <Text style={styles.meta}>Auth: {actionIntentApi.authBoundary}</Text>
+          <Text style={styles.meta}>Boundary: {actionIntentApi.intentBoundary}</Text>
+          <Text style={styles.meta}>Inputs: {actionIntentApi.requiredInputs.join(", ")}</Text>
         </View>
 
         {jobs.map((job) => (

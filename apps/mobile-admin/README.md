@@ -10,6 +10,7 @@ Current scope:
 - iOS child issue: #67.
 - Android child issue: #68.
 - Shared contract route: `/mobile-admin/source-data`.
+- Owner action-intent route: `/api/mobile-admin/actions`.
 - iOS source-data route: `/mobile-admin/ios/source-data`.
 - Android source-data route: `/mobile-admin/android/source-data`.
 - Source doc: `docs/features/mobile-admin.md`.
@@ -34,11 +35,12 @@ Issue #68 adds the first Android slice:
 - `android/src/main/assets/mobile-admin-contract.json`: bundled fixture asset
   kept in sync by `scripts/sync-mobile-fixture.mjs`.
 
-This is not App Store distribution, push notifications, private mobile auth, or
-mobile write support yet. The current #414 surface renders the owner-session
-and confirmed-action contract in the app scaffolds, but it does not expose
-private rows or mutate production state. Do not replace the app with a broad
-WebView shortcut.
+This is not App Store distribution, push notifications, private mobile rows, or
+production mobile write support yet. The current #414 surface renders the
+owner-session, action-intent API, and confirmed-action contract in the app
+scaffolds. `/api/mobile-admin/actions` records owner-gated audit-only action
+intent evidence, but it does not expose private rows or mutate production state.
+Do not replace the app with a broad WebView shortcut.
 
 First screen target:
 
@@ -47,9 +49,10 @@ First screen target:
 2. Render a mobile admin digest with roadmap, work-log, for-Mark attention, and
    commerce health sections.
 3. Keep the first slice read-only.
-4. Render the shared owner-session and confirmed-action requirements before
-   private rows or live mobile writes exist.
-5. Add mutation controls only after the shared mobile action API exists.
+4. Render the shared owner-session, action-intent API, and confirmed-action
+   requirements before private rows or production mobile writes exist.
+5. Add production mutation controls only after domain-specific confirmed-write
+   APIs exist.
 
 ## Validation
 

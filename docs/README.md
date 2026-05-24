@@ -77,7 +77,8 @@ then open the relevant shelf for the task.
   source-data dependencies, auth boundaries, and confirmed-write rules.
   The first iOS and Android scaffolds live in `apps/mobile-admin/`; mobile
   source-data now includes `/mobile-admin/dashboard/source-data`,
-  `/mobile-admin/ios/source-data`, and `/mobile-admin/android/source-data`.
+  `/mobile-admin/ios/source-data`, `/mobile-admin/android/source-data`, and the
+  owner-gated audit-only `/api/mobile-admin/actions` intent route.
 - `features/publisher-tenants.md`: paid publisher tenant setup, default
   Bumpgrade subdomain reservation, existing-domain DNS onboarding, and
   publisher-site auth boundary from issues #221-#224.

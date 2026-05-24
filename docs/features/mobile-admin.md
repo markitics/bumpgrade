@@ -29,6 +29,11 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   SwiftUI simulator target, and Android emulator target now render the
   owner-session boundary and confirmed-action requirements that future private
   mobile flows must use.
+- Mobile action-intent API issue: #414. `/api/mobile-admin/actions` now lets a
+  verified owner record redacted audit-only action intent evidence after exact
+  confirmation, idempotency, contract revision, stale-state, source-route, and
+  audit-correlation checks. It does not mutate production admin, commerce,
+  publishing, push, distribution, or private mobile row state.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -81,6 +86,13 @@ actor identity, idempotency, stale-state checks, audit correlation, and redacted
 output before any public, billing-impacting, publishing, moderation,
 source-editing, or creator-speech action can mutate production state.
 
+The current #414 action-intent slice turns the future endpoint into an
+owner-gated audit trail without enabling production mutations. Owner-authenticated
+GET `/api/mobile-admin/actions` exposes the confirmation contract and current
+stale-state tokens. Owner-authenticated POST records only redacted intent
+evidence, with actor email, actor hash, actor user id, idempotency key, private
+note, stale-state token hash, and raw rows excluded from responses.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -98,7 +110,9 @@ source-editing, or creator-speech action can mutate production state.
 - `/commerce/source-data`: redacted commerce architecture and checkout state.
 - `/api/auth/[...all]`: Better Auth session boundary for future private mobile
   screens.
-- Future `/api/mobile-admin/actions`: confirmed writes for mobile admin actions.
+- `/api/mobile-admin/actions`: owner-gated audit-only action intents for mobile
+  admin actions. Future domain-specific APIs must still perform any production
+  mutation.
 - `/mobile-admin/ios/source-data`: iOS scaffold status, fixture path,
   simulator target, smoke command, and screenshot path.
 - `/mobile-admin/android/source-data`: Android scaffold status, fixture asset,
@@ -130,13 +144,15 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 
 ## Write Boundary
 
-The first iOS and Android slices are read-only until a confirmed-write API
-exists. Public, destructive, billing-impacting, publishing, moderation,
-source-editing, and creator-speech writes require explicit confirmation text,
-idempotency, stale-state checks, audit correlation, and redaction.
+The first iOS and Android slices can record audit-only action intents through
+`/api/mobile-admin/actions`, but production mobile writes still require
+domain-specific confirmed-write APIs. Public, destructive, billing-impacting,
+publishing, moderation, source-editing, and creator-speech writes require
+explicit confirmation text, idempotency, stale-state checks, audit correlation,
+and redaction.
 
-The current #414 surface is a UI and contract milestone, not a live mutation
-API. It proves that iOS and Android expose the same private auth and
-confirmed-action rules the web/admin app uses; it does not prove App Store or
-Play Store distribution, push notifications, private rows on device, or live
-mobile writes.
+The current #414 surface proves that iOS and Android expose the same private
+auth, action-intent, and confirmed-action rules the web/admin app uses; it does
+not prove App Store or Play Store distribution, push notifications, private rows
+on device, billing mutation, publishing mutation, commerce mutation, or full
+mobile write parity.
