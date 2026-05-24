@@ -15,6 +15,8 @@ import {
   checkoutLinkingCapability,
   draftFunnelArchiveCapability,
   draftFunnelArchiveIssue,
+  draftFunnelBlockEditingCapability,
+  draftFunnelBlockEditingIssue,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -736,6 +738,18 @@ function compactStepForAudit(step: DraftFunnelStepRecord) {
   };
 }
 
+function compactBlockForAudit(block: FunnelBlock) {
+  return {
+    id: block.id,
+    kind: block.kind,
+    title: block.title,
+    body: block.body,
+    agentEditable: block.agentEditable,
+    checkoutLinkId: block.checkoutLink?.id ?? null,
+    checkoutOfferId: block.checkoutLink?.offerId ?? null,
+  };
+}
+
 function checkoutOfferForDraftLink(offerId: string) {
   if (offerId === checkoutOfferStack.primaryOffer.id) return checkoutOfferStack.primaryOffer;
   return null;
@@ -812,6 +826,87 @@ export async function updateDraftFunnelStep(
         action: "step_update",
         before: compactStepForAudit(step),
         after: { ...compactStepForAudit(step), title: nextTitle, goal: nextGoal, kind: nextKind },
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function updateDraftFunnelBlock(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    title: string;
+    body: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "updated");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before editing this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  const nextTitle = input.title.trim().slice(0, 120) || block.title;
+  const nextBody = input.body.trim().slice(0, 1_200) || block.body;
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      title: nextTitle,
+      body: nextBody,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-block-edit-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} updated block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelBlockEditingIssue,
+        action: "block_update",
+        draftFunnelBlockEditingCapability: draftFunnelBlockEditingCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          title: nextTitle,
+          body: nextBody,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        checkoutLinkPreserved: Boolean(block.checkoutLink),
+        orderedStepStructureChanged: false,
+        privateAuthDataIncluded: false,
       },
     ),
   ]);
