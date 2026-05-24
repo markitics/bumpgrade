@@ -49,6 +49,7 @@ export type MobileAdminContract = {
   updatedAt: string;
   publicBaseUrl: string;
   parentIssue: number;
+  currentFollowupIssue: number;
   status: "contract-ready";
   featureId: string;
   stackDecision: string;
@@ -67,12 +68,13 @@ export const mobileAdminContract: MobileAdminContract = {
   updatedAt: mobileAdminUpdatedAt,
   publicBaseUrl: "https://bumpgrade.com",
   parentIssue: 13,
+  currentFollowupIssue: 414,
   status: "contract-ready",
   featureId: "feature-mobile-admin",
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 is the current active follow-up for private auth, confirmed writes, device proof, and distribution readiness. This still does not ship private mobile auth, mobile writes, push notifications, or App Store/Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,

@@ -6,7 +6,10 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 
 ## Current State
 
-- Parent planning issue: #13.
+- Current active follow-up issue: #414. This tracks private mobile auth,
+  confirmed-write UX, device proof, push-notification boundaries, and eventual
+  distribution readiness after the scaffold closeout.
+- Historical parent planning issue: #13.
 - iOS implementation issue: #67. The first iOS slice now has an Expo
   TypeScript entrypoint, generated source-data fixture, SwiftUI simulator smoke
   target, and `/mobile-admin/ios/source-data`.
@@ -26,8 +29,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
 Issue #13 defines the jobs-to-be-done, API dependencies, stack direction, auth
-boundary, child issues, and write-safety rules. It does not claim that an
-installable app exists yet.
+boundary, child issues, and write-safety rules. Issue #414 is now the active
+roadmap issue for turning that read-only scaffold into private mobile admin app
+parity. Neither issue claims that an installable app exists yet.
 
 ## Stack Direction
 

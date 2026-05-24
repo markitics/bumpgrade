@@ -589,9 +589,9 @@ export const featureCatalog: FeatureRecord[] = [
     title: "Publisher admin apps for iOS and Android",
     group: "Mobile",
     status: "launch-preview",
-    issue: 13,
+    issue: 414,
     summary:
-      "Shared mobile-admin contract and planned native iOS/Android app slices for monitoring launches, offers, work logs, and agent handoffs on mobile.",
+      "Read-only live mobile dashboard hydration and iOS/Android scaffolds are proven; installable private mobile admin parity is still tracked as the current follow-up.",
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
       "Shared `/mobile-admin/source-data` contract for iOS and Android.",
@@ -605,7 +605,8 @@ export const featureCatalog: FeatureRecord[] = [
       "Platform-specific smoke testing before claims of parity.",
     ],
     evidence: [
-      "Tracked by issue #13.",
+      "Current active follow-up tracked by issue #414.",
+      "Original scaffold contract tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
       "Live dashboard source-data bridge tracked by issue #153.",
@@ -617,7 +618,7 @@ export const featureCatalog: FeatureRecord[] = [
       "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
-      "Mobile apps can read the shared public-safe dashboard digest, but private mobile auth, push notifications, and confirmed writes must reuse web/admin contracts and the same audit rules as web admin actions.",
+      "Mobile apps can read the shared public-safe dashboard digest, but issue #414 tracks the remaining private mobile auth, distribution, push notification, and confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",
