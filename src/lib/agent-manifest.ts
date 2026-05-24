@@ -516,7 +516,7 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth:
-      "src/lib/product-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts + src/lib/product-protected-content.ts",
+      "src/lib/product-access.ts + src/lib/product-creation.ts + src/lib/product-offer-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts + src/lib/product-protected-content.ts",
     stableIds: [
       "productId",
       "assetId",
@@ -526,6 +526,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "customerProductEntitlementLookupId",
       "productDownloadTokenId",
       "productAssetUploadIntentId",
+      "productCreationIntentId",
+      "productOfferAccessGrantIntentId",
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
@@ -539,6 +541,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect access rules",
       "Inspect sandbox entitlement grant mappings",
       "Inspect aggregate owner-entitlement counts and redaction flags",
+      "Inspect aggregate owner-created product and test access-grant counts",
       "Discover the customer-safe checkout intent entitlement lookup contract",
       "Discover short-lived private R2-backed download-token boundaries",
       "Discover owner-confirmed private asset upload-intent boundaries",
@@ -548,7 +551,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; product creation, customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can create draft products, create owner-created product test offer/access grants, inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live offer/funnel publishing, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -639,6 +642,33 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       "This owner page can inspect entitlement rows and record non-destructive revocation intent evidence without removing access; protected fixture body delivery happens only through checkout-intent scoped customer checks. Signed object URLs, arbitrary uploaded content delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct public agent entitlement writes require future confirmed-write APIs.",
+  },
+  {
+    id: "create-owner-product-offer-access-grant",
+    title: "Owner product test offer/access grant",
+    route: "/api/admin/products/offer-access-grants",
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables product_offer_access_grant_intents, checkout_intents, product_entitlements, product_fulfillment_tasks, commerce_products, commerce_prices, and payment_audit_events",
+    stableIds: [
+      "productOfferAccessGrantIntentId",
+      "productId",
+      "offerId",
+      "funnelId",
+      "checkoutIntentId",
+      "productEntitlementId",
+      "fulfillmentTaskId",
+      "ownerUserId",
+      "idempotencyKey",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only product test offer/access grant confirmation contract",
+      "Create synthetic paid test checkout/access grant evidence only with an owner session",
+      "Confirm public source-data stays aggregate-only and omits buyer email, buyer hashes, checkout intent IDs, entitlement IDs, idempotency keys, raw owner identity, and raw Stripe IDs",
+      "Use exact confirmation and idempotency before creating test grant evidence",
+    ],
+    writeBoundary:
+      "This owner-session API records test offer/funnel linkage, a synthetic paid checkout intent, an entitlement row, fulfillment task evidence, and audit evidence after exact confirmation and idempotency. It does not create Stripe products, Stripe prices, Checkout Sessions, live charges, published offer copy, customer-facing fulfillment delivery, raw buyer exposure, or unauthenticated/direct public agent writes.",
   },
   {
     id: "create-owner-product-asset-upload-intent",
@@ -2586,9 +2616,19 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, aggregate owner-created product and test grant counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-created product test offer/access grant boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
     safetyBoundary:
-      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, and fulfillment actions remain unavailable.",
+      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner product creation and owner-created product test grants require owner auth, exact confirmation, idempotency, and redaction. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, live offer/funnel publishing, live charges, and fulfillment actions remain unavailable.",
+  },
+  {
+    id: "mcp-tool-create-product-offer-access-grant",
+    resourceOrTool: "tool create_product_offer_access_grant",
+    status: "planned",
+    backedBy: "/api/admin/products/offer-access-grants",
+    purpose:
+      "Create owner-confirmed test offer/funnel linkage and synthetic paid test access grant evidence for an authenticated owner on top of the same D1 contract.",
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, audit metadata, and redacted output. It must not create Stripe products, Stripe prices, Checkout Sessions, live charges, published offer copy, public buyer records, or direct public agent writes.",
   },
   {
     id: "mcp-tool-create-product-asset-upload-intent",

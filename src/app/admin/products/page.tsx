@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, ListChecks, PackagePlus, ShieldCheck, ShoppingCart } from "lucide-react";
+import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, Link2, ListChecks, PackagePlus, ShieldCheck, ShoppingCart } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminProductCreationForm } from "@/components/admin-product-creation-form";
+import { AdminProductOfferAccessGrantForm } from "@/components/admin-product-offer-access-grant-form";
 import { AdminProductRevocationIntentForm } from "@/components/admin-product-revocation-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -13,6 +14,7 @@ import {
   productEntitlementRevocationIntentIssue,
 } from "@/lib/product-entitlement-inspection";
 import { getAdminProductCreationState, productCreationIssue } from "@/lib/product-creation";
+import { getAdminProductOfferAccessState, productOfferAccessIssue } from "@/lib/product-offer-access";
 import { getProductProtectedContentSummary, productProtectedContentIssue } from "@/lib/product-protected-content";
 
 export const metadata: Metadata = {
@@ -43,9 +45,10 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const [state, productCreation, revocationIntents, protectedContent] = await Promise.all([
+  const [state, productCreation, productOfferAccess, revocationIntents, protectedContent] = await Promise.all([
     getAdminProductEntitlementInspectionState(),
     getAdminProductCreationState(),
+    getAdminProductOfferAccessState(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -113,6 +116,14 @@ export default async function AdminProductsPage() {
             </p>
           </div>
           <div>
+            <Link2 aria-hidden="true" />
+            <h3>Test grants</h3>
+            <p>
+              {productOfferAccess.counts.activeTestEntitlements} owner-created product test access grant
+              {productOfferAccess.counts.activeTestEntitlements === 1 ? "" : "s"}.
+            </p>
+          </div>
+          <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Revocation intents</h3>
             <p>
@@ -136,8 +147,8 @@ export default async function AdminProductsPage() {
       <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
-            <p className="eyebrow">Product creation</p>
-            <h2>Owners can create draft catalog records without billing writes</h2>
+            <p className="eyebrow">Product creation and test access</p>
+            <h2>Owners can create products and prove a test grant path</h2>
           </div>
           <Link href={`https://github.com/markitics/bumpgrade/issues/${productCreationIssue}`} className="text-link compact-link">
             Issue #{productCreationIssue}
@@ -162,6 +173,32 @@ export default async function AdminProductsPage() {
               <span>{compactDate(productCreation.latestCreatedAt)}</span>
             </div>
             <AdminProductCreationForm />
+          </article>
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{productOfferAccess.status}</span>
+              <span className="admin-pill">{productOfferAccess.source}</span>
+            </div>
+            <Link2 aria-hidden="true" />
+            <h3>Test offer/access grant</h3>
+            <p>{productOfferAccess.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Linked products</strong>
+              <span>{productOfferAccess.counts.linkedProducts}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Test checkout intents</strong>
+              <span>{productOfferAccess.counts.testCheckoutIntents}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Latest test grant</strong>
+              <span>{compactDate(productOfferAccess.latestCreatedAt)}</span>
+            </div>
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${productOfferAccessIssue}`} className="text-link compact-link">
+              Issue #{productOfferAccessIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <AdminProductOfferAccessGrantForm products={productCreation.records} />
           </article>
           {productCreation.records.length > 0 ? (
             productCreation.records.map((product) => (
@@ -201,6 +238,41 @@ export default async function AdminProductsPage() {
               <p>{productCreation.loadError ?? "Create the first draft catalog record from this owner page."}</p>
             </article>
           )}
+          {productOfferAccess.records.map((record) => (
+            <article key={record.id} className="roadmap-card active">
+              <div className="roadmap-card-top">
+                <span className={`status-badge ${statusClass(record.entitlementStatus)}`}>{record.entitlementStatus ?? record.status}</span>
+                <span className="admin-pill">test purchase</span>
+              </div>
+              <Link2 aria-hidden="true" />
+              <h3>{record.productName}</h3>
+              <p>
+                Linked to {record.offerId} and {record.funnelId}; queued {record.fulfillmentKind.replaceAll("_", " ")} fulfillment evidence without a live Stripe session.
+              </p>
+              <div className="roadmap-detail">
+                <strong>Checkout</strong>
+                <span>{record.checkoutStatus ?? "No checkout state"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Entitlement</strong>
+                <span>{record.entitlementStatus ?? "No entitlement state"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Fulfillment</strong>
+                <span>{record.fulfillmentStatus ?? "No fulfillment task"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Amount</strong>
+                <span>
+                  {record.currency.toUpperCase()} {(record.amountCents / 100).toFixed(2)}
+                </span>
+              </div>
+              <p>
+                Stripe Checkout Session created: {String(record.stripeCheckoutSessionCreated)}. Live charge created:{" "}
+                {String(record.liveChargeCreated)}. Raw buyer email included: {String(record.rawBuyerEmailIncluded)}.
+              </p>
+            </article>
+          ))}
         </div>
       </section>
 
