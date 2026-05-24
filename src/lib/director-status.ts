@@ -214,6 +214,35 @@ function normalizeText(value: string) {
   return value.toLowerCase();
 }
 
+function relevantUrlText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "url" in value && typeof value.url === "string") return value.url;
+  return "";
+}
+
+function relevantUrlEvidence(value: unknown): DirectorEvidenceLink | null {
+  if (typeof value === "string") {
+    return {
+      source: "work-log",
+      label: value.replace("https://bumpgrade.com", "") || "bumpgrade.com",
+      url: value,
+      kind: "route",
+    };
+  }
+
+  if (value && typeof value === "object" && "url" in value && typeof value.url === "string") {
+    const link = value as AdminLink;
+    return {
+      ...link,
+      source: "work-log",
+      label: link.label ?? link.title ?? (link.url.replace("https://bumpgrade.com", "") || "bumpgrade.com"),
+      kind: link.kind ?? "route",
+    };
+  }
+
+  return null;
+}
+
 function workstreamFromText(value: string): DirectorWorkstreamId {
   const text = normalizeText(value);
   if (/\b(director|status dashboard|project control|project status|work-log|work log|for-mark|attention queue)\b/.test(text)) {
@@ -263,7 +292,7 @@ function workstreamForWorkLog(entry: AdminWorkLogEntry): DirectorWorkstreamId {
       entry.roadmapUpdated.join(" "),
       entry.userJourneysUpdated.join(" "),
       entry.documentationUpdated.join(" "),
-      entry.relevantUrls.join(" "),
+      (entry.relevantUrls as unknown[]).map(relevantUrlText).join(" "),
       entry.githubIssues.map((issue) => issue.title ?? issue.label ?? issue.url).join(" "),
       entry.closedPrs.map((pr) => pr.title ?? pr.label ?? pr.url).join(" "),
     ].join(" "),
@@ -330,12 +359,10 @@ function workLogInitiative(entry: AdminWorkLogEntry): DirectorInitiative {
     evidence: [
       ...(primaryIssue ? [{ ...primaryIssue, source: "issue" as const, kind: primaryIssue.kind ?? "issue" }] : []),
       ...prLinks(entry).slice(0, 3),
-      ...entry.relevantUrls.slice(0, 3).map((url) => ({
-        source: "work-log" as const,
-        label: url.replace("https://bumpgrade.com", "") || "bumpgrade.com",
-        url,
-        kind: "route",
-      })),
+      ...(entry.relevantUrls as unknown[]).slice(0, 3).flatMap((url) => {
+        const link = relevantUrlEvidence(url);
+        return link ? [link] : [];
+      }),
     ],
   };
 }
