@@ -2135,6 +2135,7 @@ h3 {
 }
 
 .admin-block-unlink-form select,
+.admin-block-unlink-form input,
 .admin-block-unlink-form textarea {
   min-width: 0;
   width: 100%;
@@ -2146,8 +2147,10 @@ h3 {
   text-transform: none;
 }
 
-.admin-block-unlink-form select {
+.admin-block-unlink-form select,
+.admin-block-unlink-form input {
   min-height: 42px;
+  padding: 0 11px;
 }
 
 .admin-block-unlink-form textarea {

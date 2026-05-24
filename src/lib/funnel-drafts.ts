@@ -11,6 +11,7 @@ import type {
   FunnelResourceDeliveryLink,
   FunnelStep,
   FunnelStepKind,
+  FunnelWebinarEventLink,
   FunnelTemplate,
   FunnelTemplateStep,
 } from "@/lib/funnels";
@@ -27,6 +28,7 @@ import {
   draftFunnelBlockStructureIssue,
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelResourceDeliveryLinkCapability,
+  draftFunnelWebinarEventLinkCapability,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -127,6 +129,7 @@ export const draftFunnelTemplateCreationConfirmationText = "Create a private dra
 export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
 export const draftFunnelCheckoutUnlinkConfirmationText = "Unlink this checkout offer from this draft block";
 export const draftFunnelResourceDeliveryLinkConfirmationText = "Link this draft block to product resource delivery";
+export const draftFunnelWebinarEventLinkConfirmationText = "Link this draft webinar block to event and replay URLs";
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
 
@@ -197,14 +200,21 @@ function draftBlocksForTemplateStep(draftId: string, step: FunnelTemplateStep): 
 
 function duplicateBlocksForStep(draftId: string, step: DraftFunnelStepRecord): FunnelBlock[] {
   return step.blocks.map((block, index) => {
+    const copiedLinkNotice = block.checkoutLink
+      ? "Checkout-link metadata was intentionally not copied. Review this duplicate and link an offer again before publishing."
+      : block.resourceDeliveryLink
+        ? "Resource-delivery metadata was intentionally not copied. Review this duplicate and link product access again before publishing."
+      : block.webinarEventLink
+        ? "Webinar event-link metadata was intentionally not copied. Review this duplicate and link event or replay URLs again before publishing."
+        : block.body;
+
     return {
       ...block,
       id: `${draftId}-block-${step.order}-${block.kind}-${index + 1}`,
-      body: block.checkoutLink
-        ? "Checkout-link metadata was intentionally not copied. Review this duplicate and link an offer again before publishing."
-        : block.body,
+      body: copiedLinkNotice,
       checkoutLink: undefined,
       resourceDeliveryLink: undefined,
+      webinarEventLink: undefined,
     };
   });
 }
@@ -763,6 +773,10 @@ function compactBlockForAudit(block: FunnelBlock) {
     resourceDeliveryLinkId: block.resourceDeliveryLink?.id ?? null,
     resourceDeliveryProductId: block.resourceDeliveryLink?.productId ?? null,
     resourceDeliveryAssetId: block.resourceDeliveryLink?.assetId ?? null,
+    webinarEventLinkId: block.webinarEventLink?.id ?? null,
+    webinarEventTitle: block.webinarEventLink?.eventTitle ?? null,
+    webinarRegistrationUrl: block.webinarEventLink?.registrationUrl ?? null,
+    webinarReplayUrl: block.webinarEventLink?.replayUrl ?? null,
   };
 }
 
@@ -850,6 +864,59 @@ function resourceDeliveryLinkForProduct(
     rawR2KeysIncluded: false,
     signedUrlsIncluded: false,
     buyerDataIncluded: false,
+    linkedAt: new Date().toISOString(),
+  };
+}
+
+function publicWebinarUrl(value: string, label: string, options: { required: boolean }) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    if (options.required) throw new Error(`${label} URL is required before linking a webinar event.`);
+    return null;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error(`${label} URL must be a valid absolute URL.`);
+  }
+
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error(`${label} URL must use http or https.`);
+  }
+
+  return parsed.toString().slice(0, 500);
+}
+
+function webinarEventLinkForBlock(
+  draft: DraftFunnelRecord,
+  step: DraftFunnelStepRecord,
+  block: FunnelBlock,
+  input: { eventTitle: string; registrationUrl: string; replayUrl: string; providerLabel: string },
+): FunnelWebinarEventLink {
+  const eventTitle = input.eventTitle.trim().slice(0, 140) || block.title;
+  const providerLabel = input.providerLabel.trim().slice(0, 80) || "External webinar provider";
+
+  return {
+    id: `webinar-event-link-${draft.id}-${step.id}-${block.id}`,
+    status: "owner-session-linked",
+    issue: draftFunnelAdvancedParityIssue,
+    parentIssue: draftFunnelBuilderParentIssue,
+    eventTitle,
+    registrationUrl: publicWebinarUrl(input.registrationUrl, "Registration", { required: true }) ?? "",
+    replayUrl: publicWebinarUrl(input.replayUrl, "Replay", { required: false }),
+    providerLabel,
+    accessMode: "external-event-reference",
+    confirmationRequired: true,
+    idempotencyRequired: true,
+    staleRevisionRequired: true,
+    liveSchedulingEnabled: false,
+    reminderAutomationEnabled: false,
+    attendanceTrackingEnabled: false,
+    replayHostingEnabled: false,
+    providerSecretsIncluded: false,
+    privateAttendeeDataIncluded: false,
     linkedAt: new Date().toISOString(),
   };
 }
@@ -978,6 +1045,8 @@ export async function updateDraftFunnelBlock(
         blockIdPreserved: true,
         blockKindPreserved: true,
         checkoutLinkPreserved: Boolean(block.checkoutLink),
+        resourceDeliveryLinkPreserved: Boolean(block.resourceDeliveryLink),
+        webinarEventLinkPreserved: Boolean(block.webinarEventLink),
         orderedStepStructureChanged: false,
         privateAuthDataIncluded: false,
       },
@@ -1054,6 +1123,10 @@ export async function addDraftFunnelBlock(
         afterBlockCount: nextBlocks.length,
         addedBlock: compactBlockForAudit(addedBlock),
         checkoutLinksPreserved: step.blocks.flatMap((block) => (block.checkoutLink ? [block.checkoutLink.id] : [])),
+        resourceDeliveryLinksPreserved: step.blocks.flatMap((block) =>
+          block.resourceDeliveryLink ? [block.resourceDeliveryLink.id] : [],
+        ),
+        webinarEventLinksPreserved: step.blocks.flatMap((block) => (block.webinarEventLink ? [block.webinarEventLink.id] : [])),
         privateAuthDataIncluded: false,
       },
     ),
@@ -1207,6 +1280,7 @@ export async function reorderDraftFunnelBlock(
         blockBodiesPreserved: true,
         checkoutLinksPreserved: true,
         resourceDeliveryLinksPreserved: true,
+        webinarEventLinksPreserved: true,
         stepMembershipPreserved: true,
         crossStepMove: false,
         privateAuthDataIncluded: false,
@@ -1297,6 +1371,7 @@ export async function moveDraftFunnelBlockToStep(
         blockBodiesPreserved: true,
         checkoutLinksPreserved: true,
         resourceDeliveryLinksPreserved: true,
+        webinarEventLinksPreserved: true,
         stepMembershipChanged: true,
         sourceStepEmptied: false,
         privateAuthDataIncluded: false,
@@ -1571,6 +1646,103 @@ export async function linkDraftFunnelBlockToResourceDelivery(
         rawR2KeysIncluded: false,
         signedUrlsIncluded: false,
         buyerDataIncluded: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function linkDraftFunnelBlockToWebinarEvent(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    eventTitle: string;
+    registrationUrl: string;
+    replayUrl: string;
+    providerLabel: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelWebinarEventLinkConfirmationText) {
+    throw new Error("Exact webinar event link confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "linked to a webinar event");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before linking webinar event details.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  if (block.kind !== "webinar") {
+    throw new Error("Webinar event links can only be attached to webinar blocks.");
+  }
+
+  const webinarEventLink = webinarEventLinkForBlock(draft, step, block, input);
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      webinarEventLink,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-webinar-event-link-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} linked webinar event ${webinarEventLink.id} to block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "webinar_event_link",
+        draftFunnelWebinarEventLinkCapability: draftFunnelWebinarEventLinkCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        webinarEventLink,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          webinarEventLink,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        blockTitlePreserved: true,
+        blockBodyPreserved: true,
+        orderedStepStructureChanged: false,
+        liveSchedulingEnabled: false,
+        reminderAutomationEnabled: false,
+        attendanceTrackingEnabled: false,
+        replayHostingEnabled: false,
+        providerSecretsIncluded: false,
+        privateAttendeeDataIncluded: false,
         privateAuthDataIncluded: false,
       },
     ),

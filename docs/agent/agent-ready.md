@@ -182,7 +182,8 @@ records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
 granular block title/body edit, block add/remove, within-step block reorder,
 cross-step block move, private preview, exact-confirmed publish,
-exact-confirmed archive/unpublish, exact-confirmed checkout-unlink, and exact-confirmed resource-delivery-link
+exact-confirmed archive/unpublish, exact-confirmed checkout-unlink, exact-confirmed resource-delivery-link,
+and exact-confirmed webinar-event-link
 surface from issues #91, #93, #95, #135, #159, #161, #163, #165, #213, #215,
 #341, #417, #430, and #432. This proves ordered
 funnel/page-block semantics,
@@ -200,7 +201,10 @@ within-step block reordering from issue #417 while preserving block IDs, kinds,
 copy, checkout-link metadata, resource-link metadata, step membership, and audit
 evidence, owner-session cross-step block moves from issue #417 while preserving
 block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and audit
-evidence while changing step membership, and public D1
+evidence while changing step membership, owner-session webinar event/replay
+linking from issue #417 while preserving block IDs, kinds, title/body copy, step
+order, and audit evidence while storing only public-safe external URL references,
+and public D1
 funnel publishing to `/funnels/{slug}` after owner confirmation and revision
 checks. Issue #341 lets
 owners archive private drafts or unpublish public D1 draft routes without
@@ -210,16 +214,19 @@ the existing sandbox checkout start surface when a checkout block carries
 owner-confirmed `checkoutLink` metadata. Published resource-linked blocks can
 render entitlement-safe product access references without private R2 keys,
 signed URLs, buyer records, arbitrary uploaded asset delivery, or live
-fulfillment automation. It is not direct agent template creation, direct agent
+fulfillment automation. Published webinar-linked blocks can render external
+registration/replay references without provider secrets, attendee records,
+scheduling, reminders, attendance tracking, or hosted replay media. It is not direct agent template creation, direct agent
 block editing, direct agent block add/remove, direct agent checkout unlinking,
 direct agent resource delivery linking, direct agent block reordering,
-direct agent cross-step block moves, live billing mutation, freeform drag-and-drop
-editing, destructive deletion, direct agent archive/unpublish, one-click upsell
-charging, arbitrary private R2 delivery, signed URL creation, live fulfillment
-automation, or a direct agent write API. Issue #14 is the shipped MVP boundary;
+direct agent cross-step block moves, direct agent webinar event linking, live
+billing mutation, freeform drag-and-drop editing, destructive deletion, direct
+agent archive/unpublish, one-click upsell charging, arbitrary private R2
+delivery, signed URL creation, live fulfillment automation, live webinar
+scheduling, attendance tracking, replay hosting, or a direct agent write API. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
-links, within-step block reordering, and cross-step block moves, and remains the pending advanced funnel
-parity bucket for freeform drag-and-drop editing, arbitrary private R2 delivery, live fulfillment automation, webinar
+links, webinar event/replay links, within-step block reordering, and cross-step block moves, and remains the pending advanced funnel
+parity bucket for freeform drag-and-drop editing, arbitrary private R2 delivery, live fulfillment automation, full webinar
 integrations, physical deletion policy, and direct agent-safe write tools. Live
 publisher-offer billing remains separate in issue #219.
 

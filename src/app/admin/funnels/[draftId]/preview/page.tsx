@@ -128,6 +128,15 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
                     </span>
                   </div>
                 ) : null}
+                {block.webinarEventLink ? (
+                  <div className="feature-detail">
+                    <strong>Webinar access</strong>
+                    <span>
+                      {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}. Registration and
+                      replay URLs are external references; provider secrets and attendee data stay hidden.
+                    </span>
+                  </div>
+                ) : null}
               </article>
             )),
           )}
