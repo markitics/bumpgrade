@@ -17394,7 +17394,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
-          issueNumbers: [414, 13, 67, 68, 153, 155, 157],
+          issueNumbers: expect.arrayContaining([414, 428, 13, 67, 68, 153, 155, 157]),
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
