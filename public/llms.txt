@@ -188,23 +188,32 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-confirmed resource delivery linking to product/access catalog assets
   without private R2 keys, signed URLs, buyer records, arbitrary uploaded asset
   delivery, or live fulfillment automation,
+  owner-confirmed webinar event/replay linking to public-safe external URLs
+  without provider secrets, attendee records, scheduling, reminders, attendance
+  tracking, or hosted replay media,
   owner-gated private preview, exact-confirmed
   public publishing to `/funnels/{slug}`, and exact-confirmed archive/unpublish
   lifecycle actions that preserve draft evidence. Published linked checkout
   blocks can render the existing sandbox checkout start surface after exact
   confirmation. Published resource-linked blocks can render entitlement-safe
-  product access references while private files stay hidden. It is not direct
+  product access references while private files stay hidden. Published
+  webinar-linked blocks can render external registration/replay references. It
+  is not direct
   agent template creation, direct agent block editing, direct agent block
   add/remove, direct agent block reordering, direct agent cross-step block
   moves, direct agent checkout unlinking, direct agent resource delivery
-  linking, live billing mutation, one-click upsell charging, drag-and-drop
-  visual editing, arbitrary private R2 delivery, signed URL creation, live
-  fulfillment automation, physical deletion, or an unconfirmed agent-write API.
+  linking, direct agent webinar event linking, live billing mutation, one-click
+  upsell charging, drag-and-drop visual editing, arbitrary private R2 delivery,
+  signed URL creation, live fulfillment automation, live webinar scheduling,
+  attendance tracking, replay hosting, physical deletion, or an unconfirmed
+  agent-write API.
   Treat issue #14 as the shipped MVP boundary. Issue #417 includes
-  owner-confirmed checkout unlinking, resource delivery links, and within-step
-  block reordering, and cross-step block moves, and remains the pending advanced funnel parity bucket for freeform drag-and-drop layout editing,
-  arbitrary private R2 delivery, live fulfillment automation, webinar
-  integrations, physical deletion policy, and direct agent-safe write tools;
+  owner-confirmed checkout unlinking, resource delivery links, webinar
+  event/replay links, within-step block reordering, and cross-step block moves,
+  and remains the pending advanced funnel parity bucket for freeform
+  drag-and-drop layout editing, arbitrary private R2 delivery, live fulfillment
+  automation, full webinar integrations, physical deletion policy, and direct
+  agent-safe write tools;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
