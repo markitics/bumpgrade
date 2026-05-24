@@ -321,6 +321,23 @@ export const roadmapItems: RoadmapItem[] = [
       "Keep live publisher-offer billing separated in issue #219 until the first live package, amount, and webhook secret are confirmed; one-click post-purchase charging and fulfillment remain future confirmed-write work.",
   },
   {
+    id: "roadmap-live-publisher-offer-billing",
+    title: "Live publisher-offer checkout and webhook rollout",
+    status: "planned",
+    issue: 219,
+    featureId: featureIdFor(15),
+    group: "Checkout and offers",
+    summary:
+      "Pending live-mode publisher-offer billing after the first package, amount, Stripe Price policy, and live webhook secret are confirmed. Bumpgrade account-plan self-serve checkout remains separate.",
+    publicEvidence: [
+      "Issue #219 tracks the live publisher-offer billing decision and rollout.",
+      "Production publisher-offer checkout remains sandbox-only until the first live package, amount, live Stripe Price policy, and live webhook secret are confirmed.",
+      "`/pricing` self-serve Bumpgrade subscription checkout is separate from customer-facing publisher-offer billing.",
+    ],
+    nextMilestone:
+      "Confirm the first live publisher package/amount and STRIPE_WEBHOOK_SECRET_LIVE, then add live-mode checkout and signed webhook proof without exposing provider IDs.",
+  },
+  {
     id: "roadmap-products-access",
     title: "Products, downloads, courses, memberships, and subscriptions",
     status: "shipped",
