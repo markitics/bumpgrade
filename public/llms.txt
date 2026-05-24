@@ -181,6 +181,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   add/remove from the reusable block library while refusing checkout-linked block removal,
   owner-session within-step block reordering that preserves block identity,
   checkout-link metadata, resource-link metadata, and step membership,
+  owner-session cross-step block moves that preserve block identity,
+  checkout-link metadata, resource-link metadata, and audit evidence,
   owner-confirmed checkout unlinking that preserves block IDs, kinds, title/body
   copy, step order, and audit evidence,
   owner-confirmed resource delivery linking to product/access catalog assets
@@ -193,13 +195,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   confirmation. Published resource-linked blocks can render entitlement-safe
   product access references while private files stay hidden. It is not direct
   agent template creation, direct agent block editing, direct agent block
-  add/remove, direct agent block reordering, direct agent checkout unlinking, direct agent resource delivery
+  add/remove, direct agent block reordering, direct agent cross-step block
+  moves, direct agent checkout unlinking, direct agent resource delivery
   linking, live billing mutation, one-click upsell charging, drag-and-drop
-  visual editing, cross-step block moves, arbitrary private R2 delivery, signed URL creation, live
+  visual editing, arbitrary private R2 delivery, signed URL creation, live
   fulfillment automation, physical deletion, or an unconfirmed agent-write API.
   Treat issue #14 as the shipped MVP boundary. Issue #417 includes
   owner-confirmed checkout unlinking, resource delivery links, and within-step
-  block reordering, and remains the pending advanced funnel parity bucket for freeform drag-and-drop layout editing,
+  block reordering, and cross-step block moves, and remains the pending advanced funnel parity bucket for freeform drag-and-drop layout editing,
   arbitrary private R2 delivery, live fulfillment automation, webinar
   integrations, physical deletion policy, and direct agent-safe write tools;
   live publisher-offer billing remains separate in issue #219.

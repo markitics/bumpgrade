@@ -298,6 +298,7 @@ import {
   checkoutLinkingCapability,
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelArchiveCapability,
+  draftFunnelBlockCrossStepMoveCapability,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
@@ -1125,7 +1126,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-block-reorder-ready",
+        status: "draft-cross-step-block-move-ready",
         issue: 417,
         parentIssue: 14,
       }),
@@ -1159,6 +1160,7 @@ test.describe("Bumpgrade scaffold", () => {
         blockEditEndpoint: "/api/admin/funnels/drafts",
         blockStructureEndpoint: "/api/admin/funnels/drafts",
         blockReorderEndpoint: "/api/admin/funnels/drafts",
+        blockCrossStepMoveEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
@@ -1238,6 +1240,28 @@ test.describe("Bumpgrade scaffold", () => {
         preservesBlockKinds: true,
         preservesCheckoutLinks: true,
         preservesResourceDeliveryLinks: true,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.draftFunnelBlockCrossStepMoveCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelBlockCrossStepMoveCapability.id,
+        status: "owner-session-cross-step-move-ready",
+        issue: 417,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: false,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        moveScope: "cross-step",
+        target: "append-to-destination-step",
+        refusesSourceStepEmpty: true,
+        preservesBlockIds: true,
+        preservesBlockKinds: true,
+        preservesCheckoutLinks: true,
+        preservesResourceDeliveryLinks: true,
+        changesStepMembership: true,
         rawOwnerDataIncluded: false,
       }),
     );
@@ -1373,6 +1397,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelTemplateId",
         "funnelBlockTemplateId",
         "funnelDraftBlockReorderId",
+        "funnelDraftBlockCrossStepMoveId",
         "funnelCheckoutLinkId",
         "funnelCheckoutUnlinkId",
         "funnelResourceDeliveryLinkId",
@@ -18694,6 +18719,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftBlockEditId",
             "funnelDraftBlockStructureEditId",
             "funnelDraftBlockReorderId",
+            "funnelDraftBlockCrossStepMoveId",
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "productDeliveryGateLinkId",
@@ -18720,6 +18746,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "funnelDraftBlockReorderId",
+            "funnelDraftBlockCrossStepMoveId",
             "funnelDraftBlockId",
           ]),
         }),
@@ -24553,15 +24580,89 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(replayMovedOptInStep.blocks.map((block: { id: string }) => block.id)).toEqual(afterMoveIds);
 
+    const staleCrossStepBlockMoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "move-block-to-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        targetStepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: addedProofBlock.id,
+        expectedRevisionId: seedPayload.draft.revisionId,
+        idempotencyKey: `playwright-cross-step-block-move-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleCrossStepBlockMoveResponse.status()).toBe(503);
+    await expect(staleCrossStepBlockMoveResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const crossStepBlockMoveIdempotencyKey = `playwright-cross-step-block-move-${Date.now()}`;
+    const beforeCrossStepSourceIds = blockMoveOptInStep.blocks.map((block: { id: string }) => block.id);
+    const crossStepBlockMoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "move-block-to-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        targetStepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: addedProofBlock.id,
+        expectedRevisionId: blockMovePayload.draft.revisionId,
+        idempotencyKey: crossStepBlockMoveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(crossStepBlockMoveResponse.ok(), await crossStepBlockMoveResponse.text()).toBeTruthy();
+    const crossStepBlockMovePayload = await crossStepBlockMoveResponse.json();
+    expect(crossStepBlockMovePayload.mode).toBe("move-block-to-step");
+    const crossStepMoveSourceStep = crossStepBlockMovePayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    );
+    const crossStepMoveTargetStep = crossStepBlockMovePayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    expect(crossStepMoveSourceStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
+    expect(crossStepMoveSourceStep.blocks.length).toBe(beforeCrossStepSourceIds.length - 1);
+    expect(crossStepMoveTargetStep.blocks.at(-1)).toEqual(
+      expect.objectContaining({
+        id: addedProofBlock.id,
+        kind: "proof",
+        title: blockAddTitle,
+        body: blockAddBody,
+      }),
+    );
+    expect(crossStepMoveTargetStep.blocks.some((block: { id: string }) => block.id === linkedCheckoutBlock.id)).toBe(true);
+
+    const crossStepBlockMoveReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "move-block-to-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        targetStepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: addedProofBlock.id,
+        expectedRevisionId: blockMovePayload.draft.revisionId,
+        idempotencyKey: crossStepBlockMoveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(crossStepBlockMoveReplay.ok(), await crossStepBlockMoveReplay.text()).toBeTruthy();
+    const crossStepBlockMoveReplayPayload = await crossStepBlockMoveReplay.json();
+    const replayCrossStepMoveTargetStep = crossStepBlockMoveReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    expect(replayCrossStepMoveTargetStep.blocks.filter((block: { id: string }) => block.id === addedProofBlock.id)).toHaveLength(1);
+
     const blockRemoveIdempotencyKey = `playwright-block-remove-${Date.now()}`;
     const blockRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
         mode: "remove-block",
         draftId: "funnel-draft-indie-launch-working-copy",
-        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
         blockId: addedProofBlock.id,
-        expectedRevisionId: blockMovePayload.draft.revisionId,
+        expectedRevisionId: crossStepBlockMovePayload.draft.revisionId,
         idempotencyKey: blockRemoveIdempotencyKey,
         return: "json",
       },
@@ -24569,29 +24670,29 @@ test.describe("Bumpgrade scaffold", () => {
     expect(blockRemoveResponse.ok(), await blockRemoveResponse.text()).toBeTruthy();
     const blockRemovePayload = await blockRemoveResponse.json();
     expect(blockRemovePayload.mode).toBe("remove-block");
-    const blockRemoveOptInStep = blockRemovePayload.draft.steps.find(
-      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    const blockRemoveSalesStep = blockRemovePayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
     );
-    expect(blockRemoveOptInStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
+    expect(blockRemoveSalesStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
 
     const blockRemoveReplay = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
         mode: "remove-block",
         draftId: "funnel-draft-indie-launch-working-copy",
-        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
         blockId: addedProofBlock.id,
-        expectedRevisionId: blockAddPayload.draft.revisionId,
+        expectedRevisionId: crossStepBlockMovePayload.draft.revisionId,
         idempotencyKey: blockRemoveIdempotencyKey,
         return: "json",
       },
     });
     expect(blockRemoveReplay.ok(), await blockRemoveReplay.text()).toBeTruthy();
     const blockRemoveReplayPayload = await blockRemoveReplay.json();
-    const replayRemovedOptInStep = blockRemoveReplayPayload.draft.steps.find(
-      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    const replayRemovedSalesStep = blockRemoveReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
     );
-    expect(replayRemovedOptInStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
+    expect(replayRemovedSalesStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
 
     const resourceDeliveryStep = blockRemovePayload.draft.steps.find((step: { kind: string }) => step.kind === "thank_you");
     expect(resourceDeliveryStep).toEqual(expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-thank_you-3" }));
@@ -25029,6 +25130,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Move up/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Move down/i }).first()).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Move to step/i }).first()).toBeVisible();
+    await expect(draftCard.getByLabel(/Destination step/i).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Unlink checkout/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Link resource/i }).first()).toBeVisible();
     await expect(draftCard.getByText("Unlink checkout before removing this block.")).toBeVisible();
@@ -25265,6 +25368,23 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedCrossStepBlockMoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "move-block-to-step",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        targetStepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockId: linkedCheckoutBlock.id,
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        idempotencyKey: `playwright-archived-cross-step-block-move-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedCrossStepBlockMoveResponse.status()).toBe(503);
+    await expect(archivedCrossStepBlockMoveResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedCheckoutUnlinkResponse = await page.request.post("/api/admin/funnels/drafts", {
       form: {
         mode: "unlink-checkout",
@@ -25322,6 +25442,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Move up/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Move down/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Move to step/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Unlink checkout/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link resource/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);

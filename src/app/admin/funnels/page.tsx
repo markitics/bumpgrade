@@ -87,9 +87,10 @@ export default async function AdminFunnelsPage() {
             checkout blocks. Granular block title/body editing and reusable block add/remove controls are live while
             preserving checkout-linked block safety, and owners can now unlink checkout metadata from private draft blocks
             before removing or relinking them. Owners can also link resource and delivery blocks to public-safe product
-            access assets without exposing private R2 keys or signed URLs. Owners can archive private drafts or unpublish
-            public D1 draft routes without deleting audit evidence. Destructive deletion, drag-and-drop layout editing,
-            live webinar integrations, arbitrary resource delivery automation, and direct agent edits still need
+            access assets without exposing private R2 keys or signed URLs, and move existing blocks between draft steps
+            while preserving block metadata. Owners can archive private drafts or unpublish public D1 draft routes without
+            deleting audit evidence. Destructive deletion, freeform drag-and-drop layout editing, live webinar
+            integrations, arbitrary resource delivery automation, and direct agent edits still need
             confirmed-write slices.
           </p>
           <div className="hero-actions">
@@ -328,6 +329,7 @@ export default async function AdminFunnelsPage() {
                 {draft.steps.map((step, index) => {
                   const checkoutBlock = step.blocks.find((block) => block.kind === "checkout");
                   const checkoutLink = checkoutBlock?.checkoutLink;
+                  const destinationSteps = draft.steps.filter((item) => item.id !== step.id);
                   if (isArchived) {
                     return (
                       <div key={step.id} className="admin-step-editor">
@@ -529,6 +531,36 @@ export default async function AdminFunnelsPage() {
                               >
                                 Move down
                                 <ArrowDown aria-hidden="true" />
+                              </button>
+                            </form>
+                            <form action="/api/admin/funnels/drafts" method="post" className="admin-block-destination-form">
+                              <input type="hidden" name="mode" value="move-block-to-step" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input
+                                type="hidden"
+                                name="idempotencyKey"
+                                value={`block-move-step-${draft.id}-${block.id}-${draft.revisionId}`}
+                              />
+                              <label>
+                                Destination step
+                                <select name="targetStepId" disabled={!canMutateDraft || destinationSteps.length === 0}>
+                                  {destinationSteps.map((destination) => (
+                                    <option value={destination.id} key={destination.id}>
+                                      {destination.order}. {destination.title}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <button
+                                type="submit"
+                                className="secondary-action compact-action"
+                                disabled={!canMutateDraft || destinationSteps.length === 0 || step.blocks.length <= 1}
+                              >
+                                Move to step
+                                <ArrowRight aria-hidden="true" />
                               </button>
                             </form>
                           </div>

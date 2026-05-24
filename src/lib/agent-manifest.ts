@@ -440,6 +440,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "funnelBlockTemplateId",
       "funnelDraftBlockEditId",
       "funnelDraftBlockReorderId",
+      "funnelDraftBlockCrossStepMoveId",
       "funnelCheckoutLinkId",
       "funnelResourceDeliveryLinkId",
       "funnelWebinarResourceTemplateId",
@@ -471,12 +472,13 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover owner-session checkout unlinking from issue #417",
       "Discover owner-session resource delivery linking from issue #417",
       "Discover owner-session block reordering from issue #417",
+      "Discover owner-session cross-step block moves from issue #417",
       "Discover owner-session granular draft block editing from issue #430",
       "Discover owner-session draft block add/remove controls from issue #432",
       "Discover owner-session editable draft, private preview, and exact-confirmed publish/archive/checkout-unlink/resource-delivery-link capability from issues #91, #93, #95, #135, #163, #165, #213, #215, #341, #417, #430, and #432",
     ],
     writeBoundary:
-      "Owner-session seed/create/template-create/duplicate/update/reorder/block-edit/block-add/block-remove/block-reorder/checkout-link/checkout-unlink/resource-delivery-link/archive draft writes, including webinar/resource template-to-draft creation, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, within-step block reordering that preserves checkout/resource metadata, checkout unlinking with preserved block identity and copy, resource delivery linking to public-safe product/access catalog assets, private draft preview, exact-confirmed public publishing, and exact-confirmed archive/unpublish exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface, and published resource-linked blocks can render entitlement-safe resource access references. Owner product delivery-gate writes are separate owner-authenticated product APIs that expose only aggregate funnel source-data. Direct agent template creation, direct agent block editing, direct agent block add/remove, direct agent block reordering, direct agent checkout linking, direct agent checkout unlinking, direct agent resource delivery linking, direct agent duplication, direct agent archive/unpublish, destructive deletion, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/template-create/duplicate/update/reorder/block-edit/block-add/block-remove/block-reorder/block-cross-step-move/checkout-link/checkout-unlink/resource-delivery-link/archive draft writes, including webinar/resource template-to-draft creation, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, within-step block reordering that preserves checkout/resource metadata, cross-step block moves that preserve block metadata while changing step membership, checkout unlinking with preserved block identity and copy, resource delivery linking to public-safe product/access catalog assets, private draft preview, exact-confirmed public publishing, and exact-confirmed archive/unpublish exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface, and published resource-linked blocks can render entitlement-safe resource access references. Owner product delivery-gate writes are separate owner-authenticated product APIs that expose only aggregate funnel source-data. Direct agent template creation, direct agent block editing, direct agent block add/remove, direct agent block reordering, direct agent cross-step block moves, direct agent checkout linking, direct agent checkout unlinking, direct agent resource delivery linking, direct agent duplication, direct agent archive/unpublish, destructive deletion, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -492,6 +494,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "funnelCheckoutUnlinkId",
       "funnelResourceDeliveryLinkId",
       "funnelDraftBlockReorderId",
+      "funnelDraftBlockCrossStepMoveId",
       "funnelDraftBlockStructureEditId",
       "funnelDraftStepId",
       "funnelDraftBlockId",
@@ -509,7 +512,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "Do not treat block copy editing as block creation, deletion, reordering, checkout unlinking, live billing, fulfillment, or direct agent writing",
       "Add reusable block-library blocks and remove safe unlinked blocks only with an owner session, idempotency key, and a fresh revision ID",
       "Move existing draft blocks up or down within the same step only with an owner session, idempotency key, and a fresh revision ID",
-      "Do not treat within-step block reordering as cross-step moves, freeform drag-and-drop canvas editing, or direct agent writing",
+      "Move existing draft blocks across steps only with an owner session, idempotency key, and a fresh revision ID",
+      "Do not treat within-step or cross-step block moves as freeform drag-and-drop canvas editing or direct agent writing",
       "Unlink checkout metadata only with an owner session, exact confirmation, idempotency key, and a fresh revision ID",
       "Do not remove checkout-linked blocks through block removal before the separate checkout unlink action clears metadata",
       "Link resource and delivery blocks to product/access catalog assets only with an owner session, exact confirmation, idempotency key, and a fresh revision ID",
@@ -521,7 +525,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Check audit metadata before acting on draft state",
     ],
     writeBoundary:
-      "The POST endpoint can seed, create, create from templates including webinar/resource page shapes, duplicate, update, reorder, block-edit, block-add, block-remove, block-reorder, checkout-link, checkout-unlink, resource-delivery-link, publish, and archive/unpublish private draft steps for an authenticated owner. Block edits update title/body copy only and preserve block IDs, block kinds, and checkout-link/resource-link metadata. Block add/remove uses reusable block-library items and refuses checkout-linked block removal until checkout metadata is unlinked through the dedicated confirmed action. Block reorder moves existing blocks only within the same step and preserves block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and step membership. Checkout unlinking and resource delivery linking preserve block ID, kind, title, body, step order, and audit evidence. Archived drafts become read-only owner evidence; private preview is owner-gated; destructive deletion, direct agent block reordering, direct agent checkout unlinking, direct agent resource delivery linking, direct agent archive/unpublish, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, direct agent template creation, direct agent duplication, and direct agent edits are not live.",
+      "The POST endpoint can seed, create, create from templates including webinar/resource page shapes, duplicate, update, reorder, block-edit, block-add, block-remove, block-reorder, block-cross-step-move, checkout-link, checkout-unlink, resource-delivery-link, publish, and archive/unpublish private draft steps for an authenticated owner. Block edits update title/body copy only and preserve block IDs, block kinds, and checkout-link/resource-link metadata. Block add/remove uses reusable block-library items and refuses checkout-linked block removal until checkout metadata is unlinked through the dedicated confirmed action. Block reorder moves existing blocks only within the same step and preserves block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and step membership. Cross-step block moves append a block to another step, refuse to empty the source step, and preserve block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and audit evidence. Checkout unlinking and resource delivery linking preserve block ID, kind, title, body, step order, and audit evidence. Archived drafts become read-only owner evidence; private preview is owner-gated; destructive deletion, direct agent block reordering, direct agent cross-step block moves, direct agent checkout unlinking, direct agent resource delivery linking, direct agent archive/unpublish, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, direct agent template creation, direct agent duplication, and direct agent edits are not live.",
   },
   {
     id: "read-checkout-offer-stack",
@@ -2498,7 +2502,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, reusable funnel templates including webinar/resource page shapes, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, owner-session checkout-unlink capability, owner-session resource delivery link capability, owner-session block reorder capability, public funnel checkout-start capability, aggregate owner product delivery-gate counts, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+      "Seeded funnel, ordered steps, page blocks, reusable funnel templates including webinar/resource page shapes, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, owner-session checkout-unlink capability, owner-session resource delivery link capability, owner-session block reorder capability, owner-session cross-step block move capability, public funnel checkout-start capability, aggregate owner product delivery-gate counts, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
     stableIds: [
       "funnelId",
       "funnelStepId",
@@ -2509,6 +2513,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "funnelCheckoutUnlinkId",
       "funnelResourceDeliveryLinkId",
       "funnelDraftBlockReorderId",
+      "funnelDraftBlockCrossStepMoveId",
       "funnelWebinarResourceTemplateId",
       "funnelRevisionId",
       "funnelDraftId",
@@ -2519,7 +2524,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "productDeliveryGateLinkId",
     ],
     volatileClaims:
-      "The public funnel contract exposes template and block-template records, webinar/resource page-shape records, owner-gated template-create, checkout-link, checkout-unlink, resource-delivery-link, within-step block-reorder, editable draft, publish capability metadata, public sandbox checkout-start rendering metadata, entitlement-safe resource access references, and aggregate owner product delivery-gate counts; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking or unlinking, direct agent resource delivery linking, direct agent block reordering, cross-step block moves, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, unpublishing, or unconfirmed agent edits.",
+      "The public funnel contract exposes template and block-template records, webinar/resource page-shape records, owner-gated template-create, checkout-link, checkout-unlink, resource-delivery-link, within-step block-reorder, cross-step block-move, editable draft, publish capability metadata, public sandbox checkout-start rendering metadata, entitlement-safe resource access references, and aggregate owner product delivery-gate counts; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking or unlinking, direct agent resource delivery linking, direct agent block reordering, direct agent cross-step block moves, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
@@ -2775,9 +2780,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://funnels",
     status: "ready-contract",
     backedBy: "/funnels/source-data",
-    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates including webinar/resource page shapes, block templates, owner-gated draft duplication capability, owner-gated block-edit capability, owner-gated block add/remove capability, owner-gated block reorder capability, owner-gated archive/unpublish capability, checkout-link capability, checkout-unlink capability, resource-delivery-link capability, public funnel checkout-start capability, revision IDs, owner-gated draft capability, and write-safety boundaries.",
+    purpose: "Expose seeded funnel, published D1 funnels, ordered steps, blocks, reusable templates including webinar/resource page shapes, block templates, owner-gated draft duplication capability, owner-gated block-edit capability, owner-gated block add/remove capability, owner-gated block reorder capability, owner-gated cross-step block move capability, owner-gated archive/unpublish capability, checkout-link capability, checkout-unlink capability, resource-delivery-link capability, public funnel checkout-start capability, revision IDs, owner-gated draft capability, and write-safety boundaries.",
     safetyBoundary:
-      "Public resource stays read-only; published linked checkout blocks can render the sandbox checkout start surface, published resource-linked blocks can render entitlement-safe product access references, and owner-session draft create/seed/template-create/duplicate/update/reorder/block-edit/block-add/block-remove/block-reorder/checkout-link/checkout-unlink/resource-delivery-link/archive, webinar/resource template-to-draft, private preview, exact-confirmed publish, and exact-confirmed archive/unpublish exist in admin UI. Direct agent template creation, direct agent block editing, direct agent block add/remove, direct agent block reordering, direct agent checkout unlinking, direct agent checkout-link, direct agent resource delivery linking, direct agent duplication, direct agent archive/unpublish, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, destructive delete, and direct agent-edit tools require confirmed-write contracts.",
+      "Public resource stays read-only; published linked checkout blocks can render the sandbox checkout start surface, published resource-linked blocks can render entitlement-safe product access references, and owner-session draft create/seed/template-create/duplicate/update/reorder/block-edit/block-add/block-remove/block-reorder/block-cross-step-move/checkout-link/checkout-unlink/resource-delivery-link/archive, webinar/resource template-to-draft, private preview, exact-confirmed publish, and exact-confirmed archive/unpublish exist in admin UI. Direct agent template creation, direct agent block editing, direct agent block add/remove, direct agent block reordering, direct agent cross-step block moves, direct agent checkout unlinking, direct agent checkout-link, direct agent resource delivery linking, direct agent duplication, direct agent archive/unpublish, live billing, live webinar scheduling, arbitrary private R2 delivery, signed URLs, live fulfillment automation, freeform drag-and-drop layout editing, destructive delete, and direct agent-edit tools require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-duplicate-funnel-draft",
