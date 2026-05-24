@@ -42,6 +42,11 @@ named work-log changes in that window. Agents should cite those digest records
 for executive summaries, then link to `/admin/work-log` when the audit trail is
 needed.
 
+The browser view should stay compact by default: workstream rows are expandable,
+but only rows with current owner action or blockers should open automatically.
+At-risk/high-churn workstreams should remain visible in summary counts without
+turning the one-pager into another long audit report.
+
 The director source-data route also exposes an `executiveQueue` with stable
 lanes for `due-now`, `in-flight`, `pending-next`, and `watchlist`. Each queue
 item keeps its workstream ID/title and evidence links so agents and mobile

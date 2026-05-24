@@ -127,6 +127,12 @@ export type DirectorStatusData = {
   };
 };
 
+export function shouldOpenDirectorWorkstreamByDefault(
+  workstream: Pick<DirectorWorkstream, "status" | "counts">,
+) {
+  return workstream.status === "blocked" || workstream.counts.needsMark > 0;
+}
+
 const workstreamConfig: Record<
   DirectorWorkstreamId,
   { title: string; executiveOwner: string; description: string; groupNames: string[] }

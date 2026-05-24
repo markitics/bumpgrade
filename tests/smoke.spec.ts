@@ -35,7 +35,7 @@ import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
 import { publicAnalyticsAttributionLabel, publicAnalyticsCampaignLabel } from "../src/lib/public-analytics-labels";
 import { brandAssets, brandColors, brandSourceData } from "../src/lib/brand";
-import { buildDirectorStatusData } from "../src/lib/director-status";
+import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "../src/lib/director-status";
 import {
   audienceBroadcastDeliveryBatchApiRoute,
   audienceBroadcastDeliveryBatchConfirmationText,
@@ -16467,6 +16467,23 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(weekWindow?.needsMark).toBe(1);
+  });
+
+  test("director workstreams only default-open for owner action or blockers", () => {
+    const counts = {
+      total: 1,
+      active: 1,
+      pending: 0,
+      shipped: 0,
+      blocked: 0,
+      changedPastDay: 0,
+      changedPastWeek: 0,
+      needsMark: 0,
+    };
+
+    expect(shouldOpenDirectorWorkstreamByDefault({ status: "at_risk", counts })).toBe(false);
+    expect(shouldOpenDirectorWorkstreamByDefault({ status: "on_track", counts: { ...counts, needsMark: 1 } })).toBe(true);
+    expect(shouldOpenDirectorWorkstreamByDefault({ status: "blocked", counts })).toBe(true);
   });
 
   test("director executive queue exposes due active and pending workstream lanes", () => {
