@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Archive,
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   CreditCard,
   Database,
   Eye,
@@ -452,7 +454,7 @@ export default async function AdminFunnelsPage() {
                       </button>
                     </form>
                     <div className="admin-block-edit-list" aria-label={`${step.title} blocks`}>
-                      {step.blocks.map((block) => (
+                      {step.blocks.map((block, blockIndex) => (
                         <div className="admin-block-editor-shell" key={block.id}>
                           <form
                             action="/api/admin/funnels/drafts"
@@ -486,6 +488,50 @@ export default async function AdminFunnelsPage() {
                               <PencilLine aria-hidden="true" />
                             </button>
                           </form>
+                          <div className="admin-block-move-row" aria-label={`Move ${block.title}`}>
+                            <form action="/api/admin/funnels/drafts" method="post">
+                              <input type="hidden" name="mode" value="move-block" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="direction" value="up" />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input
+                                type="hidden"
+                                name="idempotencyKey"
+                                value={`block-move-up-${draft.id}-${block.id}-${draft.revisionId}`}
+                              />
+                              <button
+                                type="submit"
+                                className="secondary-action compact-action"
+                                disabled={!canMutateDraft || blockIndex === 0}
+                              >
+                                Move up
+                                <ArrowUp aria-hidden="true" />
+                              </button>
+                            </form>
+                            <form action="/api/admin/funnels/drafts" method="post">
+                              <input type="hidden" name="mode" value="move-block" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="direction" value="down" />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input
+                                type="hidden"
+                                name="idempotencyKey"
+                                value={`block-move-down-${draft.id}-${block.id}-${draft.revisionId}`}
+                              />
+                              <button
+                                type="submit"
+                                className="secondary-action compact-action"
+                                disabled={!canMutateDraft || blockIndex === step.blocks.length - 1}
+                              >
+                                Move down
+                                <ArrowDown aria-hidden="true" />
+                              </button>
+                            </form>
+                          </div>
                           <form action="/api/admin/funnels/drafts" method="post" className="admin-block-remove-form">
                             <input type="hidden" name="mode" value="remove-block" />
                             <input type="hidden" name="draftId" value={draft.id} />

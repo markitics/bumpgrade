@@ -166,8 +166,8 @@ Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
-granular block title/body edit, block add/remove, private preview,
-exact-confirmed publish, exact-confirmed archive/unpublish,
+granular block title/body edit, block add/remove, within-step block reorder,
+private preview, exact-confirmed publish, exact-confirmed archive/unpublish,
 exact-confirmed checkout-unlink, and exact-confirmed resource-delivery-link
 surface from issues #91, #93, #95, #135, #159, #161, #163, #165, #213, #215,
 #341, #417, #430, and #432. This proves ordered
@@ -181,7 +181,10 @@ owner-session block add/remove from issue #432 while refusing checkout-linked
 block removal, owner-session checkout unlinking from issue #417 while
 preserving block IDs, kinds, title/body copy, step order, and audit evidence,
 owner-session resource delivery linking from issue #417 while preserving block
-IDs, kinds, title/body copy, step order, and audit evidence, and public D1
+IDs, kinds, title/body copy, step order, and audit evidence, owner-session
+within-step block reordering from issue #417 while preserving block IDs, kinds,
+copy, checkout-link metadata, resource-link metadata, step membership, and audit
+evidence, and public D1
 funnel publishing to `/funnels/{slug}` after owner confirmation and revision
 checks. Issue #341 lets
 owners archive private drafts or unpublish public D1 draft routes without
@@ -193,13 +196,14 @@ render entitlement-safe product access references without private R2 keys,
 signed URLs, buyer records, arbitrary uploaded asset delivery, or live
 fulfillment automation. It is not direct agent template creation, direct agent
 block editing, direct agent block add/remove, direct agent checkout unlinking,
-direct agent resource delivery linking, live billing mutation, drag-and-drop
+direct agent resource delivery linking, direct agent block reordering,
+cross-step block moves, live billing mutation, freeform drag-and-drop
 editing, destructive deletion, direct agent archive/unpublish, one-click upsell
 charging, arbitrary private R2 delivery, signed URL creation, live fulfillment
 automation, or a direct agent write API. Issue #14 is the shipped MVP boundary;
-issue #417 now includes owner-confirmed checkout unlinking and resource delivery
-links, and remains the pending advanced funnel parity bucket for drag-and-drop
-editing, arbitrary private R2 delivery, live fulfillment automation, webinar
+issue #417 now includes owner-confirmed checkout unlinking, resource delivery
+links, and within-step block reordering, and remains the pending advanced funnel
+parity bucket for freeform drag-and-drop editing, arbitrary private R2 delivery, live fulfillment automation, webinar
 integrations, physical deletion policy, and direct agent-safe write tools. Live
 publisher-offer billing remains separate in issue #219.
 

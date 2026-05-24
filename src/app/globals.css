@@ -2068,6 +2068,19 @@ h3 {
   padding: 12px;
 }
 
+.admin-block-move-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: rgba(31, 83, 107, 0.05);
+}
+
+.admin-block-move-row form {
+  margin: 0;
+}
+
 .admin-block-remove-form {
   display: flex;
   align-items: center;
