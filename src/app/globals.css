@@ -2035,6 +2035,35 @@ h3 {
   border-top: 1px solid var(--line);
 }
 
+.admin-block-edit-list {
+  display: grid;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.admin-block-edit-form {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+}
+
+.admin-block-edit-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-block-edit-heading strong {
+  margin: 0;
+  color: var(--ink);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .admin-checkout-link-summary {
   display: flex;
   align-items: center;

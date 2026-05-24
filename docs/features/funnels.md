@@ -12,12 +12,15 @@ blocks. Issue #165 renders linked checkout blocks on published funnel routes as
 the existing sandbox checkout start surface. Issue #213 adds webinar and
 resource funnel template/page-block contracts plus D1 step-kind storage
 readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
-#341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #409 links
+#341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #430 adds
+owner-session granular block title/body editing that preserves block IDs, block
+kinds, ordered step structure, and checkout-link metadata. Issue #409 links
 owner-created product test checkout links to the seeded offer/funnel delivery
 gates without live billing, signed URLs, private R2 delivery, or arbitrary
 customer fulfillment. Issue #417 is the single pending post-MVP bucket for
-advanced drag-and-drop editing, private resource delivery, webinar integrations,
-physical deletion policy, and direct agent-safe write tools.
+advanced drag-and-drop editing, block add/remove, private resource delivery,
+webinar integrations, physical deletion policy, and direct agent-safe write
+tools.
 
 Live in this slice:
 
@@ -37,14 +40,15 @@ Live in this slice:
   route renders the sandbox checkout start panel for the seeded offer stack.
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, duplicate private
-  drafts, attach the seeded sandbox checkout offer to checkout blocks, and
-  publish, archive, or unpublish private D1 draft funnels with ordered steps.
+  drafts, edit existing block title/body copy, attach the seeded sandbox checkout
+  offer to checkout blocks, and publish, archive, or unpublish private D1 draft
+  funnels with ordered steps.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
-  checkout-link, exact-confirmed publish, and exact-confirmed archive/unpublish
-  actions with idempotency, revision checks, and audit rows. Reusable
+  block update, checkout-link, exact-confirmed publish, and exact-confirmed
+  archive/unpublish actions with idempotency, revision checks, and audit rows. Reusable
   webinar/resource templates use the same exact-confirmed template-to-draft
   path.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, and `funnel_audit_events`.
@@ -53,7 +57,7 @@ Live in this slice:
 
 Not live in this slice:
 
-- Drag-and-drop visual editing or granular block editing.
+- Drag-and-drop visual editing or block add/remove controls.
 - Physical deletion of funnels.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
@@ -77,7 +81,10 @@ provider, replay, private asset, or entitlement state. Duplicating a private
 draft requires exact duplicate confirmation text, idempotency, and a current
 revision ID; it creates a new private draft with copied ordered steps and
 blocks, but strips checkout-link metadata so billing-related links must be
-reviewed and re-linked separately. Linking the seeded sandbox checkout offer
+reviewed and re-linked separately. Editing a private draft block requires an
+owner session, idempotency, and a current revision ID; it updates title/body copy
+only and preserves block ID, kind, agent-editable flag, ordered step structure,
+and checkout-link metadata. Linking the seeded sandbox checkout offer
 additionally requires exact checkout-link
 confirmation text, idempotency, and a current revision ID; it stores public-safe
 metadata in private draft step blocks and does not start checkout or enable live

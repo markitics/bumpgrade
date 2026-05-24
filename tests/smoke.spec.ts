@@ -295,6 +295,7 @@ import {
 import {
   checkoutLinkingCapability,
   draftFunnelArchiveCapability,
+  draftFunnelBlockEditingCapability,
   draftFunnelDuplicationCapability,
   editableDraftCapability,
   funnelSourceData,
@@ -1118,8 +1119,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-archive-ready",
-        issue: 341,
+        status: "draft-block-edit-ready",
+        issue: 430,
         parentIssue: 14,
       }),
     );
@@ -1138,6 +1139,7 @@ test.describe("Bumpgrade scaffold", () => {
         publishEndpoint: "/api/admin/funnels/drafts",
         archiveEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
+        blockEditEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
@@ -1159,6 +1161,23 @@ test.describe("Bumpgrade scaffold", () => {
         copiesBlocks: true,
         copiesCheckoutLinks: false,
         publishesDuplicate: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.draftFunnelBlockEditingCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelBlockEditingCapability.id,
+        status: "owner-session-confirmed-write-ready",
+        issue: 430,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: false,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        preservesBlockIds: true,
+        preservesBlockKinds: true,
+        preservesCheckoutLinks: true,
         rawOwnerDataIncluded: false,
       }),
     );
@@ -17114,6 +17133,7 @@ test.describe("Bumpgrade scaffold", () => {
           expect.stringContaining("Issue #341"),
           expect.stringContaining("Issue #409"),
           expect.stringContaining("Issue #417"),
+          expect.stringContaining("Issue #430"),
         ]),
         nextMilestone: expect.stringContaining("issue #417"),
       }),
@@ -17128,6 +17148,7 @@ test.describe("Bumpgrade scaffold", () => {
         group: "Funnels and pages",
         publicEvidence: expect.arrayContaining([
           expect.stringContaining("Issue #417"),
+          expect.stringContaining("Issue #430"),
           expect.stringContaining("Issue #14 remains the shipped MVP"),
           expect.stringContaining("Issue #219"),
         ]),
@@ -18483,12 +18504,14 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelWebinarResourceTemplateId",
             "funnelDraftDuplicateId",
             "funnelDraftArchiveId",
+            "funnelDraftBlockEditId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
             "Discover webinar and resource page-shape templates from issue #213",
             "Discover owner-session private draft duplication from issue #215",
             "Discover owner-session private draft archive/unpublish from issue #341",
+            "Discover owner-session granular draft block editing from issue #430",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
           ]),
         }),
@@ -18496,7 +18519,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-admin-draft-funnels",
           route: "/admin/funnels",
           auth: "owner-session",
-          stableIds: expect.arrayContaining(["funnelDraftDuplicateId", "funnelDraftArchiveId"]),
+          stableIds: expect.arrayContaining(["funnelDraftDuplicateId", "funnelDraftArchiveId", "funnelDraftBlockId"]),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
@@ -24001,6 +24024,68 @@ test.describe("Bumpgrade scaffold", () => {
     const checkoutLinkReplayPayload = await checkoutLinkReplay.json();
     expect(checkoutLinkReplayPayload.draft.id).toBe(checkoutLinkPayload.draft.id);
 
+    const linkedCheckoutBlock = linkedSalesStep.blocks.find((block: { kind: string }) => block.kind === "checkout");
+    expect(linkedCheckoutBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "checkout" }));
+    const blockEditIdempotencyKey = `playwright-block-edit-${Date.now()}`;
+    const blockEditTitle = "Owner-edited checkout block";
+    const blockEditBody = "Preserve the seeded checkout link while letting the owner tune block copy.";
+    const blockEditResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        title: blockEditTitle,
+        body: blockEditBody,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        idempotencyKey: blockEditIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockEditResponse.ok(), await blockEditResponse.text()).toBeTruthy();
+    const blockEditPayload = await blockEditResponse.json();
+    expect(blockEditPayload.mode).toBe("update-block");
+    const editedSalesStep = blockEditPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    const editedCheckoutBlock = editedSalesStep.blocks.find((block: { id: string }) => block.id === linkedCheckoutBlock.id);
+    expect(editedCheckoutBlock).toEqual(
+      expect.objectContaining({
+        id: linkedCheckoutBlock.id,
+        kind: "checkout",
+        title: blockEditTitle,
+        body: blockEditBody,
+        checkoutLink: expect.objectContaining({
+          offerId: checkoutOfferStack.primaryOffer.id,
+          priceId: checkoutOfferStack.primaryOffer.priceId,
+        }),
+      }),
+    );
+
+    const blockEditReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        title: "Replay should not overwrite block copy",
+        body: "Replay should return the first persisted block edit.",
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        idempotencyKey: blockEditIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockEditReplay.ok(), await blockEditReplay.text()).toBeTruthy();
+    const blockEditReplayPayload = await blockEditReplay.json();
+    const replaySalesStep = blockEditReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    const replayCheckoutBlock = replaySalesStep.blocks.find((block: { id: string }) => block.id === linkedCheckoutBlock.id);
+    expect(replayCheckoutBlock.title).toBe(blockEditTitle);
+    expect(replayCheckoutBlock.checkoutLink.offerId).toBe(checkoutOfferStack.primaryOffer.id);
+
     const duplicateIdempotencyKey = `playwright-duplicate-draft-${Date.now()}`;
     const duplicateTitle = `Duplicate launch draft ${Date.now()}`;
     const duplicateResponse = await page.request.post("/api/admin/funnels/drafts", {
@@ -24009,7 +24094,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: duplicateTitle,
-        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        expectedRevisionId: blockEditPayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24051,7 +24136,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: `${duplicateTitle} replay should not create a second draft`,
-        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        expectedRevisionId: blockEditPayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24136,13 +24221,31 @@ test.describe("Bumpgrade scaffold", () => {
     const staleDuplicatePayload = await staleDuplicateResponse.json();
     expect(staleDuplicatePayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
 
+    const staleBlockEditResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        title: "Stale block edit",
+        body: "This should be rejected after the draft revision changed.",
+        expectedRevisionId: seedPayload.draft.revisionId,
+        idempotencyKey: `playwright-block-edit-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleBlockEditResponse.status()).toBe(503);
+    const staleBlockEditPayload = await staleBlockEditResponse.json();
+    expect(staleBlockEditPayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
     const missingDuplicateConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: `Unconfirmed duplicate ${Date.now()}`,
-        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        expectedRevisionId: blockEditPayload.draft.revisionId,
         confirmationText: "duplicate",
         idempotencyKey: `playwright-duplicate-unconfirmed-${Date.now()}`,
         return: "json",
@@ -24253,6 +24356,10 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: checkoutOfferStack.primaryOffer.title })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");
+    const editedBlockForm = draftCard.locator(".admin-block-edit-form").filter({ hasText: linkedCheckoutBlock.id });
+    await expect(editedBlockForm.locator('input[name="title"]')).toHaveValue(blockEditTitle);
+    await expect(editedBlockForm.locator('textarea[name="body"]')).toHaveValue(blockEditBody);
+    await expect(draftCard.getByRole("button", { name: /Save block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
       "href",
       "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
@@ -24266,12 +24373,16 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Current private funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
+    await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
+    await expect(page.getByText(blockEditBody)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
 
     await page.goto("/funnels/indie-launch-working-copy");
     await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Published funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
+    await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
+    await expect(page.getByText(blockEditBody)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Review the checkout path from this funnel." })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
@@ -24298,6 +24409,7 @@ test.describe("Bumpgrade scaffold", () => {
               blocks: expect.arrayContaining([
                 expect.objectContaining({
                   kind: "checkout",
+                  title: blockEditTitle,
                   checkoutLink: expect.objectContaining({
                     offerId: checkoutOfferStack.primaryOffer.id,
                     liveBillingEnabled: false,
@@ -24393,6 +24505,24 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedBlockUpdateResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "update-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        title: "Archived block edit should stay read-only",
+        body: "This mutation should be rejected after archive.",
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        idempotencyKey: `playwright-archived-block-update-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedBlockUpdateResponse.status()).toBe(503);
+    await expect(archivedBlockUpdateResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedSourceResponse = await page.request.get("/funnels/source-data");
     expect(archivedSourceResponse.ok(), await archivedSourceResponse.text()).toBeTruthy();
     const archivedSource = await archivedSourceResponse.json();
@@ -24409,6 +24539,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByText("Public route is cleared")).toBeVisible();
     await expect(archivedDraftCard.getByRole("button", { name: /Duplicate draft/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Save step/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Save block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
   });
 
