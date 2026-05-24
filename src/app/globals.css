@@ -2081,6 +2081,25 @@ h3 {
   margin: 0;
 }
 
+.admin-block-destination-form {
+  display: flex;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.admin-block-destination-form label {
+  display: grid;
+  flex: 1 1 190px;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-block-destination-form select {
+  width: 100%;
+}
+
 .admin-block-remove-form {
   display: flex;
   align-items: center;

@@ -21,7 +21,7 @@ product test checkout links to the seeded offer/funnel delivery gates without
 live billing, signed URLs, private R2 delivery, or arbitrary customer
 fulfillment. Issue #417 adds owner-confirmed checkout unlinking,
 owner-confirmed resource delivery links to product/access catalog assets, and
-owner-session within-step block reordering, and remains the single post-MVP
+owner-session within-step block reordering plus cross-step block moves, and remains the single post-MVP
 bucket for freeform drag-and-drop canvas editing, arbitrary private R2 delivery,
 live fulfillment automation, webinar
 integrations, physical deletion policy, and direct agent-safe write tools.
@@ -33,7 +33,8 @@ Live in this slice:
   ID, preview route, webinar/resource page-shape metadata, owner-session
   editable draft capability metadata, owner-session checkout-link capability
   metadata, owner-session resource delivery link capability metadata,
-  owner-session block reorder capability metadata, owner-session
+  owner-session block reorder capability metadata, owner-session cross-step
+  block move capability metadata, owner-session
   archive/unpublish lifecycle metadata, published D1 funnel
   summaries, aggregate owner product delivery-gate counts, and write boundary.
 - `/funnels/indie-launch-sandbox`: crawlable semantic preview of the seeded
@@ -46,7 +47,8 @@ Live in this slice:
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, duplicate private
   drafts, edit existing block title/body copy, add reusable block-library blocks,
-  reorder existing blocks within the same step, remove safe unlinked blocks, attach the seeded sandbox checkout offer to
+  reorder existing blocks within the same step, move existing blocks between
+  steps, remove safe unlinked blocks, attach the seeded sandbox checkout offer to
   checkout blocks, unlink checkout metadata from draft blocks, link
   resource/delivery blocks to product access assets, and publish, archive, or
   unpublish private D1 draft funnels with ordered steps.
@@ -54,7 +56,7 @@ Live in this slice:
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
-  block update, block add, block remove, block-reorder, checkout-link,
+  block update, block add, block remove, block-reorder, block-cross-step-move, checkout-link,
   checkout-unlink, resource-delivery-link, exact-confirmed publish, and exact-confirmed
   archive/unpublish actions with idempotency, revision checks, and audit rows.
   Reusable webinar/resource templates use the same exact-confirmed
@@ -65,7 +67,7 @@ Live in this slice:
 
 Not live in this slice:
 
-- Freeform drag-and-drop visual editing and cross-step block moves.
+- Freeform drag-and-drop visual editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
 - Physical deletion of funnels.
@@ -101,7 +103,10 @@ session, idempotency, and a current revision ID; additions come from the
 reusable block library, removals refuse checkout-linked blocks, and each step
 must keep at least one block. Reordering moves existing blocks only within the
 same step while preserving block IDs, kinds, copy, checkout-link metadata,
-resource-link metadata, step membership, and audit evidence. Linking the seeded sandbox checkout offer
+resource-link metadata, step membership, and audit evidence. Cross-step moves
+append an existing block to another step while preserving block IDs, kinds,
+copy, checkout-link metadata, resource-link metadata, and audit evidence; they
+refuse moves that would leave the source step empty. Linking the seeded sandbox checkout offer
 additionally requires exact checkout-link
 confirmation text, idempotency, and a current revision ID; it stores public-safe
 metadata in private draft step blocks and does not start checkout or enable live
@@ -132,7 +137,8 @@ draft status to `archived`, clears the public route, removes the route from
 published D1 funnel source data, and preserves draft rows, ordered steps, block
 metadata, checkout-link metadata, resource-link metadata, and audit rows. Future
 direct agent writes, direct agent checkout unlinking, direct agent resource
-delivery linking, direct agent block reordering, cross-step block moves, live
+delivery linking, direct agent block reordering, direct agent cross-step block
+moves, live
 billing, live webinar integrations, arbitrary private R2 delivery, signed URLs,
 live fulfillment automation, physical deletion, and destructive draft actions
 must add explicit confirmation, stale-state checks,

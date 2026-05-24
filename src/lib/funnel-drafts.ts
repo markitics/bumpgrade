@@ -20,6 +20,7 @@ import {
   draftFunnelArchiveCapability,
   draftFunnelArchiveIssue,
   draftFunnelBlockEditingCapability,
+  draftFunnelBlockCrossStepMoveCapability,
   draftFunnelBlockEditingIssue,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
@@ -1208,6 +1209,96 @@ export async function reorderDraftFunnelBlock(
         resourceDeliveryLinksPreserved: true,
         stepMembershipPreserved: true,
         crossStepMove: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function moveDraftFunnelBlockToStep(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    targetStepId: string;
+    blockId: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "reordered");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before moving this block across steps.");
+  }
+
+  const sourceStep = draft.steps.find((item) => item.id === input.stepId);
+  if (!sourceStep) throw new Error("Source draft funnel step not found.");
+
+  const targetStep = draft.steps.find((item) => item.id === input.targetStepId);
+  if (!targetStep) throw new Error("Destination draft funnel step not found.");
+
+  if (sourceStep.id === targetStep.id) {
+    throw new Error("Choose a different destination step before moving this block.");
+  }
+
+  const block = sourceStep.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  if (sourceStep.blocks.length <= 1) {
+    throw new Error("Draft funnel steps must keep at least one block. Add another block before moving this one.");
+  }
+
+  const nextSourceBlocks = sourceStep.blocks.filter((item) => item.id !== block.id);
+  const nextTargetBlocks = [...targetStep.blocks, block];
+  const nextRevisionId = `${draft.revisionId}-block-cross-step-move-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextSourceBlocks), sourceStep.id, draft.id),
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextTargetBlocks), targetStep.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} moved block ${block.id} from ${sourceStep.title} to ${targetStep.title} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "block_cross_step_move",
+        draftFunnelBlockCrossStepMoveCapability: draftFunnelBlockCrossStepMoveCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        sourceStepId: sourceStep.id,
+        targetStepId: targetStep.id,
+        blockId: block.id,
+        beforeSourceBlockIds: sourceStep.blocks.map((item) => item.id),
+        afterSourceBlockIds: nextSourceBlocks.map((item) => item.id),
+        beforeTargetBlockIds: targetStep.blocks.map((item) => item.id),
+        afterTargetBlockIds: nextTargetBlocks.map((item) => item.id),
+        movedBlock: compactBlockForAudit(block),
+        blockIdsPreserved: true,
+        blockKindsPreserved: true,
+        blockTitlesPreserved: true,
+        blockBodiesPreserved: true,
+        checkoutLinksPreserved: true,
+        resourceDeliveryLinksPreserved: true,
+        stepMembershipChanged: true,
+        sourceStepEmptied: false,
         privateAuthDataIncluded: false,
       },
     ),

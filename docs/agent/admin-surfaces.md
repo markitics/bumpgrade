@@ -159,14 +159,15 @@ step title/goal/kind, reorder steps, attach the seeded sandbox checkout offer to
 a private checkout block after exact confirmation and a fresh revision check,
 unlink checkout metadata from a private draft block after exact confirmation and
 a fresh revision check, move existing blocks up or down within the same draft
-step after idempotency and a fresh revision check, link resource/delivery blocks to product access assets
+step after idempotency and a fresh revision check, move existing blocks across
+steps after idempotency and a fresh revision check, link resource/delivery blocks to product access assets
 after exact confirmation and a fresh revision check, publish a draft after exact
 confirmation, archive private drafts, unpublish public draft routes by archiving
 them, and link to an owner-gated private preview route. This is private/admin state. Public agents should read
 `/funnels/source-data` for the capability boundary, not scrape private draft
 copy. Publishing, checkout-linking, checkout-unlinking, resource delivery
-linking, within-step block reordering, and archive/unpublish lifecycle actions are owner-confirmed; physical
-deletion, freeform drag-and-drop block editing, cross-step block moves, arbitrary private R2 delivery, signed URL
+linking, within-step block reordering, cross-step block moves, and archive/unpublish lifecycle actions are owner-confirmed; physical
+deletion, freeform drag-and-drop block editing, arbitrary private R2 delivery, signed URL
 creation, live fulfillment automation, webinar integrations, and direct agent
 edits still need future confirmed-write APIs.
 
