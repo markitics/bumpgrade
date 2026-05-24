@@ -207,7 +207,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Bumpgrade can route the sandbox opt-in promise by seeded session assignment, then summarize counts and
+              Bumpgrade can route the launch-page opt-in promise by seeded session assignment, then summarize counts and
               decision evidence. Holdouts, custom routing rules, and automated winners still wait for sample-size checks
               and owner confirmation.
             </p>

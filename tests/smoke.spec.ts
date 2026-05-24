@@ -17376,7 +17376,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-live-publisher-offer-billing", status: "planned", issue: 219 }),
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
         expect.objectContaining({ id: "roadmap-analytics-testing", status: "shipped", issue: 18 }),
-        expect.objectContaining({ id: "roadmap-live-analytics-execution", status: "planned", issue: 422 }),
+        expect.objectContaining({ id: "roadmap-live-analytics-execution", status: "active", issue: 422 }),
         expect.objectContaining({ id: "roadmap-affiliates-referrals", status: "shipped", issue: 19 }),
         expect.objectContaining({ id: "roadmap-live-affiliate-execution", status: "planned", issue: 424 }),
       ]),
