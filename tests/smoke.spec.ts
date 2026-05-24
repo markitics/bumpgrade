@@ -15961,7 +15961,19 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-cross-subdomain-customer-auth", status: "shipped", issue: 224 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
+        expect.objectContaining({ id: "roadmap-checkout-offers", status: "shipped", issue: 15 }),
       ]),
+    );
+    const checkoutRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-checkout-offers");
+    expect(checkoutRoadmap).toEqual(
+      expect.objectContaining({
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #117"),
+          expect.stringContaining("Issue #133"),
+          expect.stringContaining("Issue #165"),
+        ]),
+        nextMilestone: expect.stringContaining("issue #219"),
+      }),
     );
     const funnelRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-funnels");
     expect(funnelRoadmap).toEqual(
