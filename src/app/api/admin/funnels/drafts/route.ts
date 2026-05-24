@@ -8,6 +8,7 @@ import {
   createDraftFunnelFromLibraryTemplate,
   duplicateDraftFunnel,
   getFunnelDraftD1OrThrow,
+  linkDraftFunnelBlockToResourceDelivery,
   linkDraftFunnelStepToCheckoutOffer,
   publishDraftFunnel,
   reorderDraftFunnelStep,
@@ -32,6 +33,19 @@ function wantsJson(request: NextRequest, formData: FormData) {
 
 function fallbackIdempotencyKey() {
   return `funnel-draft-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
+}
+
+function resourceDeliverySelection(formData: FormData) {
+  const resourceDeliveryRef = formValue(formData, "resourceDeliveryRef");
+  if (resourceDeliveryRef.includes("::")) {
+    const [productId, assetId] = resourceDeliveryRef.split("::");
+    return { productId, assetId };
+  }
+
+  return {
+    productId: formValue(formData, "productId"),
+    assetId: formValue(formData, "assetId"),
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -130,6 +144,18 @@ export async function POST(request: NextRequest) {
         draftId: formValue(formData, "draftId"),
         stepId: formValue(formData, "stepId"),
         blockId: formValue(formData, "blockId"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+    } else if (mode === "link-resource-delivery") {
+      const selection = resourceDeliverySelection(formData);
+      draft = await linkDraftFunnelBlockToResourceDelivery(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockId: formValue(formData, "blockId"),
+        productId: selection.productId,
+        assetId: selection.assetId,
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,

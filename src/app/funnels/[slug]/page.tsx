@@ -195,6 +195,15 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                   <strong>Purpose</strong>
                   <span>{block.kind.replaceAll("_", " ")}</span>
                 </div>
+                {block.resourceDeliveryLink ? (
+                  <div className="feature-detail">
+                    <strong>Resource access</strong>
+                    <span>
+                      {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. Access stays
+                      entitlement-gated; private files and signed URLs are not exposed on this page.
+                    </span>
+                  </div>
+                ) : null}
               </article>
             )),
           )}

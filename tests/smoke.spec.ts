@@ -291,6 +291,7 @@ import {
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPublishConfirmationText,
+  draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
 } from "../src/lib/funnel-drafts";
 import {
@@ -300,6 +301,7 @@ import {
   draftFunnelBlockEditingCapability,
   draftFunnelBlockStructureCapability,
   draftFunnelDuplicationCapability,
+  draftFunnelResourceDeliveryLinkCapability,
   editableDraftCapability,
   funnelSourceData,
   publicFunnelCheckoutStartCapability,
@@ -1122,12 +1124,21 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-checkout-unlink-ready",
+        status: "draft-resource-delivery-link-ready",
         issue: 417,
         parentIssue: 14,
       }),
     );
-    expect(payload.routes).toEqual(expect.arrayContaining(["/funnels/source-data", "/api/commerce/checkout", "/funnels/indie-launch-sandbox"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining([
+        "/funnels/source-data",
+        "/api/commerce/checkout",
+        "/products/source-data",
+        "/api/products/download-tokens",
+        "/api/products/protected-content",
+        "/funnels/indie-launch-sandbox",
+      ]),
+    );
     expect(payload.adminRoutes).toEqual(expect.arrayContaining(["/admin/funnels", "/admin/funnels/:draftId/preview"]));
     expect(payload.editableDraftCapability).toEqual(
       expect.objectContaining({
@@ -1143,6 +1154,7 @@ test.describe("Bumpgrade scaffold", () => {
         archiveEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         checkoutUnlinkEndpoint: "/api/admin/funnels/drafts",
+        resourceDeliveryLinkEndpoint: "/api/admin/funnels/drafts",
         blockEditEndpoint: "/api/admin/funnels/drafts",
         blockStructureEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
@@ -1272,6 +1284,36 @@ test.describe("Bumpgrade scaffold", () => {
         rawOwnerDataIncluded: false,
       }),
     );
+    expect(payload.draftFunnelResourceDeliveryLinkCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelResourceDeliveryLinkCapability.id,
+        status: "owner-session-resource-link-ready",
+        issue: 417,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        eligibleBlockKinds: expect.arrayContaining(["resource", "delivery"]),
+        productSourceDataRoute: "/products/source-data",
+        entitlementLookupRoute: "/products/entitlements",
+        downloadTokenEndpoint: "/api/products/download-tokens",
+        protectedContentEndpoint: "/api/products/protected-content",
+        deliveryMode: "seeded-product-access-reference",
+        preservesBlock: true,
+        preservesBlockId: true,
+        preservesBlockKind: true,
+        preservesBlockTitle: true,
+        preservesBlockBody: true,
+        liveFulfillmentDeliveryEnabled: false,
+        arbitraryUploadedAssetDeliveryEnabled: false,
+        rawR2KeysIncluded: false,
+        signedUrlsIncluded: false,
+        buyerDataIncluded: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
     expect(payload.webinarResourceTemplateCapability).toEqual(
       expect.objectContaining({
         id: webinarResourceTemplateCapability.id,
@@ -1309,6 +1351,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelBlockTemplateId",
         "funnelCheckoutLinkId",
         "funnelCheckoutUnlinkId",
+        "funnelResourceDeliveryLinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
         "funnelDraftArchiveId",
@@ -1401,6 +1444,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("exact-confirmed public publishing");
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
     expect(payload.caveat).toContain("owner-session checkout unlinking");
+    expect(payload.caveat).toContain("owner-session resource delivery linking");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
@@ -18624,6 +18668,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftBlockEditId",
             "funnelDraftBlockStructureEditId",
             "funnelCheckoutUnlinkId",
+            "funnelResourceDeliveryLinkId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
@@ -18631,6 +18676,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session private draft duplication from issue #215",
             "Discover owner-session private draft archive/unpublish from issue #341",
             "Discover owner-session checkout unlinking from issue #417",
+            "Discover owner-session resource delivery linking from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -18644,6 +18690,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftDuplicateId",
             "funnelDraftArchiveId",
             "funnelCheckoutUnlinkId",
+            "funnelResourceDeliveryLinkId",
             "funnelDraftBlockId",
           ]),
         }),
@@ -24453,6 +24500,128 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(replayRemovedOptInStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
 
+    const resourceDeliveryStep = blockRemovePayload.draft.steps.find((step: { kind: string }) => step.kind === "thank_you");
+    expect(resourceDeliveryStep).toEqual(expect.objectContaining({ id: "funnel-draft-indie-launch-working-copy-thank_you-3" }));
+    const resourceDeliveryBlock = resourceDeliveryStep.blocks.find((block: { kind: string }) => block.kind === "delivery");
+    expect(resourceDeliveryBlock).toEqual(expect.objectContaining({ id: "draft-block-thank-you-delivery", kind: "delivery" }));
+    const resourceDeliveryIdempotencyKey = `playwright-resource-delivery-link-${Date.now()}`;
+
+    const staleResourceDeliveryResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-resource-delivery",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: resourceDeliveryStep.id,
+        blockId: resourceDeliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey: `playwright-resource-delivery-link-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleResourceDeliveryResponse.status()).toBe(503);
+    await expect(staleResourceDeliveryResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const missingResourceDeliveryConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-resource-delivery",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: resourceDeliveryStep.id,
+        blockId: resourceDeliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        confirmationText: "link resource",
+        idempotencyKey: `playwright-resource-delivery-link-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingResourceDeliveryConfirmationResponse.status()).toBe(503);
+    await expect(missingResourceDeliveryConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
+
+    const resourceDeliveryLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-resource-delivery",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: resourceDeliveryStep.id,
+        blockId: resourceDeliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey: resourceDeliveryIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(resourceDeliveryLinkResponse.ok(), await resourceDeliveryLinkResponse.text()).toBeTruthy();
+    const resourceDeliveryLinkPayload = await resourceDeliveryLinkResponse.json();
+    expect(resourceDeliveryLinkPayload.mode).toBe("link-resource-delivery");
+    const linkedResourceDeliveryStep = resourceDeliveryLinkPayload.draft.steps.find(
+      (step: { id: string }) => step.id === resourceDeliveryStep.id,
+    );
+    const linkedResourceDeliveryBlock = linkedResourceDeliveryStep.blocks.find(
+      (block: { id: string }) => block.id === resourceDeliveryBlock.id,
+    );
+    expect(linkedResourceDeliveryBlock).toEqual(
+      expect.objectContaining({
+        id: resourceDeliveryBlock.id,
+        kind: "delivery",
+        title: resourceDeliveryBlock.title,
+        body: resourceDeliveryBlock.body,
+        resourceDeliveryLink: expect.objectContaining({
+          status: "owner-session-linked",
+          issue: 417,
+          productId: "product-launch-checklist-download",
+          productTitle: "Launch checklist download",
+          assetId: "asset-launch-checklist-pdf",
+          assetTitle: "Launch checklist PDF",
+          entitlementTemplateId: "entitlement-template-launch-download",
+          entitlementLookupRoute: "/products/entitlements",
+          downloadTokenEndpoint: "/api/products/download-tokens",
+          protectedContentEndpoint: "/api/products/protected-content",
+          deliveryMode: "seeded-product-access-reference",
+          liveFulfillmentDeliveryEnabled: false,
+          arbitraryUploadedAssetDeliveryEnabled: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          buyerDataIncluded: false,
+        }),
+      }),
+    );
+
+    const resourceDeliveryLinkReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-resource-delivery",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: resourceDeliveryStep.id,
+        blockId: resourceDeliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey: resourceDeliveryIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(resourceDeliveryLinkReplay.ok(), await resourceDeliveryLinkReplay.text()).toBeTruthy();
+    const resourceDeliveryLinkReplayPayload = await resourceDeliveryLinkReplay.json();
+    const replayResourceDeliveryStep = resourceDeliveryLinkReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === resourceDeliveryStep.id,
+    );
+    const replayResourceDeliveryBlock = replayResourceDeliveryStep.blocks.find(
+      (block: { id: string }) => block.id === resourceDeliveryBlock.id,
+    );
+    expect(replayResourceDeliveryBlock.resourceDeliveryLink.assetId).toBe("asset-launch-checklist-pdf");
+
     const linkedCheckoutRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
       form: {
@@ -24460,7 +24629,7 @@ test.describe("Bumpgrade scaffold", () => {
         draftId: "funnel-draft-indie-launch-working-copy",
         stepId: "funnel-draft-indie-launch-working-copy-sales-2",
         blockId: linkedCheckoutBlock.id,
-        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        expectedRevisionId: resourceDeliveryLinkPayload.draft.revisionId,
         idempotencyKey: `playwright-linked-checkout-remove-${Date.now()}`,
         return: "json",
       },
@@ -24495,7 +24664,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: duplicateTitle,
-        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        expectedRevisionId: resourceDeliveryLinkPayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24530,6 +24699,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(duplicatedCheckoutBlocks.length).toBeGreaterThan(0);
     expect(duplicatedCheckoutBlocks.every((block: { checkoutLink?: unknown }) => block.checkoutLink === undefined)).toBe(true);
     expect(JSON.stringify(duplicatePayload.draft)).not.toContain("checkout-link-funnel-draft-indie-launch-working-copy");
+    expect(JSON.stringify(duplicatePayload.draft)).not.toContain("resource-delivery-link-funnel-draft-indie-launch-working-copy");
 
     const duplicateReplay = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
@@ -24537,7 +24707,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: `${duplicateTitle} replay should not create a second draft`,
-        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        expectedRevisionId: resourceDeliveryLinkPayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24756,6 +24926,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByText("Checkout links are not copied.")).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Warm list opt-in edited" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list").filter({ hasText: checkoutOfferStack.primaryOffer.title })).toBeVisible();
+    await expect(draftCard.locator(".admin-step-list").filter({ hasText: "Launch checklist PDF" })).toBeVisible();
     await expect(draftCard.locator(".admin-step-list > div").first()).toContainText("Offer sales page");
     const editedBlockForm = draftCard.locator(".admin-block-edit-form").filter({ hasText: linkedCheckoutBlock.id });
     await expect(editedBlockForm.locator('input[name="title"]')).toHaveValue(blockEditTitle);
@@ -24764,6 +24935,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByRole("button", { name: /Add block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Unlink checkout/i }).first()).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Link resource/i }).first()).toBeVisible();
     await expect(draftCard.getByText("Unlink checkout before removing this block.")).toBeVisible();
     await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
       "href",
@@ -24780,6 +24952,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
     await expect(page.getByText(blockEditBody)).toBeVisible();
+    await expect(page.getByText("Launch checklist download / Launch checklist PDF")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
 
     await page.goto("/funnels/indie-launch-working-copy");
@@ -24788,6 +24961,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
     await expect(page.getByText(blockEditBody)).toBeVisible();
+    await expect(page.getByText("Launch checklist download / Launch checklist PDF")).toBeVisible();
+    await expect(page.getByText("Access stays entitlement-gated")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Review the checkout path from this funnel." })).toBeVisible();
     await page.getByLabel(/Launch checklist bump/i).check();
@@ -24819,6 +24994,22 @@ test.describe("Bumpgrade scaffold", () => {
                     offerId: checkoutOfferStack.primaryOffer.id,
                     liveBillingEnabled: false,
                     rawStripeIdsIncluded: false,
+                  }),
+                }),
+              ]),
+            }),
+            expect.objectContaining({
+              id: "funnel-draft-indie-launch-working-copy-thank_you-3",
+              blocks: expect.arrayContaining([
+                expect.objectContaining({
+                  kind: "delivery",
+                  resourceDeliveryLink: expect.objectContaining({
+                    productId: "product-launch-checklist-download",
+                    assetId: "asset-launch-checklist-pdf",
+                    liveFulfillmentDeliveryEnabled: false,
+                    rawR2KeysIncluded: false,
+                    signedUrlsIncluded: false,
+                    buyerDataIncluded: false,
                   }),
                 }),
               ]),
@@ -24979,6 +25170,25 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedResourceDeliveryLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "link-resource-delivery",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: resourceDeliveryStep.id,
+        blockId: resourceDeliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey: `playwright-archived-resource-delivery-link-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedResourceDeliveryLinkResponse.status()).toBe(503);
+    await expect(archivedResourceDeliveryLinkResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedSourceResponse = await page.request.get("/funnels/source-data");
     expect(archivedSourceResponse.ok(), await archivedSourceResponse.text()).toBeTruthy();
     const archivedSource = await archivedSourceResponse.json();
@@ -24999,6 +25209,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Add block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Unlink checkout/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Link resource/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
   });
 

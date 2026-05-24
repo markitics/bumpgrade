@@ -119,6 +119,15 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
                   <strong>Block ID</strong>
                   <span>{block.id}</span>
                 </div>
+                {block.resourceDeliveryLink ? (
+                  <div className="feature-detail">
+                    <strong>Resource delivery</strong>
+                    <span>
+                      {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. The preview
+                      keeps private R2 keys, signed URLs, and buyer records hidden.
+                    </span>
+                  </div>
+                ) : null}
               </article>
             )),
           )}

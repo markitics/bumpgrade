@@ -25,10 +25,12 @@ import {
   draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
+  draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
 import { draftFunnelAdvancedParityIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
+import { productAccessCatalogs } from "@/lib/product-access";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -42,6 +44,24 @@ function sourceLabel(source: string) {
   if (source === "d1") return "D1 draft store";
   return "Fixture fallback";
 }
+
+const resourceDeliveryOptions = productAccessCatalogs.flatMap((catalog) =>
+  catalog.products.flatMap((product) =>
+    product.assetIds.flatMap((assetId) => {
+      const asset = catalog.assets.find((item) => item.id === assetId);
+      const entitlementTemplate = catalog.entitlementTemplates.find((item) => item.id === product.entitlementTemplateId);
+      if (!asset || !entitlementTemplate) return [];
+
+      return [
+        {
+          value: `${product.id}::${asset.id}`,
+          label: asset.title,
+          detail: `${asset.kind.replaceAll("_", " ")} · ${entitlementTemplate.title}`,
+        },
+      ];
+    }),
+  ),
+);
 
 export default async function AdminFunnelsPage() {
   const adminState = await getCurrentAdminState();
@@ -64,9 +84,11 @@ export default async function AdminFunnelsPage() {
             duplicate private drafts after a revision check and attach the seeded sandbox checkout offer to private draft
             checkout blocks. Granular block title/body editing and reusable block add/remove controls are live while
             preserving checkout-linked block safety, and owners can now unlink checkout metadata from private draft blocks
-            before removing or relinking them. Owners can also archive private drafts or unpublish public D1 draft routes
-            without deleting audit evidence. Destructive deletion, drag-and-drop layout editing, live webinar integrations,
-            private resource delivery, and direct agent edits still need confirmed-write slices.
+            before removing or relinking them. Owners can also link resource and delivery blocks to public-safe product
+            access assets without exposing private R2 keys or signed URLs. Owners can archive private drafts or unpublish
+            public D1 draft routes without deleting audit evidence. Destructive deletion, drag-and-drop layout editing,
+            live webinar integrations, arbitrary resource delivery automation, and direct agent edits still need
+            confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
@@ -321,6 +343,15 @@ export default async function AdminFunnelsPage() {
                             <p>Linked to {checkoutLink.offerTitle} ({checkoutLink.mode}, no live billing).</p>
                           </div>
                         ) : null}
+                        {step.blocks.some((block) => block.resourceDeliveryLink) ? (
+                          <div className="admin-checkout-link-summary">
+                            <ShieldCheck aria-hidden="true" />
+                            <p>
+                              Resource delivery references are preserved without exposing private files, signed URLs, or
+                              buyer records.
+                            </p>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   }
@@ -438,6 +469,9 @@ export default async function AdminFunnelsPage() {
                               <span className="admin-pill">{block.kind.replaceAll("_", " ")}</span>
                               <strong>{block.id}</strong>
                               {block.checkoutLink ? <span className="status-badge pending">checkout link preserved</span> : null}
+                              {block.resourceDeliveryLink ? (
+                                <span className="status-badge active">resource link preserved</span>
+                              ) : null}
                             </div>
                             <label>
                               Block title
@@ -501,6 +535,59 @@ export default async function AdminFunnelsPage() {
                               <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                                 Unlink checkout
                                 <Unlink aria-hidden="true" />
+                              </button>
+                            </form>
+                          ) : null}
+                          {block.kind === "resource" || block.kind === "delivery" ? (
+                            <form action="/api/admin/funnels/drafts" method="post" className="admin-block-unlink-form admin-resource-link-form">
+                              <input type="hidden" name="mode" value="link-resource-delivery" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input
+                                type="hidden"
+                                name="idempotencyKey"
+                                value={`resource-delivery-link-${draft.id}-${block.id}-${draft.revisionId}`}
+                              />
+                              <div className="admin-checkout-link-summary">
+                                <ShieldCheck aria-hidden="true" />
+                                <p>
+                                  {block.resourceDeliveryLink
+                                    ? `Linked to ${block.resourceDeliveryLink.productTitle} / ${block.resourceDeliveryLink.assetTitle}. No private files, signed URLs, or buyer records are exposed.`
+                                    : "Link this block to product/access delivery evidence without exposing private files, signed URLs, or buyer records."}
+                                </p>
+                              </div>
+                              <label>
+                                Product resource
+                                <select
+                                  name="resourceDeliveryRef"
+                                  defaultValue={
+                                    block.resourceDeliveryLink
+                                      ? `${block.resourceDeliveryLink.productId}::${block.resourceDeliveryLink.assetId}`
+                                      : resourceDeliveryOptions[0]?.value
+                                  }
+                                  disabled={!canMutateDraft}
+                                >
+                                  {resourceDeliveryOptions.map((option) => (
+                                    <option value={option.value} key={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label className="admin-step-goal-field">
+                                Resource delivery confirmation
+                                <textarea
+                                  name="confirmationText"
+                                  placeholder={draftFunnelResourceDeliveryLinkConfirmationText}
+                                  rows={2}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
+                                Link resource
+                                <ShieldCheck aria-hidden="true" />
                               </button>
                             </form>
                           ) : null}

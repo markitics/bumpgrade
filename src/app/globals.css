@@ -2086,13 +2086,45 @@ h3 {
 .admin-block-unlink-form {
   display: grid;
   gap: 10px;
+  min-width: 0;
   padding: 12px;
   border-top: 1px solid var(--line);
   background: rgba(55, 95, 76, 0.05);
 }
 
+.admin-block-unlink-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-block-unlink-form select,
+.admin-block-unlink-form textarea {
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+
+.admin-block-unlink-form select {
+  min-height: 42px;
+}
+
 .admin-block-unlink-form textarea {
   min-height: 68px;
+  padding: 10px 11px;
+}
+
+.admin-block-unlink-form button {
+  min-width: 0;
   width: 100%;
 }
 
