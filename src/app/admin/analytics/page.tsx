@@ -142,12 +142,12 @@ export default async function AdminAnalyticsPage() {
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin analytics</p>
-          <h1>Experiment decisions stay evidenced before traffic routing.</h1>
+          <h1>Experiment decisions stay evidenced before automated winners.</h1>
           <p className="lede">
             Owners can inspect aggregate assignment counts, fixed-window conversion sample sizes, and sample-size
             caveats before recording experiment decisions or staged notification readiness records. The evidence rows stay
-            redacted and do not send email, enable Queue producers, create Queue messages, route traffic, assign cookies,
-            pick automated winners, expose raw events, expose raw assignments, or make revenue claims.
+            redacted and do not send email, enable Queue producers, create Queue messages, assign cookies, change routing
+            rules, pick automated winners, expose raw events, expose raw assignments, or make revenue claims.
           </p>
           <div className="hero-actions">
             <Link href="/analytics/source-data" className="primary-action">
