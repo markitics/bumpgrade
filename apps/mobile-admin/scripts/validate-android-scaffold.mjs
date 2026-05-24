@@ -58,6 +58,8 @@ assert(fixture.liveDashboard?.renderedInScaffoldsIssue === 155, "Fixture does no
 assert(fixture.liveDashboard?.liveHydrationIssue === 157, "Fixture does not record issue #157 as the mobile dashboard live hydration slice.");
 assert(fixture.privateAuth?.issue === 414, "Fixture does not include the issue #414 mobile private-auth contract.");
 assert(fixture.privateAuth?.sessionRoute === "/api/auth/[...all]", "Fixture does not reuse the Better Auth session route.");
+assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
+assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
 assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
 assert(
   fixture.childIssues.find((slice) => slice.platform === "android")?.sourceDataRoute === "/mobile-admin/android/source-data",
@@ -70,6 +72,7 @@ assert(activitySource.includes("mobile-admin-contract.json"), "Android activity 
 assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity title is missing.");
 assert(activitySource.includes("Live dashboard"), "Android activity does not render the live dashboard panel.");
 assert(activitySource.includes("Private auth"), "Android activity does not render the private auth panel.");
+assert(activitySource.includes("Action intent API"), "Android activity does not render the mobile action intent API panel.");
 assert(activitySource.includes("Confirmed mobile actions"), "Android activity does not render the confirmed actions panel.");
 assert(activitySource.includes("HttpURLConnection"), "Android activity does not fetch the live dashboard route.");
 assert(activitySource.includes("Live network"), "Android activity does not distinguish live network hydration from fixture fallback.");
