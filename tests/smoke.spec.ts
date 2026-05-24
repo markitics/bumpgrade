@@ -17885,6 +17885,28 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({ id: "pending-next", label: "Pending next", items: expect.any(Array) }),
           expect.objectContaining({ id: "watchlist", label: "Watchlist", items: expect.any(Array) }),
         ]),
+        briefingControls: expect.arrayContaining([
+          expect.objectContaining({
+            id: "past-1-day",
+            href: "/admin/work-log?window=past-1-day",
+            primaryMetric: expect.objectContaining({ label: "work-log entries" }),
+          }),
+          expect.objectContaining({
+            id: "past-7-days",
+            href: "/admin/work-log?window=past-7-days",
+            title: "Weekly CMO-style recap",
+          }),
+          expect.objectContaining({
+            id: "executive-queue",
+            href: "#executive-queue",
+            sourceRoute: "/admin/director/source-data",
+          }),
+          expect.objectContaining({
+            id: "workstream-map",
+            href: "#workstream-map",
+            workstreamIds: expect.arrayContaining(["marketing", "security-trust", "operations-control"]),
+          }),
+        ]),
       }),
     );
     expect(payload.windows).toEqual(
@@ -17961,6 +17983,16 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    const briefingControls = payload.briefingControls;
+    const workstreamMap = briefingControls.find((control: { id: string }) => control.id === "workstream-map");
+    const weeklyControl = briefingControls.find((control: { id: string }) => control.id === "past-7-days");
+    expect(workstreamMap).toEqual(
+      expect.objectContaining({
+        primaryMetric: expect.objectContaining({ value: 9, label: "workstreams" }),
+        secondaryMetric: expect.stringContaining("risk flag"),
+      }),
+    );
+    expect(weeklyControl?.workstreamIds).toEqual(expect.any(Array));
   });
 
   test("director status keeps project-control work logs in operations", () => {
@@ -18854,7 +18886,13 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
-        expect.objectContaining({ id: "read-director-status", route: "/admin/director/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-director-status",
+          route: "/admin/director/source-data",
+          auth: "public",
+          stableIds: expect.arrayContaining(["directorBriefingControlId"]),
+          safeForAgents: expect.arrayContaining([expect.stringContaining("briefing controls")]),
+        }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({
@@ -19730,7 +19768,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "mobile-api-director-status",
           route: "/admin/director/source-data",
           authBoundary: "public-safe",
-          stableIds: expect.arrayContaining(["directorWorkstreamId", "directorBriefSignalId", "directorWindowId"]),
+          stableIds: expect.arrayContaining([
+            "directorWorkstreamId",
+            "directorBriefSignalId",
+            "directorBriefingControlId",
+            "directorWindowId",
+          ]),
         }),
         expect.objectContaining({ id: "mobile-api-dashboard", route: "/mobile-admin/dashboard/source-data" }),
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
@@ -20094,6 +20137,10 @@ test.describe("Bumpgrade scaffold", () => {
           rawWorkLogBodiesIncluded: false,
           privateEvidenceIncluded: false,
         }),
+        briefingControls: expect.arrayContaining([
+          expect.objectContaining({ id: "past-1-day", href: "/admin/work-log?window=past-1-day" }),
+          expect.objectContaining({ id: "workstream-map", sourceRoute: "/admin/director/source-data" }),
+        ]),
       }),
     );
     expect(payload.directorDigest.workstreams).toEqual(

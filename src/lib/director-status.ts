@@ -10,6 +10,7 @@ import type {
 export type DirectorWindowId = "past-1-day" | "past-7-days";
 export type DirectorQueueLaneId = "due-now" | "in-flight" | "pending-next" | "watchlist";
 export type DirectorQueuePriority = "high" | "medium" | "normal";
+export type DirectorBriefingControlId = DirectorWindowId | "executive-queue" | "workstream-map";
 export type DirectorWorkstreamId =
   | "marketing"
   | "product-commerce"
@@ -66,6 +67,21 @@ export type DirectorQueueLane = {
   label: string;
   summary: string;
   items: DirectorQueueItem[];
+};
+
+export type DirectorBriefingControl = {
+  id: DirectorBriefingControlId;
+  label: string;
+  title: string;
+  summary: string;
+  href: string;
+  sourceRoute: string;
+  primaryMetric: {
+    value: number;
+    label: string;
+  };
+  secondaryMetric: string;
+  workstreamIds: DirectorWorkstreamId[];
 };
 
 export type DirectorBriefSignalId =
@@ -148,6 +164,7 @@ export type DirectorStatusData = {
     needsMark: number;
   };
   executiveQueue: DirectorQueueLane[];
+  briefingControls: DirectorBriefingControl[];
   workstreams: DirectorWorkstream[];
   sourceRoutes: string[];
   emailPolicy: {
@@ -609,6 +626,69 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
   ];
 }
 
+function uniqueWorkstreamIds(ids: DirectorWorkstreamId[]) {
+  return Array.from(new Set(ids));
+}
+
+function buildBriefingControls(
+  windows: DirectorWindow[],
+  executiveQueue: DirectorQueueLane[],
+  workstreams: DirectorWorkstream[],
+): DirectorBriefingControl[] {
+  const windowControls = windows.map<DirectorBriefingControl>((window) => ({
+    id: window.id,
+    label: window.label,
+    title: window.id === "past-1-day" ? "Changed since yesterday" : "Weekly CMO-style recap",
+    summary:
+      window.id === "past-1-day"
+        ? "Recent shipped and in-flight changes without opening the full work-log ledger."
+        : "The practical weekly roll-up across Marketing, Security, Product, Platform, and agent work.",
+    href: `/admin/work-log?window=${window.id}`,
+    sourceRoute: "/admin/work-log/source-data",
+    primaryMetric: {
+      value: window.workLogEntries,
+      label: "work-log entries",
+    },
+    secondaryMetric: `${window.changedWorkstreams} workstream${window.changedWorkstreams === 1 ? "" : "s"} changed`,
+    workstreamIds: uniqueWorkstreamIds(window.recentChanges.map((change) => change.workstreamId)),
+  }));
+  const dueNow = executiveQueue.find((lane) => lane.id === "due-now");
+  const queueWorkstreamIds = executiveQueue.flatMap((lane) => lane.items.map((item) => item.workstreamId));
+  const riskCount = workstreams.filter((workstream) => workstream.status === "blocked" || workstream.status === "at_risk").length;
+
+  return [
+    ...windowControls,
+    {
+      id: "executive-queue",
+      label: "Due and pending",
+      title: "Executive queue",
+      summary: "Owner decisions, active work, pending next items, and watchlist caveats grouped by workstream.",
+      href: "#executive-queue",
+      sourceRoute: "/admin/director/source-data",
+      primaryMetric: {
+        value: dueNow?.items.length ?? 0,
+        label: "due now",
+      },
+      secondaryMetric: `${executiveQueue.reduce((total, lane) => total + lane.items.length, 0)} total queue items`,
+      workstreamIds: uniqueWorkstreamIds(queueWorkstreamIds),
+    },
+    {
+      id: "workstream-map",
+      label: "Nested teams",
+      title: "Workstream map",
+      summary: "Top-level Marketing, Security, Product, Mobile, Infrastructure, and Operations categories before the drill-down.",
+      href: "#workstream-map",
+      sourceRoute: "/admin/director/source-data",
+      primaryMetric: {
+        value: workstreams.length,
+        label: "workstreams",
+      },
+      secondaryMetric: `${riskCount} risk flag${riskCount === 1 ? "" : "s"}`,
+      workstreamIds: workstreams.map((workstream) => workstream.id),
+    },
+  ];
+}
+
 export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()): DirectorStatusData {
   const nowTime = now.getTime();
   const windowCutoffs = new Map<DirectorWindowId, number>(
@@ -742,6 +822,8 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
     },
     { on_track: 0, at_risk: 0, blocked: 0, done: 0, quiet: 0 },
   );
+  const executiveQueue = buildExecutiveQueue(workstreams);
+  const briefingControls = buildBriefingControls(windows, executiveQueue, workstreams);
 
   return {
     id: "bumpgrade-director-status",
@@ -760,7 +842,8 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       changedPastWeek: windows.find((window) => window.id === "past-7-days")?.workLogEntries ?? 0,
       needsMark: workstreams.reduce((total, workstream) => total + workstream.counts.needsMark, 0),
     },
-    executiveQueue: buildExecutiveQueue(workstreams),
+    executiveQueue,
+    briefingControls,
     workstreams,
     sourceRoutes: [
       "/admin/director/source-data",

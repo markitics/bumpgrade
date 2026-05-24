@@ -144,8 +144,8 @@ The current #414 Director digest slice makes the CEO-style workstream overview
 available to mobile clients without adding a separate mobile project model.
 `/mobile-admin/dashboard/source-data` now carries a redacted
 `directorDigest` sourced from `/admin/director/source-data`, including top-level
-workstream totals, 1-day/7-day change windows, executive queue counts, and
-compact workstream brief signals. It is public-safe metadata only: no raw
+workstream totals, 1-day/7-day change windows, briefing controls, executive
+queue counts, and compact workstream brief signals. It is public-safe metadata only: no raw
 attention bodies, raw work-log bodies, private rows, owner emails, or private
 evidence are included.
 

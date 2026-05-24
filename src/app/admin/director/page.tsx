@@ -1,6 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, BriefcaseBusiness, ChevronDown, Clock3, Database, ListChecks, ShieldAlert } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  BriefcaseBusiness,
+  CalendarDays,
+  ChevronDown,
+  Clock3,
+  Database,
+  ListChecks,
+  Network,
+  ShieldAlert,
+} from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -12,6 +23,7 @@ import {
   type DirectorInitiative,
   type DirectorStatus,
   type DirectorWindowChange,
+  type DirectorWorkstream,
 } from "@/lib/director-status";
 
 export const metadata: Metadata = {
@@ -107,16 +119,46 @@ function WindowChangeList({ changes }: { changes: DirectorWindowChange[] }) {
   );
 }
 
+function BriefingControls({ director }: { director: ReturnType<typeof buildDirectorStatusData> }) {
+  return (
+    <section className="content-band director-briefing-band" aria-label="Director briefing controls">
+      <div className="roadmap-section-heading">
+        <div>
+          <p className="eyebrow">Director briefing</p>
+          <h2>Past day, past week, queue, and workstream map</h2>
+        </div>
+        <Link href="/admin/work-log?window=past-7-days" className="text-link compact-link">
+          Weekly ledger
+          <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
+      <div className="director-briefing-controls">
+        {director.briefingControls.map((control) => (
+          <Link key={control.id} href={control.href} className={`director-briefing-control ${control.id}`}>
+            {control.id === "workstream-map" ? <Network aria-hidden="true" /> : <CalendarDays aria-hidden="true" />}
+            <span>{control.label}</span>
+            <strong>{control.title}</strong>
+            <p>{control.summary}</p>
+            <small>
+              {control.primaryMetric.value} {control.primaryMetric.label}; {control.secondaryMetric}
+            </small>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ExecutiveQueue({ director }: { director: ReturnType<typeof buildDirectorStatusData> }) {
   return (
-    <section className="content-band alternate">
+    <section className="content-band alternate" id="executive-queue">
       <div className="roadmap-section-heading">
         <div>
           <p className="eyebrow">Executive queue</p>
           <h2>Due now, in flight, pending next, and watchlist</h2>
         </div>
-        <Link href="https://github.com/markitics/bumpgrade/issues/390" className="text-link compact-link">
-          Track issue #390
+        <Link href="https://github.com/markitics/bumpgrade/issues/448" className="text-link compact-link">
+          Track issue #448
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
@@ -160,6 +202,27 @@ function ExecutiveQueue({ director }: { director: ReturnType<typeof buildDirecto
   );
 }
 
+function WorkstreamMap({ workstreams }: { workstreams: DirectorWorkstream[] }) {
+  return (
+    <div className="director-workstream-map" id="workstream-map" aria-label="Director workstream map">
+      {workstreams.map((workstream) => (
+        <Link
+          key={workstream.id}
+          href={`#workstream-${workstream.id}`}
+          className={`director-workstream-map-card ${statusBadgeClass(workstream.status)}`}
+        >
+          <span className={`status-badge ${statusBadgeClass(workstream.status)}`}>{statusLabel(workstream.status)}</span>
+          <strong>{workstream.title}</strong>
+          <p>{workstream.currentFocus}</p>
+          <small>
+            {workstream.counts.active} active / {workstream.counts.pending} pending / {workstream.counts.changedPastWeek} changed 7d
+          </small>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default async function DirectorDashboardPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/director" />;
@@ -185,8 +248,8 @@ export default async function DirectorDashboardPage() {
               Director JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/386" className="secondary-action">
-              Track issue #386
+            <Link href="https://github.com/markitics/bumpgrade/issues/448" className="secondary-action">
+              Track issue #448
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -231,6 +294,8 @@ export default async function DirectorDashboardPage() {
           </div>
         </div>
       </section>
+
+      <BriefingControls director={director} />
 
       <section className="content-band">
         <div className="roadmap-section-heading">
@@ -283,9 +348,11 @@ export default async function DirectorDashboardPage() {
             <h2>Expand a team-level brief, then drill into issues and evidence</h2>
           </div>
         </div>
+        <WorkstreamMap workstreams={director.workstreams} />
         <div className="director-workstream-list">
           {director.workstreams.map((workstream) => (
             <details
+              id={`workstream-${workstream.id}`}
               key={workstream.id}
               className={`director-workstream ${statusBadgeClass(workstream.status)}`}
               open={shouldOpenDirectorWorkstreamByDefault(workstream)}

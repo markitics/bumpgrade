@@ -568,6 +568,7 @@ export const mobileAdminContract: MobileAdminContract = {
         "mobileDashboardCardId",
         "directorWorkstreamId",
         "directorBriefSignalId",
+        "directorBriefingControlId",
         "featureId",
         "roadmapItemId",
         "workLogEntryId",
@@ -579,9 +580,16 @@ export const mobileAdminContract: MobileAdminContract = {
       id: "mobile-api-director-status",
       route: "/admin/director/source-data",
       purpose:
-        "Public-safe CEO-style workstream brief for mobile clients, including top-level workstreams, current focus, due/in-flight/pending/change signals, and redacted 1-day/7-day change windows.",
+        "Public-safe CEO-style workstream brief for mobile clients, including top-level workstreams, current focus, briefing controls, due/in-flight/pending/change signals, and redacted 1-day/7-day change windows.",
       authBoundary: "public-safe",
-      stableIds: ["directorWorkstreamId", "directorBriefSignalId", "directorWindowId", "workLogEntryId", "roadmapItemId"],
+      stableIds: [
+        "directorWorkstreamId",
+        "directorBriefSignalId",
+        "directorBriefingControlId",
+        "directorWindowId",
+        "workLogEntryId",
+        "roadmapItemId",
+      ],
     },
     {
       id: "mobile-api-admin-source",

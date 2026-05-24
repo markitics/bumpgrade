@@ -37,7 +37,8 @@ export default function AdminSurfacesAgentDocPage() {
             capability state from source-data contracts. Browser-rendered admin pages require Better Auth owner sessions
             and are not a shortcut around permissions. The director contract includes due-now, in-flight,
             pending-next, and watchlist queue lanes plus recent-change digests with workstream provenance for
-            executive summaries.
+            executive summaries, along with stable briefing controls for past-day, past-week, queue, and
+            workstream-map reads.
           </p>
           <Link href="/admin/source-data" className="text-link">
             Admin source data

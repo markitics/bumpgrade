@@ -53,6 +53,12 @@ but only rows with current owner action or blockers should open automatically.
 At-risk/high-churn workstreams should remain visible in summary counts without
 turning the one-pager into another long audit report.
 
+Issue #448 adds a first-read briefing layer above the detailed rows. The
+browser and source-data contract should expose four stable controls: `Past 1
+day`, `Past 7 days`, `Executive queue`, and `Workstream map`. Use these controls
+when Mark asks what changed recently or wants the CMO/CISO/product-lead summary
+without reading every individual work-log entry.
+
 The director source-data route also exposes an `executiveQueue` with stable
 lanes for `due-now`, `in-flight`, `pending-next`, and `watchlist`. Each queue
 item keeps its workstream ID/title and evidence links so agents and mobile

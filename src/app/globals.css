@@ -2527,6 +2527,73 @@ h3 {
   gap: 12px;
 }
 
+.director-briefing-band {
+  padding-top: 34px;
+}
+
+.director-briefing-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.director-briefing-control {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 220px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--green);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.director-briefing-control.past-7-days {
+  border-top-color: var(--blue);
+}
+
+.director-briefing-control.executive-queue {
+  border-top-color: #d35b45;
+}
+
+.director-briefing-control.workstream-map {
+  border-top-color: var(--gold);
+}
+
+.director-briefing-control svg {
+  width: 28px;
+  height: 28px;
+  color: var(--green);
+}
+
+.director-briefing-control span,
+.director-briefing-control small {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.director-briefing-control strong {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.director-briefing-control p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.director-briefing-control small {
+  align-self: end;
+  color: var(--green);
+  line-height: 1.35;
+}
+
 .director-kpi-strip div,
 .director-window-card {
   min-height: 148px;
@@ -2731,6 +2798,64 @@ h3 {
   display: grid;
   gap: 14px;
   margin-top: 28px;
+}
+
+.director-workstream-map {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.director-workstream-map-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 158px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.director-workstream-map-card.active {
+  border-left-color: var(--green);
+}
+
+.director-workstream-map-card.pending {
+  border-left-color: var(--gold);
+}
+
+.director-workstream-map-card.blocked {
+  border-left-color: #d35b45;
+}
+
+.director-workstream-map-card.shipped {
+  border-left-color: var(--blue);
+}
+
+.director-workstream-map-card.idea {
+  border-left-color: var(--line);
+}
+
+.director-workstream-map-card strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.director-workstream-map-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.director-workstream-map-card small {
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .director-workstream {
@@ -4435,7 +4560,9 @@ h3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .director-kpi-strip {
+  .director-kpi-strip,
+  .director-briefing-controls,
+  .director-workstream-map {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -4525,8 +4652,10 @@ h3 {
   .roadmap-lane-strip,
   .roadmap-proof-grid,
   .director-kpi-strip,
+  .director-briefing-controls,
   .director-window-grid,
   .director-queue-grid,
+  .director-workstream-map,
   .director-initiative-grid,
   .admin-action-grid,
   .launch-outcome-grid,
