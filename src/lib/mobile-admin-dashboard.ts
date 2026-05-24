@@ -1,6 +1,7 @@
 import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
 import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
+import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "@/lib/director-status";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
 import { getMobileAdminPrivateRowActionSummary } from "@/lib/mobile-admin-private-row-actions";
@@ -48,6 +49,7 @@ function attentionSummaries(items: Awaited<ReturnType<typeof getAdminSurfaceData
 
 export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
+  const director = buildDirectorStatusData(adminData);
   const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
   const privateRowsSummary = await getMobileAdminPrivateRowsSummary();
   const privateRowActionSummary = await getMobileAdminPrivateRowActionSummary();
@@ -75,11 +77,12 @@ export async function getMobileAdminDashboardSourceData() {
       "/features/source-data",
       "/roadmap/source-data",
       "/admin/source-data",
+      "/admin/director/source-data",
       "/commerce/source-data",
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe. It gives mobile clients one live digest route, public-safe private-row counts, redacted low-risk private-row action summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe. It gives mobile clients one live digest route, redacted Director workstream briefings, public-safe private-row counts, redacted low-risk private-row action summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -272,6 +275,74 @@ export async function getMobileAdminDashboardSourceData() {
       },
       recentWorkLogEntries: recentWorkLogEntries(adminData.workLogEntries),
       attentionItems: attentionSummaries(adminData.attentionItems),
+    },
+    directorDigest: {
+      sourceDataRoute: "/admin/director/source-data",
+      source: director.source,
+      loadError: director.loadError,
+      totals: director.totals,
+      windows: director.windows.map((window) => ({
+        id: window.id,
+        label: window.label,
+        workLogEntries: window.workLogEntries,
+        shippedPrs: window.shippedPrs,
+        changedWorkstreams: window.changedWorkstreams,
+        needsMark: window.needsMark,
+        recentChanges: window.recentChanges.slice(0, 3).map((change) => ({
+          id: change.id,
+          title: publicSafeText(change.title),
+          workstreamId: change.workstreamId,
+          workstreamTitle: change.workstreamTitle,
+          completedAt: change.completedAt,
+        })),
+      })),
+      executiveQueue: director.executiveQueue.map((lane) => ({
+        id: lane.id,
+        label: lane.label,
+        itemCount: lane.items.length,
+        items: lane.items.slice(0, 3).map((item) => ({
+          id: item.id,
+          title: publicSafeText(item.title),
+          workstreamId: item.workstreamId,
+          workstreamTitle: item.workstreamTitle,
+          priority: item.priority,
+          queueLabel: item.queueLabel,
+        })),
+      })),
+      workstreams: director.workstreams.map((workstream) => ({
+        id: workstream.id,
+        title: workstream.title,
+        status: workstream.status,
+        currentFocus: publicSafeText(workstream.currentFocus),
+        defaultOpen: shouldOpenDirectorWorkstreamByDefault(workstream),
+        counts: {
+          active: workstream.counts.active,
+          pending: workstream.counts.pending,
+          shipped: workstream.counts.shipped,
+          blocked: workstream.counts.blocked,
+          changedPastDay: workstream.counts.changedPastDay,
+          changedPastWeek: workstream.counts.changedPastWeek,
+          needsMark: workstream.counts.needsMark,
+        },
+        brief: {
+          headline: publicSafeText(workstream.brief.headline),
+          signals: workstream.brief.signals.map((signal) => ({
+            id: signal.id,
+            label: signal.label,
+            state: signal.state,
+            title: publicSafeText(signal.title),
+            summary: publicSafeText(signal.summary),
+            count: signal.count,
+          })),
+        },
+      })),
+      redaction: {
+        privateRowsIncluded: false,
+        ownerEmailValuesIncluded: false,
+        rawAttentionBodiesIncluded: false,
+        rawWorkLogBodiesIncluded: false,
+        privateEvidenceIncluded: false,
+      },
     },
     commerceDigest: {
       sourceDataRoute: "/commerce/source-data",

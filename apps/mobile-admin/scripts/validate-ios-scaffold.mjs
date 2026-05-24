@@ -74,6 +74,7 @@ const appSource = readFileSync(appSourcePath, "utf8");
 assert(appSource.includes("mobileAdminContractFixture"), "Expo app does not read the generated fixture.");
 assert(appSource.includes("Bumpgrade mobile admin"), "Expo app title is missing.");
 assert(appSource.includes("Live dashboard"), "Expo app does not render the live dashboard panel.");
+assert(appSource.includes("Director brief"), "Expo app does not render the Director brief panel.");
 assert(appSource.includes("Private auth"), "Expo app does not render the private auth panel.");
 assert(appSource.includes("Private rows API"), "Expo app does not render the mobile private rows API panel.");
 assert(appSource.includes("Private row actions API"), "Expo app does not render the mobile private row actions API panel.");

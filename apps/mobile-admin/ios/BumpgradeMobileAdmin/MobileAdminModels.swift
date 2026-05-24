@@ -157,6 +157,7 @@ struct MobileDashboardSourceData: Decodable {
     let route: String
     let redaction: [String: Bool]
     let adminDigest: AdminDigest?
+    let directorDigest: DirectorDigest?
 
     struct AdminDigest: Decodable {
         let counts: Counts?
@@ -168,6 +169,35 @@ struct MobileDashboardSourceData: Decodable {
         let userJourneys: Int?
         let openAttentionItems: Int?
     }
+
+    struct DirectorDigest: Decodable {
+        let totals: DirectorTotals?
+        let workstreams: [DirectorWorkstream]?
+    }
+
+    struct DirectorTotals: Decodable {
+        let workstreams: Int?
+        let needsMark: Int?
+        let changedPastWeek: Int?
+    }
+
+    struct DirectorWorkstream: Decodable {
+        let id: String
+        let title: String
+        let status: String
+        let currentFocus: String
+        let counts: DirectorCounts?
+        let brief: DirectorBrief?
+    }
+
+    struct DirectorCounts: Decodable {
+        let changedPastWeek: Int?
+        let needsMark: Int?
+    }
+
+    struct DirectorBrief: Decodable {
+        let headline: String?
+    }
 }
 
 struct MobileDashboardViewModel {
@@ -177,6 +207,8 @@ struct MobileDashboardViewModel {
     let issue: Int
     let sourceLabel: String
     let boundary: String
+    let directorSummary: String
+    let directorWorkstreams: [String]
 
     static func fixture(_ dashboard: MobileLiveDashboard) -> MobileDashboardViewModel {
         MobileDashboardViewModel(
@@ -185,7 +217,11 @@ struct MobileDashboardViewModel {
             status: dashboard.status,
             issue: dashboard.issue,
             sourceLabel: "Fixture fallback",
-            boundary: dashboard.redactionBoundary
+            boundary: dashboard.redactionBoundary,
+            directorSummary: "Director brief loads from /mobile-admin/dashboard/source-data.",
+            directorWorkstreams: [
+                "Marketing, Security / Trust, Mobile Admin, and other workstreams are grouped in the live Director digest."
+            ]
         )
     }
 
@@ -207,8 +243,30 @@ struct MobileDashboardViewModel {
             status: payload.status,
             issue: payload.issue,
             sourceLabel: "Live network",
-            boundary: boundary
+            boundary: boundary,
+            directorSummary: directorSummary(payload.directorDigest),
+            directorWorkstreams: directorWorkstreams(payload.directorDigest)
         )
+    }
+
+    private static func directorSummary(_ digest: MobileDashboardSourceData.DirectorDigest?) -> String {
+        guard let totals = digest?.totals else {
+            return "Director brief loaded without totals."
+        }
+        return "Director: \(totals.workstreams ?? 0) workstreams, \(totals.needsMark ?? 0) need Mark, \(totals.changedPastWeek ?? 0) changed this week."
+    }
+
+    private static func directorWorkstreams(_ digest: MobileDashboardSourceData.DirectorDigest?) -> [String] {
+        guard let workstreams = digest?.workstreams else {
+            return ["Marketing, Security / Trust, Mobile Admin, and other workstreams are grouped in the live Director digest."]
+        }
+
+        return workstreams.prefix(5).map { workstream in
+            let changed = workstream.counts?.changedPastWeek ?? 0
+            let needsMark = workstream.counts?.needsMark ?? 0
+            let headline = workstream.brief?.headline ?? workstream.currentFocus
+            return "\(workstream.title): \(workstream.status); \(changed) changed 7d; \(needsMark) need Mark. \(headline)"
+        }
     }
 }
 

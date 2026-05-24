@@ -87,6 +87,7 @@ const manifestSource = readFileSync(manifestPath, "utf8");
 assert(activitySource.includes("mobile-admin-contract.json"), "Android activity does not read the generated fixture asset.");
 assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity title is missing.");
 assert(activitySource.includes("Live dashboard"), "Android activity does not render the live dashboard panel.");
+assert(activitySource.includes("Director brief"), "Android activity does not render the Director brief panel.");
 assert(activitySource.includes("Private auth"), "Android activity does not render the private auth panel.");
 assert(activitySource.includes("Private rows API"), "Android activity does not render the mobile private rows API panel.");
 assert(activitySource.includes("Private row actions API"), "Android activity does not render the mobile private row actions API panel.");

@@ -83,7 +83,26 @@ public class MainActivity extends Activity {
       dashboardPanel.addView(dashboardSource);
       dashboardPanel.addView(dashboardBoundary);
       content.addView(dashboardPanel);
-      fetchLiveDashboard(contract, liveDashboard, dashboardTitle, dashboardBody, dashboardStatus, dashboardSource, dashboardBoundary);
+      LinearLayout directorPanel = panel();
+      directorPanel.addView(kicker("Director brief"));
+      directorPanel.addView(panelTitle("Workstreams"));
+      TextView directorBody = body("Director brief loads from /mobile-admin/dashboard/source-data.");
+      TextView directorWorkstreams = meta("Marketing, Security / Trust, Mobile Admin, and other workstreams are grouped in the live Director digest.");
+      directorPanel.addView(directorBody);
+      directorPanel.addView(directorWorkstreams);
+      content.addView(directorPanel);
+
+      fetchLiveDashboard(
+        contract,
+        liveDashboard,
+        dashboardTitle,
+        dashboardBody,
+        dashboardStatus,
+        dashboardSource,
+        dashboardBoundary,
+        directorBody,
+        directorWorkstreams
+      );
 
       LinearLayout authPanel = panel();
       authPanel.addView(kicker("Private auth"));
@@ -198,7 +217,9 @@ public class MainActivity extends Activity {
     TextView dashboardBody,
     TextView dashboardStatus,
     TextView dashboardSource,
-    TextView dashboardBoundary
+    TextView dashboardBoundary,
+    TextView directorBody,
+    TextView directorWorkstreams
   ) {
     new Thread(() -> {
       HttpURLConnection connection = null;
@@ -216,12 +237,16 @@ public class MainActivity extends Activity {
         JSONObject payload = new JSONObject(readStream(connection.getInputStream()));
         String bodyText = liveDashboardSummary(payload);
         String boundaryText = redactionSummary(payload.optJSONObject("redaction"), fixtureDashboard.getString("redactionBoundary"));
+        String directorText = directorSummary(payload);
+        String directorWorkstreamText = directorWorkstreamSummary(payload);
         runOnUiThread(() -> {
           dashboardTitle.setText(payload.optString("route", fixtureDashboard.optString("route")));
           dashboardBody.setText(bodyText);
           dashboardStatus.setText("Status: " + payload.optString("status", fixtureDashboard.optString("status")) + " · issue #" + payload.optInt("issue", fixtureDashboard.optInt("issue")));
           dashboardSource.setText("Source: Live network");
           dashboardBoundary.setText("Boundary: " + boundaryText);
+          directorBody.setText(directorText);
+          directorWorkstreams.setText(directorWorkstreamText);
         });
       } catch (Exception ignored) {
         runOnUiThread(() -> dashboardSource.setText("Source: Fixture fallback"));
@@ -273,6 +298,50 @@ public class MainActivity extends Activity {
       }
     }
     return "Redaction: " + redaction.length() + " private-data flags false.";
+  }
+
+  private String directorSummary(JSONObject payload) {
+    JSONObject digest = payload.optJSONObject("directorDigest");
+    JSONObject totals = digest != null ? digest.optJSONObject("totals") : null;
+    if (totals == null) {
+      return "Director brief loaded without totals.";
+    }
+    return "Director: "
+      + totals.optInt("workstreams", 0)
+      + " workstreams, "
+      + totals.optInt("needsMark", 0)
+      + " need Mark, "
+      + totals.optInt("changedPastWeek", 0)
+      + " changed this week.";
+  }
+
+  private String directorWorkstreamSummary(JSONObject payload) {
+    JSONObject digest = payload.optJSONObject("directorDigest");
+    JSONArray workstreams = digest != null ? digest.optJSONArray("workstreams") : null;
+    if (workstreams == null || workstreams.length() == 0) {
+      return "Marketing, Security / Trust, Mobile Admin, and other workstreams are grouped in the live Director digest.";
+    }
+
+    StringBuilder builder = new StringBuilder();
+    int limit = Math.min(5, workstreams.length());
+    for (int index = 0; index < limit; index += 1) {
+      JSONObject workstream = workstreams.optJSONObject(index);
+      if (workstream == null) continue;
+      JSONObject counts = workstream.optJSONObject("counts");
+      JSONObject brief = workstream.optJSONObject("brief");
+      if (builder.length() > 0) builder.append("\n");
+      builder
+        .append(workstream.optString("title", "Workstream"))
+        .append(": ")
+        .append(workstream.optString("status", "unknown"))
+        .append("; ")
+        .append(counts != null ? counts.optInt("changedPastWeek", 0) : 0)
+        .append(" changed 7d; ")
+        .append(counts != null ? counts.optInt("needsMark", 0) : 0)
+        .append(" need Mark. ")
+        .append(brief != null ? brief.optString("headline", workstream.optString("currentFocus", "")) : workstream.optString("currentFocus", ""));
+    }
+    return builder.toString();
   }
 
   private JSONObject findPlatformSlice(JSONArray slices, String platform) throws Exception {

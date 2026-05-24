@@ -181,7 +181,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -190,11 +190,12 @@ export const mobileAdminContract: MobileAdminContract = {
     status: "live-public-source-data-ready",
     route: "/mobile-admin/dashboard/source-data",
     purpose:
-      "Give iOS, Android, web, and agents one public-safe mobile dashboard payload summarizing features, roadmap state, work-log recency, attention counts, commerce contract state, and agent-readiness without exposing private admin data.",
+      "Give iOS, Android, web, and agents one public-safe mobile dashboard payload summarizing Director workstreams, features, roadmap state, work-log recency, attention counts, commerce contract state, and agent-readiness without exposing private admin data.",
     publicSafeReads: [
       "/features/source-data",
       "/roadmap/source-data",
       "/admin/source-data",
+      "/admin/director/source-data",
       "/admin/work-log/source-data",
       "/admin/for-mark/source-data",
       "/commerce/source-data",
@@ -519,9 +520,15 @@ export const mobileAdminContract: MobileAdminContract = {
       id: "mobile-job-launch-status",
       title: "Check launch and platform status away from desktop",
       primaryUser: "Publisher or owner monitoring Bumpgrade from a phone",
-      goal: "See whether funnels, checkout, products, email, analytics, agent work, and blockers are moving without opening the desktop admin app.",
+      goal: "See whether Director workstreams such as marketing, security, mobile, funnels, checkout, products, email, analytics, agent work, and blockers are moving without opening the desktop admin app.",
       firstScreen: "Mobile admin digest",
-      sourceRoutes: ["/mobile-admin/dashboard/source-data", "/features/source-data", "/roadmap/source-data", "/admin/source-data"],
+      sourceRoutes: [
+        "/mobile-admin/dashboard/source-data",
+        "/admin/director/source-data",
+        "/features/source-data",
+        "/roadmap/source-data",
+        "/admin/source-data",
+      ],
       writeBoundary: "Read-only in the first mobile slice.",
     },
     {
@@ -557,7 +564,24 @@ export const mobileAdminContract: MobileAdminContract = {
       purpose:
         "Live public-safe dashboard bundle for iOS and Android clients so mobile does not stitch or infer project state from hidden admin pages.",
       authBoundary: "public-safe",
-      stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
+      stableIds: [
+        "mobileDashboardCardId",
+        "directorWorkstreamId",
+        "directorBriefSignalId",
+        "featureId",
+        "roadmapItemId",
+        "workLogEntryId",
+        "markAttentionId",
+        "agentReadContractId",
+      ],
+    },
+    {
+      id: "mobile-api-director-status",
+      route: "/admin/director/source-data",
+      purpose:
+        "Public-safe CEO-style workstream brief for mobile clients, including top-level workstreams, current focus, due/in-flight/pending/change signals, and redacted 1-day/7-day change windows.",
+      authBoundary: "public-safe",
+      stableIds: ["directorWorkstreamId", "directorBriefSignalId", "directorWindowId", "workLogEntryId", "roadmapItemId"],
     },
     {
       id: "mobile-api-admin-source",

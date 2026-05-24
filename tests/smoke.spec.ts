@@ -19558,6 +19558,12 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.apiDependencies).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-api-admin-source", route: "/admin/source-data" }),
+        expect.objectContaining({
+          id: "mobile-api-director-status",
+          route: "/admin/director/source-data",
+          authBoundary: "public-safe",
+          stableIds: expect.arrayContaining(["directorWorkstreamId", "directorBriefSignalId", "directorWindowId"]),
+        }),
         expect.objectContaining({ id: "mobile-api-dashboard", route: "/mobile-admin/dashboard/source-data" }),
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
         expect.objectContaining({
@@ -19751,6 +19757,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/features/source-data",
         "/roadmap/source-data",
         "/admin/source-data",
+        "/admin/director/source-data",
         "/commerce/source-data",
         "/agent-docs/source-data",
       ]),
@@ -19903,6 +19910,56 @@ test.describe("Bumpgrade scaffold", () => {
           openAttentionItems: expect.any(Number),
         }),
       }),
+    );
+    expect(payload.directorDigest).toEqual(
+      expect.objectContaining({
+        sourceDataRoute: "/admin/director/source-data",
+        totals: expect.objectContaining({
+          workstreams: 9,
+          changedPastWeek: expect.any(Number),
+          needsMark: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          privateRowsIncluded: false,
+          ownerEmailValuesIncluded: false,
+          rawAttentionBodiesIncluded: false,
+          rawWorkLogBodiesIncluded: false,
+          privateEvidenceIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.directorDigest.workstreams).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "marketing",
+          title: "Marketing",
+          counts: expect.objectContaining({
+            changedPastWeek: expect.any(Number),
+            needsMark: expect.any(Number),
+          }),
+          brief: expect.objectContaining({
+            signals: expect.arrayContaining([
+              expect.objectContaining({ id: "changed-7-days", count: expect.any(Number) }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
+          id: "security-trust",
+          title: "Security / Trust",
+        }),
+      ]),
+    );
+    expect(payload.directorDigest.windows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "past-1-day",
+          recentChanges: expect.any(Array),
+        }),
+        expect.objectContaining({
+          id: "past-7-days",
+          recentChanges: expect.any(Array),
+        }),
+      ]),
     );
     expect(payload.commerceDigest).toEqual(
       expect.objectContaining({
@@ -20414,6 +20471,13 @@ test.describe("Bumpgrade scaffold", () => {
         redactionFlags: expect.arrayContaining(["appStoreDistributionLive=false"]),
       }),
     );
+    expect(payload.directorDigest).toEqual(
+      expect.objectContaining({
+        route: "/admin/director/source-data",
+        dashboardField: "directorDigest",
+        redactionBoundary: expect.stringContaining("Director workstream IDs"),
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
@@ -20428,6 +20492,10 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "ios-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
+        }),
+        expect.objectContaining({
+          id: "ios-read-director-workstreams",
+          route: "/admin/director/source-data",
         }),
         expect.objectContaining({
           id: "ios-read-mobile-private-rows",
@@ -20453,6 +20521,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("push-notification boundary");
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
+    expect(payload.writeBoundary).toContain("Director workstream brief");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -20527,6 +20596,13 @@ test.describe("Bumpgrade scaffold", () => {
         redactionFlags: expect.arrayContaining(["playStoreDistributionLive=false"]),
       }),
     );
+    expect(payload.directorDigest).toEqual(
+      expect.objectContaining({
+        route: "/admin/director/source-data",
+        dashboardField: "directorDigest",
+        redactionBoundary: expect.stringContaining("Director workstream IDs"),
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
@@ -20541,6 +20617,10 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "android-read-live-mobile-dashboard",
           route: "/mobile-admin/dashboard/source-data",
+        }),
+        expect.objectContaining({
+          id: "android-read-director-workstreams",
+          route: "/admin/director/source-data",
         }),
         expect.objectContaining({
           id: "android-read-mobile-private-rows",
@@ -20566,6 +20646,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.writeBoundary).toContain("push-notification boundary");
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
+    expect(payload.writeBoundary).toContain("Director workstream brief");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {
