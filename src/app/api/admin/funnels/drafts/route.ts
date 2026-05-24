@@ -13,6 +13,7 @@ import {
   linkDraftFunnelStepToCheckoutOffer,
   moveDraftFunnelBlockToStep,
   publishDraftFunnel,
+  purgeArchivedDraftFunnel,
   reorderDraftFunnelBlock,
   reorderDraftFunnelStep,
   removeDraftFunnelBlock,
@@ -96,6 +97,21 @@ export async function POST(request: NextRequest) {
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,
       });
+    } else if (mode === "purge") {
+      const purge = await purgeArchivedDraftFunnel(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+
+      if (json) {
+        return NextResponse.json({ ok: true, mode, purge });
+      }
+
+      const redirect = new URL("/admin/funnels", request.url);
+      redirect.searchParams.set("purged", purge.draftId);
+      return NextResponse.redirect(redirect, { status: 303 });
     } else if (mode === "update-step") {
       draft = await updateDraftFunnelStep(db, adminState.identity, {
         draftId: formValue(formData, "draftId"),

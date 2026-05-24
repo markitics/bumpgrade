@@ -29,6 +29,7 @@ import {
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelResourceDeliveryLinkCapability,
   draftFunnelWebinarEventLinkCapability,
+  draftFunnelPurgeCapability,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -94,6 +95,20 @@ export type DraftFunnelPreviewState = {
   writeBoundary: string;
 };
 
+export type DraftFunnelPurgeResult = {
+  id: string;
+  draftId: string;
+  draftSlug: string;
+  draftTitle: string;
+  previousStatus: "archived";
+  previousRevisionId: string;
+  actorEmail: string;
+  summary: string;
+  idempotencyKey: string;
+  metadata: Record<string, unknown>;
+  createdAt: string | null;
+};
+
 type D1FunnelDraftRow = {
   id: string;
   owner_user_id: string | null;
@@ -123,6 +138,20 @@ type D1FunnelStepRow = {
   blocks_json: string;
 };
 
+type D1FunnelPurgeEventRow = {
+  id: string;
+  draft_id: string;
+  draft_slug: string;
+  draft_title: string;
+  previous_status: "archived";
+  previous_revision_id: string;
+  actor_email: string;
+  summary: string;
+  idempotency_key: string;
+  metadata_json: string | null;
+  created_at: number;
+};
+
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
@@ -132,6 +161,7 @@ export const draftFunnelResourceDeliveryLinkConfirmationText = "Link this draft 
 export const draftFunnelWebinarEventLinkConfirmationText = "Link this draft webinar block to event and replay URLs";
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
+export const draftFunnelPurgeConfirmationText = "Purge this archived draft funnel and keep tombstone evidence";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -313,6 +343,22 @@ function draftFromRow(row: D1FunnelDraftRow, steps: DraftFunnelStepRecord[]): Dr
   };
 }
 
+function purgeEventFromRow(row: D1FunnelPurgeEventRow): DraftFunnelPurgeResult {
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    draftSlug: row.draft_slug,
+    draftTitle: row.draft_title,
+    previousStatus: row.previous_status,
+    previousRevisionId: row.previous_revision_id,
+    actorEmail: row.actor_email,
+    summary: row.summary,
+    idempotencyKey: row.idempotency_key,
+    metadata: parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {}),
+    createdAt: isoFromSeconds(row.created_at),
+  };
+}
+
 async function loadDraftsFromD1(db: D1Database): Promise<DraftFunnelRecord[]> {
   const draftResult = await db
     .prepare("SELECT * FROM funnel_drafts ORDER BY updated_at DESC, title ASC LIMIT 25")
@@ -347,6 +393,15 @@ async function loadDraftsFromD1(db: D1Database): Promise<DraftFunnelRecord[]> {
 async function loadDraftFromD1(db: D1Database, draftId: string) {
   const drafts = await loadDraftsFromD1(db);
   return drafts.find((draft) => draft.id === draftId) ?? null;
+}
+
+async function purgeEventForIdempotencyKey(db: D1Database, idempotencyKey: string) {
+  const existing = await db
+    .prepare("SELECT * FROM funnel_purge_events WHERE idempotency_key = ?")
+    .bind(idempotencyKey)
+    .first<D1FunnelPurgeEventRow>();
+
+  return existing ? purgeEventFromRow(existing) : null;
 }
 
 async function loadDraftBySlugFromD1(db: D1Database, slug: string, status?: DraftFunnelStatus) {
@@ -1861,6 +1916,85 @@ export async function archiveDraftFunnel(
   return (await loadDraftFromD1(db, draft.id)) ?? { ...draft, status: "archived", previewRoute: null, revisionId: nextRevisionId };
 }
 
+export async function purgeArchivedDraftFunnel(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+): Promise<DraftFunnelPurgeResult> {
+  const replay = await purgeEventForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelPurgeConfirmationText) {
+    throw new Error("Exact archived draft purge confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+
+  if (draft.status !== "archived") {
+    throw new Error("Only archived draft funnels can be purged. Archive this draft before purging it.");
+  }
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before purging.");
+  }
+
+  const blockCount = draft.steps.reduce((total, step) => total + step.blocks.length, 0);
+  const metadata = {
+    issue: draftFunnelAdvancedParityIssue,
+    parentIssue: draftFunnelBuilderParentIssue,
+    action: "archived_draft_purge",
+    draftFunnelPurgeCapability: draftFunnelPurgeCapability.id,
+    expectedRevisionId: input.expectedRevisionId,
+    previousStatus: draft.status,
+    previousPreviewRoute: draft.previewRoute,
+    stepCount: draft.steps.length,
+    blockCount,
+    deletedDraftRows: true,
+    deletedStepRows: true,
+    deletedAuditRows: false,
+    deletedProductAssets: false,
+    deletedR2Objects: false,
+    deletedBuyerRecords: false,
+    directAgentWrite: false,
+    privateAuthDataIncluded: false,
+  };
+  const eventId = runtimeId("funnel-purge");
+  const summary = `${identityEmail(identity)} purged archived draft ${draft.title} after tombstone evidence was recorded.`;
+
+  await db.batch([
+    db
+      .prepare(
+        `INSERT INTO funnel_purge_events (
+          id, draft_id, draft_slug, draft_title, previous_status, previous_revision_id,
+          actor_user_id, actor_email, summary, idempotency_key, metadata_json, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch())
+        ON CONFLICT(idempotency_key) DO NOTHING`,
+      )
+      .bind(
+        eventId,
+        draft.id,
+        draft.slug,
+        draft.title,
+        draft.status,
+        draft.revisionId,
+        identity.userId,
+        identityEmail(identity),
+        summary,
+        input.idempotencyKey,
+        JSON.stringify(metadata),
+      ),
+    db.prepare("DELETE FROM funnel_drafts WHERE id = ? AND status = 'archived'").bind(draft.id),
+  ]);
+
+  const persisted = await purgeEventForIdempotencyKey(db, input.idempotencyKey);
+  if (!persisted) {
+    throw new Error("Archived draft purge tombstone was not recorded.");
+  }
+
+  return persisted;
+}
+
 export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
   return {
     id: `published-${draft.id}`,
@@ -1877,7 +2011,7 @@ export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {
     revisionId: draft.revisionId,
     steps: draft.steps,
     writeBoundary:
-      "Published D1 funnels are public read surfaces. Linked checkout blocks can render the existing sandbox checkout start panel after exact confirmation. Owner-session archive/unpublish can remove a published D1 draft from public source-data without deleting audit evidence. Further publishing edits, checkout-linking, destructive deletion, live billing, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
+      "Published D1 funnels are public read surfaces. Linked checkout blocks can render the existing sandbox checkout start panel after exact confirmation. Owner-session archive/unpublish can remove a published D1 draft from public source-data without deleting audit evidence. Further publishing edits, checkout-linking, non-archived purge, live billing, and agent writes require owner-session confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
     validation: [
       "Owner-session publish action requires exact confirmation and revision match.",
       "Public /funnels/{slug} route renders ordered D1 steps and blocks.",

@@ -2029,6 +2029,20 @@ h3 {
   grid-column: 1 / -1;
 }
 
+.field-hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.field-hint code {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 12px;
+}
+
 .admin-checkout-link-form {
   grid-template-columns: minmax(0, 1fr);
   padding-top: 12px;

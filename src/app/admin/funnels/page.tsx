@@ -28,6 +28,7 @@ import {
   draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
+  draftFunnelPurgeConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
   draftFunnelWebinarEventLinkConfirmationText,
@@ -224,6 +225,7 @@ export default async function AdminFunnelsPage() {
           {state.drafts.map((draft) => {
             const isArchived = draft.status === "archived";
             const canMutateDraft = state.canWrite && !isArchived;
+            const canPurgeDraft = state.canWrite && isArchived;
 
             return (
             <article key={draft.id} className="roadmap-card active">
@@ -282,10 +284,38 @@ export default async function AdminFunnelsPage() {
                 </form>
               ) : null}
               {isArchived ? (
-                <div className="admin-checkout-link-summary">
-                  <Archive aria-hidden="true" />
-                  <p>Archived. Public route is cleared; draft steps and audit evidence remain available to the owner.</p>
-                </div>
+                <>
+                  <div className="admin-checkout-link-summary">
+                    <Archive aria-hidden="true" />
+                    <p>Archived. Public route is cleared; draft steps and audit evidence remain available to the owner.</p>
+                  </div>
+                  <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
+                    <input type="hidden" name="mode" value="purge" />
+                    <input type="hidden" name="draftId" value={draft.id} />
+                    <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                    <input type="hidden" name="idempotencyKey" value={`purge-${draft.id}-${draft.revisionId}`} />
+                    <label className="admin-step-goal-field">
+                      Purge confirmation
+                      <input
+                        name="confirmationText"
+                        type="text"
+                        placeholder="Exact purge confirmation"
+                        disabled={!canPurgeDraft}
+                      />
+                    </label>
+                    <p className="field-hint">
+                      Type: <code>{draftFunnelPurgeConfirmationText}</code>
+                    </p>
+                    <p>
+                      Physically deletes this archived draft and its step rows after recording tombstone evidence. Prior audit
+                      events, product assets, R2 objects, buyer records, and billing state are not deleted.
+                    </p>
+                    <button type="submit" className="secondary-action danger-action" disabled={!canPurgeDraft}>
+                      Purge archived draft
+                      <Trash2 aria-hidden="true" />
+                    </button>
+                  </form>
+                </>
               ) : (
                 <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-duplicate-form">
                   <input type="hidden" name="mode" value="archive" />
