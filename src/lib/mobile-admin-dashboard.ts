@@ -296,6 +296,16 @@ export async function getMobileAdminDashboardSourceData() {
           completedAt: change.completedAt,
         })),
       })),
+      briefingControls: director.briefingControls.map((control) => ({
+        id: control.id,
+        label: control.label,
+        title: publicSafeText(control.title),
+        href: control.href,
+        sourceRoute: control.sourceRoute,
+        primaryMetric: control.primaryMetric,
+        secondaryMetric: publicSafeText(control.secondaryMetric),
+        workstreamIds: control.workstreamIds,
+      })),
       executiveQueue: director.executiveQueue.map((lane) => ({
         id: lane.id,
         label: lane.label,
