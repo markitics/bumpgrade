@@ -12,20 +12,21 @@ blocks. Issue #165 renders linked checkout blocks on published funnel routes as
 the existing sandbox checkout start surface. Issue #213 adds webinar and
 resource funnel template/page-block contracts plus D1 step-kind storage
 readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
-#341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #430 adds
-owner-session granular block title/body editing that preserves block IDs, block
-kinds, ordered step structure, and checkout-link metadata. Issue #432 adds
-owner-session block add/remove controls backed by the reusable block library
-while refusing checkout-linked block removal. Issue #409 links owner-created
-product test checkout links to the seeded offer/funnel delivery gates without
-live billing, signed URLs, private R2 delivery, or arbitrary customer
-fulfillment. Issue #417 adds owner-confirmed checkout unlinking,
-owner-confirmed resource delivery links to product/access catalog assets,
-owner-confirmed webinar event/replay links to public-safe external URLs, and
-owner-session within-step block reordering plus cross-step block moves, and remains the single post-MVP
-bucket for freeform drag-and-drop canvas editing, arbitrary private R2 delivery,
-live fulfillment automation, full webinar
-integrations, physical deletion policy, and direct agent-safe write tools.
+#341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #417 adds
+owner-confirmed checkout unlinking, owner-confirmed resource delivery links to
+product/access catalog assets, owner-confirmed webinar event/replay links to
+public-safe external URLs, owner-session within-step block reordering,
+cross-step block moves, and owner-confirmed archived-draft purge with tombstone
+evidence. Issue #430 adds owner-session granular block title/body editing that
+preserves block IDs, block kinds, ordered step structure, and checkout-link
+metadata. Issue #432 adds owner-session block add/remove controls backed by the
+reusable block library while refusing checkout-linked block removal. Issue #409
+links owner-created product test checkout links to the seeded offer/funnel
+delivery gates without live billing, signed URLs, private R2 delivery, or
+arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
+for freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live
+fulfillment automation, full webinar integrations, bulk retention policy, and
+direct agent-safe write tools.
 
 Live in this slice:
 
@@ -36,7 +37,8 @@ Live in this slice:
   metadata, owner-session resource delivery link capability metadata,
   owner-session webinar event link capability metadata,
   owner-session block reorder capability metadata, owner-session cross-step
-  block move capability metadata, owner-session
+  block move capability metadata, owner-session archived-draft purge capability
+  metadata, owner-session
   archive/unpublish lifecycle metadata, published D1 funnel
   summaries, aggregate owner product delivery-gate counts, and write boundary.
 - `/funnels/indie-launch-sandbox`: crawlable semantic preview of the seeded
@@ -55,18 +57,20 @@ Live in this slice:
   steps, remove safe unlinked blocks, attach the seeded sandbox checkout offer to
   checkout blocks, unlink checkout metadata from draft blocks, link
   resource/delivery blocks to product access assets, link webinar blocks to
-  public-safe event/replay URLs, and publish, archive, or unpublish private D1
-  draft funnels with ordered steps.
+  public-safe event/replay URLs, publish, archive, unpublish, and purge already
+  archived private D1 draft funnels with tombstone evidence.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
   current private D1 draft sequence.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
   block update, block add, block remove, block-reorder, block-cross-step-move, checkout-link,
   checkout-unlink, resource-delivery-link, webinar-event-link, exact-confirmed publish, and
-  exact-confirmed archive/unpublish actions with idempotency, revision checks, and audit rows.
+  exact-confirmed archive/unpublish actions, plus exact-confirmed archived-draft purge with
+  idempotency, revision checks, audit rows, and purge tombstone evidence.
   Reusable webinar/resource templates use the same exact-confirmed
   template-to-draft path.
-- D1 tables: `funnel_drafts`, `funnel_draft_steps`, and `funnel_audit_events`.
+- D1 tables: `funnel_drafts`, `funnel_draft_steps`, `funnel_audit_events`, and
+  `funnel_purge_events`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
   draft capability, and future MCP resources/tools.
 
@@ -75,7 +79,8 @@ Not live in this slice:
 - Freeform drag-and-drop visual editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
-- Physical deletion of funnels.
+- Direct agent purge, non-archived purge, checkout-linked direct deletion, or
+  bulk purge policy.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
 - Arbitrary private resource file delivery, R2 object selection, signed URLs,
@@ -150,11 +155,15 @@ confirmation text, an idempotency key, and a current revision ID; it changes the
 draft status to `archived`, clears the public route, removes the route from
 published D1 funnel source data, and preserves draft rows, ordered steps, block
 metadata, checkout-link metadata, resource-link metadata, webinar-link metadata,
-and audit rows. Future
+and audit rows. Purging requires a draft that is already `archived`, the exact
+purge confirmation text, an idempotency key, and the current archived revision
+ID; it records a `funnel_purge_events` tombstone before deleting the draft and
+step rows, and it does not delete prior audit rows, product assets, R2 objects,
+buyer records, billing state, or raw owner data. Future
 direct agent writes, direct agent checkout unlinking, direct agent resource
 delivery linking, direct agent webinar event linking, direct agent block
 reordering, direct agent cross-step block moves, live billing, live webinar
 scheduling, attendance tracking, replay hosting, arbitrary private R2 delivery,
-signed URLs, live fulfillment automation, physical deletion, and destructive draft actions
+signed URLs, live fulfillment automation, non-archived purge, bulk purge, and direct-agent draft destruction
 must add explicit confirmation, stale-state checks,
 audit correlation, redaction, and rollback notes before acting on draft state.
