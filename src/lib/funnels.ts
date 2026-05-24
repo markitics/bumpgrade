@@ -108,10 +108,11 @@ export const draftFunnelDuplicationIssue = 215;
 export const draftFunnelArchiveIssue = 341;
 export const draftFunnelBlockEditingIssue = 430;
 export const draftFunnelBlockStructureIssue = 432;
+export const draftFunnelAdvancedParityIssue = 417;
 export const draftFunnelBuilderParentIssue = 14;
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, and exact-confirmed checkout-offer linking on private draft steps. Deleting, destructive purge, drag-and-drop visual editing, direct agent template creation or duplication, direct webinar scheduling, private resource delivery, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
+  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, exact-confirmed checkout-offer linking on private draft steps, and exact-confirmed checkout unlinking on private draft blocks. Deleting, destructive purge, drag-and-drop visual editing, direct agent template creation or duplication, direct webinar scheduling, private resource delivery, and agent-initiated edits still require future confirmed-write APIs with actor identity, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -126,6 +127,7 @@ export const editableDraftCapability = {
   publishEndpoint: "/api/admin/funnels/drafts",
   archiveEndpoint: "/api/admin/funnels/drafts",
   checkoutLinkEndpoint: "/api/admin/funnels/drafts",
+  checkoutUnlinkEndpoint: "/api/admin/funnels/drafts",
   blockEditEndpoint: "/api/admin/funnels/drafts",
   blockStructureEndpoint: "/api/admin/funnels/drafts",
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events"],
@@ -138,12 +140,13 @@ export const editableDraftCapability = {
     "Read that owner sessions can preview private D1 draft state without publishing it.",
     "Read that owner sessions can publish a D1 draft to a stable public funnel route after exact confirmation.",
     "Read that owner sessions can attach the seeded sandbox checkout offer to a private draft step after exact confirmation.",
+    "Read that owner sessions can unlink checkout metadata from private draft blocks after exact confirmation.",
     "Read that owner sessions can duplicate a private draft after exact confirmation and a fresh revision check.",
     "Read that owner sessions can create private webinar and resource funnel drafts from reusable templates after exact confirmation.",
     "Read that owner sessions can archive private drafts or unpublish public D1 draft funnels after exact confirmation.",
     "Read that published linked checkout blocks can render the existing sandbox checkout start surface.",
     "Distinguish private draft creation from public funnel preview and publishing.",
-    "Cite issues #91, #93, #95, #135, #163, #165, #213, #215, #341, #430, and #432 before claiming editable, publishable, checkout-linkable, public checkout-start, webinar-template, resource-template, duplicate, archive/unpublish, granular block-edit, or block add/remove capability.",
+    "Cite issues #91, #93, #95, #135, #163, #165, #213, #215, #341, #417, #430, and #432 before claiming editable, publishable, checkout-linkable, checkout-unlinkable, public checkout-start, webinar-template, resource-template, duplicate, archive/unpublish, granular block-edit, or block add/remove capability.",
   ],
   notYetLive: [
     "Drag-and-drop layout editing",
@@ -212,17 +215,17 @@ export const draftFunnelBlockStructureCapability = {
     "Read that verified owners can add reusable block-library items to draft funnel steps from /admin/funnels.",
     "Read that verified owners can remove draft blocks only when the block is not carrying checkout-link metadata and the step keeps at least one block.",
     "Read that block add/remove writes require an owner session, idempotency key, and fresh draft revision.",
-    "Distinguish block add/remove from drag-and-drop visual editing, checkout-link deletion, destructive funnel deletion, private resource delivery, live billing, or direct public agent writes.",
+    "Distinguish block add/remove from the dedicated checkout unlink action, drag-and-drop visual editing, destructive funnel deletion, private resource delivery, live billing, or direct public agent writes.",
   ],
   notYetLive: [
     "Direct agent block add/remove without owner confirmation",
-    "Checkout-link removal or unlinking through block removal",
+    "Checkout-link unlinking through block removal instead of the dedicated confirmed action",
     "Drag-and-drop visual layout editing",
     "Physical purge of draft rows or audit events",
     "Live billing or fulfillment mutation from block structure edits",
   ],
   writeBoundary:
-    "Issue #432 lets verified owners add reusable block-library items to draft funnel steps and remove safe unlinked blocks after idempotency and a fresh revision check. Removal refuses checkout-linked blocks and refuses to leave a step empty. The write updates private draft block structure and audit evidence only; it does not unlink checkout offers, drag/drop layout, publish, bill, fulfill, schedule webinars, expose private resource delivery, physically delete rows, or create direct public agent writes.",
+    "Issue #432 lets verified owners add reusable block-library items to draft funnel steps and remove safe unlinked blocks after idempotency and a fresh revision check. Removal refuses checkout-linked blocks and refuses to leave a step empty; issue #417 provides the separate confirmed checkout unlink action. The write updates private draft block structure and audit evidence only; it does not drag/drop layout, publish, bill, fulfill, schedule webinars, expose private resource delivery, physically delete rows, or create direct public agent writes.",
 };
 
 export const draftFunnelDuplicationCapability = {
@@ -632,6 +635,44 @@ export const checkoutLinkingCapability = {
   ],
 };
 
+export const draftFunnelCheckoutUnlinkCapability = {
+  id: "funnel-block-checkout-unlink-owner-confirmed",
+  status: "owner-session-confirmed-write-ready",
+  issue: draftFunnelAdvancedParityIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  editEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: true,
+  idempotencyRequired: true,
+  staleRevisionRequired: true,
+  storesIn: "funnel_draft_steps.blocks_json",
+  auditTable: "funnel_audit_events",
+  removesCheckoutLink: true,
+  preservesBlock: true,
+  preservesBlockId: true,
+  preservesBlockKind: true,
+  preservesBlockTitle: true,
+  preservesBlockBody: true,
+  preservesStepOrder: true,
+  liveBillingEnabled: false,
+  rawOwnerDataIncluded: false,
+  safeForPublicAgents: [
+    "Read that verified owners can unlink checkout metadata from a private draft block from /admin/funnels.",
+    "Read that checkout unlinking requires exact owner confirmation, an idempotency key, and a fresh draft revision.",
+    "Read that checkout unlinking preserves the block ID, kind, title, body, step order, and audit evidence.",
+    "Distinguish checkout unlinking from block removal, publishing, live billing, fulfillment, destructive deletion, and direct public agent writes.",
+  ],
+  notYetLive: [
+    "Direct agent checkout unlinking without owner confirmation",
+    "Removing the block through checkout unlinking",
+    "Live billing or Stripe mutation from checkout unlinking",
+    "Private fulfillment mutation from checkout unlinking",
+  ],
+  writeBoundary:
+    "Issue #417 lets verified owners unlink checkout metadata from a private draft block after exact confirmation, idempotency, and a fresh revision check. The write preserves block ID, kind, title, body, step order, and audit evidence; it does not remove the block, publish, bill, fulfill, mutate Stripe, physically delete rows, or create direct public agent writes.",
+};
+
 export const publicFunnelCheckoutStartCapability = {
   id: "public-funnel-linked-checkout-start",
   status: "sandbox-checkout-start-ready",
@@ -669,8 +710,8 @@ export function getFunnelBySlug(slug: string) {
 export const funnelSourceData = {
   id: "bumpgrade-funnel-source-data",
   updatedAt: funnelsUpdatedAt,
-  status: "draft-block-structure-ready",
-  issue: draftFunnelBlockStructureIssue,
+  status: "draft-checkout-unlink-ready",
+  issue: draftFunnelAdvancedParityIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
   routes: [
@@ -689,6 +730,7 @@ export const funnelSourceData = {
     "funnelDraftBlockEditId",
     "funnelDraftBlockStructureEditId",
     "funnelCheckoutLinkId",
+    "funnelCheckoutUnlinkId",
     "funnelWebinarResourceTemplateId",
     "funnelRevisionId",
     "funnelDraftId",
@@ -707,6 +749,7 @@ export const funnelSourceData = {
   draftFunnelBlockStructureCapability,
   draftFunnelDuplicationCapability,
   draftFunnelArchiveCapability,
+  draftFunnelCheckoutUnlinkCapability,
   templateDraftCreationCapability,
   webinarResourceTemplateCapability,
   checkoutLinkingCapability,
@@ -716,5 +759,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, direct agent block editing, direct agent block add/remove, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, destructive deletion, direct agent duplication, direct agent archive/unpublish, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking from issue #417, public sandbox checkout start rendering on published linked checkout blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, direct agent block editing, direct agent block add/remove, direct agent checkout unlinking, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, destructive deletion, direct agent duplication, direct agent archive/unpublish, and unconfirmed agent-write APIs are not live.",
 };

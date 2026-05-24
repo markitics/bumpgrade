@@ -2083,6 +2083,19 @@ h3 {
   color: var(--muted);
 }
 
+.admin-block-unlink-form {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+  background: rgba(55, 95, 76, 0.05);
+}
+
+.admin-block-unlink-form textarea {
+  min-height: 68px;
+  width: 100%;
+}
+
 .danger-action {
   border-color: rgba(122, 45, 45, 0.32);
   color: #7a2d2d;

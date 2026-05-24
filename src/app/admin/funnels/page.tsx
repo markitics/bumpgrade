@@ -12,6 +12,7 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
+  Unlink,
 } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
@@ -19,6 +20,7 @@ import { getCurrentAdminState } from "@/lib/admin-auth";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
   draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelArchiveConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
@@ -26,7 +28,7 @@ import {
   draftFunnelTemplateCreationConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
-import { draftFunnelBlockStructureIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
+import { draftFunnelAdvancedParityIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -61,18 +63,18 @@ export default async function AdminFunnelsPage() {
             creation is live for the reusable template library, including webinar and resource page shapes. Owners can
             duplicate private drafts after a revision check and attach the seeded sandbox checkout offer to private draft
             checkout blocks. Granular block title/body editing and reusable block add/remove controls are live while
-            preserving checkout-linked block safety. Owners can also archive private drafts or unpublish public D1 draft
-            routes without deleting audit evidence. Destructive deletion, drag-and-drop layout editing, live webinar
-            integrations, private resource delivery, checkout unlinking, and direct agent edits still need confirmed-write
-            slices.
+            preserving checkout-linked block safety, and owners can now unlink checkout metadata from private draft blocks
+            before removing or relinking them. Owners can also archive private drafts or unpublish public D1 draft routes
+            without deleting audit evidence. Destructive deletion, drag-and-drop layout editing, live webinar integrations,
+            private resource delivery, and direct agent edits still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelBlockStructureIssue}`} className="secondary-action">
-              Issue #{draftFunnelBlockStructureIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelAdvancedParityIssue}`} className="secondary-action">
+              Issue #{draftFunnelAdvancedParityIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -459,7 +461,7 @@ export default async function AdminFunnelsPage() {
                             <input type="hidden" name="idempotencyKey" value={`block-remove-${draft.id}-${block.id}-${draft.revisionId}`} />
                             <p>
                               {block.checkoutLink
-                                ? "Checkout-linked blocks are protected in this slice."
+                                ? "Unlink checkout before removing this block."
                                 : step.blocks.length <= 1
                                   ? "A step must keep at least one block."
                                   : "Remove this unlinked block from the draft step."}
@@ -473,6 +475,35 @@ export default async function AdminFunnelsPage() {
                               <Trash2 aria-hidden="true" />
                             </button>
                           </form>
+                          {block.checkoutLink ? (
+                            <form action="/api/admin/funnels/drafts" method="post" className="admin-block-unlink-form">
+                              <input type="hidden" name="mode" value="unlink-checkout" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input type="hidden" name="idempotencyKey" value={`checkout-unlink-${draft.id}-${block.id}-${draft.revisionId}`} />
+                              <div className="admin-checkout-link-summary">
+                                <Unlink aria-hidden="true" />
+                                <p>
+                                  Unlink {block.checkoutLink.offerTitle} from this block. The block ID, kind, title, and body stay in the draft.
+                                </p>
+                              </div>
+                              <label className="admin-step-goal-field">
+                                Checkout unlink confirmation
+                                <textarea
+                                  name="confirmationText"
+                                  placeholder={draftFunnelCheckoutUnlinkConfirmationText}
+                                  rows={2}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
+                                Unlink checkout
+                                <Unlink aria-hidden="true" />
+                              </button>
+                            </form>
+                          ) : null}
                         </div>
                       ))}
                     </div>

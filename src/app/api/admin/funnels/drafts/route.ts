@@ -13,6 +13,7 @@ import {
   reorderDraftFunnelStep,
   removeDraftFunnelBlock,
   seedEditableFunnelDraft,
+  unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
   updateDraftFunnelStep,
 } from "@/lib/funnel-drafts";
@@ -120,6 +121,15 @@ export async function POST(request: NextRequest) {
         draftId: formValue(formData, "draftId"),
         stepId: formValue(formData, "stepId"),
         offerId: formValue(formData, "offerId"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+    } else if (mode === "unlink-checkout") {
+      draft = await unlinkDraftFunnelCheckoutLink(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockId: formValue(formData, "blockId"),
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,
