@@ -68,6 +68,36 @@ export type DirectorQueueLane = {
   items: DirectorQueueItem[];
 };
 
+export type DirectorBriefSignalId =
+  | "due-now"
+  | "in-flight"
+  | "pending-next"
+  | "changed-7-days"
+  | "watchlist";
+export type DirectorBriefSignalState =
+  | "empty"
+  | "needs_mark"
+  | "blocked"
+  | "active"
+  | "pending"
+  | "changed"
+  | "watch";
+
+export type DirectorBriefSignal = {
+  id: DirectorBriefSignalId;
+  label: string;
+  state: DirectorBriefSignalState;
+  title: string;
+  summary: string;
+  count: number;
+  evidence: DirectorEvidenceLink[];
+};
+
+export type DirectorWorkstreamBrief = {
+  headline: string;
+  signals: DirectorBriefSignal[];
+};
+
 export type DirectorWorkstream = {
   id: DirectorWorkstreamId;
   title: string;
@@ -75,6 +105,7 @@ export type DirectorWorkstream = {
   description: string;
   status: DirectorStatus;
   currentFocus: string;
+  brief: DirectorWorkstreamBrief;
   counts: {
     total: number;
     active: number;
@@ -448,6 +479,79 @@ function focusForWorkstream(
   return config.description;
 }
 
+function emptyBriefSignal(id: DirectorBriefSignalId, label: string, title: string): DirectorBriefSignal {
+  return {
+    id,
+    label,
+    state: "empty",
+    title,
+    summary: "No current item.",
+    count: 0,
+    evidence: [],
+  };
+}
+
+function initiativeBriefSignal(
+  id: DirectorBriefSignalId,
+  label: string,
+  state: Exclude<DirectorBriefSignalState, "empty">,
+  item: DirectorInitiative | undefined,
+  count: number,
+  emptyTitle: string,
+): DirectorBriefSignal {
+  if (!item) return emptyBriefSignal(id, label, emptyTitle);
+
+  return {
+    id,
+    label,
+    state,
+    title: item.title,
+    summary: item.summary,
+    count,
+    evidence: item.evidence.slice(0, 3),
+  };
+}
+
+function buildWorkstreamBrief(
+  config: (typeof workstreamConfig)[DirectorWorkstreamId],
+  counts: DirectorWorkstream["counts"],
+  items: Pick<
+    DirectorWorkstream,
+    "recentlyChanged" | "inFlight" | "pending" | "blocked" | "needsMark" | "watchlist"
+  >,
+): DirectorWorkstreamBrief {
+  const dueItem = items.needsMark[0] ?? items.blocked[0];
+  const dueState = items.needsMark[0] ? "needs_mark" : "blocked";
+  const signals: DirectorBriefSignal[] = [
+    initiativeBriefSignal(
+      "due-now",
+      "Due",
+      dueState,
+      dueItem,
+      counts.needsMark + counts.blocked,
+      "Nothing due",
+    ),
+    initiativeBriefSignal("in-flight", "Doing", "active", items.inFlight[0], counts.active, "No active work"),
+    initiativeBriefSignal("pending-next", "Next", "pending", items.pending[0], counts.pending, "No pending item"),
+    initiativeBriefSignal(
+      "changed-7-days",
+      "Changed 7d",
+      "changed",
+      items.recentlyChanged[0],
+      counts.changedPastWeek,
+      "No recent change",
+    ),
+    initiativeBriefSignal("watchlist", "Watch", "watch", items.watchlist[0], items.watchlist.length, "No watch item"),
+  ];
+  const firstLiveSignal = signals.find((signal) => signal.state !== "empty");
+  const headline = firstLiveSignal ? `${firstLiveSignal.label}: ${firstLiveSignal.title}` : config.description;
+
+  return {
+    headline,
+    signals,
+  };
+}
+
 function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLane[] {
   const dueNow = dedupeQueueItems(
     workstreams.flatMap((workstream) => [
@@ -569,6 +673,21 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       changedPastWeek,
       needsMark: needsMark.length,
     };
+    const recentlyChangedBrief = dedupeInitiatives(recentlyChanged, 6);
+    const inFlightBrief = dedupeInitiatives(active, 6);
+    const pendingBrief = dedupeInitiatives(pending, 6);
+    const shippedBrief = dedupeInitiatives(shipped, 4);
+    const blockedBrief = dedupeInitiatives(blocked, 4);
+    const needsMarkBrief = dedupeInitiatives(needsMark, 6);
+    const watchlistBrief = dedupeInitiatives(watchlist, 4);
+    const brief = buildWorkstreamBrief(config, counts, {
+      recentlyChanged: recentlyChangedBrief,
+      inFlight: inFlightBrief,
+      pending: pendingBrief,
+      blocked: blockedBrief,
+      needsMark: needsMarkBrief,
+      watchlist: watchlistBrief,
+    });
 
     return {
       id,
@@ -577,14 +696,15 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
       description: config.description,
       status: statusForCounts(counts),
       currentFocus: focusForWorkstream(config, active, pending, needsMark),
+      brief,
       counts,
-      recentlyChanged: dedupeInitiatives(recentlyChanged, 6),
-      inFlight: dedupeInitiatives(active, 6),
-      pending: dedupeInitiatives(pending, 6),
-      shipped: dedupeInitiatives(shipped, 4),
-      blocked: dedupeInitiatives(blocked, 4),
-      needsMark: dedupeInitiatives(needsMark, 6),
-      watchlist: dedupeInitiatives(watchlist, 4),
+      recentlyChanged: recentlyChangedBrief,
+      inFlight: inFlightBrief,
+      pending: pendingBrief,
+      shipped: shippedBrief,
+      blocked: blockedBrief,
+      needsMark: needsMarkBrief,
+      watchlist: watchlistBrief,
       sourceRecordIds: {
         roadmap: bucket.roadmap.map((item) => item.id),
         workLog: bucket.workLog.map((entry) => entry.id),

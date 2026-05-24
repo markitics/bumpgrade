@@ -2669,8 +2669,8 @@ h3 {
 
 .director-workstream summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, 0.8fr) auto;
-  gap: 22px;
+  grid-template-columns: minmax(240px, 0.85fr) minmax(420px, 1.15fr) auto;
+  gap: 18px;
   align-items: center;
   padding: 18px;
   cursor: pointer;
@@ -2690,32 +2690,88 @@ h3 {
   margin: 0;
 }
 
-.director-workstream summary dl {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0;
+.director-workstream-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.director-workstream summary dl div {
-  padding: 12px;
+.director-workstream-counts span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
   border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8faf7;
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.director-brief-signals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.director-brief-signal {
+  min-width: 0;
+  min-height: 104px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--line);
   border-radius: 8px;
   background: #f8faf7;
 }
 
-.director-workstream dt {
+.director-brief-signal.active {
+  border-top-color: var(--green);
+}
+
+.director-brief-signal.pending {
+  border-top-color: var(--gold);
+}
+
+.director-brief-signal.blocked {
+  border-top-color: #d35b45;
+}
+
+.director-brief-signal.shipped {
+  border-top-color: var(--blue);
+}
+
+.director-brief-signal span {
+  display: block;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
 }
 
-.director-workstream dd {
-  margin: 6px 0 0;
-  color: var(--green);
-  font-size: 26px;
-  font-weight: 900;
+.director-brief-signal strong {
+  display: -webkit-box;
+  margin-top: 7px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.82rem;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.director-brief-signal small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.25;
 }
 
 .director-workstream-toggle {
@@ -4475,8 +4531,8 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .director-workstream summary dl {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .director-brief-signals {
+    grid-template-columns: 1fr;
   }
 
   .gap-row {

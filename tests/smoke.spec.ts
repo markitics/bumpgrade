@@ -17612,6 +17612,16 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "marketing",
           title: "Marketing",
+          brief: expect.objectContaining({
+            headline: expect.any(String),
+            signals: expect.arrayContaining([
+              expect.objectContaining({ id: "due-now", label: "Due" }),
+              expect.objectContaining({ id: "in-flight", label: "Doing" }),
+              expect.objectContaining({ id: "pending-next", label: "Next" }),
+              expect.objectContaining({ id: "changed-7-days", label: "Changed 7d" }),
+              expect.objectContaining({ id: "watchlist", label: "Watch" }),
+            ]),
+          }),
           counts: expect.objectContaining({
             active: expect.any(Number),
             pending: expect.any(Number),
@@ -17784,6 +17794,17 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(weekWindow?.needsMark).toBe(1);
+    const marketing = payload.workstreams.find((workstream) => workstream.id === "marketing");
+    expect(marketing?.brief.signals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "changed-7-days",
+          state: "changed",
+          title: "Updated launch pricing copy",
+          count: 1,
+        }),
+      ]),
+    );
   });
 
   test("director workstreams only default-open for owner action or blockers", () => {
@@ -17995,6 +18016,51 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.workstreams.find((workstream) => workstream.id === "product-commerce")?.needsMark).toEqual([]);
     expect(payload.workstreams.find((workstream) => workstream.id === "product-commerce")?.watchlist).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "roadmap-live-caveat" })]),
+    );
+    expect(payload.workstreams.find((workstream) => workstream.id === "security-trust")?.brief).toEqual(
+      expect.objectContaining({
+        headline: "Due: Review security launch posture",
+        signals: expect.arrayContaining([
+          expect.objectContaining({
+            id: "due-now",
+            state: "needs_mark",
+            title: "Review security launch posture",
+            count: 1,
+          }),
+        ]),
+      }),
+    );
+    expect(payload.workstreams.find((workstream) => workstream.id === "product-commerce")?.brief.signals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "in-flight",
+          state: "active",
+          title: "Checkout offer parity",
+          count: 1,
+        }),
+        expect.objectContaining({
+          id: "watchlist",
+          state: "watch",
+          title: "Live billing caveat",
+          count: 1,
+        }),
+      ]),
+    );
+    expect(payload.workstreams.find((workstream) => workstream.id === "marketing")?.brief.signals).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "pending-next",
+          state: "pending",
+          title: "Marketing weekly brief",
+          count: 1,
+        }),
+        expect.objectContaining({
+          id: "due-now",
+          state: "empty",
+          title: "Nothing due",
+          count: 0,
+        }),
+      ]),
     );
   });
 
