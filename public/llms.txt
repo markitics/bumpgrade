@@ -31,6 +31,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Customer product access lookup API: https://bumpgrade.com/api/products/entitlements
 - Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
 - Protected product content API: https://bumpgrade.com/api/products/protected-content
+- Owner product catalog API: https://bumpgrade.com/api/admin/products/catalog (human page/API requires Better Auth owner session)
+- Owner product test offer/access grant API: https://bumpgrade.com/api/admin/products/offer-access-grants (human page/API requires Better Auth owner session)
 - Owner product revocation intent API: https://bumpgrade.com/api/admin/products/revocation-intents (human page/API requires Better Auth owner session)
 - Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
 - Audience automation source data: https://bumpgrade.com/audience/source-data
@@ -209,22 +211,32 @@ GitHub repo: https://github.com/markitics/bumpgrade
   intent, matching active entitlement, protected content section id, and current
   paid/completed checkout state. Public
   product source-data exposes aggregate entitlement inspection counts, customer
-  lookup contract metadata, download-token contract metadata, owner upload
+  lookup contract metadata, download-token contract metadata, owner product
+  creation metadata, owner-created product test grant metadata, owner upload
   intent metadata, owner-confirmed non-destructive revocation intent metadata, protected
   content readiness, protected fixture delivery metadata, subscription-backed
   membership access metadata, and redaction
-  flags only. `/api/admin/products/assets` lets verified owners create small
+  flags only. `/api/admin/products/catalog` lets verified owners create draft
+  product records after exact confirmation and idempotency without Stripe
+  product/price creation or fulfillment mutation.
+  `/api/admin/products/offer-access-grants` lets verified owners link an
+  owner-created product to test offer/funnel IDs and create synthetic paid
+  checkout intent, entitlement, fulfillment task, and audit evidence without
+  Stripe Checkout Sessions, live charges, published offer copy, public buyer
+  exposure, or live fulfillment delivery. `/api/admin/products/assets` lets verified owners create small
   private asset upload records after exact confirmation, idempotency, and
   catalog revision checks, but those records are not customer-deliverable yet.
   `/api/admin/products/revocation-intents` lets verified owners record
   non-destructive access-removal intent after exact confirmation, idempotency,
   and current entitlement status checks, but it does not revoke access.
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
-  fixture delivery, protected fixture delivery, owner upload-intent,
-  revocation-intent, protected-content-readiness, and subscription-membership
-  access evidence, not signed
-  object URLs, customer delivery of arbitrary uploads, arbitrary protected body delivery, destructive revocation, live
-  fulfillment automation, Customer Portal actions, or a confirmed-write agent API.
+  fixture delivery, protected fixture delivery, owner product creation,
+  owner-created product test grants, owner upload-intent, revocation-intent,
+  protected-content-readiness, and subscription-membership access evidence, not
+  signed object URLs, customer delivery of arbitrary uploads, arbitrary
+  protected body delivery, destructive revocation, live offer/funnel publishing,
+  live charges, live fulfillment automation, Customer Portal actions, or a
+  confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression

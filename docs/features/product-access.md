@@ -18,7 +18,9 @@ Billing webhooks. Issue #251 adds owner-confirmed, non-destructive revocation
 intent records with exact confirmation, idempotency, and stale-state checks.
 Issue #403 adds owner-confirmed draft product creation records with exact
 confirmation, idempotency, duplicate-slug checks, and public-safe aggregate
-source data.
+source data. Issue #405 links owner-created products to test offer/funnel IDs
+and creates synthetic paid checkout/access grant evidence without live Stripe
+checkout, live charges, published offer copy, or public buyer exposure.
 
 Live in this slice:
 
@@ -49,9 +51,15 @@ Live in this slice:
   checkout is still paid or completed.
 - `/api/admin/products/catalog`: lets verified owners create draft product
   records after exact confirmation and idempotency without creating Stripe
-  products or prices, linking offers/funnels, granting fulfillment, creating
-  customer access, exposing owner identity, or enabling direct unauthenticated
-  agent writes.
+  products or prices, creating customer access, exposing owner identity, or
+  enabling direct unauthenticated agent writes.
+- `/api/admin/products/offer-access-grants`: lets verified owners link an
+  owner-created product to test offer/funnel IDs and create a synthetic paid
+  checkout intent, product entitlement, fulfillment task evidence, and audit
+  event after exact confirmation and idempotency. It does not create Stripe
+  products, Stripe prices, Checkout Sessions, live charges, published offer
+  copy, customer-facing fulfillment delivery, raw buyer exposure, or direct
+  unauthenticated agent writes.
 - `billing_subscriptions` plus `product_entitlements`: trusted
   `customer.subscription.created`, `customer.subscription.updated`, and
   `customer.subscription.deleted` webhooks mirror Stripe Billing state and sync
@@ -79,8 +87,10 @@ Not live in this slice:
 - Real protected course lessons, videos, transcripts, progress records, member
   posts, customer delivery of arbitrary private R2-backed asset uploads, or live
   fulfillment delivery.
-- Stripe product/price creation, offer or funnel product linking, and test-mode
+- Stripe product/price creation, live offer/funnel publishing, and live
   purchase-to-created-product fulfillment for owner-created draft products.
+  Issue #405 records only test offer/funnel linkage and synthetic paid test
+  access-grant evidence.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions. The issue #187 fixture can activate or pause one seeded
   checkout-linked membership entitlement from trusted subscription state, but it
@@ -115,6 +125,12 @@ Public redaction boundary:
   supported-kind policy text. `/admin/products` can inspect recent owner-created
   draft product records. Public source-data does not include owner emails, actor
   user IDs, idempotency keys, raw metadata, or raw Stripe IDs.
+- `/products/source-data` exposes aggregate owner-created product test grant
+  counts and supported policy text. `/admin/products` can inspect the linked
+  product, test offer/funnel IDs, synthetic checkout state, entitlement status,
+  and fulfillment evidence. Public source-data does not include buyer emails,
+  buyer hashes, checkout intent IDs, entitlement IDs, idempotency keys, raw
+  metadata, owner identity, or raw Stripe IDs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   owner emails, actor user IDs, idempotency keys, private R2 object keys, signed
   URLs, real lesson bodies, member posts, transcripts, Customer Portal URLs, and
