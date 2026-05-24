@@ -1324,7 +1324,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",
     featureStatus: "launch-preview",
-    issueNumbers: [13, 67, 68, 153, 155, 157],
+    issueNumbers: [414, 13, 67, 68, 153, 155, 157],
     primaryUser: "Publisher away from desktop",
     userGoal: "Open the future Bumpgrade mobile app to check roadmap, work-log, for-Mark attention, and commerce health without separate mobile-only semantics.",
     sourceEvidence: [
@@ -1333,6 +1333,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://bumpgrade.com/mobile-admin/ios/source-data",
       "https://bumpgrade.com/mobile-admin/android/source-data",
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
+      "https://github.com/markitics/bumpgrade/issues/414",
       "https://github.com/markitics/bumpgrade/issues/13",
       "https://github.com/markitics/bumpgrade/issues/67",
       "https://github.com/markitics/bumpgrade/issues/68",
@@ -1347,8 +1348,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "For Android, open the first emulator scaffold and read the live dashboard payload, falling back to the same generated fixture if the network is unavailable.",
       "Confirm the Expo, iOS, and Android surfaces distinguish live network hydration from fixture fallback while keeping the dashboard read-only.",
       "Use the dashboard digest to resolve live /admin/source-data, /features/source-data, /roadmap/source-data, /commerce/source-data, and /agent-docs/source-data without scraping private admin pages.",
-      "Review work-log entries, for-Mark attention, and checkout health.",
-      "Follow iOS issue #67, Android issue #68, dashboard issue #153, scaffold rendering issue #155, or live hydration issue #157 for implementation evidence.",
+      "Use issue #414 for private mobile auth, confirmed-write UX, device proof, push-notification boundaries, and eventual distribution readiness.",
+      "Follow closed scaffold issues #13, #67, #68, #153, #155, and #157 for completed read-only evidence.",
     ],
     edgeCases: [
       "The iOS simulator target is not App Store distribution, push notifications, private mobile auth, or confirmed-write support.",
@@ -1360,6 +1361,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     agentAccess:
       "Agents can read /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /mobile-admin/ios/source-data, and /mobile-admin/android/source-data to understand app scope, live public-safe mobile digest state, and smoke evidence; they must not claim mobile app parity until private auth, distribution, and confirmed writes ship.",
     validation: [
+      "Issue #414 tracks private mobile auth, confirmed-write UX, device proof, push-notification boundaries, and eventual distribution readiness after scaffold closeout.",
       "Issue #13 defines the shared contract and splits iOS and Android child issues.",
       "Issue #67 adds an Expo app scaffold, generated fixture, iOS simulator target, validation command, smoke command, and screenshot path.",
       "Issue #68 adds a native Android activity, generated fixture asset, emulator target, validation command, smoke command, and screenshot path.",

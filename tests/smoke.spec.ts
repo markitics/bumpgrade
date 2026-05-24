@@ -17270,7 +17270,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",
           featureId: "feature-mobile-admin",
-          issueNumbers: [13, 67, 68, 153, 155, 157],
+          issueNumbers: [414, 13, 67, 68, 153, 155, 157],
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-audience-automation",
@@ -19096,6 +19096,7 @@ test.describe("Bumpgrade scaffold", () => {
     const payload = await response.json();
     expect(payload.id).toBe(mobileAdminContract.id);
     expect(payload.parentIssue).toBe(13);
+    expect(payload.currentFollowupIssue).toBe(414);
     expect(payload.publicBaseUrl).toBe("https://bumpgrade.com");
     expect(payload.status).toBe("contract-ready");
     expect(payload.liveDashboard).toEqual(
@@ -19199,7 +19200,7 @@ test.describe("Bumpgrade scaffold", () => {
         total: featureCatalog.length,
         launchPreview: expect.any(Number),
         pending: 0,
-        mobileFeature: expect.objectContaining({ id: "feature-mobile-admin", issue: 13 }),
+        mobileFeature: expect.objectContaining({ id: "feature-mobile-admin", issue: 414 }),
       }),
     );
     expect(payload.adminDigest).toEqual(

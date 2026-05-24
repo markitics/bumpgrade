@@ -248,13 +248,14 @@ export const roadmapItems: RoadmapItem[] = [
     id: "roadmap-mobile-admin",
     title: "Publisher admin apps for iOS and Android",
     status: "active",
-    issue: 13,
-    featureId: featureIdFor(13),
+    issue: 414,
+    featureId: featureIdFor(414),
     group: "Mobile",
     summary:
-      "Shared mobile-admin contract, live public-safe dashboard source-data, plus iOS, Android, and Expo scaffolds that live-read the dashboard route with fixture fallback.",
+      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, iOS scaffold, Android scaffold, and live-hydration slices.",
     publicEvidence: [
-      "Tracked by issue #13.",
+      "Current active follow-up tracked by issue #414.",
+      "Original scaffold contract tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
       "Live dashboard source-data slice tracked by issue #153.",
@@ -266,7 +267,7 @@ export const roadmapItems: RoadmapItem[] = [
       "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     nextMilestone:
-      "Add mobile auth and confirmed-write UX in follow-up slices after the read-only live dashboard stabilizes.",
+      "Add private mobile auth, confirmed-write UX, device proof, push-notification boundaries, and eventual distribution readiness without claiming App Store or Play Store parity early.",
   },
   {
     id: "roadmap-funnels",
