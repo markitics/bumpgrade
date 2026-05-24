@@ -95,6 +95,12 @@ Every main roadmap item should link to:
 
 Purpose: durable diary of how agents used their time.
 
+The browser view supports time-window filtering with `/admin/work-log`,
+`/admin/work-log?window=past-1-day`, and
+`/admin/work-log?window=past-7-days`. Use the filtered browser view when Mark
+asks what changed recently; use `/admin/work-log/source-data` for agent-side
+audit reads.
+
 Append public-safe work-log rows with:
 
 ```bash

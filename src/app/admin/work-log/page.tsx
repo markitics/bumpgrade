@@ -6,6 +6,11 @@ import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
 import { buildDirectorStatusData, type DirectorWindowChange } from "@/lib/director-status";
+import {
+  filterWorkLogEntriesForWindow,
+  normalizeWorkLogWindowFilter,
+  workLogWindowFilterOptions,
+} from "@/lib/work-log-window-filter";
 
 export const metadata: Metadata = {
   title: "Admin work log",
@@ -14,6 +19,12 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+type WorkLogPageProps = {
+  searchParams?: Promise<{
+    window?: string | string[];
+  }>;
+};
 
 function WindowChangeList({ changes }: { changes: DirectorWindowChange[] }) {
   if (!changes.length) return <p>No named changes in this window.</p>;
@@ -30,12 +41,21 @@ function WindowChangeList({ changes }: { changes: DirectorWindowChange[] }) {
   );
 }
 
-export default async function WorkLogPage() {
+function workLogWindowHref(id: string) {
+  return id === "all" ? "/admin/work-log" : `/admin/work-log?window=${id}`;
+}
+
+export default async function WorkLogPage({ searchParams }: WorkLogPageProps) {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/work-log" />;
 
+  const params = await searchParams;
   const data = await getAdminSurfaceData();
   const director = buildDirectorStatusData(data);
+  const activeWindow = normalizeWorkLogWindowFilter(params?.window);
+  const activeWindowOption =
+    workLogWindowFilterOptions.find((option) => option.id === activeWindow) ?? workLogWindowFilterOptions[0];
+  const visibleEntries = filterWorkLogEntriesForWindow(data.workLogEntries, director.windows, activeWindow);
 
   return (
     <main className="roadmap-page admin-roadmap-page">
@@ -87,6 +107,10 @@ export default async function WorkLogPage() {
                 {window.changedWorkstreams} workstreams changed; {window.needsMark} attention flags.
               </span>
               <WindowChangeList changes={window.recentChanges} />
+              <Link href={workLogWindowHref(window.id)} className="text-link compact-link">
+                View {window.label}
+                <ArrowRight aria-hidden="true" />
+              </Link>
             </article>
           ))}
         </div>
@@ -96,43 +120,73 @@ export default async function WorkLogPage() {
         <div className="roadmap-section-heading">
           <div>
             <p className="eyebrow">Recent work</p>
-            <h2>What changed and how it was verified</h2>
+            <h2>{activeWindowOption.heading}</h2>
+            <span>
+              {visibleEntries.length} of {data.workLogEntries.length} entries
+            </span>
           </div>
         </div>
-        <div className="admin-surface-list">
-          {data.workLogEntries.map((entry) => (
-            <article key={entry.id} className="admin-surface-card">
-              <div className="roadmap-card-top">
-                <span className="admin-pill">{entry.agentName}</span>
-                <time dateTime={entry.completedAt}>{new Date(entry.completedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</time>
-              </div>
-              <h3>{entry.title}</h3>
-              <p>{entry.promptFromMark}</p>
-              {entry.flagsAttention ? <div className="roadmap-attention"><span>{entry.flagsAttention}</span></div> : null}
-              <div className="admin-meta-grid">
-                <div>
-                  <strong>Issues</strong>
-                  <span>{entry.githubIssues.map((issue) => issue.number ? `#${issue.number}` : issue.url).join(", ") || "None"}</span>
-                </div>
-                <div>
-                  <strong>PRs</strong>
-                  <span>{entry.closedPrs.map((pr) => pr.number ? `#${pr.number}` : pr.url).join(", ") || "None"}</span>
-                </div>
-              </div>
-              <ul>
-                {entry.validation.slice(0, 5).map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <div className="admin-link-list">
-                {entry.relevantUrls.slice(0, 5).map((url) => (
-                  <Link key={url} href={url}>
-                    {url.replace("https://bumpgrade.com", "") || "bumpgrade.com"}
-                  </Link>
-                ))}
-              </div>
-            </article>
+        <nav className="work-log-window-tabs" aria-label="Work-log time window">
+          {workLogWindowFilterOptions.map((option) => (
+            <Link
+              key={option.id}
+              href={workLogWindowHref(option.id)}
+              className={option.id === activeWindow ? "active" : ""}
+              aria-current={option.id === activeWindow ? "page" : undefined}
+            >
+              {option.label}
+            </Link>
           ))}
+        </nav>
+        <div className="admin-surface-list">
+          {visibleEntries.length ? (
+            visibleEntries.map((entry) => (
+              <article key={entry.id} className="admin-surface-card">
+                <div className="roadmap-card-top">
+                  <span className="admin-pill">{entry.agentName}</span>
+                  <time dateTime={entry.completedAt}>
+                    {new Date(entry.completedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                  </time>
+                </div>
+                <h3>{entry.title}</h3>
+                <p>{entry.promptFromMark}</p>
+                {entry.flagsAttention ? (
+                  <div className="roadmap-attention">
+                    <span>{entry.flagsAttention}</span>
+                  </div>
+                ) : null}
+                <div className="admin-meta-grid">
+                  <div>
+                    <strong>Issues</strong>
+                    <span>
+                      {entry.githubIssues.map((issue) => (issue.number ? `#${issue.number}` : issue.url)).join(", ") ||
+                        "None"}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>PRs</strong>
+                    <span>{entry.closedPrs.map((pr) => (pr.number ? `#${pr.number}` : pr.url)).join(", ") || "None"}</span>
+                  </div>
+                </div>
+                <ul>
+                  {entry.validation.slice(0, 5).map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <div className="admin-link-list">
+                  {entry.relevantUrls.slice(0, 5).map((url) => (
+                    <Link key={url} href={url}>
+                      {url.replace("https://bumpgrade.com", "") || "bumpgrade.com"}
+                    </Link>
+                  ))}
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="admin-surface-card">
+              <p>No work-log entries in this window.</p>
+            </article>
+          )}
         </div>
       </section>
     </main>
