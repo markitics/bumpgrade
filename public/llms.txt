@@ -303,6 +303,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   aggregate broadcast readiness/schedule intent/preview safety/queue readiness/delivery-batch/queue-message/dispatch preflight/dispatch attempt/sender-domain/provider-event/provider rate-limit/provider response/send-payload/Queue producer/Queue consumer/provider-call/delivery-attempt/delivery-result/delivery-status-webhook/provider-polling/receipt-payload/import-intent/import-preflight/export-readiness/sequence-delivery-readiness/sequence-delivery-batch/sequence-queue-message/sequence-dispatch-preflight/sequence-dispatch-attempt/sequence-Queue-producer-readiness/sequence-Queue-consumer-readiness/sequence-provider-call-readiness/sequence-delivery-attempt-readiness/sequence-delivery-result-readiness/sequence-delivery-status-webhook-readiness/sequence-provider-polling-readiness/sequence-receipt-payload-readiness evidence, not live email sending, sequence delivery, Cloudflare Queue producer or consumer execution, Cloudflare Queue dispatch, Queue message consumption or acknowledgements, retry/dead-letter rows, provider calls, delivery attempts, delivery results, webhooks, webhook payloads, provider polling, provider polling results, receipt payloads, receipts,
   real contact import, raw contact row storage, subscriber creation from imports, CRM automation, private export, suppression-list
   administration, or a direct agent subscriber-write API.
+- Issue #17 is the live audience/email MVP boundary. Issue #420 tracks the
+  remaining live delivery, automation execution, sender/provider, Queue,
+  receipt, import/export, and agent-safe write parity work as one pending bucket.
 - `/analytics/source-data` exposes the first analytics and experimentation
   workspace with event definitions, aggregate event counts, aggregate source
   attribution counts, aggregate variant event counts, aggregate assignment

@@ -805,7 +805,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "feature-funnel-builder", status: "live" }),
         expect.objectContaining({ id: "feature-checkout-offers", status: "launch-preview" }),
         expect.objectContaining({ id: "feature-products-access", status: "live" }),
-        expect.objectContaining({ id: "feature-email-automation-crm", status: "launch-preview" }),
+        expect.objectContaining({ id: "feature-email-automation-crm", status: "live" }),
       ]),
     );
     expect(payload.marketingFeatures).toHaveLength(marketingFeatures.length);
@@ -17312,7 +17312,7 @@ test.describe("Bumpgrade scaffold", () => {
           featureId: "feature-email-automation-crm",
           issueNumbers: [
             17, 85, 103, 137, 167, 169, 171, 173, 175, 177, 183, 189, 191, 197, 199, 201, 203, 205, 207, 209,
-            211, 253, 259, 347, 351, 354, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376, 378, 380,
+            211, 253, 259, 347, 351, 354, 358, 360, 362, 364, 366, 368, 370, 372, 374, 376, 378, 380, 420,
           ],
         }),
         expect.objectContaining({

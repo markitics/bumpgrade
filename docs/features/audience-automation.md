@@ -5,6 +5,14 @@ contract, the first consent-backed opt-in capture path, owner-gated subscriber
 inspection, public-safe unsubscribe/suppression evidence, owner-only CRM
 timeline notes, broadcast draft readiness, dry-run schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, owner-reviewed sequence Queue consumer readiness gates, owner-reviewed sequence provider-call readiness gates, owner-reviewed sequence delivery-attempt readiness gates, owner-reviewed sequence delivery-result readiness gates, owner-reviewed sequence delivery-status webhook readiness gates, owner-reviewed sequence provider-polling readiness gates, owner-reviewed sequence receipt-payload readiness gates, preview/footer safety, queue readiness, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, owner-confirmed audience import intents, owner-confirmed audience import preflights, aggregate export readiness, and aggregate sequence delivery readiness for issue #17.
 
+Issue #17 is the live audience/email MVP boundary: consent-backed opt-in capture,
+unsubscribe/suppression, owner subscriber inspection, CRM-lite notes, dry-run
+broadcast and sequence readiness, and source-data contracts. Issue #420 owns the
+post-MVP execution bucket for live sender/provider setup, Queue producer and
+consumer execution, recipient payloads, provider calls, delivery results,
+webhooks, polling, receipts, real imports/exports, automation execution, and
+direct agent-safe write APIs.
+
 ## Live Routes
 
 - `/audience/source-data`: public-safe JSON for the seeded audience automation workspace.
@@ -295,6 +303,10 @@ exports, or suppression-list administration require future authenticated
 confirmed-write APIs with actor identity, explicit consent or lawful basis,
 idempotency, audit correlation, stale-state checks, redaction, suppression-list
 checks, unsubscribe footer validation, provider limits, sender-domain safety, provider-event safety, provider rate-limit safety, provider response safety, send-payload safety, Queue producer safety, Queue consumer safety, provider-call safety, delivery-attempt safety, delivery-result safety, delivery-status webhook safety, provider-polling safety, and queue safety.
+
+Keep that post-MVP execution work grouped under issue #420 rather than splitting
+more isolated readiness-gate issues unless the slice directly unlocks live
+execution.
 
 Codex project email in issue #10 is separate from customer or publisher email
 automation in issue #17.
