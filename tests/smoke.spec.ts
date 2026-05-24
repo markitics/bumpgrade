@@ -17055,6 +17055,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
         expect.objectContaining({ id: "roadmap-checkout-offers", status: "shipped", issue: 15 }),
+        expect.objectContaining({ id: "roadmap-live-publisher-offer-billing", status: "planned", issue: 219 }),
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
       ]),
     );
@@ -17067,6 +17068,20 @@ test.describe("Bumpgrade scaffold", () => {
           expect.stringContaining("Issue #165"),
         ]),
         nextMilestone: expect.stringContaining("issue #219"),
+      }),
+    );
+    const livePublisherOfferBilling = payload.items.find(
+      (item: { id: string }) => item.id === "roadmap-live-publisher-offer-billing",
+    );
+    expect(livePublisherOfferBilling).toEqual(
+      expect.objectContaining({
+        group: "Checkout and offers",
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #219"),
+          expect.stringContaining("sandbox-only"),
+          expect.stringContaining("Bumpgrade subscription checkout"),
+        ]),
+        nextMilestone: expect.stringContaining("STRIPE_WEBHOOK_SECRET_LIVE"),
       }),
     );
     const funnelRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-funnels");
@@ -17466,6 +17481,17 @@ test.describe("Bumpgrade scaffold", () => {
         "/admin/director/source-data",
         "/admin/work-log/source-data",
         "/admin/roadmap/source-data",
+      ]),
+    );
+    const pendingNext = payload.executiveQueue.find((lane: { id: string }) => lane.id === "pending-next");
+    expect(pendingNext?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-live-publisher-offer-billing",
+          queueLabel: "Pending next",
+          workstreamId: "product-commerce",
+          evidence: expect.arrayContaining([expect.objectContaining({ number: 219 })]),
+        }),
       ]),
     );
   });
