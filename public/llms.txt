@@ -401,7 +401,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   dispatch, private partner portal access, direct agent review writes, or
   payable commission execution. Owner sessions can
   review, hold, or reverse review-only commission evidence through the gated
-  admin action API.
+  admin action API. Issue #19 is the live affiliate/referral MVP boundary.
+  Issue #424 tracks remaining live payout execution, partner notification
+  execution, fraud enforcement, private partner portal, payout/tax-data, buyer
+  attribution finalization, and agent-safe affiliate/referral write parity work
+  as one pending bucket.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.

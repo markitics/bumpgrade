@@ -807,6 +807,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "feature-products-access", status: "live" }),
         expect.objectContaining({ id: "feature-email-automation-crm", status: "live" }),
         expect.objectContaining({ id: "feature-analytics-testing", status: "live" }),
+        expect.objectContaining({ id: "feature-affiliates-referrals", status: "live" }),
       ]),
     );
     expect(payload.marketingFeatures).toHaveLength(marketingFeatures.length);
@@ -17062,6 +17063,8 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
         expect.objectContaining({ id: "roadmap-analytics-testing", status: "shipped", issue: 18 }),
         expect.objectContaining({ id: "roadmap-live-analytics-execution", status: "planned", issue: 422 }),
+        expect.objectContaining({ id: "roadmap-affiliates-referrals", status: "shipped", issue: 19 }),
+        expect.objectContaining({ id: "roadmap-live-affiliate-execution", status: "planned", issue: 424 }),
       ]),
     );
     const checkoutRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-checkout-offers");
@@ -17147,6 +17150,30 @@ test.describe("Bumpgrade scaffold", () => {
         nextMilestone: expect.stringContaining("confirmed-write checks"),
       }),
     );
+    const affiliateRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-affiliates-referrals");
+    expect(affiliateRoadmap).toEqual(
+      expect.objectContaining({
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #281"),
+          expect.stringContaining("Issue #424"),
+        ]),
+        nextMilestone: expect.stringContaining("issue #424"),
+      }),
+    );
+    const liveAffiliateExecution = payload.items.find(
+      (item: { id: string }) => item.id === "roadmap-live-affiliate-execution",
+    );
+    expect(liveAffiliateExecution).toEqual(
+      expect.objectContaining({
+        group: "Growth system",
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("#424"),
+          expect.stringContaining("Issue #19 remains the shipped affiliate/referral MVP"),
+          expect.stringContaining("single-gate proof slices"),
+        ]),
+        nextMilestone: expect.stringContaining("confirmed-write checks"),
+      }),
+    );
   });
 
   test("admin source data exposes durable admin surface records", async ({ request }) => {
@@ -17174,6 +17201,21 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(analyticsRoadmap)).toContain("provider-call");
     expect(JSON.stringify(analyticsRoadmap)).toContain("provider-status");
     expect(JSON.stringify(analyticsRoadmap)).toContain("direct agent-safe write parity");
+    const affiliateRoadmap = payload.roadmapItems.find(
+      (item: { id: string }) => item.id === "roadmap-affiliates-referrals",
+    );
+    expect(affiliateRoadmap).toEqual(
+      expect.objectContaining({
+        status: "live",
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #281"),
+          expect.stringContaining("Issue #424"),
+        ]),
+        nextMilestone: expect.stringContaining("issue #424"),
+      }),
+    );
+    expect(JSON.stringify(affiliateRoadmap)).toContain("partner notification");
+    expect(JSON.stringify(affiliateRoadmap)).toContain("agent-safe write parity");
     if (payload.source !== "fixture") {
       expect(payload.workLogEntries).toEqual(
         expect.arrayContaining([
@@ -17208,6 +17250,10 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({
             id: "work-log-2026-05-24-analytics-mvp-live-closeout",
             title: expect.stringContaining("Analytics MVP"),
+          }),
+          expect.objectContaining({
+            id: "work-log-2026-05-24-affiliate-mvp-live-closeout",
+            title: expect.stringContaining("Affiliate/referral MVP"),
           }),
         ]),
       );
@@ -17395,7 +17441,9 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-affiliate-referrals",
           featureId: "feature-affiliates-referrals",
-          issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279, 281],
+          featureStatus: "live",
+          issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279, 281, 424],
+          sourceEvidence: expect.arrayContaining(["https://github.com/markitics/bumpgrade/issues/424"]),
         }),
         expect.objectContaining({
           id: "journey-publisher-reads-affiliate-partner-reports",
@@ -17405,6 +17453,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-prepares-affiliate-payout-batch",
           featureId: "feature-affiliates-referrals",
+          featureStatus: "live",
           issueNumbers: [19, 113, 115, 193, 195, 273, 275, 277, 279, 281],
         }),
         expect.objectContaining({
@@ -17547,6 +17596,12 @@ test.describe("Bumpgrade scaffold", () => {
           queueLabel: "Pending next",
           workstreamId: "product-commerce",
           evidence: expect.arrayContaining([expect.objectContaining({ number: 417 })]),
+        }),
+        expect.objectContaining({
+          id: "roadmap-live-affiliate-execution",
+          queueLabel: "Pending next",
+          workstreamId: "analytics-growth",
+          evidence: expect.arrayContaining([expect.objectContaining({ number: 424 })]),
         }),
       ]),
     );
