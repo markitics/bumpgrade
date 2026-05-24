@@ -317,7 +317,12 @@ import {
   productAssetUploadIntentStatus,
   productAssetUploadMaxBytes,
 } from "../src/lib/product-asset-uploads";
-import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
+import {
+  productAccessCatalog,
+  productAccessSourceData,
+  productPaymentPlanIssue,
+  productPaymentPlanStatus,
+} from "../src/lib/product-access";
 import {
   productCreationApiRoute,
   productCreationConfirmationText,
@@ -1484,6 +1489,7 @@ test.describe("Bumpgrade scaffold", () => {
         productEntitlementRevocationIntentApiRoute,
       ]),
     );
+    expect(payload.stableIds).toEqual(expect.arrayContaining(["productPaymentPlanId", "subscriptionPlanId"]));
     expect(payload.entitlementWrites).toEqual(
       expect.objectContaining({
         status: "sandbox-webhook-grants-ready",
@@ -1513,6 +1519,57 @@ test.describe("Bumpgrade scaffold", () => {
           progressDataIncluded: false,
         }),
       }),
+    );
+    expect(payload.productPaymentPlans).toEqual(
+      expect.objectContaining({
+        id: "product-payment-plan-readiness",
+        status: productPaymentPlanStatus,
+        issue: productPaymentPlanIssue,
+        parentIssue: 16,
+        sourceDataRoute: "/products/source-data",
+        previewRoute: "/products/indie-launch-library",
+        recordsIncluded: true,
+        supportedBillingModels: expect.arrayContaining(["pay_in_full", "installments", "subscription"]),
+        counts: expect.objectContaining({
+          paymentPlans: 3,
+          installmentPlans: 1,
+          subscriptionPlans: 1,
+          payInFullPlans: 1,
+        }),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripePriceIdsIncluded: false,
+          rawStripeCustomerIdsIncluded: false,
+          rawStripeSubscriptionIdsIncluded: false,
+          liveAmountsIncluded: false,
+          checkoutSessionIdsIncluded: false,
+          customerPortalUrlIncluded: false,
+          idempotencyKeysIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.productPaymentPlans.plans).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "product-payment-plan-launch-course-installments",
+          billingModel: "installments",
+          productIds: ["product-launch-course-lite"],
+          installments: 3,
+          amountCents: null,
+          liveBillingEnabled: false,
+          stripePriceCreated: false,
+          checkoutSessionCreated: false,
+        }),
+        expect.objectContaining({
+          id: "product-payment-plan-launch-membership-recurring",
+          billingModel: "subscription",
+          sourcePriceId: subscriptionMembershipPriceId,
+          productIds: ["product-launch-membership"],
+          amountCents: null,
+          liveBillingEnabled: false,
+        }),
+      ]),
     );
     expect(payload.productCreation).toEqual(
       expect.objectContaining({
@@ -1865,6 +1922,11 @@ test.describe("Bumpgrade scaffold", () => {
             expect.objectContaining({ id: "product-launch-webinar-seat", kind: "event_webinar" }),
             expect.objectContaining({ id: "product-launch-bundle", kind: "bundle" }),
           ]),
+          productPaymentPlans: expect.arrayContaining([
+            expect.objectContaining({ id: "product-payment-plan-launch-course-installments", billingModel: "installments" }),
+            expect.objectContaining({ id: "product-payment-plan-launch-membership-recurring", billingModel: "subscription" }),
+            expect.objectContaining({ id: "product-payment-plan-launch-bundle-pay-in-full", billingModel: "pay_in_full" }),
+          ]),
           accessRules: expect.arrayContaining([
             expect.objectContaining({ id: "access-rule-download-after-paid-webhook" }),
             expect.objectContaining({ id: "access-rule-membership-active-subscription" }),
@@ -1882,7 +1944,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("issue #181 exposes protected content readiness");
     expect(payload.writeBoundary).toContain("issue #185 returns seeded protected fixture bodies");
     expect(payload.writeBoundary).toContain("issue #187 syncs checkout-linked membership entitlement state");
+    expect(payload.writeBoundary).toContain("issue #16 now exposes seeded pay-in-full, installment, and subscription payment-plan read semantics");
     expect(payload.caveat).toContain("sandbox webhook-backed entitlement row grants");
+    expect(payload.caveat).toContain("seeded product payment-plan read semantics");
     expect(payload.caveat).toContain("subscription-backed membership entitlement state");
     expect(payload.caveat).toContain("owner-confirmed small private asset upload records");
     expect(payload.caveat).toContain("owner-confirmed non-destructive revocation intent records");
@@ -1892,9 +1956,12 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/products/indie-launch-library");
     await expect(page.getByRole("heading", { name: /Indie launch product and access library/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Downloads, courses, memberships, services, events, and bundles/i })).toBeVisible();
-    await expect(page.getByText("Launch checklist download")).toBeVisible();
-    await expect(page.getByText("Launch course lite")).toBeVisible();
-    await expect(page.getByText("Launch membership")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Pay-in-full, installment, and subscription plan records/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch checklist download" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch course lite" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch membership", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch course installment plan" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Launch membership recurring plan" })).toBeVisible();
   });
 
   test("customer product entitlement lookup exposes redacted checkout access state", async ({ page, request }, testInfo) => {
@@ -18270,6 +18337,7 @@ test.describe("Bumpgrade scaffold", () => {
             "productDeliveryGateLinkId",
             "productEntitlementRevocationIntentId",
             "productProtectedContentId",
+            "productPaymentPlanId",
             "subscriptionMembershipAccessId",
           ]),
           safeForAgents: expect.arrayContaining([
@@ -18277,6 +18345,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect owner-confirmed non-destructive revocation intent records",
             "Inspect protected content readiness and the checkout-intent-scoped protected fixture delivery boundary",
             "Inspect subscription-backed membership access state from trusted Stripe Billing webhook evidence",
+            "Inspect seeded product payment-plan read records without live amount, Stripe Price, or customer data exposure",
           ]),
         }),
         expect.objectContaining({

@@ -3,6 +3,7 @@ import {
   entitlementWriteContract,
   subscriptionMembershipAccessContract,
   subscriptionMembershipGrantMapping,
+  subscriptionMembershipPriceId,
 } from "@/lib/product-entitlements";
 import { productCreationApiRoute } from "@/lib/product-creation";
 import {
@@ -53,6 +54,28 @@ export type ProductAccessRecord = {
   entitlementTemplateId: string;
 };
 
+export type ProductPaymentPlanBillingModel = "pay_in_full" | "installments" | "subscription";
+
+export type ProductPaymentPlan = {
+  id: string;
+  title: string;
+  status: "draft";
+  billingModel: ProductPaymentPlanBillingModel;
+  productIds: string[];
+  entitlementTemplateIds: string[];
+  accessRuleIds: string[];
+  sourcePriceId: string | null;
+  installments: number | null;
+  interval: "month" | null;
+  amountCents: null;
+  currency: "usd";
+  customerLabel: string;
+  liveBillingEnabled: false;
+  stripePriceCreated: false;
+  checkoutSessionCreated: false;
+  writeBoundary: string;
+};
+
 export type EntitlementTemplate = {
   id: string;
   title: string;
@@ -79,12 +102,15 @@ export type ProductAccessCatalog = {
   assets: ProductAccessAsset[];
   accessRules: ProductAccessRule[];
   products: ProductAccessRecord[];
+  productPaymentPlans: ProductPaymentPlan[];
   entitlementTemplates: EntitlementTemplate[];
   writeBoundary: string;
   validation: string[];
 };
 
 export const productAccessUpdatedAt = "2026-05-24";
+export const productPaymentPlanIssue = 16;
+export const productPaymentPlanStatus = "product-payment-plan-readiness-ready";
 
 export const productAccessCatalog: ProductAccessCatalog = {
   id: "product-access-catalog-indie-launch",
@@ -264,6 +290,68 @@ export const productAccessCatalog: ProductAccessCatalog = {
       entitlementTemplateId: "entitlement-template-launch-bundle",
     },
   ],
+  productPaymentPlans: [
+    {
+      id: "product-payment-plan-launch-course-installments",
+      title: "Launch course installment plan",
+      status: "draft",
+      billingModel: "installments",
+      productIds: ["product-launch-course-lite"],
+      entitlementTemplateIds: ["entitlement-template-launch-course"],
+      accessRuleIds: ["access-rule-course-after-paid-webhook"],
+      sourcePriceId: null,
+      installments: 3,
+      interval: "month",
+      amountCents: null,
+      currency: "usd",
+      customerLabel: "Three scheduled payments before course access is considered fully paid.",
+      liveBillingEnabled: false,
+      stripePriceCreated: false,
+      checkoutSessionCreated: false,
+      writeBoundary:
+        "This is a product payment-plan read contract only. It does not create Stripe Prices, Checkout Sessions, installment schedules, live charges, access grants, or customer records.",
+    },
+    {
+      id: "product-payment-plan-launch-membership-recurring",
+      title: "Launch membership recurring plan",
+      status: "draft",
+      billingModel: "subscription",
+      productIds: ["product-launch-membership"],
+      entitlementTemplateIds: ["entitlement-template-launch-membership"],
+      accessRuleIds: ["access-rule-membership-active-subscription"],
+      sourcePriceId: subscriptionMembershipPriceId,
+      installments: null,
+      interval: "month",
+      amountCents: null,
+      currency: "usd",
+      customerLabel: "Monthly membership access depends on trusted active or trialing subscription state.",
+      liveBillingEnabled: false,
+      stripePriceCreated: false,
+      checkoutSessionCreated: false,
+      writeBoundary:
+        "This plan points to the existing seeded subscription membership price id for read semantics only. It does not create or mutate Stripe subscriptions, Customer Portal sessions, live charges, or member delivery.",
+    },
+    {
+      id: "product-payment-plan-launch-bundle-pay-in-full",
+      title: "Launch bundle pay-in-full plan",
+      status: "draft",
+      billingModel: "pay_in_full",
+      productIds: ["product-launch-bundle"],
+      entitlementTemplateIds: ["entitlement-template-launch-bundle"],
+      accessRuleIds: ["access-rule-download-after-paid-webhook", "access-rule-course-after-paid-webhook"],
+      sourcePriceId: null,
+      installments: null,
+      interval: null,
+      amountCents: null,
+      currency: "usd",
+      customerLabel: "Single checkout path that can grant bundled access after trusted paid evidence.",
+      liveBillingEnabled: false,
+      stripePriceCreated: false,
+      checkoutSessionCreated: false,
+      writeBoundary:
+        "This is a seeded plan option for read and preview surfaces only. Live checkout, Stripe Price creation, fulfillment delivery, and published offer selection remain future confirmed-write work.",
+    },
+  ],
   entitlementTemplates: [
     {
       id: "entitlement-template-launch-download",
@@ -321,9 +409,9 @@ export const productAccessCatalog: ProductAccessCatalog = {
     },
   ],
   writeBoundary:
-    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, issue #181 exposes protected content readiness, issue #185 returns seeded protected fixture bodies only after checkout-intent, entitlement, product/template scope, and trusted checkout checks, issue #187 syncs checkout-linked membership entitlement state from trusted Stripe Billing subscription events, issue #251 lets verified owners record non-destructive revocation intents after exact confirmation, idempotency, and stale-state checks, issue #403 lets verified owners create draft product records after exact confirmation and idempotency without billing or fulfillment mutation, issue #405 lets verified owners link owner-created draft products to test offer/funnel IDs and create synthetic paid checkout/access grant evidence without Stripe Checkout Sessions, live charges, published offer copy, or public buyer exposure, and issue #407 lets verified owners create buyer-facing test checkout links that public test buyers can complete after exact confirmation, idempotency, and link-revision checks to create synthetic paid checkout/access evidence. Customer delivery of arbitrary uploads, signed object URLs, Stripe product and price creation, live offer/funnel publishing, refunds, Customer Portal actions, destructive revocations, live fulfillment automation, and direct unconfirmed agent writes require future APIs.",
+    "Issue #101 can grant idempotent sandbox product entitlement rows and fulfillment task evidence from trusted paid checkout webhooks, issue #141 can inspect customer-safe checkout-intent entitlement status, issue #143 can create one-use download tokens for active file entitlements, issue #146 can stream a seeded private R2-backed fixture through Bumpgrade, issue #147 revalidates current entitlement and trusted checkout state before redemption, issue #151 lets verified owners create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, issue #179 exposes non-destructive revocation intent readiness, issue #181 exposes protected content readiness, issue #185 returns seeded protected fixture bodies only after checkout-intent, entitlement, product/template scope, and trusted checkout checks, issue #187 syncs checkout-linked membership entitlement state from trusted Stripe Billing subscription events, issue #251 lets verified owners record non-destructive revocation intents after exact confirmation, idempotency, and stale-state checks, issue #403 lets verified owners create draft product records after exact confirmation and idempotency without billing or fulfillment mutation, issue #405 lets verified owners link owner-created draft products to test offer/funnel IDs and create synthetic paid checkout/access grant evidence without Stripe Checkout Sessions, live charges, published offer copy, or public buyer exposure, issue #407 lets verified owners create buyer-facing test checkout links that public test buyers can complete after exact confirmation, idempotency, and link-revision checks to create synthetic paid checkout/access evidence, issue #409 lets verified owners link those test checkout links to seeded offer/funnel delivery gates, and issue #16 now exposes seeded pay-in-full, installment, and subscription payment-plan read semantics without live billing mutation. Customer delivery of arbitrary uploads, signed object URLs, Stripe product and price creation, live offer/funnel publishing, refunds, Customer Portal actions, destructive revocations, live fulfillment automation, and direct unconfirmed agent writes require future APIs.",
   validation: [
-    "/products/source-data returns seeded products, assets, access rules, and entitlement templates.",
+    "/products/source-data returns seeded products, assets, access rules, entitlement templates, and payment-plan read records.",
     "/products/indie-launch-library renders the product/access preview.",
     "/products/entitlements renders checkout-intent-scoped customer entitlement lookup.",
     "/api/products/download-tokens creates short-lived download tokens for active file entitlements.",
@@ -339,6 +427,39 @@ export const productAccessCatalog: ProductAccessCatalog = {
 };
 
 export const productAccessCatalogs = [productAccessCatalog];
+
+const paymentPlanCounts = {
+  paymentPlans: productAccessCatalog.productPaymentPlans.length,
+  installmentPlans: productAccessCatalog.productPaymentPlans.filter((plan) => plan.billingModel === "installments").length,
+  subscriptionPlans: productAccessCatalog.productPaymentPlans.filter((plan) => plan.billingModel === "subscription").length,
+  payInFullPlans: productAccessCatalog.productPaymentPlans.filter((plan) => plan.billingModel === "pay_in_full").length,
+};
+
+export const productPaymentPlanReadiness = {
+  id: "product-payment-plan-readiness",
+  status: productPaymentPlanStatus,
+  issue: productPaymentPlanIssue,
+  parentIssue: 16,
+  sourceDataRoute: "/products/source-data",
+  previewRoute: productAccessCatalog.previewRoute,
+  recordsIncluded: true,
+  counts: paymentPlanCounts,
+  supportedBillingModels: ["pay_in_full", "installments", "subscription"] as const,
+  plans: productAccessCatalog.productPaymentPlans,
+  redaction: {
+    buyerEmailIncluded: false,
+    buyerEmailHashIncluded: false,
+    rawStripePriceIdsIncluded: false,
+    rawStripeCustomerIdsIncluded: false,
+    rawStripeSubscriptionIdsIncluded: false,
+    liveAmountsIncluded: false,
+    checkoutSessionIdsIncluded: false,
+    customerPortalUrlIncluded: false,
+    idempotencyKeysIncluded: false,
+  },
+  writeBoundary:
+    "Payment plans are public-safe seeded read records only. They do not create Stripe Prices, Checkout Sessions, live charges, installment schedules, Customer Portal sessions, fulfillment delivery, customer records, or direct agent billing writes.",
+};
 
 export function getProductAccessCatalogBySlug(slug: string) {
   return productAccessCatalogs.find((catalog) => catalog.slug === slug) ?? null;
@@ -383,6 +504,7 @@ export const productAccessSourceData = {
     "productTestCheckoutPurchaseId",
     "productEntitlementRevocationIntentId",
     "productProtectedContentId",
+    "productPaymentPlanId",
     "subscriptionPlanId",
     "fulfillmentId",
     "agentActionId",
@@ -391,8 +513,9 @@ export const productAccessSourceData = {
   grantMappings: entitlementGrantMappings,
   subscriptionMembershipAccess: subscriptionMembershipAccessContract,
   subscriptionMembershipGrantMapping,
+  productPaymentPlans: productPaymentPlanReadiness,
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, subscription-backed membership entitlement state, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed draft product creation, owner-created product test checkout links and buyer-facing test checkout completion, owner-created product delivery-gate links for the seeded offer/funnel path, owner-created product test offer/access grants, owner-confirmed small private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, private revocation notes, raw owner identity, raw buyer identity, raw checkout link IDs, raw checkout or entitlement IDs in public source-data, raw Stripe subscription/customer IDs, destructive revocation APIs, Stripe product or price creation, live offer/funnel publishing, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unconfirmed agent writes.",
+    "This contract proves product/access read and preview semantics, seeded product payment-plan read semantics, sandbox webhook-backed entitlement row grants, subscription-backed membership entitlement state, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed draft product creation, owner-created product test checkout links and buyer-facing test checkout completion, owner-created product delivery-gate links for the seeded offer/funnel path, owner-created product test offer/access grants, owner-confirmed small private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, private revocation notes, raw owner identity, raw buyer identity, raw checkout link IDs, raw checkout or entitlement IDs in public source-data, raw Stripe price/subscription/customer IDs, live amounts, destructive revocation APIs, Stripe product or price creation, live offer/funnel publishing, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unconfirmed agent writes.",
 };

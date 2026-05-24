@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, FileArchive, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowRight, CreditCard, FileArchive, KeyRound, ShieldCheck } from "lucide-react";
 
-import { getProductAccessCatalogBySlug, productAccessCatalogs, type ProductAccessRecord } from "@/lib/product-access";
+import {
+  getProductAccessCatalogBySlug,
+  productAccessCatalogs,
+  type ProductAccessRecord,
+  type ProductPaymentPlan,
+} from "@/lib/product-access";
 import { site } from "@/lib/site";
 
 type ProductAccessPageProps = {
@@ -34,6 +39,13 @@ function accessTimingLabel(value: string) {
   if (value === "after_webhook_paid") return "After payment confirmation";
   if (value === "active_subscription") return "Active subscription";
   if (value === "manual_review") return "Manual review";
+  return value.replaceAll("_", " ");
+}
+
+function billingModelLabel(value: string) {
+  if (value === "pay_in_full") return "Pay in full";
+  if (value === "installments") return "Installments";
+  if (value === "subscription") return "Subscription";
   return value.replaceAll("_", " ");
 }
 
@@ -78,6 +90,30 @@ function ProductCard({ product }: { product: ProductAccessRecord }) {
       <div className="feature-detail">
         <strong>Access rules</strong>
         <span>{product.accessRuleIds.length}</span>
+      </div>
+    </article>
+  );
+}
+
+function PaymentPlanCard({ plan }: { plan: ProductPaymentPlan }) {
+  const cadence = plan.installments ? `${plan.installments} payments` : plan.interval ? `Every ${plan.interval}` : "Single checkout";
+
+  return (
+    <article className="feature-card compact-content-card">
+      <div className="feature-card-top">
+        <span className="status-badge active">{billingModelLabel(plan.billingModel)}</span>
+        <span className="admin-pill">{cadence}</span>
+      </div>
+      <CreditCard aria-hidden="true" />
+      <h3>{plan.title}</h3>
+      <p>{plan.customerLabel}</p>
+      <div className="feature-detail">
+        <strong>Products</strong>
+        <span>{plan.productIds.length}</span>
+      </div>
+      <div className="feature-detail">
+        <strong>Live billing</strong>
+        <span>{plan.liveBillingEnabled ? "Enabled" : "Not enabled"}</span>
       </div>
     </article>
   );
@@ -132,8 +168,8 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
           <p>Status</p>
           <strong>{catalog.products.length} product types</strong>
           <span>
-            Downloads, courses, memberships, services, events, and bundles can share access rules while private files,
-            lesson bodies, and buyer details stay protected.
+            Downloads, courses, memberships, services, events, bundles, and payment plans can share access rules while
+            private files, lesson bodies, amounts, and buyer details stay protected.
           </span>
         </aside>
       </section>
@@ -152,6 +188,24 @@ export default async function ProductAccessPage({ params }: ProductAccessPagePro
         <div className="feature-grid">
           {catalog.products.map((product) => (
             <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Payment plans</p>
+            <h2>Pay-in-full, installment, and subscription plan records</h2>
+          </div>
+          <Link href="/products/source-data" className="text-link compact-link">
+            Plan details
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-grid">
+          {catalog.productPaymentPlans.map((plan) => (
+            <PaymentPlanCard key={plan.id} plan={plan} />
           ))}
         </div>
       </section>

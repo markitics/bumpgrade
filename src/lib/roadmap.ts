@@ -327,7 +327,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, owner-created product test checkout links, owner product delivery-gate links, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
+      "Digital product records, seeded payment-plan read records, owner-created product test checkout links, owner product delivery-gate links, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -347,9 +347,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #405 adds owner-confirmed test offer/funnel links and direct test access grants for owner-created products.",
       "Issue #407 adds owner-confirmed buyer-facing test checkout links and public test checkout completion for owner-created products without Stripe Checkout Sessions, live charges, or public buyer exposure.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates with stale-state checks and aggregate public redaction.",
+      "Issue #16 exposes seeded pay-in-full, installment, and subscription payment-plan read records without live amounts, Stripe Price creation, Checkout Sessions, or customer data exposure.",
     ],
     nextMilestone:
-      "Use the delivery-gate link as the handoff before live offer/funnel product selection, Stripe product/price creation, and arbitrary customer delivery are enabled.",
+      "Keep payment plans as read records until the first live package, amount, Stripe price policy, and webhook boundary are confirmed in issue #219.",
   },
   {
     id: "roadmap-email-automation",

@@ -25,12 +25,15 @@ checkout, live charges, published offer copy, or public buyer exposure. Issue
 checkout completion for owner-created products with link-revision checks.
 Issue #409 links those owner-created product test checkout links to the seeded
 offer/funnel delivery gates with product and checkout-link stale-state checks.
+Issue #16 also exposes seeded pay-in-full, installment, and subscription
+payment-plan read records without creating live prices, Checkout Sessions,
+charges, or customer records.
 
 Live in this slice:
 
 - `/products/source-data`: public-safe JSON with seeded product types, asset IDs,
-  access rules, entitlement templates, sandbox grant mappings, revision ID,
-  preview route, and write boundary.
+  access rules, entitlement templates, payment-plan records, sandbox grant
+  mappings, revision ID, preview route, and write boundary.
 - `/products/indie-launch-library`: crawlable semantic preview of the seeded
   product/access catalog.
 - `product_entitlements`: server-side D1 rows granted idempotently after trusted
@@ -83,6 +86,11 @@ Live in this slice:
   `customer.subscription.deleted` webhooks mirror Stripe Billing state and sync
   checkout-linked membership access while the subscription is active or
   trialing.
+- Seeded product payment-plan records: pay-in-full, installment, and
+  subscription plan semantics tied to product and entitlement-template IDs.
+  They are read/preview records only and do not expose live amounts, raw Stripe
+  IDs, Checkout Session IDs, Customer Portal URLs, buyer data, or idempotency
+  keys.
 - `/api/admin/products/assets`: lets verified owners create small private asset
   upload records after exact confirmation, idempotency, and catalog revision
   checks without exposing object keys, signed URLs, or upload bodies.
@@ -110,6 +118,8 @@ Not live in this slice:
   Issues #405, #407, and #409 record only direct test grant evidence,
   buyer-facing test checkout links, delivery-gate link evidence, and synthetic
   paid test access-grant evidence.
+- Live product payment-plan checkout, installment schedule creation, live
+  amount publication, or Customer Portal actions.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions. The issue #187 fixture can activate or pause one seeded
   checkout-linked membership entitlement from trusted subscription state, but it
@@ -140,6 +150,11 @@ Public redaction boundary:
   access counts and public-safe policy text. `/api/products/entitlements` can
   show checkout-linked membership entitlement state after trusted Billing events
   without exposing raw Stripe subscription or customer IDs.
+- `/products/source-data` exposes seeded payment-plan read records and redaction
+  flags. It includes stable `productPaymentPlanId` values, product IDs, billing
+  model labels, and null live amounts; it does not include raw Stripe Price IDs,
+  Checkout Session IDs, Customer Portal URLs, buyer data, or live billing
+  mutation.
 - `/products/source-data` exposes aggregate product creation counts and
   supported-kind policy text. `/admin/products` can inspect recent owner-created
   draft product records. Public source-data does not include owner emails, actor
