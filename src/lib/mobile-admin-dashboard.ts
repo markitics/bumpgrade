@@ -3,6 +3,7 @@ import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
+import { getMobileAdminPrivateRowsSummary } from "@/lib/mobile-admin-private-rows";
 import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
 import { iosMobileAdminSourceData } from "@/lib/mobile-admin-ios";
 import { mobileAdminContract, mobileAdminUpdatedAt } from "@/lib/mobile-admin";
@@ -47,6 +48,7 @@ function attentionSummaries(items: Awaited<ReturnType<typeof getAdminSurfaceData
 export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
   const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
+  const privateRowsSummary = await getMobileAdminPrivateRowsSummary();
   const mobileFeature = featureCatalog.find((feature) => feature.id === mobileAdminContract.featureId);
   const mobileRoadmapItem = roadmapItems.find((item) => item.issue === mobileAdminContract.parentIssue);
 
@@ -65,6 +67,7 @@ export async function getMobileAdminDashboardSourceData() {
       iosMobileAdminSourceData.sourceDataRoute,
       androidMobileAdminSourceData.sourceDataRoute,
       mobileAdminContract.privateAuth.sessionRoute,
+      mobileAdminContract.privateRowsApi.route,
       mobileAdminContract.actionIntentApi.route,
       "/features/source-data",
       "/roadmap/source-data",
@@ -73,7 +76,7 @@ export async function getMobileAdminDashboardSourceData() {
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe and read-only. It gives mobile clients one live digest route, but it is not private mobile auth, push notifications, confirmed-write support, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe and read-only. It gives mobile clients one live digest route and public-safe private-row counts, but it is not push notifications, production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -118,6 +121,29 @@ export async function getMobileAdminDashboardSourceData() {
       privateRowsIncluded: false,
       ownerEmailValuesIncluded: false,
       sessionIdentifiersIncluded: false,
+    },
+    privateRowsApi: {
+      id: mobileAdminContract.privateRowsApi.id,
+      issue: mobileAdminContract.privateRowsApi.issue,
+      status: mobileAdminContract.privateRowsApi.status,
+      route: mobileAdminContract.privateRowsApi.route,
+      authBoundary: mobileAdminContract.privateRowsApi.authBoundary,
+      readBoundary: mobileAdminContract.privateRowsApi.readBoundary,
+      summarySource: privateRowsSummary.source,
+      loadError: privateRowsSummary.loadError,
+      counts: privateRowsSummary.counts,
+      redaction: privateRowsSummary.redaction,
+      latestRows: privateRowsSummary.latestRows.map((row) => ({
+        id: row.id,
+        rowKind: row.rowKind,
+        sourceRoute: row.sourceRoute,
+        sourceRecordId: row.sourceRecordId,
+        priority: row.priority,
+        readState: row.readState,
+        requiresAction: row.requiresAction,
+        privateFieldsAvailable: row.privateFieldsAvailable,
+        createdAt: row.createdAt,
+      })),
     },
     confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
       id: action.id,
@@ -210,8 +236,8 @@ export async function getMobileAdminDashboardSourceData() {
         })),
     },
     nextMobileMilestones: [
-      "Add Better Auth mobile owner-session handling before exposing private admin rows.",
-      "Add a shared confirmed-write API before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
+      "Add domain-specific confirmed-write APIs before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
+      "Add physical-device proof for private mobile row inspection beyond simulator/emulator scaffolds.",
       "Add distribution and push-notification readiness after the read-only mobile surface stabilizes.",
     ],
     writeBoundary: mobileAdminContract.confirmedWriteRules,

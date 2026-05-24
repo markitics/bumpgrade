@@ -41,6 +41,17 @@ export type MobileAdminContractFixture = {
     platformBehavior: string[];
     redactionBoundary: string;
   };
+  privateRowsApi: {
+    id: string;
+    issue: number;
+    status: string;
+    route: string;
+    authBoundary: string;
+    purpose: string;
+    readBoundary: string;
+    publicSourceDataSummary: string;
+    redactionFlags: string[];
+  };
   actionIntentApi: {
     id: string;
     issue: number;

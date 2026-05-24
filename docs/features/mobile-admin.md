@@ -29,6 +29,10 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   SwiftUI simulator target, and Android emulator target now render the
   owner-session boundary and confirmed-action requirements that future private
   mobile flows must use.
+- Mobile private-row API issue: #414. `/api/mobile-admin/private-rows` now lets a
+  verified owner inspect read-only private mobile rows through the same Better
+  Auth owner session as web admin. Public source-data exposes only route,
+  status, counts, public row labels, and redaction flags.
 - Mobile action-intent API issue: #414. `/api/mobile-admin/actions` now lets a
   verified owner record redacted audit-only action intent evidence after exact
   confirmation, idempotency, contract revision, stale-state, source-route, and
@@ -86,6 +90,15 @@ actor identity, idempotency, stale-state checks, audit correlation, and redacted
 output before any public, billing-impacting, publishing, moderation,
 source-editing, or creator-speech action can mutate production state.
 
+The current #414 private-row slice proves authenticated mobile row inspection
+without turning public source-data into another private API. Owner-authenticated
+GET `/api/mobile-admin/private-rows` returns synthetic owner-only row notes and
+private payload metadata from D1. Public `/mobile-admin/source-data` and
+`/mobile-admin/dashboard/source-data` expose only the route, status, counts,
+public row labels, and redaction flags, and they exclude owner-only notes,
+private payload JSON, owner email values, session IDs, cookies, tokens, and raw
+rows.
+
 The current #414 action-intent slice turns the future endpoint into an
 owner-gated audit trail without enabling production mutations. Owner-authenticated
 GET `/api/mobile-admin/actions` exposes the confirmation contract and current
@@ -110,6 +123,9 @@ note, stale-state token hash, and raw rows excluded from responses.
 - `/commerce/source-data`: redacted commerce architecture and checkout state.
 - `/api/auth/[...all]`: Better Auth session boundary for future private mobile
   screens.
+- `/api/mobile-admin/private-rows`: owner-session-only private row inspection.
+  Public mobile source-data can mention route, counts, row labels, and redaction
+  flags, but it must not include owner-only notes or private payload JSON.
 - `/api/mobile-admin/actions`: owner-gated audit-only action intents for mobile
   admin actions. Future domain-specific APIs must still perform any production
   mutation.
@@ -144,7 +160,8 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 
 ## Write Boundary
 
-The first iOS and Android slices can record audit-only action intents through
+The first iOS and Android slices can inspect owner-session private rows through
+`/api/mobile-admin/private-rows` and record audit-only action intents through
 `/api/mobile-admin/actions`, but production mobile writes still require
 domain-specific confirmed-write APIs. Public, destructive, billing-impacting,
 publishing, moderation, source-editing, and creator-speech writes require
@@ -152,7 +169,7 @@ explicit confirmation text, idempotency, stale-state checks, audit correlation,
 and redaction.
 
 The current #414 surface proves that iOS and Android expose the same private
-auth, action-intent, and confirmed-action rules the web/admin app uses; it does
-not prove App Store or Play Store distribution, push notifications, private rows
-on device, billing mutation, publishing mutation, commerce mutation, or full
-mobile write parity.
+auth, private-row, action-intent, and confirmed-action rules the web/admin app
+uses; it does not prove App Store or Play Store distribution, push
+notifications, physical-device private row proof, billing mutation, publishing
+mutation, commerce mutation, or full mobile write parity.

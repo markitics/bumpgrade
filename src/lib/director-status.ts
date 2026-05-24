@@ -164,7 +164,7 @@ const workstreamConfig: Record<
   "mobile-admin": {
     title: "Mobile Admin",
     executiveOwner: "Mobile product brief",
-    description: "iOS, Android, mobile dashboard source-data, simulator/emulator proof, mobile auth boundaries, and audit-only action intents.",
+    description: "iOS, Android, mobile dashboard source-data, simulator/emulator proof, mobile auth boundaries, private rows, and audit-only action intents.",
     groupNames: ["Mobile"],
   },
   "agent-readiness": {

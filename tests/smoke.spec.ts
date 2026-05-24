@@ -309,6 +309,11 @@ import {
   mobileAdminActionIntentIssue,
   mobileAdminActionIntentStatus,
 } from "../src/lib/mobile-admin-actions";
+import {
+  mobileAdminPrivateRowsApiRoute,
+  mobileAdminPrivateRowsIssue,
+  mobileAdminPrivateRowsStatus,
+} from "../src/lib/mobile-admin-private-rows";
 import { androidMobileAdminSourceData } from "../src/lib/mobile-admin-android";
 import {
   mobileAdminDashboardIssue,
@@ -19108,6 +19113,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "read-mobile-admin-contract", route: "/mobile-admin/source-data", auth: "public" }),
         expect.objectContaining({ id: "read-mobile-admin-dashboard", route: "/mobile-admin/dashboard/source-data", auth: "public" }),
         expect.objectContaining({
+          id: "read-owner-mobile-admin-private-rows",
+          route: mobileAdminPrivateRowsApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["mobilePrivateRowId", "sourceRoute", "readState"]),
+        }),
+        expect.objectContaining({
           id: "create-owner-mobile-admin-action-intent",
           route: mobileAdminActionIntentApiRoute,
           auth: "owner-session",
@@ -19287,11 +19298,40 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mobile-api-dashboard", route: "/mobile-admin/dashboard/source-data" }),
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
         expect.objectContaining({
+          id: "mobile-api-private-rows",
+          route: mobileAdminPrivateRowsApiRoute,
+          authBoundary: "owner-session",
+        }),
+        expect.objectContaining({
           id: "mobile-api-confirmed-writes",
           route: mobileAdminActionIntentApiRoute,
           authBoundary: "owner-confirmed-intent",
         }),
       ]),
+    );
+    expect(payload.privateRowsApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-private-rows-api",
+        issue: mobileAdminPrivateRowsIssue,
+        status: mobileAdminPrivateRowsStatus,
+        route: mobileAdminPrivateRowsApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
+    expect(payload.privateRowsSummary).toEqual(
+      expect.objectContaining({
+        id: "mobile-admin-private-rows-contract",
+        status: mobileAdminPrivateRowsStatus,
+        apiRoute: mobileAdminPrivateRowsApiRoute,
+        redaction: expect.objectContaining({
+          privateRowsIncludedInPublicSourceData: false,
+          ownerOnlyNotesIncludedInPublicSourceData: false,
+          privatePayloadIncludedInPublicSourceData: false,
+          ownerEmailValuesIncluded: false,
+          sessionIdentifiersIncluded: false,
+          tokensIncluded: false,
+        }),
+      }),
     );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
@@ -19366,6 +19406,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/mobile-admin/dashboard/source-data",
         "/mobile-admin/ios/source-data",
         "/mobile-admin/android/source-data",
+        mobileAdminPrivateRowsApiRoute,
         mobileAdminActionIntentApiRoute,
         "/features/source-data",
         "/roadmap/source-data",
@@ -19410,6 +19451,25 @@ test.describe("Bumpgrade scaffold", () => {
           requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
         }),
       ]),
+    );
+    expect(payload.privateRowsApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-private-rows-api",
+        status: mobileAdminPrivateRowsStatus,
+        route: mobileAdminPrivateRowsApiRoute,
+        counts: expect.objectContaining({
+          privateRows: expect.any(Number),
+          ownerOnlyNotes: expect.any(Number),
+          privatePayloadRows: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          ownerOnlyNotesIncludedInPublicSourceData: false,
+          privatePayloadIncludedInPublicSourceData: false,
+          ownerEmailValuesIncluded: false,
+          sessionIdentifiersIncluded: false,
+          tokensIncluded: false,
+        }),
+      }),
     );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
@@ -19463,6 +19523,7 @@ test.describe("Bumpgrade scaffold", () => {
         mobileReadContracts: expect.arrayContaining([
           expect.objectContaining({ id: "read-mobile-admin-contract" }),
           expect.objectContaining({ id: "read-mobile-admin-dashboard" }),
+          expect.objectContaining({ id: "read-owner-mobile-admin-private-rows" }),
         ]),
       }),
     );
@@ -19473,6 +19534,76 @@ test.describe("Bumpgrade scaffold", () => {
     expect(text).not.toContain("m@rkmoriarty.com");
     expect(text).not.toContain("mark@awesound.com");
     expect(text).not.toContain("markmoriarty@stripe.com");
+  });
+
+  test("mobile admin private rows API requires owner auth and keeps public source-data redacted", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner mobile private-row auth flow is covered once on desktop.");
+
+    const unauthorized = await request.get(mobileAdminPrivateRowsApiRoute);
+    expect(unauthorized.status()).toBe(401);
+    await expect(unauthorized.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          ownerOnlyNotesIncludedInPublicSourceData: false,
+          privatePayloadIncludedInPublicSourceData: false,
+          ownerEmailValuesIncluded: false,
+          sessionIdentifiersIncluded: false,
+          tokensIncluded: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const ownerRows = await page.request.get(mobileAdminPrivateRowsApiRoute);
+    expect(ownerRows.ok(), await ownerRows.text()).toBeTruthy();
+    const ownerPayload = await ownerRows.json();
+    expect(ownerPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: mobileAdminPrivateRowsStatus,
+        issue: mobileAdminPrivateRowsIssue,
+        route: mobileAdminPrivateRowsApiRoute,
+        rows: expect.arrayContaining([
+          expect.objectContaining({
+            id: "mobile-private-row-director-queue",
+            rowKind: "owner_director_queue",
+            ownerOnlyNote: expect.stringContaining("Owner-only mobile row"),
+            privatePayload: expect.objectContaining({
+              issue: 414,
+              publicSourceDataAllowed: false,
+            }),
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          ownerOnlyNotesIncludedInPublicSourceData: false,
+          privatePayloadIncludedInPublicSourceData: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+
+    const sourceData = await request.get("/mobile-admin/source-data");
+    const sourceText = await sourceData.text();
+    expect(sourceData.ok(), sourceText).toBeTruthy();
+    const sourcePayload = JSON.parse(sourceText);
+    expect(sourcePayload.privateRowsSummary.counts.privateRows).toBeGreaterThanOrEqual(2);
+    expect(sourcePayload.privateRowsSummary.latestRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "mobile-private-row-director-queue",
+          privateFieldsAvailable: true,
+        }),
+      ]),
+    );
+    expect(sourceText).not.toContain("Owner-only mobile row");
+    expect(sourceText).not.toContain("publicSourceDataAllowed");
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
   });
 
   test("mobile admin action intent API requires owner auth, exact confirmation, idempotency, stale state, and redaction", async ({
@@ -19687,6 +19818,14 @@ test.describe("Bumpgrade scaffold", () => {
         sessionRoute: "/api/auth/[...all]",
       }),
     );
+    expect(payload.privateRowsApi).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: mobileAdminPrivateRowsStatus,
+        route: mobileAdminPrivateRowsApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         issue: 414,
@@ -19711,12 +19850,16 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/mobile-admin/dashboard/source-data",
         }),
         expect.objectContaining({
+          id: "ios-read-mobile-private-rows",
+          route: mobileAdminPrivateRowsApiRoute,
+        }),
+        expect.objectContaining({
           id: "ios-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Audit-only action intents");
+    expect(payload.writeBoundary).toContain("Read-only private rows");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -19749,6 +19892,14 @@ test.describe("Bumpgrade scaffold", () => {
         sessionRoute: "/api/auth/[...all]",
       }),
     );
+    expect(payload.privateRowsApi).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: mobileAdminPrivateRowsStatus,
+        route: mobileAdminPrivateRowsApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         issue: 414,
@@ -19773,12 +19924,16 @@ test.describe("Bumpgrade scaffold", () => {
           route: "/mobile-admin/dashboard/source-data",
         }),
         expect.objectContaining({
+          id: "android-read-mobile-private-rows",
+          route: mobileAdminPrivateRowsApiRoute,
+        }),
+        expect.objectContaining({
           id: "android-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Audit-only action intents");
+    expect(payload.writeBoundary).toContain("Read-only private rows");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {

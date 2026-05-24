@@ -144,6 +144,7 @@ import {
   affiliatePartnerNotificationSendPreflightRecordIssue,
 } from "@/lib/affiliate-partner-notification-send-preflight-records";
 import { mobileAdminActionIntentApiRoute, mobileAdminActionIntentIssue } from "@/lib/mobile-admin-actions";
+import { mobileAdminPrivateRowsApiRoute, mobileAdminPrivateRowsIssue } from "@/lib/mobile-admin-private-rows";
 import {
   analyticsAlertAnomalyIssue,
   analyticsCohortComparisonIssue,
@@ -2261,6 +2262,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobileJobId",
       "mobileApiDependencyId",
       "mobilePrivateAuthId",
+      "mobilePrivateRowsApiId",
       "mobileActionIntentApiId",
       "mobileConfirmedActionId",
       "platformIssue",
@@ -2270,11 +2272,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read iOS and Android scope",
       "Find API dependencies",
       "Understand mobile owner-session requirements",
+      "Understand the owner-gated read-only mobile private-row boundary",
       "Understand the owner-gated audit-only mobile action intent boundary",
       "Understand mobile confirmed-action write boundaries",
     ],
     writeBoundary:
-      "Mobile apps can record owner-gated audit-only action intents through /api/mobile-admin/actions, but production writes remain disabled until future domain-specific confirmed-write APIs exist; issue #414 exposes the shared owner-session, action-intent, and confirmed-action contract.",
+      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows and record owner-gated audit-only action intents through /api/mobile-admin/actions, but production writes remain disabled until future domain-specific confirmed-write APIs exist; issue #414 exposes the shared owner-session, private-row, action-intent, and confirmed-action contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2283,14 +2286,32 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin-dashboard.ts",
-    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "agentReadContractId"],
+    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "mobilePrivateRowId", "agentReadContractId"],
     safeForAgents: [
       "Read one public-safe mobile dashboard digest",
       "Inspect live feature, roadmap, admin, commerce, and agent-readiness counts",
+      "Inspect public-safe private-row counts and labels without owner-only notes or payloads",
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Read-only public-safe digest; issue #414 exposes owner-session, action-intent, and confirmed-action requirements, but private mobile rows, push notifications, and production confirmed mobile writes require future authenticated APIs.",
+      "Read-only public-safe digest; issue #414 exposes owner-session, private-row, action-intent, and confirmed-action requirements, but push notifications, physical-device proof, and production confirmed mobile writes require future authenticated APIs.",
+  },
+  {
+    id: "read-owner-mobile-admin-private-rows",
+    title: "Mobile admin private rows API",
+    route: mobileAdminPrivateRowsApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "src/lib/mobile-admin-private-rows.ts",
+    stableIds: ["mobilePrivateRowId", "sourceRoute", "sourceRecordId", "readState"],
+    safeForAgents: [
+      "Inspect the owner-only mobile private-row contract",
+      "Read owner-only mobile rows only with an owner session",
+      "Confirm public source-data exposes route, status, counts, public row labels, and redaction flags only",
+      "Confirm public source-data omits owner-only notes, private payload JSON, owner email values, session IDs, cookies, tokens, and raw rows",
+    ],
+    writeBoundary:
+      `This owner-session API reads Mobile Admin private rows from D1 and returns owner-only notes and synthetic private payload metadata only to authenticated owners. It does not create production admin mutations, billing mutations, push notifications, distribution state changes, customer data exposure, public agent writes, or domain-specific confirmed-write side effects. Issue #${mobileAdminPrivateRowsIssue} tracks this slice.`,
   },
   {
     id: "create-owner-mobile-admin-action-intent",
