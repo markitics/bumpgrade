@@ -52,6 +52,18 @@ export type MobileAdminContractFixture = {
     publicSourceDataSummary: string;
     redactionFlags: string[];
   };
+  privateRowActionsApi: {
+    id: string;
+    issue: number;
+    status: string;
+    route: string;
+    authBoundary: string;
+    purpose: string;
+    actionBoundary: string;
+    publicSourceDataSummary: string;
+    requiredInputs: string[];
+    redactionFlags: string[];
+  };
   actionIntentApi: {
     id: string;
     issue: number;

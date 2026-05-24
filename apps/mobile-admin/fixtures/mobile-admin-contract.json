@@ -7,7 +7,7 @@
   "status": "contract-ready",
   "featureId": "feature-mobile-admin",
   "stackDecision": "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
-  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, production mobile mutations, App Store distribution, or Play Store distribution.",
+  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
   "liveDashboard": {
     "id": "mobile-live-dashboard-source-data",
     "issue": 153,
@@ -69,6 +69,41 @@
       "cookiesIncluded=false",
       "tokensIncluded=false",
       "rawRowsIncluded=false"
+    ]
+  },
+  "privateRowActionsApi": {
+    "id": "mobile-private-row-actions-api",
+    "issue": 428,
+    "status": "owner-mobile-private-row-actions-ready",
+    "route": "/api/mobile-admin/private-rows/actions",
+    "authBoundary": "owner-session",
+    "purpose": "Let a verified owner mark Mobile Admin private rows read or deferred through a low-risk confirmed-write endpoint.",
+    "actionBoundary": "The endpoint mutates only private-row workflow state after exact confirmation, idempotency, stale row revision, stale-state token, and audit-correlation checks. It creates no billing mutation, commerce mutation, publishing mutation, push notification, distribution state change, moderation action, creator-speech action, or public agent write.",
+    "publicSourceDataSummary": "/mobile-admin/source-data and /mobile-admin/dashboard/source-data may expose the private-row action API route, status, counts, latest redacted action labels, and redaction flags; owner-only GET /api/mobile-admin/private-rows/actions?rowId=... is required before stale-state tokens are returned.",
+    "requiredInputs": [
+      "rowId",
+      "actionId",
+      "expectedRowUpdatedAt",
+      "staleStateToken",
+      "confirmationText",
+      "idempotencyKey",
+      "auditCorrelationId"
+    ],
+    "redactionFlags": [
+      "actorEmailIncluded=false",
+      "actorEmailHashIncluded=false",
+      "actorUserIdIncluded=false",
+      "privateNoteIncluded=false",
+      "privatePayloadIncluded=false",
+      "ownerOnlyNoteIncluded=false",
+      "idempotencyKeysIncluded=false",
+      "staleStateTokenIncludedInPublicSourceData=false",
+      "staleStateTokenHashIncluded=false",
+      "rawRowsIncluded=false",
+      "productionMutationCreated=false",
+      "billingMutationCreated=false",
+      "pushNotificationSent=false",
+      "distributionStateChanged=false"
     ]
   },
   "actionIntentApi": {
@@ -210,6 +245,7 @@
       "sourceRoutes": [
         "/mobile-admin/dashboard/source-data",
         "/api/mobile-admin/private-rows",
+        "/api/mobile-admin/private-rows/actions",
         "/admin/work-log/source-data",
         "/admin/for-mark/source-data",
         "/agent-docs/source-data"
@@ -316,6 +352,19 @@
       ]
     },
     {
+      "id": "mobile-api-private-row-actions",
+      "route": "/api/mobile-admin/private-rows/actions",
+      "purpose": "Owner-confirmed private row workflow actions for Mobile Admin clients, limited to low-risk mark-read and defer mutations with redacted audit evidence.",
+      "authBoundary": "owner-session",
+      "stableIds": [
+        "mobilePrivateRowActionId",
+        "mobilePrivateRowId",
+        "idempotencyKey",
+        "auditCorrelationId",
+        "staleStateToken"
+      ]
+    },
+    {
       "id": "mobile-api-confirmed-writes",
       "route": "/api/mobile-admin/actions",
       "purpose": "Owner-gated mobile action-intent endpoint for redacted audit-only confirmation evidence before future domain-specific confirmed-write APIs mutate admin, publishing, commerce, or agent-proposal state.",
@@ -330,6 +379,7 @@
   ],
   "confirmedWriteRules": [
     "The first private mobile row slice is read-only through /api/mobile-admin/private-rows and cannot mutate production state.",
+    "The first Mobile Admin private-row confirmed-write slice can mark private rows read or deferred through /api/mobile-admin/private-rows/actions, but it cannot mutate billing, commerce, publishing, moderation, creator speech, push notifications, distribution, or public agent state.",
     "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but production mutations remain disabled until domain-specific confirmed-write APIs exist.",
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",

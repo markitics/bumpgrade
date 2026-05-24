@@ -22,6 +22,7 @@ struct MobileAdminDigestView: View {
                     liveDashboardPanel
                     privateAuthPanel
                     privateRowsPanel
+                    privateRowActionsPanel
                     actionIntentPanel
                     jobsSection
                     confirmedActionsSection
@@ -152,6 +153,34 @@ struct MobileAdminDigestView: View {
             Detail(label: "Auth", value: contract.actionIntentApi.authBoundary)
             Detail(label: "Boundary", value: contract.actionIntentApi.intentBoundary)
             Detail(label: "Inputs", value: contract.actionIntentApi.requiredInputs.joined(separator: ", "))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
+    }
+
+    private var privateRowActionsPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Private row actions API")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            Text(contract.privateRowActionsApi.route)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(contract.privateRowActionsApi.purpose)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            Detail(label: "Status", value: "\(contract.privateRowActionsApi.status) · issue #\(contract.privateRowActionsApi.issue)")
+            Detail(label: "Auth", value: contract.privateRowActionsApi.authBoundary)
+            Detail(label: "Boundary", value: contract.privateRowActionsApi.actionBoundary)
+            Detail(label: "Inputs", value: contract.privateRowActionsApi.requiredInputs.joined(separator: ", "))
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)

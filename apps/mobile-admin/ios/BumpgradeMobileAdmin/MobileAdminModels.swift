@@ -12,6 +12,7 @@ struct MobileAdminContract: Decodable {
     let liveDashboard: MobileLiveDashboard
     let privateAuth: MobilePrivateAuth
     let privateRowsApi: MobilePrivateRowsApi
+    let privateRowActionsApi: MobilePrivateRowActionsApi
     let actionIntentApi: MobileActionIntentApi
     let confirmedActions: [MobileConfirmedAction]
     let childIssues: [MobilePlatformSlice]
@@ -68,6 +69,19 @@ struct MobilePrivateRowsApi: Decodable {
     let purpose: String
     let readBoundary: String
     let publicSourceDataSummary: String
+    let redactionFlags: [String]
+}
+
+struct MobilePrivateRowActionsApi: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let route: String
+    let authBoundary: String
+    let purpose: String
+    let actionBoundary: String
+    let publicSourceDataSummary: String
+    let requiredInputs: [String]
     let redactionFlags: [String]
 }
 

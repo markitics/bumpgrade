@@ -114,16 +114,26 @@ iOS/Android app contract, `/mobile-admin/ios/source-data` and
 `/mobile-admin/android/source-data` describe the first simulator/emulator smoke
 paths, `/mobile-admin/dashboard/source-data` is the live public-safe dashboard
 digest for mobile clients, `/api/mobile-admin/private-rows` is the owner-gated
-read-only private-row inspection API, and `/api/mobile-admin/actions` is the
-owner-gated audit-only action-intent API. The dashboard summarizes feature,
-roadmap, recent work-log, attention, commerce, agent-readiness, platform status,
-private-row counts, and action-intent counts from the same contracts as the web
-app. It returns counts, statuses, route IDs, issue evidence, recent public-safe
-work-log metadata, public private-row labels, and redaction flags only.
+read-only private-row inspection API, `/api/mobile-admin/private-rows/actions`
+is the owner-confirmed low-risk private-row workflow action API, and
+`/api/mobile-admin/actions` is the owner-gated audit-only action-intent API. The
+dashboard summarizes feature, roadmap, recent work-log, attention, commerce,
+agent-readiness, platform status, private-row counts, private-row action counts,
+and action-intent counts from the same contracts as the web app. It returns
+counts, statuses, route IDs, issue evidence, recent public-safe work-log
+metadata, public private-row labels, redacted action labels, and redaction flags
+only.
 Owner-authenticated GET `/api/mobile-admin/private-rows` returns owner-only
 private row notes and synthetic private payload metadata through the same Better
 Auth owner session as web admin; public source-data must not expose those notes,
 payloads, owner email values, session IDs, cookies, tokens, or raw rows.
+Owner-authenticated GET `/api/mobile-admin/private-rows/actions?rowId=...`
+returns the row-specific confirmation contract and stale-state token only to
+accepted owners, and owner-authenticated POST can mark a private row read or
+deferred after exact confirmation, idempotency, stale row revision checks,
+stale-state token checks, and audit correlation. Public source-data must not
+expose actor identity, private notes, owner-only notes, private payloads,
+idempotency keys, stale-state tokens, token hashes, or raw rows.
 Owner-authenticated GET `/api/mobile-admin/actions`
 returns exact stale-state tokens for the supported mobile confirmed actions,
 and owner-authenticated POST records redacted action intent evidence after
@@ -138,11 +148,12 @@ The Expo, iOS, and Android smoke scaffolds now render the dashboard route,
 fetch the live public-safe dashboard payload, label live-network versus fallback
 fixture hydration, and keep the generated fixture as a deterministic simulator
 or emulator fallback. Issue #414 now also renders the shared owner-session
-contract, private-row API boundary, action-intent API boundary, and
+contract, private-row API boundary, private-row action API boundary, action-intent API boundary, and
 confirmed-action requirements in the Expo, iOS, and Android scaffolds. Those
 panels reuse the web/admin Better Auth, owner allowlist, verified-email,
 exact-confirmation, idempotency, stale-state, audit-correlation, and redaction
-rules. They are still not production mobile write clients, push notifications,
+rules. They can now represent low-risk private-row workflow actions, but they
+are still not high-risk production mobile write clients, push notifications,
 physical-device proof, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for

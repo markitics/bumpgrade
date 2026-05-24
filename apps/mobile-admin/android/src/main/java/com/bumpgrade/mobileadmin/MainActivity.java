@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
       JSONObject liveDashboard = contract.getJSONObject("liveDashboard");
       JSONObject privateAuth = contract.getJSONObject("privateAuth");
       JSONObject privateRowsApi = contract.getJSONObject("privateRowsApi");
+      JSONObject privateRowActionsApi = contract.getJSONObject("privateRowActionsApi");
       JSONObject actionIntentApi = contract.getJSONObject("actionIntentApi");
       JSONArray jobs = contract.getJSONArray("jobs");
       JSONArray confirmedActions = contract.getJSONArray("confirmedActions");
@@ -99,6 +100,16 @@ public class MainActivity extends Activity {
       privateRowsPanel.addView(meta("Auth: " + privateRowsApi.getString("authBoundary")));
       privateRowsPanel.addView(meta("Boundary: " + privateRowsApi.getString("readBoundary")));
       content.addView(privateRowsPanel);
+
+      LinearLayout privateRowActionsPanel = panel();
+      privateRowActionsPanel.addView(kicker("Private row actions API"));
+      privateRowActionsPanel.addView(panelTitle(privateRowActionsApi.getString("route")));
+      privateRowActionsPanel.addView(body(privateRowActionsApi.getString("purpose")));
+      privateRowActionsPanel.addView(meta("Status: " + privateRowActionsApi.getString("status") + " · issue #" + privateRowActionsApi.getInt("issue")));
+      privateRowActionsPanel.addView(meta("Auth: " + privateRowActionsApi.getString("authBoundary")));
+      privateRowActionsPanel.addView(meta("Boundary: " + privateRowActionsApi.getString("actionBoundary")));
+      privateRowActionsPanel.addView(meta("Inputs: " + joinStrings(privateRowActionsApi.getJSONArray("requiredInputs"))));
+      content.addView(privateRowActionsPanel);
 
       LinearLayout actionIntentPanel = panel();
       actionIntentPanel.addView(kicker("Action intent API"));

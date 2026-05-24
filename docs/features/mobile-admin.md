@@ -33,6 +33,10 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   verified owner inspect read-only private mobile rows through the same Better
   Auth owner session as web admin. Public source-data exposes only route,
   status, counts, public row labels, and redaction flags.
+- Mobile private-row action API issue: #428. `/api/mobile-admin/private-rows/actions`
+  now lets a verified owner mark private rows read or deferred after exact
+  confirmation, idempotency, stale row revision, stale-state token, and
+  audit-correlation checks. It mutates only private-row workflow state.
 - Mobile action-intent API issue: #414. `/api/mobile-admin/actions` now lets a
   verified owner record redacted audit-only action intent evidence after exact
   confirmation, idempotency, contract revision, stale-state, source-route, and
@@ -106,6 +110,17 @@ stale-state tokens. Owner-authenticated POST records only redacted intent
 evidence, with actor email, actor hash, actor user id, idempotency key, private
 note, stale-state token hash, and raw rows excluded from responses.
 
+The current #428 private-row action slice is the first low-risk Mobile Admin
+confirmed-write API. Owner-authenticated GET
+`/api/mobile-admin/private-rows/actions?rowId=...` exposes only the row-specific
+confirmation contract and stale-state token to accepted owners.
+Owner-authenticated POST can mark a private row read or deferred after exact
+confirmation, idempotency, stale row revision, stale-state token, and audit
+correlation checks. Public source-data exposes only the route, status, counts,
+latest redacted action labels, and redaction flags; it excludes actor identity,
+private notes, owner-only row notes, private payload JSON, idempotency keys,
+stale-state tokens, token hashes, and raw rows.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -126,6 +141,10 @@ note, stale-state token hash, and raw rows excluded from responses.
 - `/api/mobile-admin/private-rows`: owner-session-only private row inspection.
   Public mobile source-data can mention route, counts, row labels, and redaction
   flags, but it must not include owner-only notes or private payload JSON.
+- `/api/mobile-admin/private-rows/actions`: owner-confirmed private row workflow
+  actions. This can mark private rows read or deferred; it must not perform
+  billing, commerce, publishing, moderation, creator-speech, push, distribution,
+  or public agent writes.
 - `/api/mobile-admin/actions`: owner-gated audit-only action intents for mobile
   admin actions. Future domain-specific APIs must still perform any production
   mutation.
@@ -161,15 +180,16 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 ## Write Boundary
 
 The first iOS and Android slices can inspect owner-session private rows through
-`/api/mobile-admin/private-rows` and record audit-only action intents through
-`/api/mobile-admin/actions`, but production mobile writes still require
-domain-specific confirmed-write APIs. Public, destructive, billing-impacting,
-publishing, moderation, source-editing, and creator-speech writes require
-explicit confirmation text, idempotency, stale-state checks, audit correlation,
-and redaction.
+`/api/mobile-admin/private-rows`, mark those private rows read or deferred
+through `/api/mobile-admin/private-rows/actions`, and record audit-only action
+intents through `/api/mobile-admin/actions`, but high-risk production mobile
+writes still require domain-specific confirmed-write APIs. Public, destructive,
+billing-impacting, publishing, moderation, source-editing, and creator-speech
+writes require explicit confirmation text, idempotency, stale-state checks,
+audit correlation, and redaction.
 
 The current #414 surface proves that iOS and Android expose the same private
-auth, private-row, action-intent, and confirmed-action rules the web/admin app
-uses; it does not prove App Store or Play Store distribution, push
+auth, private-row, private-row action, action-intent, and confirmed-action rules
+the web/admin app uses; it does not prove App Store or Play Store distribution, push
 notifications, physical-device private row proof, billing mutation, publishing
 mutation, commerce mutation, or full mobile write parity.
