@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, Link2, ListCheck
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminProductCreationForm } from "@/components/admin-product-creation-form";
+import { AdminProductDeliveryGateForm } from "@/components/admin-product-delivery-gate-form";
 import { AdminProductOfferAccessGrantForm } from "@/components/admin-product-offer-access-grant-form";
 import { AdminProductTestCheckoutLinkForm } from "@/components/admin-product-test-checkout-link-form";
 import { AdminProductRevocationIntentForm } from "@/components/admin-product-revocation-intent-form";
@@ -15,6 +16,7 @@ import {
   productEntitlementRevocationIntentIssue,
 } from "@/lib/product-entitlement-inspection";
 import { getAdminProductCreationState, productCreationIssue } from "@/lib/product-creation";
+import { getAdminProductDeliveryGateState, productDeliveryGateIssue } from "@/lib/product-delivery-gates";
 import { getAdminProductOfferAccessState, productOfferAccessIssue } from "@/lib/product-offer-access";
 import { getAdminProductTestCheckoutState, productTestCheckoutIssue } from "@/lib/product-test-checkout-links";
 import { getProductProtectedContentSummary, productProtectedContentIssue } from "@/lib/product-protected-content";
@@ -38,7 +40,15 @@ function compactDate(value: string | null) {
 }
 
 function statusClass(status: string | null) {
-  if (status === "active" || status === "queued" || status === "paid" || status === "test_checkout_link_active" || status === "test_checkout_paid") return "active";
+  if (
+    status === "active" ||
+    status === "queued" ||
+    status === "paid" ||
+    status === "test_checkout_link_active" ||
+    status === "test_checkout_paid" ||
+    status === "delivery_gate_link_active"
+  )
+    return "active";
   if (status === "revoked" || status === "failed") return "blocked";
   return "pending";
 }
@@ -47,11 +57,12 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const [state, productCreation, productOfferAccess, productTestCheckout, revocationIntents, protectedContent] = await Promise.all([
+  const [state, productCreation, productOfferAccess, productTestCheckout, productDeliveryGates, revocationIntents, protectedContent] = await Promise.all([
     getAdminProductEntitlementInspectionState(),
     getAdminProductCreationState(),
     getAdminProductOfferAccessState(),
     getAdminProductTestCheckoutState(),
+    getAdminProductDeliveryGateState(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -65,8 +76,9 @@ export default async function AdminProductsPage() {
           <p className="lede">
             Owners can inspect paid sandbox entitlement grants, checkout state, product and price context, and queued
             fulfillment evidence. Revocation intent records are visible before destructive access removal exists. Public
-            protected-content readiness is visible before lesson or member-area delivery exists. Public product source-data
-            stays aggregate-only and excludes buyer, Stripe, and private asset fields.
+            protected-content readiness and owner product delivery-gate links are visible before lesson or member-area
+            delivery exists. Public product source-data stays aggregate-only and excludes buyer, Stripe, and private asset
+            fields.
           </p>
           <div className="hero-actions">
             <Link href="/products/source-data" className="primary-action">
@@ -137,6 +149,15 @@ export default async function AdminProductsPage() {
             </p>
           </div>
           <div>
+            <Link2 aria-hidden="true" />
+            <h3>Delivery gates</h3>
+            <p>
+              {productDeliveryGates.counts.activeDeliveryGateLinks} owner product delivery-gate link
+              {productDeliveryGates.counts.activeDeliveryGateLinks === 1 ? "" : "s"}, latest linked{" "}
+              {compactDate(productDeliveryGates.latestLinkedAt)}.
+            </p>
+          </div>
+          <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Revocation intents</h3>
             <p>
@@ -160,8 +181,8 @@ export default async function AdminProductsPage() {
       <section className="content-band">
         <div className="roadmap-section-heading">
           <div>
-            <p className="eyebrow">Product creation and test access</p>
-            <h2>Owners can create products and prove a test grant path</h2>
+            <p className="eyebrow">Product creation, checkout, and delivery gates</p>
+            <h2>Owners can create products and prove a delivery-gated test path</h2>
           </div>
           <Link href={`https://github.com/markitics/bumpgrade/issues/${productCreationIssue}`} className="text-link compact-link">
             Issue #{productCreationIssue}
@@ -238,6 +259,28 @@ export default async function AdminProductsPage() {
               <ArrowRight aria-hidden="true" />
             </Link>
             <AdminProductTestCheckoutLinkForm products={productCreation.records} />
+          </article>
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{productDeliveryGates.status}</span>
+              <span className="admin-pill">{productDeliveryGates.source}</span>
+            </div>
+            <Link2 aria-hidden="true" />
+            <h3>Offer and delivery gate link</h3>
+            <p>{productDeliveryGates.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Active delivery gates</strong>
+              <span>{productDeliveryGates.counts.activeDeliveryGateLinks}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Latest link</strong>
+              <span>{compactDate(productDeliveryGates.latestLinkedAt)}</span>
+            </div>
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${productDeliveryGateIssue}`} className="text-link compact-link">
+              Issue #{productDeliveryGateIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <AdminProductDeliveryGateForm products={productCreation.records} checkoutLinks={productTestCheckout.links} />
           </article>
           {productCreation.records.length > 0 ? (
             productCreation.records.map((product) => (
@@ -345,6 +388,37 @@ export default async function AdminProductsPage() {
               <p>
                 Stripe Checkout Session created: {String(link.stripeCheckoutSessionCreated)}. Live charge created:{" "}
                 {String(link.liveChargeCreated)}. Raw buyer email included: {String(link.rawBuyerEmailIncluded)}.
+              </p>
+            </article>
+          ))}
+          {productDeliveryGates.records.map((record) => (
+            <article key={record.id} className="roadmap-card active">
+              <div className="roadmap-card-top">
+                <span className={`status-badge ${statusClass(record.status)}`}>{record.status}</span>
+                <span className="admin-pill">delivery gate</span>
+              </div>
+              <Link2 aria-hidden="true" />
+              <h3>{record.productName}</h3>
+              <p>
+                Linked to {record.offerId} and {record.funnelId}; delivery stays constrained to the owner-created
+                product test checkout path.
+              </p>
+              <div className="roadmap-detail">
+                <strong>Checkout path</strong>
+                <span>{record.checkoutPublicPath}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Delivery mode</strong>
+                <span>{record.deliveryMode.replaceAll("_", " ")}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Link revision</strong>
+                <span>{record.linkRevisionId}</span>
+              </div>
+              <p>
+                Stripe Checkout Session created: {String(record.stripeCheckoutSessionCreated)}. Live fulfillment
+                delivery enabled: {String(record.liveFulfillmentDeliveryEnabled)}. Signed URLs included:{" "}
+                {String(record.signedUrlsIncluded)}.
               </p>
             </article>
           ))}

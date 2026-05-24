@@ -183,9 +183,10 @@ Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
 contract, owner product creation metadata, owner-created product test checkout
-metadata, owner-created product direct test grant metadata, owner upload intent
-metadata, owner-confirmed non-destructive revocation intent records, protected
-content readiness, checkout-scoped protected fixture delivery metadata,
+metadata, owner-created product delivery-gate metadata, owner-created product
+direct test grant metadata, owner upload intent metadata, owner-confirmed
+non-destructive revocation intent records, protected content readiness,
+checkout-scoped protected fixture delivery metadata,
 subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
@@ -204,7 +205,12 @@ confirmation, idempotency, and a current product `updatedAt` check.
 test buyers complete those links after exact confirmation, idempotency, and a
 current link revision check, creating synthetic paid checkout/access evidence
 without Stripe Checkout Sessions, live charges, public buyer exposure, or live
-fulfillment delivery. `/api/admin/products/offer-access-grants` lets verified
+fulfillment delivery. `/api/admin/products/delivery-gates` lets verified owners
+link those test checkout links to the seeded offer/funnel delivery gates after
+exact confirmation, idempotency, a current product `updatedAt` check, and a
+current checkout-link revision check, without Stripe Checkout Sessions, live
+charges, live published offer/funnel state, signed URLs, private R2 keys, or
+arbitrary customer delivery. `/api/admin/products/offer-access-grants` lets verified
 owners create direct test offer/access grant evidence for owner-created products
 after exact confirmation and idempotency. `/api/admin/products/assets` lets verified owners
 create small private product asset upload records only after exact confirmation,
@@ -215,8 +221,9 @@ non-destructive access-removal intent only after exact confirmation,
 idempotency, and a current entitlement status check. This proves entitlement
 grant, owner-inspection, customer-safe lookup, private fixture delivery, seeded
 protected fixture delivery, owner-confirmed product creation, owner-created
-product test checkout evidence, owner-confirmed private upload-record semantics,
-owner-confirmed non-destructive revocation intent semantics, and
+product test checkout evidence, owner-created product delivery-gate link
+evidence, owner-confirmed private upload-record semantics, owner-confirmed
+non-destructive revocation intent semantics, and
 subscription-backed membership access state, not signed object URLs, customer
 delivery of arbitrary uploads, real protected media delivery, destructive
 revocation, Customer Portal actions, live fulfillment automation, live Stripe

@@ -5,6 +5,7 @@ import {
   postPurchaseDecisionContract,
   postPurchaseDecisionRoutePrefix,
 } from "@/lib/post-purchase-decisions";
+import { getProductDeliveryGateSummary, productDeliveryGateApiRoute } from "@/lib/product-delivery-gates";
 
 export type CheckoutOfferStackStatus = "draft" | "sandbox_checkout_ready";
 export type CheckoutOfferKind = "primary" | "order_bump" | "upsell" | "downsell";
@@ -160,7 +161,7 @@ export const checkoutOfferStack: CheckoutOfferStack = {
     checkoutText: checkoutConfirmationText,
   },
   writeBoundary:
-    "Issue #99 allows a confirmed sandbox Checkout Session start with the seeded primary offer and constrained order bump. Issue #111 allows eligible referral click IDs to be attached as checkout attribution evidence. Issue #113 allows review-only commission ledger evidence from trusted checkout attribution. Issue #115 allows owner-gated review, hold, and reversal actions for that ledger evidence without payout mutation. Issue #117 allows non-billing post-purchase upsell/downsell decision evidence after trusted checkout state. Charging post-purchase upsells, changing prices, publishing offer copy, granting fulfillment, live billing, payable commission writes, payout mutation, and direct agent writes require future confirmed-write APIs with actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, owner review, reversal controls, and webhook evidence.",
+    "Issue #99 allows a confirmed sandbox Checkout Session start with the seeded primary offer and constrained order bump. Issue #111 allows eligible referral click IDs to be attached as checkout attribution evidence. Issue #113 allows review-only commission ledger evidence from trusted checkout attribution. Issue #115 allows owner-gated review, hold, and reversal actions for that ledger evidence without payout mutation. Issue #117 allows non-billing post-purchase upsell/downsell decision evidence after trusted checkout state. Issue #409 allows owner-created product test checkout links to be linked to the seeded offer/funnel delivery gates without live billing or fulfillment delivery. Charging post-purchase upsells, changing prices, publishing offer copy, granting fulfillment, live billing, payable commission writes, payout mutation, and direct agent writes require future confirmed-write APIs with actor identity, exact confirmation, idempotency, stale-state checks, audit correlation, redaction, owner review, reversal controls, and webhook evidence.",
   validation: [
     "/offers/source-data returns the seeded primary offer, order bump, upsell, and downsell records.",
     "/offers/indie-launch-stack renders the checkout-offer preview and sandbox checkout start panel.",
@@ -192,6 +193,7 @@ export const checkoutOfferSourceData = {
     "/commerce/checkout/success",
     postPurchaseDecisionApiRoute,
     postPurchaseDecisionRoutePrefix,
+    productDeliveryGateApiRoute,
     ...checkoutOfferStacks.map((stack) => stack.previewRoute),
   ],
   stableIds: [
@@ -202,6 +204,7 @@ export const checkoutOfferSourceData = {
     "downsellId",
     "checkoutRevisionId",
     "postPurchaseDecisionId",
+    "productDeliveryGateLinkId",
     "agentActionId",
   ],
   sandboxCheckout: {
@@ -228,12 +231,13 @@ export const checkoutOfferSourceData = {
   writeBoundary: checkoutOfferStack.writeBoundary,
   stacks: checkoutOfferStacks,
   caveat:
-    "This contract proves offer-stack read semantics, a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, and non-billing post-purchase upsell/downsell decision evidence. It does not enable live billing, one-click upsell charging, fulfillment, price mutation, payable commission writes, payout mutation, partner notifications, tax records, or direct confirmed-write agent APIs.",
+    "This contract proves offer-stack read semantics, a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, and aggregate owner-created product delivery-gate links for the seeded offer/funnel path. It does not enable live billing, one-click upsell charging, fulfillment, price mutation, payable commission writes, payout mutation, partner notifications, tax records, or direct confirmed-write agent APIs.",
 };
 
 export async function checkoutOfferSourceDataWithRuntime(db: D1Database | null | undefined) {
   return {
     ...checkoutOfferSourceData,
     postPurchaseDecisionSummary: await loadPostPurchaseDecisionSummary(db),
+    ownerProductDeliveryGates: await getProductDeliveryGateSummary(db),
   };
 }

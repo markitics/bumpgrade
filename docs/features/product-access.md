@@ -23,6 +23,8 @@ and creates synthetic paid checkout/access grant evidence without live Stripe
 checkout, live charges, published offer copy, or public buyer exposure. Issue
 #407 adds owner-confirmed buyer-facing test checkout links and public test
 checkout completion for owner-created products with link-revision checks.
+Issue #409 links those owner-created product test checkout links to the seeded
+offer/funnel delivery gates with product and checkout-link stale-state checks.
 
 Live in this slice:
 
@@ -65,6 +67,12 @@ Live in this slice:
 - `/api/admin/products/test-checkout-links`: lets verified owners create a
   stable buyer-facing test checkout link for an owner-created product after
   exact confirmation, idempotency, and a current product `updatedAt` check.
+- `/api/admin/products/delivery-gates`: lets verified owners link an
+  owner-created product test checkout link to the seeded offer/funnel delivery
+  gates after exact confirmation, idempotency, a current product `updatedAt`
+  check, and a current checkout-link revision check. It does not create Stripe
+  Checkout Sessions, live charges, live published offer/funnel state, signed
+  URLs, private R2 keys, or arbitrary customer delivery.
 - `/products/test-checkout/{linkId}` and `/api/products/test-checkout`: let a
   public test buyer complete that checkout after exact confirmation,
   idempotency, and a current link revision check, creating a synthetic paid
@@ -99,8 +107,9 @@ Not live in this slice:
   fulfillment delivery.
 - Stripe product/price creation, live offer/funnel publishing, and live
   purchase-to-created-product fulfillment for owner-created draft products.
-  Issues #405 and #407 record only direct test grant evidence, buyer-facing
-  test checkout links, and synthetic paid test access-grant evidence.
+  Issues #405, #407, and #409 record only direct test grant evidence,
+  buyer-facing test checkout links, delivery-gate link evidence, and synthetic
+  paid test access-grant evidence.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions. The issue #187 fixture can activate or pause one seeded
   checkout-linked membership entitlement from trusted subscription state, but it
@@ -148,6 +157,13 @@ Public redaction boundary:
   include checkout link IDs, buyer emails, buyer hashes, checkout intent IDs,
   entitlement IDs, idempotency keys, raw metadata, owner identity, or raw Stripe
   IDs.
+- `/products/source-data`, `/offers/source-data`, and `/funnels/source-data`
+  expose aggregate owner product delivery-gate counts and supported policy
+  text. `/admin/products` can inspect the linked product, checkout path, seeded
+  offer/funnel IDs, delivery mode, and stale-state evidence. Public source-data
+  does not include checkout link IDs, actor emails, actor user IDs,
+  idempotency keys, buyer emails, checkout intent IDs, entitlement IDs, private
+  R2 keys, signed URLs, or raw Stripe IDs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   owner emails, actor user IDs, idempotency keys, private R2 object keys, signed
   URLs, real lesson bodies, member posts, transcripts, Customer Portal URLs, and

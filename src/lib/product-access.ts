@@ -5,13 +5,16 @@ import {
   subscriptionMembershipGrantMapping,
 } from "@/lib/product-entitlements";
 import { productCreationApiRoute } from "@/lib/product-creation";
+import {
+  productDeliveryGateApiRoute,
+  productDeliveryGateIssue,
+  productDeliveryGateStatus,
+} from "@/lib/product-delivery-gates";
 import { productOfferAccessApiRoute } from "@/lib/product-offer-access";
 import {
   productTestCheckoutApiRoute,
-  productTestCheckoutIssue,
   productTestCheckoutLinkApiRoute,
   productTestCheckoutRoutePrefix,
-  productTestCheckoutStatus,
 } from "@/lib/product-test-checkout-links";
 
 export type ProductAccessCatalogStatus = "draft";
@@ -344,8 +347,8 @@ export function getProductAccessCatalogBySlug(slug: string) {
 export const productAccessSourceData = {
   id: "bumpgrade-product-access-source-data",
   updatedAt: productAccessUpdatedAt,
-  status: productTestCheckoutStatus,
-  issue: productTestCheckoutIssue,
+  status: productDeliveryGateStatus,
+  issue: productDeliveryGateIssue,
   parentIssue: 16,
   generatedFrom: "src/lib/product-access.ts",
   routes: [
@@ -359,6 +362,7 @@ export const productAccessSourceData = {
     productTestCheckoutApiRoute,
     "/api/admin/products/assets",
     productCreationApiRoute,
+    productDeliveryGateApiRoute,
     productOfferAccessApiRoute,
     productTestCheckoutLinkApiRoute,
     "/api/admin/products/revocation-intents",
@@ -373,6 +377,7 @@ export const productAccessSourceData = {
     "productDownloadTokenId",
     "productAssetUploadIntentId",
     "productCreationIntentId",
+    "productDeliveryGateLinkId",
     "productOfferAccessGrantIntentId",
     "productTestCheckoutLinkId",
     "productTestCheckoutPurchaseId",
@@ -389,5 +394,5 @@ export const productAccessSourceData = {
   writeBoundary: productAccessCatalog.writeBoundary,
   catalogs: productAccessCatalogs,
   caveat:
-    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, subscription-backed membership entitlement state, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed draft product creation, owner-created product test checkout links and buyer-facing test checkout completion, owner-created product test offer/access grants, owner-confirmed small private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, private revocation notes, raw owner identity, raw buyer identity, raw checkout link IDs, raw checkout or entitlement IDs in public source-data, raw Stripe subscription/customer IDs, destructive revocation APIs, Stripe product or price creation, live offer/funnel publishing, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unconfirmed agent writes.",
+    "This contract proves product/access read and preview semantics, sandbox webhook-backed entitlement row grants, subscription-backed membership entitlement state, owner inspection, customer-safe checkout-intent entitlement lookup, short-lived download tokens, seeded private R2-backed fixture delivery, owner-confirmed draft product creation, owner-created product test checkout links and buyer-facing test checkout completion, owner-created product delivery-gate links for the seeded offer/funnel path, owner-created product test offer/access grants, owner-confirmed small private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped protected fixture delivery. It does not expose private R2 keys, signed object URLs, upload bodies, arbitrary uploaded content, private revocation notes, raw owner identity, raw buyer identity, raw checkout link IDs, raw checkout or entitlement IDs in public source-data, raw Stripe subscription/customer IDs, destructive revocation APIs, Stripe product or price creation, live offer/funnel publishing, live fulfillment automation, customer portals, customer delivery of arbitrary uploads, or direct unconfirmed agent writes.",
 };

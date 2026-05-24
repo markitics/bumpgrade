@@ -10,6 +10,7 @@ import {
   getProductEntitlementRevocationIntentSummary,
 } from "@/lib/product-entitlement-inspection";
 import { getProductCreationSummary } from "@/lib/product-creation";
+import { getProductDeliveryGateSummary } from "@/lib/product-delivery-gates";
 import { getProductOfferAccessSummary } from "@/lib/product-offer-access";
 import { getProductTestCheckoutSummary } from "@/lib/product-test-checkout-links";
 import { getProductProtectedContentSummary } from "@/lib/product-protected-content";
@@ -23,6 +24,7 @@ export async function GET() {
     subscriptionMembershipAccess,
     ownerAssetUploadIntents,
     productCreation,
+    productDeliveryGates,
     productOfferAccess,
     productTestCheckout,
     revocationIntents,
@@ -32,6 +34,7 @@ export async function GET() {
     getSubscriptionMembershipAccessSummary(),
     getProductAssetUploadIntentSummary(),
     getProductCreationSummary(),
+    getProductDeliveryGateSummary(),
     getProductOfferAccessSummary(),
     getProductTestCheckoutSummary(),
     getProductEntitlementRevocationIntentSummary(),
@@ -46,6 +49,7 @@ export async function GET() {
     sandboxDownloadTokens: productDownloadTokenSummary,
     ownerAssetUploadIntents,
     productCreation,
+    productDeliveryGates,
     productOfferAccess,
     productTestCheckout,
     revocationIntents,
