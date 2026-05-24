@@ -6671,7 +6671,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: analyticsExperimentsSourceData.id,
-        status: "seeded-traffic-routing-ready",
+        status: "seeded-holdout-routing-ready",
         issue: 129,
         executionIssue: 422,
         parentIssue: 18,
@@ -6702,6 +6702,7 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsEventSourceAggregateId",
         "analyticsTimeWindow",
         "analyticsExperimentTrafficRoutingId",
+        "analyticsExperimentHoldoutRoutingId",
         "experimentAssignmentId",
         "analyticsExperimentDecisionId",
         "analyticsExperimentDecisionKind",
@@ -6770,7 +6771,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.trafficRouting).toEqual(
       expect.objectContaining({
         id: "analytics-seeded-funnel-experiment-routing",
-        status: "seeded-session-routing-ready",
+        status: "seeded-session-holdout-routing-ready",
         issue: 422,
         route: "/funnels/indie-launch-sandbox",
         experimentId: "experiment-opt-in-hero-promise",
@@ -6781,9 +6782,32 @@ test.describe("Bumpgrade scaffold", () => {
         rawVisitorKeysIncluded: false,
         contactAnalyticsIncluded: false,
         directAgentWriteAllowed: false,
-        holdoutRoutingEnabled: false,
+        holdoutRoutingEnabled: true,
+        holdoutVariantId: "variant-opt-in-baseline-holdout",
+        holdoutTrafficWeight: 10,
+        treatmentTrafficWeight: 90,
         automatedWinnerEnabled: false,
         customRoutingRulesEnabled: false,
+      }),
+    );
+    expect(payload.holdoutRouting).toEqual(
+      expect.objectContaining({
+        id: "analytics-seeded-funnel-holdout-routing",
+        status: "seeded-session-holdout-ready",
+        issue: 422,
+        route: "/funnels/indie-launch-sandbox",
+        experimentId: "experiment-opt-in-hero-promise",
+        holdoutVariantId: "variant-opt-in-baseline-holdout",
+        linkedBlockId: "block-opt-in-hero",
+        assignmentStorage: "sessionStorage",
+        baselineCopySource: "server-rendered funnel block copy",
+        trafficWeight: 10,
+        treatmentTrafficWeight: 90,
+        cookieAssignmentEnabled: false,
+        rawVisitorKeysIncluded: false,
+        contactAnalyticsIncluded: false,
+        automatedWinnerEnabled: false,
+        directAgentWriteAllowed: false,
       }),
     );
     expect(payload.experimentDecisionWrites).toEqual(
@@ -7472,7 +7496,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("group", { name: "Conversion window" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Source window" })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /Seeded experiment routing changes funnel copy without cookies/i }),
+      page.getByRole("heading", { name: /Seeded experiment routing keeps a baseline holdout without cookies/i }),
     ).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
@@ -7734,9 +7758,10 @@ test.describe("Bumpgrade scaffold", () => {
     const routedCopy = page.locator('[data-experiment-id="experiment-opt-in-hero-promise"]');
     await expect(routedCopy).toHaveAttribute("data-experiment-routing", "seeded-session");
     await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
+    await expect(routedCopy).toHaveAttribute("data-experiment-holdout", /true|false/);
     await expect(
       page.getByRole("heading", {
-        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon/i,
+        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon|Lead with the promise/i,
       }),
     ).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
@@ -7747,9 +7772,10 @@ test.describe("Bumpgrade scaffold", () => {
     await page.reload();
     await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
     await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
+    await expect(routedCopy).toHaveAttribute("data-experiment-holdout", /true|false/);
     await expect(
       page.getByRole("heading", {
-        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon/i,
+        name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon|Lead with the promise/i,
       }),
     ).toBeVisible();
     await expect.poll(async () => (await waitlistRow()).visitorCount).toBe(beforeVisitors + 1);
@@ -7864,7 +7890,9 @@ test.describe("Bumpgrade scaffold", () => {
         rawRequestDataIncluded: false,
       }),
     );
-    expect(["variant-opt-in-outcome-first", "variant-opt-in-speed-first"]).toContain(firstResult.variantId);
+    expect(["variant-opt-in-outcome-first", "variant-opt-in-speed-first", "variant-opt-in-baseline-holdout"]).toContain(
+      firstResult.variantId,
+    );
     expect(firstResult.assignmentBucket).toBeGreaterThanOrEqual(0);
     expect(firstResult.assignmentBucket).toBeLessThan(100);
     expect(firstResult).not.toHaveProperty("anonymousAssignmentKey");
@@ -19540,6 +19568,7 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining([
             "analyticsEventVariantAggregateId",
             "analyticsExperimentTrafficRoutingId",
+            "analyticsExperimentHoldoutRoutingId",
             "experimentAssignmentId",
             "analyticsExperimentDecisionId",
             "analyticsReportExportId",
@@ -19599,7 +19628,7 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
-            "Inspect seeded sandbox funnel copy routing metadata",
+            "Inspect seeded sandbox funnel copy routing and baseline holdout metadata",
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
             "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",

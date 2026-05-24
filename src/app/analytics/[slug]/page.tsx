@@ -21,7 +21,7 @@ type AnalyticsPageProps = {
 };
 
 const publicAnalyticsBoundary =
-  "Seeded public funnel routing can change opt-in copy by session assignment; custom routing rules, holdouts, and automated winners open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
+  "Seeded public funnel routing can change opt-in copy by session assignment while preserving a baseline holdout; custom routing rules and automated winners open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
 const analyticsPageDescription =
   "A launch analytics dashboard that summarizes funnel conversion, source attribution, and experiment results without publishing visitor-level data.";
 
@@ -190,7 +190,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Experiment model</p>
-            <h2>Seeded experiment routing changes funnel copy without cookies</h2>
+            <h2>Seeded experiment routing keeps a baseline holdout without cookies</h2>
           </div>
           <Link href={dashboard.linkedOfferRoute} className="text-link compact-link">
             Checkout offer
@@ -207,9 +207,9 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Bumpgrade can route the launch-page opt-in promise by seeded session assignment, then summarize counts and
-              decision evidence. Holdouts, custom routing rules, and automated winners still wait for sample-size checks
-              and owner confirmation.
+              Bumpgrade can route the launch-page opt-in promise by seeded session assignment, keep a small baseline
+              holdout on the original copy, then summarize counts and decision evidence. Custom routing rules and
+              automated winners still wait for sample-size checks and owner confirmation.
             </p>
           </article>
         </div>

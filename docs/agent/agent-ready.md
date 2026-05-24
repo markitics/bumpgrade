@@ -623,7 +623,7 @@ delivery-status-webhook readiness evidence, owner-reviewed provider-polling
 readiness evidence, owner-reviewed receipt-payload readiness evidence,
 owner-reviewed delivery-receipt readiness evidence, owner-reviewed
 provider-status reconciliation readiness evidence, plus aggregate
-export metadata and seeded sandbox funnel copy routing, not cookie assignment, automated alert sends, owner email
+export metadata and seeded sandbox funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email
 sends, provider sends, provider calls, delivery attempts, delivery results,
 delivery receipts, status webhooks, provider polling, provider status
 reconciliation, provider configuration,
@@ -639,7 +639,7 @@ winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.
 
 Issue #18 is the live analytics MVP boundary. Issue #422 has started seeded
-sandbox funnel routing and still tracks custom analytics schemas, holdouts,
+sandbox funnel routing with a baseline holdout and still tracks custom analytics schemas, custom routing rules,
 winner selection, notification execution, Cloudflare Queue producer/consumer
 execution, provider calls, delivery attempts/results, webhooks, polling,
 receipts, raw/private exports, and agent-safe write parity work as the

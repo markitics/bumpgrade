@@ -517,10 +517,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #307 adds owner-reviewed receipt-payload readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, creating delivery receipts, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
       "Issue #309 adds owner-reviewed delivery-receipt readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, creating delivery receipts, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
       "Issue #311 adds owner-reviewed provider-status reconciliation readiness records without enabling provider sends or calls, attempting delivery, polling providers, processing status webhooks, processing delivery receipts, reconciling provider statuses, exposing receipt payloads, configuring providers, storing provider secrets or sender credentials, creating provider responses, exposing provider message IDs, sending owner email, exposing recipients, or making revenue claims.",
-      "Issue #422 routes the sandbox opt-in hero copy through seeded session assignment without cookies and tracks the remaining live analytics automation, holdouts, winner selection, notification execution, and direct agent-safe write parity as one post-MVP execution bucket.",
+      "Issue #422 routes the sandbox opt-in hero copy through seeded session assignment with a baseline holdout and without cookies, and tracks the remaining live analytics automation, custom routing rules, winner selection, notification execution, and direct agent-safe write parity as one post-MVP execution bucket.",
     ],
     nextMilestone:
-      "Keep custom analytics schemas, holdouts, winner selection, notification execution, Queue producer/consumer execution, provider calls, delivery results, raw exports, and agent-safe write tools in issue #422 instead of reopening more isolated readiness-gate slices.",
+      "Keep custom analytics schemas, custom routing rules, winner selection, notification execution, Queue producer/consumer execution, provider calls, delivery results, raw exports, and agent-safe write tools in issue #422 instead of reopening more isolated readiness-gate slices.",
   },
   {
     id: "roadmap-live-analytics-execution",
@@ -530,11 +530,11 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(18),
     group: "Optimization",
     summary:
-      "Active post-MVP execution bucket for custom/non-seeded analytics event schemas, experiment holdouts, winner selection, rollback and audit logs, automated alert/notification execution, Cloudflare Queue producer and consumer execution, provider calls, delivery attempts, results, webhooks, polling, receipts, raw/private exports, and direct agent-safe analytics write APIs. Seeded sandbox funnel copy routing is now live through the existing assignment API.",
+      "Active post-MVP execution bucket for custom/non-seeded analytics event schemas, custom routing rules, winner selection, rollback and audit logs, automated alert/notification execution, Cloudflare Queue producer and consumer execution, provider calls, delivery attempts, results, webhooks, polling, receipts, raw/private exports, and direct agent-safe analytics write APIs. Seeded sandbox funnel copy routing with a baseline holdout is now live through the existing assignment API.",
     publicEvidence: [
       "Issue #422 tracks this pending post-MVP execution bucket.",
       "Issue #18 remains the shipped analytics MVP for privacy-safe events, deterministic assignments, aggregate conversion reporting, fixed-window attribution, owner decision evidence, aggregate exports, and notification readiness proof.",
-      "Seeded sandbox funnel copy routing now uses the same deterministic assignment API and session-scoped anonymous key as the page-view beacon.",
+      "Seeded sandbox funnel copy routing now uses the same deterministic assignment API and session-scoped anonymous key as the page-view beacon, with a 10% baseline holdout.",
       "The issue #18 closeout deliberately stops creating more single-gate proof slices unless they directly unlock live execution.",
     ],
     nextMilestone:

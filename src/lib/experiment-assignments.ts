@@ -1,6 +1,6 @@
 import { sha256Hex } from "@/lib/analytics-events";
 
-export const analyticsExperimentAssignmentUpdatedAt = "2026-05-19";
+export const analyticsExperimentAssignmentUpdatedAt = "2026-05-24";
 
 export const analyticsExperimentAssignmentApiRoute = "/api/analytics/assignments";
 
@@ -32,7 +32,7 @@ export const analyticsExperimentAssignmentWriteContract = {
     "raw visitor keys",
   ],
   writeBoundary:
-    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, and issue #422 can reuse the same assignment key for seeded sandbox funnel copy routing. Cookie creation, contact-level reporting, custom experiment routing rules, holdouts, winner decisions, and direct agent experiment writes require future confirmed-write APIs.",
+    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, and issue #422 reuses the same assignment key for seeded sandbox funnel copy routing plus the baseline holdout. Cookie creation, contact-level reporting, custom experiment routing rules, winner decisions, and direct agent experiment writes require future confirmed-write APIs.",
 };
 
 export type ExperimentAssignmentVariant = {

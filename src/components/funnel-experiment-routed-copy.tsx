@@ -12,6 +12,7 @@ import {
 export type FunnelExperimentRoutedVariant = {
   id: string;
   label: string;
+  routingRole: "treatment" | "holdout";
   routedTitle: string;
   routedBody: string;
 };
@@ -36,6 +37,7 @@ export function FunnelExperimentRoutedCopy({
     () => variants.find((variant) => variant.id === assignedVariantId) ?? null,
     [assignedVariantId, variants],
   );
+  const isHoldout = assignedVariant?.routingRole === "holdout";
 
   useEffect(() => {
     if (shouldSkipAnalyticsBrowserWork()) return undefined;
@@ -58,10 +60,11 @@ export function FunnelExperimentRoutedCopy({
     <div
       data-experiment-id={experimentId}
       data-experiment-variant={assignedVariant?.id ?? "fallback"}
+      data-experiment-holdout={isHoldout ? "true" : "false"}
       data-experiment-routing="seeded-session"
     >
-      <h3>{assignedVariant?.routedTitle ?? fallbackTitle}</h3>
-      <p>{assignedVariant?.routedBody ?? fallbackBody}</p>
+      <h3>{isHoldout ? fallbackTitle : assignedVariant?.routedTitle ?? fallbackTitle}</h3>
+      <p>{isHoldout ? fallbackBody : assignedVariant?.routedBody ?? fallbackBody}</p>
     </div>
   );
 }
