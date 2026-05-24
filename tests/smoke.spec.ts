@@ -19575,6 +19575,16 @@ test.describe("Bumpgrade scaffold", () => {
           route: mobileAdminActionIntentApiRoute,
           authBoundary: "owner-confirmed-intent",
         }),
+        expect.objectContaining({
+          id: "mobile-api-push-boundary",
+          route: "/mobile-admin/source-data",
+          authBoundary: "public-safe",
+        }),
+        expect.objectContaining({
+          id: "mobile-api-distribution-boundary",
+          route: "/mobile-admin/source-data",
+          authBoundary: "public-safe",
+        }),
       ]),
     );
     expect(payload.privateRowsApi).toEqual(
@@ -19649,6 +19659,41 @@ test.describe("Bumpgrade scaffold", () => {
           productionMutationCreated: false,
           billingMutationCreated: false,
         }),
+      }),
+    );
+    expect(payload.pushNotificationBoundary).toEqual(
+      expect.objectContaining({
+        id: "mobile-push-notification-boundary",
+        issue: 414,
+        status: "push-boundary-ready",
+        sendCapability: "disabled-provider-contract-required",
+        requiredProviders: expect.arrayContaining([
+          expect.objectContaining({ platform: "ios", provider: "APNs" }),
+          expect.objectContaining({ platform: "android", provider: "FCM" }),
+        ]),
+        redactionFlags: expect.arrayContaining([
+          "apnsCredentialsIncluded=false",
+          "fcmCredentialsIncluded=false",
+          "deviceTokensIncluded=false",
+          "pushNotificationsSent=false",
+        ]),
+      }),
+    );
+    expect(payload.distributionReadiness).toEqual(
+      expect.objectContaining({
+        id: "mobile-distribution-readiness-boundary",
+        issue: 414,
+        status: "distribution-boundary-ready",
+        installableDistributionClaim: false,
+        platformEvidence: expect.arrayContaining([
+          expect.objectContaining({ platform: "ios" }),
+          expect.objectContaining({ platform: "android" }),
+        ]),
+        redactionFlags: expect.arrayContaining([
+          "signingCredentialsIncluded=false",
+          "appStoreDistributionLive=false",
+          "playStoreDistributionLive=false",
+        ]),
       }),
     );
     expect(payload.privateAuth).toEqual(
@@ -19806,6 +19851,38 @@ test.describe("Bumpgrade scaffold", () => {
           idempotencyKeysIncluded: false,
           staleStateTokenIncludedInPublicSourceData: false,
         }),
+      }),
+    );
+    expect(payload.pushNotificationBoundary).toEqual(
+      expect.objectContaining({
+        id: "mobile-push-notification-boundary",
+        status: "push-boundary-ready",
+        sendCapability: "disabled-provider-contract-required",
+        requiredProviders: expect.arrayContaining([
+          expect.objectContaining({ platform: "ios", provider: "APNs" }),
+          expect.objectContaining({ platform: "android", provider: "FCM" }),
+        ]),
+        blockedBy: expect.arrayContaining([
+          expect.stringContaining("No APNs credential plumbing"),
+          expect.stringContaining("No FCM credential plumbing"),
+        ]),
+      }),
+    );
+    expect(payload.distributionReadiness).toEqual(
+      expect.objectContaining({
+        id: "mobile-distribution-readiness-boundary",
+        status: "distribution-boundary-ready",
+        installableDistributionClaim: false,
+        platformEvidence: expect.arrayContaining([
+          expect.objectContaining({
+            platform: "ios",
+            blockedBy: expect.arrayContaining([expect.stringContaining("iPhone target is unavailable")]),
+          }),
+          expect.objectContaining({
+            platform: "android",
+            blockedBy: expect.arrayContaining([expect.stringContaining("no attached physical Android devices")]),
+          }),
+        ]),
       }),
     );
     expect(payload.featureSummary).toEqual(
@@ -20319,6 +20396,24 @@ test.describe("Bumpgrade scaffold", () => {
         authBoundary: "owner-session",
       }),
     );
+    expect(payload.pushNotificationBoundary).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "push-boundary-ready",
+        sendCapability: "disabled-provider-contract-required",
+        requiredProvider: expect.objectContaining({ platform: "ios", provider: "APNs" }),
+        redactionFlags: expect.arrayContaining(["deviceTokensIncluded=false", "pushNotificationsSent=false"]),
+      }),
+    );
+    expect(payload.distributionReadiness).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "distribution-boundary-ready",
+        installableDistributionClaim: false,
+        platformEvidence: expect.objectContaining({ platform: "ios" }),
+        redactionFlags: expect.arrayContaining(["appStoreDistributionLive=false"]),
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
@@ -20346,9 +20441,18 @@ test.describe("Bumpgrade scaffold", () => {
           id: "ios-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
+        expect.objectContaining({
+          id: "ios-read-mobile-push-boundary",
+          route: "/mobile-admin/source-data",
+        }),
+        expect.objectContaining({
+          id: "ios-read-mobile-distribution-boundary",
+          route: "/mobile-admin/source-data",
+        }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Read-only private rows");
+    expect(payload.writeBoundary).toContain("push-notification boundary");
+    expect(payload.writeBoundary).toContain("distribution-readiness boundary");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -20405,6 +20509,24 @@ test.describe("Bumpgrade scaffold", () => {
         authBoundary: "owner-session",
       }),
     );
+    expect(payload.pushNotificationBoundary).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "push-boundary-ready",
+        sendCapability: "disabled-provider-contract-required",
+        requiredProvider: expect.objectContaining({ platform: "android", provider: "FCM" }),
+        redactionFlags: expect.arrayContaining(["deviceTokensIncluded=false", "pushNotificationsSent=false"]),
+      }),
+    );
+    expect(payload.distributionReadiness).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "distribution-boundary-ready",
+        installableDistributionClaim: false,
+        platformEvidence: expect.objectContaining({ platform: "android" }),
+        redactionFlags: expect.arrayContaining(["playStoreDistributionLive=false"]),
+      }),
+    );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
@@ -20432,9 +20554,18 @@ test.describe("Bumpgrade scaffold", () => {
           id: "android-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
+        expect.objectContaining({
+          id: "android-read-mobile-push-boundary",
+          route: "/mobile-admin/source-data",
+        }),
+        expect.objectContaining({
+          id: "android-read-mobile-distribution-boundary",
+          route: "/mobile-admin/source-data",
+        }),
       ]),
     );
-    expect(payload.writeBoundary).toContain("Read-only private rows");
+    expect(payload.writeBoundary).toContain("push-notification boundary");
+    expect(payload.writeBoundary).toContain("distribution-readiness boundary");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {

@@ -56,6 +56,18 @@ assert(fixture.privateRowActionsApi?.route === "/api/mobile-admin/private-rows/a
 assert(fixture.privateRowActionsApi?.status === "owner-mobile-private-row-actions-ready", "Fixture does not include the mobile private row actions API status.");
 assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
 assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
+assert(fixture.pushNotificationBoundary?.id === "mobile-push-notification-boundary", "Fixture does not include the mobile push boundary.");
+assert(fixture.pushNotificationBoundary?.sendCapability === "disabled-provider-contract-required", "Fixture does not keep push sends disabled.");
+assert(
+  fixture.pushNotificationBoundary?.requiredProviders?.some((provider) => provider.platform === "ios" && provider.provider === "APNs"),
+  "Fixture does not include the iOS APNs provider requirement.",
+);
+assert(fixture.distributionReadiness?.id === "mobile-distribution-readiness-boundary", "Fixture does not include the distribution boundary.");
+assert(fixture.distributionReadiness?.installableDistributionClaim === false, "Fixture must not claim installable distribution.");
+assert(
+  fixture.distributionReadiness?.platformEvidence?.some((evidence) => evidence.platform === "ios"),
+  "Fixture does not include iOS distribution evidence boundaries.",
+);
 assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
 
 const appSource = readFileSync(appSourcePath, "utf8");
@@ -66,6 +78,8 @@ assert(appSource.includes("Private auth"), "Expo app does not render the private
 assert(appSource.includes("Private rows API"), "Expo app does not render the mobile private rows API panel.");
 assert(appSource.includes("Private row actions API"), "Expo app does not render the mobile private row actions API panel.");
 assert(appSource.includes("Action intent API"), "Expo app does not render the mobile action intent API panel.");
+assert(appSource.includes("Push boundary"), "Expo app does not render the mobile push boundary panel.");
+assert(appSource.includes("Distribution boundary"), "Expo app does not render the mobile distribution boundary panel.");
 assert(appSource.includes("Confirmed mobile actions"), "Expo app does not render the confirmed actions panel.");
 assert(appSource.includes("fetch(url)"), "Expo app does not fetch the live dashboard route.");
 assert(appSource.includes("Live network"), "Expo app does not distinguish live network hydration from fixture fallback.");

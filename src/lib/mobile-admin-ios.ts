@@ -57,6 +57,21 @@ export const iosMobileAdminSourceData = {
     authBoundary: mobileAdminContract.actionIntentApi.authBoundary,
     intentBoundary: mobileAdminContract.actionIntentApi.intentBoundary,
   },
+  pushNotificationBoundary: {
+    issue: mobileAdminContract.pushNotificationBoundary.issue,
+    status: mobileAdminContract.pushNotificationBoundary.status,
+    sendCapability: mobileAdminContract.pushNotificationBoundary.sendCapability,
+    requiredProvider: mobileAdminContract.pushNotificationBoundary.requiredProviders.find((provider) => provider.platform === "ios"),
+    blockedBy: mobileAdminContract.pushNotificationBoundary.blockedBy,
+    redactionFlags: mobileAdminContract.pushNotificationBoundary.redactionFlags,
+  },
+  distributionReadiness: {
+    issue: mobileAdminContract.distributionReadiness.issue,
+    status: mobileAdminContract.distributionReadiness.status,
+    installableDistributionClaim: mobileAdminContract.distributionReadiness.installableDistributionClaim,
+    platformEvidence: mobileAdminContract.distributionReadiness.platformEvidence.find((evidence) => evidence.platform === "ios"),
+    redactionFlags: mobileAdminContract.distributionReadiness.redactionFlags,
+  },
   confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
     id: action.id,
     issue: action.issue,
@@ -101,6 +116,20 @@ export const iosMobileAdminSourceData = {
         "A verified owner can record audit-only mobile action intent evidence after exact confirmation, idempotency, contract revision, stale-state token, source-route, and audit-correlation checks.",
     },
     {
+      id: "ios-read-mobile-push-boundary",
+      route: "/mobile-admin/source-data",
+      fixturePath: iosSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      purpose:
+        "The iOS scaffold renders the APNs push-notification readiness boundary while sends, device tokens, provider credentials, payload bodies, and delivery receipts remain disabled and redacted.",
+    },
+    {
+      id: "ios-read-mobile-distribution-boundary",
+      route: "/mobile-admin/source-data",
+      fixturePath: iosSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      purpose:
+        "The iOS scaffold renders the distribution boundary that separates simulator proof from physical-device, TestFlight, and App Store claims.",
+    },
+    {
       id: "ios-read-admin-source-next",
       route: "/admin/source-data",
       fixturePath: null,
@@ -109,7 +138,7 @@ export const iosMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared owner-session, private-row API, private-row action API, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared owner-session, private-row API, private-row action API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs and platform evidence exist.",
   caveat:
-    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, and audit-only action-intent route. It does not mean App Store distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
+    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, audit-only action-intent route, APNs readiness boundary, and distribution boundary. It does not mean App Store/TestFlight distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

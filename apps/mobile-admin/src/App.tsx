@@ -86,6 +86,37 @@ type PrivateRowActionsApiContract = {
   requiredInputs: string[];
 };
 
+type PushNotificationBoundaryContract = {
+  id: string;
+  issue: number;
+  status: string;
+  sendCapability: string;
+  purpose: string;
+  requiredProviders: Array<{
+    platform: "ios" | "android";
+    provider: string;
+    credentialBoundary: string;
+    requiredEvidence: string[];
+  }>;
+  blockedBy: string[];
+  redactionFlags: string[];
+};
+
+type DistributionReadinessContract = {
+  id: string;
+  issue: number;
+  status: string;
+  installableDistributionClaim: boolean;
+  purpose: string;
+  platformEvidence: Array<{
+    platform: "ios" | "android";
+    currentEvidence: string;
+    requiredBeforeClaim: string[];
+    blockedBy: string[];
+  }>;
+  redactionFlags: string[];
+};
+
 function Badge({ children }: { children: string }) {
   return (
     <View style={styles.badge}>
@@ -132,6 +163,12 @@ export default function App() {
   const privateRowsApi = mobileAdminContractFixture.privateRowsApi as PrivateRowsApiContract;
   const privateRowActionsApi = mobileAdminContractFixture.privateRowActionsApi as PrivateRowActionsApiContract;
   const actionIntentApi = mobileAdminContractFixture.actionIntentApi as ActionIntentApiContract;
+  const pushBoundary = mobileAdminContractFixture.pushNotificationBoundary as PushNotificationBoundaryContract;
+  const distributionReadiness = mobileAdminContractFixture.distributionReadiness as DistributionReadinessContract;
+  const iosPushProvider = pushBoundary.requiredProviders.find((provider) => provider.platform === "ios") ?? pushBoundary.requiredProviders[0];
+  const iosDistributionEvidence =
+    distributionReadiness.platformEvidence.find((evidence) => evidence.platform === "ios") ??
+    distributionReadiness.platformEvidence[0];
   const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 2) as ConfirmedActionContract[];
   const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
 
@@ -232,6 +269,31 @@ export default function App() {
           <Text style={styles.meta}>Auth: {actionIntentApi.authBoundary}</Text>
           <Text style={styles.meta}>Boundary: {actionIntentApi.intentBoundary}</Text>
           <Text style={styles.meta}>Inputs: {actionIntentApi.requiredInputs.join(", ")}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Push boundary</Text>
+          <Text style={styles.panelTitle}>{pushBoundary.status}</Text>
+          <Text style={styles.body}>{pushBoundary.purpose}</Text>
+          <Text style={styles.meta}>Send: {pushBoundary.sendCapability}</Text>
+          <Text style={styles.meta}>
+            Provider: {iosPushProvider?.platform.toUpperCase()} {iosPushProvider?.provider}
+          </Text>
+          <Text style={styles.meta}>Needs: {iosPushProvider?.requiredEvidence.join(", ")}</Text>
+          <Text style={styles.meta}>Blocked: {pushBoundary.blockedBy.join(", ")}</Text>
+          <Text style={styles.meta}>Redaction: {pushBoundary.redactionFlags.join(", ")}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Distribution boundary</Text>
+          <Text style={styles.panelTitle}>{distributionReadiness.status}</Text>
+          <Text style={styles.body}>{distributionReadiness.purpose}</Text>
+          <Text style={styles.meta}>
+            Installable claim: {distributionReadiness.installableDistributionClaim ? "live" : "not live"}
+          </Text>
+          <Text style={styles.meta}>Evidence: {iosDistributionEvidence?.currentEvidence}</Text>
+          <Text style={styles.meta}>Needs: {iosDistributionEvidence?.requiredBeforeClaim.join(", ")}</Text>
+          <Text style={styles.meta}>Blocked: {iosDistributionEvidence?.blockedBy.join(", ")}</Text>
         </View>
 
         {jobs.map((job) => (

@@ -144,17 +144,30 @@ state change, private mobile row exposure, or direct public agent write. It is
 not push notifications, installable app distribution, private buyer rows, raw
 inbox bodies, owner email values, session IDs, R2 object keys, signed URLs,
 upload bodies, secret values, or production mobile mutation support.
+Public `/mobile-admin/source-data` now also exposes a Mobile Admin
+push-notification boundary and distribution-readiness boundary. The push
+boundary names APNs and FCM as required providers, keeps send capability
+disabled, and lists the provider credential, private device-token registration,
+send preflight, queue, delivery-result, receipt, consent, audit, and redaction
+evidence required before sends. The distribution boundary separates
+simulator/emulator proof from physical-device, TestFlight/App Store, and Play
+Store/internal-testing claims. Public source-data must not expose APNs/FCM
+credentials, device tokens, recipient identifiers, payload bodies, provider
+responses, queue rows, delivery receipts, signing credentials, provisioning
+profiles, keystore material, store account identifiers, private tester lists, or
+physical-device private rows.
 The Expo, iOS, and Android smoke scaffolds now render the dashboard route,
 fetch the live public-safe dashboard payload, label live-network versus fallback
 fixture hydration, and keep the generated fixture as a deterministic simulator
 or emulator fallback. Issue #414 now also renders the shared owner-session
-contract, private-row API boundary, private-row action API boundary, action-intent API boundary, and
-confirmed-action requirements in the Expo, iOS, and Android scaffolds. Those
-panels reuse the web/admin Better Auth, owner allowlist, verified-email,
-exact-confirmation, idempotency, stale-state, audit-correlation, and redaction
-rules. They can now represent low-risk private-row workflow actions, but they
-are still not high-risk production mobile write clients, push notifications,
-physical-device proof, or installable app distribution.
+contract, private-row API boundary, private-row action API boundary, action-intent API boundary,
+push-readiness boundary, distribution-readiness boundary, and confirmed-action
+requirements in the Expo, iOS, and Android scaffolds. Those panels reuse the
+web/admin Better Auth, owner allowlist, verified-email, exact-confirmation,
+idempotency, stale-state, audit-correlation, and redaction rules. They can now
+represent low-risk private-row workflow actions and readiness blockers, but they
+are still not high-risk production mobile write clients, live push
+notifications, physical-device proof, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing

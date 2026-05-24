@@ -82,6 +82,42 @@ export type MobileActionIntentApi = {
   redactionFlags: string[];
 };
 
+export type MobilePushNotificationBoundary = {
+  id: string;
+  issue: number;
+  status: "push-boundary-ready";
+  sendCapability: "disabled-provider-contract-required";
+  purpose: string;
+  requiredProviders: Array<{
+    platform: MobilePlatformId;
+    provider: "APNs" | "FCM";
+    credentialBoundary: string;
+    requiredEvidence: string[];
+  }>;
+  deliveryScope: string[];
+  readinessChecklist: string[];
+  blockedBy: string[];
+  publicSourceDataSummary: string;
+  redactionFlags: string[];
+};
+
+export type MobileDistributionReadiness = {
+  id: string;
+  issue: number;
+  status: "distribution-boundary-ready";
+  installableDistributionClaim: false;
+  purpose: string;
+  platformEvidence: Array<{
+    platform: MobilePlatformId;
+    currentEvidence: string;
+    requiredBeforeClaim: string[];
+    blockedBy: string[];
+  }>;
+  readinessChecklist: string[];
+  publicSourceDataSummary: string;
+  redactionFlags: string[];
+};
+
 export type MobilePlatformSlice = {
   platform: MobilePlatformId;
   issue: number;
@@ -123,6 +159,8 @@ export type MobileAdminContract = {
   privateRowsApi: MobilePrivateRowsApi;
   privateRowActionsApi: MobilePrivateRowActionsApi;
   actionIntentApi: MobileActionIntentApi;
+  pushNotificationBoundary: MobilePushNotificationBoundary;
+  distributionReadiness: MobileDistributionReadiness;
   confirmedActions: MobileConfirmedAction[];
   childIssues: MobilePlatformSlice[];
   jobs: MobileJob[];
@@ -143,7 +181,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -277,6 +315,124 @@ export const mobileAdminContract: MobileAdminContract = {
       "billingMutationCreated=false",
       "pushNotificationSent=false",
       "distributionStateChanged=false",
+    ],
+  },
+  pushNotificationBoundary: {
+    id: "mobile-push-notification-boundary",
+    issue: 414,
+    status: "push-boundary-ready",
+    sendCapability: "disabled-provider-contract-required",
+    purpose:
+      "Define the APNs/FCM provider, consent, payload, queue, audit, and redaction gates required before Mobile Admin can send or schedule push notifications.",
+    requiredProviders: [
+      {
+        platform: "ios",
+        provider: "APNs",
+        credentialBoundary:
+          "APNs credentials, team identifiers, bundle identifiers, device tokens, and push payloads must stay out of public source-data and fixture files.",
+        requiredEvidence: [
+          "APNs provider choice and credential storage path",
+          "iOS bundle ID and entitlement proof",
+          "Device-token registration contract",
+          "Owner-confirmed send preflight with idempotency and audit correlation",
+        ],
+      },
+      {
+        platform: "android",
+        provider: "FCM",
+        credentialBoundary:
+          "FCM server keys, service account JSON, sender IDs, device tokens, and push payloads must stay out of public source-data and fixture files.",
+        requiredEvidence: [
+          "FCM provider choice and credential storage path",
+          "Android package and google-services configuration proof",
+          "Device-token registration contract",
+          "Owner-confirmed send preflight with idempotency and audit correlation",
+        ],
+      },
+    ],
+    deliveryScope: [
+      "No mobile push notification is sent by the current Mobile Admin contract.",
+      "No APNs or FCM provider call is made by the current Mobile Admin contract.",
+      "No device token, recipient address, push body, provider credential, queue row, or delivery receipt is exposed in public source-data.",
+      "Future push sends must require owner session, exact confirmation, idempotency, stale-state checks, audit correlation, opt-in/consent evidence, payload review, and redaction.",
+    ],
+    readinessChecklist: [
+      "Choose APNs/FCM credential storage and rotation policy.",
+      "Add private device-token registration and revocation contracts.",
+      "Add push send preflight records before provider calls.",
+      "Add queue, retry, delivery-result, and receipt boundaries before live sends.",
+      "Add simulator/emulator and physical-device evidence without treating simulator proof as production delivery.",
+    ],
+    blockedBy: [
+      "No APNs credential plumbing is present in the repo.",
+      "No FCM credential plumbing is present in the repo.",
+      "No private device-token registration contract exists yet.",
+      "No owner-confirmed push send preflight or provider-call API exists yet.",
+    ],
+    publicSourceDataSummary:
+      "Public mobile source-data may expose provider names, disabled send status, required evidence, blocked-by reasons, and redaction flags. It must not expose APNs/FCM credentials, device tokens, recipient identities, push payload bodies, queue rows, provider responses, or delivery receipts.",
+    redactionFlags: [
+      "apnsCredentialsIncluded=false",
+      "fcmCredentialsIncluded=false",
+      "deviceTokensIncluded=false",
+      "recipientIdentifiersIncluded=false",
+      "pushPayloadBodiesIncluded=false",
+      "providerResponsesIncluded=false",
+      "queueRowsIncluded=false",
+      "deliveryReceiptsIncluded=false",
+      "pushNotificationsSent=false",
+    ],
+  },
+  distributionReadiness: {
+    id: "mobile-distribution-readiness-boundary",
+    issue: 414,
+    status: "distribution-boundary-ready",
+    installableDistributionClaim: false,
+    purpose:
+      "Separate simulator/emulator proof from installable iOS and Android distribution claims before Mobile Admin is described as App Store, TestFlight, Play Store, internal testing, or physical-device ready.",
+    platformEvidence: [
+      {
+        platform: "ios",
+        currentEvidence:
+          "The iOS scaffold has a simulator smoke target and screenshots, but physical-device proof is parked while the detected iPhone target is unavailable.",
+        requiredBeforeClaim: [
+          "Available physical iPhone target or explicit simulator-only acceptance decision",
+          "Bundle identifier and signing profile decision",
+          "TestFlight or App Store Connect distribution path",
+          "Private-row/auth smoke proof labeled as simulator, physical device, or distribution evidence",
+        ],
+        blockedBy: ["Detected iPhone target is unavailable to devicectl in the current environment."],
+      },
+      {
+        platform: "android",
+        currentEvidence:
+          "The Android scaffold has an emulator smoke target and screenshots, but physical-device proof is parked because no Android device is attached.",
+        requiredBeforeClaim: [
+          "Attached Android physical device or explicit emulator-only acceptance decision",
+          "Release signing and package identity decision",
+          "Play Console/internal testing distribution path",
+          "Private-row/auth smoke proof labeled as emulator, physical device, or distribution evidence",
+        ],
+        blockedBy: ["adb currently reports no attached physical Android devices in the project blocker audit."],
+      },
+    ],
+    readinessChecklist: [
+      "Keep simulator and emulator screenshots labeled as non-distribution evidence.",
+      "Record physical-device smoke proof separately from simulator/emulator proof.",
+      "Record signing, bundle/package, and store-track decisions before claiming installability.",
+      "Do not label App Store, TestFlight, Play Store, or internal testing as live until platform evidence exists.",
+    ],
+    publicSourceDataSummary:
+      "Public mobile source-data may expose simulator/emulator status, required platform evidence, and current blockers. It must not expose signing credentials, provisioning profiles, keystore material, store account identifiers, private tester lists, or physical-device private rows.",
+    redactionFlags: [
+      "signingCredentialsIncluded=false",
+      "provisioningProfilesIncluded=false",
+      "keystoreMaterialIncluded=false",
+      "storeAccountIdentifiersIncluded=false",
+      "privateTesterListsIncluded=false",
+      "physicalDevicePrivateRowsIncluded=false",
+      "appStoreDistributionLive=false",
+      "playStoreDistributionLive=false",
     ],
   },
   confirmedActions: [
@@ -462,6 +618,22 @@ export const mobileAdminContract: MobileAdminContract = {
       authBoundary: "owner-confirmed-intent",
       stableIds: ["agentActionId", "idempotencyKey", "auditCorrelationId", "staleStateToken"],
     },
+    {
+      id: "mobile-api-push-boundary",
+      route: "/mobile-admin/source-data",
+      purpose:
+        "Public-safe push-notification readiness boundary for APNs/FCM provider requirements, disabled send status, blockers, and redaction flags before any Mobile Admin push sends exist.",
+      authBoundary: "public-safe",
+      stableIds: ["mobilePushBoundaryId", "provider", "readinessChecklist", "blockedBy"],
+    },
+    {
+      id: "mobile-api-distribution-boundary",
+      route: "/mobile-admin/source-data",
+      purpose:
+        "Public-safe distribution readiness boundary that separates simulator/emulator evidence from physical-device and App Store/Play Store claims.",
+      authBoundary: "public-safe",
+      stableIds: ["mobileDistributionReadinessId", "platform", "requiredBeforeClaim", "blockedBy"],
+    },
   ],
   confirmedWriteRules: [
     "The first private mobile row slice is read-only through /api/mobile-admin/private-rows and cannot mutate production state.",
@@ -470,6 +642,8 @@ export const mobileAdminContract: MobileAdminContract = {
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",
     "Billing-impacting mobile actions require amount, currency, price/product stale-state checks, idempotency, audit correlation, redaction, and webhook evidence.",
+    "Mobile push sends remain disabled until APNs/FCM provider configuration, device-token registration, send preflight, queue, delivery-result, receipt, idempotency, consent, audit, and redaction boundaries exist.",
+    "Mobile distribution remains disabled until physical-device proof and App Store/TestFlight or Play Store/internal-testing evidence are recorded separately from simulator/emulator proof.",
     "Private admin data requires an authenticated owner or publisher session; public source-data routes must remain safe for anonymous agents.",
   ],
 };

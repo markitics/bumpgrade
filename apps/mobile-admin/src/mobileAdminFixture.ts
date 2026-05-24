@@ -76,6 +76,40 @@ export type MobileAdminContractFixture = {
     requiredInputs: string[];
     redactionFlags: string[];
   };
+  pushNotificationBoundary: {
+    id: string;
+    issue: number;
+    status: string;
+    sendCapability: string;
+    purpose: string;
+    requiredProviders: Array<{
+      platform: "ios" | "android";
+      provider: string;
+      credentialBoundary: string;
+      requiredEvidence: string[];
+    }>;
+    deliveryScope: string[];
+    readinessChecklist: string[];
+    blockedBy: string[];
+    publicSourceDataSummary: string;
+    redactionFlags: string[];
+  };
+  distributionReadiness: {
+    id: string;
+    issue: number;
+    status: string;
+    installableDistributionClaim: boolean;
+    purpose: string;
+    platformEvidence: Array<{
+      platform: "ios" | "android";
+      currentEvidence: string;
+      requiredBeforeClaim: string[];
+      blockedBy: string[];
+    }>;
+    readinessChecklist: string[];
+    publicSourceDataSummary: string;
+    redactionFlags: string[];
+  };
   confirmedActions: Array<{
     id: string;
     issue: number;

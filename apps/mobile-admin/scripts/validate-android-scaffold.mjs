@@ -64,6 +64,18 @@ assert(fixture.privateRowActionsApi?.route === "/api/mobile-admin/private-rows/a
 assert(fixture.privateRowActionsApi?.status === "owner-mobile-private-row-actions-ready", "Fixture does not include the mobile private row actions API status.");
 assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
 assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
+assert(fixture.pushNotificationBoundary?.id === "mobile-push-notification-boundary", "Fixture does not include the mobile push boundary.");
+assert(fixture.pushNotificationBoundary?.sendCapability === "disabled-provider-contract-required", "Fixture does not keep push sends disabled.");
+assert(
+  fixture.pushNotificationBoundary?.requiredProviders?.some((provider) => provider.platform === "android" && provider.provider === "FCM"),
+  "Fixture does not include the Android FCM provider requirement.",
+);
+assert(fixture.distributionReadiness?.id === "mobile-distribution-readiness-boundary", "Fixture does not include the distribution boundary.");
+assert(fixture.distributionReadiness?.installableDistributionClaim === false, "Fixture must not claim installable distribution.");
+assert(
+  fixture.distributionReadiness?.platformEvidence?.some((evidence) => evidence.platform === "android"),
+  "Fixture does not include Android distribution evidence boundaries.",
+);
 assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
 assert(
   fixture.childIssues.find((slice) => slice.platform === "android")?.sourceDataRoute === "/mobile-admin/android/source-data",
@@ -79,6 +91,8 @@ assert(activitySource.includes("Private auth"), "Android activity does not rende
 assert(activitySource.includes("Private rows API"), "Android activity does not render the mobile private rows API panel.");
 assert(activitySource.includes("Private row actions API"), "Android activity does not render the mobile private row actions API panel.");
 assert(activitySource.includes("Action intent API"), "Android activity does not render the mobile action intent API panel.");
+assert(activitySource.includes("Push boundary"), "Android activity does not render the mobile push boundary panel.");
+assert(activitySource.includes("Distribution boundary"), "Android activity does not render the mobile distribution boundary panel.");
 assert(activitySource.includes("Confirmed mobile actions"), "Android activity does not render the confirmed actions panel.");
 assert(activitySource.includes("HttpURLConnection"), "Android activity does not fetch the live dashboard route.");
 assert(activitySource.includes("Live network"), "Android activity does not distinguish live network hydration from fixture fallback.");

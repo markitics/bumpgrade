@@ -2298,6 +2298,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobilePrivateRowsApiId",
       "mobilePrivateRowActionsApiId",
       "mobileActionIntentApiId",
+      "mobilePushBoundaryId",
+      "mobileDistributionReadinessId",
       "mobileConfirmedActionId",
       "platformIssue",
       "featureId",
@@ -2309,10 +2311,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Understand the owner-gated read-only mobile private-row boundary",
       "Understand the low-risk owner-confirmed mobile private-row action boundary",
       "Understand the owner-gated audit-only mobile action intent boundary",
+      "Understand push-notification provider requirements and disabled send status",
+      "Understand store-distribution requirements separately from simulator/emulator proof",
       "Understand mobile confirmed-action write boundaries",
     ],
     writeBoundary:
-      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, and record owner-gated audit-only action intents through /api/mobile-admin/actions, but high-risk production writes remain disabled until future domain-specific confirmed-write APIs exist; issue #414 exposes the shared owner-session, private-row, private-row action, action-intent, and confirmed-action contract.",
+      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Push sends, provider calls, device-token registration, installable distribution, physical-device proof, and high-risk production writes remain disabled until future domain-specific confirmed-write APIs and platform evidence exist; issue #414 exposes the shared owner-session, private-row, private-row action, action-intent, push-readiness, distribution-readiness, and confirmed-action contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2321,16 +2325,17 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin-dashboard.ts",
-    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "mobilePrivateRowId", "mobilePrivateRowActionId", "agentReadContractId"],
+    stableIds: ["mobileDashboardCardId", "featureId", "roadmapItemId", "workLogEntryId", "markAttentionId", "mobilePrivateRowId", "mobilePrivateRowActionId", "mobilePushBoundaryId", "mobileDistributionReadinessId", "agentReadContractId"],
     safeForAgents: [
       "Read one public-safe mobile dashboard digest",
       "Inspect live feature, roadmap, admin, commerce, and agent-readiness counts",
       "Inspect public-safe private-row counts and labels without owner-only notes or payloads",
       "Inspect redacted private-row workflow action counts without actor, note, idempotency, or stale-token details",
+      "Inspect public-safe push-readiness and distribution-readiness blockers",
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, action-intent, and confirmed-action requirements, but push notifications, physical-device proof, and high-risk production confirmed mobile writes require future authenticated APIs.",
+      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, action-intent, push-readiness, distribution-readiness, and confirmed-action requirements, but push notifications, physical-device proof, App Store/Play Store distribution, and high-risk production confirmed mobile writes require future authenticated APIs and platform evidence.",
   },
   {
     id: "create-owner-mobile-admin-private-row-action",

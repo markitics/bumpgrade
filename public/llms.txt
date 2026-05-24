@@ -466,8 +466,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/mobile-admin/source-data`. Issue #414 is the current active follow-up for
   private mobile auth, confirmed-write UX, device proof, push-notification
   boundaries, and distribution readiness. The #414 contract now renders the
-  shared owner-session, private-row API, private-row action API, and
-  confirmed-action requirements in the Expo, iOS, and Android scaffolds.
+  shared owner-session, private-row API, private-row action API, push-readiness
+  boundary, distribution-readiness boundary, and confirmed-action requirements
+  in the Expo, iOS, and Android scaffolds.
   `/api/mobile-admin/private-rows` lets a
   verified owner inspect read-only private mobile rows through the shared Better
   Auth owner session, while public source-data exposes only route, status,
@@ -480,11 +481,15 @@ GitHub repo: https://github.com/markitics/bumpgrade
   contract revision, stale-state, source-route, and audit-correlation checks.
   It does not create production admin mutations, billing mutations, push
   notifications, distribution state changes, production private mobile writes, or direct
-  public agent writes. The iOS scaffold is documented in
+  public agent writes. Public `/mobile-admin/source-data` names APNs/FCM
+  provider requirements, disabled push-send status, physical-device blockers,
+  and store-distribution requirements without exposing provider credentials,
+  device tokens, signing credentials, provisioning profiles, keystore material,
+  store account identifiers, private tester lists, or push payloads. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
-  `/mobile-admin/android/source-data`, but App Store/Play Store distribution,
-  physical-device private row proof, push notifications, and high-risk
-  production mobile writes are not live yet.
+  `/mobile-admin/android/source-data`, but App Store/TestFlight or Play
+  Store/internal-testing distribution, physical-device private row proof, live
+  push notifications, and high-risk production mobile writes are not live yet.
 - Phone verification and SMS provider research is tracked by issue #53 and
   `docs/features/phone-verification-sms.md`. Phone collection, SMS OTP,
   SMS marketing, and provider credentials are not live Bumpgrade capabilities.

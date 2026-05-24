@@ -59,6 +59,21 @@ export const androidMobileAdminSourceData = {
     authBoundary: mobileAdminContract.actionIntentApi.authBoundary,
     intentBoundary: mobileAdminContract.actionIntentApi.intentBoundary,
   },
+  pushNotificationBoundary: {
+    issue: mobileAdminContract.pushNotificationBoundary.issue,
+    status: mobileAdminContract.pushNotificationBoundary.status,
+    sendCapability: mobileAdminContract.pushNotificationBoundary.sendCapability,
+    requiredProvider: mobileAdminContract.pushNotificationBoundary.requiredProviders.find((provider) => provider.platform === "android"),
+    blockedBy: mobileAdminContract.pushNotificationBoundary.blockedBy,
+    redactionFlags: mobileAdminContract.pushNotificationBoundary.redactionFlags,
+  },
+  distributionReadiness: {
+    issue: mobileAdminContract.distributionReadiness.issue,
+    status: mobileAdminContract.distributionReadiness.status,
+    installableDistributionClaim: mobileAdminContract.distributionReadiness.installableDistributionClaim,
+    platformEvidence: mobileAdminContract.distributionReadiness.platformEvidence.find((evidence) => evidence.platform === "android"),
+    redactionFlags: mobileAdminContract.distributionReadiness.redactionFlags,
+  },
   confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
     id: action.id,
     issue: action.issue,
@@ -103,6 +118,20 @@ export const androidMobileAdminSourceData = {
         "A verified owner can record audit-only mobile action intent evidence after exact confirmation, idempotency, contract revision, stale-state token, source-route, and audit-correlation checks.",
     },
     {
+      id: "android-read-mobile-push-boundary",
+      route: "/mobile-admin/source-data",
+      fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      purpose:
+        "The Android scaffold renders the FCM push-notification readiness boundary while sends, device tokens, provider credentials, payload bodies, and delivery receipts remain disabled and redacted.",
+    },
+    {
+      id: "android-read-mobile-distribution-boundary",
+      route: "/mobile-admin/source-data",
+      fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
+      purpose:
+        "The Android scaffold renders the distribution boundary that separates emulator proof from physical-device, internal testing, and Play Store claims.",
+    },
+    {
       id: "android-read-admin-source-next",
       route: "/admin/source-data",
       fixturePath: null,
@@ -111,7 +140,7 @@ export const androidMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared owner-session, private-row API, private-row action API, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared owner-session, private-row API, private-row action API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs and platform evidence exist.",
   caveat:
-    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, and audit-only action-intent route. It does not mean Play Store distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
+    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, audit-only action-intent route, FCM readiness boundary, and distribution boundary. It does not mean Play Store/internal-testing distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

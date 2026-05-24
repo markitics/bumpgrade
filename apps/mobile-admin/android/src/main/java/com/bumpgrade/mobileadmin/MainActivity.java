@@ -37,6 +37,10 @@ public class MainActivity extends Activity {
       JSONObject privateRowsApi = contract.getJSONObject("privateRowsApi");
       JSONObject privateRowActionsApi = contract.getJSONObject("privateRowActionsApi");
       JSONObject actionIntentApi = contract.getJSONObject("actionIntentApi");
+      JSONObject pushNotificationBoundary = contract.getJSONObject("pushNotificationBoundary");
+      JSONObject distributionReadiness = contract.getJSONObject("distributionReadiness");
+      JSONObject androidPushProvider = findPlatformSlice(pushNotificationBoundary.getJSONArray("requiredProviders"), "android");
+      JSONObject androidDistributionEvidence = findPlatformSlice(distributionReadiness.getJSONArray("platformEvidence"), "android");
       JSONArray jobs = contract.getJSONArray("jobs");
       JSONArray confirmedActions = contract.getJSONArray("confirmedActions");
 
@@ -120,6 +124,27 @@ public class MainActivity extends Activity {
       actionIntentPanel.addView(meta("Boundary: " + actionIntentApi.getString("intentBoundary")));
       actionIntentPanel.addView(meta("Inputs: " + joinStrings(actionIntentApi.getJSONArray("requiredInputs"))));
       content.addView(actionIntentPanel);
+
+      LinearLayout pushBoundaryPanel = panel();
+      pushBoundaryPanel.addView(kicker("Push boundary"));
+      pushBoundaryPanel.addView(panelTitle(pushNotificationBoundary.getString("status")));
+      pushBoundaryPanel.addView(body(pushNotificationBoundary.getString("purpose")));
+      pushBoundaryPanel.addView(meta("Send: " + pushNotificationBoundary.getString("sendCapability")));
+      pushBoundaryPanel.addView(meta("Provider: " + androidPushProvider.getString("platform").toUpperCase() + " " + androidPushProvider.getString("provider")));
+      pushBoundaryPanel.addView(meta("Needs: " + joinStrings(androidPushProvider.getJSONArray("requiredEvidence"))));
+      pushBoundaryPanel.addView(meta("Blocked: " + joinStrings(pushNotificationBoundary.getJSONArray("blockedBy"))));
+      pushBoundaryPanel.addView(meta("Redaction: " + joinStrings(pushNotificationBoundary.getJSONArray("redactionFlags"))));
+      content.addView(pushBoundaryPanel);
+
+      LinearLayout distributionPanel = panel();
+      distributionPanel.addView(kicker("Distribution boundary"));
+      distributionPanel.addView(panelTitle(distributionReadiness.getString("status")));
+      distributionPanel.addView(body(distributionReadiness.getString("purpose")));
+      distributionPanel.addView(meta("Installable claim: " + (distributionReadiness.getBoolean("installableDistributionClaim") ? "live" : "not live")));
+      distributionPanel.addView(meta("Evidence: " + androidDistributionEvidence.getString("currentEvidence")));
+      distributionPanel.addView(meta("Needs: " + joinStrings(androidDistributionEvidence.getJSONArray("requiredBeforeClaim"))));
+      distributionPanel.addView(meta("Blocked: " + joinStrings(androidDistributionEvidence.getJSONArray("blockedBy"))));
+      content.addView(distributionPanel);
 
       content.addView(sectionLabel("Phone jobs"));
       for (int index = 0; index < Math.min(3, jobs.length()); index += 1) {

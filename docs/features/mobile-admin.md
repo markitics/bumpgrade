@@ -42,6 +42,13 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   confirmation, idempotency, contract revision, stale-state, source-route, and
   audit-correlation checks. It does not mutate production admin, commerce,
   publishing, push, distribution, or private mobile row state.
+- Mobile push-notification boundary issue: #414. `/mobile-admin/source-data` now
+  names the APNs/FCM requirements, disabled send status, blockers, and redaction
+  flags that must exist before Mobile Admin can send or schedule push
+  notifications.
+- Mobile distribution-readiness boundary issue: #414. `/mobile-admin/source-data`
+  now separates simulator/emulator proof from physical-device, TestFlight/App
+  Store, and Play Store/internal-testing claims.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -121,6 +128,17 @@ latest redacted action labels, and redaction flags; it excludes actor identity,
 private notes, owner-only row notes, private payload JSON, idempotency keys,
 stale-state tokens, token hashes, and raw rows.
 
+The current #414 push and distribution boundary slice still does not send
+notifications or create installable distribution. It makes the missing APNs/FCM
+provider configuration, private device-token registration, send preflight,
+queue, delivery-result, receipt, physical-device proof, signing, and store-track
+evidence explicit in the contract and app scaffolds. Public source-data may
+expose provider names, disabled status, required evidence, and blockers, but it
+must not expose provider credentials, device tokens, recipient identifiers, push
+payload bodies, provider responses, queue rows, delivery receipts, signing
+credentials, provisioning profiles, keystore material, store account
+identifiers, private tester lists, or physical-device private rows.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -148,6 +166,9 @@ stale-state tokens, token hashes, and raw rows.
 - `/api/mobile-admin/actions`: owner-gated audit-only action intents for mobile
   admin actions. Future domain-specific APIs must still perform any production
   mutation.
+- `/mobile-admin/source-data`: public-safe push-notification and distribution
+  readiness boundaries. These name APNs/FCM and store-readiness requirements
+  without exposing credentials or claiming push/store distribution is live.
 - `/mobile-admin/ios/source-data`: iOS scaffold status, fixture path,
   simulator target, smoke command, and screenshot path.
 - `/mobile-admin/android/source-data`: Android scaffold status, fixture asset,
@@ -181,15 +202,18 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 
 The first iOS and Android slices can inspect owner-session private rows through
 `/api/mobile-admin/private-rows`, mark those private rows read or deferred
-through `/api/mobile-admin/private-rows/actions`, and record audit-only action
-intents through `/api/mobile-admin/actions`, but high-risk production mobile
-writes still require domain-specific confirmed-write APIs. Public, destructive,
-billing-impacting, publishing, moderation, source-editing, and creator-speech
-writes require explicit confirmation text, idempotency, stale-state checks,
-audit correlation, and redaction.
+through `/api/mobile-admin/private-rows/actions`, record audit-only action
+intents through `/api/mobile-admin/actions`, and render push/distribution
+readiness boundaries from `/mobile-admin/source-data`, but high-risk production
+mobile writes still require domain-specific confirmed-write APIs. Public,
+destructive, billing-impacting, publishing, moderation, source-editing,
+creator-speech, live push, and distribution actions require explicit
+confirmation text, idempotency, stale-state checks, audit correlation, platform
+evidence, and redaction.
 
 The current #414 surface proves that iOS and Android expose the same private
-auth, private-row, private-row action, action-intent, and confirmed-action rules
-the web/admin app uses; it does not prove App Store or Play Store distribution, push
-notifications, physical-device private row proof, billing mutation, publishing
-mutation, commerce mutation, or full mobile write parity.
+auth, private-row, private-row action, action-intent, push-readiness,
+distribution-readiness, and confirmed-action rules the web/admin app uses; it
+does not prove App Store/TestFlight or Play Store/internal-testing distribution,
+live push notifications, physical-device private row proof, billing mutation,
+publishing mutation, commerce mutation, or full mobile write parity.
