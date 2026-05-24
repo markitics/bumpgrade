@@ -10,6 +10,7 @@ Current scope:
 - iOS child issue: #67.
 - Android child issue: #68.
 - Shared contract route: `/mobile-admin/source-data`.
+- Director workstream route: `/admin/director/source-data`.
 - Owner action-intent route: `/api/mobile-admin/actions`.
 - iOS source-data route: `/mobile-admin/ios/source-data`.
 - Android source-data route: `/mobile-admin/android/source-data`.
@@ -38,7 +39,7 @@ Issue #68 adds the first Android slice:
 This is not App Store distribution, push notifications, physical-device private
 row proof, or production mobile write support yet. The current #414 surface
 renders the owner-session, private-row API, private-row action API,
-action-intent API, APNs/FCM push-readiness boundary,
+action-intent API, Director workstream brief, APNs/FCM push-readiness boundary,
 distribution-readiness boundary, and confirmed-action contract in the app
 scaffolds. `/api/mobile-admin/private-rows` is owner-session-only and read-only.
 `/api/mobile-admin/private-rows/actions` mutates only low-risk private-row
@@ -51,7 +52,7 @@ First screen target:
 1. Read the mobile admin contract from `/mobile-admin/source-data` or a checked
    in fixture generated from it.
 2. Render a mobile admin digest with roadmap, work-log, for-Mark attention, and
-   commerce health sections.
+   commerce health sections plus the Director workstream brief.
 3. Keep the first slice read-only.
 4. Render the shared owner-session, private-row API, private-row action API,
    action-intent API, push-readiness, distribution-readiness, and

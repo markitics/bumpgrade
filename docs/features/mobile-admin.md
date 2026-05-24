@@ -17,8 +17,9 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   activity, generated fixture asset, emulator smoke target, and
   `/mobile-admin/android/source-data`.
 - Live dashboard contract issue: #153. `/mobile-admin/dashboard/source-data`
-  now gives iOS, Android, web, and agents one public-safe digest for feature,
-  roadmap, work-log, attention, commerce, agent, and platform status.
+  now gives iOS, Android, web, and agents one public-safe digest for Director
+  workstreams, feature, roadmap, work-log, attention, commerce, agent, and
+  platform status.
 - Dashboard scaffold rendering issue: #155. The Expo, iOS, and Android scaffold
   surfaces render the dashboard route, status, issue, and redaction boundary
   from the generated mobile-admin fixture.
@@ -139,6 +140,15 @@ payload bodies, provider responses, queue rows, delivery receipts, signing
 credentials, provisioning profiles, keystore material, store account
 identifiers, private tester lists, or physical-device private rows.
 
+The current #414 Director digest slice makes the CEO-style workstream overview
+available to mobile clients without adding a separate mobile project model.
+`/mobile-admin/dashboard/source-data` now carries a redacted
+`directorDigest` sourced from `/admin/director/source-data`, including top-level
+workstream totals, 1-day/7-day change windows, executive queue counts, and
+compact workstream brief signals. It is public-safe metadata only: no raw
+attention bodies, raw work-log bodies, private rows, owner emails, or private
+evidence are included.
+
 ## First Mobile Jobs
 
 - Check launch and platform status away from desktop.
@@ -149,6 +159,9 @@ identifiers, private tester lists, or physical-device private rows.
 
 - `/admin/source-data`: roadmap, work-log, user-journey, and Mark-attention
   digest.
+- `/admin/director/source-data`: CEO-style workstream brief grouped by major
+  categories such as Marketing, Product / Commerce, Mobile Admin, Agent
+  Readiness, Security / Trust, Infrastructure, and Operations.
 - `/mobile-admin/dashboard/source-data`: live public-safe dashboard digest for
   mobile clients.
 - `/features/source-data`: feature status and issue evidence.

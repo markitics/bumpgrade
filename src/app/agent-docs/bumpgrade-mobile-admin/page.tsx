@@ -27,7 +27,7 @@ export default function MobileAdminAgentDocPage() {
             Bumpgrade will build native publisher/admin apps from the same feature, roadmap, commerce, admin, and
             agent contracts used by the web app. This page defines the shared scope and the first platform smoke
             paths for #67 and #68 plus the issue #414 owner-session, private-row, private-row action,
-            action-intent, confirmed-action, push-readiness, and distribution-readiness contract.
+            action-intent, Director digest, confirmed-action, push-readiness, and distribution-readiness contract.
           </p>
           <Link href="/mobile-admin/source-data" className="text-link">
             Mobile admin source data
@@ -150,6 +150,44 @@ export default function MobileAdminAgentDocPage() {
             <ShieldCheck aria-hidden="true" />
             <h3>Redaction</h3>
             <p>{mobileAdminContract.liveDashboard.redactionBoundary}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Director brief</p>
+            <h2>The phone view can start with workstreams instead of nested noise.</h2>
+          </div>
+          <Link href="/admin/director/source-data" className="text-link compact-link">
+            Director source data
+            <Database aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <Database aria-hidden="true" />
+            <h3>Source</h3>
+            <p>
+              The mobile dashboard carries a redacted directorDigest sourced from /admin/director/source-data.
+            </p>
+          </div>
+          <div>
+            <MonitorSmartphone aria-hidden="true" />
+            <h3>Shape</h3>
+            <p>
+              Mobile clients can show workstream totals, 1-day/7-day changes, executive queue counts, and compact
+              brief signals for categories such as Marketing, Mobile Admin, and Security / Trust.
+            </p>
+          </div>
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>Redaction</h3>
+            <p>
+              The digest excludes raw attention bodies, raw work-log bodies, private rows, owner email values, and
+              private evidence.
+            </p>
           </div>
         </div>
       </section>

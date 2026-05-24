@@ -119,10 +119,11 @@ is the owner-confirmed low-risk private-row workflow action API, and
 `/api/mobile-admin/actions` is the owner-gated audit-only action-intent API. The
 dashboard summarizes feature, roadmap, recent work-log, attention, commerce,
 agent-readiness, platform status, private-row counts, private-row action counts,
-and action-intent counts from the same contracts as the web app. It returns
-counts, statuses, route IDs, issue evidence, recent public-safe work-log
-metadata, public private-row labels, redacted action labels, and redaction flags
-only.
+action-intent counts, and a redacted Director workstream digest from the same
+contracts as the web app. It returns counts, statuses, route IDs, issue
+evidence, recent public-safe work-log metadata, Director workstream IDs, compact
+brief signals, public private-row labels, redacted action labels, and redaction
+flags only.
 Owner-authenticated GET `/api/mobile-admin/private-rows` returns owner-only
 private row notes and synthetic private payload metadata through the same Better
 Auth owner session as web admin; public source-data must not expose those notes,

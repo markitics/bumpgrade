@@ -28,6 +28,7 @@ struct MobileAdminDigestView: View {
                     header
                     contractPanel
                     liveDashboardPanel
+                    directorBriefPanel
                     privateAuthPanel
                     privateRowsPanel
                     privateRowActionsPanel
@@ -106,6 +107,36 @@ struct MobileAdminDigestView: View {
             Detail(label: "Status", value: "\(dashboard.status) · issue #\(dashboard.issue)")
             Detail(label: "Source", value: dashboard.sourceLabel)
             Detail(label: "Boundary", value: dashboard.boundary)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
+    }
+
+    private var directorBriefPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Director brief")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            Text("Workstreams")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(dashboard.directorSummary)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            ForEach(dashboard.directorWorkstreams, id: \.self) { line in
+                Text(line)
+                    .font(.footnote.weight(.semibold))
+                    .lineSpacing(2)
+                    .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            }
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)

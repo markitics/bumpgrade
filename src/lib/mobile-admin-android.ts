@@ -30,6 +30,12 @@ export const androidMobileAdminSourceData = {
   dashboardPanelIssue: 155,
   liveHydrationIssue: 157,
   liveDashboardUrl: `${mobileAdminContract.publicBaseUrl}${mobileAdminContract.liveDashboard.route}`,
+  directorDigest: {
+    route: "/admin/director/source-data",
+    dashboardField: "directorDigest",
+    redactionBoundary:
+      "The Android scaffold reads only public-safe Director workstream IDs, titles, statuses, compact signals, and 1-day/7-day counts from the live dashboard payload.",
+  },
   privateAuth: {
     issue: mobileAdminContract.privateAuth.issue,
     status: mobileAdminContract.privateAuth.status,
@@ -94,7 +100,14 @@ export const androidMobileAdminSourceData = {
       route: "/mobile-admin/dashboard/source-data",
       fixturePath: null,
       purpose:
-        "The Expo entrypoint and native Android activity fetch the live public-safe mobile dashboard contract and distinguish live network hydration from fixture fallback.",
+        "The Expo entrypoint and native Android activity fetch the live public-safe mobile dashboard contract, render its Director workstream brief, and distinguish live network hydration from fixture fallback.",
+    },
+    {
+      id: "android-read-director-workstreams",
+      route: "/admin/director/source-data",
+      fixturePath: null,
+      purpose:
+        "The live dashboard payload carries a redacted Director workstream digest so the Android scaffold can show CEO-style nesting without scraping the private admin page.",
     },
     {
       id: "android-read-mobile-private-rows",
@@ -140,7 +153,7 @@ export const androidMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared owner-session, private-row API, private-row action API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs and platform evidence exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared Director workstream brief, owner-session, private-row API, private-row action API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until domain-specific confirmed-write APIs and platform evidence exist.",
   caveat:
-    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, owner-session/private-row/private-row-action/confirmed-action UI contract, audit-only action-intent route, FCM readiness boundary, and distribution boundary. It does not mean Play Store/internal-testing distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
+    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, redacted Director workstream digest, owner-session/private-row/private-row-action/confirmed-action UI contract, audit-only action-intent route, FCM readiness boundary, and distribution boundary. It does not mean Play Store/internal-testing distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

@@ -89,7 +89,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Sandbox checkout API: https://bumpgrade.com/api/commerce/checkout
 - Stripe webhook endpoint: https://bumpgrade.com/api/stripe/webhook
 - Mobile admin source data: https://bumpgrade.com/mobile-admin/source-data
-- Mobile admin dashboard source data: https://bumpgrade.com/mobile-admin/dashboard/source-data
+- Mobile admin dashboard source data: https://bumpgrade.com/mobile-admin/dashboard/source-data (includes a redacted Director workstream digest sourced from /admin/director/source-data)
 - Owner-gated mobile private-row API: https://bumpgrade.com/api/mobile-admin/private-rows
 - Owner-gated mobile private-row action API: https://bumpgrade.com/api/mobile-admin/private-rows/actions
 - Owner-gated mobile action-intent API: https://bumpgrade.com/api/mobile-admin/actions

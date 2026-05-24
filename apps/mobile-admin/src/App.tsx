@@ -16,6 +16,31 @@ type LiveDashboardPayload = {
       openAttentionItems?: number;
     };
   };
+  directorDigest?: {
+    totals?: {
+      workstreams?: number;
+      needsMark?: number;
+      changedPastWeek?: number;
+    };
+    workstreams?: Array<{
+      id: string;
+      title: string;
+      status: string;
+      currentFocus: string;
+      defaultOpen?: boolean;
+      counts?: {
+        active?: number;
+        pending?: number;
+        shipped?: number;
+        blocked?: number;
+        changedPastWeek?: number;
+        needsMark?: number;
+      };
+      brief?: {
+        headline?: string;
+      };
+    }>;
+  };
   redaction?: Record<string, boolean>;
 };
 
@@ -26,6 +51,8 @@ type DashboardPanel = {
   issue: number;
   sourceLabel: string;
   boundary: string;
+  directorSummary: string;
+  directorWorkstreams: string[];
 };
 
 type PrivateAuthContract = {
@@ -134,6 +161,10 @@ function fixtureDashboardPanel(): DashboardPanel {
     issue: dashboard.issue,
     sourceLabel: "Fixture fallback",
     boundary: dashboard.redactionBoundary,
+    directorSummary: "Director brief loads from /mobile-admin/dashboard/source-data.",
+    directorWorkstreams: [
+      "Marketing, Security / Trust, Mobile Admin, and other workstreams are grouped in the live Director digest.",
+    ],
   };
 }
 
@@ -147,6 +178,19 @@ function liveDashboardPanel(payload: LiveDashboardPayload): DashboardPanel {
     redactionValues.length > 0 && redactionValues.every((value) => value === false)
       ? `Redaction: ${redactionValues.length} private-data flags false.`
       : mobileAdminContractFixture.liveDashboard.redactionBoundary;
+  const directorTotals = payload.directorDigest?.totals;
+  const directorSummary = directorTotals
+    ? `Director: ${directorTotals.workstreams ?? 0} workstreams, ${directorTotals.needsMark ?? 0} need Mark, ${directorTotals.changedPastWeek ?? 0} changed this week.`
+    : "Director brief loaded without totals.";
+  const directorWorkstreams =
+    payload.directorDigest?.workstreams
+      ?.slice(0, 5)
+      .map((workstream) => {
+        const changed = workstream.counts?.changedPastWeek ?? 0;
+        const needsMark = workstream.counts?.needsMark ?? 0;
+        const headline = workstream.brief?.headline ?? workstream.currentFocus;
+        return `${workstream.title}: ${workstream.status}; ${changed} changed 7d; ${needsMark} need Mark. ${headline}`;
+      }) ?? fixtureDashboardPanel().directorWorkstreams;
   return {
     route: payload.route,
     purpose: countSummary,
@@ -154,6 +198,8 @@ function liveDashboardPanel(payload: LiveDashboardPayload): DashboardPanel {
     issue: payload.issue,
     sourceLabel: "Live network",
     boundary: redactionSummary,
+    directorSummary,
+    directorWorkstreams,
   };
 }
 
@@ -223,6 +269,17 @@ export default function App() {
           </Text>
           <Text style={styles.meta}>Source: {dashboard.sourceLabel}</Text>
           <Text style={styles.meta}>Boundary: {dashboard.boundary}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Director brief</Text>
+          <Text style={styles.panelTitle}>Workstreams</Text>
+          <Text style={styles.body}>{dashboard.directorSummary}</Text>
+          {dashboard.directorWorkstreams.map((line) => (
+            <Text key={line} style={styles.meta}>
+              {line}
+            </Text>
+          ))}
         </View>
 
         <View style={styles.panel}>
