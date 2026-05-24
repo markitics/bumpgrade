@@ -21,6 +21,7 @@ import {
   draftFunnelArchiveIssue,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockEditingIssue,
+  draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
   draftFunnelBlockStructureIssue,
   draftFunnelCheckoutUnlinkCapability,
@@ -1123,6 +1124,90 @@ export async function removeDraftFunnelBlock(
         beforeBlockCount: step.blocks.length,
         afterBlockCount: nextBlocks.length,
         checkoutLinkedBlockRemovalRefused: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function reorderDraftFunnelBlock(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    direction: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "reordered");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before moving this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const currentIndex = step.blocks.findIndex((item) => item.id === input.blockId);
+  if (currentIndex === -1) throw new Error("Draft funnel block not found.");
+
+  const direction = input.direction === "down" ? "down" : "up";
+  const neighborIndex = direction === "down" ? currentIndex + 1 : currentIndex - 1;
+  const neighbor = step.blocks[neighborIndex];
+  const block = step.blocks[currentIndex];
+  if (!neighbor) {
+    throw new Error(`Draft funnel block cannot move ${direction} from this position.`);
+  }
+
+  const nextBlocks = [...step.blocks];
+  nextBlocks[currentIndex] = neighbor;
+  nextBlocks[neighborIndex] = block;
+  const nextRevisionId = `${draft.revisionId}-block-reorder-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} moved block ${block.id} ${direction} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "block_reorder",
+        draftFunnelBlockReorderCapability: draftFunnelBlockReorderCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        direction,
+        beforeBlockIds: step.blocks.map((item) => item.id),
+        afterBlockIds: nextBlocks.map((item) => item.id),
+        movedBlock: compactBlockForAudit(block),
+        swappedWithBlock: compactBlockForAudit(neighbor),
+        blockIdsPreserved: true,
+        blockKindsPreserved: true,
+        blockTitlesPreserved: true,
+        blockBodiesPreserved: true,
+        checkoutLinksPreserved: true,
+        resourceDeliveryLinksPreserved: true,
+        stepMembershipPreserved: true,
+        crossStepMove: false,
         privateAuthDataIncluded: false,
       },
     ),
