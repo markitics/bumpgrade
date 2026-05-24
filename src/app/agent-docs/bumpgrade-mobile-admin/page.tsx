@@ -26,7 +26,7 @@ export default function MobileAdminAgentDocPage() {
           <p className="lede">
             Bumpgrade will build native publisher/admin apps from the same feature, roadmap, commerce, admin, and
             agent contracts used by the web app. This page defines the shared scope and the first platform smoke
-            paths for #67 and #68 plus the issue #414 owner-session and confirmed-action contract.
+            paths for #67 and #68 plus the issue #414 owner-session, private-row, and confirmed-action contract.
           </p>
           <Link href="/mobile-admin/source-data" className="text-link">
             Mobile admin source data
@@ -64,6 +64,11 @@ export default function MobileAdminAgentDocPage() {
             <KeyRound aria-hidden="true" />
             <h3>{mobileAdminContract.privateAuth.status}</h3>
             <p>{mobileAdminContract.privateAuth.sessionSemantics}</p>
+          </div>
+          <div>
+            <Database aria-hidden="true" />
+            <h3>{mobileAdminContract.privateRowsApi.status}</h3>
+            <p>{mobileAdminContract.privateRowsApi.readBoundary}</p>
           </div>
           <div>
             <Database aria-hidden="true" />

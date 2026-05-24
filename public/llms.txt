@@ -90,6 +90,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Stripe webhook endpoint: https://bumpgrade.com/api/stripe/webhook
 - Mobile admin source data: https://bumpgrade.com/mobile-admin/source-data
 - Mobile admin dashboard source data: https://bumpgrade.com/mobile-admin/dashboard/source-data
+- Owner-gated mobile private-row API: https://bumpgrade.com/api/mobile-admin/private-rows
 - Owner-gated mobile action-intent API: https://bumpgrade.com/api/mobile-admin/actions
 - iOS mobile admin source data: https://bumpgrade.com/mobile-admin/ios/source-data
 - Android mobile admin source data: https://bumpgrade.com/mobile-admin/android/source-data
@@ -445,17 +446,20 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/mobile-admin/source-data`. Issue #414 is the current active follow-up for
   private mobile auth, confirmed-write UX, device proof, push-notification
   boundaries, and distribution readiness. The #414 contract now renders the
-  shared owner-session and confirmed-action requirements in the Expo, iOS, and
-  Android scaffolds, and `/api/mobile-admin/actions` records owner-gated
+  shared owner-session, private-row API, and confirmed-action requirements in
+  the Expo, iOS, and Android scaffolds. `/api/mobile-admin/private-rows` lets a
+  verified owner inspect read-only private mobile rows through the shared Better
+  Auth owner session, while public source-data exposes only route, status,
+  counts, public row labels, and redaction flags. `/api/mobile-admin/actions` records owner-gated
   audit-only action intent evidence after exact confirmation, idempotency,
   contract revision, stale-state, source-route, and audit-correlation checks.
   It does not create production admin mutations, billing mutations, push
-  notifications, distribution state changes, private mobile rows, or direct
+  notifications, distribution state changes, production private mobile writes, or direct
   public agent writes. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
   `/mobile-admin/android/source-data`, but App Store/Play Store distribution,
-  private mobile rows, push notifications, and production mobile writes are not
-  live yet.
+  physical-device private row proof, push notifications, and production mobile
+  writes are not live yet.
 - Phone verification and SMS provider research is tracked by issue #53 and
   `docs/features/phone-verification-sms.md`. Phone collection, SMS OTP,
   SMS marketing, and provider credentials are not live Bumpgrade capabilities.

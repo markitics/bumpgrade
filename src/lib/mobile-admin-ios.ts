@@ -36,6 +36,13 @@ export const iosMobileAdminSourceData = {
     callbackSurface: mobileAdminContract.privateAuth.callbackSurface,
     deniedStates: mobileAdminContract.privateAuth.deniedStates,
   },
+  privateRowsApi: {
+    issue: mobileAdminContract.privateRowsApi.issue,
+    status: mobileAdminContract.privateRowsApi.status,
+    route: mobileAdminContract.privateRowsApi.route,
+    authBoundary: mobileAdminContract.privateRowsApi.authBoundary,
+    readBoundary: mobileAdminContract.privateRowsApi.readBoundary,
+  },
   actionIntentApi: {
     issue: mobileAdminContract.actionIntentApi.issue,
     status: mobileAdminContract.actionIntentApi.status,
@@ -66,6 +73,13 @@ export const iosMobileAdminSourceData = {
         "The Expo entrypoint and iOS simulator target fetch the live public-safe mobile dashboard contract and distinguish live network hydration from fixture fallback.",
     },
     {
+      id: "ios-read-mobile-private-rows",
+      route: "/api/mobile-admin/private-rows",
+      fixturePath: null,
+      purpose:
+        "A verified owner can inspect read-only Mobile Admin private rows through the shared Better Auth owner session without exposing owner-only notes or private payloads in public source-data.",
+    },
+    {
       id: "ios-record-mobile-action-intent",
       route: "/api/mobile-admin/actions",
       fixturePath: null,
@@ -81,7 +95,7 @@ export const iosMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared owner-session, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and private-row production mutations stay disabled until domain-specific confirmed-write APIs exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows and audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared owner-session, private-row API, action-intent API, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push, distribution, and production mutations stay disabled until domain-specific confirmed-write APIs exist.",
   caveat:
-    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, owner-session/confirmed-action UI contract, and audit-only action-intent route. It does not mean App Store distribution, push notifications, private mobile rows, or production write actions are live.",
+    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, owner-session/private-row/confirmed-action UI contract, and audit-only action-intent route. It does not mean App Store distribution, push notifications, physical-device private row proof, or production write actions are live.",
 };

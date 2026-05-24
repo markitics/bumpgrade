@@ -32,6 +32,18 @@ export type MobilePrivateAuth = {
   redactionBoundary: string;
 };
 
+export type MobilePrivateRowsApi = {
+  id: string;
+  issue: number;
+  status: "owner-mobile-private-rows-ready";
+  route: string;
+  authBoundary: "owner-session";
+  purpose: string;
+  readBoundary: string;
+  publicSourceDataSummary: string;
+  redactionFlags: string[];
+};
+
 export type MobileConfirmedAction = {
   id: string;
   issue: number;
@@ -95,6 +107,7 @@ export type MobileAdminContract = {
   scaffoldBoundary: string;
   liveDashboard: MobileLiveDashboard;
   privateAuth: MobilePrivateAuth;
+  privateRowsApi: MobilePrivateRowsApi;
   actionIntentApi: MobileActionIntentApi;
   confirmedActions: MobileConfirmedAction[];
   childIssues: MobilePlatformSlice[];
@@ -116,7 +129,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, production mobile mutations, App Store distribution, or Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, and owner-gated audit-only action-intent API to the iOS, Android, and Expo scaffolds. This still does not ship installable private app distribution, push notifications, production mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -156,6 +169,29 @@ export const mobileAdminContract: MobileAdminContract = {
     ],
     redactionBoundary:
       "Mobile auth source-data may name routes, roles, denial states, and issue evidence, but it must not expose owner email values, session IDs, cookies, tokens, raw Better Auth payloads, or private admin rows.",
+  },
+  privateRowsApi: {
+    id: "mobile-private-rows-api",
+    issue: 414,
+    status: "owner-mobile-private-rows-ready",
+    route: "/api/mobile-admin/private-rows",
+    authBoundary: "owner-session",
+    purpose:
+      "Let a verified owner inspect read-only Mobile Admin private rows through the same Better Auth owner session used by web admin.",
+    readBoundary:
+      "The endpoint returns owner-only private row notes and synthetic private payload metadata only to authenticated owners. Public mobile source-data exposes route, status, counts, public row labels, and redaction flags without owner-only notes, private payload JSON, owner email values, session IDs, cookies, tokens, or raw rows.",
+    publicSourceDataSummary:
+      "/mobile-admin/source-data and /mobile-admin/dashboard/source-data may expose the private-row API route, status, counts, and redaction flags; owner-only GET /api/mobile-admin/private-rows is required before private row notes or private payload metadata are returned.",
+    redactionFlags: [
+      "privateRowsIncludedInPublicSourceData=false",
+      "ownerOnlyNotesIncludedInPublicSourceData=false",
+      "privatePayloadIncludedInPublicSourceData=false",
+      "ownerEmailValuesIncluded=false",
+      "sessionIdentifiersIncluded=false",
+      "cookiesIncluded=false",
+      "tokensIncluded=false",
+      "rawRowsIncluded=false",
+    ],
   },
   actionIntentApi: {
     id: "mobile-action-intent-api",
@@ -288,6 +324,7 @@ export const mobileAdminContract: MobileAdminContract = {
       firstScreen: "For-Mark and work-log inbox",
       sourceRoutes: [
         "/mobile-admin/dashboard/source-data",
+        "/api/mobile-admin/private-rows",
         "/admin/work-log/source-data",
         "/admin/for-mark/source-data",
         "/agent-docs/source-data",
@@ -349,6 +386,14 @@ export const mobileAdminContract: MobileAdminContract = {
       stableIds: ["userId", "sessionId", "role"],
     },
     {
+      id: "mobile-api-private-rows",
+      route: "/api/mobile-admin/private-rows",
+      purpose:
+        "Owner-session-only private row inspection for Mobile Admin clients, with public source-data limited to route, status, counts, public row labels, and redaction flags.",
+      authBoundary: "owner-session",
+      stableIds: ["mobilePrivateRowId", "sourceRoute", "sourceRecordId", "readState"],
+    },
+    {
       id: "mobile-api-confirmed-writes",
       route: "/api/mobile-admin/actions",
       purpose:
@@ -358,6 +403,7 @@ export const mobileAdminContract: MobileAdminContract = {
     },
   ],
   confirmedWriteRules: [
+    "The first private mobile row slice is read-only through /api/mobile-admin/private-rows and cannot mutate production state.",
     "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but production mutations remain disabled until domain-specific confirmed-write APIs exist.",
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",
