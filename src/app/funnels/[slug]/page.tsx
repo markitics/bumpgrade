@@ -203,6 +203,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                     variants={routedExperiment.variants.map((variant) => ({
                       id: variant.id,
                       label: variant.label,
+                      routingRole: variant.routingRole,
                       routedTitle: variant.routedTitle,
                       routedBody: variant.routedBody,
                     }))}
