@@ -1,14 +1,15 @@
 # Checkout Offers
 
-Issue #15 owns the checkout, order bump, upsell, and downsell MVP. Issue #81
-added the first checkout-offer source-data contract and preview scaffold. Issue
-#99 adds the first confirmed sandbox checkout start path with the seeded primary
-offer and constrained order bump. Issue #111 adds optional referral-click
-attribution evidence on sandbox checkout intents. Issue #113 adds review-only
-commission ledger evidence from trusted checkout attribution. Issue #115 adds
-owner-gated review, hold, and reversal actions for that evidence without payout
-mutation. Issue #273 adds owner-confirmed payout preparation records without
-payable commission state, Stripe payouts, payout accounts, tax data, or partner
+Issue #15 owns the first checkout, order bump, upsell, and downsell MVP and is
+shipped as a sandbox/test-mode launch preview. Issue #81 added the first
+checkout-offer source-data contract and preview scaffold. Issue #99 adds the
+first confirmed sandbox checkout start path with the seeded primary offer and
+constrained order bump. Issue #111 adds optional referral-click attribution
+evidence on sandbox checkout intents. Issue #113 adds review-only commission
+ledger evidence from trusted checkout attribution. Issue #115 adds owner-gated
+review, hold, and reversal actions for that evidence without payout mutation.
+Issue #273 adds owner-confirmed payout preparation records without payable
+commission state, Stripe payouts, payout accounts, tax data, or partner
 notifications. Issue #275 adds owner-reviewed fraud review records without fraud
 enforcement, payable commission state, Stripe payouts, private fraud signals, or
 partner notifications. Issue #277 adds owner-reviewed partner notification
@@ -27,7 +28,8 @@ commission state, Stripe payouts, private fraud signals, or partner
 notifications. Issue #117 adds a trusted post-purchase route and an idempotent
 non-billing decision API for upsell/downsell follow-up evidence. Issue #133
 gates the checkout success CTA on trusted webhook state before opening that
-post-purchase path.
+post-purchase path. Issue #219 owns the separate live publisher-offer billing
+decision and webhook-secret rollout.
 
 Live in this slice:
 

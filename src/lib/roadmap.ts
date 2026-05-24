@@ -15,7 +15,7 @@ export type RoadmapItem = {
   markAttention?: string;
 };
 
-export const roadmapUpdatedAt = "2026-05-23";
+export const roadmapUpdatedAt = "2026-05-24";
 
 export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; description: string }> = [
   {
@@ -298,7 +298,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-checkout-offers",
     title: "Checkout, order bump, upsell, and downsell MVP",
-    status: "active",
+    status: "shipped",
     issue: 15,
     featureId: featureIdFor(15),
     group: "Checkout and offers",
@@ -317,7 +317,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #165 renders the existing sandbox checkout start surface from published linked funnel checkout blocks.",
     ],
     nextMilestone:
-      "Add explicit post-purchase billing contracts and payout preparation only after decision evidence, public-safe partner reports, and owner review boundaries stay stable.",
+      "Keep live publisher-offer billing separated in issue #219 until the first live package, amount, and webhook secret are confirmed; one-click post-purchase charging and fulfillment remain future confirmed-write work.",
   },
   {
     id: "roadmap-products-access",
