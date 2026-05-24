@@ -432,6 +432,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "checkoutIntentId",
       "checkoutOfferStackId",
       "offerId",
+      "productDeliveryGateLinkId",
       "agentActionId",
     ],
     safeForAgents: [
@@ -442,13 +443,14 @@ export const agentReadContracts: AgentReadContract[] = [
       "Discover owner-session template-to-draft creation from issue #161",
       "Discover owner-session checkout-offer linking from issue #163",
       "Discover public linked-checkout start rendering from issue #165",
+      "Discover aggregate owner-created product delivery-gate links from issue #409",
       "Discover webinar and resource page-shape templates from issue #213",
       "Discover owner-session private draft duplication from issue #215",
       "Discover owner-session private draft archive/unpublish from issue #341",
       "Discover owner-session editable draft, private preview, and exact-confirmed publish/archive capability from issues #91, #93, #95, #135, #163, #165, #213, #215, and #341",
     ],
     writeBoundary:
-      "Owner-session seed/create/template-create/duplicate/update/reorder/checkout-link/archive draft writes, including webinar/resource template-to-draft creation, private draft preview, exact-confirmed public publishing, and exact-confirmed archive/unpublish exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface. Direct agent template creation, block editing, direct agent checkout linking, direct agent duplication, direct agent archive/unpublish, destructive deletion, live billing, live webinar scheduling, private resource delivery, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
+      "Owner-session seed/create/template-create/duplicate/update/reorder/checkout-link/archive draft writes, including webinar/resource template-to-draft creation, private draft preview, exact-confirmed public publishing, and exact-confirmed archive/unpublish exist at /admin/funnels. Published linked checkout blocks can render the existing sandbox checkout start surface. Owner product delivery-gate writes are separate owner-authenticated product APIs that expose only aggregate funnel source-data. Direct agent template creation, block editing, direct agent checkout linking, direct agent duplication, direct agent archive/unpublish, destructive deletion, live billing, live webinar scheduling, private resource delivery, drag-and-drop layout editing, and direct agent edits require future confirmed-write APIs.",
   },
   {
     id: "read-admin-draft-funnels",
@@ -497,6 +499,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "checkoutRevisionId",
       "referralClickId",
       "postPurchaseDecisionId",
+      "productDeliveryGateLinkId",
       "agentActionId",
     ],
     safeForAgents: [
@@ -505,9 +508,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect confirmed sandbox checkout start boundaries",
       "Inspect optional referral-click attribution evidence",
       "Inspect aggregate non-billing post-purchase decision counts",
+      "Inspect aggregate owner-created product delivery-gate counts for the seeded offer/funnel path",
     ],
     writeBoundary:
-      "A confirmed sandbox checkout start can include the seeded primary offer, constrained order bump, and optional referral-click attribution evidence; trusted checkout state can record non-billing upsell/downsell follow-up decisions; live billing, price mutation, fulfillment, commission writes, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
+      "A confirmed sandbox checkout start can include the seeded primary offer, constrained order bump, and optional referral-click attribution evidence; trusted checkout state can record non-billing upsell/downsell follow-up decisions; owner product delivery-gate links can connect test checkout links to the seeded offer/funnel path behind owner auth; live billing, price mutation, fulfillment, commission writes, direct agent writes, and post-purchase charges require future confirmed-write APIs.",
   },
   {
     id: "read-product-access-catalog",
@@ -516,7 +520,7 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth:
-      "src/lib/product-access.ts + src/lib/product-creation.ts + src/lib/product-offer-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts + src/lib/product-protected-content.ts",
+      "src/lib/product-access.ts + src/lib/product-creation.ts + src/lib/product-delivery-gates.ts + src/lib/product-offer-access.ts + src/lib/product-entitlement-inspection.ts + src/lib/customer-product-entitlements.ts + src/lib/product-download-tokens.ts + src/lib/product-asset-uploads.ts + src/lib/product-protected-content.ts",
     stableIds: [
       "productId",
       "assetId",
@@ -528,6 +532,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "productAssetUploadIntentId",
       "productCreationIntentId",
       "productOfferAccessGrantIntentId",
+      "productDeliveryGateLinkId",
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
@@ -541,7 +546,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect access rules",
       "Inspect sandbox entitlement grant mappings",
       "Inspect aggregate owner-entitlement counts and redaction flags",
-      "Inspect aggregate owner-created product and test access-grant counts",
+      "Inspect aggregate owner-created product, test checkout, delivery-gate, and test access-grant counts",
       "Discover the customer-safe checkout intent entitlement lookup contract",
       "Discover short-lived private R2-backed download-token boundaries",
       "Discover owner-confirmed private asset upload-intent boundaries",
@@ -551,7 +556,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect entitlement and fulfillment boundaries",
     ],
     writeBoundary:
-      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can create draft products, create owner-created product test offer/access grants, inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live offer/funnel publishing, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
+      "Trusted paid sandbox webhooks can grant idempotent entitlement rows for seeded checkout line items; trusted Stripe Billing subscription webhooks can sync checkout-linked membership access while state is active or trialing and pause it when subscription state is canceled, unpaid, incomplete_expired, or deleted; verified owners can create draft products, create owner-created product test checkout links, link those links to seeded offer/funnel delivery gates, create owner-created product test offer/access grants, inspect private entitlement rows, owner-confirmed non-destructive revocation intents, and protected content readiness in /admin/products; customers can inspect checkout-intent-scoped entitlement status, create short-lived download tokens that stream a seeded private R2 fixture without buyer or provider identifiers, and read seeded protected course/member fixture bodies only after active-entitlement and trusted-checkout checks; verified owners can create small private asset upload records after exact confirmation, idempotency, and catalog revision checks, and record non-destructive revocation intents after exact confirmation, idempotency, and stale entitlement status checks; customer delivery of arbitrary uploads, signed object URLs, destructive revocation, live offer/funnel publishing, live fulfillment automation, Customer Portal actions, and private content writes require future authenticated confirmed-write APIs.",
   },
   {
     id: "read-customer-product-entitlements",
@@ -631,17 +636,18 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/admin/products",
     kind: "doc",
     auth: "owner-session",
-    sourceOfTruth: "D1 tables product_entitlements, product_fulfillment_tasks, product_entitlement_revocation_intents, product_protected_content_sections, checkout_intents, commerce_products, and commerce_prices",
-    stableIds: ["productId", "entitlementTemplateId", "productEntitlementId", "productEntitlementRevocationIntentId", "productProtectedContentId", "fulfillmentTaskId", "checkoutIntentId", "ownerUserId"],
+    sourceOfTruth: "D1 tables product_entitlements, product_fulfillment_tasks, product_delivery_gate_links, product_entitlement_revocation_intents, product_protected_content_sections, checkout_intents, commerce_products, and commerce_prices",
+    stableIds: ["productId", "entitlementTemplateId", "productEntitlementId", "productDeliveryGateLinkId", "productEntitlementRevocationIntentId", "productProtectedContentId", "fulfillmentTaskId", "checkoutIntentId", "ownerUserId"],
     safeForAgents: [
       "Read private buyer entitlement rows only with an owner session",
       "Inspect checkout status, product/price context, access rule, and queued fulfillment state",
+      "Inspect owner-created product delivery-gate links for the seeded offer/funnel path",
       "Inspect owner-visible revocation intent records without removing access",
       "Inspect owner-visible protected content readiness and which sections are eligible for checkout-scoped fixture delivery",
       "Confirm public source-data redacts buyer email, raw Stripe IDs, hashes, metadata JSON, private R2 keys, and signed URLs",
     ],
     writeBoundary:
-      "This owner page can inspect entitlement rows and record non-destructive revocation intent evidence without removing access; protected fixture body delivery happens only through checkout-intent scoped customer checks. Signed object URLs, arbitrary uploaded content delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct public agent entitlement writes require future confirmed-write APIs.",
+      "This owner page can inspect entitlement rows, create owner product delivery-gate links, and record non-destructive revocation intent evidence without removing access; protected fixture body delivery happens only through checkout-intent scoped customer checks. Signed object URLs, arbitrary uploaded content delivery, destructive revocation, subscription access changes, refunds, customer portals, private asset delivery, and direct public agent entitlement writes require future confirmed-write APIs.",
   },
   {
     id: "create-owner-product-test-checkout-link",
@@ -685,6 +691,34 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       "This public test-link API creates a synthetic paid checkout intent, entitlement row, fulfillment task evidence, and audit evidence after exact confirmation, idempotency, and a current link revision check. It does not create Stripe Checkout Sessions, live charges, live offer/funnel publishing, arbitrary fulfillment delivery, raw buyer exposure, or unconfirmed agent writes.",
+  },
+  {
+    id: "create-owner-product-delivery-gate-link",
+    title: "Owner product delivery-gate link",
+    route: "/api/admin/products/delivery-gates",
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 tables product_delivery_gate_links, product_test_checkout_links, commerce_products, and product_creation_intents",
+    stableIds: [
+      "productDeliveryGateLinkId",
+      "productTestCheckoutLinkId",
+      "productId",
+      "checkoutOfferStackId",
+      "offerId",
+      "funnelId",
+      "ownerUserId",
+      "idempotencyKey",
+      "productUpdatedAt",
+      "linkRevisionId",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only product delivery-gate confirmation contract",
+      "Link an owner-created product test checkout link to the seeded offer/funnel delivery gates only with an owner session",
+      "Confirm writes require exact confirmation, idempotency, a current product updatedAt check, and a current checkout-link revision check",
+      "Confirm public source-data stays aggregate-only and omits checkout link IDs, buyer data, owner identity, idempotency keys, private R2 keys, signed URLs, and raw Stripe IDs",
+    ],
+    writeBoundary:
+      "This owner-session API records a delivery-gate link between an owner-created product test checkout link and the seeded offer/funnel path after exact confirmation, idempotency, product stale-state, and link revision checks. It does not create Stripe products, Stripe prices, Checkout Sessions, live charges, published offer/funnel state, customer-facing fulfillment delivery, signed URLs, private R2 keys, raw buyer exposure, or unauthenticated/direct public agent writes.",
   },
   {
     id: "create-owner-product-offer-access-grant",
@@ -2337,7 +2371,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-funnels",
     route: "/funnels/source-data",
     resolves:
-      "Seeded funnel, ordered steps, page blocks, reusable funnel templates including webinar/resource page shapes, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, public funnel checkout-start capability, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
+      "Seeded funnel, ordered steps, page blocks, reusable funnel templates including webinar/resource page shapes, block-template library records, owner-session template-to-draft capability, owner-session checkout-link capability, public funnel checkout-start capability, aggregate owner product delivery-gate counts, revision ID, preview route, source-data route, published D1 funnel summaries, owner-gated draft capability, D1 table names, and confirmed-write boundary.",
     stableIds: [
       "funnelId",
       "funnelStepId",
@@ -2352,15 +2386,16 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "checkoutIntentId",
       "checkoutOfferStackId",
       "offerId",
+      "productDeliveryGateLinkId",
     ],
     volatileClaims:
-      "The public funnel contract exposes template and block-template records, webinar/resource page-shape records, owner-gated template-create, checkout-link, editable draft, publish capability metadata, and public sandbox checkout-start rendering metadata; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking, live billing, live webinar scheduling, private resource delivery, unpublishing, or unconfirmed agent edits.",
+      "The public funnel contract exposes template and block-template records, webinar/resource page-shape records, owner-gated template-create, checkout-link, editable draft, publish capability metadata, public sandbox checkout-start rendering metadata, and aggregate owner product delivery-gate counts; it does not expose unpublished private draft copy, direct agent template creation, direct agent checkout linking, live billing, live webinar scheduling, private resource delivery, unpublishing, or unconfirmed agent edits.",
   },
   {
     id: "evidence-checkout-offers",
     route: "/offers/source-data",
     resolves:
-      "Seeded checkout offer stack, primary offer, selectable order bump, optional referral-click attribution evidence, upsell, downsell, non-billing post-purchase decision contract, aggregate decision counts, checkout route, revision ID, and confirmed-write boundary.",
+      "Seeded checkout offer stack, primary offer, selectable order bump, optional referral-click attribution evidence, upsell, downsell, non-billing post-purchase decision contract, aggregate decision counts, aggregate owner product delivery-gate counts, checkout route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "checkoutOfferStackId",
       "offerId",
@@ -2370,15 +2405,16 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "checkoutRevisionId",
       "referralClickId",
       "postPurchaseDecisionId",
+      "productDeliveryGateLinkId",
     ],
     volatileClaims:
-      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, and non-billing upsell/downsell decision evidence; it is not live billing, one-click upsell charging, fulfillment, commission writes, price mutation, or direct agent write capability.",
+      "The checkout-offer contract now includes a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, non-billing upsell/downsell decision evidence, and aggregate owner product delivery-gate counts; it is not live billing, one-click upsell charging, fulfillment, commission writes, price mutation, or direct agent write capability.",
   },
   {
     id: "evidence-products-access",
     route: "/products/source-data",
     resolves:
-      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, owner-confirmed non-destructive revocation intent contract, protected content readiness, checkout-intent-scoped protected fixture delivery, redaction flags, preview route, revision ID, and confirmed-write boundary.",
+      "Seeded product catalog, assets, access rules, entitlement templates, sandbox webhook grant mappings, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe lookup contract, private R2-backed fixture delivery contract, owner-confirmed private asset upload intent contract, owner-confirmed non-destructive revocation intent contract, protected content readiness, checkout-intent-scoped protected fixture delivery, redaction flags, preview route, revision ID, and confirmed-write boundary.",
     stableIds: [
       "productId",
       "assetId",
@@ -2388,13 +2424,17 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "customerProductEntitlementLookupId",
       "productDownloadTokenId",
       "productAssetUploadIntentId",
+      "productCreationIntentId",
+      "productTestCheckoutLinkId",
+      "productDeliveryGateLinkId",
+      "productOfferAccessGrantIntentId",
       "productEntitlementRevocationIntentId",
       "productProtectedContentId",
       "productProtectedContentDeliveryId",
       "fulfillmentId",
     ],
     volatileClaims:
-      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-confirmed private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped seeded protected fixture delivery; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, subscription access mutation, or live fulfillment automation.",
+      "The product/access contract includes sandbox webhook-backed entitlement row grants, owner-only entitlement inspection, customer-safe checkout intent lookup, short-lived tokens that stream a seeded private R2 fixture, owner-created product test checkout links, owner product delivery-gate links, owner-confirmed private asset upload records, owner-confirmed non-destructive revocation intent records, protected content readiness, and checkout-intent-scoped seeded protected fixture delivery; it is not signed object URL access, customer delivery of arbitrary uploads, destructive revocation, subscription access mutation, live offer/funnel publishing, live charges, or live fulfillment automation.",
   },
   {
     id: "evidence-audience-automation",
@@ -2649,9 +2689,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/offers/source-data",
     purpose:
-      "Expose seeded checkout offer stack, primary offer, constrained order bump, optional referral attribution evidence, upsell, downsell, aggregate post-purchase decision evidence, revision IDs, and billing boundaries.",
+      "Expose seeded checkout offer stack, primary offer, constrained order bump, optional referral attribution evidence, upsell, downsell, aggregate post-purchase decision evidence, aggregate owner product delivery-gate counts, revision IDs, and billing boundaries.",
     safetyBoundary:
-      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation and can record non-billing follow-up decisions after trusted checkout state, while live billing, offer writes, fulfillment, commission writes, and post-purchase charges require confirmed-write contracts.",
+      "Read-only for agents; the public UI can start a sandbox checkout only after exact confirmation and can record non-billing follow-up decisions after trusted checkout state, while owner product delivery-gate writes require owner auth and live billing, offer writes, fulfillment, commission writes, and post-purchase charges require confirmed-write contracts.",
   },
   {
     id: "mcp-resource-product-access",
@@ -2659,9 +2699,19 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/products/source-data",
     purpose:
-      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, aggregate owner-created product and test grant counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-created product test offer/access grant boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
+      "Expose seeded products, assets, access rules, entitlement templates, revision IDs, aggregate owner-entitlement inspection counts, aggregate owner-created product, test checkout, delivery-gate, and test grant counts, customer-safe checkout intent lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload-intent boundaries, owner-created product test checkout and offer/access grant boundaries, owner-created product delivery-gate boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, and fulfillment boundaries.",
     safetyBoundary:
-      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner product creation and owner-created product test grants require owner auth, exact confirmation, idempotency, and redaction. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, live offer/funnel publishing, live charges, and fulfillment actions remain unavailable.",
+      "Read-mostly for public agents; customer lookup requires a checkout intent reference and redacts buyer/provider/private asset data. Token delivery streams only the seeded fixture through Bumpgrade. Owner product creation, owner-created product test checkout links, owner-created product delivery-gate links, and owner-created product test grants require owner auth, exact confirmation, idempotency, stale-state checks where applicable, and redaction. Owner-upload intents require owner auth, exact confirmation, idempotency, catalog revision checks, and redaction. Owner revocation intents require owner auth, exact confirmation, idempotency, current entitlement status checks, and redaction, but still do not mutate entitlement state. Protected-content records remain constrained to checkout-scoped fixture delivery; customer delivery of arbitrary uploads, real protected body delivery, subscription access changes, destructive revocation, live offer/funnel publishing, live charges, and fulfillment actions remain unavailable.",
+  },
+  {
+    id: "mcp-tool-create-product-delivery-gate-link",
+    resourceOrTool: "tool create_product_delivery_gate_link",
+    status: "planned",
+    backedBy: "/api/admin/products/delivery-gates",
+    purpose:
+      "Create owner-confirmed delivery-gate linkage between an owner-created product test checkout link and the seeded offer/funnel path for an authenticated owner on top of the same D1 contract.",
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, current product updatedAt, current checkout-link revision, audit metadata, and redacted output. It must not create Stripe products, Stripe prices, Checkout Sessions, live charges, published offer/funnel state, signed URLs, private R2 keys, customer delivery, public buyer records, or direct public agent writes.",
   },
   {
     id: "mcp-tool-create-product-offer-access-grant",

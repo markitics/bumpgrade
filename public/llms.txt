@@ -33,6 +33,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Protected product content API: https://bumpgrade.com/api/products/protected-content
 - Owner product catalog API: https://bumpgrade.com/api/admin/products/catalog (human page/API requires Better Auth owner session)
 - Owner product test checkout link API: https://bumpgrade.com/api/admin/products/test-checkout-links (human page/API requires Better Auth owner session)
+- Owner product delivery-gate API: https://bumpgrade.com/api/admin/products/delivery-gates (human page/API requires Better Auth owner session)
 - Product test checkout API: https://bumpgrade.com/api/products/test-checkout
 - Owner product test offer/access grant API: https://bumpgrade.com/api/admin/products/offer-access-grants (human page/API requires Better Auth owner session)
 - Owner product revocation intent API: https://bumpgrade.com/api/admin/products/revocation-intents (human page/API requires Better Auth owner session)
@@ -215,8 +216,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   product source-data exposes aggregate entitlement inspection counts, customer
   lookup contract metadata, download-token contract metadata, owner product
   creation metadata, owner-created product test grant metadata, owner upload
-  intent metadata, owner-confirmed non-destructive revocation intent metadata, protected
-  content readiness, protected fixture delivery metadata, subscription-backed
+  intent metadata, owner-created product delivery-gate metadata,
+  owner-confirmed non-destructive revocation intent metadata, protected content
+  readiness, protected fixture delivery metadata, subscription-backed
   membership access metadata, and redaction
   flags only. `/api/admin/products/catalog` lets verified owners create draft
   product records after exact confirmation and idempotency without Stripe
@@ -229,6 +231,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   confirmation, idempotency, and a current link revision check, without Stripe
   Checkout Sessions, live charges, published offer copy, public buyer exposure,
   or live fulfillment delivery.
+  `/api/admin/products/delivery-gates` lets verified owners link those test
+  checkout links to the seeded offer/funnel delivery gates after exact
+  confirmation, idempotency, a current product updatedAt check, and a current
+  checkout-link revision check, without Stripe Checkout Sessions, live charges,
+  live published offer/funnel state, signed URLs, private R2 keys, or arbitrary
+  customer delivery.
   `/api/admin/products/offer-access-grants` lets verified owners link an
   owner-created product to test offer/funnel IDs and create synthetic paid
   checkout intent, entitlement, fulfillment task, and audit evidence without
@@ -242,12 +250,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
   fixture delivery, protected fixture delivery, owner product creation,
   owner-created product test checkout,
-  owner-created product test grants, owner upload-intent, revocation-intent,
-  protected-content-readiness, and subscription-membership access evidence, not
-  signed object URLs, customer delivery of arbitrary uploads, arbitrary
-  protected body delivery, destructive revocation, live offer/funnel publishing,
-  live charges, live fulfillment automation, Customer Portal actions, or a
-  confirmed-write agent API.
+  owner-created product delivery-gate links, owner-created product test grants,
+  owner upload-intent, revocation-intent, protected-content-readiness, and
+  subscription-membership access evidence, not signed object URLs, customer
+  delivery of arbitrary uploads, arbitrary protected body delivery, destructive
+  revocation, live offer/funnel publishing, live charges, live fulfillment
+  automation, Customer Portal actions, or a confirmed-write agent API.
 - `/audience/source-data` exposes the first audience automation workspace with
   opt-in form, lead magnet, tags, segments, sequence, broadcast draft,
   automation records, aggregate owner-inspection counts, aggregate suppression

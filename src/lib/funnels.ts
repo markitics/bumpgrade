@@ -1,3 +1,5 @@
+import { productDeliveryGateApiRoute } from "@/lib/product-delivery-gates";
+
 export type FunnelStatus = "draft" | "published";
 export type FunnelStepKind = "opt_in" | "sales" | "checkout" | "upsell" | "webinar" | "resource" | "thank_you";
 export type FunnelBlockKind = "hero" | "benefits" | "proof" | "cta" | "checkout" | "delivery" | "webinar" | "resource";
@@ -326,7 +328,7 @@ export const seededFunnel: FunnelRecord = {
     },
   ],
   writeBoundary:
-    "Issue #79 is read-only. Owner-session creating, editing, publishing, archive/unpublishing, and checkout-linking run through /admin/funnels with confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes; destructive deletion or direct agent-writing funnel state still requires future confirmed-write APIs.",
+    "Issue #79 is read-only. Owner-session creating, editing, publishing, archive/unpublishing, and checkout-linking run through /admin/funnels with confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes; issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or fulfillment delivery; destructive deletion or direct agent-writing funnel state still requires future confirmed-write APIs.",
   validation: [
     "/funnels/source-data returns a three-step draft funnel.",
     "/funnels/indie-launch-sandbox renders semantic preview sections.",
@@ -597,7 +599,12 @@ export const funnelSourceData = {
   issue: draftFunnelArchiveIssue,
   parentIssue: 14,
   generatedFrom: "src/lib/funnels.ts",
-  routes: ["/funnels/source-data", "/api/commerce/checkout", ...seededFunnels.map((funnel) => funnel.previewRoute)],
+  routes: [
+    "/funnels/source-data",
+    "/api/commerce/checkout",
+    productDeliveryGateApiRoute,
+    ...seededFunnels.map((funnel) => funnel.previewRoute),
+  ],
   adminRoutes: [editableDraftCapability.adminRoute, editableDraftCapability.previewRoutePattern],
   stableIds: [
     "funnelId",
@@ -615,6 +622,7 @@ export const funnelSourceData = {
     "checkoutIntentId",
     "checkoutOfferStackId",
     "offerId",
+    "productDeliveryGateLinkId",
     "agentActionId",
   ],
   writeBoundary: seededFunnel.writeBoundary,
@@ -630,5 +638,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, destructive deletion, direct agent duplication, direct agent archive/unpublish, and unconfirmed agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, public sandbox checkout start rendering on published linked checkout blocks, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, block editing, live billing mutation, live webinar scheduling, replay hosting, private resource delivery, drag-and-drop visual building, destructive deletion, direct agent duplication, direct agent archive/unpublish, and unconfirmed agent-write APIs are not live.",
 };

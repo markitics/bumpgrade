@@ -2,12 +2,16 @@ import { NextResponse } from "next/server";
 
 import { getPublishedD1FunnelSourceData } from "@/lib/funnel-drafts";
 import { funnelSourceData } from "@/lib/funnels";
+import { getProductDeliveryGateSummary } from "@/lib/product-delivery-gates";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const publishedD1 = await getPublishedD1FunnelSourceData();
+  const [publishedD1, ownerProductDeliveryGates] = await Promise.all([
+    getPublishedD1FunnelSourceData(),
+    getProductDeliveryGateSummary(),
+  ]);
 
   return NextResponse.json({
     ...funnelSourceData,
@@ -22,5 +26,6 @@ export async function GET() {
     publishedD1LoadError: publishedD1.loadError,
     privateDraftsIncluded: publishedD1.privateDraftsIncluded,
     rawOwnerDataIncluded: publishedD1.rawOwnerDataIncluded,
+    ownerProductDeliveryGates,
   });
 }

@@ -28,7 +28,9 @@ commission state, Stripe payouts, private fraud signals, or partner
 notifications. Issue #117 adds a trusted post-purchase route and an idempotent
 non-billing decision API for upsell/downsell follow-up evidence. Issue #133
 gates the checkout success CTA on trusted webhook state before opening that
-post-purchase path. Issue #219 owns the separate live publisher-offer billing
+post-purchase path. Issue #409 exposes aggregate owner-created product
+delivery-gate links for the seeded offer/funnel path without live billing or
+fulfillment delivery. Issue #219 owns the separate live publisher-offer billing
 decision and webhook-secret rollout.
 
 Live in this slice:
@@ -77,6 +79,11 @@ Live in this slice:
 - `/api/commerce/post-purchase-decisions`: confirmed, idempotent route that can
   record non-billing upsell/downsell follow-up decisions from trusted checkout
   state.
+- `/offers/source-data`: includes the aggregate owner product delivery-gate
+  summary from `/api/admin/products/delivery-gates`, redacted to counts and
+  policy boundaries so public agents can see whether owner-created products have
+  been linked to the seeded offer/funnel path without receiving checkout link
+  IDs, buyer data, idempotency keys, or raw Stripe IDs.
 - Agent manifest entries for reading checkout-offer state and future MCP
   resources.
 
@@ -86,6 +93,9 @@ Not live in this slice:
 - Arbitrary order bump mutation or unapproved bump attachment.
 - One-click upsell or downsell charging.
 - Fulfillment, entitlement, refund, coupon, or customer portal writes.
+- Live owner-created product offer publishing, Stripe product/price creation,
+  signed URLs, private R2 delivery, or arbitrary customer fulfillment from the
+  delivery-gate link.
 - Payable commission writes, payout mutation, fraud decisions, direct agent
   review writes, tax records, partner sends, provider calls, and notification
   queue dispatch.
