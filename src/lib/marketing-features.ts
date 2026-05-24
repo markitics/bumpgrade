@@ -165,7 +165,7 @@ export const marketingFeatures: MarketingFeature[] = [
     imageUrl: "/marketing/sales-funnels-card.png",
     imageAlt: "Bumpgrade sales funnel sequence with lead page, offer page, order bump, and follow-up steps.",
     featureIds: ["feature-funnel-builder", "feature-checkout-offers"],
-    issueIds: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165, 215, 341],
+    issueIds: [14, 79, 91, 93, 95, 135, 159, 161, 163, 165, 215, 341, 409],
     proofRoutes: ["/funnels/indie-launch-sandbox", "/funnels/source-data", "/admin/funnels"],
     benefits: [
       "Use launch, webinar, resource, and checkout handoff templates as reusable starting points.",

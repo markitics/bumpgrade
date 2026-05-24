@@ -1,6 +1,6 @@
 # Funnels
 
-Issue #14 owns the funnel and page builder MVP. Issue #79 shipped the first
+Issue #14 is the shipped funnel and page builder MVP. Issue #79 shipped the first
 read-only funnel source-data contract and preview scaffold. Issue #91 adds the
 first owner-gated D1 draft builder scaffold, issue #93 adds owner-gated step
 editing and reordering, issue #95 adds owner-gated private draft preview, and
@@ -15,7 +15,9 @@ readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
 #341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #409 links
 owner-created product test checkout links to the seeded offer/funnel delivery
 gates without live billing, signed URLs, private R2 delivery, or arbitrary
-customer fulfillment.
+customer fulfillment. Issue #417 is the single pending post-MVP bucket for
+advanced drag-and-drop editing, private resource delivery, webinar integrations,
+physical deletion policy, and direct agent-safe write tools.
 
 Live in this slice:
 
@@ -62,6 +64,10 @@ Not live in this slice:
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
 - Agent-initiated draft edits or publishing tools.
+
+These post-MVP gaps are intentionally tracked together in issue #417 so future
+work moves a coherent funnel workflow instead of adding more isolated readiness
+metadata. Live publisher-offer billing remains separate in issue #219.
 
 Current draft creation and step editing require an owner session, D1 storage, an
 idempotency key, and an audit event. Creating a private draft from a reusable

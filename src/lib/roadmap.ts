@@ -272,7 +272,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-funnels",
     title: "Funnel and page builder MVP",
-    status: "active",
+    status: "shipped",
     issue: 14,
     featureId: featureIdFor(14),
     group: "Funnels and pages",
@@ -292,9 +292,28 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #213 adds webinar and resource funnel template/block contracts plus D1 step-kind storage readiness.",
       "Issue #215 adds owner-confirmed private draft duplication with checkout-link metadata stripped by default.",
       "Issue #341 adds owner-confirmed archive/unpublish lifecycle actions that preserve audit evidence and remove published routes from source data.",
+      "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
+      "Issue #417 tracks advanced funnel editing, resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools after the MVP closeout.",
     ],
     nextMilestone:
-      "Add physical deletion policy, drag-and-drop block editing, live webinar integrations, private resource delivery, live checkout rollout, and direct agent-safe edit/duplicate/archive tools on top of D1 draft funnels.",
+      "Keep advanced drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion policy, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
+  },
+  {
+    id: "roadmap-advanced-funnel-builder-parity",
+    title: "Advanced funnel editing, resource delivery, and agent-safe writes",
+    status: "planned",
+    issue: 417,
+    featureId: featureIdFor(14),
+    group: "Funnels and pages",
+    summary:
+      "Pending post-MVP funnel parity for drag-and-drop visual block editing, granular block content editing, private resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools.",
+    publicEvidence: [
+      "Issue #417 tracks the advanced funnel parity bucket after issue #14 MVP closeout.",
+      "Issue #14 remains the shipped MVP covering D1 draft funnels, owner-gated edits, private preview, exact-confirmed publishing, duplication, archive/unpublish, templates, source-data, and public semantic routes.",
+      "Issue #219 tracks live publisher-offer billing separately from advanced funnel editing and resource delivery.",
+    ],
+    nextMilestone:
+      "Design advanced funnel editing, private resource delivery, live webinar integrations, physical deletion, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
   },
   {
     id: "roadmap-checkout-offers",
