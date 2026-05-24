@@ -17736,7 +17736,7 @@ test.describe("Bumpgrade scaffold", () => {
             flagsAttention: null,
             firstPromptAt: "2026-05-23T20:00:00.000Z",
             completedAt: "2026-05-23T21:30:00.000Z",
-            relevantUrls: ["https://bumpgrade.com/pricing"],
+            relevantUrls: [{ label: "Pricing source", url: "https://bumpgrade.com/pricing", kind: "route" }] as unknown as string[],
             prCommentUrl: null,
           },
           {
@@ -17773,6 +17773,7 @@ test.describe("Bumpgrade scaffold", () => {
           workstreamId: "marketing",
           workstreamTitle: "Marketing",
           completedAt: "2026-05-23T21:30:00.000Z",
+          evidence: expect.arrayContaining([expect.objectContaining({ label: "Pricing source", url: "https://bumpgrade.com/pricing" })]),
         }),
       ]),
     );

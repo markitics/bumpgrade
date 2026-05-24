@@ -261,6 +261,16 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
   }
 }
 
+function normalizeRelevantUrls(value: string | null | undefined): string[] {
+  return parseJson<unknown[]>(value, [])
+    .map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object" && "url" in item && typeof item.url === "string") return item.url;
+      return "";
+    })
+    .filter((item) => item.length > 0);
+}
+
 const launchProofUpdatedAt = "2026-05-20T14:31:00.000Z";
 const issue217PrUrl = "https://github.com/markitics/bumpgrade/pull/218";
 const issue217CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26155451076";
@@ -2766,7 +2776,7 @@ function workLogFromRow(row: D1WorkLogRow): AdminWorkLogEntry {
     flagsAttention: row.flags_attention,
     firstPromptAt: isoFromRequiredSeconds(row.first_prompt_at),
     completedAt: isoFromRequiredSeconds(row.completed_at),
-    relevantUrls: parseJson<string[]>(row.relevant_urls_json, []),
+    relevantUrls: normalizeRelevantUrls(row.relevant_urls_json),
     prCommentUrl: row.pr_comment_url,
   };
 }
