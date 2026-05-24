@@ -354,6 +354,11 @@ live Cloudflare Queue producer or consumer execution or dispatch, provider calls
 payloads, delivery queue rows, body templates, unsubscribe URLs, CRM automation, private export, suppression-list administration, or
 direct agent subscriber write capability.
 
+Issue #17 is the live MVP boundary for audience/email automation. Issue #420
+groups the remaining live delivery, automation execution, sender/provider,
+Queue, receipt, import/export, and agent-safe write work so agents do not infer
+that every readiness gate is a separate shipped product milestone.
+
 Current analytics boundary: `/analytics/source-data` is the public-safe contract
 for seeded event definitions, aggregate event counts, aggregate source
 attribution counts, aggregate variant event counts, aggregate assignment counts,

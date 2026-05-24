@@ -394,7 +394,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-email-automation",
     title: "Email marketing, list growth, CRM-lite, and automations",
-    status: "active",
+    status: "shipped",
     issue: 17,
     featureId: featureIdFor(17),
     group: "Growth system",
@@ -439,10 +439,28 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #376 adds owner-reviewed sequence delivery-status webhook readiness gates without making provider calls, sending messages, creating provider responses or message IDs, creating delivery attempts or results, processing status webhooks, reading webhook payloads, polling providers, creating receipt payloads or receipts, consuming or acking Queue messages, reading queue payload bodies, creating recipient payloads, personalized bodies, or unsubscribe URLs.",
       "Issue #378 adds owner-reviewed sequence provider-polling readiness gates without making provider calls, sending messages, creating provider responses or message IDs, creating delivery attempts or results, processing status webhooks, reading webhook or polling payloads, polling providers, creating polling results, receipt payloads, or receipts, consuming or acking Queue messages, reading queue payload bodies, creating recipient payloads, personalized bodies, or unsubscribe URLs.",
       "Issue #380 adds owner-reviewed sequence receipt-payload readiness gates without making provider calls, sending messages, creating provider responses or message IDs, creating delivery attempts or results, processing status webhooks, reading webhook or polling payloads, polling providers, creating polling results, receipt payloads, or delivery receipts, consuming or acking Queue messages, reading queue payload bodies, creating recipient payloads, personalized bodies, or unsubscribe URLs.",
+      "Issue #420 tracks live email delivery, automation execution, and direct agent-safe write parity as one pending post-MVP execution bucket.",
       "Codex project email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
-      "Add real contact imports, sequence scheduling, Cloudflare Queue producers, consumers, provider calls, delivery attempts, delivery results, status webhooks, provider polling, receipt payloads, and receipts only after sender-domain, provider-event, provider rate-limit, provider response, send-payload, Queue producer, Queue consumer, provider-call, delivery-attempt, delivery-result, delivery-status webhook, provider-polling, receipt-payload, import redaction, unsubscribe footer, suppression, audit checks, sequence delivery-readiness, sequence delivery-batch gates, sequence queue-message gates, sequence dispatch-preflight gates, sequence dispatch-attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, sequence provider-polling readiness, sequence receipt-payload readiness, delivery-batch gates, queue-message gates, dispatch preflight boundaries, and dispatch-attempt receipts stay explicit.",
+      "Keep live sender/provider configuration, Queue producer/consumer execution, recipient payloads, provider calls, delivery results, webhooks, imports, exports, and agent-safe write tools in issue #420 instead of reopening more isolated readiness-gate slices.",
+  },
+  {
+    id: "roadmap-live-email-delivery-execution",
+    title: "Live email delivery, automation execution, and agent-safe writes",
+    status: "planned",
+    issue: 420,
+    featureId: featureIdFor(17),
+    group: "Growth system",
+    summary:
+      "Pending post-MVP execution bucket for sender/domain/provider setup, Cloudflare Queue producer and consumer execution, recipient payload generation, provider calls, delivery attempts, results, webhooks, polling, receipts, live imports, exports, automation execution, and direct agent-safe write APIs.",
+    publicEvidence: [
+      "Tracked by issue #420.",
+      "Issue #17 remains the shipped email automation MVP for consent-backed opt-ins, unsubscribe/suppression, owner subscriber inspection, CRM-lite notes, dry-run broadcast and sequence readiness, and source-data contracts.",
+      "The issue #17 closeout deliberately stops creating more single-gate proof slices unless they directly unlock live execution.",
+    ],
+    nextMilestone:
+      "Design and ship the real broadcast and sequence execution path as one coherent workflow with consent, suppression, unsubscribe, sender-domain, provider, Queue, idempotency, audit, redaction, retry, dead-letter, webhook, receipt, and confirmed-write checks.",
   },
   {
     id: "roadmap-analytics-testing",
