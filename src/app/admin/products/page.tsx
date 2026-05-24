@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, ListChecks, ShieldCheck, ShoppingCart } from "lucide-react";
+import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, ListChecks, PackagePlus, ShieldCheck, ShoppingCart } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminProductCreationForm } from "@/components/admin-product-creation-form";
 import { AdminProductRevocationIntentForm } from "@/components/admin-product-revocation-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -11,6 +12,7 @@ import {
   productEntitlementInspectionIssue,
   productEntitlementRevocationIntentIssue,
 } from "@/lib/product-entitlement-inspection";
+import { getAdminProductCreationState, productCreationIssue } from "@/lib/product-creation";
 import { getProductProtectedContentSummary, productProtectedContentIssue } from "@/lib/product-protected-content";
 
 export const metadata: Metadata = {
@@ -41,8 +43,9 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const [state, revocationIntents, protectedContent] = await Promise.all([
+  const [state, productCreation, revocationIntents, protectedContent] = await Promise.all([
     getAdminProductEntitlementInspectionState(),
+    getAdminProductCreationState(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -102,6 +105,14 @@ export default async function AdminProductsPage() {
             <p>{state.counts.checkoutIntentsWithEntitlements} checkout intent{state.counts.checkoutIntentsWithEntitlements === 1 ? "" : "s"} have entitlement evidence.</p>
           </div>
           <div>
+            <PackagePlus aria-hidden="true" />
+            <h3>Draft products</h3>
+            <p>
+              {productCreation.counts.draftProducts} owner-created draft product
+              {productCreation.counts.draftProducts === 1 ? "" : "s"}.
+            </p>
+          </div>
+          <div>
             <ShieldCheck aria-hidden="true" />
             <h3>Revocation intents</h3>
             <p>
@@ -119,6 +130,77 @@ export default async function AdminProductsPage() {
               {protectedContent.counts.deliveryEnabled} delivery paths enabled.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Product creation</p>
+            <h2>Owners can create draft catalog records without billing writes</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${productCreationIssue}`} className="text-link compact-link">
+            Issue #{productCreationIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{productCreation.status}</span>
+              <span className="admin-pill">{productCreation.source}</span>
+            </div>
+            <PackagePlus aria-hidden="true" />
+            <h3>Draft product creation</h3>
+            <p>{productCreation.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Created drafts</strong>
+              <span>{productCreation.counts.draftProducts}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Latest draft</strong>
+              <span>{compactDate(productCreation.latestCreatedAt)}</span>
+            </div>
+            <AdminProductCreationForm />
+          </article>
+          {productCreation.records.length > 0 ? (
+            productCreation.records.map((product) => (
+              <article key={product.productId} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className={`status-badge ${statusClass(product.status)}`}>{product.status}</span>
+                  <span className="admin-pill">{product.kind.replaceAll("_", " ")}</span>
+                </div>
+                <PackagePlus aria-hidden="true" />
+                <h3>{product.name}</h3>
+                <p>{product.description ?? "No description recorded."}</p>
+                <div className="roadmap-detail">
+                  <strong>Slug</strong>
+                  <span>{product.slug}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Fulfillment</strong>
+                  <span>{product.fulfillmentKind.replaceAll("_", " ")}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Product ID</strong>
+                  <span>{product.productId}</span>
+                </div>
+                <p>
+                  Billing mutation enabled: {String(product.billingMutationEnabled)}. Fulfillment mutation enabled:{" "}
+                  {String(product.fulfillmentMutationEnabled)}.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No draft products</span>
+                <span className="admin-pill">Issue #{productCreationIssue}</span>
+              </div>
+              <h3>No owner-created draft products</h3>
+              <p>{productCreation.loadError ?? "Create the first draft catalog record from this owner page."}</p>
+            </article>
+          )}
         </div>
       </section>
 

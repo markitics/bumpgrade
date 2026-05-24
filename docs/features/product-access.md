@@ -16,6 +16,9 @@ issue #185 adds checkout-intent-scoped protected fixture delivery. Issue #187
 adds subscription-backed membership entitlement state from trusted Stripe
 Billing webhooks. Issue #251 adds owner-confirmed, non-destructive revocation
 intent records with exact confirmation, idempotency, and stale-state checks.
+Issue #403 adds owner-confirmed draft product creation records with exact
+confirmation, idempotency, duplicate-slug checks, and public-safe aggregate
+source data.
 
 Live in this slice:
 
@@ -44,6 +47,11 @@ Live in this slice:
   fixture bodies only when the request includes a known checkout intent, a
   matching active entitlement, and a protected content section id, and the
   checkout is still paid or completed.
+- `/api/admin/products/catalog`: lets verified owners create draft product
+  records after exact confirmation and idempotency without creating Stripe
+  products or prices, linking offers/funnels, granting fulfillment, creating
+  customer access, exposing owner identity, or enabling direct unauthenticated
+  agent writes.
 - `billing_subscriptions` plus `product_entitlements`: trusted
   `customer.subscription.created`, `customer.subscription.updated`, and
   `customer.subscription.deleted` webhooks mirror Stripe Billing state and sync
@@ -71,6 +79,8 @@ Not live in this slice:
 - Real protected course lessons, videos, transcripts, progress records, member
   posts, customer delivery of arbitrary private R2-backed asset uploads, or live
   fulfillment delivery.
+- Stripe product/price creation, offer or funnel product linking, and test-mode
+  purchase-to-created-product fulfillment for owner-created draft products.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions. The issue #187 fixture can activate or pause one seeded
   checkout-linked membership entitlement from trusted subscription state, but it
@@ -101,9 +111,14 @@ Public redaction boundary:
   access counts and public-safe policy text. `/api/products/entitlements` can
   show checkout-linked membership entitlement state after trusted Billing events
   without exposing raw Stripe subscription or customer IDs.
+- `/products/source-data` exposes aggregate product creation counts and
+  supported-kind policy text. `/admin/products` can inspect recent owner-created
+  draft product records. Public source-data does not include owner emails, actor
+  user IDs, idempotency keys, raw metadata, or raw Stripe IDs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
-  private R2 object keys, signed URLs, real lesson bodies, member posts,
-  transcripts, Customer Portal URLs, and progress rows remain server-private.
+  owner emails, actor user IDs, idempotency keys, private R2 object keys, signed
+  URLs, real lesson bodies, member posts, transcripts, Customer Portal URLs, and
+  progress rows remain server-private.
 
 Future destructive product/access writes must require actor identity, exact
 confirmation, idempotency, stale-state checks, audit correlation, redaction,
