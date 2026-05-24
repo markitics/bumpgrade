@@ -2,11 +2,13 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
 import { checkoutOfferStack, type CheckoutOffer } from "@/lib/checkout-offers";
+import { productAccessCatalogs } from "@/lib/product-access";
 import type {
   FunnelBlock,
   FunnelBlockKind,
   FunnelCheckoutLink,
   FunnelRecord,
+  FunnelResourceDeliveryLink,
   FunnelStep,
   FunnelStepKind,
   FunnelTemplate,
@@ -22,6 +24,7 @@ import {
   draftFunnelBlockStructureCapability,
   draftFunnelBlockStructureIssue,
   draftFunnelCheckoutUnlinkCapability,
+  draftFunnelResourceDeliveryLinkCapability,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -121,6 +124,7 @@ export const draftFunnelPublishConfirmationText = "Publish this draft funnel pub
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
 export const draftFunnelCheckoutLinkConfirmationText = "Link this draft funnel step to the seeded checkout offer";
 export const draftFunnelCheckoutUnlinkConfirmationText = "Unlink this checkout offer from this draft block";
+export const draftFunnelResourceDeliveryLinkConfirmationText = "Link this draft block to product resource delivery";
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
 
@@ -198,6 +202,7 @@ function duplicateBlocksForStep(draftId: string, step: DraftFunnelStepRecord): F
         ? "Checkout-link metadata was intentionally not copied. Review this duplicate and link an offer again before publishing."
         : block.body,
       checkoutLink: undefined,
+      resourceDeliveryLink: undefined,
     };
   });
 }
@@ -753,6 +758,9 @@ function compactBlockForAudit(block: FunnelBlock) {
     agentEditable: block.agentEditable,
     checkoutLinkId: block.checkoutLink?.id ?? null,
     checkoutOfferId: block.checkoutLink?.offerId ?? null,
+    resourceDeliveryLinkId: block.resourceDeliveryLink?.id ?? null,
+    resourceDeliveryProductId: block.resourceDeliveryLink?.productId ?? null,
+    resourceDeliveryAssetId: block.resourceDeliveryLink?.assetId ?? null,
   };
 }
 
@@ -783,6 +791,63 @@ function checkoutLinkForOffer(draft: DraftFunnelRecord, step: DraftFunnelStepRec
     idempotencyRequired: true,
     staleRevisionRequired: true,
     rawStripeIdsIncluded: false,
+    linkedAt: new Date().toISOString(),
+  };
+}
+
+function productResourceForLink(productId: string, assetId: string) {
+  for (const catalog of productAccessCatalogs) {
+    const product = catalog.products.find((item) => item.id === productId);
+    if (!product || !product.assetIds.includes(assetId)) continue;
+    const asset = catalog.assets.find((item) => item.id === assetId);
+    const entitlementTemplate = catalog.entitlementTemplates.find((item) => item.id === product.entitlementTemplateId);
+    if (!asset || !entitlementTemplate) return null;
+
+    return {
+      catalog,
+      product,
+      asset,
+      entitlementTemplate,
+      accessRules: catalog.accessRules.filter((rule) => product.accessRuleIds.includes(rule.id)),
+    };
+  }
+
+  return null;
+}
+
+function resourceDeliveryLinkForProduct(
+  draft: DraftFunnelRecord,
+  step: DraftFunnelStepRecord,
+  block: FunnelBlock,
+  resource: NonNullable<ReturnType<typeof productResourceForLink>>,
+): FunnelResourceDeliveryLink {
+  return {
+    id: `resource-delivery-link-${draft.id}-${step.id}-${block.id}-${resource.product.id}-${resource.asset.id}`,
+    status: "owner-session-linked",
+    issue: draftFunnelAdvancedParityIssue,
+    parentIssue: draftFunnelBuilderParentIssue,
+    productId: resource.product.id,
+    productTitle: resource.product.title,
+    productKind: resource.product.kind,
+    assetId: resource.asset.id,
+    assetTitle: resource.asset.title,
+    assetKind: resource.asset.kind,
+    entitlementTemplateId: resource.entitlementTemplate.id,
+    entitlementTemplateTitle: resource.entitlementTemplate.title,
+    accessRuleIds: resource.accessRules.map((rule) => rule.id),
+    productSourceDataRoute: resource.catalog.sourceDataRoute,
+    entitlementLookupRoute: "/products/entitlements",
+    downloadTokenEndpoint: "/api/products/download-tokens",
+    protectedContentEndpoint: "/api/products/protected-content",
+    deliveryMode: "seeded-product-access-reference",
+    confirmationRequired: true,
+    idempotencyRequired: true,
+    staleRevisionRequired: true,
+    liveFulfillmentDeliveryEnabled: false,
+    arbitraryUploadedAssetDeliveryEnabled: false,
+    rawR2KeysIncluded: false,
+    signedUrlsIncluded: false,
+    buyerDataIncluded: false,
     linkedAt: new Date().toISOString(),
   };
 }
@@ -1231,6 +1296,105 @@ export async function unlinkDraftFunnelCheckoutLink(
         orderedStepStructureChanged: false,
         liveBillingEnabled: false,
         rawStripeIdsIncluded: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function linkDraftFunnelBlockToResourceDelivery(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    productId: string;
+    assetId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  if (input.confirmationText !== draftFunnelResourceDeliveryLinkConfirmationText) {
+    throw new Error("Exact resource delivery link confirmation text is required.");
+  }
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "linked to resource delivery");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before linking resource delivery.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  if (block.kind !== "resource" && block.kind !== "delivery") {
+    throw new Error("Resource delivery links can only be attached to resource or delivery blocks.");
+  }
+
+  const resource = productResourceForLink(input.productId, input.assetId);
+  if (!resource) {
+    throw new Error("Choose a supported product and asset from the product access catalog before linking resource delivery.");
+  }
+
+  const resourceDeliveryLink = resourceDeliveryLinkForProduct(draft, step, block, resource);
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      resourceDeliveryLink,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-resource-delivery-link-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} linked resource delivery ${resource.asset.id} to block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "resource_delivery_link",
+        draftFunnelResourceDeliveryLinkCapability: draftFunnelResourceDeliveryLinkCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        resourceDeliveryLink,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          resourceDeliveryLink,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        blockTitlePreserved: true,
+        blockBodyPreserved: true,
+        orderedStepStructureChanged: false,
+        liveFulfillmentDeliveryEnabled: false,
+        arbitraryUploadedAssetDeliveryEnabled: false,
+        rawR2KeysIncluded: false,
+        signedUrlsIncluded: false,
+        buyerDataIncluded: false,
         privateAuthDataIncluded: false,
       },
     ),
