@@ -7,7 +7,11 @@ owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
 owner-reviewed fraud review record, and owner-reviewed partner notification
 readiness, send preflight, and provider readiness record contracts for parent
-issue #19.
+issue #19. Issue #19 is now the live affiliate/referral MVP boundary. Issue
+#424 tracks live payout execution, partner notification sends, fraud
+enforcement, private payout/tax data, private partner portals, buyer attribution
+finalization, and direct agent-safe affiliate/referral writes as one pending
+post-MVP execution bucket.
 
 ## Live Public-Safe Routes
 
@@ -97,7 +101,7 @@ buyer identifiers.
 
 ## Current Boundary
 
-This slice can capture seeded referral clicks with idempotency, destination
+The live MVP can capture seeded referral clicks with idempotency, destination
 route validation, hashed request evidence, aggregate-only public reporting, and
 can attach eligible referral clicks to sandbox checkout intents as attribution
 evidence. It can also create review-only commission ledger evidence from a
@@ -162,7 +166,7 @@ identity, private fraud signals, and private notes from public source data. It
 proves provider readiness semantics, not provider configuration or partner
 notification sending.
 
-Not live in this slice:
+Tracked by issue #424, not live in the MVP:
 
 - cookie assignment;
 - buyer attribution finalization;
@@ -184,7 +188,8 @@ Not live in this slice:
 
 Future writes must require actor identity, explicit confirmation, idempotency,
 stale-state checks, audit correlation, private-data redaction, refund-window
-checks, and owner review before payout.
+checks, owner review before payout, provider/payment safety, and rollback or
+dispute paths.
 
 ## Related Contracts
 

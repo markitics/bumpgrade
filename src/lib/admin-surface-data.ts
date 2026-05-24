@@ -768,12 +768,12 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
   },
   "feature-affiliates-referrals": {
     status: "passed",
-    lastTestedAt: "2026-05-21T11:36:00.000Z",
-    environment: "Local owner-session smoke plus production screenshot and affiliate/referral source-data evidence.",
+    lastTestedAt: "2026-05-24T08:56:44.000Z",
+    environment: "Local owner-session smoke plus production screenshot, affiliate/referral source-data evidence, and MVP closeout source-data checks.",
     method:
-      "Referral click, checkout attribution, commission ledger, review action, partner report, payout-prep, owner payout-preparation record, owner fraud-review record, and owner notification-readiness record route checks.",
+      "Referral click, checkout attribution, commission ledger, review action, partner report, payout-prep, owner payout-preparation record, owner fraud-review record, notification-readiness, send-preflight, provider-readiness, and grouped post-MVP execution-boundary route checks.",
     summary:
-      "Referral and affiliate evidence surfaces are proven; payout, fraud review, and partner notification readiness records are owner-confirmed while payout mutation, fraud enforcement, and partner sends remain future-gated.",
+      "Affiliate/referral MVP proof is live: source data, partner links, privacy-safe click capture, sandbox checkout attribution, review-only commission evidence, reversible owner review actions, public-safe partner reports, payout preparation, fraud review records, and notification readiness/preflight/provider-readiness records have proof surfaces while payout execution, partner sends, fraud enforcement, private portals, and direct agent writes remain grouped in issue #424.",
     ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
     screenshotLinks: [
       { label: "Affiliate payout prep", url: "https://bumpgrade.com/pr-screenshots/issue-195-affiliate-payout-prep.png", kind: "screenshot" },
@@ -781,10 +781,12 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
       { label: "Fraud review records", url: "https://bumpgrade.com/pr-screenshots/issue-275-admin-affiliate-fraud-review-record.png", kind: "screenshot" },
       { label: "Notification readiness record", url: "https://bumpgrade.com/pr-screenshots/issue-277-admin-affiliate-notification-readiness-record.png", kind: "screenshot" },
       { label: "Latest notification readiness records", url: "https://bumpgrade.com/pr-screenshots/issue-277-admin-affiliate-latest-notification-records.png", kind: "screenshot" },
+      { label: "Affiliate MVP roadmap closeout", url: "https://bumpgrade.com/pr-screenshots/issue-19-affiliate-mvp-live-closeout-roadmap.png", kind: "screenshot" },
+      { label: "Affiliate MVP features closeout", url: "https://bumpgrade.com/pr-screenshots/issue-19-affiliate-mvp-live-closeout-features.png", kind: "screenshot" },
     ],
     validationLinks: [{ label: "Affiliates source data", url: "https://bumpgrade.com/affiliates/source-data", kind: "source-data" }],
     notes: [
-      "Payable commissions, fraud enforcement, Stripe payouts, payout accounts, tax records, private fraud signals, recipient data, provider calls, queue dispatch, and partner notifications remain outside the current proof.",
+      "Payable commissions, fraud enforcement, Stripe payouts, payout accounts, tax records, private fraud signals, recipient data, provider calls, queue dispatch, partner notifications, private partner portals, buyer attribution finalization, and direct agent writes remain outside the live MVP and are tracked by issue #424.",
     ],
   },
   "feature-public-roadmap": {
@@ -2104,8 +2106,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-affiliate-referrals",
     title: "Publisher previews affiliate and referral management",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
-    issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279, 281],
+    featureStatus: "live",
+    issueNumbers: [19, 89, 109, 111, 113, 115, 193, 195, 273, 275, 277, 279, 281, 424],
     primaryUser: "Publisher or agent planning partner growth",
     userGoal:
       "Inspect affiliate programs, partner records, referral links, attribution windows, commission rules, public-safe partner reports, read-only payout preparation, review-only ledger evidence, owner review/reversal state, payout review states, fraud flags, partner notification readiness evidence, send preflight evidence, provider readiness evidence, aggregate click counts, and checkout attribution evidence before payouts exist.",
@@ -2137,6 +2139,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://github.com/markitics/bumpgrade/issues/277",
       "https://github.com/markitics/bumpgrade/issues/279",
       "https://github.com/markitics/bumpgrade/issues/281",
+      "https://github.com/markitics/bumpgrade/issues/424",
     ],
     happyPath: [
       "Fetch /affiliates/source-data.",
@@ -2156,14 +2159,15 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     edgeCases: [
       "Public source-data exposes aggregate click, checkout attribution, commission ledger, owner action, partner report, payout preparation, payout preparation record, fraud review record, notification readiness record, notification send preflight record, and notification provider readiness record counts only, not raw click, checkout, buyer, actor, recipient, message, send payload, provider configuration, provider secret, sender credential, provider, queue, reason, private fraud signal, tax, payout, partner notification, or Stripe rows.",
       "Unsupported referral link IDs, codes, destination routes, referral click IDs, checkout intent IDs, commission ledger IDs, action kinds, stale expected updatedAt values, and missing idempotency keys return public-safe validation errors.",
-      "Cookie assignment, buyer attribution finalization, payable commission writes, payout accounts, tax forms, fraud enforcement, Stripe payouts, private partner portals, and partner notifications require future confirmed-write APIs.",
+      "Cookie assignment, buyer attribution finalization, payable commission writes, payout accounts, tax forms, fraud enforcement, Stripe payouts, private partner portals, partner notifications, provider execution, and direct agent writes remain grouped in issue #424 and require future confirmed-write APIs.",
       "Agents must not call review-only commission evidence, partner report totals, payout preparation rows, payout preparation records, fraud review records, notification readiness records, notification send preflight records, or notification provider readiness records payable, send-ready partner statements, fraud enforcement, provider-send configuration, provider secret storage, or published affiliate terms.",
     ],
     agentAccess:
-      "Agents can read /affiliates/source-data, /commerce/source-data, preview routes, click capture boundaries, checkout attribution boundaries, review-only commission ledger boundaries, owner review action boundaries, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records. Payout execution, fraud enforcement, tax, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, private partner portal access, partner payout account storage, buyer attribution finalization, and direct agent affiliate writes require future authenticated confirmed-write APIs with actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, redaction, refund-window checks, payout review, private fraud review, notification send preflight checks, provider readiness checks, and private payout data boundaries.",
+      "Agents can read /affiliates/source-data, /commerce/source-data, preview routes, click capture boundaries, checkout attribution boundaries, review-only commission ledger boundaries, owner review action boundaries, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records. Issue #424 owns payout execution, fraud enforcement, tax, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, private partner portal access, partner payout account storage, buyer attribution finalization, and direct agent affiliate writes behind future authenticated confirmed-write APIs with actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, redaction, refund-window checks, payout review, private fraud review, notification send preflight checks, provider readiness checks, provider/payment safety, rollback/dispute paths, and private payout data boundaries.",
     validation: [
       "Playwright covers /affiliates/source-data, /affiliates/indie-launch-partners, click ingestion, checkout attribution, review-only commission ledger creation, owner review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, duplicate idempotency, stale-state validation, validation failures, aggregate-only source-data, sitemap discovery, and agent manifest discovery.",
       "Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, and #281 record the affiliate/referral source-data scaffold, privacy-safe click capture, checkout attribution evidence, first review-only ledger evidence path, owner review/reversal action boundary, public-safe partner report contract, read-only payout preparation contract, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records.",
+      "Issue #424 tracks live affiliate payout execution, partner notifications, fraud enforcement, and agent-safe write parity after the issue #19 MVP closeout.",
     ],
     sortOrder: 52,
     updatedAt: null,
@@ -2172,7 +2176,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-records-privacy-safe-referral-click",
     title: "Agent records a privacy-safe referral click",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 89, 109],
     primaryUser: "Agent or system integration validating referral tracking",
     userGoal:
@@ -2209,7 +2213,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-attaches-referral-click-to-checkout",
     title: "Agent attaches referral click evidence to checkout",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 109, 111],
     primaryUser: "Agent or system integration validating referral-to-checkout tracking",
     userGoal:
@@ -2248,7 +2252,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-agent-creates-review-only-commission-evidence",
     title: "Agent creates review-only commission evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 109, 111, 113],
     primaryUser: "Agent or system integration validating referral-to-commission tracking",
     userGoal:
@@ -2290,7 +2294,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-reviews-commission-ledger-evidence",
     title: "Owner reviews or reverses commission evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 113, 115],
     primaryUser: "Owner reviewing affiliate commission evidence before payout exists",
     userGoal:
@@ -2330,7 +2334,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-prepares-affiliate-payout-batch",
     title: "Publisher prepares an affiliate payout batch",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 113, 115, 193, 195, 273, 275, 277, 279, 281],
     primaryUser: "Publisher reviewing affiliate payout readiness before payable state exists",
     userGoal:
@@ -2385,7 +2389,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-reviews-affiliate-fraud-flag",
     title: "Owner records affiliate fraud review evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 113, 115, 193, 195, 273, 275],
     primaryUser: "Owner reviewing affiliate fraud evidence before payout exists",
     userGoal:
@@ -2422,7 +2426,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-prepares-affiliate-partner-notification-readiness",
     title: "Owner records affiliate partner notification readiness evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 193, 195, 273, 275, 277],
     primaryUser: "Owner reviewing affiliate partner notification readiness before sends exist",
     userGoal:
@@ -2459,7 +2463,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-prepares-affiliate-partner-notification-send-preflight",
     title: "Owner records affiliate partner notification send preflight evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 193, 195, 273, 275, 277, 279],
     primaryUser: "Owner reviewing affiliate partner notification send preflight before sends exist",
     userGoal:
@@ -2497,7 +2501,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-owner-prepares-affiliate-partner-notification-provider-readiness",
     title: "Owner records affiliate partner notification provider readiness evidence",
     featureId: "feature-affiliates-referrals",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [19, 193, 195, 273, 275, 277, 279, 281],
     primaryUser: "Owner reviewing affiliate partner notification provider readiness before sends exist",
     userGoal:

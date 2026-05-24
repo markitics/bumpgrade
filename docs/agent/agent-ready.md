@@ -640,7 +640,11 @@ cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, fraud enforcement,
 Stripe payout capability, private partner portal access, partner notification
 sends, provider-send configuration, provider calls, send payload creation, or
-queue dispatch.
+queue dispatch. Issue #19 is the live affiliate/referral MVP boundary. Issue
+#424 tracks the remaining live payout execution, partner notification execution,
+fraud enforcement, private partner portal, payout/tax-data, buyer attribution
+finalization, and agent-safe affiliate/referral write parity work as one pending
+bucket.
 
 ## MCP And Tooling
 

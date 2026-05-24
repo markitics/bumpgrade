@@ -245,6 +245,10 @@ function workstreamFromText(value: string): DirectorWorkstreamId {
 }
 
 function workstreamForRoadmap(item: AdminRoadmapRecord): DirectorWorkstreamId {
+  const roadmapText = normalizeText(`${item.title} ${item.summary} ${item.nextMilestone}`);
+  if (/\b(analytics|experiment|affiliate|referral|attribution|conversion|cohort)\b/.test(roadmapText)) {
+    return "analytics-growth";
+  }
   const mapped = groupToWorkstream.get(item.groupName.toLowerCase());
   if (mapped) return mapped;
   return workstreamFromText(`${item.title} ${item.summary} ${item.nextMilestone} ${item.groupName}`);
