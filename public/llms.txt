@@ -179,7 +179,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   existing sandbox checkout start surface after exact confirmation. It is not
   direct agent template creation, live billing mutation, one-click upsell
   charging, drag-and-drop visual editing, physical deletion, or an unconfirmed
-  agent-write API.
+  agent-write API. Treat issue #14 as the shipped MVP boundary. Issue #417 is
+  the pending advanced funnel parity bucket for visual block editing, private
+  resource delivery, webinar integrations, physical deletion policy, and direct
+  agent-safe write tools; live publisher-offer billing remains separate in
+  issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
   can start a confirmed sandbox checkout for the primary offer plus seeded order

@@ -108,7 +108,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-funnel-builder",
     title: "Funnel and page builder",
     group: "Funnels and pages",
-    status: "launch-preview",
+    status: "live",
     issue: 14,
     summary:
       "Multi-step funnels, opt-in pages, sales pages, templates, publishing, and page state that agents can inspect safely.",
@@ -126,10 +126,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Webinar and resource funnel template/page-block contracts from issue #213.",
       "Owner-confirmed private draft duplication from issue #215.",
       "Owner-confirmed archive/unpublish lifecycle actions from issue #341.",
+      "Owner-created product delivery-gate links for the seeded offer/funnel path from issue #409.",
       "Funnel steps for opt-in, sales, checkout, upsell, webinar, resource, thank-you, and future nurture paths.",
       "Reusable template and block metadata for opt-ins, sales pages, checkout handoffs, webinars, resources, preview state, and publishing controls.",
       "Stable funnel, page, and revision IDs.",
-      "Agent-safe draft proposals before public page changes.",
+      "Agent-safe draft proposals before public page changes; direct agent editing remains pending in issue #417.",
     ],
     evidence: [
       "Tracked by issue #14.",
@@ -145,9 +146,11 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #213 adds webinar/resource funnel templates, page-block metadata, admin step-kind options, and D1 step-kind storage readiness.",
       "Issue #215 lets verified owners duplicate private D1 drafts after exact confirmation, idempotency, and a fresh revision check while stripping checkout-link metadata.",
       "Issue #341 lets verified owners archive private D1 drafts or unpublish public D1 draft routes after exact confirmation, idempotency, and a fresh revision check while preserving draft, step, block, checkout-link, and audit evidence.",
+      "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
+      "Issue #417 tracks advanced drag-and-drop editing, resource delivery, physical deletion policy, webinar integrations, and direct agent-safe write tools after the MVP closeout.",
     ],
     agentContract:
-      "Agents may read reusable template, block-template, webinar/resource template, draft duplication, archive/unpublish lifecycle, checkout-link, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, duplicate, update, reorder, link checkout offers, preview, publish, archive, and unpublish private draft funnel steps with confirmation and stale-state checks; duplicated drafts stay private and strip checkout-link metadata, archived drafts preserve evidence and leave public source-data when unpublished, and published linked checkout blocks can render the sandbox checkout start surface, while future direct agent writes must require confirmation before creating drafts directly, duplicating drafts directly, archiving/unpublishing directly, editing creator-speech, linking billing-sensitive offers, scheduling webinars, delivering private resources, or publishing public funnel pages.",
+      "Agents may read reusable template, block-template, webinar/resource template, draft duplication, archive/unpublish lifecycle, checkout-link, product delivery-gate, and public funnel checkout-start capability records from `/funnels/source-data`; owner sessions can seed, create from templates, duplicate, update, reorder, link checkout offers, preview, publish, archive, and unpublish private draft funnel steps with confirmation and stale-state checks; duplicated drafts stay private and strip checkout-link metadata, archived drafts preserve evidence and leave public source-data when unpublished, and published linked checkout blocks can render the sandbox checkout start surface. Issue #417 keeps direct agent writes, drag-and-drop editing, physical deletion, live webinar integrations, and private resource delivery pending until actor identity, confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes are designed together.",
   },
   {
     id: "feature-checkout-offers",

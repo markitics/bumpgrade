@@ -802,7 +802,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.features.filter((feature: { status: string }) => feature.status === "pending")).toHaveLength(0);
     expect(payload.features).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "feature-funnel-builder", status: "launch-preview" }),
+        expect.objectContaining({ id: "feature-funnel-builder", status: "live" }),
         expect.objectContaining({ id: "feature-checkout-offers", status: "launch-preview" }),
         expect.objectContaining({ id: "feature-products-access", status: "live" }),
         expect.objectContaining({ id: "feature-email-automation-crm", status: "launch-preview" }),
@@ -820,7 +820,7 @@ test.describe("Bumpgrade scaffold", () => {
     const salesFunnelsFeature = payload.marketingFeatures.find((feature: { slug: string }) => feature.slug === "sales-funnels");
     expect(salesFunnelsFeature).toEqual(
       expect.objectContaining({
-        issueIds: expect.arrayContaining([341]),
+        issueIds: expect.arrayContaining([341, 409]),
         availability: expect.stringContaining("archive/unpublish"),
         benefits: expect.arrayContaining([expect.stringContaining("archive")]),
       }),
@@ -17054,6 +17054,8 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-cross-subdomain-customer-auth", status: "shipped", issue: 224 }),
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
+        expect.objectContaining({ id: "roadmap-funnels", status: "shipped", issue: 14 }),
+        expect.objectContaining({ id: "roadmap-advanced-funnel-builder-parity", status: "planned", issue: 417 }),
         expect.objectContaining({ id: "roadmap-checkout-offers", status: "shipped", issue: 15 }),
         expect.objectContaining({ id: "roadmap-live-publisher-offer-billing", status: "planned", issue: 219 }),
         expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
@@ -17087,12 +17089,30 @@ test.describe("Bumpgrade scaffold", () => {
     const funnelRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-funnels");
     expect(funnelRoadmap).toEqual(
       expect.objectContaining({
-        publicEvidence: expect.arrayContaining([expect.stringContaining("Issue #341")]),
-        nextMilestone: expect.stringContaining("physical deletion"),
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #341"),
+          expect.stringContaining("Issue #409"),
+          expect.stringContaining("Issue #417"),
+        ]),
+        nextMilestone: expect.stringContaining("issue #417"),
       }),
     );
     expect(funnelRoadmap.nextMilestone).not.toContain("deletion/archive");
     expect(funnelRoadmap.nextMilestone).not.toContain("unpublishing");
+    const advancedFunnelParity = payload.items.find(
+      (item: { id: string }) => item.id === "roadmap-advanced-funnel-builder-parity",
+    );
+    expect(advancedFunnelParity).toEqual(
+      expect.objectContaining({
+        group: "Funnels and pages",
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Issue #417"),
+          expect.stringContaining("Issue #14 remains the shipped MVP"),
+          expect.stringContaining("Issue #219"),
+        ]),
+        nextMilestone: expect.stringContaining("single-gate readiness slices"),
+      }),
+    );
     const productsRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-products-access");
     expect(productsRoadmap).toEqual(
       expect.objectContaining({
@@ -17405,8 +17425,9 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(adminFunnelJourney).toEqual(
       expect.objectContaining({
+        featureStatus: "live",
         title: expect.stringContaining("archives"),
-        issueNumbers: expect.arrayContaining([341]),
+        issueNumbers: expect.arrayContaining([341, 409, 417]),
         happyPath: expect.arrayContaining([expect.stringContaining("archive confirmation")]),
         edgeCases: expect.arrayContaining([expect.stringContaining("does not physically delete data")]),
       }),
@@ -17491,6 +17512,12 @@ test.describe("Bumpgrade scaffold", () => {
           queueLabel: "Pending next",
           workstreamId: "product-commerce",
           evidence: expect.arrayContaining([expect.objectContaining({ number: 219 })]),
+        }),
+        expect.objectContaining({
+          id: "roadmap-advanced-funnel-builder-parity",
+          queueLabel: "Pending next",
+          workstreamId: "product-commerce",
+          evidence: expect.arrayContaining([expect.objectContaining({ number: 417 })]),
         }),
       ]),
     );
@@ -18101,7 +18128,8 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(userJourneyFunnelArchive).toEqual(
       expect.objectContaining({
-        issueNumbers: expect.arrayContaining([341]),
+        featureStatus: "live",
+        issueNumbers: expect.arrayContaining([341, 409, 417]),
         agentAccess: expect.stringContaining("archive/unpublish lifecycle metadata"),
       }),
     );

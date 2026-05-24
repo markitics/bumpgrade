@@ -151,7 +151,10 @@ the existing sandbox checkout start surface when a checkout block carries
 owner-confirmed `checkoutLink` metadata. It is not direct agent template
 creation, live billing mutation, drag-and-drop editing, destructive deletion,
 direct agent archive/unpublish, one-click upsell charging, or a direct agent
-write API.
+write API. Issue #14 is the shipped MVP boundary; issue #417 is the pending
+advanced funnel parity bucket for drag-and-drop editing, private resource
+delivery, webinar integrations, physical deletion policy, and direct agent-safe
+write tools. Live publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
 contract for the first seeded primary offer, constrained order bump, upsell, and
