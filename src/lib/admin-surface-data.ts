@@ -1469,7 +1469,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-previews-product-access",
     title: "Publisher previews product access rules",
     featureId: "feature-products-access",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407, 409],
     primaryUser: "Publisher or agent planning fulfillment",
     userGoal:
@@ -1564,7 +1564,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     id: "journey-publisher-verifies-sandbox-entitlement-grant",
     title: "Publisher verifies sandbox entitlement grant evidence",
     featureId: "feature-products-access",
-    featureStatus: "launch-preview",
+    featureStatus: "live",
     issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407, 409],
     primaryUser: "Publisher or agent validating fulfillment readiness",
     userGoal:

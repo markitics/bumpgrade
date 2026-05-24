@@ -322,7 +322,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-products-access",
     title: "Products, downloads, courses, memberships, and subscriptions",
-    status: "active",
+    status: "shipped",
     issue: 16,
     featureId: featureIdFor(16),
     group: "Products and access",
@@ -348,9 +348,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #407 adds owner-confirmed buyer-facing test checkout links and public test checkout completion for owner-created products without Stripe Checkout Sessions, live charges, or public buyer exposure.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates with stale-state checks and aggregate public redaction.",
       "Issue #16 exposes seeded pay-in-full, installment, and subscription payment-plan read records without live amounts, Stripe Price creation, Checkout Sessions, or customer data exposure.",
+      "Issue #16 is ready to close after PR #412 merged, deployed, and verified product payment-plan readiness.",
     ],
     nextMilestone:
-      "Keep payment plans as read records until the first live package, amount, Stripe price policy, and webhook boundary are confirmed in issue #219.",
+      "Keep live product payment-plan checkout, Stripe Price creation, first package/amount selection, webhook-secret confirmation, Customer Portal actions, and live fulfillment tracked separately in issue #219.",
   },
   {
     id: "roadmap-email-automation",
