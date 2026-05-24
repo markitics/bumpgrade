@@ -895,6 +895,94 @@ export const productOfferAccessGrantIntents = sqliteTable(
   }),
 );
 
+export const productTestCheckoutLinks = sqliteTable(
+  "product_test_checkout_links",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => commerceProducts.id, { onDelete: "cascade" }),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    actorRole: text("actor_role").notNull(),
+    testPriceId: text("test_price_id")
+      .notNull()
+      .references(() => commercePrices.id, { onDelete: "cascade" }),
+    publicPath: text("public_path").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("usd"),
+    status: text("status").notNull().default("test_checkout_link_active"),
+    revisionId: text("revision_id").notNull(),
+    productUpdatedAt: integer("product_updated_at", { mode: "timestamp" }).notNull(),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    billingMutationEnabled: integer("billing_mutation_enabled", { mode: "boolean" }).notNull().default(false),
+    stripeCheckoutSessionCreated: integer("stripe_checkout_session_created", { mode: "boolean" }).notNull().default(false),
+    liveChargeCreated: integer("live_charge_created", { mode: "boolean" }).notNull().default(false),
+    rawBuyerEmailIncluded: integer("raw_buyer_email_included", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("product_test_checkout_links_idempotency_unique").on(table.idempotencyKey),
+    productStatusIdx: index("product_test_checkout_links_product_status_idx").on(table.productId, table.status),
+    publicPathUnique: uniqueIndex("product_test_checkout_links_public_path_unique").on(table.publicPath),
+    createdIdx: index("product_test_checkout_links_created_idx").on(table.createdAt),
+  }),
+);
+
+export const productTestCheckoutPurchases = sqliteTable(
+  "product_test_checkout_purchases",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    checkoutLinkId: text("checkout_link_id")
+      .notNull()
+      .references(() => productTestCheckoutLinks.id, { onDelete: "cascade" }),
+    productId: text("product_id")
+      .notNull()
+      .references(() => commerceProducts.id, { onDelete: "cascade" }),
+    checkoutIntentId: text("checkout_intent_id")
+      .notNull()
+      .references(() => checkoutIntents.id, { onDelete: "cascade" }),
+    entitlementId: text("entitlement_id")
+      .notNull()
+      .references(() => productEntitlements.id, { onDelete: "cascade" }),
+    fulfillmentTaskId: text("fulfillment_task_id")
+      .notNull()
+      .references(() => productFulfillmentTasks.id, { onDelete: "cascade" }),
+    buyerEmailHash: text("buyer_email_hash").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency").notNull().default("usd"),
+    testPriceId: text("test_price_id")
+      .notNull()
+      .references(() => commercePrices.id, { onDelete: "cascade" }),
+    entitlementTemplateId: text("entitlement_template_id").notNull(),
+    accessRuleId: text("access_rule_id").notNull(),
+    expectedLinkRevisionId: text("expected_link_revision_id").notNull(),
+    linkRevisionId: text("link_revision_id").notNull(),
+    status: text("status").notNull().default("test_checkout_paid"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    billingMutationEnabled: integer("billing_mutation_enabled", { mode: "boolean" }).notNull().default(false),
+    stripeCheckoutSessionCreated: integer("stripe_checkout_session_created", { mode: "boolean" }).notNull().default(false),
+    liveChargeCreated: integer("live_charge_created", { mode: "boolean" }).notNull().default(false),
+    rawBuyerEmailIncluded: integer("raw_buyer_email_included", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("product_test_checkout_purchases_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    linkStatusIdx: index("product_test_checkout_purchases_link_status_idx").on(table.checkoutLinkId, table.status),
+    productStatusIdx: index("product_test_checkout_purchases_product_status_idx").on(table.productId, table.status),
+    checkoutIdx: index("product_test_checkout_purchases_checkout_idx").on(table.checkoutIntentId),
+    createdIdx: index("product_test_checkout_purchases_created_idx").on(table.createdAt),
+  }),
+);
+
 export const productEntitlementRevocationIntents = sqliteTable(
   "product_entitlement_revocation_intents",
   {

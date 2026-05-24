@@ -20,7 +20,9 @@ Issue #403 adds owner-confirmed draft product creation records with exact
 confirmation, idempotency, duplicate-slug checks, and public-safe aggregate
 source data. Issue #405 links owner-created products to test offer/funnel IDs
 and creates synthetic paid checkout/access grant evidence without live Stripe
-checkout, live charges, published offer copy, or public buyer exposure.
+checkout, live charges, published offer copy, or public buyer exposure. Issue
+#407 adds owner-confirmed buyer-facing test checkout links and public test
+checkout completion for owner-created products with link-revision checks.
 
 Live in this slice:
 
@@ -60,6 +62,14 @@ Live in this slice:
   products, Stripe prices, Checkout Sessions, live charges, published offer
   copy, customer-facing fulfillment delivery, raw buyer exposure, or direct
   unauthenticated agent writes.
+- `/api/admin/products/test-checkout-links`: lets verified owners create a
+  stable buyer-facing test checkout link for an owner-created product after
+  exact confirmation, idempotency, and a current product `updatedAt` check.
+- `/products/test-checkout/{linkId}` and `/api/products/test-checkout`: let a
+  public test buyer complete that checkout after exact confirmation,
+  idempotency, and a current link revision check, creating a synthetic paid
+  checkout intent, entitlement row, fulfillment task evidence, and audit event
+  without Stripe Checkout Sessions or live charges.
 - `billing_subscriptions` plus `product_entitlements`: trusted
   `customer.subscription.created`, `customer.subscription.updated`, and
   `customer.subscription.deleted` webhooks mirror Stripe Billing state and sync
@@ -89,8 +99,8 @@ Not live in this slice:
   fulfillment delivery.
 - Stripe product/price creation, live offer/funnel publishing, and live
   purchase-to-created-product fulfillment for owner-created draft products.
-  Issue #405 records only test offer/funnel linkage and synthetic paid test
-  access-grant evidence.
+  Issues #405 and #407 record only direct test grant evidence, buyer-facing
+  test checkout links, and synthetic paid test access-grant evidence.
 - Subscription access changes, refunds, destructive revocations, or customer
   portal actions. The issue #187 fixture can activate or pause one seeded
   checkout-linked membership entitlement from trusted subscription state, but it
@@ -131,6 +141,13 @@ Public redaction boundary:
   and fulfillment evidence. Public source-data does not include buyer emails,
   buyer hashes, checkout intent IDs, entitlement IDs, idempotency keys, raw
   metadata, owner identity, or raw Stripe IDs.
+- `/products/source-data` exposes aggregate owner-created product test checkout
+  link and purchase counts plus supported policy text. `/admin/products` can
+  inspect the public test link, link revision, synthetic checkout state,
+  entitlement status, and fulfillment evidence. Public source-data does not
+  include checkout link IDs, buyer emails, buyer hashes, checkout intent IDs,
+  entitlement IDs, idempotency keys, raw metadata, owner identity, or raw Stripe
+  IDs.
 - Buyer emails, buyer hashes, raw Stripe IDs, webhook event IDs, metadata JSON,
   owner emails, actor user IDs, idempotency keys, private R2 object keys, signed
   URLs, real lesson bodies, member posts, transcripts, Customer Portal URLs, and

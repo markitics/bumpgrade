@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, Database, FileArchive, KeyRound, Link2, ListCheck
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { AdminProductCreationForm } from "@/components/admin-product-creation-form";
 import { AdminProductOfferAccessGrantForm } from "@/components/admin-product-offer-access-grant-form";
+import { AdminProductTestCheckoutLinkForm } from "@/components/admin-product-test-checkout-link-form";
 import { AdminProductRevocationIntentForm } from "@/components/admin-product-revocation-intent-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
@@ -15,6 +16,7 @@ import {
 } from "@/lib/product-entitlement-inspection";
 import { getAdminProductCreationState, productCreationIssue } from "@/lib/product-creation";
 import { getAdminProductOfferAccessState, productOfferAccessIssue } from "@/lib/product-offer-access";
+import { getAdminProductTestCheckoutState, productTestCheckoutIssue } from "@/lib/product-test-checkout-links";
 import { getProductProtectedContentSummary, productProtectedContentIssue } from "@/lib/product-protected-content";
 
 export const metadata: Metadata = {
@@ -36,7 +38,7 @@ function compactDate(value: string | null) {
 }
 
 function statusClass(status: string | null) {
-  if (status === "active" || status === "queued" || status === "paid") return "active";
+  if (status === "active" || status === "queued" || status === "paid" || status === "test_checkout_link_active" || status === "test_checkout_paid") return "active";
   if (status === "revoked" || status === "failed") return "blocked";
   return "pending";
 }
@@ -45,10 +47,11 @@ export default async function AdminProductsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/products" />;
 
-  const [state, productCreation, productOfferAccess, revocationIntents, protectedContent] = await Promise.all([
+  const [state, productCreation, productOfferAccess, productTestCheckout, revocationIntents, protectedContent] = await Promise.all([
     getAdminProductEntitlementInspectionState(),
     getAdminProductCreationState(),
     getAdminProductOfferAccessState(),
+    getAdminProductTestCheckoutState(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -121,6 +124,16 @@ export default async function AdminProductsPage() {
             <p>
               {productOfferAccess.counts.activeTestEntitlements} owner-created product test access grant
               {productOfferAccess.counts.activeTestEntitlements === 1 ? "" : "s"}.
+            </p>
+          </div>
+          <div>
+            <ShoppingCart aria-hidden="true" />
+            <h3>Test checkouts</h3>
+            <p>
+              {productTestCheckout.counts.testPurchases} buyer-facing test checkout
+              {productTestCheckout.counts.testPurchases === 1 ? "" : "s"} from{" "}
+              {productTestCheckout.counts.activeCheckoutLinks} active link
+              {productTestCheckout.counts.activeCheckoutLinks === 1 ? "" : "s"}.
             </p>
           </div>
           <div>
@@ -200,6 +213,32 @@ export default async function AdminProductsPage() {
             </Link>
             <AdminProductOfferAccessGrantForm products={productCreation.records} />
           </article>
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">{productTestCheckout.status}</span>
+              <span className="admin-pill">{productTestCheckout.source}</span>
+            </div>
+            <ShoppingCart aria-hidden="true" />
+            <h3>Buyer-facing test checkout link</h3>
+            <p>{productTestCheckout.writeBoundary}</p>
+            <div className="roadmap-detail">
+              <strong>Active links</strong>
+              <span>{productTestCheckout.counts.activeCheckoutLinks}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Test checkouts</strong>
+              <span>{productTestCheckout.counts.testPurchases}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Latest checkout</strong>
+              <span>{compactDate(productTestCheckout.latestPurchaseCreatedAt)}</span>
+            </div>
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${productTestCheckoutIssue}`} className="text-link compact-link">
+              Issue #{productTestCheckoutIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <AdminProductTestCheckoutLinkForm products={productCreation.records} />
+          </article>
           {productCreation.records.length > 0 ? (
             productCreation.records.map((product) => (
               <article key={product.productId} className="roadmap-card active">
@@ -266,6 +305,78 @@ export default async function AdminProductsPage() {
                 <span>
                   {record.currency.toUpperCase()} {(record.amountCents / 100).toFixed(2)}
                 </span>
+              </div>
+              <p>
+                Stripe Checkout Session created: {String(record.stripeCheckoutSessionCreated)}. Live charge created:{" "}
+                {String(record.liveChargeCreated)}. Raw buyer email included: {String(record.rawBuyerEmailIncluded)}.
+              </p>
+            </article>
+          ))}
+          {productTestCheckout.links.map((link) => (
+            <article key={link.id} className="roadmap-card active">
+              <div className="roadmap-card-top">
+                <span className={`status-badge ${statusClass(link.status)}`}>{link.status}</span>
+                <span className="admin-pill">test checkout link</span>
+              </div>
+              <ShoppingCart aria-hidden="true" />
+              <h3>{link.productName}</h3>
+              <p>
+                Public test checkout path creates synthetic paid access evidence after buyer confirmation and link
+                revision checks.
+              </p>
+              <div className="roadmap-detail">
+                <strong>Public path</strong>
+                <span>{link.publicPath}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Amount</strong>
+                <span>
+                  {link.currency.toUpperCase()} {(link.amountCents / 100).toFixed(2)}
+                </span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Revision</strong>
+                <span>{link.revisionId}</span>
+              </div>
+              <Link href={link.publicPath} className="text-link compact-link">
+                Open test checkout
+                <ArrowRight aria-hidden="true" />
+              </Link>
+              <p>
+                Stripe Checkout Session created: {String(link.stripeCheckoutSessionCreated)}. Live charge created:{" "}
+                {String(link.liveChargeCreated)}. Raw buyer email included: {String(link.rawBuyerEmailIncluded)}.
+              </p>
+            </article>
+          ))}
+          {productTestCheckout.purchases.map((record) => (
+            <article key={record.id} className="roadmap-card active">
+              <div className="roadmap-card-top">
+                <span className={`status-badge ${statusClass(record.entitlementStatus)}`}>
+                  {record.entitlementStatus ?? record.status}
+                </span>
+                <span className="admin-pill">buyer test checkout</span>
+              </div>
+              <ShoppingCart aria-hidden="true" />
+              <h3>{record.productName}</h3>
+              <p>
+                Buyer-facing test checkout created {record.fulfillmentKind.replaceAll("_", " ")} fulfillment evidence
+                without a Stripe session.
+              </p>
+              <div className="roadmap-detail">
+                <strong>Checkout</strong>
+                <span>{record.checkoutStatus ?? "No checkout state"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Entitlement</strong>
+                <span>{record.entitlementStatus ?? "No entitlement state"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Fulfillment</strong>
+                <span>{record.fulfillmentStatus ?? "No fulfillment task"}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Checkout intent</strong>
+                <span>{record.checkoutIntentId}</span>
               </div>
               <p>
                 Stripe Checkout Session created: {String(record.stripeCheckoutSessionCreated)}. Live charge created:{" "}

@@ -330,6 +330,14 @@ import {
   productOfferAccessIssue,
   productOfferAccessStatus,
 } from "../src/lib/product-offer-access";
+import {
+  productTestCheckoutApiRoute,
+  productTestCheckoutConfirmationText,
+  productTestCheckoutIssue,
+  productTestCheckoutLinkApiRoute,
+  productTestCheckoutLinkConfirmationText,
+  productTestCheckoutStatus,
+} from "../src/lib/product-test-checkout-links";
 import { productDownloadTokenSummary } from "../src/lib/product-download-tokens";
 import {
   subscriptionMembershipAccessIssue,
@@ -1415,8 +1423,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: productOfferAccessStatus,
-        issue: productOfferAccessIssue,
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
         parentIssue: 16,
       }),
     );
@@ -1428,9 +1436,12 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/products/entitlements",
         "/api/products/download-tokens",
         "/api/products/protected-content",
+        "/products/test-checkout/:linkId",
+        productTestCheckoutApiRoute,
         "/api/admin/products/assets",
         productCreationApiRoute,
         productOfferAccessApiRoute,
+        productTestCheckoutLinkApiRoute,
         productEntitlementRevocationIntentApiRoute,
       ]),
     );
@@ -1509,6 +1520,38 @@ test.describe("Bumpgrade scaffold", () => {
           buyerEmailIncluded: false,
           buyerEmailHashIncluded: false,
           idempotencyKeysIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+          liveBillingEnabled: false,
+          stripeCheckoutSessionCreated: false,
+          fulfillmentDeliveryEnabled: false,
+        }),
+      }),
+    );
+    expect(payload.productTestCheckout).toEqual(
+      expect.objectContaining({
+        id: "owner-product-test-checkout-links",
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        parentIssue: 16,
+        ownerApiRoute: productTestCheckoutLinkApiRoute,
+        checkoutApiRoute: productTestCheckoutApiRoute,
+        ownerRoute: "/admin/products",
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          checkoutLinks: expect.any(Number),
+          activeCheckoutLinks: expect.any(Number),
+          testPurchases: expect.any(Number),
+          activeTestEntitlements: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          publicCheckoutLinkIdsIncluded: false,
           publicCheckoutIntentIdsIncluded: false,
           publicEntitlementIdsIncluded: false,
           rawStripeIdsIncluded: false,
@@ -2771,6 +2814,311 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("body")).toContainText(productName);
     await expect(page.locator("body")).toContainText(grantBody.offerId);
     await expect(page.locator("body")).toContainText("test purchase");
+  });
+
+  test("owner-created product test checkout links require auth, stale-state checks, idempotency, and public redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner product test checkout links are covered once on desktop.");
+
+    const unique = Date.now();
+    const productSlug = `playwright-product-checkout-${unique}`;
+    const productName = `Playwright product checkout ${unique}`;
+    const buyerEmail = `checkout-buyer-${unique}@example.com`;
+    const productBody = {
+      name: productName,
+      slug: productSlug,
+      kind: "course",
+      description: `Owner-created product test checkout ${unique}`,
+      confirmationText: productCreationConfirmationText,
+      idempotencyKey: `product-creation-for-checkout-${unique}`,
+    };
+
+    const unauthorized = await request.post(productTestCheckoutLinkApiRoute, {
+      data: {
+        productId: `product-owner-${productSlug}`,
+        amountCents: 3456,
+        currency: "usd",
+        expectedProductUpdatedAt: new Date().toISOString(),
+        confirmationText: productTestCheckoutLinkConfirmationText,
+        idempotencyKey: `product-test-checkout-link-idempotency-${unique}`,
+      },
+    });
+    expect(unauthorized.status()).toBe(401);
+    await expect(unauthorized.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          publicCheckoutLinkIdsIncluded: false,
+          buyerEmailIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+    const contract = await page.request.get(productTestCheckoutLinkApiRoute);
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    await expect(contract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        route: productTestCheckoutLinkApiRoute,
+        confirmation: expect.objectContaining({ text: productTestCheckoutLinkConfirmationText }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          publicCheckoutLinkIdsIncluded: false,
+          publicCheckoutIntentIdsIncluded: false,
+          publicEntitlementIdsIncluded: false,
+          rawStripeIdsIncluded: false,
+          liveBillingEnabled: false,
+          stripeCheckoutSessionCreated: false,
+        }),
+      }),
+    );
+
+    const publicContract = await request.get(productTestCheckoutApiRoute);
+    expect(publicContract.ok(), await publicContract.text()).toBeTruthy();
+    await expect(publicContract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        route: productTestCheckoutApiRoute,
+        confirmation: expect.objectContaining({ text: productTestCheckoutConfirmationText }),
+      }),
+    );
+
+    const createdProduct = await page.request.post(productCreationApiRoute, { data: productBody });
+    expect(createdProduct.status(), await createdProduct.text()).toBe(201);
+    const createdProductPayload = await createdProduct.json();
+    const productId = createdProductPayload.product.productId as string;
+    const expectedProductUpdatedAt = createdProductPayload.product.updatedAt as string;
+    const linkBody = {
+      productId,
+      amountCents: 3456,
+      currency: "usd",
+      expectedProductUpdatedAt,
+      confirmationText: productTestCheckoutLinkConfirmationText,
+      idempotencyKey: `product-test-checkout-link-idempotency-${unique}`,
+    };
+
+    const staleProduct = await page.request.post(productTestCheckoutLinkApiRoute, {
+      data: {
+        ...linkBody,
+        expectedProductUpdatedAt: "2020-01-01T00:00:00.000Z",
+        idempotencyKey: `${linkBody.idempotencyKey}-stale-product`,
+      },
+    });
+    expect(staleProduct.status(), await staleProduct.text()).toBe(409);
+    await expect(staleProduct.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_product_state" }));
+
+    const createdLink = await page.request.post(productTestCheckoutLinkApiRoute, { data: linkBody });
+    expect(createdLink.status(), await createdLink.text()).toBe(201);
+    const linkPayload = await createdLink.json();
+    expect(linkPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        duplicate: false,
+        link: expect.objectContaining({
+          id: expect.stringMatching(/^product-test-checkout-link-/),
+          productId,
+          productSlug,
+          productName,
+          publicPath: expect.stringMatching(/^\/products\/test-checkout\/product-test-checkout-link-/),
+          amountCents: 3456,
+          currency: "usd",
+          status: "test_checkout_link_active",
+          revisionId: expect.stringMatching(/^product-test-checkout-revision-/),
+          billingMutationEnabled: false,
+          stripeCheckoutSessionCreated: false,
+          liveChargeCreated: false,
+          rawBuyerEmailIncluded: false,
+        }),
+      }),
+    );
+    const linkText = JSON.stringify(linkPayload);
+    expect(linkText).not.toContain(linkBody.idempotencyKey);
+    expect(linkText).not.toContain("m@rkmoriarty.com");
+
+    const linkReplay = await page.request.post(productTestCheckoutLinkApiRoute, { data: linkBody });
+    expect(linkReplay.status(), await linkReplay.text()).toBe(200);
+    await expect(linkReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-product-test-checkout-link-replayed",
+        duplicate: true,
+        link: expect.objectContaining({
+          id: linkPayload.link.id,
+          publicPath: linkPayload.link.publicPath,
+        }),
+      }),
+    );
+
+    const linkConflict = await page.request.post(productTestCheckoutLinkApiRoute, {
+      data: { ...linkBody, amountCents: 4456 },
+    });
+    expect(linkConflict.status(), await linkConflict.text()).toBe(409);
+    await expect(linkConflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const publicPage = await request.get(linkPayload.link.publicPath);
+    const publicPageText = await publicPage.text();
+    expect(publicPage.ok(), publicPageText).toBeTruthy();
+    expect(publicPageText).toContain(productName);
+
+    const checkoutBody = {
+      linkId: linkPayload.link.id,
+      buyerEmail,
+      expectedLinkRevisionId: linkPayload.link.revisionId,
+      confirmationText: productTestCheckoutConfirmationText,
+      idempotencyKey: `product-test-checkout-purchase-idempotency-${unique}`,
+    };
+
+    const staleCheckout = await request.post(productTestCheckoutApiRoute, {
+      data: { ...checkoutBody, expectedLinkRevisionId: "stale-link-revision", idempotencyKey: `${checkoutBody.idempotencyKey}-stale` },
+    });
+    expect(staleCheckout.status(), await staleCheckout.text()).toBe(409);
+    await expect(staleCheckout.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_link_state" }));
+
+    const createdCheckout = await request.post(productTestCheckoutApiRoute, { data: checkoutBody });
+    expect(createdCheckout.status(), await createdCheckout.text()).toBe(201);
+    const checkoutPayload = await createdCheckout.json();
+    expect(checkoutPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        duplicate: false,
+        checkout: expect.objectContaining({
+          id: expect.stringMatching(/^product-test-checkout-purchase-/),
+          checkoutLinkId: linkPayload.link.id,
+          productId,
+          productSlug,
+          productName,
+          checkoutIntentId: expect.stringMatching(/^checkout-intent-[0-9a-f-]{36}$/),
+          checkoutStatus: "paid",
+          entitlementId: expect.stringMatching(/^entitlement-checkout-intent-/),
+          entitlementStatus: "active",
+          fulfillmentStatus: "queued",
+          linkRevisionId: linkPayload.link.revisionId,
+          expectedLinkRevisionId: linkPayload.link.revisionId,
+          billingMutationEnabled: false,
+          stripeCheckoutSessionCreated: false,
+          liveChargeCreated: false,
+          rawBuyerEmailIncluded: false,
+          entitlementLookupUrl: expect.stringContaining("/products/entitlements?checkout_intent_id="),
+        }),
+      }),
+    );
+    const checkoutText = JSON.stringify(checkoutPayload);
+    expect(checkoutText).not.toContain(checkoutBody.idempotencyKey);
+    expect(checkoutText).not.toContain(buyerEmail);
+    expect(checkoutText).not.toContain("m@rkmoriarty.com");
+
+    const checkoutReplay = await request.post(productTestCheckoutApiRoute, { data: checkoutBody });
+    expect(checkoutReplay.status(), await checkoutReplay.text()).toBe(200);
+    await expect(checkoutReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-product-test-checkout-replayed",
+        duplicate: true,
+        checkout: expect.objectContaining({
+          id: checkoutPayload.checkout.id,
+          checkoutIntentId: checkoutPayload.checkout.checkoutIntentId,
+          entitlementId: checkoutPayload.checkout.entitlementId,
+        }),
+      }),
+    );
+
+    const checkoutConflict = await request.post(productTestCheckoutApiRoute, {
+      data: { ...checkoutBody, buyerEmail: `different-${buyerEmail}` },
+    });
+    expect(checkoutConflict.status(), await checkoutConflict.text()).toBe(409);
+    await expect(checkoutConflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const lookup = await request.get(
+      `/api/products/entitlements?checkoutIntentId=${encodeURIComponent(checkoutPayload.checkout.checkoutIntentId)}`,
+    );
+    expect(lookup.ok(), await lookup.text()).toBeTruthy();
+    await expect(lookup.json()).resolves.toEqual(
+      expect.objectContaining({
+        source: "d1",
+        checkout: expect.objectContaining({
+          checkoutIntentId: checkoutPayload.checkout.checkoutIntentId,
+          status: "paid",
+          privateDataIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+        counts: expect.objectContaining({
+          entitlements: 1,
+          activeEntitlements: 1,
+          fulfillmentTasks: 1,
+        }),
+        entitlements: expect.arrayContaining([
+          expect.objectContaining({
+            id: checkoutPayload.checkout.entitlementId,
+            productId,
+            status: "active",
+            grantKind: "owner_created_product_test_checkout",
+            sourceProductName: productName,
+            fulfillment: expect.objectContaining({
+              id: checkoutPayload.checkout.fulfillmentTaskId,
+              status: "queued",
+            }),
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          buyerEmailHashIncluded: false,
+          rawStripeIdsIncluded: false,
+        }),
+      }),
+    );
+
+    const sourceData = await request.get("/products/source-data");
+    expect(sourceData.ok(), await sourceData.text()).toBeTruthy();
+    const sourcePayload = await sourceData.json();
+    expect(sourcePayload.productTestCheckout).toEqual(
+      expect.objectContaining({
+        status: productTestCheckoutStatus,
+        issue: productTestCheckoutIssue,
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          checkoutLinks: expect.any(Number),
+          activeCheckoutLinks: expect.any(Number),
+          testPurchases: expect.any(Number),
+          activeTestEntitlements: expect.any(Number),
+        }),
+      }),
+    );
+    expect(sourcePayload.productTestCheckout.counts.checkoutLinks).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.productTestCheckout.counts.testPurchases).toBeGreaterThanOrEqual(1);
+    const sourceText = JSON.stringify(sourcePayload);
+    expect(sourceText).not.toContain(productName);
+    expect(sourceText).not.toContain(buyerEmail);
+    expect(sourceText).not.toContain(linkBody.idempotencyKey);
+    expect(sourceText).not.toContain(checkoutBody.idempotencyKey);
+    expect(sourceText).not.toContain(linkPayload.link.id);
+    expect(sourceText).not.toContain(checkoutPayload.checkout.checkoutIntentId);
+    expect(sourceText).not.toContain(checkoutPayload.checkout.entitlementId);
+
+    await page.goto("/admin/products");
+    await expect(page.getByRole("heading", { name: /Owners can create products and prove a test grant path/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Create test checkout link/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText(productName);
+    await expect(page.locator("body")).toContainText("test checkout link");
+    await expect(page.locator("body")).toContainText("buyer test checkout");
   });
 
   test("owner product revocation intents require auth, confirmation, idempotency, stale state, and redaction", async ({
@@ -16608,12 +16956,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403, 405, 407],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",

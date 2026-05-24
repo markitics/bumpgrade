@@ -182,9 +182,11 @@ entitlement and fulfillment status without exposing buyer email, hashes, raw
 Stripe identifiers, webhook event IDs, metadata JSON, private R2 keys, or signed
 URLs. Public product source-data only exposes aggregate entitlement inspection
 counts, the customer lookup contract, short-lived private R2-backed download-token
-contract, owner upload intent metadata, owner-confirmed non-destructive
-revocation intent records, protected content readiness, checkout-scoped protected fixture
-delivery metadata, subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
+contract, owner product creation metadata, owner-created product test checkout
+metadata, owner-created product direct test grant metadata, owner upload intent
+metadata, owner-confirmed non-destructive revocation intent records, protected
+content readiness, checkout-scoped protected fixture delivery metadata,
+subscription-backed membership access metadata, and redaction flags. `/api/products/download-tokens` can create a
 short-lived token for an active checkout-linked file entitlement, and
 `/api/products/downloads?token={token}` revalidates current entitlement status,
 checkout intent linkage, trusted checkout state, and asset scope before it
@@ -192,7 +194,19 @@ streams a seeded private R2-backed fixture through Bumpgrade while rejecting
 expired or replayed tokens. `/api/products/protected-content` returns seeded
 course/member fixture bodies only when the request includes a known checkout
 intent, a matching active entitlement, and a protected content section id, and
-the checkout state is still paid or completed. `/api/admin/products/assets` lets verified owners
+the checkout state is still paid or completed. `/api/admin/products/catalog`
+lets verified owners create draft product records after exact confirmation and
+idempotency without Stripe product/price creation or fulfillment mutation.
+`/api/admin/products/test-checkout-links` lets verified owners create stable
+buyer-facing test checkout links for owner-created products after exact
+confirmation, idempotency, and a current product `updatedAt` check.
+`/products/test-checkout/{linkId}` and `/api/products/test-checkout` let public
+test buyers complete those links after exact confirmation, idempotency, and a
+current link revision check, creating synthetic paid checkout/access evidence
+without Stripe Checkout Sessions, live charges, public buyer exposure, or live
+fulfillment delivery. `/api/admin/products/offer-access-grants` lets verified
+owners create direct test offer/access grant evidence for owner-created products
+after exact confirmation and idempotency. `/api/admin/products/assets` lets verified owners
 create small private product asset upload records only after exact confirmation,
 idempotency, and product-catalog revision checks. It stores the body in
 `PRODUCT_ASSETS` under a server-only object key and returns only redacted
@@ -200,11 +214,14 @@ metadata. `/api/admin/products/revocation-intents` lets verified owners record
 non-destructive access-removal intent only after exact confirmation,
 idempotency, and a current entitlement status check. This proves entitlement
 grant, owner-inspection, customer-safe lookup, private fixture delivery, seeded
-protected fixture delivery, owner-confirmed private upload-record semantics,
-owner-confirmed non-destructive revocation intent semantics,
-and subscription-backed membership access state, not signed object URLs, customer delivery of arbitrary uploads, real protected
-media delivery, destructive revocation, Customer Portal actions, live fulfillment automation, or direct
-unauthenticated agent write capability. `product_entitlement_revocation_intents`
+protected fixture delivery, owner-confirmed product creation, owner-created
+product test checkout evidence, owner-confirmed private upload-record semantics,
+owner-confirmed non-destructive revocation intent semantics, and
+subscription-backed membership access state, not signed object URLs, customer
+delivery of arbitrary uploads, real protected media delivery, destructive
+revocation, Customer Portal actions, live fulfillment automation, live Stripe
+product/price mutation, or direct unconfirmed agent write capability.
+`product_entitlement_revocation_intents`
 records are non-destructive intent records only until future exact-confirmed
 destructive APIs enforce owner identity, idempotency, stale-state checks, reason
 codes, customer-safe notification review, audit correlation, and redaction.

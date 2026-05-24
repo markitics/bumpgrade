@@ -327,7 +327,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(16),
     group: "Products and access",
     summary:
-      "Digital product records, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
+      "Digital product records, owner-created product test checkout links, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
       "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
@@ -343,9 +343,12 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #185 adds protected fixture delivery only after entitlement, product/template scope, and trusted checkout-state checks.",
       "Issue #187 syncs checkout-linked membership access from trusted Stripe Billing subscription state.",
       "Issue #251 adds owner-confirmed non-destructive revocation intent records with exact confirmation, idempotency, stale-state checks, and public redaction.",
+      "Issue #403 adds owner-confirmed draft product creation records without Stripe product/price creation or fulfillment mutation.",
+      "Issue #405 adds owner-confirmed test offer/funnel links and direct test access grants for owner-created products.",
+      "Issue #407 adds owner-confirmed buyer-facing test checkout links and public test checkout completion for owner-created products without Stripe Checkout Sessions, live charges, or public buyer exposure.",
     ],
     nextMilestone:
-      "Extend beyond seeded subscription membership, protected fixtures, and non-destructive revocation intents only after Customer Portal/self-service actions, destructive access removal, progress/audit records, real protected storage, and private media redaction stay enforced.",
+      "Wire owner-created product test checkout links into real offer/funnel product selection and customer delivery gates before closing issue #16.",
   },
   {
     id: "roadmap-email-automation",

@@ -11,6 +11,7 @@ import {
 } from "@/lib/product-entitlement-inspection";
 import { getProductCreationSummary } from "@/lib/product-creation";
 import { getProductOfferAccessSummary } from "@/lib/product-offer-access";
+import { getProductTestCheckoutSummary } from "@/lib/product-test-checkout-links";
 import { getProductProtectedContentSummary } from "@/lib/product-protected-content";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,7 @@ export async function GET() {
     ownerAssetUploadIntents,
     productCreation,
     productOfferAccess,
+    productTestCheckout,
     revocationIntents,
     protectedContent,
   ] = await Promise.all([
@@ -31,6 +33,7 @@ export async function GET() {
     getProductAssetUploadIntentSummary(),
     getProductCreationSummary(),
     getProductOfferAccessSummary(),
+    getProductTestCheckoutSummary(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -44,6 +47,7 @@ export async function GET() {
     ownerAssetUploadIntents,
     productCreation,
     productOfferAccess,
+    productTestCheckout,
     revocationIntents,
     protectedContent,
   });

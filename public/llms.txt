@@ -32,6 +32,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
 - Protected product content API: https://bumpgrade.com/api/products/protected-content
 - Owner product catalog API: https://bumpgrade.com/api/admin/products/catalog (human page/API requires Better Auth owner session)
+- Owner product test checkout link API: https://bumpgrade.com/api/admin/products/test-checkout-links (human page/API requires Better Auth owner session)
+- Product test checkout API: https://bumpgrade.com/api/products/test-checkout
 - Owner product test offer/access grant API: https://bumpgrade.com/api/admin/products/offer-access-grants (human page/API requires Better Auth owner session)
 - Owner product revocation intent API: https://bumpgrade.com/api/admin/products/revocation-intents (human page/API requires Better Auth owner session)
 - Admin product entitlement inspection: https://bumpgrade.com/admin/products (human page requires Better Auth owner session)
@@ -219,6 +221,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   flags only. `/api/admin/products/catalog` lets verified owners create draft
   product records after exact confirmation and idempotency without Stripe
   product/price creation or fulfillment mutation.
+  `/api/admin/products/test-checkout-links` lets verified owners create
+  buyer-facing test checkout links for owner-created products after exact
+  confirmation, idempotency, and a current product updatedAt check.
+  `/products/test-checkout/{linkId}` and `/api/products/test-checkout` let
+  public test buyers create synthetic paid checkout/access evidence after exact
+  confirmation, idempotency, and a current link revision check, without Stripe
+  Checkout Sessions, live charges, published offer copy, public buyer exposure,
+  or live fulfillment delivery.
   `/api/admin/products/offer-access-grants` lets verified owners link an
   owner-created product to test offer/funnel IDs and create synthetic paid
   checkout intent, entitlement, fulfillment task, and audit evidence without
@@ -231,6 +241,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   and current entitlement status checks, but it does not revoke access.
   Treat it as grant-boundary, owner-inspection, customer-safe lookup, private
   fixture delivery, protected fixture delivery, owner product creation,
+  owner-created product test checkout,
   owner-created product test grants, owner upload-intent, revocation-intent,
   protected-content-readiness, and subscription-membership access evidence, not
   signed object URLs, customer delivery of arbitrary uploads, arbitrary
