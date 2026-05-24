@@ -134,6 +134,32 @@ export const commercePrices = sqliteTable(
   }),
 );
 
+export const productCreationIntents = sqliteTable(
+  "product_creation_intents",
+  {
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => commerceProducts.id, { onDelete: "cascade" }),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    actorRole: text("actor_role").notNull(),
+    requestedSlug: text("requested_slug").notNull(),
+    productKind: text("product_kind").notNull(),
+    status: text("status").notNull().default("draft_product_created"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("product_creation_intents_idempotency_unique").on(table.idempotencyKey),
+    productStatusIdx: index("product_creation_intents_product_status_idx").on(table.productId, table.status),
+    createdIdx: index("product_creation_intents_created_idx").on(table.createdAt),
+  }),
+);
+
 export const checkoutIntents = sqliteTable(
   "checkout_intents",
   {

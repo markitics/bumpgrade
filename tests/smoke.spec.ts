@@ -318,6 +318,12 @@ import {
   productAssetUploadMaxBytes,
 } from "../src/lib/product-asset-uploads";
 import { productAccessCatalog, productAccessSourceData } from "../src/lib/product-access";
+import {
+  productCreationApiRoute,
+  productCreationConfirmationText,
+  productCreationIssue,
+  productCreationStatus,
+} from "../src/lib/product-creation";
 import { productDownloadTokenSummary } from "../src/lib/product-download-tokens";
 import {
   subscriptionMembershipAccessIssue,
@@ -1403,8 +1409,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: productAccessSourceData.id,
-        status: subscriptionMembershipAccessStatus,
-        issue: subscriptionMembershipAccessIssue,
+        status: productCreationStatus,
+        issue: productCreationIssue,
         parentIssue: 16,
       }),
     );
@@ -1417,6 +1423,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/products/download-tokens",
         "/api/products/protected-content",
         "/api/admin/products/assets",
+        productCreationApiRoute,
         productEntitlementRevocationIntentApiRoute,
       ]),
     );
@@ -1447,6 +1454,30 @@ test.describe("Bumpgrade scaffold", () => {
           customerPortalUrlIncluded: false,
           memberPostsIncluded: false,
           progressDataIncluded: false,
+        }),
+      }),
+    );
+    expect(payload.productCreation).toEqual(
+      expect.objectContaining({
+        id: "owner-product-creation",
+        status: productCreationStatus,
+        issue: productCreationIssue,
+        parentIssue: 16,
+        apiRoute: productCreationApiRoute,
+        ownerRoute: "/admin/products",
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          creationIntents: expect.any(Number),
+          draftProducts: expect.any(Number),
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          idempotencyKeysIncluded: false,
+          rawRowsIncluded: false,
+          rawStripeIdsIncluded: false,
+          billingMutationEnabled: false,
+          fulfillmentMutationEnabled: false,
         }),
       }),
     );
@@ -2318,6 +2349,156 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.locator("body")).toContainText("Launch checklist download");
     await expect(page.locator("body")).toContainText(grant.checkoutIntentId);
     await expect(page.locator("body")).not.toContainText(grant.eventId);
+  });
+
+  test("owner draft product creation requires auth, confirmation, idempotency, duplicate checks, and redaction", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner draft product creation is covered once on desktop.");
+
+    const unique = Date.now();
+    const idempotencyKey = `product-creation-idempotency-${unique}`;
+    const productName = `Playwright product creation ${unique}`;
+    const productSlug = `playwright-product-creation-${unique}`;
+    const description = `Owner-visible draft product description ${unique}`;
+    const requestBody = {
+      name: productName,
+      slug: productSlug,
+      kind: "digital_download",
+      description,
+      confirmationText: productCreationConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorized = await request.post(productCreationApiRoute, { data: requestBody });
+    expect(unauthorized.status()).toBe(401);
+    await expect(unauthorized.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          idempotencyKeysIncluded: false,
+          rawStripeIdsIncluded: false,
+          billingMutationEnabled: false,
+          fulfillmentMutationEnabled: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+    const contract = await page.request.get(productCreationApiRoute);
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    await expect(contract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productCreationStatus,
+        issue: productCreationIssue,
+        route: productCreationApiRoute,
+        confirmation: expect.objectContaining({ text: productCreationConfirmationText }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          idempotencyKeysIncluded: false,
+          rawRowsIncluded: false,
+          rawStripeIdsIncluded: false,
+          billingMutationEnabled: false,
+          fulfillmentMutationEnabled: false,
+        }),
+      }),
+    );
+
+    const created = await page.request.post(productCreationApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: productCreationStatus,
+        issue: productCreationIssue,
+        duplicate: false,
+        product: expect.objectContaining({
+          productId: `product-owner-${productSlug}`,
+          slug: productSlug,
+          name: productName,
+          kind: "digital_download",
+          status: "draft",
+          description,
+          fulfillmentKind: "download",
+          billingMutationEnabled: false,
+          fulfillmentMutationEnabled: false,
+          redaction: expect.objectContaining({
+            actorEmailIncluded: false,
+            actorUserIdIncluded: false,
+            idempotencyKeysIncluded: false,
+            rawStripeIdsIncluded: false,
+          }),
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(idempotencyKey);
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post(productCreationApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "owner-product-creation-replayed",
+        duplicate: true,
+        product: expect.objectContaining({
+          productId: createdPayload.product.productId,
+          slug: productSlug,
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post(productCreationApiRoute, {
+      data: { ...requestBody, name: `${productName} changed` },
+    });
+    expect(conflict.status(), await conflict.text()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const duplicateSlug = await page.request.post(productCreationApiRoute, {
+      data: {
+        ...requestBody,
+        name: `${productName} duplicate slug`,
+        idempotencyKey: `${idempotencyKey}-duplicate-slug`,
+      },
+    });
+    expect(duplicateSlug.status(), await duplicateSlug.text()).toBe(409);
+    await expect(duplicateSlug.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "duplicate_slug" }));
+
+    const sourceData = await request.get("/products/source-data");
+    expect(sourceData.ok(), await sourceData.text()).toBeTruthy();
+    const sourcePayload = await sourceData.json();
+    expect(sourcePayload.productCreation).toEqual(
+      expect.objectContaining({
+        status: productCreationStatus,
+        issue: productCreationIssue,
+        recordsIncluded: false,
+        counts: expect.objectContaining({
+          creationIntents: expect.any(Number),
+          draftProducts: expect.any(Number),
+        }),
+      }),
+    );
+    expect(sourcePayload.productCreation.counts.creationIntents).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.productCreation.counts.draftProducts).toBeGreaterThanOrEqual(1);
+    const sourceText = JSON.stringify(sourcePayload);
+    expect(sourceText).not.toContain(productName);
+    expect(sourceText).not.toContain(description);
+    expect(sourceText).not.toContain(idempotencyKey);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    await page.goto("/admin/products");
+    await expect(page.getByRole("heading", { name: /Owners can create draft catalog records without billing writes/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Create draft product/i })).toBeVisible();
+    await expect(page.locator("body")).toContainText(productName);
+    await expect(page.locator("body")).toContainText(productSlug);
   });
 
   test("owner product revocation intents require auth, confirmation, idempotency, stale state, and redaction", async ({
@@ -16155,12 +16336,12 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251],
+          issueNumbers: [16, 83, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403],
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
           featureId: "feature-products-access",
-          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251],
+          issueNumbers: [16, 83, 99, 101, 139, 141, 143, 146, 147, 151, 179, 181, 185, 187, 251, 403],
         }),
         expect.objectContaining({
           id: "journey-publisher-checks-mobile-admin",

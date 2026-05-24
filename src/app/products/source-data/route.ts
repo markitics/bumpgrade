@@ -9,6 +9,7 @@ import {
   getProductEntitlementInspectionSummary,
   getProductEntitlementRevocationIntentSummary,
 } from "@/lib/product-entitlement-inspection";
+import { getProductCreationSummary } from "@/lib/product-creation";
 import { getProductProtectedContentSummary } from "@/lib/product-protected-content";
 
 export const dynamic = "force-dynamic";
@@ -19,12 +20,14 @@ export async function GET() {
     entitlementInspection,
     subscriptionMembershipAccess,
     ownerAssetUploadIntents,
+    productCreation,
     revocationIntents,
     protectedContent,
   ] = await Promise.all([
     getProductEntitlementInspectionSummary(),
     getSubscriptionMembershipAccessSummary(),
     getProductAssetUploadIntentSummary(),
+    getProductCreationSummary(),
     getProductEntitlementRevocationIntentSummary(),
     getProductProtectedContentSummary(),
   ]);
@@ -36,6 +39,7 @@ export async function GET() {
     customerEntitlementLookup: customerProductEntitlementLookupSummary,
     sandboxDownloadTokens: productDownloadTokenSummary,
     ownerAssetUploadIntents,
+    productCreation,
     revocationIntents,
     protectedContent,
   });
