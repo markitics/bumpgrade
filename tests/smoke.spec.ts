@@ -35,7 +35,9 @@ import { agentManifest } from "../src/lib/agent-manifest";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "../src/lib/analytics-experiments";
 import { publicAnalyticsAttributionLabel, publicAnalyticsCampaignLabel } from "../src/lib/public-analytics-labels";
 import { brandAssets, brandColors, brandSourceData } from "../src/lib/brand";
-import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "../src/lib/director-status";
+import type { AdminWorkLogEntry } from "../src/lib/admin-surface-data";
+import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault, type DirectorWindow } from "../src/lib/director-status";
+import { filterWorkLogEntriesForWindow, normalizeWorkLogWindowFilter } from "../src/lib/work-log-window-filter";
 import {
   audienceBroadcastDeliveryBatchApiRoute,
   audienceBroadcastDeliveryBatchConfirmationText,
@@ -16484,6 +16486,73 @@ test.describe("Bumpgrade scaffold", () => {
     expect(shouldOpenDirectorWorkstreamByDefault({ status: "at_risk", counts })).toBe(false);
     expect(shouldOpenDirectorWorkstreamByDefault({ status: "on_track", counts: { ...counts, needsMark: 1 } })).toBe(true);
     expect(shouldOpenDirectorWorkstreamByDefault({ status: "blocked", counts })).toBe(true);
+  });
+
+  test("work log window filtering scopes entries to the selected recent window", () => {
+    const entry = (id: string, completedAt: string): AdminWorkLogEntry => ({
+      id,
+      title: id,
+      agentName: "Codex",
+      agentKind: "codex",
+      sessionName: "bumpgrade-build-heartbeat",
+      promptFromMark: "Mark asked for quieter work-log windows.",
+      githubIssues: [],
+      closedPrs: [],
+      featuresUpdated: [],
+      roadmapUpdated: [],
+      userJourneysUpdated: [],
+      documentationUpdated: [],
+      validation: [],
+      flagsAttention: null,
+      firstPromptAt: completedAt,
+      completedAt,
+      relevantUrls: [],
+      prCommentUrl: null,
+    });
+    const windows: DirectorWindow[] = [
+      {
+        id: "past-1-day",
+        label: "Past 1 day",
+        hours: 24,
+        since: "2026-05-23T00:00:00.000Z",
+        workLogEntries: 1,
+        shippedPrs: 0,
+        changedWorkstreams: 1,
+        needsMark: 0,
+        recentChanges: [],
+      },
+      {
+        id: "past-7-days",
+        label: "Past 7 days",
+        hours: 168,
+        since: "2026-05-17T00:00:00.000Z",
+        workLogEntries: 2,
+        shippedPrs: 0,
+        changedWorkstreams: 1,
+        needsMark: 0,
+        recentChanges: [],
+      },
+    ];
+    const entries = [
+      entry("old-entry", "2026-05-10T12:00:00.000Z"),
+      entry("week-entry", "2026-05-20T12:00:00.000Z"),
+      entry("day-entry", "2026-05-23T12:00:00.000Z"),
+    ];
+
+    expect(normalizeWorkLogWindowFilter("unknown")).toBe("all");
+    expect(normalizeWorkLogWindowFilter(["past-7-days"])).toBe("past-7-days");
+    expect(filterWorkLogEntriesForWindow(entries, windows, "all").map((item) => item.id)).toEqual([
+      "old-entry",
+      "week-entry",
+      "day-entry",
+    ]);
+    expect(filterWorkLogEntriesForWindow(entries, windows, "past-1-day").map((item) => item.id)).toEqual([
+      "day-entry",
+    ]);
+    expect(filterWorkLogEntriesForWindow(entries, windows, "past-7-days").map((item) => item.id)).toEqual([
+      "week-entry",
+      "day-entry",
+    ]);
   });
 
   test("director executive queue exposes due active and pending workstream lanes", () => {
