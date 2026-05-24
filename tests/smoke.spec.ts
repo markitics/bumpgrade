@@ -291,6 +291,7 @@ import {
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPublishConfirmationText,
+  draftFunnelPurgeConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
   draftFunnelWebinarEventLinkConfirmationText,
@@ -304,6 +305,7 @@ import {
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
   draftFunnelDuplicationCapability,
+  draftFunnelPurgeCapability,
   draftFunnelResourceDeliveryLinkCapability,
   draftFunnelWebinarEventLinkCapability,
   editableDraftCapability,
@@ -1128,7 +1130,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-webinar-link-ready",
+        status: "draft-purge-ready",
         issue: 417,
         parentIssue: 14,
       }),
@@ -1156,6 +1158,7 @@ test.describe("Bumpgrade scaffold", () => {
         duplicateEndpoint: "/api/admin/funnels/drafts",
         publishEndpoint: "/api/admin/funnels/drafts",
         archiveEndpoint: "/api/admin/funnels/drafts",
+        purgeEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         checkoutUnlinkEndpoint: "/api/admin/funnels/drafts",
         resourceDeliveryLinkEndpoint: "/api/admin/funnels/drafts",
@@ -1315,6 +1318,26 @@ test.describe("Bumpgrade scaffold", () => {
         rawOwnerDataIncluded: false,
       }),
     );
+    expect(payload.draftFunnelPurgeCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelPurgeCapability.id,
+        status: "owner-session-archived-purge-ready",
+        issue: 417,
+        parentIssue: 14,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        allowedPreviousStatuses: expect.arrayContaining(["archived"]),
+        deletesDraftRows: true,
+        deletesStepRows: true,
+        deletesAuditRows: false,
+        tombstoneTable: "funnel_purge_events",
+        rawOwnerDataIncluded: false,
+      }),
+    );
     expect(payload.templateDraftCreationCapability).toEqual(
       expect.objectContaining({
         id: templateDraftCreationCapability.id,
@@ -1436,6 +1459,8 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
         "funnelDraftArchiveId",
+        "funnelDraftPurgeId",
+        "funnelPurgeEventId",
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
@@ -1529,6 +1554,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("owner-session checkout unlinking");
     expect(payload.caveat).toContain("owner-session resource delivery linking");
     expect(payload.caveat).toContain("owner-session webinar event/replay linking");
+    expect(payload.caveat).toContain("owner-confirmed archived-draft purge");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
@@ -1558,6 +1584,23 @@ test.describe("Bumpgrade scaffold", () => {
         expectedRevisionId: "unknown",
         confirmationText: draftFunnelArchiveConfirmationText,
         idempotencyKey: `playwright-archive-unauthenticated-${Date.now()}`,
+        return: "json",
+      },
+    });
+
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
+  });
+
+  test("funnel draft purge endpoint rejects unauthenticated writes", async ({ request }) => {
+    const response = await request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        expectedRevisionId: "unknown",
+        confirmationText: draftFunnelPurgeConfirmationText,
+        idempotencyKey: `playwright-purge-unauthenticated-${Date.now()}`,
         return: "json",
       },
     });
@@ -25344,6 +25387,22 @@ test.describe("Bumpgrade scaffold", () => {
     const duplicateReplayPayload = await duplicateReplay.json();
     expect(duplicateReplayPayload.draft.id).toBe(duplicatePayload.draft.id);
 
+    const nonArchivedPurgeResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: duplicatePayload.draft.revisionId,
+        confirmationText: draftFunnelPurgeConfirmationText,
+        idempotencyKey: `playwright-purge-non-archived-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(nonArchivedPurgeResponse.status()).toBe(503);
+    await expect(nonArchivedPurgeResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Only archived") }),
+    );
+
     const privateArchiveIdempotencyKey = `playwright-archive-private-draft-${Date.now()}`;
     const privateArchiveResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
@@ -25385,6 +25444,104 @@ test.describe("Bumpgrade scaffold", () => {
     const privateArchiveReplayPayload = await privateArchiveReplay.json();
     expect(privateArchiveReplayPayload.draft.id).toBe(privateArchivePayload.draft.id);
     expect(privateArchiveReplayPayload.draft.status).toBe("archived");
+
+    const stalePurgeResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: duplicatePayload.draft.revisionId,
+        confirmationText: draftFunnelPurgeConfirmationText,
+        idempotencyKey: `playwright-purge-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(stalePurgeResponse.status()).toBe(503);
+    await expect(stalePurgeResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const missingPurgeConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: privateArchivePayload.draft.revisionId,
+        confirmationText: "purge",
+        idempotencyKey: `playwright-purge-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingPurgeConfirmationResponse.status()).toBe(503);
+    await expect(missingPurgeConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
+
+    const purgeIdempotencyKey = `playwright-purge-archived-draft-${Date.now()}`;
+    const purgeResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: privateArchivePayload.draft.revisionId,
+        confirmationText: draftFunnelPurgeConfirmationText,
+        idempotencyKey: purgeIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(purgeResponse.ok(), await purgeResponse.text()).toBeTruthy();
+    const purgePayload = await purgeResponse.json();
+    expect(purgePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "purge",
+        purge: expect.objectContaining({
+          draftId: duplicatePayload.draft.id,
+          draftSlug: duplicatePayload.draft.slug,
+          draftTitle: duplicatePayload.draft.title,
+          previousStatus: "archived",
+          previousRevisionId: privateArchivePayload.draft.revisionId,
+          idempotencyKey: purgeIdempotencyKey,
+          actorEmail: expect.any(String),
+          summary: expect.stringContaining("purged archived draft"),
+          metadata: expect.objectContaining({
+            issue: 417,
+            parentIssue: 14,
+            action: "archived_draft_purge",
+            draftFunnelPurgeCapability: draftFunnelPurgeCapability.id,
+            previousStatus: "archived",
+            stepCount: expect.any(Number),
+            blockCount: expect.any(Number),
+            deletedDraftRows: true,
+            deletedStepRows: true,
+            deletedAuditRows: false,
+            deletedProductAssets: false,
+            deletedR2Objects: false,
+            deletedBuyerRecords: false,
+            directAgentWrite: false,
+            privateAuthDataIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const purgeReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "purge",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: "replay-should-return-tombstone",
+        confirmationText: "replay should not create a second purge",
+        idempotencyKey: purgeIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(purgeReplay.ok(), await purgeReplay.text()).toBeTruthy();
+    const purgeReplayPayload = await purgeReplay.json();
+    expect(purgeReplayPayload.purge).toEqual(purgePayload.purge);
+
+    await page.goto("/admin/funnels");
+    await expect(page.getByRole("article").filter({ hasText: duplicatePayload.draft.id })).toHaveCount(0);
 
     const staleCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },
@@ -25879,6 +26036,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Unlink checkout/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link resource/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByLabel(/Purge confirmation/i)).toBeVisible();
+    await expect(archivedDraftCard.getByRole("button", { name: /Purge archived draft/i })).toBeVisible();
+    await expect(archivedDraftCard.getByText("Physically deletes this archived draft and its step rows")).toBeVisible();
   });
 
   test("publisher auth form trims email whitespace before submit", async ({ page }, testInfo) => {

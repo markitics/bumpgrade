@@ -284,7 +284,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, granular block title/body editing, reusable block add/remove controls, owner-session within-step block reordering, owner-session cross-step block moves, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, owner-confirmed resource delivery links to product/access catalog assets, owner-confirmed webinar event/replay links to public-safe external URLs, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, granular block title/body editing, reusable block add/remove controls, owner-session within-step block reordering, owner-session cross-step block moves, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, owner-confirmed archived-draft purge with tombstone evidence, owner-confirmed resource delivery links to product/access catalog assets, owner-confirmed webinar event/replay links to public-safe external URLs, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
@@ -302,10 +302,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #430 adds owner-session granular block title/body editing while preserving block IDs, kinds, ordered step structure, and checkout-link metadata.",
       "Issue #432 adds owner-session block add/remove controls from the reusable block library while refusing checkout-linked block removal.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
-      "Issue #417 adds owner-confirmed checkout unlinking, owner-confirmed resource delivery links, owner-confirmed webinar event/replay links, owner-session within-step block reordering, and owner-session cross-step block moves while tracking remaining freeform drag-and-drop editing, full webinar integrations, physical deletion policy, live fulfillment automation, and direct agent-safe write tools after the MVP closeout.",
+      "Issue #417 adds owner-confirmed checkout unlinking, owner-confirmed resource delivery links, owner-confirmed webinar event/replay links, owner-confirmed archived-draft purge with tombstone evidence, owner-session within-step block reordering, and owner-session cross-step block moves while tracking remaining freeform drag-and-drop editing, full webinar integrations, bulk purge policy, live fulfillment automation, and direct agent-safe write tools after the MVP closeout.",
     ],
     nextMilestone:
-      "Keep freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live fulfillment automation, full webinar integrations, physical deletion policy, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
+      "Keep freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live fulfillment automation, full webinar integrations, bulk purge policy, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
   },
   {
     id: "roadmap-advanced-funnel-builder-parity",
@@ -315,7 +315,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Active post-MVP funnel parity for freeform drag-and-drop visual editing, resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools; owner-confirmed checkout unlinking, resource delivery links, webinar event/replay links, within-step block reordering, and cross-step block moves are now part of this bucket's shipped evidence.",
+      "Active post-MVP funnel parity for freeform drag-and-drop visual editing, resource delivery, webinar integrations, bulk purge policy, and direct agent-safe write tools; owner-confirmed checkout unlinking, resource delivery links, webinar event/replay links, archived-draft purge, within-step block reordering, and cross-step block moves are now part of this bucket's shipped evidence.",
     publicEvidence: [
       "Issue #417 tracks the advanced funnel parity bucket after issue #14 MVP closeout.",
       "Issue #430 moves granular existing-block title/body editing into the owner-session builder while keeping direct agent block edits pending.",
@@ -329,7 +329,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #219 tracks live publisher-offer billing separately from advanced funnel editing and resource delivery.",
     ],
     nextMilestone:
-      "Design freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live fulfillment automation, full webinar integrations, physical deletion, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
+      "Design freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live fulfillment automation, full webinar integrations, bulk purge policy, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
   },
   {
     id: "roadmap-checkout-offers",

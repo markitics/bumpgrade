@@ -183,7 +183,7 @@ records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 granular block title/body edit, block add/remove, within-step block reorder,
 cross-step block move, private preview, exact-confirmed publish,
 exact-confirmed archive/unpublish, exact-confirmed checkout-unlink, exact-confirmed resource-delivery-link,
-and exact-confirmed webinar-event-link
+exact-confirmed webinar-event-link, and exact-confirmed archived-draft purge
 surface from issues #91, #93, #95, #135, #159, #161, #163, #165, #213, #215,
 #341, #417, #430, and #432. This proves ordered
 funnel/page-block semantics,
@@ -209,7 +209,12 @@ funnel publishing to `/funnels/{slug}` after owner confirmation and revision
 checks. Issue #341 lets
 owners archive private drafts or unpublish public D1 draft routes without
 deleting draft, step, block, checkout-link, resource-link, or audit evidence;
-archived drafts become read-only owner evidence. Issue #165 lets published funnel routes render
+archived drafts become read-only owner evidence. Issue #417 lets owners purge
+already archived draft funnels only after exact confirmation, idempotency, and a
+fresh archived revision check; the purge records a `funnel_purge_events`
+tombstone before deleting draft and step rows, and does not delete prior audit
+rows, product assets, R2 objects, buyer records, billing state, or raw owner
+data. Issue #165 lets published funnel routes render
 the existing sandbox checkout start surface when a checkout block carries
 owner-confirmed `checkoutLink` metadata. Published resource-linked blocks can
 render entitlement-safe product access references without private R2 keys,
@@ -220,14 +225,14 @@ scheduling, reminders, attendance tracking, or hosted replay media. It is not di
 block editing, direct agent block add/remove, direct agent checkout unlinking,
 direct agent resource delivery linking, direct agent block reordering,
 direct agent cross-step block moves, direct agent webinar event linking, live
-billing mutation, freeform drag-and-drop editing, destructive deletion, direct
-agent archive/unpublish, one-click upsell charging, arbitrary private R2
+billing mutation, freeform drag-and-drop editing, direct agent archive/unpublish,
+direct agent purge, non-archived purge, one-click upsell charging, arbitrary private R2
 delivery, signed URL creation, live fulfillment automation, live webinar
 scheduling, attendance tracking, replay hosting, or a direct agent write API. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
-links, webinar event/replay links, within-step block reordering, and cross-step block moves, and remains the pending advanced funnel
+links, webinar event/replay links, within-step block reordering, cross-step block moves, and archived-draft purge, and remains the pending advanced funnel
 parity bucket for freeform drag-and-drop editing, arbitrary private R2 delivery, live fulfillment automation, full webinar
-integrations, physical deletion policy, and direct agent-safe write tools. Live
+integrations, bulk purge policy, and direct agent-safe write tools. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
