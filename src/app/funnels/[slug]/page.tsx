@@ -204,6 +204,27 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                     </span>
                   </div>
                 ) : null}
+                {block.webinarEventLink ? (
+                  <div className="feature-detail">
+                    <strong>Webinar access</strong>
+                    <span>
+                      {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}.{" "}
+                      <a href={block.webinarEventLink.registrationUrl} rel="noreferrer" target="_blank">
+                        Registration
+                      </a>
+                      {block.webinarEventLink.replayUrl ? (
+                        <>
+                          {" "}
+                          and{" "}
+                          <a href={block.webinarEventLink.replayUrl} rel="noreferrer" target="_blank">
+                            replay
+                          </a>
+                        </>
+                      ) : null}{" "}
+                      stay external; Bumpgrade does not expose provider secrets or attendee records.
+                    </span>
+                  </div>
+                ) : null}
               </article>
             )),
           )}

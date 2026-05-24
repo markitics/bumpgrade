@@ -9,6 +9,7 @@ import {
   duplicateDraftFunnel,
   getFunnelDraftD1OrThrow,
   linkDraftFunnelBlockToResourceDelivery,
+  linkDraftFunnelBlockToWebinarEvent,
   linkDraftFunnelStepToCheckoutOffer,
   moveDraftFunnelBlockToStep,
   publishDraftFunnel,
@@ -176,6 +177,19 @@ export async function POST(request: NextRequest) {
         blockId: formValue(formData, "blockId"),
         productId: selection.productId,
         assetId: selection.assetId,
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        confirmationText: formValue(formData, "confirmationText"),
+        idempotencyKey,
+      });
+    } else if (mode === "link-webinar-event") {
+      draft = await linkDraftFunnelBlockToWebinarEvent(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockId: formValue(formData, "blockId"),
+        eventTitle: formValue(formData, "eventTitle"),
+        registrationUrl: formValue(formData, "registrationUrl"),
+        replayUrl: formValue(formData, "replayUrl"),
+        providerLabel: formValue(formData, "providerLabel"),
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         confirmationText: formValue(formData, "confirmationText"),
         idempotencyKey,

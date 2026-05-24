@@ -293,6 +293,7 @@ import {
   draftFunnelPublishConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
+  draftFunnelWebinarEventLinkConfirmationText,
 } from "../src/lib/funnel-drafts";
 import {
   checkoutLinkingCapability,
@@ -304,6 +305,7 @@ import {
   draftFunnelBlockStructureCapability,
   draftFunnelDuplicationCapability,
   draftFunnelResourceDeliveryLinkCapability,
+  draftFunnelWebinarEventLinkCapability,
   editableDraftCapability,
   funnelSourceData,
   publicFunnelCheckoutStartCapability,
@@ -1126,7 +1128,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-cross-step-block-move-ready",
+        status: "draft-webinar-link-ready",
         issue: 417,
         parentIssue: 14,
       }),
@@ -1157,6 +1159,7 @@ test.describe("Bumpgrade scaffold", () => {
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         checkoutUnlinkEndpoint: "/api/admin/funnels/drafts",
         resourceDeliveryLinkEndpoint: "/api/admin/funnels/drafts",
+        webinarEventLinkEndpoint: "/api/admin/funnels/drafts",
         blockEditEndpoint: "/api/admin/funnels/drafts",
         blockStructureEndpoint: "/api/admin/funnels/drafts",
         blockReorderEndpoint: "/api/admin/funnels/drafts",
@@ -1182,6 +1185,34 @@ test.describe("Bumpgrade scaffold", () => {
         copiesBlocks: true,
         copiesCheckoutLinks: false,
         publishesDuplicate: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.draftFunnelWebinarEventLinkCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelWebinarEventLinkCapability.id,
+        status: "owner-session-webinar-link-ready",
+        issue: 417,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        eligibleBlockKinds: expect.arrayContaining(["webinar"]),
+        allowedUrlProtocols: expect.arrayContaining(["https:", "http:"]),
+        accessMode: "external-event-reference",
+        preservesBlock: true,
+        preservesBlockId: true,
+        preservesBlockKind: true,
+        preservesBlockTitle: true,
+        preservesBlockBody: true,
+        liveSchedulingEnabled: false,
+        reminderAutomationEnabled: false,
+        attendanceTrackingEnabled: false,
+        replayHostingEnabled: false,
+        providerSecretsIncluded: false,
+        privateAttendeeDataIncluded: false,
         rawOwnerDataIncluded: false,
       }),
     );
@@ -1401,6 +1432,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelCheckoutLinkId",
         "funnelCheckoutUnlinkId",
         "funnelResourceDeliveryLinkId",
+        "funnelWebinarEventLinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
         "funnelDraftArchiveId",
@@ -1496,6 +1528,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("owner-session checkout-offer linking");
     expect(payload.caveat).toContain("owner-session checkout unlinking");
     expect(payload.caveat).toContain("owner-session resource delivery linking");
+    expect(payload.caveat).toContain("owner-session webinar event/replay linking");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
@@ -1525,6 +1558,29 @@ test.describe("Bumpgrade scaffold", () => {
         expectedRevisionId: "unknown",
         confirmationText: draftFunnelArchiveConfirmationText,
         idempotencyKey: `playwright-archive-unauthenticated-${Date.now()}`,
+        return: "json",
+      },
+    });
+
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
+  });
+
+  test("funnel webinar event link endpoint rejects unauthenticated writes", async ({ request }) => {
+    const response = await request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-webinar-1",
+        blockId: "funnel-draft-indie-launch-working-copy-block-1-webinar-1",
+        eventTitle: "Launch webinar",
+        providerLabel: "External webinar provider",
+        registrationUrl: "https://example.com/register",
+        replayUrl: "https://example.com/replay",
+        expectedRevisionId: "unknown",
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
+        idempotencyKey: `playwright-webinar-link-unauthenticated-${Date.now()}`,
         return: "json",
       },
     });
@@ -24554,6 +24610,171 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    const webinarStep = webinarDraftPayload.draft.steps.find((step: { kind: string }) => step.kind === "webinar");
+    expect(webinarStep).toEqual(expect.objectContaining({ id: expect.any(String), kind: "webinar" }));
+    const webinarBlock = webinarStep.blocks.find((block: { kind: string }) => block.kind === "webinar");
+    expect(webinarBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "webinar" }));
+
+    const staleWebinarLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: webinarDraftPayload.draft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Launch workshop",
+        providerLabel: "External webinar provider",
+        registrationUrl: "https://events.example.com/register",
+        replayUrl: "https://events.example.com/replay",
+        expectedRevisionId: seedPayload.draft.revisionId,
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
+        idempotencyKey: `playwright-webinar-link-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleWebinarLinkResponse.status()).toBe(503);
+    await expect(staleWebinarLinkResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const missingWebinarConfirmationResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: webinarDraftPayload.draft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Launch workshop",
+        providerLabel: "External webinar provider",
+        registrationUrl: "https://events.example.com/register",
+        replayUrl: "https://events.example.com/replay",
+        expectedRevisionId: webinarDraftPayload.draft.revisionId,
+        confirmationText: "link webinar",
+        idempotencyKey: `playwright-webinar-link-unconfirmed-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(missingWebinarConfirmationResponse.status()).toBe(503);
+    await expect(missingWebinarConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("confirmation text") }),
+    );
+
+    const invalidWebinarUrlResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: webinarDraftPayload.draft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Launch workshop",
+        providerLabel: "External webinar provider",
+        registrationUrl: "javascript:alert(1)",
+        replayUrl: "https://events.example.com/replay",
+        expectedRevisionId: webinarDraftPayload.draft.revisionId,
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
+        idempotencyKey: `playwright-webinar-link-invalid-url-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(invalidWebinarUrlResponse.status()).toBe(503);
+    await expect(invalidWebinarUrlResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("must use http or https") }),
+    );
+
+    const webinarLinkIdempotencyKey = `playwright-webinar-event-link-${Date.now()}`;
+    const webinarLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: webinarDraftPayload.draft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Launch workshop",
+        providerLabel: "External webinar provider",
+        registrationUrl: "https://events.example.com/register",
+        replayUrl: "https://events.example.com/replay",
+        expectedRevisionId: webinarDraftPayload.draft.revisionId,
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
+        idempotencyKey: webinarLinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(webinarLinkResponse.ok(), await webinarLinkResponse.text()).toBeTruthy();
+    const webinarLinkPayload = await webinarLinkResponse.json();
+    expect(webinarLinkPayload.mode).toBe("link-webinar-event");
+    const linkedWebinarStep = webinarLinkPayload.draft.steps.find((step: { id: string }) => step.id === webinarStep.id);
+    const linkedWebinarBlock = linkedWebinarStep.blocks.find((block: { id: string }) => block.id === webinarBlock.id);
+    expect(linkedWebinarBlock).toEqual(
+      expect.objectContaining({
+        id: webinarBlock.id,
+        kind: "webinar",
+        title: webinarBlock.title,
+        body: webinarBlock.body,
+        webinarEventLink: expect.objectContaining({
+          status: "owner-session-linked",
+          issue: 417,
+          eventTitle: "Launch workshop",
+          registrationUrl: "https://events.example.com/register",
+          replayUrl: "https://events.example.com/replay",
+          providerLabel: "External webinar provider",
+          liveSchedulingEnabled: false,
+          reminderAutomationEnabled: false,
+          attendanceTrackingEnabled: false,
+          replayHostingEnabled: false,
+          providerSecretsIncluded: false,
+          privateAttendeeDataIncluded: false,
+        }),
+      }),
+    );
+
+    const webinarLinkReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-webinar-event",
+        draftId: webinarDraftPayload.draft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Replay should not replace event title",
+        providerLabel: "Replay should not replace provider",
+        registrationUrl: "https://events.example.com/another-register",
+        replayUrl: "",
+        expectedRevisionId: webinarDraftPayload.draft.revisionId,
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
+        idempotencyKey: webinarLinkIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(webinarLinkReplay.ok(), await webinarLinkReplay.text()).toBeTruthy();
+    const webinarLinkReplayPayload = await webinarLinkReplay.json();
+    const replayWebinarStep = webinarLinkReplayPayload.draft.steps.find((step: { id: string }) => step.id === webinarStep.id);
+    const replayWebinarBlock = replayWebinarStep.blocks.find((block: { id: string }) => block.id === webinarBlock.id);
+    expect(replayWebinarBlock.webinarEventLink.eventTitle).toBe("Launch workshop");
+    expect(replayWebinarBlock.webinarEventLink.registrationUrl).toBe("https://events.example.com/register");
+
+    const publishWebinarDraftResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "publish",
+        draftId: webinarDraftPayload.draft.id,
+        expectedRevisionId: webinarLinkPayload.draft.revisionId,
+        confirmationText: draftFunnelPublishConfirmationText,
+        idempotencyKey: `playwright-publish-webinar-draft-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(publishWebinarDraftResponse.ok(), await publishWebinarDraftResponse.text()).toBeTruthy();
+    const publishWebinarDraftPayload = await publishWebinarDraftResponse.json();
+    expect(publishWebinarDraftPayload.draft.previewRoute).toBe(`/funnels/${webinarDraftPayload.draft.slug}`);
+    await page.goto(publishWebinarDraftPayload.draft.previewRoute);
+    await expect(page.getByRole("heading", { name: webinarDraftPayload.draft.title })).toBeVisible();
+    await expect(page.getByText("Launch workshop via External webinar provider")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Registration" })).toHaveAttribute(
+      "href",
+      "https://events.example.com/register",
+    );
+    await expect(page.getByRole("link", { name: "replay" })).toHaveAttribute("href", "https://events.example.com/replay");
+    await expect(page.locator("body")).not.toContainText("provider-secret-value");
+    await expect(page.locator("body")).not.toContainText("attendee@example.com");
 
     const checkoutLinkIdempotencyKey = `playwright-checkout-link-${Date.now()}`;
     const checkoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {

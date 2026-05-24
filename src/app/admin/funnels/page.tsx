@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
+  CalendarDays,
   CreditCard,
   Database,
   Eye,
@@ -29,6 +30,7 @@ import {
   draftFunnelPublishConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelTemplateCreationConfirmationText,
+  draftFunnelWebinarEventLinkConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
 import { draftFunnelAdvancedParityIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
@@ -87,10 +89,11 @@ export default async function AdminFunnelsPage() {
             checkout blocks. Granular block title/body editing and reusable block add/remove controls are live while
             preserving checkout-linked block safety, and owners can now unlink checkout metadata from private draft blocks
             before removing or relinking them. Owners can also link resource and delivery blocks to public-safe product
-            access assets without exposing private R2 keys or signed URLs, and move existing blocks between draft steps
-            while preserving block metadata. Owners can archive private drafts or unpublish public D1 draft routes without
-            deleting audit evidence. Destructive deletion, freeform drag-and-drop layout editing, live webinar
-            integrations, arbitrary resource delivery automation, and direct agent edits still need
+            access assets without exposing private R2 keys or signed URLs, attach external webinar registration and replay
+            URLs to webinar blocks, and move existing blocks between draft steps while preserving block metadata. Owners
+            can archive private drafts or unpublish public D1 draft routes without deleting audit evidence. Destructive
+            deletion, freeform drag-and-drop layout editing, live webinar scheduling, attendance tracking, replay hosting,
+            arbitrary resource delivery automation, and direct agent edits still need
             confirmed-write slices.
           </p>
           <div className="hero-actions">
@@ -356,6 +359,12 @@ export default async function AdminFunnelsPage() {
                             </p>
                           </div>
                         ) : null}
+                        {step.blocks.some((block) => block.webinarEventLink) ? (
+                          <div className="admin-checkout-link-summary">
+                            <CalendarDays aria-hidden="true" />
+                            <p>Webinar event/replay references are preserved without provider secrets or attendee data.</p>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   }
@@ -475,6 +484,9 @@ export default async function AdminFunnelsPage() {
                               {block.checkoutLink ? <span className="status-badge pending">checkout link preserved</span> : null}
                               {block.resourceDeliveryLink ? (
                                 <span className="status-badge active">resource link preserved</span>
+                              ) : null}
+                              {block.webinarEventLink ? (
+                                <span className="status-badge active">webinar link preserved</span>
                               ) : null}
                             </div>
                             <label>
@@ -666,6 +678,83 @@ export default async function AdminFunnelsPage() {
                               <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                                 Link resource
                                 <ShieldCheck aria-hidden="true" />
+                              </button>
+                            </form>
+                          ) : null}
+                          {block.kind === "webinar" ? (
+                            <form action="/api/admin/funnels/drafts" method="post" className="admin-block-unlink-form admin-webinar-link-form">
+                              <input type="hidden" name="mode" value="link-webinar-event" />
+                              <input type="hidden" name="draftId" value={draft.id} />
+                              <input type="hidden" name="stepId" value={step.id} />
+                              <input type="hidden" name="blockId" value={block.id} />
+                              <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                              <input
+                                type="hidden"
+                                name="idempotencyKey"
+                                value={`webinar-event-link-${draft.id}-${block.id}-${draft.revisionId}`}
+                              />
+                              <div className="admin-checkout-link-summary">
+                                <CalendarDays aria-hidden="true" />
+                                <p>
+                                  {block.webinarEventLink
+                                    ? `Linked to ${block.webinarEventLink.eventTitle} through ${block.webinarEventLink.providerLabel}. Registration and replay references are external; no attendee records or provider secrets are exposed.`
+                                    : "Link this webinar block to external registration and optional replay URLs without creating provider events, reminders, attendance rows, or hosted replay media."}
+                                </p>
+                              </div>
+                              <label>
+                                Event title
+                                <input
+                                  name="eventTitle"
+                                  type="text"
+                                  defaultValue={block.webinarEventLink?.eventTitle ?? block.title}
+                                  maxLength={140}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <label>
+                                Provider label
+                                <input
+                                  name="providerLabel"
+                                  type="text"
+                                  defaultValue={block.webinarEventLink?.providerLabel ?? "External webinar provider"}
+                                  maxLength={80}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <label>
+                                Registration URL
+                                <input
+                                  name="registrationUrl"
+                                  type="url"
+                                  placeholder="https://example.com/register"
+                                  defaultValue={block.webinarEventLink?.registrationUrl ?? ""}
+                                  maxLength={500}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <label>
+                                Replay URL
+                                <input
+                                  name="replayUrl"
+                                  type="url"
+                                  placeholder="https://example.com/replay"
+                                  defaultValue={block.webinarEventLink?.replayUrl ?? ""}
+                                  maxLength={500}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <label className="admin-step-goal-field">
+                                Webinar link confirmation
+                                <textarea
+                                  name="confirmationText"
+                                  placeholder={draftFunnelWebinarEventLinkConfirmationText}
+                                  rows={2}
+                                  disabled={!canMutateDraft}
+                                />
+                              </label>
+                              <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
+                                Link webinar
+                                <CalendarDays aria-hidden="true" />
                               </button>
                             </form>
                           ) : null}
