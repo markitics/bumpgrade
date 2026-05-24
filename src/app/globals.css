@@ -2042,12 +2042,50 @@ h3 {
   border-top: 1px solid var(--line);
 }
 
-.admin-block-edit-form {
-  grid-template-columns: minmax(0, 1fr);
+.admin-block-add-form {
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.45fr) minmax(0, 0.85fr);
   padding: 12px;
+  border: 1px dashed rgba(55, 95, 76, 0.38);
+  border-radius: 8px;
+  background: rgba(55, 95, 76, 0.05);
+}
+
+.admin-block-add-heading {
+  grid-column: 1 / -1;
+}
+
+.admin-block-editor-shell {
+  display: grid;
+  gap: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fffdf8;
+  overflow: hidden;
+}
+
+.admin-block-edit-form {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px;
+}
+
+.admin-block-remove-form {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--line);
+  background: rgba(122, 45, 45, 0.04);
+}
+
+.admin-block-remove-form p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.danger-action {
+  border-color: rgba(122, 45, 45, 0.32);
+  color: #7a2d2d;
 }
 
 .admin-block-edit-heading {

@@ -281,7 +281,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls and granular block title/body editing, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, granular block title/body editing, reusable block add/remove controls, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
       "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
@@ -297,11 +297,12 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #215 adds owner-confirmed private draft duplication with checkout-link metadata stripped by default.",
       "Issue #341 adds owner-confirmed archive/unpublish lifecycle actions that preserve audit evidence and remove published routes from source data.",
       "Issue #430 adds owner-session granular block title/body editing while preserving block IDs, kinds, ordered step structure, and checkout-link metadata.",
+      "Issue #432 adds owner-session block add/remove controls from the reusable block library while refusing checkout-linked block removal.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
       "Issue #417 tracks advanced funnel editing, resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools after the MVP closeout.",
     ],
     nextMilestone:
-      "Keep advanced drag-and-drop editing, block add/remove, private resource delivery, live webinar integrations, physical deletion policy, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
+      "Keep advanced drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion policy, checkout unlinking, and direct agent-safe funnel tools in issue #417; keep live publisher-offer billing in issue #219.",
   },
   {
     id: "roadmap-advanced-funnel-builder-parity",
@@ -311,15 +312,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Pending post-MVP funnel parity for drag-and-drop visual block editing, block add/remove, private resource delivery, webinar integrations, physical deletion policy, and direct agent-safe write tools.",
+      "Pending post-MVP funnel parity for drag-and-drop visual block editing, private resource delivery, webinar integrations, physical deletion policy, checkout unlinking, and direct agent-safe write tools.",
     publicEvidence: [
       "Issue #417 tracks the advanced funnel parity bucket after issue #14 MVP closeout.",
       "Issue #430 moves granular existing-block title/body editing into the owner-session builder while keeping direct agent block edits pending.",
+      "Issue #432 moves reusable block add/remove controls into the owner-session builder while keeping checkout unlinking and direct agent block structure edits pending.",
       "Issue #14 remains the shipped MVP covering D1 draft funnels, owner-gated edits, private preview, exact-confirmed publishing, duplication, archive/unpublish, templates, source-data, and public semantic routes.",
       "Issue #219 tracks live publisher-offer billing separately from advanced funnel editing and resource delivery.",
     ],
     nextMilestone:
-      "Design drag-and-drop editing, block add/remove, private resource delivery, live webinar integrations, physical deletion, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
+      "Design drag-and-drop editing, private resource delivery, live webinar integrations, physical deletion, checkout unlinking, and direct agent-safe write tools as one coherent post-MVP workflow instead of more single-gate readiness slices.",
   },
   {
     id: "roadmap-checkout-offers",
