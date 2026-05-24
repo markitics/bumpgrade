@@ -79,7 +79,7 @@ export async function getMobileAdminDashboardSourceData() {
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe. It gives mobile clients one live digest route, public-safe private-row counts, and redacted low-risk private-row action summaries, but it is not push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe. It gives mobile clients one live digest route, public-safe private-row counts, redacted low-risk private-row action summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -204,6 +204,35 @@ export async function getMobileAdminDashboardSourceData() {
         createdAt: intent.createdAt,
       })),
     },
+    pushNotificationBoundary: {
+      id: mobileAdminContract.pushNotificationBoundary.id,
+      issue: mobileAdminContract.pushNotificationBoundary.issue,
+      status: mobileAdminContract.pushNotificationBoundary.status,
+      sendCapability: mobileAdminContract.pushNotificationBoundary.sendCapability,
+      requiredProviders: mobileAdminContract.pushNotificationBoundary.requiredProviders.map((provider) => ({
+        platform: provider.platform,
+        provider: provider.provider,
+        requiredEvidence: provider.requiredEvidence,
+      })),
+      blockedBy: mobileAdminContract.pushNotificationBoundary.blockedBy,
+      redactionFlags: mobileAdminContract.pushNotificationBoundary.redactionFlags,
+      publicSourceDataSummary: mobileAdminContract.pushNotificationBoundary.publicSourceDataSummary,
+    },
+    distributionReadiness: {
+      id: mobileAdminContract.distributionReadiness.id,
+      issue: mobileAdminContract.distributionReadiness.issue,
+      status: mobileAdminContract.distributionReadiness.status,
+      installableDistributionClaim: mobileAdminContract.distributionReadiness.installableDistributionClaim,
+      platformEvidence: mobileAdminContract.distributionReadiness.platformEvidence.map((evidence) => ({
+        platform: evidence.platform,
+        currentEvidence: evidence.currentEvidence,
+        requiredBeforeClaim: evidence.requiredBeforeClaim,
+        blockedBy: evidence.blockedBy,
+      })),
+      readinessChecklist: mobileAdminContract.distributionReadiness.readinessChecklist,
+      redactionFlags: mobileAdminContract.distributionReadiness.redactionFlags,
+      publicSourceDataSummary: mobileAdminContract.distributionReadiness.publicSourceDataSummary,
+    },
     featureSummary: {
       updatedAt: featureCatalogUpdatedAt,
       total: featureCatalog.length,
@@ -266,7 +295,8 @@ export async function getMobileAdminDashboardSourceData() {
     nextMobileMilestones: [
       "Add higher-risk domain-specific confirmed-write APIs before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
       "Add physical-device proof for private mobile row inspection beyond simulator/emulator scaffolds.",
-      "Add distribution and push-notification readiness after the read-only mobile surface stabilizes.",
+      "Choose and configure private APNs/FCM provider credentials, device-token registration, send preflight, queue, delivery-result, and receipt contracts before any push sends.",
+      "Record physical-device and App Store/TestFlight or Play Store/internal-testing evidence separately from simulator/emulator proof before claiming installable app readiness.",
     ],
     writeBoundary: mobileAdminContract.confirmedWriteRules,
   };

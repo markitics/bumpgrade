@@ -14,6 +14,8 @@ struct MobileAdminContract: Decodable {
     let privateRowsApi: MobilePrivateRowsApi
     let privateRowActionsApi: MobilePrivateRowActionsApi
     let actionIntentApi: MobileActionIntentApi
+    let pushNotificationBoundary: MobilePushNotificationBoundary
+    let distributionReadiness: MobileDistributionReadiness
     let confirmedActions: [MobileConfirmedAction]
     let childIssues: [MobilePlatformSlice]
     let jobs: [MobileJob]
@@ -96,6 +98,45 @@ struct MobileActionIntentApi: Decodable {
     let publicSourceDataSummary: String
     let requiredInputs: [String]
     let redactionFlags: [String]
+}
+
+struct MobilePushNotificationBoundary: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let sendCapability: String
+    let purpose: String
+    let requiredProviders: [MobilePushProvider]
+    let blockedBy: [String]
+    let redactionFlags: [String]
+}
+
+struct MobilePushProvider: Decodable, Identifiable {
+    var id: String { "\(platform)-\(provider)" }
+
+    let platform: String
+    let provider: String
+    let credentialBoundary: String
+    let requiredEvidence: [String]
+}
+
+struct MobileDistributionReadiness: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let installableDistributionClaim: Bool
+    let purpose: String
+    let platformEvidence: [MobileDistributionEvidence]
+    let redactionFlags: [String]
+}
+
+struct MobileDistributionEvidence: Decodable, Identifiable {
+    var id: String { platform }
+
+    let platform: String
+    let currentEvidence: String
+    let requiredBeforeClaim: [String]
+    let blockedBy: [String]
 }
 
 struct MobileLiveDashboard: Decodable {

@@ -37,11 +37,13 @@ Issue #68 adds the first Android slice:
 
 This is not App Store distribution, push notifications, physical-device private
 row proof, or production mobile write support yet. The current #414 surface
-renders the owner-session, private-row API, action-intent API, and
-confirmed-action contract in the app scaffolds. `/api/mobile-admin/private-rows`
-is owner-session-only and read-only. `/api/mobile-admin/actions` records
-owner-gated audit-only action intent evidence, but it does not mutate production
-state.
+renders the owner-session, private-row API, private-row action API,
+action-intent API, APNs/FCM push-readiness boundary,
+distribution-readiness boundary, and confirmed-action contract in the app
+scaffolds. `/api/mobile-admin/private-rows` is owner-session-only and read-only.
+`/api/mobile-admin/private-rows/actions` mutates only low-risk private-row
+workflow state. `/api/mobile-admin/actions` records owner-gated audit-only
+action intent evidence, but it does not mutate production state.
 Do not replace the app with a broad WebView shortcut.
 
 First screen target:
@@ -51,7 +53,8 @@ First screen target:
 2. Render a mobile admin digest with roadmap, work-log, for-Mark attention, and
    commerce health sections.
 3. Keep the first slice read-only.
-4. Render the shared owner-session, private-row API, action-intent API, and
+4. Render the shared owner-session, private-row API, private-row action API,
+   action-intent API, push-readiness, distribution-readiness, and
    confirmed-action requirements before production mobile writes exist.
 5. Add production mutation controls only after domain-specific confirmed-write
    APIs exist.

@@ -26,8 +26,8 @@ export default function MobileAdminAgentDocPage() {
           <p className="lede">
             Bumpgrade will build native publisher/admin apps from the same feature, roadmap, commerce, admin, and
             agent contracts used by the web app. This page defines the shared scope and the first platform smoke
-            paths for #67 and #68 plus the issue #414 owner-session, private-row, private-row action, and
-            confirmed-action contract.
+            paths for #67 and #68 plus the issue #414 owner-session, private-row, private-row action,
+            action-intent, confirmed-action, push-readiness, and distribution-readiness contract.
           </p>
           <Link href="/mobile-admin/source-data" className="text-link">
             Mobile admin source data
@@ -88,6 +88,39 @@ export default function MobileAdminAgentDocPage() {
               <p>{action.mutationBoundary}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Push and distribution</p>
+            <h2>Readiness is explicit, but sends and store distribution are not live.</h2>
+          </div>
+          <Link href="https://github.com/markitics/bumpgrade/issues/414" className="text-link compact-link">
+            Track issue #414
+            <ShieldCheck aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="feature-proof-grid">
+          <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>{mobileAdminContract.pushNotificationBoundary.status}</h3>
+            <p>{mobileAdminContract.pushNotificationBoundary.publicSourceDataSummary}</p>
+          </div>
+          <div>
+            <MonitorSmartphone aria-hidden="true" />
+            <h3>{mobileAdminContract.distributionReadiness.status}</h3>
+            <p>{mobileAdminContract.distributionReadiness.publicSourceDataSummary}</p>
+          </div>
+          <div>
+            <Database aria-hidden="true" />
+            <h3>Disabled until evidence exists</h3>
+            <p>
+              {mobileAdminContract.pushNotificationBoundary.sendCapability}; installable distribution claim{" "}
+              {mobileAdminContract.distributionReadiness.installableDistributionClaim ? "live" : "not live"}.
+            </p>
+          </div>
         </div>
       </section>
 

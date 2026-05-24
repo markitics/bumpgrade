@@ -13,6 +13,14 @@ struct MobileAdminDigestView: View {
         contract.childIssues.first { $0.platform == "ios" }
     }
 
+    private var iosPushProvider: MobilePushProvider? {
+        contract.pushNotificationBoundary.requiredProviders.first { $0.platform == "ios" }
+    }
+
+    private var iosDistributionEvidence: MobileDistributionEvidence? {
+        contract.distributionReadiness.platformEvidence.first { $0.platform == "ios" }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -24,6 +32,8 @@ struct MobileAdminDigestView: View {
                     privateRowsPanel
                     privateRowActionsPanel
                     actionIntentPanel
+                    pushBoundaryPanel
+                    distributionBoundaryPanel
                     jobsSection
                     confirmedActionsSection
                     safetySection
@@ -153,6 +163,63 @@ struct MobileAdminDigestView: View {
             Detail(label: "Auth", value: contract.actionIntentApi.authBoundary)
             Detail(label: "Boundary", value: contract.actionIntentApi.intentBoundary)
             Detail(label: "Inputs", value: contract.actionIntentApi.requiredInputs.joined(separator: ", "))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
+    }
+
+    private var pushBoundaryPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Push boundary")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            Text(contract.pushNotificationBoundary.status)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(contract.pushNotificationBoundary.purpose)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            Detail(label: "Send", value: contract.pushNotificationBoundary.sendCapability)
+            Detail(label: "Provider", value: "\(iosPushProvider?.platform.uppercased() ?? "iOS") \(iosPushProvider?.provider ?? "APNs")")
+            Detail(label: "Needs", value: iosPushProvider?.requiredEvidence.joined(separator: ", ") ?? "Provider evidence required")
+            Detail(label: "Blocked", value: contract.pushNotificationBoundary.blockedBy.joined(separator: ", "))
+            Detail(label: "Redaction", value: contract.pushNotificationBoundary.redactionFlags.joined(separator: ", "))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
+    }
+
+    private var distributionBoundaryPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Distribution boundary")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            Text(contract.distributionReadiness.status)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(contract.distributionReadiness.purpose)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            Detail(label: "Installable claim", value: contract.distributionReadiness.installableDistributionClaim ? "live" : "not live")
+            Detail(label: "Evidence", value: iosDistributionEvidence?.currentEvidence ?? "Simulator proof only")
+            Detail(label: "Needs", value: iosDistributionEvidence?.requiredBeforeClaim.joined(separator: ", ") ?? "Platform evidence required")
+            Detail(label: "Blocked", value: iosDistributionEvidence?.blockedBy.joined(separator: ", ") ?? "Physical-device proof not recorded")
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
