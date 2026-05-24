@@ -19193,6 +19193,25 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mobile-api-auth", route: "/api/auth/[...all]", authBoundary: "owner-session" }),
       ]),
     );
+    expect(payload.privateAuth).toEqual(
+      expect.objectContaining({
+        id: "mobile-private-owner-session",
+        issue: 414,
+        sessionRoute: "/api/auth/[...all]",
+        acceptedRoles: expect.arrayContaining(["owner"]),
+        deniedStates: expect.arrayContaining(["signed_out", "not_allowlisted", "email_unverified"]),
+      }),
+    );
+    expect(payload.confirmedActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "mobile-confirm-review-agent-work",
+          issue: 414,
+          confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+          requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
+        }),
+      ]),
+    );
     expect(payload.confirmedWriteRules).toEqual(
       expect.arrayContaining([
         expect.stringContaining("first mobile app slices are read-only"),
@@ -19247,6 +19266,24 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ platform: "ios", issue: 67, sourceDataRoute: "/mobile-admin/ios/source-data" }),
         expect.objectContaining({ platform: "android", issue: 68, sourceDataRoute: "/mobile-admin/android/source-data" }),
+      ]),
+    );
+    expect(payload.privateAuth).toEqual(
+      expect.objectContaining({
+        id: "mobile-private-owner-session",
+        status: "owner-session-contract-ready",
+        sessionRoute: "/api/auth/[...all]",
+        privateRowsIncluded: false,
+        sessionIdentifiersIncluded: false,
+      }),
+    );
+    expect(payload.confirmedActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "mobile-confirm-review-agent-work",
+          status: "mobile-ui-contract-ready",
+          requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
+        }),
       ]),
     );
     expect(payload.featureSummary).toEqual(
@@ -19314,6 +19351,18 @@ test.describe("Bumpgrade scaffold", () => {
         screenshotPath: "/pr-screenshots/issue-67-ios-mobile-admin-simulator.png",
       }),
     );
+    expect(payload.privateAuth).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "owner-session-contract-ready",
+        sessionRoute: "/api/auth/[...all]",
+      }),
+    );
+    expect(payload.confirmedActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "mobile-ui-contract-ready" }),
+      ]),
+    );
     expect(payload.reads).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -19351,6 +19400,18 @@ test.describe("Bumpgrade scaffold", () => {
         smokeCommand: "npm run mobile:android:smoke",
         screenshotPath: "/pr-screenshots/issue-68-android-mobile-admin-emulator.png",
       }),
+    );
+    expect(payload.privateAuth).toEqual(
+      expect.objectContaining({
+        issue: 414,
+        status: "owner-session-contract-ready",
+        sessionRoute: "/api/auth/[...all]",
+      }),
+    );
+    expect(payload.confirmedActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "mobile-ui-contract-ready" }),
+      ]),
     );
     expect(payload.reads).toEqual(
       expect.arrayContaining([

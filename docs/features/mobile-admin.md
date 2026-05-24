@@ -25,6 +25,10 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
 - Dashboard live hydration issue: #157. The Expo, iOS, and Android scaffold
   surfaces fetch the live public dashboard route and fall back to the generated
   fixture when network hydration is unavailable.
+- Mobile auth/action contract issue: #414. The shared contract, Expo app,
+  SwiftUI simulator target, and Android emulator target now render the
+  owner-session boundary and confirmed-action requirements that future private
+  mobile flows must use.
 - Shared contract route: `/mobile-admin/source-data`.
 - Agent doc: `/agent-docs/bumpgrade-mobile-admin`.
 
@@ -68,6 +72,14 @@ from the generated fixture. The #157 live-hydration slice keeps that fixture as
 deterministic fallback while the Expo, iOS, and Android surfaces fetch the live
 public-safe dashboard route and label whether the panel came from the live
 network or fallback fixture.
+
+The #414 mobile auth/action slice keeps the app read-only for mutations while
+making the future private surfaces explicit. Mobile owner sessions must reuse
+Better Auth, the owner allowlist, verified-email checks, and the same admin role
+mapping as web. Confirmed mobile actions must carry exact confirmation text,
+actor identity, idempotency, stale-state checks, audit correlation, and redacted
+output before any public, billing-impacting, publishing, moderation,
+source-editing, or creator-speech action can mutate production state.
 
 ## First Mobile Jobs
 
@@ -122,3 +134,9 @@ The first iOS and Android slices are read-only until a confirmed-write API
 exists. Public, destructive, billing-impacting, publishing, moderation,
 source-editing, and creator-speech writes require explicit confirmation text,
 idempotency, stale-state checks, audit correlation, and redaction.
+
+The current #414 surface is a UI and contract milestone, not a live mutation
+API. It proves that iOS and Android expose the same private auth and
+confirmed-action rules the web/admin app uses; it does not prove App Store or
+Play Store distribution, push notifications, private rows on device, or live
+mobile writes.

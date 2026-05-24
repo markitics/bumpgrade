@@ -10,6 +10,8 @@ struct MobileAdminContract: Decodable {
     let stackDecision: String
     let scaffoldBoundary: String
     let liveDashboard: MobileLiveDashboard
+    let privateAuth: MobilePrivateAuth
+    let confirmedActions: [MobileConfirmedAction]
     let childIssues: [MobilePlatformSlice]
     let jobs: [MobileJob]
     let apiDependencies: [MobileApiDependency]
@@ -27,6 +29,32 @@ struct MobileAdminContract: Decodable {
             fatalError("Could not decode mobile-admin-contract.json: \(error)")
         }
     }
+}
+
+struct MobilePrivateAuth: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let sessionRoute: String
+    let loginRoute: String
+    let callbackSurface: String
+    let acceptedRoles: [String]
+    let sessionSemantics: String
+    let deniedStates: [String]
+    let platformBehavior: [String]
+    let redactionBoundary: String
+}
+
+struct MobileConfirmedAction: Decodable, Identifiable {
+    let id: String
+    let issue: Int
+    let title: String
+    let status: String
+    let surface: String
+    let confirmationText: String
+    let requiredInputs: [String]
+    let safetyRules: [String]
+    let mutationBoundary: String
 }
 
 struct MobileLiveDashboard: Decodable {

@@ -30,6 +30,21 @@ export const androidMobileAdminSourceData = {
   dashboardPanelIssue: 155,
   liveHydrationIssue: 157,
   liveDashboardUrl: `${mobileAdminContract.publicBaseUrl}${mobileAdminContract.liveDashboard.route}`,
+  privateAuth: {
+    issue: mobileAdminContract.privateAuth.issue,
+    status: mobileAdminContract.privateAuth.status,
+    sessionRoute: mobileAdminContract.privateAuth.sessionRoute,
+    loginRoute: mobileAdminContract.privateAuth.loginRoute,
+    callbackSurface: mobileAdminContract.privateAuth.callbackSurface,
+    deniedStates: mobileAdminContract.privateAuth.deniedStates,
+  },
+  confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
+    id: action.id,
+    issue: action.issue,
+    status: action.status,
+    surface: action.surface,
+    requiredInputs: action.requiredInputs,
+  })),
   reads: [
     {
       id: "android-read-mobile-contract-fixture",
@@ -54,7 +69,7 @@ export const androidMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only. Android public, billing-impacting, publishing, source-editing, moderation, and creator-speech writes stay disabled until the shared confirmed-write API exists.",
+    "Read-only for mutations. Android now renders the shared owner-session and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, and creator-speech writes stay disabled until the shared confirmed-write API exists.",
   caveat:
-    "This source-data route proves the first Android scaffold and emulator smoke path. It does not mean Play Store distribution, push notifications, private mobile auth, or write actions are live.",
+    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, and owner-session/confirmed-action UI contract. It does not mean Play Store distribution, push notifications, private mobile rows, or write actions are live.",
 };

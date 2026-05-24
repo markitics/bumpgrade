@@ -30,5 +30,7 @@ xcrun simctl install booted "$APP_BUNDLE"
 xcrun simctl launch booted com.bumpgrade.mobileadmin
 sleep 5
 mkdir -p "$(dirname "$SCREENSHOT_PATH")"
-xcrun simctl io booted screenshot "$SCREENSHOT_PATH"
+TMP_SCREENSHOT="${TMPDIR:-/tmp}/bumpgrade-ios-mobile-admin-simulator.png"
+xcrun simctl io booted screenshot "$TMP_SCREENSHOT"
+cp "$TMP_SCREENSHOT" "$SCREENSHOT_PATH"
 echo "iOS smoke screenshot saved to $SCREENSHOT_PATH"

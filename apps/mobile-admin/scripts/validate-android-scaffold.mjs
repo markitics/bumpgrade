@@ -56,6 +56,9 @@ assert(fixture.publicBaseUrl === "https://bumpgrade.com", "Fixture does not incl
 assert(fixture.liveDashboard?.route === "/mobile-admin/dashboard/source-data", "Fixture does not include the live mobile dashboard route.");
 assert(fixture.liveDashboard?.renderedInScaffoldsIssue === 155, "Fixture does not record issue #155 as the mobile dashboard scaffold render slice.");
 assert(fixture.liveDashboard?.liveHydrationIssue === 157, "Fixture does not record issue #157 as the mobile dashboard live hydration slice.");
+assert(fixture.privateAuth?.issue === 414, "Fixture does not include the issue #414 mobile private-auth contract.");
+assert(fixture.privateAuth?.sessionRoute === "/api/auth/[...all]", "Fixture does not reuse the Better Auth session route.");
+assert(fixture.confirmedActions?.some((action) => action.id === "mobile-confirm-review-agent-work"), "Fixture does not include the mobile confirmed-action contract.");
 assert(
   fixture.childIssues.find((slice) => slice.platform === "android")?.sourceDataRoute === "/mobile-admin/android/source-data",
   "Android slice source-data route is missing.",
@@ -66,6 +69,8 @@ const manifestSource = readFileSync(manifestPath, "utf8");
 assert(activitySource.includes("mobile-admin-contract.json"), "Android activity does not read the generated fixture asset.");
 assert(activitySource.includes("Bumpgrade mobile admin"), "Android activity title is missing.");
 assert(activitySource.includes("Live dashboard"), "Android activity does not render the live dashboard panel.");
+assert(activitySource.includes("Private auth"), "Android activity does not render the private auth panel.");
+assert(activitySource.includes("Confirmed mobile actions"), "Android activity does not render the confirmed actions panel.");
 assert(activitySource.includes("HttpURLConnection"), "Android activity does not fetch the live dashboard route.");
 assert(activitySource.includes("Live network"), "Android activity does not distinguish live network hydration from fixture fallback.");
 assert(manifestSource.includes("android.permission.INTERNET"), "Android manifest does not allow the live dashboard network read.");

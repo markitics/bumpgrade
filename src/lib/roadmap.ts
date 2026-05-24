@@ -252,7 +252,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(414),
     group: "Mobile",
     summary:
-      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, iOS scaffold, Android scaffold, and live-hydration slices.",
+      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, iOS scaffold, Android scaffold, live-hydration, and owner-session/confirmed-action contract slices.",
     publicEvidence: [
       "Current active follow-up tracked by issue #414.",
       "Original scaffold contract tracked by issue #13.",
@@ -261,13 +261,14 @@ export const roadmapItems: RoadmapItem[] = [
       "Live dashboard source-data slice tracked by issue #153.",
       "Mobile dashboard scaffold rendering tracked by issue #155.",
       "Mobile dashboard live network hydration tracked by issue #157.",
+      "Issue #414 now renders the owner-session and confirmed-action contract in the Expo, iOS, and Android app scaffolds while keeping mobile mutations disabled.",
       "`/mobile-admin/source-data` exposes the shared mobile contract and no-installable-app caveat.",
       "`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest for mobile clients.",
       "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     nextMilestone:
-      "Add private mobile auth, confirmed-write UX, device proof, push-notification boundaries, and eventual distribution readiness without claiming App Store or Play Store parity early.",
+      "Add authenticated private mobile rows, live confirmed-write API implementation, device proof, push-notification boundaries, and eventual distribution readiness without claiming App Store or Play Store parity early.",
   },
   {
     id: "roadmap-funnels",

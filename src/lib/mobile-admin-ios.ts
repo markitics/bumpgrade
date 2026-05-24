@@ -28,6 +28,21 @@ export const iosMobileAdminSourceData = {
   dashboardPanelIssue: 155,
   liveHydrationIssue: 157,
   liveDashboardUrl: `${mobileAdminContract.publicBaseUrl}${mobileAdminContract.liveDashboard.route}`,
+  privateAuth: {
+    issue: mobileAdminContract.privateAuth.issue,
+    status: mobileAdminContract.privateAuth.status,
+    sessionRoute: mobileAdminContract.privateAuth.sessionRoute,
+    loginRoute: mobileAdminContract.privateAuth.loginRoute,
+    callbackSurface: mobileAdminContract.privateAuth.callbackSurface,
+    deniedStates: mobileAdminContract.privateAuth.deniedStates,
+  },
+  confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({
+    id: action.id,
+    issue: action.issue,
+    status: action.status,
+    surface: action.surface,
+    requiredInputs: action.requiredInputs,
+  })),
   reads: [
     {
       id: "ios-read-mobile-contract-fixture",
@@ -52,7 +67,7 @@ export const iosMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only. iOS public, billing-impacting, publishing, source-editing, moderation, and creator-speech writes stay disabled until the shared confirmed-write API exists.",
+    "Read-only for mutations. iOS now renders the shared owner-session and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, and creator-speech writes stay disabled until the shared confirmed-write API exists.",
   caveat:
-    "This source-data route proves the first iOS scaffold and simulator smoke path. It does not mean App Store distribution, push notifications, private mobile auth, or write actions are live.",
+    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, and owner-session/confirmed-action UI contract. It does not mean App Store distribution, push notifications, private mobile rows, or write actions are live.",
 };

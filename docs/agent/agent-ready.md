@@ -123,8 +123,12 @@ IDs, R2 object keys, signed URLs, upload bodies, secret values, or write tokens.
 The Expo, iOS, and Android smoke scaffolds now render the dashboard route,
 fetch the live public-safe dashboard payload, label live-network versus fallback
 fixture hydration, and keep the generated fixture as a deterministic simulator
-or emulator fallback. They are still not private mobile auth, mobile write
-clients, or installable app distribution.
+or emulator fallback. Issue #414 now also renders the shared owner-session
+contract and confirmed-action requirements in the Expo, iOS, and Android
+scaffolds. Those panels reuse the web/admin Better Auth, owner allowlist,
+verified-email, exact-confirmation, idempotency, stale-state, audit-correlation,
+and redaction rules. They are still not private mobile rows, live mobile write
+clients, push notifications, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
 audience segments, resource records, pricing principles, and planned pricing

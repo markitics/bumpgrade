@@ -431,10 +431,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Mobile admin planning is documented in `docs/features/mobile-admin.md` and
   `/mobile-admin/source-data`. Issue #414 is the current active follow-up for
   private mobile auth, confirmed-write UX, device proof, push-notification
-  boundaries, and distribution readiness. The iOS scaffold is documented in
+  boundaries, and distribution readiness. The #414 contract now renders the
+  shared owner-session and confirmed-action requirements in the Expo, iOS, and
+  Android scaffolds while keeping mutations disabled. The iOS scaffold is documented in
   `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
   `/mobile-admin/android/source-data`, but App Store/Play Store distribution,
-  private mobile auth, push notifications, and mobile writes are not live yet.
+  private mobile rows, push notifications, and mobile writes are not live yet.
 - Phone verification and SMS provider research is tracked by issue #53 and
   `docs/features/phone-verification-sms.md`. Phone collection, SMS OTP,
   SMS marketing, and provider credentials are not live Bumpgrade capabilities.

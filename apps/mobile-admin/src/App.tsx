@@ -28,6 +28,30 @@ type DashboardPanel = {
   boundary: string;
 };
 
+type PrivateAuthContract = {
+  id: string;
+  issue: number;
+  status: string;
+  sessionRoute: string;
+  loginRoute: string;
+  callbackSurface: string;
+  acceptedRoles: string[];
+  deniedStates: string[];
+  sessionSemantics: string;
+  redactionBoundary: string;
+};
+
+type ConfirmedActionContract = {
+  id: string;
+  issue: number;
+  title: string;
+  status: string;
+  surface: string;
+  confirmationText: string;
+  requiredInputs: string[];
+  mutationBoundary: string;
+};
+
 function Badge({ children }: { children: string }) {
   return (
     <View style={styles.badge}>
@@ -70,6 +94,8 @@ function liveDashboardPanel(payload: LiveDashboardPayload): DashboardPanel {
 
 export default function App() {
   const jobs = mobileAdminContractFixture.jobs.slice(0, 3);
+  const privateAuth = mobileAdminContractFixture.privateAuth as PrivateAuthContract;
+  const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 2) as ConfirmedActionContract[];
   const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
 
   useEffect(() => {
@@ -125,6 +151,17 @@ export default function App() {
           <Text style={styles.meta}>Boundary: {dashboard.boundary}</Text>
         </View>
 
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Private auth</Text>
+          <Text style={styles.panelTitle}>{privateAuth.status}</Text>
+          <Text style={styles.body}>{privateAuth.sessionSemantics}</Text>
+          <Text style={styles.meta}>Session: {privateAuth.sessionRoute}</Text>
+          <Text style={styles.meta}>Login: {privateAuth.loginRoute} -> {privateAuth.callbackSurface}</Text>
+          <Text style={styles.meta}>Roles: {privateAuth.acceptedRoles.join(", ")}</Text>
+          <Text style={styles.meta}>Denied: {privateAuth.deniedStates.join(", ")}</Text>
+          <Text style={styles.meta}>Boundary: {privateAuth.redactionBoundary}</Text>
+        </View>
+
         {jobs.map((job) => (
           <View key={job.id} style={styles.card}>
             <View style={styles.cardTop}>
@@ -135,6 +172,22 @@ export default function App() {
             <Text style={styles.meta}>User: {job.primaryUser}</Text>
             <Text style={styles.meta}>Routes: {job.sourceRoutes.join(", ")}</Text>
             <Text style={styles.meta}>Boundary: {job.writeBoundary}</Text>
+          </View>
+        ))}
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.kicker}>Confirmed mobile actions</Text>
+        </View>
+        {confirmedActions.map((action) => (
+          <View key={action.id} style={styles.card}>
+            <View style={styles.cardTop}>
+              <Badge>{action.status}</Badge>
+            </View>
+            <Text style={styles.cardTitle}>{action.title}</Text>
+            <Text style={styles.body}>{action.mutationBoundary}</Text>
+            <Text style={styles.meta}>Surface: {action.surface}</Text>
+            <Text style={styles.meta}>Confirmation: {action.confirmationText}</Text>
+            <Text style={styles.meta}>Inputs: {action.requiredInputs.join(", ")}</Text>
           </View>
         ))}
       </ScrollView>
@@ -185,6 +238,9 @@ const styles = StyleSheet.create({
   },
   cardTop: {
     flexDirection: "row",
+  },
+  sectionHeader: {
+    paddingTop: 4,
   },
   badge: {
     alignSelf: "flex-start",

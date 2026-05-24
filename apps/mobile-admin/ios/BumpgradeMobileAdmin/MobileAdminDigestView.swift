@@ -20,7 +20,9 @@ struct MobileAdminDigestView: View {
                     header
                     contractPanel
                     liveDashboardPanel
+                    privateAuthPanel
                     jobsSection
+                    confirmedActionsSection
                     safetySection
                 }
                 .padding(.horizontal, 20)
@@ -102,6 +104,35 @@ struct MobileAdminDigestView: View {
         )
     }
 
+    private var privateAuthPanel: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Private auth")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            Text(contract.privateAuth.status)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(contract.privateAuth.sessionSemantics)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            Detail(label: "Session", value: contract.privateAuth.sessionRoute)
+            Detail(label: "Login", value: "\(contract.privateAuth.loginRoute) -> \(contract.privateAuth.callbackSurface)")
+            Detail(label: "Roles", value: contract.privateAuth.acceptedRoles.joined(separator: ", "))
+            Detail(label: "Denied", value: contract.privateAuth.deniedStates.joined(separator: ", "))
+            Detail(label: "Boundary", value: contract.privateAuth.redactionBoundary)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
+    }
+
     private var jobsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Phone jobs")
@@ -110,6 +141,18 @@ struct MobileAdminDigestView: View {
                 .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
             ForEach(contract.jobs) { job in
                 JobCard(job: job)
+            }
+        }
+    }
+
+    private var confirmedActionsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Confirmed mobile actions")
+                .font(.caption.weight(.black))
+                .textCase(.uppercase)
+                .foregroundStyle(Color(red: 0.46, green: 0.38, blue: 0.09))
+            ForEach(contract.confirmedActions) { action in
+                ConfirmedActionCard(action: action)
             }
         }
     }
@@ -149,6 +192,34 @@ struct MobileAdminDigestView: View {
         } catch {
             dashboard = MobileDashboardViewModel.fixture(contract.liveDashboard)
         }
+    }
+}
+
+struct ConfirmedActionCard: View {
+    let action: MobileConfirmedAction
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Badge(text: action.status)
+            Text(action.title)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(Color(red: 0.05, green: 0.07, blue: 0.06))
+            Text(action.mutationBoundary)
+                .font(.subheadline)
+                .lineSpacing(3)
+                .foregroundStyle(Color(red: 0.31, green: 0.36, blue: 0.33))
+            Detail(label: "Surface", value: action.surface)
+            Detail(label: "Confirmation", value: action.confirmationText)
+            Detail(label: "Inputs", value: action.requiredInputs.joined(separator: ", "))
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(Color(red: 0.85, green: 0.87, blue: 0.84), lineWidth: 1)
+        )
     }
 }
 
