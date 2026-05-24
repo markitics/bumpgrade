@@ -296,6 +296,7 @@ import {
   checkoutLinkingCapability,
   draftFunnelArchiveCapability,
   draftFunnelBlockEditingCapability,
+  draftFunnelBlockStructureCapability,
   draftFunnelDuplicationCapability,
   editableDraftCapability,
   funnelSourceData,
@@ -1119,8 +1120,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-block-edit-ready",
-        issue: 430,
+        status: "draft-block-structure-ready",
+        issue: 432,
         parentIssue: 14,
       }),
     );
@@ -1140,6 +1141,7 @@ test.describe("Bumpgrade scaffold", () => {
         archiveEndpoint: "/api/admin/funnels/drafts",
         checkoutLinkEndpoint: "/api/admin/funnels/drafts",
         blockEditEndpoint: "/api/admin/funnels/drafts",
+        blockStructureEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
       }),
     );
@@ -1178,6 +1180,26 @@ test.describe("Bumpgrade scaffold", () => {
         preservesBlockIds: true,
         preservesBlockKinds: true,
         preservesCheckoutLinks: true,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.draftFunnelBlockStructureCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelBlockStructureCapability.id,
+        status: "owner-session-structure-write-ready",
+        issue: 432,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: false,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        addSource: "funnelBlockLibrary",
+        canAddBlocks: true,
+        canRemoveUnlinkedBlocks: true,
+        refusesCheckoutLinkedBlockRemoval: true,
+        preservesCheckoutLinks: true,
+        refusesLastBlockRemoval: true,
         rawOwnerDataIncluded: false,
       }),
     );
@@ -17134,6 +17156,7 @@ test.describe("Bumpgrade scaffold", () => {
           expect.stringContaining("Issue #409"),
           expect.stringContaining("Issue #417"),
           expect.stringContaining("Issue #430"),
+          expect.stringContaining("Issue #432"),
         ]),
         nextMilestone: expect.stringContaining("issue #417"),
       }),
@@ -17149,6 +17172,7 @@ test.describe("Bumpgrade scaffold", () => {
         publicEvidence: expect.arrayContaining([
           expect.stringContaining("Issue #417"),
           expect.stringContaining("Issue #430"),
+          expect.stringContaining("Issue #432"),
           expect.stringContaining("Issue #14 remains the shipped MVP"),
           expect.stringContaining("Issue #219"),
         ]),
@@ -18505,6 +18529,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftDuplicateId",
             "funnelDraftArchiveId",
             "funnelDraftBlockEditId",
+            "funnelDraftBlockStructureEditId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
@@ -18512,6 +18537,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session private draft duplication from issue #215",
             "Discover owner-session private draft archive/unpublish from issue #341",
             "Discover owner-session granular draft block editing from issue #430",
+            "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
           ]),
         }),
@@ -24086,6 +24112,135 @@ test.describe("Bumpgrade scaffold", () => {
     expect(replayCheckoutBlock.title).toBe(blockEditTitle);
     expect(replayCheckoutBlock.checkoutLink.offerId).toBe(checkoutOfferStack.primaryOffer.id);
 
+    const blockAddIdempotencyKey = `playwright-block-add-${Date.now()}`;
+    const blockAddTitle = "Owner-added proof block";
+    const blockAddBody = "Add a reusable proof block before publishing without touching checkout metadata.";
+    const blockAddResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "add-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockKind: "proof",
+        title: blockAddTitle,
+        body: blockAddBody,
+        expectedRevisionId: blockEditPayload.draft.revisionId,
+        idempotencyKey: blockAddIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockAddResponse.ok(), await blockAddResponse.text()).toBeTruthy();
+    const blockAddPayload = await blockAddResponse.json();
+    expect(blockAddPayload.mode).toBe("add-block");
+    const blockAddOptInStep = blockAddPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    );
+    const addedProofBlock = blockAddOptInStep.blocks.find((block: { title: string }) => block.title === blockAddTitle);
+    expect(addedProofBlock).toEqual(
+      expect.objectContaining({
+        id: expect.stringContaining("funnel-draft-indie-launch-working-copy-block-1-proof"),
+        kind: "proof",
+        title: blockAddTitle,
+        body: blockAddBody,
+        agentEditable: true,
+      }),
+    );
+
+    const blockAddReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "add-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockKind: "resource",
+        title: "Replay should not add another block",
+        body: "Replay should return the original added proof block.",
+        expectedRevisionId: blockEditPayload.draft.revisionId,
+        idempotencyKey: blockAddIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockAddReplay.ok(), await blockAddReplay.text()).toBeTruthy();
+    const blockAddReplayPayload = await blockAddReplay.json();
+    const replayOptInStep = blockAddReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    );
+    expect(replayOptInStep.blocks.filter((block: { title: string }) => block.title === blockAddTitle)).toHaveLength(1);
+
+    const blockRemoveIdempotencyKey = `playwright-block-remove-${Date.now()}`;
+    const blockRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "remove-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockId: addedProofBlock.id,
+        expectedRevisionId: blockAddPayload.draft.revisionId,
+        idempotencyKey: blockRemoveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockRemoveResponse.ok(), await blockRemoveResponse.text()).toBeTruthy();
+    const blockRemovePayload = await blockRemoveResponse.json();
+    expect(blockRemovePayload.mode).toBe("remove-block");
+    const blockRemoveOptInStep = blockRemovePayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    );
+    expect(blockRemoveOptInStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
+
+    const blockRemoveReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "remove-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockId: addedProofBlock.id,
+        expectedRevisionId: blockAddPayload.draft.revisionId,
+        idempotencyKey: blockRemoveIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockRemoveReplay.ok(), await blockRemoveReplay.text()).toBeTruthy();
+    const blockRemoveReplayPayload = await blockRemoveReplay.json();
+    const replayRemovedOptInStep = blockRemoveReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-opt_in-1",
+    );
+    expect(replayRemovedOptInStep.blocks.map((block: { id: string }) => block.id)).not.toContain(addedProofBlock.id);
+
+    const linkedCheckoutRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "remove-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
+        idempotencyKey: `playwright-linked-checkout-remove-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(linkedCheckoutRemoveResponse.status()).toBe(503);
+    const linkedCheckoutRemovePayload = await linkedCheckoutRemoveResponse.json();
+    expect(linkedCheckoutRemovePayload).toEqual(expect.objectContaining({ error: expect.stringContaining("Checkout-linked blocks") }));
+
+    const staleBlockAddResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "add-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-opt_in-1",
+        blockKind: "cta",
+        title: "Stale add",
+        body: "This should be rejected after the draft revision changed.",
+        expectedRevisionId: seedPayload.draft.revisionId,
+        idempotencyKey: `playwright-block-add-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleBlockAddResponse.status()).toBe(503);
+    const staleBlockAddPayload = await staleBlockAddResponse.json();
+    expect(staleBlockAddPayload).toEqual(expect.objectContaining({ error: expect.stringContaining("revision changed") }));
+
     const duplicateIdempotencyKey = `playwright-duplicate-draft-${Date.now()}`;
     const duplicateTitle = `Duplicate launch draft ${Date.now()}`;
     const duplicateResponse = await page.request.post("/api/admin/funnels/drafts", {
@@ -24094,7 +24249,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: duplicateTitle,
-        expectedRevisionId: blockEditPayload.draft.revisionId,
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24136,7 +24291,7 @@ test.describe("Bumpgrade scaffold", () => {
         mode: "duplicate",
         draftId: "funnel-draft-indie-launch-working-copy",
         title: `${duplicateTitle} replay should not create a second draft`,
-        expectedRevisionId: blockEditPayload.draft.revisionId,
+        expectedRevisionId: blockRemovePayload.draft.revisionId,
         confirmationText: draftFunnelDuplicationConfirmationText,
         idempotencyKey: duplicateIdempotencyKey,
         return: "json",
@@ -24360,6 +24515,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(editedBlockForm.locator('input[name="title"]')).toHaveValue(blockEditTitle);
     await expect(editedBlockForm.locator('textarea[name="body"]')).toHaveValue(blockEditBody);
     await expect(draftCard.getByRole("button", { name: /Save block/i }).first()).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Add block/i }).first()).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
+    await expect(draftCard.getByText("Checkout-linked blocks are protected in this slice.")).toBeVisible();
     await expect(draftCard.getByRole("link", { name: /Preview draft/i })).toHaveAttribute(
       "href",
       "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
@@ -24523,6 +24681,40 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedBlockAddResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "add-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockKind: "proof",
+        title: "Archived block add should stay read-only",
+        body: "This mutation should be rejected after archive.",
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        idempotencyKey: `playwright-archived-block-add-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedBlockAddResponse.status()).toBe(503);
+    await expect(archivedBlockAddResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
+    const archivedBlockRemoveResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "remove-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        idempotencyKey: `playwright-archived-block-remove-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedBlockRemoveResponse.status()).toBe(503);
+    await expect(archivedBlockRemoveResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedSourceResponse = await page.request.get("/funnels/source-data");
     expect(archivedSourceResponse.ok(), await archivedSourceResponse.text()).toBeTruthy();
     const archivedSource = await archivedSourceResponse.json();
@@ -24540,6 +24732,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Duplicate draft/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Save step/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Save block/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Add block/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Link checkout offer/i })).toHaveCount(0);
   });
 

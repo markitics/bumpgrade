@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Archive, ArrowRight, CreditCard, Database, Eye, GitBranch, PanelsTopLeft, PencilLine, ShieldCheck } from "lucide-react";
+import {
+  Archive,
+  ArrowRight,
+  CreditCard,
+  Database,
+  Eye,
+  GitBranch,
+  PanelsTopLeft,
+  PencilLine,
+  Plus,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
@@ -14,7 +26,7 @@ import {
   draftFunnelTemplateCreationConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
-import { draftFunnelBlockEditingIssue, funnelTemplateLibrary } from "@/lib/funnels";
+import { draftFunnelBlockStructureIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
 
 export const metadata: Metadata = {
   title: "Admin draft funnels",
@@ -48,18 +60,19 @@ export default async function AdminFunnelsPage() {
             steps. Exact-confirmed publishing is live for public funnel routes, and owner-confirmed template-to-draft
             creation is live for the reusable template library, including webinar and resource page shapes. Owners can
             duplicate private drafts after a revision check and attach the seeded sandbox checkout offer to private draft
-            checkout blocks. Granular block title and body editing is live while preserving block IDs, kinds, and
-            checkout metadata. Owners can also archive private drafts or unpublish public D1 draft routes without
-            deleting audit evidence. Destructive deletion, drag-and-drop layout editing, block add/remove, live webinar
-            integrations, private resource delivery, and direct agent edits still need confirmed-write slices.
+            checkout blocks. Granular block title/body editing and reusable block add/remove controls are live while
+            preserving checkout-linked block safety. Owners can also archive private drafts or unpublish public D1 draft
+            routes without deleting audit evidence. Destructive deletion, drag-and-drop layout editing, live webinar
+            integrations, private resource delivery, checkout unlinking, and direct agent edits still need confirmed-write
+            slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
               Funnel JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelBlockEditingIssue}`} className="secondary-action">
-              Issue #{draftFunnelBlockEditingIssue}
+            <Link href={`https://github.com/markitics/bumpgrade/issues/${draftFunnelBlockStructureIssue}`} className="secondary-action">
+              Issue #{draftFunnelBlockStructureIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -109,7 +122,7 @@ export default async function AdminFunnelsPage() {
               maxLength={120}
               disabled={!state.canWrite}
             />
-            <p>Creates a private three-step template draft. Step and granular block title/body editing are live.</p>
+            <p>Creates a private three-step template draft. Step editing plus block copy and block structure controls are live.</p>
             <button type="submit" className="primary-action" disabled={!state.canWrite}>
               Create draft
               <ArrowRight aria-hidden="true" />
@@ -372,38 +385,95 @@ export default async function AdminFunnelsPage() {
                         <ArrowRight aria-hidden="true" />
                       </button>
                     </form>
+                    <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-block-add-form">
+                      <input type="hidden" name="mode" value="add-block" />
+                      <input type="hidden" name="draftId" value={draft.id} />
+                      <input type="hidden" name="stepId" value={step.id} />
+                      <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                      <input type="hidden" name="idempotencyKey" value={`block-add-${draft.id}-${step.id}-${draft.revisionId}`} />
+                      <div className="admin-block-edit-heading admin-block-add-heading">
+                        <span className="admin-pill">Reusable block</span>
+                        <strong>Add a block to this step</strong>
+                      </div>
+                      <label>
+                        Block type
+                        <select name="blockKind" defaultValue="cta" disabled={!canMutateDraft}>
+                          {funnelBlockLibrary.map((block) => (
+                            <option value={block.kind} key={block.id}>
+                              {block.title}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Block title
+                        <input name="title" type="text" placeholder="Use library title" maxLength={120} disabled={!canMutateDraft} />
+                      </label>
+                      <label className="admin-step-goal-field">
+                        Block body
+                        <textarea name="body" placeholder="Use library purpose" maxLength={1200} rows={3} disabled={!canMutateDraft} />
+                      </label>
+                      <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
+                        Add block
+                        <Plus aria-hidden="true" />
+                      </button>
+                    </form>
                     <div className="admin-block-edit-list" aria-label={`${step.title} blocks`}>
                       {step.blocks.map((block) => (
-                        <form
-                          action="/api/admin/funnels/drafts"
-                          method="post"
-                          className="admin-step-edit-form admin-block-edit-form"
-                          key={block.id}
-                        >
-                          <input type="hidden" name="mode" value="update-block" />
-                          <input type="hidden" name="draftId" value={draft.id} />
-                          <input type="hidden" name="stepId" value={step.id} />
-                          <input type="hidden" name="blockId" value={block.id} />
-                          <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
-                          <input type="hidden" name="idempotencyKey" value={`block-edit-${draft.id}-${block.id}-${draft.revisionId}`} />
-                          <div className="admin-block-edit-heading">
-                            <span className="admin-pill">{block.kind.replaceAll("_", " ")}</span>
-                            <strong>{block.id}</strong>
-                            {block.checkoutLink ? <span className="status-badge pending">checkout link preserved</span> : null}
-                          </div>
-                          <label>
-                            Block title
-                            <input name="title" type="text" defaultValue={block.title} maxLength={120} disabled={!canMutateDraft} />
-                          </label>
-                          <label className="admin-step-goal-field">
-                            Block body
-                            <textarea name="body" defaultValue={block.body} maxLength={1200} rows={3} disabled={!canMutateDraft} />
-                          </label>
-                          <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
-                            Save block
-                            <PencilLine aria-hidden="true" />
-                          </button>
-                        </form>
+                        <div className="admin-block-editor-shell" key={block.id}>
+                          <form
+                            action="/api/admin/funnels/drafts"
+                            method="post"
+                            className="admin-step-edit-form admin-block-edit-form"
+                          >
+                            <input type="hidden" name="mode" value="update-block" />
+                            <input type="hidden" name="draftId" value={draft.id} />
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <input type="hidden" name="blockId" value={block.id} />
+                            <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                            <input type="hidden" name="idempotencyKey" value={`block-edit-${draft.id}-${block.id}-${draft.revisionId}`} />
+                            <div className="admin-block-edit-heading">
+                              <span className="admin-pill">{block.kind.replaceAll("_", " ")}</span>
+                              <strong>{block.id}</strong>
+                              {block.checkoutLink ? <span className="status-badge pending">checkout link preserved</span> : null}
+                            </div>
+                            <label>
+                              Block title
+                              <input name="title" type="text" defaultValue={block.title} maxLength={120} disabled={!canMutateDraft} />
+                            </label>
+                            <label className="admin-step-goal-field">
+                              Block body
+                              <textarea name="body" defaultValue={block.body} maxLength={1200} rows={3} disabled={!canMutateDraft} />
+                            </label>
+                            <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
+                              Save block
+                              <PencilLine aria-hidden="true" />
+                            </button>
+                          </form>
+                          <form action="/api/admin/funnels/drafts" method="post" className="admin-block-remove-form">
+                            <input type="hidden" name="mode" value="remove-block" />
+                            <input type="hidden" name="draftId" value={draft.id} />
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <input type="hidden" name="blockId" value={block.id} />
+                            <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                            <input type="hidden" name="idempotencyKey" value={`block-remove-${draft.id}-${block.id}-${draft.revisionId}`} />
+                            <p>
+                              {block.checkoutLink
+                                ? "Checkout-linked blocks are protected in this slice."
+                                : step.blocks.length <= 1
+                                  ? "A step must keep at least one block."
+                                  : "Remove this unlinked block from the draft step."}
+                            </p>
+                            <button
+                              type="submit"
+                              className="secondary-action compact-action danger-action"
+                              disabled={!canMutateDraft || Boolean(block.checkoutLink) || step.blocks.length <= 1}
+                            >
+                              Remove block
+                              <Trash2 aria-hidden="true" />
+                            </button>
+                          </form>
+                        </div>
                       ))}
                     </div>
                     {checkoutBlock ? (

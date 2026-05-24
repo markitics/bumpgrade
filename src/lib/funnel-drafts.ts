@@ -4,6 +4,7 @@ import type { AdminIdentity } from "@/lib/admin-roles";
 import { checkoutOfferStack, type CheckoutOffer } from "@/lib/checkout-offers";
 import type {
   FunnelBlock,
+  FunnelBlockKind,
   FunnelCheckoutLink,
   FunnelRecord,
   FunnelStep,
@@ -17,6 +18,8 @@ import {
   draftFunnelArchiveIssue,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockEditingIssue,
+  draftFunnelBlockStructureCapability,
+  draftFunnelBlockStructureIssue,
   draftFunnelDuplicationCapability,
   draftFunnelDuplicationIssue,
   draftFunnelCheckoutLinkingIssue,
@@ -906,6 +909,152 @@ export async function updateDraftFunnelBlock(
         blockKindPreserved: true,
         checkoutLinkPreserved: Boolean(block.checkoutLink),
         orderedStepStructureChanged: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function addDraftFunnelBlock(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockKind: string;
+    title: string;
+    body: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "updated");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before adding this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const libraryItem = blockLibraryItem(input.blockKind as FunnelBlockKind);
+  if (!libraryItem) {
+    throw new Error("Choose a reusable block type before adding this block.");
+  }
+
+  const addedBlock: FunnelBlock = {
+    id: `${draft.id}-block-${step.order}-${libraryItem.kind}-${Date.now()}`,
+    kind: libraryItem.kind,
+    title: input.title.trim().slice(0, 120) || libraryItem.title,
+    body: input.body.trim().slice(0, 1_200) || libraryItem.purpose,
+    agentEditable: libraryItem.agentEditable,
+  };
+  const nextBlocks = [...step.blocks, addedBlock];
+  const nextRevisionId = `${draft.revisionId}-block-add-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} added ${libraryItem.kind} block ${addedBlock.id} to ${draft.title}.`,
+      {
+        issue: draftFunnelBlockStructureIssue,
+        action: "block_add",
+        draftFunnelBlockStructureCapability: draftFunnelBlockStructureCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockLibraryItemId: libraryItem.id,
+        beforeBlockCount: step.blocks.length,
+        afterBlockCount: nextBlocks.length,
+        addedBlock: compactBlockForAudit(addedBlock),
+        checkoutLinksPreserved: step.blocks.flatMap((block) => (block.checkoutLink ? [block.checkoutLink.id] : [])),
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function removeDraftFunnelBlock(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "updated");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before removing this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  if (step.blocks.length <= 1) {
+    throw new Error("Draft funnel steps must keep at least one block. Add another block before removing this one.");
+  }
+
+  if (block.checkoutLink) {
+    throw new Error("Checkout-linked blocks cannot be removed in this slice. Add or edit other blocks, or plan a checkout unlink workflow.");
+  }
+
+  const nextBlocks = step.blocks.filter((item) => item.id !== block.id);
+  const nextRevisionId = `${draft.revisionId}-block-remove-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} removed block ${block.id} from ${draft.title}.`,
+      {
+        issue: draftFunnelBlockStructureIssue,
+        action: "block_remove",
+        draftFunnelBlockStructureCapability: draftFunnelBlockStructureCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        removedBlock: compactBlockForAudit(block),
+        beforeBlockCount: step.blocks.length,
+        afterBlockCount: nextBlocks.length,
+        checkoutLinkedBlockRemovalRefused: false,
         privateAuthDataIncluded: false,
       },
     ),

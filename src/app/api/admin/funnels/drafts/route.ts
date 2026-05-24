@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getSessionAdminState } from "@/lib/admin-auth";
 import {
+  addDraftFunnelBlock,
   archiveDraftFunnel,
   createDraftFunnelFromTemplate,
   createDraftFunnelFromLibraryTemplate,
@@ -10,6 +11,7 @@ import {
   linkDraftFunnelStepToCheckoutOffer,
   publishDraftFunnel,
   reorderDraftFunnelStep,
+  removeDraftFunnelBlock,
   seedEditableFunnelDraft,
   updateDraftFunnelBlock,
   updateDraftFunnelStep,
@@ -92,6 +94,24 @@ export async function POST(request: NextRequest) {
         blockId: formValue(formData, "blockId"),
         title: formValue(formData, "title"),
         body: formValue(formData, "body"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        idempotencyKey,
+      });
+    } else if (mode === "add-block") {
+      draft = await addDraftFunnelBlock(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockKind: formValue(formData, "blockKind"),
+        title: formValue(formData, "title"),
+        body: formValue(formData, "body"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        idempotencyKey,
+      });
+    } else if (mode === "remove-block") {
+      draft = await removeDraftFunnelBlock(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockId: formValue(formData, "blockId"),
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         idempotencyKey,
       });
