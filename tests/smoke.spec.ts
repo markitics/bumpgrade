@@ -804,6 +804,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "feature-funnel-builder", status: "launch-preview" }),
         expect.objectContaining({ id: "feature-checkout-offers", status: "launch-preview" }),
+        expect.objectContaining({ id: "feature-products-access", status: "live" }),
         expect.objectContaining({ id: "feature-email-automation-crm", status: "launch-preview" }),
       ]),
     );
@@ -17054,6 +17055,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "roadmap-codex-email", status: "shipped", issue: 10 }),
         expect.objectContaining({ id: "roadmap-stripe-commerce", status: "shipped", issue: 11 }),
         expect.objectContaining({ id: "roadmap-checkout-offers", status: "shipped", issue: 15 }),
+        expect.objectContaining({ id: "roadmap-products-access", status: "shipped", issue: 16 }),
       ]),
     );
     const checkoutRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-checkout-offers");
@@ -17076,6 +17078,13 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(funnelRoadmap.nextMilestone).not.toContain("deletion/archive");
     expect(funnelRoadmap.nextMilestone).not.toContain("unpublishing");
+    const productsRoadmap = payload.items.find((item: { id: string }) => item.id === "roadmap-products-access");
+    expect(productsRoadmap).toEqual(
+      expect.objectContaining({
+        publicEvidence: expect.arrayContaining([expect.stringContaining("PR #412")]),
+        nextMilestone: expect.stringContaining("issue #219"),
+      }),
+    );
   });
 
   test("admin source data exposes durable admin surface records", async ({ request }) => {
@@ -17930,6 +17939,14 @@ test.describe("Bumpgrade scaffold", () => {
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-242-compare.png" }),
             ]),
           }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-previews-product-access",
+          featureStatus: "live",
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-verifies-sandbox-entitlement-grant",
+          featureStatus: "live",
         }),
         expect.objectContaining({
           id: "journey-mark-reviews-nonblocking-attention",

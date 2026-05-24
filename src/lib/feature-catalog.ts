@@ -185,7 +185,7 @@ export const featureCatalog: FeatureRecord[] = [
     id: "feature-products-access",
     title: "Products, downloads, courses, memberships, and subscriptions",
     group: "Products and access",
-    status: "launch-preview",
+    status: "live",
     issue: 16,
     summary:
       "Digital products, course structures, download delivery, membership access, fulfillment state, and recurring subscriptions.",
@@ -234,6 +234,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #407 records owner-created product test checkout links and public test checkout completion with synthetic paid checkout/access evidence, link-revision checks, and no Stripe Checkout Sessions or live charges.",
       "Issue #409 records owner-created product delivery-gate links for the seeded offer/funnel path with product and checkout-link stale-state checks.",
       "Issue #16 exposes seeded product payment-plan read semantics without live amounts, Stripe Price creation, Checkout Sessions, or customer data exposure.",
+      "Issue #16 closeout confirms the product/access parent met its tracked acceptance criteria; live self-serve billing remains tracked separately in issue #219.",
     ],
     agentContract:
       "Agents may read public product metadata, aggregate entitlement counts, aggregate owner-created product/test checkout/delivery-gate/test grant counts, customer-safe checkout intent entitlement lookup, short-lived private R2-backed download-token boundaries with redemption revalidation, owner-confirmed private asset upload intent boundaries, owner-confirmed non-destructive revocation intent boundaries, protected content readiness, checkout-scoped protected fixture delivery boundaries, subscription-backed membership access state, and entitlement grant boundaries; private customer identity, storage object keys, upload bodies, arbitrary protected bodies, private revocation notes, destructive revocation, customer delivery of arbitrary uploads, live offer/funnel publishing, Customer Portal actions, and billing data must stay behind authenticated contracts.",
