@@ -111,10 +111,11 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 467,
     summary:
-      "Public import center, dedicated platform import paths, `/imports/source-data`, and verified-publisher private draft creation for moving competitor context into Bumpgrade launch workspaces.",
+      "Public import center, dedicated platform import paths, redacted preflight review maps, `/imports/source-data`, and verified-publisher private draft creation for moving competitor context into Bumpgrade launch workspaces.",
     audience: "Prospects and agents planning a move from ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
     expectedCapabilities: [
       "Dedicated importer paths with a reusable platform-aware importer contract.",
+      "Public preflight review maps that summarize likely draft areas before sign-in or private draft creation.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
       "Dedicated importer pages for first-wave competitor platforms.",
@@ -124,10 +125,10 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, dedicated importer pages, `/imports/source-data`, and the platform API routes listed in source-data define the private importer contract slice.",
+      "`/imports`, dedicated importer pages, `/imports/source-data`, public preview API routes, and the private platform API routes listed in source-data define the importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, duplicate-review statuses, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",

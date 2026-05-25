@@ -82,16 +82,17 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(467),
     group: "Migration",
     summary:
-      "Importer center, dedicated platform import paths, private draft creation, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
+      "Importer center, dedicated platform import paths, public redacted review maps, private draft creation, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
     publicEvidence: [
       "Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.",
       "`/imports` lists supported importer paths.",
+      "Dedicated importer pages can show a redacted preflight review map before sign-in or private draft creation.",
       "Dedicated importer pages support private Free Build import-plan creation.",
-      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
     ],
     nextMilestone:
-      "Add rollback controls and platform-specific preview depth after the shared private draft path is stable.",
+      "Add rollback controls and deeper platform-specific extraction after the shared review and private draft paths are stable.",
   },
   {
     id: "roadmap-feature-catalog",

@@ -8,6 +8,7 @@ import {
   getImporterBySlug,
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
+  importerDraftPreviewApiRoute,
   importerPlatforms,
 } from "@/lib/importers";
 import { site } from "@/lib/site";
@@ -185,6 +186,7 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
           action={importerDraftImportApiRoute(platform.slug)}
           confirmationText={importerDraftImportConfirmationText(platform.platformName)}
           platformName={platform.platformName}
+          previewAction={importerDraftPreviewApiRoute(platform.slug)}
         />
       </section>
 

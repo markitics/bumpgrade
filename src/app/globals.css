@@ -4235,9 +4235,99 @@ h3 {
   cursor: pointer;
 }
 
-.importer-draft-form .primary-action:disabled {
+.importer-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.importer-draft-form .secondary-action {
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font: inherit;
+}
+
+.importer-draft-form .primary-action:disabled,
+.importer-draft-form .secondary-action:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.importer-preview-panel {
+  display: grid;
+  gap: 18px;
+  max-width: 920px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid rgba(31, 83, 107, 0.24);
+  border-radius: 8px;
+  background: #f7fbfc;
+}
+
+.importer-preview-panel h3,
+.importer-preview-panel h4,
+.importer-preview-panel p {
+  margin: 0;
+}
+
+.importer-preview-panel h3 {
+  margin-top: 8px;
+  font-size: 24px;
+}
+
+.importer-preview-panel p {
+  color: var(--muted);
+}
+
+.importer-preview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.importer-preview-summary span,
+.importer-preview-grid span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #e4f0f4;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.importer-preview-grid,
+.importer-preview-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.importer-preview-grid article,
+.importer-preview-steps article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid rgba(31, 83, 107, 0.18);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.importer-preview-grid h4,
+.importer-preview-steps h4 {
+  font-size: 16px;
+}
+
+.importer-preview-gates {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .subdomain-reservation-form {
@@ -4936,6 +5026,8 @@ h3 {
   .agent-resource-grid,
   .account-setup-grid,
   .importer-form-grid,
+  .importer-preview-grid,
+  .importer-preview-steps,
   .custom-domain-list,
   .journey-proof-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5075,6 +5167,9 @@ h3 {
   .launch-proof-grid,
   .agent-resource-grid,
   .account-setup-grid,
+  .importer-form-grid,
+  .importer-preview-grid,
+  .importer-preview-steps,
   .custom-domain-list,
   .workflow-step-strip,
   .journey-proof-stat-grid {

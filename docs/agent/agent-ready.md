@@ -214,17 +214,20 @@ expose token hashes.
 Current importer boundary: `/imports/source-data` is the public-safe contract for
 ClickFunnels and first-wave competitor import paths. It exposes supported
 platform IDs, competitor IDs, source IDs, input kinds, generated private record
-types, safety gates, unsupported fields, routes, and the verified-publisher
-private-draft API route listed for each dedicated importer. Posting to one of
-those platform API routes can create or reuse a Free Build workspace and save a
-private D1 funnel draft after exact confirmation and idempotency. Responses
-include redacted `duplicateReview.status` values for created drafts,
-idempotency replay, and same-platform/source-file/workspace/title reuse, and do
-not echo pasted material or export file contents. Imported material
-starts in a private Bumpgrade workspace; public publishing, live checkout,
-subscriber sends, domains, fulfillment, account-to-account transfer, payment
-migration, customer password migration, and raw export storage are not live from
-this contract.
+types, safety gates, unsupported fields, routes, a public redacted preview API
+route, and the verified-publisher private-draft API route listed for each
+dedicated importer. Posting to a platform preview route returns an import review
+map before sign-in or private draft creation; it does not persist records, create
+drafts, echo pasted source material, echo export file names, or enable any
+go-live effect. Posting to one of the private platform API routes can create or
+reuse a Free Build workspace and save a private D1 funnel draft after exact
+confirmation and idempotency. Responses include redacted `duplicateReview.status`
+values for created drafts, idempotency replay, and
+same-platform/source-file/workspace/title reuse, and do not echo pasted material
+or export file contents. Imported material starts in a private Bumpgrade
+workspace; public publishing, live checkout, subscriber sends, domains,
+fulfillment, account-to-account transfer, payment migration, customer password
+migration, and raw export storage are not live from this contract.
 
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template
