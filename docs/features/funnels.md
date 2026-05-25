@@ -14,8 +14,9 @@ resource funnel template/page-block contracts plus D1 step-kind storage
 readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
 #341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #417 adds
 owner-confirmed checkout unlinking, owner-confirmed resource delivery links to
-product/access catalog assets, owner-confirmed webinar event/replay links to
-public-safe external URLs, owner-session within-step block reordering,
+product/access catalog assets, funnel-scoped private download-token delivery
+from published linked resource blocks, owner-confirmed webinar event/replay
+links to public-safe external URLs, owner-session within-step block reordering,
 drag/drop block placement through existing move endpoints, cross-step block
 moves, and owner-confirmed archived-draft purge with tombstone evidence. Issue
 #430 adds owner-session granular block title/body editing that
@@ -25,9 +26,9 @@ reusable block library while refusing checkout-linked block removal. Issue #409
 links owner-created product test checkout links to the seeded offer/funnel
 delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
-for freeform canvas layout styling, arbitrary private R2 delivery, live
-fulfillment automation, full webinar integrations, bulk retention policy, and
-direct agent-safe write tools.
+for freeform canvas layout styling, arbitrary uploaded private asset delivery,
+live fulfillment automation, full webinar integrations, bulk retention policy,
+direct agent-created delivery tokens, and direct agent-safe write tools.
 
 Live in this slice:
 
@@ -49,6 +50,9 @@ Live in this slice:
   funnels, with unpublished private draft copy excluded from source data. When a
   published checkout block carries owner-confirmed `checkoutLink` metadata, the
   route renders the sandbox checkout start panel for the seeded offer stack.
+  Published resource-linked blocks render a customer delivery panel that can
+  request a short-lived Bumpgrade download route only after the checkout intent
+  and entitlement match the linked product and file asset.
   Published webinar-linked blocks render external registration/replay references
   without provider secrets or attendee records.
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
@@ -86,7 +90,8 @@ Not live in this slice:
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
 - Arbitrary private resource file delivery, R2 object selection, signed URLs,
-  live fulfillment automation, or direct customer access from funnel editing.
+  live fulfillment automation, arbitrary uploaded private asset delivery, or
+  direct agent-created delivery tokens from funnel editing.
 - Checkout-link deletion, arbitrary offer mutation, order-bump mutation,
   live billing, one-click upsell charging, or fulfillment.
 - Live owner-created product selection, signed URLs, private R2 delivery, or
@@ -144,9 +149,15 @@ checkout block can render the existing sandbox checkout start panel on the
 public funnel route; that path remains exact-confirmed, idempotent, redacted,
 and constrained to the seeded offer stack. Published resource-linked blocks can
 render entitlement-safe access references while keeping private files and signed
-URLs hidden. Published webinar-linked blocks can render external registration
-and replay references while keeping provider secrets and attendee records
-hidden. Owner product delivery-gate links can
+URLs hidden, and can request a short-lived private download token through
+`/api/funnels/resource-delivery` only when the submitted checkout intent,
+entitlement, product, and file asset match the link stored on that published
+block. The response returns a Bumpgrade download route backed by the existing
+product download-token stream and does not expose private R2 keys, signed URLs,
+buyer records, raw entitlement rows, arbitrary uploaded assets, or live
+fulfillment automation. Published webinar-linked blocks can render external
+registration and replay references while keeping provider secrets and attendee
+records hidden. Owner product delivery-gate links can
 connect an owner-created product test checkout link to the seeded offer/funnel
 path, but only as redacted delivery-intent evidence. Current draft preview
 requires an owner session and does not
@@ -161,11 +172,12 @@ and audit rows. Purging requires a draft that is already `archived`, the exact
 purge confirmation text, an idempotency key, and the current archived revision
 ID; it records a `funnel_purge_events` tombstone before deleting the draft and
 step rows, and it does not delete prior audit rows, product assets, R2 objects,
-buyer records, billing state, or raw owner data. Future
-direct agent writes, direct agent checkout unlinking, direct agent resource
-delivery linking, direct agent webinar event linking, direct agent block
-reordering, direct agent cross-step block moves, live billing, live webinar
-scheduling, attendance tracking, replay hosting, arbitrary private R2 delivery,
-signed URLs, live fulfillment automation, non-archived purge, bulk purge, and direct-agent draft destruction
+buyer records, billing state, or raw owner data. Future direct agent writes,
+direct agent checkout unlinking, direct agent resource delivery linking,
+direct agent-created delivery tokens, direct agent webinar event linking,
+direct agent block reordering, direct agent cross-step block moves, live
+billing, live webinar scheduling, attendance tracking, replay hosting,
+arbitrary uploaded private asset delivery, signed URLs, live fulfillment
+automation, non-archived purge, bulk purge, and direct-agent draft destruction
 must add explicit confirmation, stale-state checks,
 audit correlation, redaction, and rollback notes before acting on draft state.

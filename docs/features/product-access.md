@@ -49,6 +49,9 @@ Live in this slice:
   scoped entitlement lookup.
 - `/api/products/download-tokens`: creates short-lived download tokens
   for active file entitlements.
+- `/api/funnels/resource-delivery`: creates funnel-scoped short-lived download
+  tokens for published linked resource blocks only after checkout intent,
+  entitlement, product, and file asset scope match.
 - `/api/products/downloads?token={token}`: consumes a token once and streams the
   seeded private R2-backed fixture through Bumpgrade after revalidating current
   entitlement and trusted checkout state.
@@ -137,6 +140,10 @@ Public redaction boundary:
   keys or signed object URLs. Redemption revalidates current entitlement status,
   checkout intent linkage, trusted checkout state, and asset scope before the
   private R2 read or token consumption.
+- `/api/funnels/resource-delivery` delegates to the same product download-token
+  stream for published linked funnel blocks, but returns only Bumpgrade download
+  routes and public-safe funnel/block metadata after the submitted entitlement
+  matches the block's product and file asset.
 - `/products/source-data` exposes aggregate revocation intent counts and
   public-safe policy text. `/admin/products` can inspect seeded readiness and
   owner-confirmed intent records, but destructive access removal is still

@@ -205,8 +205,10 @@ owner-session block add/remove from issue #432 while refusing checkout-linked
 block removal, owner-session checkout unlinking from issue #417 while
 preserving block IDs, kinds, title/body copy, step order, and audit evidence,
 owner-session resource delivery linking from issue #417 while preserving block
-IDs, kinds, title/body copy, step order, and audit evidence, owner-session
-within-step block reordering from issue #417 while preserving block IDs, kinds,
+IDs, kinds, title/body copy, step order, and audit evidence, public
+funnel-scoped private download-token delivery from issue #417 for published
+resource blocks after checkout entitlement, product, and file asset scope match,
+owner-session within-step block reordering from issue #417 while preserving block IDs, kinds,
 copy, checkout-link metadata, resource-link metadata, step membership, and audit
 evidence, owner-session drag/drop block placement from issue #417 while reusing
 the same move endpoint modes with fresh revision checks, owner-session cross-step block moves from issue #417 while preserving
@@ -229,20 +231,27 @@ the existing sandbox checkout start surface when a checkout block carries
 owner-confirmed `checkoutLink` metadata. Published resource-linked blocks can
 render entitlement-safe product access references without private R2 keys,
 signed URLs, buyer records, arbitrary uploaded asset delivery, or live
-fulfillment automation. Published webinar-linked blocks can render external
+fulfillment automation, and can request short-lived Bumpgrade download routes
+through `/api/funnels/resource-delivery` only after checkout intent and
+entitlement scope match the linked product and file asset. Published
+webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media. It is not direct agent template creation, direct agent
 block editing, direct agent block add/remove, direct agent checkout unlinking,
 direct agent resource delivery linking, direct agent block reordering,
-direct agent cross-step block moves, direct agent webinar event linking, live
+direct agent-created delivery tokens, direct agent cross-step block moves,
+direct agent webinar event linking, live
 billing mutation, freeform canvas layout styling, direct agent archive/unpublish,
-direct agent purge, non-archived purge, one-click upsell charging, arbitrary private R2
-delivery, signed URL creation, live fulfillment automation, live webinar
+direct agent purge, non-archived purge, one-click upsell charging, arbitrary
+uploaded private asset delivery, signed URL creation, live fulfillment automation, live webinar
 scheduling, attendance tracking, replay hosting, or a direct agent write API. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
-links, webinar event/replay links, within-step block reordering, drag/drop block placement, cross-step block moves, and archived-draft purge, and remains the pending advanced funnel
-parity bucket for freeform canvas layout styling, arbitrary private R2 delivery, live fulfillment automation, full webinar
-integrations, bulk purge policy, and direct agent-safe write tools. Live
+links, funnel-scoped private download-token delivery, webinar event/replay links,
+within-step block reordering, drag/drop block placement, cross-step block moves,
+and archived-draft purge, and remains the pending advanced funnel parity bucket
+for freeform canvas layout styling, arbitrary uploaded private asset delivery,
+live fulfillment automation, full webinar integrations, bulk purge policy,
+direct agent-created delivery tokens, and direct agent-safe write tools. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read

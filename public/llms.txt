@@ -30,6 +30,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Customer product access lookup: https://bumpgrade.com/products/entitlements
 - Customer product access lookup API: https://bumpgrade.com/api/products/entitlements
 - Sandbox product download token API: https://bumpgrade.com/api/products/download-tokens
+- Funnel resource delivery token API: https://bumpgrade.com/api/funnels/resource-delivery
 - Protected product content API: https://bumpgrade.com/api/products/protected-content
 - Owner product catalog API: https://bumpgrade.com/api/admin/products/catalog (human page/API requires Better Auth owner session)
 - Owner product test checkout link API: https://bumpgrade.com/api/admin/products/test-checkout-links (human page/API requires Better Auth owner session)
@@ -189,6 +190,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-confirmed resource delivery linking to product/access catalog assets
   without private R2 keys, signed URLs, buyer records, arbitrary uploaded asset
   delivery, or live fulfillment automation,
+  funnel-scoped private download-token delivery from published resource blocks
+  only after the checkout intent and entitlement match the linked product and
+  file asset,
   owner-confirmed webinar event/replay linking to public-safe external URLs
   without provider secrets, attendee records, scheduling, reminders, attendance
   tracking, or hosted replay media,
@@ -201,23 +205,25 @@ GitHub repo: https://github.com/markitics/bumpgrade
   billing state. Published linked checkout blocks can render the existing
   sandbox checkout start surface after exact confirmation. Published
   resource-linked blocks can render entitlement-safe product access references
-  while private files stay hidden. Published webinar-linked blocks can render
-  external registration/replay references. It is not direct
+  while private files stay hidden, and can mint short-lived Bumpgrade download
+  routes through `/api/funnels/resource-delivery` after checkout and
+  entitlement scope match. Published webinar-linked blocks can render external
+  registration/replay references. It is not direct
   agent template creation, direct agent block editing, direct agent block
   add/remove, direct agent block reordering, direct agent cross-step block
   moves, direct agent checkout unlinking, direct agent resource delivery
-  linking, direct agent webinar event linking, direct agent purge,
+  linking, direct agent-created delivery tokens, direct agent webinar event linking, direct agent purge,
   non-archived purge, live billing mutation, one-click upsell charging,
-  drag-and-drop visual editing, arbitrary private R2 delivery, signed URL
+  drag-and-drop visual editing, arbitrary uploaded private asset delivery, signed URL
   creation, live fulfillment automation, live webinar scheduling, attendance
   tracking, replay hosting, or an unconfirmed agent-write API.
   Treat issue #14 as the shipped MVP boundary. Issue #417 includes
   owner-confirmed checkout unlinking, resource delivery links, webinar
-  event/replay links, within-step block reordering, cross-step block moves, and
+  event/replay links, funnel-scoped private download-token delivery, within-step block reordering, cross-step block moves, and
   archived-draft purge, and remains the pending advanced funnel parity bucket
-  for freeform drag-and-drop layout editing, arbitrary private R2 delivery,
+  for freeform drag-and-drop layout editing, arbitrary uploaded private asset delivery,
   live fulfillment automation, full webinar integrations, bulk purge policy,
-  and direct agent-safe write tools;
+  direct agent-created delivery tokens, and direct agent-safe write tools;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
