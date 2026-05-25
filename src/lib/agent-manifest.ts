@@ -65,6 +65,10 @@ import {
   audienceSequenceReceiptPayloadReadinessIssue,
 } from "@/lib/audience-sequence-receipt-payload-readiness";
 import {
+  audienceSequenceTestSendApiRoute,
+  audienceSequenceTestSendIssue,
+} from "@/lib/audience-sequence-test-sends";
+import {
   analyticsExperimentDecisionApiRoute,
   analyticsExperimentDecisionIssue,
 } from "@/lib/analytics-experiment-decisions";
@@ -942,6 +946,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "sequenceDeliveryStatusWebhookReadinessId",
       "sequenceProviderPollingReadinessId",
       "sequenceReceiptPayloadReadinessId",
+      "sequenceTestSendId",
       "automationRuleId",
       "broadcastDraftId",
       "broadcastReadinessId",
@@ -993,7 +998,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
       "Inspect dispatch preflight dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
       "Inspect dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, provider responses, or provider sends",
-      "Inspect owner-only broadcast test-send evidence without raw recipient email, subscriber payloads, public agent sends, or provider message IDs",
+      "Inspect owner-only broadcast and sequence test-send evidence without raw recipient email, subscriber payloads, Queue messages, public agent sends, or provider message IDs",
       "Inspect sender-domain readiness without private DNS credentials, raw DNS records, provider secrets, or provider sends",
       "Inspect provider-event readiness without provider secrets, raw provider payloads, provider responses, or provider message IDs",
       "Inspect provider rate-limit readiness without provider secrets, provider limit secrets, raw provider payloads, provider responses, or provider message IDs",
@@ -1009,7 +1014,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect sequence and automation boundaries",
     ],
     writeBoundary:
-      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; known subscriber unsubscribe also pauses draft sequence enrollment state while public responses stay membership-safe. Verified owners can inspect private subscriber rows, create private CRM notes, view aggregate sequence delivery readiness, sequence schedule-intent dry runs, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, owner-only broadcast test sends, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, redacted import intents, redacted import preflights, and aggregate export readiness, and record dry-run sequence schedule intents, sequence delivery batches, sequence queue-message evidence, sequence dispatch preflight evidence, sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, broadcast schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, owner-only broadcast test sends, non-destructive import intents, and aggregate import preflights in /admin/audience; real contact imports, subscriber email delivery, real sequence scheduling, broadcast blasts, private exports, export file creation, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload bodies, recipient payloads, personalized bodies, body templates, unsubscribe URLs, provider calls, delivery attempts, provider responses, provider message IDs, delivery results, webhooks, polling, and receipts require future confirmed-write APIs.",
+      "Public visitors can submit the seeded opt-in form with explicit consent and can record unsubscribe/suppression evidence without exposing list membership; known subscriber unsubscribe also pauses draft sequence enrollment state while public responses stay membership-safe. Verified owners can inspect private subscriber rows, create private CRM notes, view aggregate sequence delivery readiness, sequence schedule-intent dry runs, sequence delivery-batch dry runs, sequence queue-message dry runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, owner-only sequence test sends, broadcast readiness, preview safety, queue readiness, delivery-batch dry runs, queue-message dry runs, dispatch preflight dry runs, dispatch attempt receipts, owner-only broadcast test sends, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, redacted import intents, redacted import preflights, and aggregate export readiness, and record dry-run sequence schedule intents, sequence delivery batches, sequence queue-message evidence, sequence dispatch preflight evidence, sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, owner-only sequence test sends, broadcast schedule intents, delivery batches, queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, owner-only broadcast test sends, non-destructive import intents, and aggregate import preflights in /admin/audience; real contact imports, subscriber email delivery, real sequence scheduling, broadcast blasts, private exports, export file creation, direct agent subscriber writes, private DNS/provider setup, provider webhooks, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, queue payload bodies, recipient payloads, personalized bodies, body templates, unsubscribe URLs, provider calls, delivery attempts, provider responses, provider message IDs, delivery results, webhooks, polling, and receipts require future confirmed-write APIs.",
   },
   {
     id: "create-owner-sequence-schedule-intent",
@@ -1477,6 +1482,31 @@ export const agentReadContracts: AgentReadContract[] = [
       "This owner-session API records aggregate dispatch attempt receipt metadata only. It does not send email, dispatch Cloudflare Queue messages, create queue payload bodies, create recipient payloads, create provider responses, create provider message IDs, expose recipients, authorize public agent writes, or bypass future sender-domain, suppression, unsubscribe footer, provider-limit, queue-dispatch, and audit requirements.",
   },
   {
+    id: "create-owner-sequence-test-send",
+    title: "Owner sequence test send",
+    route: audienceSequenceTestSendApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 table audience_sequence_test_sends and /audience/source-data sequence readiness records",
+    stableIds: [
+      "sequenceTestSendId",
+      "emailSequenceId",
+      "emailSequenceStepId",
+      "ownerUserId",
+      "idempotencyKey",
+      "auditCorrelationId",
+      "expectedWorkspaceRevisionId",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only sequence test-send confirmation contract",
+      "Create one owner-only sequence-step test-send record only with an owner session and exact confirmation",
+      "Use workspace revision, expected sequence status, expected readiness count, idempotency, and audit correlation before sending",
+      "Confirm responses omit raw owner email, recipient email hashes, actor hashes, idempotency keys, confirmation hashes, raw email bodies, provider errors, subscriber payloads, Queue messages, public agent sends, and provider message IDs",
+    ],
+    writeBoundary:
+      `This owner-session API sends the seeded sequence-step preview only to the verified owner-session email through the configured Cloudflare Email binding or test capture, then stores redacted D1 evidence. It does not send to subscribers, create recipient payloads, dispatch or consume Cloudflare Queue messages, expose raw recipient email, expose raw email body, create provider message IDs, authorize public agent sequence sends, or bypass future sender-domain, suppression, unsubscribe footer, provider-limit, Queue, provider-response, webhook, retry, and dead-letter requirements. Issue #${audienceSequenceTestSendIssue} tracks this slice.`,
+  },
+  {
     id: "create-owner-broadcast-test-send",
     title: "Owner broadcast test send",
     route: audienceBroadcastTestSendApiRoute,
@@ -1576,7 +1606,7 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "doc",
     auth: "owner-session",
     sourceOfTruth:
-      "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, audience_sequence_enrollments, audience_sequence_schedule_intents, audience_sequence_delivery_batches, audience_sequence_delivery_queue_messages, audience_sequence_dispatch_preflights, audience_sequence_dispatch_attempts, audience_sequence_queue_producer_readiness, audience_sequence_queue_consumer_readiness, audience_sequence_provider_call_readiness, audience_sequence_delivery_attempt_readiness, audience_sequence_delivery_result_readiness, audience_sequence_delivery_status_webhook_readiness, audience_suppression_entries, audience_timeline_entries, audience_import_intents, and audience_import_preflights",
+      "D1 tables audience_subscribers, audience_consent_events, audience_tag_assignments, audience_sequence_enrollments, audience_sequence_schedule_intents, audience_sequence_delivery_batches, audience_sequence_delivery_queue_messages, audience_sequence_dispatch_preflights, audience_sequence_dispatch_attempts, audience_sequence_queue_producer_readiness, audience_sequence_queue_consumer_readiness, audience_sequence_provider_call_readiness, audience_sequence_delivery_attempt_readiness, audience_sequence_delivery_result_readiness, audience_sequence_delivery_status_webhook_readiness, audience_sequence_test_sends, audience_suppression_entries, audience_timeline_entries, audience_import_intents, and audience_import_preflights",
     stableIds: [
       "subscriberId",
       "subscriberSegmentId",
@@ -1594,6 +1624,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "sequenceDeliveryAttemptReadinessId",
       "sequenceDeliveryResultReadinessId",
       "sequenceDeliveryStatusWebhookReadinessId",
+      "sequenceTestSendId",
       "consentRecordId",
       "suppressionEntryId",
       "timelineEntryId",
@@ -1605,11 +1636,11 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read private subscriber rows only with an owner session",
       "Inspect consent counts, active tags, source form, draft sequence enrollment state, suppression totals, and private timeline notes",
-      "Inspect owner-visible aggregate sequence delivery readiness, dry-run sequence schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message records, dry-run sequence dispatch preflight records, dry-run sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, import intent, import preflight, and aggregate export readiness records without sending, importing, processing webhooks, polling providers, creating receipts, or exporting contacts",
+      "Inspect owner-visible aggregate sequence delivery readiness, dry-run sequence schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message records, dry-run sequence dispatch preflight records, dry-run sequence dispatch attempt receipts, sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, owner-only sequence test sends, import intent, import preflight, and aggregate export readiness records without subscriber sending, importing, processing webhooks, polling providers, creating receipts, or exporting contacts",
       "Confirm public source-data redacts email, name, suppression hashes, reasons, private note bodies, actor emails, raw IP, raw user agent, and private metadata",
     ],
     writeBoundary:
-      "This owner page can create private CRM notes through the owner note API, record dry-run sequence schedule intents through the sequence schedule-intent API, record dry-run sequence delivery batches through the sequence delivery-batch API, record dry-run sequence queue-message evidence through the sequence delivery queue-message API, record dry-run sequence dispatch preflight evidence through the sequence dispatch preflight API, record dry-run sequence dispatch attempt receipts through the sequence dispatch attempt API, record sequence Queue producer readiness through the sequence Queue producer readiness API, record sequence Queue consumer readiness through the sequence Queue consumer readiness API, record sequence provider-call readiness through the sequence provider-call readiness API, record sequence delivery-attempt readiness through the sequence delivery-attempt readiness API, record sequence delivery-result readiness through the sequence delivery-result readiness API, record sequence delivery-status webhook readiness through the sequence delivery-status webhook readiness API, record non-destructive import intents through the import intent API, record aggregate import preflights through the import preflight API, and inspect aggregate sequence delivery and export readiness; real imports, real sequence scheduling, sends, broadcasts, Cloudflare Queue producer execution, Queue messages, queue payload bodies, delivery attempts, delivery results, status webhooks, webhook payloads, provider polling, receipt payloads, receipts, private exports, export file creation, CRM automation, and direct agent subscriber writes require future confirmed-write APIs.",
+      "This owner page can create private CRM notes through the owner note API, record dry-run sequence schedule intents through the sequence schedule-intent API, record dry-run sequence delivery batches through the sequence delivery-batch API, record dry-run sequence queue-message evidence through the sequence delivery queue-message API, record dry-run sequence dispatch preflight evidence through the sequence dispatch preflight API, record dry-run sequence dispatch attempt receipts through the sequence dispatch attempt API, record sequence Queue producer readiness through the sequence Queue producer readiness API, record sequence Queue consumer readiness through the sequence Queue consumer readiness API, record sequence provider-call readiness through the sequence provider-call readiness API, record sequence delivery-attempt readiness through the sequence delivery-attempt readiness API, record sequence delivery-result readiness through the sequence delivery-result readiness API, record sequence delivery-status webhook readiness through the sequence delivery-status webhook readiness API, record owner-only sequence test sends through the sequence test-send API, record non-destructive import intents through the import intent API, record aggregate import preflights through the import preflight API, and inspect aggregate sequence delivery and export readiness; real imports, real sequence scheduling, subscriber sends, broadcasts, Cloudflare Queue producer execution, Queue messages, queue payload bodies, delivery attempts, delivery results, status webhooks, webhook payloads, provider polling, receipt payloads, receipts, private exports, export file creation, CRM automation, and direct agent subscriber writes require future confirmed-write APIs.",
   },
   {
     id: "read-analytics-experiments",
