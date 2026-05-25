@@ -9,7 +9,7 @@ dedicated importer pages:
 - `/imports` lists supported platform paths.
 - Dedicated importer pages explain the platform-specific move.
 - `/imports/source-data` exposes platform IDs, competitor IDs, source IDs, input
-  kinds, generated private record types, API routes, safety gates, and known
+  kinds, saved private plan parts, API routes, safety gates, and known
   limitations.
 - The public `previewApiRoute` listed for each platform returns a redacted import
   review map before sign-in or private draft creation. It summarizes supplied
@@ -24,8 +24,8 @@ dedicated importer pages:
   the same platform, Free Build workspace, normalized title, and normalized
   source URL or normalized export file name.
 - The `rollback.route` listed for each platform lets the verified publisher who
-  created a private import draft archive that draft without deleting draft rows,
-  step rows, or audit rows. Archived importer drafts no longer block a fresh
+  created a private import plan archive that plan while preserving saved content,
+  steps, and audit history. Archived importer plans no longer block a fresh
   import from the same source.
 
 Imported material starts in a private Bumpgrade workspace. Public publishing,

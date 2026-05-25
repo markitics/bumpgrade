@@ -1097,7 +1097,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.redaction).toContain("Raw exports");
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
     expect(payload.commonContract.preflightReview).toContain("redacted import map");
-    expect(payload.commonContract.rollback).toContain("archive private importer-created draft funnels");
+    expect(payload.commonContract.rollback).toContain("archive private importer-created launch plans");
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([

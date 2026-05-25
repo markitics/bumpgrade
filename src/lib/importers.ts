@@ -225,7 +225,7 @@ export const importerPlatforms: ImporterPlatform[] = [
       "Go live when the page, checkout, email, product access, and domain gates are ready.",
     ],
     agentContract:
-      "Agents can read the ClickFunnels importer contract, input kinds, generated draft entity types, verified-publisher private draft API, safety gates, source IDs, and limitations from /imports/source-data. Agents must not claim live account-to-account transfer, customer password migration, live checkout migration, subscriber sends, domains, fulfillment, or public publishing from this importer.",
+      "Agents can read the ClickFunnels importer contract, input kinds, saved private plan parts, verified-publisher private draft API, safety gates, source IDs, and limitations from /imports/source-data. Agents must not claim live account-to-account transfer, customer password migration, live checkout migration, subscriber sends, domains, fulfillment, or public publishing from this importer.",
   },
   {
     id: "importer-samcart",
@@ -628,7 +628,7 @@ export const importerSourceData = {
     paidGoLiveRequired: true,
   },
   commonContract: {
-    importedContentLandsAs: "private Bumpgrade draft records",
+    importedContentLandsAs: "private Bumpgrade import plans",
     goLiveRequires: [
       "paid publisher plan where required",
       "explicit owner approval",
@@ -642,10 +642,10 @@ export const importerSourceData = {
     preflightReview:
       "Public preflight review routes return a redacted import map before private draft creation. They do not persist records, require payment, publish pages, run checkout, send subscribers, connect domains, enable fulfillment, or echo pasted source material or export file names.",
     rollback:
-      "Verified publisher rollback routes archive private importer-created draft funnels without deleting draft rows, step rows, or audit rows. Archived importer drafts are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
+      "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     safetyGates: commonImporterSafetyGates,
     redaction:
-      "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
+      "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
     liveWriteActions: importerDraftImportCapabilities,
   },
   platforms: importerPlatforms,
