@@ -5,7 +5,7 @@ export const TRUSTED_CODEX_SENDER_EMAILS = [
 ] as const;
 
 export const UNTRUSTED_CODEX_SENDER_REPLY =
-  "Thanks for your input, we've passed it on to Mark. At this time, only verified senders can steer Codex. Contact Mark if you'd like to become a verified senders.";
+  "Thanks for your input, we've passed it to the Bumpgrade owner. At this time, only verified senders can steer Codex. Contact the owner if you'd like to become a verified sender.";
 
 export type CodexSenderVerificationStatus = "trusted_authenticated" | "trusted_unverified" | "untrusted_sender";
 

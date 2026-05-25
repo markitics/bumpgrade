@@ -368,7 +368,7 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "D1 admin tables with fixture fallback in src/lib/admin-surface-data.ts",
     stableIds: ["workLogEntryId", "userJourneyId", "markAttentionId", "roadmapItemId"],
-    safeForAgents: ["Read public-safe work-log entries", "Read user journeys", "Read Mark attention summaries"],
+    safeForAgents: ["Read public-safe work-log entries", "Read user journeys", "Read owner attention summaries"],
     writeBoundary: "Human admin pages require Better Auth; agent writes need approved scripts or future confirmed APIs.",
   },
   {
@@ -394,10 +394,10 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read collapsed workstream brief signals for due, doing, next, changed-7-days, and watchlist summaries",
       "Read named recent-change digests for each director window with workstream provenance",
       "Read due-now, in-flight, pending-next, and watchlist executive queue lanes with workstream provenance",
-      "Distinguish shipped, in-flight, pending, blocked, at-risk, and needs-Mark items with evidence links",
+      "Distinguish shipped, in-flight, pending, blocked, at-risk, and owner-action items with evidence links",
     ],
     writeBoundary:
-      "This route is a read-only summary. Status changes still require updating roadmap, work-log, For-Mark, issue, PR, or future confirmed-write records.",
+      "This route is a read-only summary. Status changes still require updating roadmap, work-log, owner-attention, issue, PR, or future confirmed-write records.",
   },
   {
     id: "read-agent-manifest",
@@ -2705,7 +2705,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-admin",
     route: "/admin/source-data",
-    resolves: "Public-safe admin roadmap, work-log, user-journey, and Mark-attention records.",
+    resolves: "Public-safe admin roadmap, work-log, user-journey, and owner-attention records.",
     stableIds: ["workLogEntryId", "userJourneyId", "markAttentionId", "roadmapItemId"],
     volatileClaims: "Private notes and owner-only decisions stay behind Better Auth or approved scripts.",
   },
@@ -3677,7 +3677,7 @@ export const boilerplateBaselineEvidence: BoilerplateBaselineEvidence = {
   sourcePath: "docs/new-project-codex-boilerplate",
   adoptedShape: [
     "AGENTS.md is adapted with Bumpgrade project constants, project stack, required product surfaces, and Bumpgrade Codex email identity.",
-    "docs/working-agreements.md carries the issue/branch/PR, screenshot, validation, work-log, and Mark-attention workflow.",
+    "docs/working-agreements.md carries the issue/branch/PR, screenshot, validation, work-log, and owner-attention workflow.",
     "docs/agent/* carries admin-surface, agent-ready, screenshot, work-log, and user-journey rules.",
     "docs/keep-working/* carries the repo-tracked goal-runner and status-update skills.",
     "public/llms.txt points agents to current Bumpgrade feature, roadmap, comparison, commerce, admin, and agent-doc routes.",

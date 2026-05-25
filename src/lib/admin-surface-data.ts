@@ -129,6 +129,30 @@ export type AdminSurfaceData = {
   attentionItems: MarkAttentionItem[];
 };
 
+export type PublicAdminWorkLogEntry = Omit<AdminWorkLogEntry, "promptFromMark"> & {
+  ownerRequest: string;
+};
+
+export type PublicAdminSurfaceData = Omit<AdminSurfaceData, "workLogEntries"> & {
+  workLogEntries: PublicAdminWorkLogEntry[];
+};
+
+export function toPublicAdminWorkLogEntry(entry: AdminWorkLogEntry): PublicAdminWorkLogEntry {
+  const { promptFromMark, ...publicEntry } = entry;
+
+  return {
+    ...publicEntry,
+    ownerRequest: ownerSafeRequestText(promptFromMark),
+  };
+}
+
+export function toPublicAdminSurfaceData(data: AdminSurfaceData): PublicAdminSurfaceData {
+  return {
+    ...data,
+    workLogEntries: data.workLogEntries.map(toPublicAdminWorkLogEntry),
+  };
+}
+
 export function summarizeUserJourneyProof(userJourneys: AdminUserJourney[]): AdminUserJourneyProofSummary {
   let latestTimestamp = 0;
 
@@ -271,6 +295,23 @@ function normalizeRelevantUrls(value: string | null | undefined): string[] {
     .filter((item) => item.length > 0);
 }
 
+function ownerSafeRequestText(value: string): string {
+  return value
+    .replace(/\bFor-Mark\b/g, "Owner-attention")
+    .replace(/\bfor-Mark\b/g, "owner-attention")
+    .replace(/\bMark-attention\b/g, "owner-attention")
+    .replace(/\bMark attention\b/g, "owner attention")
+    .replace(/\bMark asked to\b/g, "Owner requested to")
+    .replace(/\bMark asked for\b/g, "Owner requested")
+    .replace(/\bMark asked\b/g, "Owner requested")
+    .replace(/\bMark-facing\b/g, "Owner-facing")
+    .replace(/\bMark\b/g, "the owner");
+}
+
+function ownerSafeRequestTexts(values: string[]): string[] {
+  return values.map(ownerSafeRequestText);
+}
+
 const launchProofUpdatedAt = "2026-05-20T14:31:00.000Z";
 const issue217PrUrl = "https://github.com/markitics/bumpgrade/pull/218";
 const issue217CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26155451076";
@@ -342,22 +383,22 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-mark-reviews-nonblocking-attention": {
     status: "passed",
     lastTestedAt: journeyProofRefreshAt,
-    environment: "Production source-data routes, merged PRs #241 and #244, and deployed admin/for-Mark screenshots.",
-    method: "For-Mark source-data smoke, admin source-data smoke, user-journey proof summary smoke, and screenshot evidence for response channels.",
+    environment: "Production source-data routes, merged PRs #241 and #244, and deployed owner-attention screenshots.",
+    method: "Owner-attention source-data smoke, admin source-data smoke, user-journey proof summary smoke, and screenshot evidence for response channels.",
     summary:
-      "Mark-facing attention is now explicit about read-only page behavior, GitHub issue response paths, project email, and durable work-log evidence.",
+      "Owner attention is now explicit about read-only page behavior, GitHub issue response paths, project email, and durable work-log evidence.",
     ciLinks: [
       { label: "PR #241 CI run", url: issue240CiRunUrl, kind: "ci" },
       { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
-      { label: "For-Mark response channels", url: "https://bumpgrade.com/pr-screenshots/issue-73-for-mark-response-channels.png", kind: "screenshot" },
-      { label: "For-Mark email auth", url: "https://bumpgrade.com/pr-screenshots/issue-61-for-mark-email-auth.png", kind: "screenshot" },
+      { label: "Owner-attention response channels", url: "https://bumpgrade.com/pr-screenshots/issue-73-for-mark-response-channels.png", kind: "screenshot" },
+      { label: "Owner-attention email auth", url: "https://bumpgrade.com/pr-screenshots/issue-61-for-mark-email-auth.png", kind: "screenshot" },
       { label: "User-journey proof matrix", url: "https://bumpgrade.com/pr-screenshots/issue-240-user-journeys-proof-matrix.png", kind: "screenshot" },
     ],
     validationLinks: [
-      { label: "For-Mark source data", url: "https://bumpgrade.com/admin/for-mark/source-data", kind: "source-data" },
+      { label: "Owner-attention source data", url: "https://bumpgrade.com/admin/for-mark/source-data", kind: "source-data" },
       { label: "Admin source data", url: "https://bumpgrade.com/admin/source-data", kind: "source-data" },
       { label: "PR #241", url: issue240PrUrl, kind: "pr" },
       { label: "PR #244", url: issue244PrUrl, kind: "pr" },
@@ -408,7 +449,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Signed-in admin", url: "https://bumpgrade.com/pr-screenshots/issue-9-admin-signed-in-desktop.png", kind: "screenshot" },
       { label: "Admin locked mobile", url: "https://bumpgrade.com/pr-screenshots/issue-9-admin-locked-mobile.png", kind: "screenshot" },
       { label: "Authenticated admin nav", url: "https://bumpgrade.com/pr-screenshots/issue-70-authenticated-admin-nav.png", kind: "screenshot" },
-      { label: "Auth-aware For Mark nav", url: "https://bumpgrade.com/pr-screenshots/issue-97-auth-aware-nav-for-mark.png", kind: "screenshot" },
+      { label: "Auth-aware owner-attention nav", url: "https://bumpgrade.com/pr-screenshots/issue-97-auth-aware-nav-for-mark.png", kind: "screenshot" },
     ],
     validationLinks: [
       { label: "Login", url: "https://bumpgrade.com/login", kind: "route" },
@@ -508,7 +549,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     notes: [
       "Production checkout POST interception in PR #244 verified payload behavior without creating real checkout records.",
-      "Live self-serve checkout is intentionally parked in issue #219 until Mark confirms product, amount, and rollout.",
+      "Live self-serve checkout is intentionally parked in issue #219 until the owner confirms product, amount, and rollout.",
     ],
   },
   "journey-prospect-explores-launch-marketing": {
@@ -889,6 +930,46 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
   {
+    id: "work-log-2026-05-25-public-copy-cleanup",
+    title: "Cleaned public copy and source-data note phrasing",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-public-copy-cleanup",
+    promptFromMark:
+      "Owner requested that public/product surfaces stop reading like private notes, placeholders, or implementation commentary while preserving honest agent-readable contracts.",
+    githubIssues: [{ number: 468, url: "https://github.com/markitics/bumpgrade/issues/468" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/features/source-data",
+      "https://bumpgrade.com/content/source-data",
+      "https://bumpgrade.com/roadmap/source-data",
+      "https://bumpgrade.com/agent-docs/source-data",
+    ],
+    roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
+    userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys/source-data"],
+    documentationUpdated: ["docs/agent/admin-surfaces.md"],
+    validation: [
+      "npm run typecheck",
+      "npm run lint",
+      "npm run test:runtime-secrets",
+      "npm run db:migrate:local",
+      "Next dev route smoke of public-safe source-data banned-copy guard for /features/source-data, /roadmap/source-data, /content/source-data, /agent-docs/source-data, /agent-docs/bumpgrade-admin-surfaces, /admin/source-data, /admin/director/source-data, /admin/work-log/source-data, /admin/user-journeys/source-data, and /admin/for-mark/source-data",
+      "git diff --check",
+    ],
+    flagsAttention:
+      "This is a focused first pass for issue #468: public source-data now has a regression guard for exact placeholder/private-note phrases. Local Worker-preview Playwright validation was blocked by OpenNext/Next missing-artifact churn in this checkout and should be rechecked through branch CI.",
+    firstPromptAt: "2026-05-25T10:51:00.000Z",
+    completedAt: "2026-05-25T10:55:12.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/468",
+      "https://bumpgrade.com/features/source-data",
+      "https://bumpgrade.com/content/source-data",
+      "https://bumpgrade.com/roadmap/source-data",
+      "https://bumpgrade.com/agent-docs/source-data",
+    ],
+    prCommentUrl: null,
+  },
+  {
     id: "work-log-2026-05-25-agent-funnel-archived-purge",
     title: "Added owner-session agent archived draft purge",
     agentName: "Codex",
@@ -1246,7 +1327,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     agentKind: "codex",
     sessionName: "bumpgrade-launch-readiness",
     promptFromMark:
-      "Mark asked to make the public homepage, features, feature detail pages, pricing, and user-journey proof feel ready before inviting people to try Bumpgrade.",
+      "Owner requested that the public homepage, features, feature detail pages, pricing, and user-journey proof feel ready before inviting people to try Bumpgrade.",
     githubIssues: [{ number: 217, url: "https://github.com/markitics/bumpgrade/issues/217" }],
     closedPrs: [],
     featuresUpdated: [
@@ -1286,7 +1367,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     agentName: "Codex",
     agentKind: "codex",
     sessionName: "bumpgrade-bootstrap",
-    promptFromMark: "Mark asked for a public roadmap inspired by the main feature set and for admin surfaces to stay current.",
+    promptFromMark: "Owner requested a public roadmap inspired by the main feature set and for admin surfaces to stay current.",
     githubIssues: [{ number: 7, url: "https://github.com/markitics/bumpgrade/issues/7" }],
     closedPrs: [{ number: 27, url: "https://github.com/markitics/bumpgrade/pull/27" }],
     featuresUpdated: ["https://bumpgrade.com/roadmap", "https://bumpgrade.com/roadmap/source-data"],
@@ -1349,10 +1430,10 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureId: "feature-public-roadmap",
     featureStatus: "live",
     issueNumbers: [7, 8],
-    primaryUser: "Future agent resuming Bumpgrade work",
+    primaryUser: "Agent resuming Bumpgrade work",
     userGoal: "Recover shipped, active, blocked, next, and planned state without reading chat history.",
     sourceEvidence: ["https://bumpgrade.com/roadmap/source-data", "https://github.com/markitics/bumpgrade/pull/27"],
-    happyPath: ["Fetch /roadmap/source-data.", "Find item IDs, statuses, issue links, evidence, and Mark-attention caveats.", "Continue the next issue without inventing state."],
+    happyPath: ["Fetch /roadmap/source-data.", "Find item IDs, statuses, issue links, evidence, and owner-attention caveats.", "Continue the next issue without inventing state."],
     edgeCases: ["D1 may be unavailable locally, so pages can show fixture fallback.", "Private admin notes must not leak into public roadmap JSON."],
     agentAccess: "Agents can read the public-safe source data; writes must use approved D1 scripts or future confirmed APIs.",
     validation: ["/roadmap/source-data live smoke returned 200 JSON.", "Playwright test asserts stable roadmap records."],
@@ -1403,8 +1484,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureId: "feature-better-auth",
     featureStatus: "live",
     issueNumbers: [9, 10, 55],
-    primaryUser: "Mark as Bumpgrade owner",
-    userGoal: "Sign in with a Bumpgrade owner account before viewing private admin roadmap, work-log, user-journey, or for-Mark pages.",
+    primaryUser: "Bumpgrade owner",
+    userGoal: "Sign in with a Bumpgrade owner account before viewing private admin roadmap, work-log, user-journey, or owner-attention pages.",
     sourceEvidence: ["https://bumpgrade.com/login", "https://bumpgrade.com/admin/roadmap", "https://github.com/markitics/bumpgrade/issues/9", "https://github.com/markitics/bumpgrade/issues/55"],
     happyPath: ["Open /login.", "Create or sign in to a Bumpgrade account.", "Open an admin route.", "If the owner email is verified and allowlisted, view the private admin page.", "If the owner email is not verified, use the Gmail or resend actions instead of seeing a raw denial string."],
     edgeCases: ["Cloudflare Email Sending may reject account confirmation mail and must return an actionable browser error.", "Recent verification sends hold a 120 second resend cooldown.", "Agent-readable source-data routes stay public-safe and should not carry private notes or secrets."],
@@ -1778,7 +1859,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     featureStatus: "launch-preview",
     issueNumbers: [414, 13, 67, 68, 153, 155, 157],
     primaryUser: "Publisher away from desktop",
-    userGoal: "Open the future Bumpgrade mobile app to check Director workstreams, roadmap, work-log, for-Mark attention, commerce health, owner-session boundaries, confirmed-action requirements, push readiness, and distribution readiness without separate mobile-only semantics.",
+    userGoal: "Open the future Bumpgrade mobile app to check Director workstreams, roadmap, work-log, owner attention, commerce health, owner-session boundaries, confirmed-action requirements, push readiness, and distribution readiness without separate mobile-only semantics.",
     sourceEvidence: [
       "https://bumpgrade.com/mobile-admin/source-data",
       "https://bumpgrade.com/mobile-admin/dashboard/source-data",
@@ -3246,15 +3327,15 @@ function attentionWithResponseChannels(item: MarkAttentionItem): MarkAttentionIt
 function roadmapFromRow(row: D1RoadmapRow): AdminRoadmapRecord {
   return {
     id: row.id,
-    title: row.title,
+    title: ownerSafeRequestText(row.title),
     status: row.status,
     issueNumber: row.issue_number,
     featureId: row.feature_id,
-    groupName: row.group_name,
-    summary: row.summary,
-    publicEvidence: parseJson<string[]>(row.public_evidence_json, []),
-    nextMilestone: row.next_milestone,
-    markAttention: row.mark_attention,
+    groupName: ownerSafeRequestText(row.group_name),
+    summary: ownerSafeRequestText(row.summary),
+    publicEvidence: ownerSafeRequestTexts(parseJson<string[]>(row.public_evidence_json, [])),
+    nextMilestone: ownerSafeRequestText(row.next_milestone),
+    markAttention: row.mark_attention ? ownerSafeRequestText(row.mark_attention) : null,
     sortOrder: row.sort_order,
     updatedAt: isoFromSeconds(row.updated_at),
   };
@@ -3267,7 +3348,7 @@ function workLogFromRow(row: D1WorkLogRow): AdminWorkLogEntry {
     agentName: row.agent_name,
     agentKind: row.agent_kind,
     sessionName: row.session_name,
-    promptFromMark: row.prompt_from_mark,
+    promptFromMark: ownerSafeRequestText(row.prompt_from_mark),
     githubIssues: parseJson<AdminLink[]>(row.github_issues_json, []),
     closedPrs: parseJson<AdminLink[]>(row.closed_prs_json, []),
     featuresUpdated: parseJson<string[]>(row.features_updated_json, []),
@@ -3286,17 +3367,17 @@ function workLogFromRow(row: D1WorkLogRow): AdminWorkLogEntry {
 function journeyFromRow(row: D1JourneyRow): AdminUserJourney {
   return {
     id: row.id,
-    title: row.title,
+    title: ownerSafeRequestText(row.title),
     featureId: row.feature_id,
     featureStatus: row.feature_status,
     issueNumbers: parseJson<number[]>(row.issue_numbers_json, []),
-    primaryUser: row.primary_user,
-    userGoal: row.user_goal,
-    sourceEvidence: parseJson<string[]>(row.source_evidence_json, []),
-    happyPath: parseJson<string[]>(row.happy_path_json, []),
-    edgeCases: parseJson<string[]>(row.edge_cases_json, []),
-    agentAccess: row.agent_access,
-    validation: parseJson<string[]>(row.validation_json, []),
+    primaryUser: ownerSafeRequestText(row.primary_user),
+    userGoal: ownerSafeRequestText(row.user_goal),
+    sourceEvidence: ownerSafeRequestTexts(parseJson<string[]>(row.source_evidence_json, [])),
+    happyPath: ownerSafeRequestTexts(parseJson<string[]>(row.happy_path_json, [])),
+    edgeCases: ownerSafeRequestTexts(parseJson<string[]>(row.edge_cases_json, [])),
+    agentAccess: ownerSafeRequestText(row.agent_access),
+    validation: ownerSafeRequestTexts(parseJson<string[]>(row.validation_json, [])),
     proof: createJourneyProof(row.id, row.feature_id),
     sortOrder: row.sort_order,
     updatedAt: isoFromSeconds(row.updated_at),
@@ -3324,16 +3405,20 @@ function attentionFromRow(row: D1AttentionRow): MarkAttentionItem {
     category: row.category,
     state: row.state,
     urgency: row.urgency,
-    title: row.title,
-    summary: row.summary,
-    details: row.details,
-    requiredAction: row.required_action,
-    responseInstructions: row.response_instructions,
+    title: ownerSafeRequestText(row.title),
+    summary: ownerSafeRequestText(row.summary),
+    details: row.details ? ownerSafeRequestText(row.details) : null,
+    requiredAction: row.required_action ? ownerSafeRequestText(row.required_action) : null,
+    responseInstructions: row.response_instructions ? ownerSafeRequestText(row.response_instructions) : null,
     sessionName: row.session_name,
     sessionEmail: row.session_email,
     sourceAgent: row.source_agent,
     sourceKind: row.source_kind,
-    links: parseJson<AdminLink[]>(row.links_json, []),
+    links: parseJson<AdminLink[]>(row.links_json, []).map((link) => ({
+      ...link,
+      label: link.label ? ownerSafeRequestText(link.label) : link.label,
+      title: link.title ? ownerSafeRequestText(link.title) : link.title,
+    })),
     metadata: parseJson<Record<string, unknown>>(row.metadata_json, {}),
     lastActivityAt: isoFromRequiredSeconds(row.last_activity_at),
     createdAt: isoFromRequiredSeconds(row.created_at),

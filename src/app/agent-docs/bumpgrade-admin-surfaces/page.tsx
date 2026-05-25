@@ -33,7 +33,7 @@ export default function AdminSurfacesAgentDocPage() {
           <p className="eyebrow">Agent docs</p>
           <h1>Admin pages are owner-gated; admin source data is public-safe.</h1>
           <p className="lede">
-            Agents should read the director dashboard, admin roadmap, work-log, journey, Mark-attention, draft-funnel, and product-entitlement
+            Agents should read the director dashboard, admin roadmap, work-log, journey, owner-attention, draft-funnel, and product-entitlement
             capability state from source-data contracts. Browser-rendered admin pages require Better Auth owner sessions
             and are not a shortcut around permissions. The director contract includes due-now, in-flight,
             pending-next, and watchlist queue lanes plus recent-change digests with workstream provenance for
@@ -144,7 +144,7 @@ export default function AdminSurfacesAgentDocPage() {
           <div>
             <LockKeyhole aria-hidden="true" />
             <h3>Private UI</h3>
-            <p>Owner pages are for Mark and authenticated admins, not anonymous agent scraping.</p>
+            <p>Owner pages are for authenticated admins, not anonymous agent scraping.</p>
           </div>
           <div>
             <Route aria-hidden="true" />

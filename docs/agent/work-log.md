@@ -1,8 +1,8 @@
 # Work Log
 
 `/admin/work-log` is the durable diary of how agents used their time. It is for
-Mark and future agents. It should answer: what changed, why, where, how it was
-validated, and what remains.
+the Bumpgrade owner and Bumpgrade agents. It should answer: what changed, why,
+where, how it was validated, and what remains.
 
 Add one entry after a substantive work burst, typically after shipping a
 feature, merging a PR, moving roadmap state, parking an important blocker, or
@@ -34,7 +34,7 @@ Every entry should include:
 - `agentName`: `Codex`, `Claude`, or the actual agent name.
 - `agentKind`: `codex`, `claude`, `chatgpt`, `human`, or similar.
 - `sessionName`: stable session name if known.
-- `promptFromMark`: summary of Mark's ask.
+- `promptFromMark`: owner request summary used by the current storage script.
 - `githubIssues`: issue links touched, created, closed, or moved.
 - `closedPrs`: PR links covered by this entry.
 - `featuresUpdated`: `/features` entries changed.
@@ -55,7 +55,7 @@ Every entry should include:
   "agentName": "Codex",
   "agentKind": "codex",
   "sessionName": "Feature Catalog",
-  "promptFromMark": "Mark asked for a public /features page that shows live and pending Bumpgrade features with roadmap links.",
+  "promptFromMark": "Owner requested a public /features page that shows live and pending Bumpgrade features with roadmap links.",
   "githubIssues": [
     {
       "number": 12,

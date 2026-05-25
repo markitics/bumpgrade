@@ -122,8 +122,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Admin work-log source data: https://bumpgrade.com/admin/work-log/source-data
 - Admin user journeys: https://bumpgrade.com/admin/user-journeys (human page requires Better Auth owner session)
 - Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
-- Mark attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
-- Mark attention source data: https://bumpgrade.com/admin/for-mark/source-data
+- Owner attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
+- Owner attention source data: https://bumpgrade.com/admin/for-mark/source-data
 - Codex project email workflow: tracked by issue #10, stored in D1 tables
   `codex_outbound_messages` and `codex_inbound_messages`, with raw inbound MIME
   stored in private R2 bucket `bumpgrade-mail`.
@@ -561,7 +561,7 @@ Keep this section synchronized with `/admin/roadmap`.
 - Feature and roadmap status read access.
 - Work-log read access.
 - User-journey read access.
-- Public-safe admin source-data reads for roadmap, work log, user journeys, and Mark attention.
+- Public-safe admin source-data reads for roadmap, work log, user journeys, and owner attention.
 - Better Auth publisher accounts and owner-gated private admin pages.
 - Competitor research and comparison-claim read access.
 - Funnel, offer, checkout, product, audience automation, analytics, experiments,

@@ -7,7 +7,7 @@ import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getAdminSurfaceData } from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
-  title: "For Mark",
+  title: "Owner attention",
   description: "Bumpgrade owner attention items stored in D1 admin records.",
 };
 
@@ -25,7 +25,7 @@ export default async function ForMarkPage() {
     <main className="roadmap-page admin-roadmap-page">
       <section className="roadmap-hero">
         <div>
-          <p className="eyebrow">For Mark</p>
+          <p className="eyebrow">Owner attention</p>
           <h1>Non-blocking attention items live in D1.</h1>
           <p className="lede">
             Agents should keep moving when a decision or blocker does not need to stop the current issue slice.
@@ -43,7 +43,7 @@ export default async function ForMarkPage() {
             </Link>
           </div>
         </div>
-        <aside className="roadmap-status-panel" aria-label="For Mark status summary">
+        <aside className="roadmap-status-panel" aria-label="Owner attention status summary">
           <Mail aria-hidden="true" />
           <p>{data.source === "fixture" ? "Fixture fallback" : "D1 attention queue"}</p>
           <strong>{openItems.length} open</strong>

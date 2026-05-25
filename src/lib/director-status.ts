@@ -237,7 +237,7 @@ const workstreamConfig: Record<
   "operations-control": {
     title: "Operations / Project Control",
     executiveOwner: "COO brief",
-    description: "Roadmap, work-log, For-Mark queue, director dashboard, decisions, blockers, and project hygiene.",
+    description: "Roadmap, work-log, owner-attention queue, director dashboard, decisions, blockers, and project hygiene.",
     groupNames: ["Roadmap", "Operations", "Admin and operations"],
   },
 };
@@ -574,7 +574,7 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
   const dueNow = dedupeQueueItems(
     workstreams.flatMap((workstream) => [
       ...workstream.needsMark.map((item) =>
-        queueItem(workstream, item, "high", "Needs Mark", "Open decision or attention item."),
+        queueItem(workstream, item, "high", "Needs owner action", "Open decision or attention item."),
       ),
       ...workstream.blocked.map((item) => queueItem(workstream, item, "high", "Blocked", "Blocked roadmap item.")),
     ]),
@@ -603,7 +603,7 @@ function buildExecutiveQueue(workstreams: DirectorWorkstream[]): DirectorQueueLa
     {
       id: "due-now",
       label: "Due now",
-      summary: "Current For-Mark decisions, roadmap blockers, and roadmap attention items to handle before more feature throughput.",
+      summary: "Current owner decisions, roadmap blockers, and roadmap attention items to handle before more feature throughput.",
       items: dueNow,
     },
     {
@@ -857,10 +857,10 @@ export function buildDirectorStatusData(data: AdminSurfaceData, now = new Date()
     emailPolicy: {
       mode: "digest-first",
       summary:
-        "Niche technical ships should roll into director status, source-data, PR comments, and work-log evidence unless Mark-visible action is needed.",
+        "Niche technical ships should roll into director status, source-data, PR comments, and work-log evidence unless owner-visible action is needed.",
       immediateEmailOnlyFor: [
         "User-visible launches or production incidents",
-        "Blocked work requiring Mark action",
+        "Blocked work requiring owner action",
         "Security, billing, auth, deploy, or data-risk changes",
         "Explicitly requested shipped notices",
       ],

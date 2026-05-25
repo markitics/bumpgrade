@@ -1,7 +1,8 @@
 # Admin And Public Surfaces
 
-Bumpgrade should make product state visible to Mark and future agents. These
-routes are not optional housekeeping; they are how parallel work stays coherent.
+Bumpgrade should make product state visible to the Bumpgrade owner and
+Bumpgrade agents. These routes are not optional housekeeping; they are how
+parallel work stays coherent.
 
 ## Public `/features`
 
@@ -27,15 +28,15 @@ Rules:
 
 ## Admin `/admin/director`
 
-Purpose: give Mark a director-level one-pager above the work-log noise. The page
-groups roadmap, work-log, and Mark-attention evidence into expandable
+Purpose: give the owner a director-level one-pager above the work-log noise. The
+page groups roadmap, work-log, and owner-attention evidence into expandable
 workstreams such as Marketing, Product / Commerce, Audience / Email,
 Analytics / Growth, Mobile Admin, Agent Readiness, Security / Trust,
 Infrastructure, and Operations / Project Control.
 
 Use this page for "what changed in the past day/week", "what is in flight",
-"what is blocked or at risk", and "what needs Mark". Treat `/admin/work-log` as
-the audit trail behind the director summary.
+"what is blocked or at risk", and "what needs owner action". Treat
+`/admin/work-log` as the audit trail behind the director summary.
 
 Each recent-change window should include both counts and a compact digest of the
 named work-log changes in that window. Agents should cite those digest records
@@ -56,15 +57,15 @@ turning the one-pager into another long audit report.
 Issue #448 adds a first-read briefing layer above the detailed rows. The
 browser and source-data contract should expose four stable controls: `Past 1
 day`, `Past 7 days`, `Executive queue`, and `Workstream map`. Use these controls
-when Mark asks what changed recently or wants the CMO/CISO/product-lead summary
-without reading every individual work-log entry.
+when the owner asks what changed recently or wants the CMO/CISO/product-lead
+summary without reading every individual work-log entry.
 
 The director source-data route also exposes an `executiveQueue` with stable
 lanes for `due-now`, `in-flight`, `pending-next`, and `watchlist`. Each queue
 item keeps its workstream ID/title and evidence links so agents and mobile
 dashboards can show the CEO-level queue without flattening Marketing, Security,
 Operations, Product, or other major categories. `due-now` is intentionally
-stateful: it comes from open/read Mark-attention records, blocked roadmap items,
+stateful: it comes from open/read owner-attention records, blocked roadmap items,
 and non-live roadmap `markAttention` records. Historical work-log
 `flagsAttention` rows stay in recent-change and window evidence, but they should
 not inflate current due-now decisions. `markAttention` on already-live roadmap
@@ -76,8 +77,8 @@ presented as due today.
 Purpose: show the main feature set, status, owners/agents, issue/PR links, and
 blockers.
 
-Current implementation note: issue #8 added D1 tables for roadmap, work-log,
-user-journey, and Mark-attention records. The pages read D1 when available and
+Current shipped boundary: issue #8 added D1 tables for roadmap, work-log,
+user-journey, and owner-attention records. The pages read D1 when available and
 fall back to public-safe code fixtures during local development or before a
 fresh database has migrations applied.
 
@@ -126,7 +127,7 @@ Use it after:
 - closing or moving a roadmap item;
 - finishing a long work burst;
 - parking an important blocker;
-- making a significant decision that future agents should see.
+- making a significant decision that Bumpgrade agents should see.
 
 See `docs/agent/work-log.md` for the entry shape.
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getAdminSurfaceData } from "@/lib/admin-surface-data";
+import { getAdminSurfaceData, toPublicAdminWorkLogEntry } from "@/lib/admin-surface-data";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -11,6 +11,6 @@ export async function GET() {
     id: "bumpgrade-admin-work-log-source-data",
     source: data.source,
     loadError: data.loadError,
-    entries: data.workLogEntries,
+    entries: data.workLogEntries.map(toPublicAdminWorkLogEntry),
   });
 }
