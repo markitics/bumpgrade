@@ -2933,7 +2933,7 @@ export default async function AdminAudiencePage() {
                   <span className="admin-pill">{testSend.providerOk ? "accepted" : "failed"}</span>
                 </div>
                 <MailCheck aria-hidden="true" />
-                <h3>{testSend.subjectLine}</h3>
+                <h3>Owner test: {testSend.subjectLine}</h3>
                 <p>{testSend.previewText}</p>
                 <div className="roadmap-detail">
                   <strong>Recipient scope</strong>
