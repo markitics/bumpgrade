@@ -116,7 +116,7 @@ export const featureCatalog: FeatureRecord[] = [
     expectedCapabilities: [
       "Dedicated importer paths with a reusable platform-aware importer contract.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
-      "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL match.",
+      "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
       "Dedicated importer pages for first-wave competitor platforms.",
       "Agent-readable importer metadata at `/imports/source-data`.",
       "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",

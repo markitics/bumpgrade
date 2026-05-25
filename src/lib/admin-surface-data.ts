@@ -417,7 +417,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "Private draft creation is live for verified publishers on dedicated importer paths; source-match duplicate review now reuses matching private drafts by platform, workspace, normalized title, and source URL. Rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
+      "Private draft creation is live for verified publishers on dedicated importer paths; source-match duplicate review now reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1708,7 +1708,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, generated private record types, safety gates, source IDs, limitations, and private import API routes. Creating a private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, duplicate-review fields, generated private record types, safety gates, source IDs, limitations, and private import API routes. Creating a private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
       "Issue #467 adds /imports, /imports/clickfunnels, /imports/source-data, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
       "Private importer APIs create or reuse a Free Build workspace and save a private D1 funnel draft with no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",

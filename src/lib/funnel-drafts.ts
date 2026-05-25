@@ -747,6 +747,7 @@ export type CompetitorImportedDraftInput = {
   audience: string;
   launchGoal: string;
   sourceUrls: string[];
+  sourceFileNames: string[];
   pageCopy: string;
   followUpNotes: string;
   idempotencyKey: string;
@@ -808,7 +809,14 @@ function importedCompetitorSteps(
   draftId: string,
   input: Pick<
     CompetitorImportedDraftInput,
-    "platformName" | "offerTitle" | "audience" | "launchGoal" | "sourceUrls" | "pageCopy" | "followUpNotes"
+    | "platformName"
+    | "offerTitle"
+    | "audience"
+    | "launchGoal"
+    | "sourceUrls"
+    | "sourceFileNames"
+    | "pageCopy"
+    | "followUpNotes"
   >,
 ): DraftFunnelStepRecord[] {
   const platformName = compactImportText(input.platformName, 80) || "current platform";
@@ -818,6 +826,9 @@ function importedCompetitorSteps(
   const sourceUrlSummary = input.sourceUrls.length
     ? `Imported starting URLs: ${input.sourceUrls.join(", ")}.`
     : "No public source URL was attached to this import.";
+  const sourceFileSummary = input.sourceFileNames.length
+    ? `Export file names noted for private duplicate review: ${input.sourceFileNames.join(", ")}.`
+    : "No export file name was attached to this import.";
   const pageCopy =
     compactImportText(input.pageCopy, 900) ||
     "Review the imported source material, then refine the page copy before publishing.";
@@ -878,7 +889,7 @@ function importedCompetitorSteps(
           `${draftId}-block-sales-proof`,
           "proof",
           "Source material to verify",
-          `${sourceUrlSummary} Review screenshots, examples, testimonials, guarantees, and claims before any public page uses them.`,
+          `${sourceUrlSummary} ${sourceFileSummary} Review screenshots, examples, testimonials, guarantees, and claims before any public page uses them.`,
           true,
         ),
         importedBlock(
@@ -952,6 +963,21 @@ function normalizeImportSourceUrlForMatch(value: string) {
   }
 }
 
+function normalizeImportSourceFileNameForMatch(value: string) {
+  const filename = value.trim().replace(/\\/g, "/").split("/").filter(Boolean).at(-1) ?? "";
+  if (!filename) return null;
+
+  const normalized = filename
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 200);
+
+  return normalized || null;
+}
+
 function stringArrayMetadata(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
 }
@@ -963,7 +989,7 @@ function duplicateReviewFor(
 ): ImporterDuplicateReview {
   return {
     status,
-    checkedFields: ["source_platform", "target_workspace", "normalized_title", "source_url"],
+    checkedFields: ["source_platform", "target_workspace", "normalized_title", "source_url", "source_file_name"],
     matchedFields,
     createsNewDraft: status === "created",
     reusesExistingDraft: status !== "created",
@@ -981,11 +1007,15 @@ async function findImporterSourceMatchDraft(
     tenantId: string;
     offerTitle: string;
     sourceUrls: string[];
+    sourceFileNames: string[];
   },
 ) {
   const normalizedTitle = normalizeImportTitleForMatch(input.offerTitle);
   const normalizedSourceUrls = input.sourceUrls.map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url));
-  if (!normalizedTitle || normalizedSourceUrls.length === 0) return null;
+  const normalizedSourceFileNames = input.sourceFileNames
+    .map(normalizeImportSourceFileNameForMatch)
+    .filter((name): name is string => Boolean(name));
+  if (!normalizedTitle || (normalizedSourceUrls.length === 0 && normalizedSourceFileNames.length === 0)) return null;
 
   const rows = await db
     .prepare(
@@ -1001,6 +1031,7 @@ async function findImporterSourceMatchDraft(
     .all<D1FunnelDraftRow>();
 
   const incomingSourceUrls = new Set(normalizedSourceUrls);
+  const incomingSourceFileNames = new Set(normalizedSourceFileNames);
   for (const row of rows.results ?? []) {
     const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
     const rowPlatformId = typeof metadata.importerPlatformId === "string" ? metadata.importerPlatformId : "";
@@ -1019,13 +1050,26 @@ async function findImporterSourceMatchDraft(
         : stringArrayMetadata(metadata.sourceUrls).map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url))
     );
     const hasSourceUrlMatch = rowSourceUrls.some((url) => incomingSourceUrls.has(url));
-    if (!hasSourceUrlMatch) continue;
+    const rowSourceFileNames = (
+      stringArrayMetadata(metadata.normalizedSourceFileNames).length
+        ? stringArrayMetadata(metadata.normalizedSourceFileNames)
+        : stringArrayMetadata(metadata.sourceFileNames)
+            .map(normalizeImportSourceFileNameForMatch)
+            .filter((name): name is string => Boolean(name))
+    );
+    const hasSourceFileNameMatch = rowSourceFileNames.some((name) => incomingSourceFileNames.has(name));
+    if (!hasSourceUrlMatch && !hasSourceFileNameMatch) continue;
+
+    const matchedFields = ["source_platform", "target_workspace", "normalized_title"];
+    if (hasSourceUrlMatch) matchedFields.push("source_url");
+    if (hasSourceFileNameMatch) matchedFields.push("source_file_name");
 
     return {
       draft: draftFromRow(row, await loadDraftStepsFromD1(db, row.id)),
       normalizedTitle,
       normalizedSourceUrlCount: normalizedSourceUrls.length,
-      matchedFields: ["source_platform", "target_workspace", "normalized_title", "source_url"],
+      normalizedSourceFileNameCount: normalizedSourceFileNames.length,
+      matchedFields,
     };
   }
 
@@ -1178,12 +1222,16 @@ export async function createCompetitorImportedDraftFunnel(
   const baseTitle = compactImportText(input.offerTitle, 120) || `${platformName} import draft`;
   const normalizedOfferTitle = normalizeImportTitleForMatch(baseTitle);
   const normalizedSourceUrls = input.sourceUrls.map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url));
+  const normalizedSourceFileNames = input.sourceFileNames
+    .map(normalizeImportSourceFileNameForMatch)
+    .filter((name): name is string => Boolean(name));
   const sourceMatch = await findImporterSourceMatchDraft(db, {
     ownerUserId: owner.userId,
     importerPlatformId,
     tenantId: input.tenantId,
     offerTitle: baseTitle,
     sourceUrls: input.sourceUrls,
+    sourceFileNames: input.sourceFileNames,
   });
   if (sourceMatch) {
     await insertAuditStatement(
@@ -1200,9 +1248,10 @@ export async function createCompetitorImportedDraftFunnel(
         importerIssue,
         tenantId: input.tenantId,
         duplicateReviewStatus: "source_match_reused",
-        duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url",
+        duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url_or_source_file_name",
         matchedFields: sourceMatch.matchedFields,
         matchedSourceUrlCount: sourceMatch.normalizedSourceUrlCount,
+        matchedSourceFileNameCount: sourceMatch.normalizedSourceFileNameCount,
         privateDraftOnly: true,
         responseRedacted: true,
         rawSourceEchoed: false,
@@ -1212,7 +1261,8 @@ export async function createCompetitorImportedDraftFunnel(
     return {
       draft: sourceMatch.draft,
       duplicateReview: duplicateReviewFor("source_match_reused", sourceMatch.matchedFields, {
-        sourceUrlCompared: true,
+        sourceUrlCompared: normalizedSourceUrls.length > 0,
+        sourceFileNameCompared: normalizedSourceFileNames.length > 0,
       }),
     };
   }
@@ -1250,11 +1300,14 @@ export async function createCompetitorImportedDraftFunnel(
       importerIssue,
       tenantId: input.tenantId,
       duplicateReviewStatus: "created",
-      duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url",
+      duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url_or_source_file_name",
       normalizedOfferTitle,
       normalizedSourceUrls,
+      normalizedSourceFileNames,
       sourceUrlCount: input.sourceUrls.length,
+      sourceFileNameCount: input.sourceFileNames.length,
       sourceUrls: input.sourceUrls,
+      sourceFileNames: input.sourceFileNames,
       pastedCopyLength: input.pageCopy.trim().length,
       followUpNotesLength: input.followUpNotes.trim().length,
       privateDraftOnly: true,
@@ -1274,6 +1327,7 @@ export async function createCompetitorImportedDraftFunnel(
     draft: persisted,
     duplicateReview: duplicateReviewFor("created", [], {
       sourceUrlCompared: normalizedSourceUrls.length > 0,
+      sourceFileNameCompared: normalizedSourceFileNames.length > 0,
     }),
   };
 }

@@ -69,7 +69,7 @@ export const commonImporterSafetyGates = [
   "Imported material starts in a private workspace and does not publish public pages.",
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
-  "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL match.",
+  "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];
@@ -84,7 +84,7 @@ export const clickFunnelsDraftImportCapability = {
   confirmationText: clickFunnelsDraftImportConfirmationText,
   auth: "verified publisher session",
   creates: ["free_build_workspace_if_needed", "private_draft_funnel", "funnel_audit_event"],
-  accepts: ["public_url", "manual_paste"],
+  accepts: ["public_url", "export_file", "csv_upload", "manual_paste"],
   redaction: {
     rawExportFilesIncluded: false,
     customerRowsIncluded: false,
@@ -101,7 +101,7 @@ export const clickFunnelsDraftImportCapability = {
     fulfillmentEnabled: false,
   },
   duplicateProtection:
-    "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL match.",
+    "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
 };
 
 export const importInputs: Record<ImportInputKind, ImportInput> = {
@@ -548,13 +548,13 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       fulfillmentEnabled: false,
     },
     duplicateProtection:
-      "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL match.",
+      "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
     duplicateReview: {
       responseField: "duplicateReview",
       statuses: ["created", "idempotent_replay", "source_match_reused"],
-      checkedFields: ["source_platform", "target_workspace", "normalized_title", "source_url"],
+      checkedFields: ["source_platform", "target_workspace", "normalized_title", "source_url", "source_file_name"],
       sourceUrlMatchingLive: true,
-      sourceFileNameMatchingLive: false,
+      sourceFileNameMatchingLive: true,
       rawSourceEchoed: false,
     },
   };
@@ -584,6 +584,7 @@ export const importerSourceData = {
     privateDraftImportPlatformIds: importerPlatforms.map((platform) => platform.id),
     otherDedicatedImportPathsLive: true,
     sourceMatchDuplicateReviewLive: true,
+    sourceFileNameDuplicateReviewLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -597,7 +598,7 @@ export const importerSourceData = {
       "fulfillment/access gate",
     ],
     duplicateReview:
-      "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs inside the same platform, target workspace, and normalized title; file-name matching waits for live file uploads.",
+      "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs or normalized export file names inside the same platform, target workspace, and normalized title.",
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",

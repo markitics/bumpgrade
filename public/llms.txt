@@ -181,10 +181,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   session, exact confirmation, idempotency, and redacted responses. It can create
   or reuse a Free Build workspace, save a private draft funnel, and reuse an
   existing private draft when platform, workspace, normalized title, and source
-  URL match. It does not publish pages, run live checkout, send subscribers,
-  connect domains, enable fulfillment, transfer accounts, migrate payment
-  credentials, import customer passwords, or expose pasted source
-  material in the response.
+  URL or export file name match. It does not publish pages, run live checkout,
+  send subscribers, connect domains, enable fulfillment, transfer accounts,
+  migrate payment credentials, import customer passwords, or expose pasted
+  source material or export file contents in the response.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes signed-in Free Build workspace creation, paid

@@ -23,6 +23,7 @@ export const revalidate = 0;
 
 type RequestPayload = {
   get: (key: string) => string;
+  getAll: (key: string) => string[];
 };
 
 type ImporterDraftRouteContext = {
@@ -52,16 +53,25 @@ async function readPayload(request: NextRequest): Promise<RequestPayload> {
 
   if (contentType.includes("application/json")) {
     const body = await request.json().catch(() => ({}));
-    const values = new Map<string, string>();
+    const values = new Map<string, string[]>();
 
     if (body && typeof body === "object" && !Array.isArray(body)) {
       for (const [key, value] of Object.entries(body)) {
+        if (Array.isArray(value)) {
+          const stringified = value.map(stringValue).filter(Boolean);
+          if (stringified.length) values.set(key, stringified);
+          continue;
+        }
+
         const stringified = stringValue(value);
-        if (stringified) values.set(key, stringified);
+        if (stringified) values.set(key, [stringified]);
       }
     }
 
-    return { get: (key) => values.get(key) ?? "" };
+    return {
+      get: (key) => values.get(key)?.[0] ?? "",
+      getAll: (key) => values.get(key) ?? [],
+    };
   }
 
   if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
@@ -71,10 +81,11 @@ async function readPayload(request: NextRequest): Promise<RequestPayload> {
         const value = formData.get(key);
         return typeof value === "string" ? value : "";
       },
+      getAll: (key) => formData.getAll(key).filter((value): value is string => typeof value === "string"),
     };
   }
 
-  return { get: () => "" };
+  return { get: () => "", getAll: () => [] };
 }
 
 function wantsJson(request: NextRequest, payload: RequestPayload) {
@@ -118,6 +129,22 @@ function normalizePublicUrl(value: string) {
   return parsed.toString().slice(0, 500);
 }
 
+function normalizeSourceFileNames(payload: RequestPayload) {
+  const rawValues = [
+    ...payload.getAll("sourceFileNames"),
+    ...payload.getAll("sourceFileName"),
+    ...payload.getAll("exportFileNames"),
+    ...payload.getAll("exportFileName"),
+  ];
+  const names = rawValues
+    .flatMap((value) => value.split(/[\n,]+/))
+    .map((value) => value.trim().replace(/\\/g, "/").split("/").filter(Boolean).at(-1) ?? "")
+    .map((value) => value.replace(/\s+/g, " ").slice(0, 240))
+    .filter(Boolean);
+
+  return Array.from(new Set(names)).slice(0, 20);
+}
+
 function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
   const confirmationText = payload.get("confirmationText").trim();
   if (confirmationText !== importerDraftImportConfirmationText(platform.platformName)) {
@@ -139,10 +166,15 @@ function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
   }
 
   const sourceUrl = normalizePublicUrl(payload.get("sourceUrl"));
+  const sourceFileNames = normalizeSourceFileNames(payload);
   const pageCopy = payload.get("pageCopy").trim();
   const followUpNotes = payload.get("followUpNotes").trim();
-  if (!sourceUrl && !pageCopy && !followUpNotes) {
-    throw new ImporterDraftError("Add a source URL, pasted copy, or follow-up notes before creating the private import plan.", 400, "SOURCE_MATERIAL_REQUIRED");
+  if (!sourceUrl && sourceFileNames.length === 0 && !pageCopy && !followUpNotes) {
+    throw new ImporterDraftError(
+      "Add a source URL, export file name, pasted copy, or follow-up notes before creating the private import plan.",
+      400,
+      "SOURCE_MATERIAL_REQUIRED",
+    );
   }
 
   return {
@@ -150,6 +182,7 @@ function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
     audience: payload.get("audience").trim().slice(0, 180),
     launchGoal: payload.get("launchGoal").trim().slice(0, 300),
     sourceUrls: sourceUrl ? [sourceUrl] : [],
+    sourceFileNames,
     pageCopy: pageCopy.slice(0, 2_000),
     followUpNotes: followUpNotes.slice(0, 1_000),
     idempotencyKey,
