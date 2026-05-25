@@ -1,6 +1,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import { sha256Hex } from "@/lib/analytics-events";
+import {
+  createAnonymousPlaygroundDraftFunnel,
+  type DraftFunnelRecord,
+} from "@/lib/funnel-drafts";
 import { getImporterBySlug, importerPlatforms, importerSourceDataRoute } from "@/lib/importers";
 import {
   createFreeBuildWorkspace,
@@ -375,6 +379,16 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     confirmationText: publisherFreeBuildWorkspaceConfirmationText,
     idempotencyKey: claimIdempotencyKey,
   });
+  const draft = await createAnonymousPlaygroundDraftFunnel(db, { userId: user.id, email: user.email }, {
+    tenantId: freeBuild.tenant.id,
+    workspaceId: workspace.id,
+    offerName: workspace.draft.offerName,
+    audience: workspace.draft.audience,
+    launchGoal: workspace.draft.launchGoal,
+    selectedImporterSlug: workspace.draft.selectedImporterSlug,
+    sourceIssueNumber: anonymousPlaygroundIssue,
+    idempotencyKey: `anonymous-playground-draft-${workspace.id}-${user.id}`,
+  });
 
   await db
     .prepare(
@@ -382,11 +396,26 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
        SET status = 'claimed',
            claimed_by_user_id = ?,
            claimed_tenant_id = ?,
+           metadata_json = ?,
            updated_at = unixepoch(),
            last_seen_at = unixepoch()
        WHERE id = ?`,
     )
-    .bind(user.id, freeBuild.tenant.id, workspace.id)
+    .bind(
+      user.id,
+      freeBuild.tenant.id,
+      JSON.stringify({
+        paidGoLiveRequired: freeBuild.paidGoLiveRequired,
+        claimedDraftFunnelId: draft.id,
+        claimedDraftStepCount: draft.steps.length,
+        claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+        publicPublishingEnabled: false,
+        liveCheckoutEnabled: false,
+        emailSendsEnabled: false,
+        fulfillmentEnabled: false,
+      }),
+      workspace.id,
+    )
     .run();
 
   await writeAuditEvent(db, {
@@ -396,6 +425,9 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     metadata: {
       sourceIssueNumber: anonymousPlaygroundIssue,
       claimedTenantId: freeBuild.tenant.id,
+      claimedDraftFunnelId: draft.id,
+      claimedDraftStepCount: draft.steps.length,
+      claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
       tenantPlanStatus: freeBuild.tenant.planStatus,
       paidGoLiveRequired: freeBuild.paidGoLiveRequired,
       rawCookieStored: false,
@@ -406,8 +438,28 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
   return {
     workspace: (await loadWorkspaceById(db, workspace.id)) ?? workspace,
     tenant: freeBuild.tenant,
+    draft,
     idempotent: workspace.status === "claimed",
     paidGoLiveRequired: freeBuild.paidGoLiveRequired,
+  };
+}
+
+export function publicAnonymousPlaygroundClaimedDraft(draft: DraftFunnelRecord | null) {
+  if (!draft) return null;
+  return {
+    id: draft.id,
+    slug: draft.slug,
+    title: draft.title,
+    status: draft.status,
+    sourceIssueNumber: draft.sourceIssueNumber,
+    parentIssueNumber: draft.parentIssueNumber,
+    revisionId: draft.revisionId,
+    stepCount: draft.steps.length,
+    blockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+    previewRoute: draft.previewRoute,
+    sourceDataRoute: draft.sourceDataRoute,
+    createdAt: draft.createdAt,
+    updatedAt: draft.updatedAt,
   };
 }
 
@@ -448,6 +500,7 @@ export function anonymousPlaygroundRedaction(overrides?: { workspaceIncluded?: b
     billingStateCreated: false,
     publicPublishingEnabled: false,
     workspaceIncluded: overrides?.workspaceIncluded ?? false,
+    rawDraftContentIncluded: false,
   };
 }
 
@@ -483,10 +536,22 @@ export const anonymousPlaygroundSourceData = {
     loggedOutSaveLive: true,
     browserRecoveryLive: true,
     claimToSignedInFreeBuildLive: true,
+    claimCreatesPrivateDraftFunnelLive: true,
     paidGoLiveRequired: true,
+  },
+  generatedPrivateRecordTypes: ["publisher_tenant", "funnel_draft", "funnel_draft_step", "funnel_audit_event"],
+  claimResult: {
+    createsOrReusesFreeBuildWorkspace: true,
+    createsPrivateDraftFunnel: true,
+    draftSourceDataRoute: "/funnels/source-data",
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
   },
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare draft launch context, but anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie or token hash.",
+    "Agents may read this contract and help a visitor prepare draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates private Free Build workspace plus private funnel draft records only. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie or token hash.",
 };

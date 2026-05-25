@@ -1415,15 +1415,18 @@ export const publisherTenantSourceData = {
       sourceDataRoute: "/playground/source-data",
       saveApiRoute: "/api/playground/anonymous-workspace",
       claimApiRoute: "/api/playground/claim",
+      claimCreatesPrivateDraftFunnel: true,
+      draftSourceDataRoute: "/funnels/source-data",
       cookieMaxAgeDays: 30,
     },
     whatWorksToday: [
       "Logged-out visitors can save basic launch context in a browser-scoped playground before signup.",
       "Returning from the same browser reloads saved playground progress while the recovery cookie is present.",
-      "Verified signed-in users can attach the saved playground to a private Free Build workspace.",
+      "Verified signed-in users can attach the saved playground to a private Free Build workspace and private launch draft.",
       "Verified signed-in users can create a private Free Build workspace before payment.",
       "The workspace is persisted in publisher_tenants with plan_status=free_build.",
       "Idempotent replays return the same workspace instead of duplicating tenant rows.",
+      "Claimed playground launch drafts are persisted in funnel_drafts and funnel_draft_steps with funnel_audit_events evidence.",
     ],
     paidGoLiveGates: [
       "Bumpgrade subdomain reservation",
@@ -1434,7 +1437,7 @@ export const publisherTenantSourceData = {
       "Fulfillment and protected access",
     ],
     redaction:
-      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
+      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, private funnel content, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
   },
   subdomainPolicy: {
     defaultDomain: publisherDefaultDomain,
