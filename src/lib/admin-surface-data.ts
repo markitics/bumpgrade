@@ -398,9 +398,9 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: "2026-05-25T14:54:02.000Z",
     environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
     method:
-      "Importer hub route smoke, ClickFunnels importer route smoke, importer source-data inspection, verified-publisher private import API coverage, public discovery checks, and admin user-journey proof summary checks.",
+      "Importer hub route smoke, dedicated importer route smoke, importer source-data inspection, verified-publisher private import API coverage, public discovery checks, and admin user-journey proof summary checks.",
     summary:
-      "The ClickFunnels import journey has route, source-data, screenshot, issue, and API evidence for saving imported material into a private Free Build draft without claiming live account transfer or buyer-facing changes.",
+      "The importer journey has route, source-data, screenshot, issue, and API evidence for saving imported material into a private Free Build draft without claiming live account transfer or buyer-facing changes.",
     ciLinks: [
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
@@ -417,7 +417,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "ClickFunnels private draft creation is live for verified publishers; broader source-match duplicate review, rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, fulfillment, and other competitor write paths remain follow-up work.",
+      "Private draft creation is live for verified publishers on dedicated importer paths; broader source-match duplicate review, rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1677,7 +1677,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
   },
   {
     id: "journey-prospect-imports-from-clickfunnels",
-    title: "Prospect creates a ClickFunnels import plan",
+    title: "Prospect creates a competitor import plan",
     featureId: "feature-competitor-importers",
     featureStatus: "live",
     issueNumbers: [5, 14, 15, 17, 467],
@@ -1688,31 +1688,30 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://bumpgrade.com/imports",
       "https://bumpgrade.com/imports/clickfunnels",
       "https://bumpgrade.com/imports/source-data",
-      "https://bumpgrade.com/api/imports/clickfunnels/draft",
       "https://bumpgrade.com/compare/source-data",
       "https://github.com/markitics/bumpgrade/issues/467",
     ],
     happyPath: [
       "Open /imports.",
-      "Choose the current platform, starting with ClickFunnels.",
+      "Choose the current platform.",
       "Add the strongest public URL, page copy, offer notes, and follow-up notes.",
       "Sign in or create a verified publisher account.",
-      "Confirm the private ClickFunnels import action.",
+      "Confirm the private importer action.",
       "Bumpgrade creates or reuses a Free Build workspace and saves a private D1 funnel draft.",
-      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, generated private record types, safety gates, limitations, source IDs, and the ClickFunnels private import API.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, generated private record types, safety gates, limitations, source IDs, and private import API routes.",
     ],
     edgeCases: [
       "Imported material starts in a private workspace and is not buyer-facing by default.",
-      "The ClickFunnels import API requires a verified publisher session, exact confirmation, idempotency, and redacted responses.",
+      "Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.",
       "The response does not echo pasted source material, raw exports, customer rows, private emails, payment credentials, API keys, or session cookies.",
-      "Account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, fulfillment, and broader competitor import writes remain follow-up work.",
+      "Account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, generated private record types, safety gates, source IDs, limitations, and the ClickFunnels private import API. Creating a ClickFunnels private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, generated private record types, safety gates, source IDs, limitations, and private import API routes. Creating a private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
       "Issue #467 adds /imports, /imports/clickfunnels, /imports/source-data, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
-      "The ClickFunnels private import API creates or reuses a Free Build workspace and saves a private D1 funnel draft with no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
+      "Private importer APIs create or reuse a Free Build workspace and save a private D1 funnel draft with no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
       "Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, and pasted source material out of public responses.",
     ],
     proof: createJourneyProof("journey-prospect-imports-from-clickfunnels", "feature-competitor-importers"),

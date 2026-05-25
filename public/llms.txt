@@ -107,8 +107,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Comparison source data: https://bumpgrade.com/compare/source-data
 - Import center: https://bumpgrade.com/imports
 - Importer source data: https://bumpgrade.com/imports/source-data
-- ClickFunnels importer: https://bumpgrade.com/imports/clickfunnels
-- ClickFunnels private import API: https://bumpgrade.com/api/imports/clickfunnels/draft
+- Dedicated importers: https://bumpgrade.com/imports/clickfunnels, https://bumpgrade.com/imports/samcart, https://bumpgrade.com/imports/kit, https://bumpgrade.com/imports/kajabi, https://bumpgrade.com/imports/shopify, https://bumpgrade.com/imports/podia, https://bumpgrade.com/imports/systeme-io, https://bumpgrade.com/imports/kartra, https://bumpgrade.com/imports/thrivecart
+- Private importer APIs: each platform record in https://bumpgrade.com/imports/source-data includes its API route and exact confirmation text
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
 - Kit alternative: https://bumpgrade.com/compare/kit-alternative
 - Shopify alternative: https://bumpgrade.com/compare/shopify-alternative
@@ -175,13 +175,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   recovery cookie values, token hashes, private customer data, raw draft
   content, billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
-  generated private record types, safety gates, limitations, and the
-  ClickFunnels private import API. `POST /api/imports/clickfunnels/draft`
-  requires a verified publisher session, exact confirmation, idempotency, and
-  redacted responses. It can create or reuse a Free Build workspace and save a
-  private draft funnel, but it does not publish pages, run live checkout, send
-  subscribers, connect domains, enable fulfillment, transfer accounts, migrate
-  payment credentials, import customer passwords, or expose pasted source
+  generated private record types, safety gates, limitations, and private importer
+  API routes. Posting to a platform API route requires a verified publisher
+  session, exact confirmation, idempotency, and redacted responses. It can create
+  or reuse a Free Build workspace and save a private draft funnel, but it does
+  not publish pages, run live checkout, send subscribers, connect domains, enable
+  fulfillment, transfer accounts, migrate payment credentials, import customer
+  passwords, or expose pasted source
   material in the response.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.

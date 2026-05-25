@@ -82,15 +82,15 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(467),
     group: "Migration",
     summary:
-      "Importer center, ClickFunnels import path, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
+      "Importer center, dedicated platform import paths, private draft creation, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
     publicEvidence: [
       "Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.",
       "`/imports` lists supported importer paths.",
-      "`/imports/clickfunnels` is the first dedicated ClickFunnels import path.",
-      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, safety gates, limitations, and source evidence IDs for agents.",
+      "Dedicated importer pages support private Free Build import-plan creation.",
+      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
     ],
     nextMilestone:
-      "Implement owner-authenticated import preview and create-private-record flows after this review-first public and agent-readable contract is stable.",
+      "Add deeper duplicate/source-match review, rollback controls, and platform-specific preview depth after the shared private draft path is stable.",
   },
   {
     id: "roadmap-feature-catalog",

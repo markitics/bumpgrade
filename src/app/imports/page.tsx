@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
-function statusLabel(platformId: string) {
-  return platformId === "importer-clickfunnels" ? "Private import ready" : "Dedicated path";
+function statusLabel(status: string) {
+  return status === "private-draft-live" ? "Private import ready" : "Dedicated path";
 }
 
 export default function ImportsPage() {
@@ -87,7 +87,7 @@ export default function ImportsPage() {
           {importerPlatforms.map((platform) => (
             <article key={platform.id} className="feature-card content-surface-card">
               <div className="feature-card-top">
-                <span className="status-badge active">{statusLabel(platform.id)}</span>
+                <span className="status-badge active">{statusLabel(platform.status)}</span>
                 <Link href={platform.route}>Open path</Link>
               </div>
               <h3>{platform.platformName}</h3>

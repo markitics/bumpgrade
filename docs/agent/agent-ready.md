@@ -213,13 +213,14 @@ Current importer boundary: `/imports/source-data` is the public-safe contract fo
 ClickFunnels and first-wave competitor import paths. It exposes supported
 platform IDs, competitor IDs, source IDs, input kinds, generated private record
 types, safety gates, unsupported fields, routes, and the verified-publisher
-ClickFunnels private-draft API. `POST /api/imports/clickfunnels/draft` can create
-or reuse a Free Build workspace and save a private D1 funnel draft after exact
-confirmation and idempotency; responses stay redacted and do not echo pasted
-material. Imported material starts in a private Bumpgrade workspace; public
-publishing, live checkout, subscriber sends, domains, fulfillment,
-account-to-account transfer, payment migration, customer password migration, raw
-export storage, and broader competitor writes are not live from this contract.
+private-draft API route listed for each dedicated importer. Posting to one of
+those platform API routes can create or reuse a Free Build workspace and save a
+private D1 funnel draft after exact confirmation and idempotency; responses stay
+redacted and do not echo pasted material. Imported material
+starts in a private Bumpgrade workspace; public publishing, live checkout,
+subscriber sends, domains, fulfillment, account-to-account transfer, payment
+migration, customer password migration, and raw export storage are not live from
+this contract.
 
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template

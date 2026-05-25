@@ -3,15 +3,17 @@
 Issue #467 tracks Bumpgrade importers for ClickFunnels and adjacent competitor
 platforms.
 
-The first shipped contract is review-first, with one live private create path:
+The shipped contract is review-first, with live private create paths for the
+dedicated importer pages:
 
 - `/imports` lists supported platform paths.
-- `/imports/clickfunnels` is the first dedicated importer page.
+- Dedicated importer pages explain the platform-specific move.
 - `/imports/source-data` exposes platform IDs, competitor IDs, source IDs, input
-  kinds, generated private record types, safety gates, and known limitations.
-- `POST /api/imports/clickfunnels/draft` lets a verified publisher create or
-  reuse a Free Build workspace and save a private ClickFunnels import draft after
-  exact confirmation and idempotency.
+  kinds, generated private record types, API routes, safety gates, and known
+  limitations.
+- The `apiRoute` listed for each platform lets a verified publisher create or
+  reuse a Free Build workspace and save a private import draft after exact
+  confirmation and idempotency.
 
 Imported material starts in a private Bumpgrade workspace. Public publishing,
 live checkout, subscriber sends, domains, and fulfillment remain behind go-live
