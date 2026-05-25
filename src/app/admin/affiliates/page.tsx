@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeDollarSign, Database, Handshake, MailCheck, ShieldAlert, ShieldCheck } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminAffiliateFraudEnforcementRecordForm } from "@/components/admin-affiliate-fraud-enforcement-record-form";
 import { AdminAffiliateFraudReviewRecordForm } from "@/components/admin-affiliate-fraud-review-record-form";
 import { AdminAffiliateNotificationReadinessRecordForm } from "@/components/admin-affiliate-notification-readiness-record-form";
 import { AdminAffiliateNotificationProviderReadinessRecordForm } from "@/components/admin-affiliate-notification-provider-readiness-record-form";
@@ -10,6 +11,8 @@ import { AdminAffiliateNotificationSendPreflightRecordForm } from "@/components/
 import { AdminAffiliatePayoutPreparationRecordForm } from "@/components/admin-affiliate-payout-preparation-record-form";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import {
+  affiliateFraudEnforcementRecordIssue,
+  getAffiliateFraudEnforcementRecordSummary,
   affiliateFraudReviewRecordIssue,
   getAffiliateFraudReviewRecordSummary,
 } from "@/lib/affiliate-fraud-review-records";
@@ -53,16 +56,24 @@ export default async function AdminAffiliatesPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/affiliates" />;
 
-  const [payoutSummary, fraudSummary, notificationSummary, sendPreflightSummary, providerReadinessSummary] =
-    await Promise.all([
+  const [
+    payoutSummary,
+    fraudSummary,
+    fraudEnforcementSummary,
+    notificationSummary,
+    sendPreflightSummary,
+    providerReadinessSummary,
+  ] = await Promise.all([
     getAffiliatePayoutPreparationRecordSummary(),
     getAffiliateFraudReviewRecordSummary(),
+    getAffiliateFraudEnforcementRecordSummary(),
     getAffiliatePartnerNotificationReadinessRecordSummary(),
     getAffiliatePartnerNotificationSendPreflightRecordSummary(),
     getAffiliatePartnerNotificationProviderReadinessRecordSummary(),
   ]);
   const evidence = payoutSummary.currentEvidence;
   const fraudEvidence = fraudSummary.currentEvidence;
+  const fraudEnforcementEvidence = fraudEnforcementSummary.currentEvidence;
   const notificationEvidence = notificationSummary.currentEvidence;
   const sendPreflightEvidence = sendPreflightSummary.currentEvidence;
   const providerReadinessEvidence = providerReadinessSummary.currentEvidence;
@@ -73,17 +84,17 @@ export default async function AdminAffiliatesPage() {
         <div>
           <p className="eyebrow">Admin affiliates</p>
           <h1>
-            Affiliate payout, fraud review, notification readiness, send preflight, and provider readiness stay
-            owner-confirmed.
+            Affiliate payout, fraud review, fraud enforcement, notification readiness, send preflight, and provider
+            readiness stay owner-confirmed.
           </h1>
           <p className="lede">
             Owners can inspect the current affiliate payout preparation snapshot, record a redacted preparation review,
-            capture fraud review evidence, record partner notification readiness, and record send preflight evidence.
-            They can also record provider readiness evidence without configuring a provider. These records keep Stripe
-            payouts, payable commission mutation, payout accounts, tax data, partner sends, provider configuration,
-            provider secrets, sender credentials, provider send enablement, provider calls, send payloads, queue rows,
-            recipient emails, message bodies, buyer data, raw rows, private fraud signals, and fraud enforcement
-            disabled.
+            capture fraud review evidence, enforce a fraud decision without payout side effects, record partner
+            notification readiness, and record send preflight evidence. They can also record provider readiness evidence
+            without configuring a provider. These records keep Stripe payouts, payable commission mutation, payout
+            accounts, tax data, partner sends, provider configuration, provider secrets, sender credentials, provider
+            send enablement, provider calls, send payloads, queue rows, recipient emails, message bodies, buyer data,
+            raw rows, and private fraud signals disabled.
           </p>
           <div className="hero-actions">
             <Link href="/affiliates/source-data" className="primary-action">
@@ -102,6 +113,13 @@ export default async function AdminAffiliatesPage() {
               className="secondary-action"
             >
               Issue #{affiliateFraudReviewRecordIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${affiliateFraudEnforcementRecordIssue}`}
+              className="secondary-action"
+            >
+              Issue #{affiliateFraudEnforcementRecordIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link
@@ -132,6 +150,7 @@ export default async function AdminAffiliatesPage() {
           <p>
             {payoutSummary.source === "d1" ||
             fraudSummary.source === "d1" ||
+            fraudEnforcementSummary.source === "d1" ||
             notificationSummary.source === "d1" ||
             sendPreflightSummary.source === "d1" ||
             providerReadinessSummary.source === "d1"
@@ -141,6 +160,7 @@ export default async function AdminAffiliatesPage() {
           <strong>
             {payoutSummary.counts.payoutPreparationRecords} payout prep,{" "}
             {fraudSummary.counts.fraudReviewRecords} fraud review,{" "}
+            {fraudEnforcementSummary.counts.fraudEnforcementRecords} enforcement,{" "}
             {notificationSummary.counts.notificationReadinessRecords} readiness,{" "}
             {sendPreflightSummary.counts.notificationSendPreflightRecords} send preflight,{" "}
             {providerReadinessSummary.counts.notificationProviderReadinessRecords} provider readiness
@@ -148,6 +168,7 @@ export default async function AdminAffiliatesPage() {
           <span>
             {payoutSummary.loadError ??
               fraudSummary.loadError ??
+              fraudEnforcementSummary.loadError ??
               notificationSummary.loadError ??
               sendPreflightSummary.loadError ??
               providerReadinessSummary.loadError ??
@@ -176,7 +197,7 @@ export default async function AdminAffiliatesPage() {
             <h3>Fraud review</h3>
             <p>
               {fraudEvidence.reviewFlagSeverity} severity, {fraudEvidence.linkedLedgerIds.length} linked ledger,{" "}
-              {fraudSummary.counts.fraudDecisionEnforcedRecords} enforced decisions.
+              {fraudEnforcementSummary.counts.fraudDecisionEnforcedRecords} enforced decisions.
             </p>
           </div>
           <div>
@@ -243,6 +264,20 @@ export default async function AdminAffiliatesPage() {
           </Link>
         </div>
         <AdminAffiliateFraudReviewRecordForm evidence={fraudEvidence} />
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Owner fraud enforcement</p>
+            <h2>Record affiliate fraud enforcement without creating payout state.</h2>
+          </div>
+          <Link href={fraudEnforcementSummary.apiRoute} className="text-link compact-link">
+            Read contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAffiliateFraudEnforcementRecordForm evidence={fraudEnforcementEvidence} />
       </section>
 
       <section className="content-band">
@@ -369,6 +404,51 @@ export default async function AdminAffiliatesPage() {
               </div>
               <ShieldAlert aria-hidden="true" />
               <h3>Fraud review evidence is ready</h3>
+              <p>Use the confirmed-write form after the owner has reviewed the seeded affiliate review flag.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest fraud enforcement records</p>
+            <h2>Fraud enforcement records hide private fraud signals, raw rows, and payout data.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {fraudEnforcementSummary.latestRecords.length > 0 ? (
+            fraudEnforcementSummary.latestRecords.map((record) => (
+              <article key={record.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className="status-badge live">{record.recordKind.replaceAll("_", " ")}</span>
+                  <span className="admin-pill">{record.enforcementDisposition.replaceAll("_", " ")}</span>
+                </div>
+                <ShieldAlert aria-hidden="true" />
+                <h3>{record.reviewFlagId}</h3>
+                <p>
+                  {record.expectedLinkedLedgerCount} linked ledger, fraud review{" "}
+                  {record.expectedFraudReviewRecordStatus.replaceAll("-", " ")}, recorded at{" "}
+                  {compactDate(record.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>No payout execution</strong>
+                  <span>
+                    Fraud enforced {String(record.fraudDecisionEnforced)}, payout created{" "}
+                    {String(record.stripePayoutCreated)}, partner sent {String(record.partnerNotificationSent)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No records yet</span>
+                <span className="admin-pill">{fraudEnforcementEvidence.reviewFlagId}</span>
+              </div>
+              <ShieldAlert aria-hidden="true" />
+              <h3>Fraud enforcement is ready</h3>
               <p>Use the confirmed-write form after the owner has reviewed the seeded affiliate review flag.</p>
             </article>
           )}
