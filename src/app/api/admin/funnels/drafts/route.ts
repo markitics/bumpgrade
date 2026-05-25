@@ -20,6 +20,7 @@ import {
   seedEditableFunnelDraft,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
+  updateDraftFunnelBlockVisualStyle,
   updateDraftFunnelStep,
 } from "@/lib/funnel-drafts";
 
@@ -128,6 +129,15 @@ export async function POST(request: NextRequest) {
         blockId: formValue(formData, "blockId"),
         title: formValue(formData, "title"),
         body: formValue(formData, "body"),
+        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        idempotencyKey,
+      });
+    } else if (mode === "update-block-style") {
+      draft = await updateDraftFunnelBlockVisualStyle(db, adminState.identity, {
+        draftId: formValue(formData, "draftId"),
+        stepId: formValue(formData, "stepId"),
+        blockId: formValue(formData, "blockId"),
+        visualStyleId: formValue(formData, "visualStyleId"),
         expectedRevisionId: formValue(formData, "expectedRevisionId"),
         idempotencyKey,
       });

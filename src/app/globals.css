@@ -2099,9 +2099,64 @@ h3 {
   box-shadow: 0 12px 26px rgba(31, 83, 107, 0.09);
 }
 
+.admin-block-editor-shell[data-funnel-block-style="spotlight"] {
+  border-color: rgba(122, 73, 39, 0.34);
+  box-shadow: 0 14px 30px rgba(122, 73, 39, 0.09);
+}
+
+.admin-block-editor-shell[data-funnel-block-style="split"] {
+  border-color: rgba(31, 83, 107, 0.34);
+}
+
+.admin-block-editor-shell[data-funnel-block-style="compact"] {
+  border-color: rgba(55, 95, 76, 0.28);
+}
+
 .admin-block-edit-form {
   grid-template-columns: minmax(0, 1fr);
   padding: 12px;
+}
+
+.admin-block-style-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: rgba(104, 80, 132, 0.07);
+}
+
+.admin-block-style-form .admin-checkout-link-summary {
+  align-self: center;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.admin-block-style-form label {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 7px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-block-style-form select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+
+.admin-block-style-form button {
+  flex: 0 0 auto;
 }
 
 .admin-block-move-row {
@@ -2260,6 +2315,67 @@ h3 {
 .admin-block-drag-status.error {
   color: #7a2d2d;
   font-weight: 800;
+}
+
+.funnel-block-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.funnel-block-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: transparent;
+}
+
+.funnel-block-style-spotlight {
+  border-color: rgba(122, 73, 39, 0.34);
+  background: linear-gradient(135deg, #fff8e8 0%, #fffdf8 54%, rgba(55, 95, 76, 0.08) 100%);
+  box-shadow: 0 18px 40px rgba(122, 73, 39, 0.12);
+}
+
+.funnel-block-style-spotlight::before {
+  background: #a75f2b;
+}
+
+.funnel-block-style-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1fr);
+  column-gap: 18px;
+  border-color: rgba(31, 83, 107, 0.3);
+  background: linear-gradient(90deg, rgba(31, 83, 107, 0.09), #fffdf8 38%);
+}
+
+.funnel-block-style-split .feature-card-top,
+.funnel-block-style-split h3 {
+  grid-column: 1;
+}
+
+.funnel-block-style-split p,
+.funnel-block-style-split .feature-detail,
+.funnel-block-style-split .funnel-resource-delivery-panel {
+  grid-column: 2;
+}
+
+.funnel-block-style-split::before {
+  background: #1f536b;
+}
+
+.funnel-block-style-compact {
+  padding: 18px;
+  border-color: rgba(55, 95, 76, 0.24);
+  background: rgba(55, 95, 76, 0.06);
+}
+
+.funnel-block-style-compact h3 {
+  font-size: 18px;
+}
+
+.funnel-block-style-compact p,
+.funnel-block-style-compact .feature-detail {
+  font-size: 14px;
 }
 
 .admin-checkout-link-summary {
@@ -2511,6 +2627,10 @@ h3 {
 
 .admin-record-grid .roadmap-card {
   min-height: 320px;
+}
+
+.admin-funnel-draft-grid {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .admin-pill {
@@ -4671,6 +4791,18 @@ h3 {
 
   .admin-step-edit-form {
     grid-template-columns: 1fr;
+  }
+
+  .funnel-block-style-split {
+    grid-template-columns: 1fr;
+  }
+
+  .funnel-block-style-split .feature-card-top,
+  .funnel-block-style-split h3,
+  .funnel-block-style-split p,
+  .funnel-block-style-split .feature-detail,
+  .funnel-block-style-split .funnel-resource-delivery-panel {
+    grid-column: 1;
   }
 
   .post-purchase-layout {

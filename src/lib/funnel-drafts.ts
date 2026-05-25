@@ -25,6 +25,7 @@ import {
   draftFunnelBlockEditingIssue,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
+  draftFunnelBlockVisualStyleCapability,
   draftFunnelBlockStructureIssue,
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelResourceDeliveryLinkCapability,
@@ -42,8 +43,10 @@ import {
   editableDraftCapability,
   agentFunnelDraftWriteApiRoute,
   agentFunnelDraftWriteCapability,
+  funnelBlockVisualStyleForId,
   funnelBlockLibrary,
   funnelTemplateLibrary,
+  isFunnelBlockVisualStyleId,
   seededFunnel,
   templateDraftCreationCapability,
 } from "@/lib/funnels";
@@ -853,6 +856,7 @@ function compactBlockForAudit(block: FunnelBlock) {
     title: block.title,
     body: block.body,
     agentEditable: block.agentEditable,
+    visualStyleId: funnelBlockVisualStyleForId(block.visualStyle).id,
     checkoutLinkId: block.checkoutLink?.id ?? null,
     checkoutOfferId: block.checkoutLink?.offerId ?? null,
     resourceDeliveryLinkId: block.resourceDeliveryLink?.id ?? null,
@@ -862,6 +866,7 @@ function compactBlockForAudit(block: FunnelBlock) {
     webinarEventTitle: block.webinarEventLink?.eventTitle ?? null,
     webinarRegistrationUrl: block.webinarEventLink?.registrationUrl ?? null,
     webinarReplayUrl: block.webinarEventLink?.replayUrl ?? null,
+    visualStyle: block.visualStyle ?? null,
   };
 }
 
@@ -1135,6 +1140,100 @@ export async function updateDraftFunnelBlock(
         resourceDeliveryLinkPreserved: Boolean(block.resourceDeliveryLink),
         webinarEventLinkPreserved: Boolean(block.webinarEventLink),
         orderedStepStructureChanged: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function updateDraftFunnelBlockVisualStyle(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    visualStyleId: string;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "restyled");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before styling this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const block = step.blocks.find((item) => item.id === input.blockId);
+  if (!block) throw new Error("Draft funnel block not found.");
+
+  const normalizedStyleId = input.visualStyleId.trim();
+  if (!isFunnelBlockVisualStyleId(normalizedStyleId)) {
+    throw new Error("Choose a supported block visual style.");
+  }
+
+  const nextStyle = funnelBlockVisualStyleForId(normalizedStyleId);
+  const previousStyle = funnelBlockVisualStyleForId(block.visualStyle);
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      visualStyle: nextStyle.id,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-block-style-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} applied ${nextStyle.label} style to block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "block_visual_style_update",
+        draftFunnelBlockVisualStyleCapability: draftFunnelBlockVisualStyleCapability.id,
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        previousStyleId: previousStyle.id,
+        nextStyleId: nextStyle.id,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          visualStyle: nextStyle.id,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        blockTitlePreserved: true,
+        blockBodyPreserved: true,
+        checkoutLinkPreserved: Boolean(block.checkoutLink),
+        resourceDeliveryLinkPreserved: Boolean(block.resourceDeliveryLink),
+        webinarEventLinkPreserved: Boolean(block.webinarEventLink),
+        privatePreviewRendersStyle: true,
+        publicPublishedRouteRendersStyle: true,
+        publicRouteMutation: draft.status === "published",
+        arbitraryCssIncluded: false,
+        scriptIncluded: false,
+        fullAbsoluteCanvasEditingEnabled: false,
         privateAuthDataIncluded: false,
       },
     ),

@@ -6,7 +6,7 @@ import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getDraftFunnelPreviewState } from "@/lib/funnel-drafts";
-import { draftFunnelPreviewIssue } from "@/lib/funnels";
+import { draftFunnelPreviewIssue, funnelBlockVisualStyleForId } from "@/lib/funnels";
 
 type DraftFunnelPreviewPageProps = {
   params: Promise<{
@@ -105,40 +105,49 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
         </div>
         <div className="feature-grid">
           {orderedSteps.flatMap((step) =>
-            step.blocks.map((block) => (
-              <article key={block.id} className="feature-card compact-content-card">
-                <div className="feature-card-top">
-                  <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
-                    {block.agentEditable ? "Draftable" : "Locked"}
-                  </span>
-                  <span className="admin-pill">Step {step.order}</span>
-                </div>
-                <h3>{block.title}</h3>
-                <p>{block.body}</p>
-                <div className="feature-detail">
-                  <strong>Block ID</strong>
-                  <span>{block.id}</span>
-                </div>
-                {block.resourceDeliveryLink ? (
-                  <div className="feature-detail">
-                    <strong>Resource delivery</strong>
-                    <span>
-                      {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. The preview
-                      keeps private R2 keys, signed URLs, and buyer records hidden.
+            step.blocks.map((block) => {
+              const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+
+              return (
+                <article
+                  key={block.id}
+                  className={`feature-card compact-content-card funnel-block-card ${visualStyle.className}`}
+                  data-funnel-block-style={visualStyle.id}
+                >
+                  <div className="feature-card-top">
+                    <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
+                      {block.agentEditable ? "Draftable" : "Locked"}
                     </span>
+                    <span className="admin-pill">Step {step.order}</span>
+                    <span className="status-badge active">{visualStyle.label}</span>
                   </div>
-                ) : null}
-                {block.webinarEventLink ? (
+                  <h3>{block.title}</h3>
+                  <p>{block.body}</p>
                   <div className="feature-detail">
-                    <strong>Webinar access</strong>
-                    <span>
-                      {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}. Registration and
-                      replay URLs are external references; provider secrets and attendee data stay hidden.
-                    </span>
+                    <strong>Block ID</strong>
+                    <span>{block.id}</span>
                   </div>
-                ) : null}
-              </article>
-            )),
+                  {block.resourceDeliveryLink ? (
+                    <div className="feature-detail">
+                      <strong>Resource delivery</strong>
+                      <span>
+                        {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. The preview
+                        keeps private R2 keys, signed URLs, and buyer records hidden.
+                      </span>
+                    </div>
+                  ) : null}
+                  {block.webinarEventLink ? (
+                    <div className="feature-detail">
+                      <strong>Webinar access</strong>
+                      <span>
+                        {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}. Registration and
+                        replay URLs are external references; provider secrets and attendee data stay hidden.
+                      </span>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            }),
           )}
         </div>
       </section>
