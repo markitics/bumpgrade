@@ -18,9 +18,9 @@ product/access catalog assets, funnel-scoped private download-token delivery
 from published linked resource blocks, owner-confirmed webinar event/replay
 links to public-safe external URLs, owner-session within-step block reordering,
 drag/drop block placement through existing move endpoints, cross-step block
-moves, direct agent-safe private draft writes for block copy edits,
+moves, owner-session direct agent-safe draft writes for block copy edits,
 checkout linking/unlinking, resource-delivery linking, webinar-event linking,
-block movement, duplication, and archive/unpublish, and owner-confirmed archived-draft purge
+block movement, duplication, public publishing, and archive/unpublish, and owner-confirmed archived-draft purge
 with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
@@ -30,7 +30,7 @@ delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
 for freeform canvas layout styling, arbitrary uploaded private asset delivery,
 live fulfillment automation, full webinar integrations, bulk retention policy,
-direct agent-created delivery tokens, direct agent public publishing, direct
+direct agent-created delivery tokens, unauthenticated public agent publishing, direct
 agent block add/remove, and direct agent purge.
 
 Live in this slice:
@@ -79,9 +79,9 @@ Live in this slice:
   Reusable webinar/resource templates use the same exact-confirmed
   template-to-draft path.
 - `/api/agent/funnels/draft-writes`: owner-session JSON endpoint for direct
-  agent-safe private draft writes. It allows block copy edits,
+  agent-safe draft writes. It allows block copy edits,
   checkout linking/unlinking, resource-delivery linking, webinar-event linking,
-  block movement, private draft duplication, and archive/unpublish only after exact confirmation, idempotency, current draft
+  block movement, private draft duplication, public publishing, and archive/unpublish only after exact confirmation, idempotency, current draft
   revision, and audit correlation checks. Responses are redacted
   and exclude owner email, owner user ID, private session data, raw rows, buyer
   data, R2 keys, signed URLs, billing mutations, and public agent write state.
@@ -106,7 +106,7 @@ Not live in this slice:
   live billing, one-click upsell charging, or fulfillment.
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
-- Direct agent public publishing, checkout linking,
+- Unauthenticated public agent publishing, direct checkout linking without owner-session confirmation,
   direct agent-created delivery tokens, purge, or unauthenticated public writes.
 
 The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
@@ -188,9 +188,9 @@ write endpoint requires an owner session, exact agent-funnel confirmation text,
 an idempotency key, the current draft revision ID, and an audit correlation ID.
 It can update private draft block title/body copy, link and unlink checkout
 metadata, link resource-delivery metadata, link webinar-event metadata, move
-blocks, duplicate a private draft, or
+blocks, duplicate a private draft, publish a draft, or
 archive/unpublish a draft while returning only redacted draft summaries.
-Future direct agent public publishing, direct agent block add/remove, direct
+Future direct agent block add/remove, unauthenticated public agent publishing, direct
 agent-created delivery tokens, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment

@@ -7,6 +7,7 @@ import {
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
+  draftFunnelPublishConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelWebinarEventLinkConfirmationText,
   duplicateDraftFunnel,
@@ -15,6 +16,7 @@ import {
   linkDraftFunnelBlockToWebinarEvent,
   linkDraftFunnelStepToCheckoutOffer,
   moveDraftFunnelBlockToStep,
+  publishDraftFunnel,
   reorderDraftFunnelBlock,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
@@ -66,7 +68,7 @@ function stringValue(value: unknown, maxLength = 1_200) {
   return value.trim().slice(0, maxLength);
 }
 
-function redaction() {
+function redaction(input: { publicRouteMutationCreated?: boolean } = {}) {
   return {
     ownerEmailIncluded: false,
     ownerUserIdIncluded: false,
@@ -78,11 +80,12 @@ function redaction() {
     signedUrlsIncluded: false,
     buyerDataIncluded: false,
     billingMutationCreated: false,
+    publicRouteMutationCreated: input.publicRouteMutationCreated ?? false,
     publicAgentWriteCreated: false,
   };
 }
 
-function redactedDraftSummary(draft: DraftFunnelRecord) {
+function redactedDraftSummary(draft: DraftFunnelRecord, input: { publicRouteChanged?: boolean } = {}) {
   return {
     id: draft.id,
     slug: draft.slug,
@@ -94,7 +97,7 @@ function redactedDraftSummary(draft: DraftFunnelRecord) {
     revisionId: draft.revisionId,
     stepCount: draft.steps.length,
     blockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
-    publicRouteChanged: draft.status === "archived",
+    publicRouteChanged: input.publicRouteChanged ?? false,
     ownerEmailIncluded: false,
     ownerUserIdIncluded: false,
     rawRowsIncluded: false,
@@ -187,6 +190,7 @@ export async function POST(request: NextRequest) {
   try {
     const db = await getFunnelDraftD1OrThrow();
     let draft: DraftFunnelRecord;
+    let publicRouteMutationCreated = false;
 
     if (operationId === "update-block") {
       const stepId = stringValue(body.stepId, 220);
@@ -361,7 +365,21 @@ export async function POST(request: NextRequest) {
         idempotencyKey,
         agentWriteAudit,
       });
+    } else if (operationId === "publish-draft") {
+      publicRouteMutationCreated = true;
+      draft = await publishDraftFunnel(db, adminState.identity, {
+        draftId,
+        expectedRevisionId,
+        confirmationText: draftFunnelPublishConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
     } else {
+      const archiveTarget = await db
+        .prepare("SELECT status, preview_route FROM funnel_drafts WHERE id = ?")
+        .bind(draftId)
+        .first<{ status: string; preview_route: string | null }>();
+      publicRouteMutationCreated = archiveTarget?.status === "published" || Boolean(archiveTarget?.preview_route);
       draft = await archiveDraftFunnel(db, adminState.identity, {
         draftId,
         expectedRevisionId,
@@ -379,8 +397,8 @@ export async function POST(request: NextRequest) {
         issue: agentFunnelDraftWriteIssue,
         route: agentFunnelDraftWriteApiRoute,
         auditCorrelationId,
-        draft: redactedDraftSummary(draft),
-        redaction: redaction(),
+        draft: redactedDraftSummary(draft, { publicRouteChanged: publicRouteMutationCreated }),
+        redaction: redaction({ publicRouteMutationCreated }),
       },
       { status: 201 },
     );
