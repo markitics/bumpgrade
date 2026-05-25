@@ -51,6 +51,7 @@ Recommended stable concepts:
 - `subscriptionPlanId`: stable id for pricing/billing plans.
 - `affiliateProgramId`: stable id for affiliate/referral programs.
 - `affiliatePartnerReportId`: stable id for public-safe partner performance reports.
+- `affiliatePartnerPortalId`: stable id for public-safe partner status portals.
 - `payoutPreparationId`: stable id for read-only affiliate payout preparation rows.
 - `partnerNotificationReadinessRecordId`: stable id for owner-reviewed partner
   notification readiness records.
@@ -691,8 +692,8 @@ remaining bucket.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,
-referral links, public-safe partner reports, aggregate click counts, checkout
-attribution evidence, aggregate review-only commission ledger counts,
+referral links, public-safe partner reports, public-safe partner portal status
+pages, aggregate click counts, checkout attribution evidence, aggregate review-only commission ledger counts,
 read-only payout preparation, owner-confirmed payout preparation records,
 owner-reviewed fraud review records, owner-confirmed fraud enforcement records,
 owner-reviewed partner notification readiness records, attribution rules,
@@ -709,7 +710,12 @@ reverse that evidence through
 Issue #193 adds partner report definitions and aggregate report rows for clicks,
 attributed checkouts, review-only ledgers, owner review actions, and payout
 readiness caveats without exposing buyer, payout, tax, Stripe, raw click, raw
-checkout, or private actor fields. Issue #195 adds read-only payout preparation
+checkout, or private actor fields. Issue #424 adds public-safe partner portal
+status pages such as `/affiliates/indie-launch-partners/partners/launch-circle`
+so partners can inspect aggregate referral, commission, payout-readiness, fraud,
+and notification status without private partner auth, buyer data, payout
+accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue
+rows, raw rows, or direct public agent writes. Issue #195 adds read-only payout preparation
 rows and readiness checklists without payout accounts, tax forms, Stripe payout
 identifiers, partner notification payloads, raw ledger rows, private actor
 identity, or private reasons. Issue #273 lets owners record payout preparation
@@ -767,11 +773,11 @@ referral
 click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness-to-send-preflight-to-provider-readiness semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
 direct agent review writes, payout execution, tax collection, Stripe payout
-capability, private partner portal access, partner notification sends,
+capability, authenticated private partner portal access, partner notification sends,
 provider-send configuration, provider calls, send payload creation, or queue
 dispatch. Issue #19 is the live affiliate/referral MVP boundary. Issue
 #424 tracks the remaining live payout execution, partner notification execution,
-private partner portal, payout/tax-data, buyer attribution finalization, and
+authenticated private partner portal, payout/tax-data, buyer attribution finalization, and
 agent-safe affiliate/referral write parity work as one pending bucket.
 
 ## MCP And Tooling

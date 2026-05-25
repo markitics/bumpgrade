@@ -45,6 +45,7 @@ export type CommissionRule = {
 
 export type AffiliatePartner = {
   id: string;
+  portalSlug: string;
   displayName: string;
   status: AffiliatePartnerStatus;
   publicProfile: string;
@@ -194,7 +195,15 @@ export type AffiliateProgram = {
   validation: string[];
 };
 
-export const affiliateReferralsUpdatedAt = "2026-05-21";
+export const affiliateReferralsUpdatedAt = "2026-05-25";
+
+export function affiliatePartnerPortalRoute(programSlug: string, partnerSlug: string) {
+  return `/affiliates/${programSlug}/partners/${partnerSlug}`;
+}
+
+export function affiliatePartnerPortalId(partnerId: string) {
+  return `affiliate-partner-portal-${partnerId.replace(/^affiliate-partner-/, "")}`;
+}
 
 export const affiliatePartnerReportContract = {
   id: "affiliate-partner-report-contract",
@@ -240,6 +249,59 @@ export const affiliatePartnerReportContract = {
   ],
   writeBoundary:
     "Issue #193 exposes public-safe partner report definitions and aggregate report rows. Reports are read-only and cannot finalize buyer attribution, create payable commission state, trigger payouts, notify partners, store payout accounts, collect tax data, enforce fraud decisions, or accept direct agent writes.",
+};
+
+export const affiliatePartnerPortalContract = {
+  id: "affiliate-partner-portal-contract",
+  status: "partner-portal-status-ready",
+  issue: 424,
+  parentIssue: 424,
+  routePattern: "/affiliates/{programSlug}/partners/{partnerSlug}",
+  sourceDataRoute: "/affiliates/source-data",
+  auth: "public-preview-redacted",
+  stableIds: [
+    "affiliatePartnerPortalId",
+    "affiliatePartnerId",
+    "affiliateProgramId",
+    "affiliatePartnerReportId",
+    "payoutPreparationId",
+    "payoutBatchId",
+    "referralLinkId",
+    "reviewFlagId",
+    "fraudReviewRecordId",
+    "fraudEnforcementRecordId",
+    "partnerNotificationReadinessRecordId",
+    "partnerNotificationSendPreflightRecordId",
+    "partnerNotificationProviderReadinessRecordId",
+  ],
+  publicSafeFields: [
+    "partner display name",
+    "partner status",
+    "referral link IDs and public URL patterns",
+    "aggregate click and checkout counts",
+    "review-only commission totals",
+    "payout readiness blockers",
+    "fraud and notification readiness status",
+    "redaction flags",
+  ],
+  serverPrivateFields: [
+    "partner email address",
+    "payout account",
+    "tax form",
+    "bank account",
+    "buyer identity",
+    "raw click rows",
+    "raw checkout rows",
+    "raw ledger rows",
+    "private fraud signals",
+    "notification recipient email",
+    "notification body",
+    "send payload",
+    "provider secrets",
+    "Stripe payout or transfer IDs",
+  ],
+  writeBoundary:
+    "Issue #424 exposes a partner-facing status portal for public-safe report, payout-readiness, fraud, and notification evidence. It is not private partner authentication, payable commission state, Stripe payout execution, payout account or tax storage, partner notification sending, provider configuration, provider calls, queue dispatch, buyer attribution finalization, or direct public agent writes.",
 };
 
 export const affiliatePayoutPreparationContract = {
@@ -299,7 +361,7 @@ export const affiliateProgram: AffiliateProgram = {
   linkedFunnelRoute: "/funnels/indie-launch-sandbox",
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAnalyticsRoute: "/analytics/indie-launch-dashboard",
-  revisionId: "affiliate-program-revision-indie-launch-2026-05-21-notification-provider-readiness",
+  revisionId: "affiliate-program-revision-indie-launch-2026-05-25-partner-portal-status",
   summary:
     "A partner program example for referral links, checkout attribution, commission review, partner reports, payout preparation, review flags, and careful partner communication.",
   attributionRules: [
@@ -357,6 +419,7 @@ export const affiliateProgram: AffiliateProgram = {
   partners: [
     {
       id: "affiliate-partner-launch-circle",
+      portalSlug: "launch-circle",
       displayName: "Launch Circle partner",
       status: "approved",
       publicProfile: "Newsletter partner with an aligned creator and indie-launch audience.",
@@ -366,6 +429,7 @@ export const affiliateProgram: AffiliateProgram = {
     },
     {
       id: "affiliate-partner-template-studio",
+      portalSlug: "template-studio",
       displayName: "Template Studio partner",
       status: "review",
       publicProfile: "Template seller awaiting affiliate approval before public links or payout eligibility.",
@@ -642,7 +706,7 @@ export const affiliateProgram: AffiliateProgram = {
     },
   ],
   writeBoundary:
-    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Issue #113 can create review-only, non-payable commission ledger evidence from trusted checkout attribution. Issue #115 can apply owner-gated review, hold, or reversal actions to review-only ledger evidence with exact confirmation, idempotency, actor identity, stale-state checks, and audit correlation. Issue #193 exposes public-safe partner reports from aggregate click, checkout attribution, ledger, and review-action evidence. Issue #195 exposes read-only payout preparation rows and readiness checklists. Issue #273 lets verified owners record payout preparation evidence with exact confirmation, idempotency, revision checks, and public-safe redaction while keeping payout execution disabled. Issue #275 lets verified owners record fraud review evidence with exact confirmation, idempotency, review-flag checks, payout batch status checks, and public-safe redaction while keeping fraud enforcement and payout execution disabled. Issue #277 lets verified owners record partner notification readiness evidence with exact confirmation, idempotency, partner report checks, payout preparation status checks, fraud review status checks, and public-safe redaction while keeping partner sends, provider calls, and queue dispatch disabled. Issue #279 lets verified owners record partner notification send preflight evidence with exact confirmation, idempotency, notification readiness status checks, provider-send-disabled checks, and public-safe redaction while keeping partner sends, provider-send enablement, provider calls, send payloads, and queue dispatch disabled. Issue #281 lets verified owners record notification provider readiness evidence with exact confirmation, idempotency, send preflight status checks, provider-configuration-disabled checks, provider-secret-redaction checks, and public-safe redaction while keeping provider configuration, provider secrets, sender credentials, partner sends, provider calls, send payloads, and queue dispatch disabled. Issue #424 lets verified owners record fraud enforcement decisions with exact confirmation, idempotency, fraud review status checks, review-flag checks, and public-safe redaction while keeping payable commission writes, Stripe payout actions, tax collection, payout account storage, partner notification sends, provider-send configuration, provider secret storage, private partner portals, and direct agent review writes disabled.",
+    "Issue #109 can capture seeded referral clicks with idempotency, destination-route validation, hashed request evidence, and aggregate-only public reporting. Issue #111 can attach validated referral click evidence to sandbox checkout intents. Issue #113 can create review-only, non-payable commission ledger evidence from trusted checkout attribution. Issue #115 can apply owner-gated review, hold, or reversal actions to review-only ledger evidence with exact confirmation, idempotency, actor identity, stale-state checks, and audit correlation. Issue #193 exposes public-safe partner reports from aggregate click, checkout attribution, ledger, and review-action evidence. Issue #195 exposes read-only payout preparation rows and readiness checklists. Issue #273 lets verified owners record payout preparation evidence with exact confirmation, idempotency, revision checks, and public-safe redaction while keeping payout execution disabled. Issue #275 lets verified owners record fraud review evidence with exact confirmation, idempotency, review-flag checks, payout batch status checks, and public-safe redaction while keeping fraud enforcement and payout execution disabled. Issue #277 lets verified owners record partner notification readiness evidence with exact confirmation, idempotency, partner report checks, payout preparation status checks, fraud review status checks, and public-safe redaction while keeping partner sends, provider calls, and queue dispatch disabled. Issue #279 lets verified owners record partner notification send preflight evidence with exact confirmation, idempotency, notification readiness status checks, provider-send-disabled checks, and public-safe redaction while keeping partner sends, provider-send enablement, provider calls, send payloads, and queue dispatch disabled. Issue #281 lets verified owners record notification provider readiness evidence with exact confirmation, idempotency, send preflight status checks, provider-configuration-disabled checks, provider-secret-redaction checks, and public-safe redaction while keeping provider configuration, provider secrets, sender credentials, partner sends, provider calls, send payloads, and queue dispatch disabled. Issue #424 lets verified owners record fraud enforcement decisions with exact confirmation, idempotency, fraud review status checks, review-flag checks, and public-safe redaction while keeping payable commission writes, Stripe payout actions, tax collection, payout account storage, partner notification sends, provider-send configuration, provider secret storage, private partner auth, and direct agent review writes disabled. Issue #424 also exposes public-safe partner portal status pages so partners can inspect aggregate referral, commission, payout-readiness, fraud, and notification status without private payout, tax, buyer, provider, or raw-row data.",
   validation: [
     "/affiliates/source-data returns seeded programs, partners, links, attribution rules, commission rules, ledger fixtures, payout batches, read-only payout preparation rows, and review flags.",
     "/affiliates/source-data exposes public-safe partner report definitions and aggregate report rows without buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
@@ -662,6 +726,7 @@ export const affiliateProgram: AffiliateProgram = {
     "/api/admin/affiliates/notification-readiness-records can create owner-confirmed partner notification readiness evidence without sending notifications, calling providers, creating queue rows, or creating payout state.",
     "/api/admin/affiliates/notification-send-preflights can create owner-confirmed partner notification send preflight evidence without enabling provider sends, creating send payloads, sending notifications, calling providers, creating queue rows, or creating payout state.",
     "/api/admin/affiliates/fraud-enforcement-records can create owner-confirmed fraud enforcement decisions without creating payable commission state, triggering payouts, or notifying partners.",
+    "/affiliates/indie-launch-partners/partners/launch-circle renders a public-safe partner portal status page without payout account, tax, buyer, provider, or raw-row data.",
     "/agent-docs/source-data lists the affiliate/referral read contract for future MCP resources.",
   ],
 };
@@ -675,7 +740,7 @@ export function getAffiliateProgramBySlug(slug: string) {
 export const affiliateReferralsSourceData = {
   id: "bumpgrade-affiliate-referrals-source-data",
   updatedAt: affiliateReferralsUpdatedAt,
-  status: "owner-affiliate-fraud-enforcement-records-ready",
+  status: "partner-portal-status-ready",
   issue: 424,
   parentIssue: 19,
   generatedFrom: "src/lib/affiliate-referrals.ts",
@@ -693,10 +758,16 @@ export const affiliateReferralsSourceData = {
     "/api/admin/affiliates/notification-provider-readiness",
     "/admin/affiliates",
     ...affiliatePrograms.map((program) => program.previewRoute),
+    ...affiliatePrograms.flatMap((program) =>
+      program.partners.map((partner) => affiliatePartnerPortalRoute(program.slug, partner.portalSlug)),
+    ),
   ],
   stableIds: [
     "affiliateProgramId",
     "affiliatePartnerId",
+    "affiliatePartnerPortalId",
+    "affiliatePartnerPortalRoute",
+    "affiliatePartnerPortalStatus",
     "referralLinkId",
     "affiliatePartnerReportId",
     "payoutPreparationId",
@@ -729,6 +800,7 @@ export const affiliateReferralsSourceData = {
   commissionLedgerWrites: affiliateCommissionLedgerContract,
   commissionReviewActions: affiliateCommissionReviewActionsContract,
   partnerReportContract: affiliatePartnerReportContract,
+  partnerPortalContract: affiliatePartnerPortalContract,
   payoutPreparationContract: affiliatePayoutPreparationContract,
   payoutPreparationRecordWrites: {
     id: "affiliate-payout-preparation-record-contract",
@@ -1011,5 +1083,5 @@ export const affiliateReferralsSourceData = {
   writeBoundary: affiliateProgram.writeBoundary,
   programs: affiliatePrograms,
   caveat:
-    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review evidence, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness evidence, owner-reviewed partner notification send preflight evidence, and owner-reviewed notification provider readiness evidence. Public source-data may expose aggregate click, checkout attribution, commission ledger, owner action, partner report, payout preparation, payout preparation record, fraud review record, fraud enforcement record, notification readiness record, notification send preflight record, and notification provider readiness record counts, but it does not expose raw rows, actor identity, private review reasons, private fraud signals, recipient emails, message bodies, send payloads, provider configuration, provider secrets, sender credentials, provider message IDs, send queue rows, assign cookies, finalize buyer attribution, create payable commissions, store payout accounts, collect tax forms, trigger Stripe payouts, send partner notifications, enable provider sends, or provide direct public agent write APIs.",
+    "This contract proves affiliate and referral read/preview semantics, privacy-safe seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review evidence, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness evidence, owner-reviewed partner notification send preflight evidence, and owner-reviewed notification provider readiness evidence. Public source-data may expose aggregate click, checkout attribution, commission ledger, owner action, partner report, partner portal, payout preparation, payout preparation record, fraud review record, fraud enforcement record, notification readiness record, notification send preflight record, and notification provider readiness record counts, but it does not expose raw rows, actor identity, private review reasons, private fraud signals, recipient emails, message bodies, send payloads, provider configuration, provider secrets, sender credentials, provider message IDs, send queue rows, assign cookies, finalize buyer attribution, create payable commissions, store payout accounts, collect tax forms, trigger Stripe payouts, send partner notifications, enable provider sends, or provide direct public agent write APIs.",
 };

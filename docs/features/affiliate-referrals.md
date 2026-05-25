@@ -7,12 +7,13 @@ path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
 owner-reviewed fraud review record, owner-confirmed fraud enforcement record,
-and owner-reviewed partner notification readiness, send preflight, and provider
-readiness record contracts for parent issue #19/#424. Issue #19 is now the live
-affiliate/referral MVP boundary. Issue #424 tracks remaining payout execution,
-partner notification sends, private payout/tax data, private partner portals,
-buyer attribution finalization, and direct agent-safe affiliate/referral writes
-as one pending post-MVP execution bucket.
+public-safe partner portal status pages, and owner-reviewed partner notification
+readiness, send preflight, and provider readiness record contracts for parent
+issue #19/#424. Issue #19 is now the live affiliate/referral MVP boundary. Issue
+#424 tracks remaining payout execution, partner notification sends, private
+payout/tax data, authenticated private partner portals, buyer attribution
+finalization, and direct agent-safe affiliate/referral writes as one pending
+post-MVP execution bucket.
 
 ## Live Public-Safe Routes
 
@@ -23,6 +24,10 @@ as one pending post-MVP execution bucket.
   boundaries.
 - `/affiliates/indie-launch-partners`: semantic preview of the same fixture
   program for humans and browser agents.
+- `/affiliates/indie-launch-partners/partners/launch-circle`: public-safe
+  partner portal status page for aggregate referral, commission,
+  payout-readiness, fraud, and notification status without partner email, buyer,
+  payout account, tax, Stripe, provider, message, queue, or raw-row data.
 - `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
 - `/api/commerce/checkout`: sandbox checkout endpoint can attach eligible
   referral click IDs as public-safe attribution evidence.
@@ -50,6 +55,10 @@ as one pending post-MVP execution bucket.
 - `/affiliates/source-data.partnerReportSummary`: aggregate partner report rows
   for clicks, attributed checkouts, review-only ledgers, owner review actions,
   commission evidence totals, payout-readiness caveats, and redaction flags.
+- `/affiliates/source-data.partnerPortalSummary`: aggregate partner portal rows
+  with portal routes, partner status, referral link IDs, partner report IDs,
+  payout readiness blockers, fraud/notification status, non-live execution
+  boundaries, and redaction flags.
 - `/affiliates/source-data.payoutPreparationSummary`: aggregate payout
   preparation rows for eligible, blocked, and reversed fixture ledgers,
   readiness checklist items, review action counts, and redaction flags.
@@ -75,6 +84,9 @@ The contract introduces stable IDs for:
 
 - `affiliateProgramId`
 - `affiliatePartnerId`
+- `affiliatePartnerPortalId`
+- `affiliatePartnerPortalRoute`
+- `affiliatePartnerPortalStatus`
 - `affiliatePartnerReportId`
 - `payoutPreparationId`
 - `payoutPreparationRecordId`
@@ -181,7 +193,11 @@ payout account storage, tax data, partner notification sends, provider calls,
 buyer data, raw ledger/click/checkout rows, raw actor identity, private fraud
 signals, and direct public agent writes. It proves owner-visible fraud
 enforcement state, not payout execution, partner notification sending, or agent
-affiliate writes.
+affiliate writes. Issue #424 also exposes public-safe partner portal status
+pages so partners can inspect aggregate report, payout-readiness, fraud, and
+notification status without private partner auth, buyer data, payout account,
+tax, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows,
+or direct public agent writes.
 
 Tracked by issue #424, not live in the MVP:
 
@@ -194,7 +210,7 @@ Tracked by issue #424, not live in the MVP:
 - payout account storage;
 - tax form collection;
 - Stripe payout actions;
-- private partner portals;
+- authenticated private partner portals;
 - partner notification sends;
 - notification provider configuration;
 - notification provider secrets;

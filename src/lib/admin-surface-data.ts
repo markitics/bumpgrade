@@ -2382,6 +2382,42 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-partner-checks-affiliate-status-portal",
+    title: "Partner checks affiliate status portal",
+    featureId: "feature-affiliates-referrals",
+    featureStatus: "live",
+    issueNumbers: [19, 193, 195, 273, 275, 277, 279, 281, 424],
+    primaryUser: "Affiliate partner checking public-safe status before payouts exist",
+    userGoal:
+      "Inspect referral link, aggregate performance, payout-readiness blockers, fraud status, and notification readiness without exposing buyer data, payout accounts, tax forms, Stripe identifiers, provider secrets, message bodies, queue rows, raw rows, or private fraud signals.",
+    sourceEvidence: [
+      "https://bumpgrade.com/affiliates/indie-launch-partners/partners/launch-circle",
+      "https://bumpgrade.com/affiliates/source-data",
+      "https://github.com/markitics/bumpgrade/issues/424",
+      "https://github.com/markitics/bumpgrade/issues/193",
+      "https://github.com/markitics/bumpgrade/issues/195",
+    ],
+    happyPath: [
+      "Open /affiliates/indie-launch-partners/partners/launch-circle.",
+      "Confirm the partner portal ID, referral link, report, commission evidence, payout readiness, fraud/review status, and notification readiness sections.",
+      "Use /affiliates/source-data.partnerPortalSummary to read the same public-safe portal route, stable IDs, aggregate totals, blocker counts, redaction flags, and non-live execution boundaries.",
+      "Follow the program overview or source-data links when a partner or agent needs broader context.",
+    ],
+    edgeCases: [
+      "The portal does not authenticate a partner or expose private partner rows.",
+      "The portal does not expose partner email, buyer data, raw click rows, raw checkout rows, raw ledger rows, private fraud signals, payout accounts, tax data, Stripe payout IDs, notification recipient emails, message bodies, send payloads, provider secrets, provider message IDs, or queue rows.",
+      "Payable commission state, Stripe transfers, payout receipts, payout account collection, tax collection, partner notification sends, provider configuration, provider calls, queue dispatch, and direct public agent writes remain grouped in issue #424.",
+    ],
+    agentAccess:
+      "Agents can read the partner portal page and /affiliates/source-data.partnerPortalSummary as public-safe status. Authenticated private partner access, payout execution, provider sends, and direct agent affiliate writes require future confirmed-write APIs and private auth boundaries.",
+    validation: [
+      "Playwright covers the partner portal route, heading, source-data partnerPortalSummary, sitemap entry, agent manifest stable IDs, and redaction boundaries.",
+      "Issue #424 records this as a partner-facing status slice, not private partner auth or payout execution.",
+    ],
+    sortOrder: 54,
+    updatedAt: null,
+  },
+  {
     id: "journey-agent-records-privacy-safe-referral-click",
     title: "Agent records a privacy-safe referral click",
     featureId: "feature-affiliates-referrals",
