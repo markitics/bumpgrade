@@ -77,6 +77,11 @@ export default function MobileAdminAgentDocPage() {
             <p>{mobileAdminContract.privateRowActionsApi.actionBoundary}</p>
           </div>
           <div>
+            <ShieldCheck aria-hidden="true" />
+            <h3>{mobileAdminContract.directorReviewApi.status}</h3>
+            <p>{mobileAdminContract.directorReviewApi.reviewBoundary}</p>
+          </div>
+          <div>
             <Database aria-hidden="true" />
             <h3>{mobileAdminContract.actionIntentApi.status}</h3>
             <p>{mobileAdminContract.actionIntentApi.intentBoundary}</p>

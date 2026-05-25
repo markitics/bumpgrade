@@ -145,6 +145,10 @@ import {
 } from "@/lib/affiliate-partner-notification-send-preflight-records";
 import { mobileAdminActionIntentApiRoute, mobileAdminActionIntentIssue } from "@/lib/mobile-admin-actions";
 import {
+  mobileAdminDirectorReviewApiRoute,
+  mobileAdminDirectorReviewIssue,
+} from "@/lib/mobile-admin-director-reviews";
+import {
   mobileAdminPrivateRowActionApiRoute,
   mobileAdminPrivateRowActionIssue,
 } from "@/lib/mobile-admin-private-row-actions";
@@ -2315,6 +2319,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobilePrivateAuthId",
       "mobilePrivateRowsApiId",
       "mobilePrivateRowActionsApiId",
+      "mobileDirectorReviewApiId",
       "mobileActionIntentApiId",
       "mobilePushBoundaryId",
       "mobileDistributionReadinessId",
@@ -2330,6 +2335,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Understand mobile owner-session requirements",
       "Understand the owner-gated read-only mobile private-row boundary",
       "Understand the low-risk owner-confirmed mobile private-row action boundary",
+      "Understand the owner-confirmed Director workstream review boundary",
       "Understand the owner-gated audit-only mobile action intent boundary",
       "Understand the Director workstream digest exposed to mobile clients",
       "Understand push-notification provider requirements and disabled send status",
@@ -2337,7 +2343,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Understand mobile confirmed-action write boundaries",
     ],
     writeBoundary:
-      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Push sends, provider calls, device-token registration, installable distribution, physical-device proof, and high-risk production writes remain disabled until future domain-specific confirmed-write APIs and platform evidence exist; issue #414 exposes the shared owner-session, private-row, private-row action, action-intent, push-readiness, distribution-readiness, and confirmed-action contract.",
+      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, record owner-confirmed Director workstream review state through /api/mobile-admin/director-reviews, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Push sends, provider calls, device-token registration, installable distribution, physical-device proof, and high-risk billing/publishing production writes remain disabled until future domain-specific confirmed-write APIs and platform evidence exist; issue #414 exposes the shared owner-session, private-row, private-row action, Director review, action-intent, push-readiness, distribution-readiness, and confirmed-action contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2357,6 +2363,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "markAttentionId",
       "mobilePrivateRowId",
       "mobilePrivateRowActionId",
+      "mobileDirectorReviewId",
       "mobilePushBoundaryId",
       "mobileDistributionReadinessId",
       "agentReadContractId",
@@ -2367,11 +2374,35 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect redacted Director brief signals and 1-day/7-day change windows without raw attention or work-log bodies",
       "Inspect public-safe private-row counts and labels without owner-only notes or payloads",
       "Inspect redacted private-row workflow action counts without actor, note, idempotency, or stale-token details",
+      "Inspect redacted Director review counts without actor, note, idempotency, or stale-token details",
       "Inspect public-safe push-readiness and distribution-readiness blockers",
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, action-intent, push-readiness, distribution-readiness, and confirmed-action requirements, but push notifications, physical-device proof, App Store/Play Store distribution, and high-risk production confirmed mobile writes require future authenticated APIs and platform evidence.",
+      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, Director review, action-intent, push-readiness, distribution-readiness, and confirmed-action requirements, but push notifications, physical-device proof, App Store/Play Store distribution, and high-risk billing/publishing confirmed mobile writes require future authenticated APIs and platform evidence.",
+  },
+  {
+    id: "create-owner-mobile-admin-director-review",
+    title: "Mobile admin Director review API",
+    route: mobileAdminDirectorReviewApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "src/lib/mobile-admin-director-reviews.ts",
+    stableIds: [
+      "mobileDirectorReviewId",
+      "directorWorkstreamId",
+      "auditCorrelationId",
+      "idempotencyKey",
+      "staleStateToken",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only Director review confirmation contract",
+      "Record owner acknowledgements for Director workstreams only with an owner session",
+      "Use exact confirmation, idempotency, current Director generated-at checks, stale-state token checks, and audit correlation before writing",
+      "Confirm responses omit actor email, actor hash, actor user id, idempotency keys, review notes, stale-state token hashes, and raw rows",
+    ],
+    writeBoundary:
+      `This owner-session API records low-risk production owner review state for Director workstreams in D1 after exact confirmation, idempotency, current Director generated-at checks, stale-state token checks, audit correlation, and redaction. It does not create billing mutations, publishing mutations, push notifications, distribution state changes, public agent writes, private-row changes, or high-risk production confirmed-write side effects. Issue #${mobileAdminDirectorReviewIssue} tracks this slice.`,
   },
   {
     id: "create-owner-mobile-admin-private-row-action",

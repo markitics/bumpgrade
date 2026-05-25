@@ -38,6 +38,11 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   now lets a verified owner mark private rows read or deferred after exact
   confirmation, idempotency, stale row revision, stale-state token, and
   audit-correlation checks. It mutates only private-row workflow state.
+- Mobile Director review API issue: #414. `/api/mobile-admin/director-reviews`
+  now lets a verified owner acknowledge a Director workstream after exact
+  confirmation, idempotency, current Director source-revision checks,
+  stale-state token checks, and audit correlation. It mutates only low-risk
+  owner review state.
 - Mobile action-intent API issue: #414. `/api/mobile-admin/actions` now lets a
   verified owner record redacted audit-only action intent evidence after exact
   confirmation, idempotency, contract revision, stale-state, source-route, and
@@ -110,6 +115,16 @@ private payload metadata from D1. Public `/mobile-admin/source-data` and
 public row labels, and redaction flags, and they exclude owner-only notes,
 private payload JSON, owner email values, session IDs, cookies, tokens, and raw
 rows.
+
+The current #414 Director review slice is the first domain-specific Mobile
+Admin confirmed-write API. Owner-authenticated GET
+`/api/mobile-admin/director-reviews` exposes current Director workstreams and
+stale-state tokens only to accepted owners. Owner-authenticated POST records a
+redacted workstream acknowledgement after exact confirmation, idempotency,
+current Director source-revision checks, stale-state token checks, and audit
+correlation. Public source-data exposes only route, status, counts, latest
+reviewed workstream labels, and redaction flags; it excludes actor identity,
+review notes, idempotency keys, stale-state tokens, token hashes, and raw rows.
 
 The current #414 action-intent slice turns the future endpoint into an
 owner-gated audit trail without enabling production mutations. Owner-authenticated
@@ -215,17 +230,18 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 
 The first iOS and Android slices can inspect owner-session private rows through
 `/api/mobile-admin/private-rows`, mark those private rows read or deferred
-through `/api/mobile-admin/private-rows/actions`, record audit-only action
-intents through `/api/mobile-admin/actions`, and render push/distribution
+through `/api/mobile-admin/private-rows/actions`, acknowledge Director
+workstreams through `/api/mobile-admin/director-reviews`, record audit-only
+action intents through `/api/mobile-admin/actions`, and render push/distribution
 readiness boundaries from `/mobile-admin/source-data`, but high-risk production
-mobile writes still require domain-specific confirmed-write APIs. Public,
+mobile writes still require additional domain-specific confirmed-write APIs. Public,
 destructive, billing-impacting, publishing, moderation, source-editing,
 creator-speech, live push, and distribution actions require explicit
 confirmation text, idempotency, stale-state checks, audit correlation, platform
 evidence, and redaction.
 
 The current #414 surface proves that iOS and Android expose the same private
-auth, private-row, private-row action, action-intent, push-readiness,
+auth, private-row, private-row action, Director review, action-intent, push-readiness,
 distribution-readiness, and confirmed-action rules the web/admin app uses; it
 does not prove App Store/TestFlight or Play Store/internal-testing distribution,
 live push notifications, physical-device private row proof, billing mutation,

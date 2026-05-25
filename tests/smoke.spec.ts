@@ -322,6 +322,12 @@ import {
   mobileAdminActionIntentStatus,
 } from "../src/lib/mobile-admin-actions";
 import {
+  mobileAdminDirectorReviewApiRoute,
+  mobileAdminDirectorReviewConfirmationText,
+  mobileAdminDirectorReviewIssue,
+  mobileAdminDirectorReviewStatus,
+} from "../src/lib/mobile-admin-director-reviews";
+import {
   mobileAdminPrivateRowActionApiRoute,
   mobileAdminPrivateRowActionIssue,
   mobileAdminPrivateRowActionStatus,
@@ -19590,6 +19596,12 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["mobilePrivateRowActionId", "mobilePrivateRowId", "idempotencyKey"]),
         }),
         expect.objectContaining({
+          id: "create-owner-mobile-admin-director-review",
+          route: mobileAdminDirectorReviewApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["mobileDirectorReviewId", "directorWorkstreamId", "idempotencyKey"]),
+        }),
+        expect.objectContaining({
           id: "create-owner-mobile-admin-action-intent",
           route: mobileAdminActionIntentApiRoute,
           auth: "owner-session",
@@ -19793,6 +19805,11 @@ test.describe("Bumpgrade scaffold", () => {
           authBoundary: "owner-session",
         }),
         expect.objectContaining({
+          id: "mobile-api-director-review",
+          route: mobileAdminDirectorReviewApiRoute,
+          authBoundary: "owner-session",
+        }),
+        expect.objectContaining({
           id: "mobile-api-confirmed-writes",
           route: mobileAdminActionIntentApiRoute,
           authBoundary: "owner-confirmed-intent",
@@ -19856,6 +19873,33 @@ test.describe("Bumpgrade scaffold", () => {
           staleStateTokenIncludedInPublicSourceData: false,
           productionMutationCreated: false,
           billingMutationCreated: false,
+        }),
+      }),
+    );
+    expect(payload.directorReviewApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-director-review-api",
+        issue: mobileAdminDirectorReviewIssue,
+        status: mobileAdminDirectorReviewStatus,
+        route: mobileAdminDirectorReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
+    expect(payload.directorReviewSummary).toEqual(
+      expect.objectContaining({
+        id: "mobile-admin-director-review-contract",
+        status: mobileAdminDirectorReviewStatus,
+        apiRoute: mobileAdminDirectorReviewApiRoute,
+        sourceRoute: "/admin/director/source-data",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+          billingMutationCreated: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
         }),
       }),
     );
@@ -19932,7 +19976,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "mobile-confirm-review-agent-work",
           issue: 414,
-          confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+          confirmationText: mobileAdminDirectorReviewConfirmationText,
           requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
         }),
       ]),
@@ -19969,6 +20013,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/mobile-admin/android/source-data",
         mobileAdminPrivateRowsApiRoute,
         mobileAdminPrivateRowActionApiRoute,
+        mobileAdminDirectorReviewApiRoute,
         mobileAdminActionIntentApiRoute,
         "/features/source-data",
         "/roadmap/source-data",
@@ -20010,7 +20055,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "mobile-confirm-review-agent-work",
-          status: "owner-intent-api-ready",
+          status: "owner-director-review-api-ready",
           requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
         }),
       ]),
@@ -20051,6 +20096,26 @@ test.describe("Bumpgrade scaffold", () => {
           privateNoteIncluded: false,
           privatePayloadIncluded: false,
           ownerOnlyNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+        }),
+      }),
+    );
+    expect(payload.directorReviewApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-director-review-api",
+        status: mobileAdminDirectorReviewStatus,
+        route: mobileAdminDirectorReviewApiRoute,
+        counts: expect.objectContaining({
+          directorReviews: expect.any(Number),
+          billingMutationCreatedRows: 0,
+          pushNotificationSentRows: 0,
+          distributionStateChangedRows: 0,
+          publicAgentWriteCreatedRows: 0,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
           idempotencyKeysIncluded: false,
           staleStateTokenIncludedInPublicSourceData: false,
         }),
@@ -20437,6 +20502,169 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("publicSourceDataAllowed");
   });
 
+  test("mobile admin Director reviews require owner confirmation and keep public source-data redacted", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner mobile Director review flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const reviewNote = `Director review note for m@rkmoriarty.com ${suffix}`;
+
+    const unauthorizedGet = await request.get(mobileAdminDirectorReviewApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(mobileAdminDirectorReviewApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    const contractPayload = await contractResponse.json();
+    const marketingWorkstream = contractPayload.allowedWorkstreams.find(
+      (workstream: { id: string }) => workstream.id === "marketing",
+    );
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: mobileAdminDirectorReviewStatus,
+        issue: mobileAdminDirectorReviewIssue,
+        route: mobileAdminDirectorReviewApiRoute,
+        confirmation: expect.objectContaining({
+          exactText: mobileAdminDirectorReviewConfirmationText,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+          billingMutationCreated: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+    expect(marketingWorkstream).toEqual(
+      expect.objectContaining({
+        id: "marketing",
+        title: "Marketing",
+        expectedDirectorGeneratedAt: expect.any(String),
+        staleStateToken: expect.any(String),
+      }),
+    );
+
+    const requestBody = {
+      workstreamId: marketingWorkstream.id,
+      expectedDirectorGeneratedAt: marketingWorkstream.expectedDirectorGeneratedAt,
+      staleStateToken: marketingWorkstream.staleStateToken,
+      confirmationText: mobileAdminDirectorReviewConfirmationText,
+      idempotencyKey: `mobile-director-review-idem-${suffix}`,
+      auditCorrelationId: `audit-director-review-${suffix}`,
+      reviewNote,
+    };
+
+    const staleToken = await page.request.post(mobileAdminDirectorReviewApiRoute, {
+      data: { ...requestBody, staleStateToken: "stale-token" },
+    });
+    expect(staleToken.status(), await staleToken.text()).toBe(409);
+    await expect(staleToken.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_state_token" }));
+
+    const missingConfirmation = await page.request.post(mobileAdminDirectorReviewApiRoute, {
+      data: { ...requestBody, confirmationText: "wrong" },
+    });
+    expect(missingConfirmation.status(), await missingConfirmation.text()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const created = await page.request.post(mobileAdminDirectorReviewApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_director_review_recorded",
+        duplicate: false,
+        review: expect.objectContaining({
+          workstreamId: "marketing",
+          workstreamTitle: "Marketing",
+          sourceRoute: "/admin/director/source-data",
+          expectedDirectorGeneratedAt: requestBody.expectedDirectorGeneratedAt,
+          auditCorrelationId: requestBody.auditCorrelationId,
+          reviewNoteRecorded: true,
+          productionAdminStateRecorded: true,
+          billingMutationCreated: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(requestBody.idempotencyKey);
+    expect(createdText).not.toContain(requestBody.staleStateToken);
+    expect(createdText).not.toContain(reviewNote);
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post(mobileAdminDirectorReviewApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_director_review_replayed",
+        duplicate: true,
+        review: expect.objectContaining({
+          id: createdPayload.review.id,
+          workstreamId: "marketing",
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post(mobileAdminDirectorReviewApiRoute, {
+      data: { ...requestBody, reviewNote: `${reviewNote} changed` },
+    });
+    expect(conflict.status(), await conflict.text()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const sourceData = await request.get("/mobile-admin/source-data");
+    const sourceText = await sourceData.text();
+    expect(sourceData.ok(), sourceText).toBeTruthy();
+    const sourcePayload = JSON.parse(sourceText);
+    expect(sourcePayload.directorReviewSummary.counts.directorReviews).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.directorReviewSummary.counts.billingMutationCreatedRows).toBe(0);
+    expect(sourcePayload.directorReviewSummary.latestReviews).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          workstreamId: "marketing",
+          productionAdminStateRecorded: true,
+          billingMutationCreated: false,
+        }),
+      ]),
+    );
+    expect(sourceText).not.toContain(requestBody.staleStateToken);
+    expect(sourceText).not.toContain(requestBody.idempotencyKey);
+    expect(sourceText).not.toContain(reviewNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+  });
+
   test("mobile admin action intent API requires owner auth, exact confirmation, idempotency, stale state, and redaction", async ({
     page,
     request,
@@ -20469,7 +20697,7 @@ test.describe("Bumpgrade scaffold", () => {
         sourceRoute: "/admin/work-log/source-data",
         expectedContractUpdatedAt: mobileAdminContract.updatedAt,
         staleStateToken: "not-owner-visible-yet",
-        confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+        confirmationText: mobileAdminDirectorReviewConfirmationText,
         idempotencyKey: `mobile-action-intent-unauthorized-${suffix}`,
         auditCorrelationId: `audit-mobile-unauthorized-${suffix}`,
       },
@@ -20510,7 +20738,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(action).toEqual(
       expect.objectContaining({
         id: "mobile-confirm-review-agent-work",
-        confirmationText: "CONFIRM MOBILE ADMIN ACTION",
+        confirmationText: mobileAdminDirectorReviewConfirmationText,
         staleStateToken: expect.any(String),
         sourceRoutes: expect.arrayContaining(["/admin/work-log/source-data", "/admin/director/source-data"]),
       }),
@@ -20665,6 +20893,14 @@ test.describe("Bumpgrade scaffold", () => {
         authBoundary: "owner-session",
       }),
     );
+    expect(payload.directorReviewApi).toEqual(
+      expect.objectContaining({
+        issue: mobileAdminDirectorReviewIssue,
+        status: mobileAdminDirectorReviewStatus,
+        route: mobileAdminDirectorReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         issue: 414,
@@ -20700,7 +20936,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-director-review-api-ready" }),
       ]),
     );
     expect(payload.reads).toEqual(
@@ -20726,6 +20962,10 @@ test.describe("Bumpgrade scaffold", () => {
           route: mobileAdminPrivateRowActionApiRoute,
         }),
         expect.objectContaining({
+          id: "ios-record-mobile-director-review",
+          route: mobileAdminDirectorReviewApiRoute,
+        }),
+        expect.objectContaining({
           id: "ios-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
@@ -20742,6 +20982,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("push-notification boundary");
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
     expect(payload.writeBoundary).toContain("Director workstream brief");
+    expect(payload.writeBoundary).toContain("Director workstream acknowledgements");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -20790,6 +21031,14 @@ test.describe("Bumpgrade scaffold", () => {
         authBoundary: "owner-session",
       }),
     );
+    expect(payload.directorReviewApi).toEqual(
+      expect.objectContaining({
+        issue: mobileAdminDirectorReviewIssue,
+        status: mobileAdminDirectorReviewStatus,
+        route: mobileAdminDirectorReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         issue: 414,
@@ -20825,7 +21074,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.confirmedActions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-intent-api-ready" }),
+        expect.objectContaining({ id: "mobile-confirm-review-agent-work", status: "owner-director-review-api-ready" }),
       ]),
     );
     expect(payload.reads).toEqual(
@@ -20851,6 +21100,10 @@ test.describe("Bumpgrade scaffold", () => {
           route: mobileAdminPrivateRowActionApiRoute,
         }),
         expect.objectContaining({
+          id: "android-record-mobile-director-review",
+          route: mobileAdminDirectorReviewApiRoute,
+        }),
+        expect.objectContaining({
           id: "android-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
@@ -20867,6 +21120,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("push-notification boundary");
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
     expect(payload.writeBoundary).toContain("Director workstream brief");
+    expect(payload.writeBoundary).toContain("Director workstream acknowledgements");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {

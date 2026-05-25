@@ -4,6 +4,7 @@ import { commerceTables } from "@/lib/commerce";
 import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "@/lib/director-status";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
+import { getMobileAdminDirectorReviewSummary } from "@/lib/mobile-admin-director-reviews";
 import { getMobileAdminPrivateRowActionSummary } from "@/lib/mobile-admin-private-row-actions";
 import { getMobileAdminPrivateRowsSummary } from "@/lib/mobile-admin-private-rows";
 import { androidMobileAdminSourceData } from "@/lib/mobile-admin-android";
@@ -51,6 +52,7 @@ export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
   const director = buildDirectorStatusData(adminData);
   const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
+  const directorReviewSummary = await getMobileAdminDirectorReviewSummary({ includeStaleStateTokens: false });
   const privateRowsSummary = await getMobileAdminPrivateRowsSummary();
   const privateRowActionSummary = await getMobileAdminPrivateRowActionSummary();
   const mobileFeature = featureCatalog.find((feature) => feature.id === mobileAdminContract.featureId);
@@ -73,6 +75,7 @@ export async function getMobileAdminDashboardSourceData() {
       mobileAdminContract.privateAuth.sessionRoute,
       mobileAdminContract.privateRowsApi.route,
       mobileAdminContract.privateRowActionsApi.route,
+      mobileAdminContract.directorReviewApi.route,
       mobileAdminContract.actionIntentApi.route,
       "/features/source-data",
       "/roadmap/source-data",
@@ -82,7 +85,7 @@ export async function getMobileAdminDashboardSourceData() {
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe. It gives mobile clients one live digest route, redacted Director workstream briefings, public-safe private-row counts, redacted low-risk private-row action summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk production confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe. It gives mobile clients one live digest route, redacted Director workstream briefings, public-safe private-row counts, redacted low-risk private-row action summaries, redacted Director review summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk billing or publishing confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -174,6 +177,32 @@ export async function getMobileAdminDashboardSourceData() {
         auditCorrelationId: action.auditCorrelationId,
         privateNoteRecorded: action.privateNoteRecorded,
         createdAt: action.createdAt,
+      })),
+    },
+    directorReviewApi: {
+      id: mobileAdminContract.directorReviewApi.id,
+      issue: mobileAdminContract.directorReviewApi.issue,
+      status: mobileAdminContract.directorReviewApi.status,
+      route: mobileAdminContract.directorReviewApi.route,
+      authBoundary: mobileAdminContract.directorReviewApi.authBoundary,
+      reviewBoundary: mobileAdminContract.directorReviewApi.reviewBoundary,
+      summarySource: directorReviewSummary.source,
+      loadError: directorReviewSummary.loadError,
+      counts: directorReviewSummary.counts,
+      redaction: directorReviewSummary.redaction,
+      latestReviews: directorReviewSummary.latestReviews.map((review) => ({
+        id: review.id,
+        workstreamId: review.workstreamId,
+        workstreamTitle: review.workstreamTitle,
+        workstreamStatus: review.workstreamStatus,
+        auditCorrelationId: review.auditCorrelationId,
+        reviewNoteRecorded: review.reviewNoteRecorded,
+        productionAdminStateRecorded: review.productionAdminStateRecorded,
+        billingMutationCreated: review.billingMutationCreated,
+        pushNotificationSent: review.pushNotificationSent,
+        distributionStateChanged: review.distributionStateChanged,
+        publicAgentWriteCreated: review.publicAgentWriteCreated,
+        createdAt: review.createdAt,
       })),
     },
     confirmedActions: mobileAdminContract.confirmedActions.map((action) => ({

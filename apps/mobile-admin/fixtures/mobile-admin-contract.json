@@ -7,7 +7,7 @@
   "status": "contract-ready",
   "featureId": "feature-mobile-admin",
   "stackDecision": "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
-  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk production mobile mutations, App Store distribution, or Play Store distribution.",
+  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, owner-confirmed Director workstream review API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk billing/publishing mobile mutations, App Store distribution, or Play Store distribution.",
   "liveDashboard": {
     "id": "mobile-live-dashboard-source-data",
     "issue": 153,
@@ -105,6 +105,38 @@
       "billingMutationCreated=false",
       "pushNotificationSent=false",
       "distributionStateChanged=false"
+    ]
+  },
+  "directorReviewApi": {
+    "id": "mobile-director-review-api",
+    "issue": 414,
+    "status": "owner-mobile-director-review-ready",
+    "route": "/api/mobile-admin/director-reviews",
+    "authBoundary": "owner-session",
+    "purpose": "Let a verified owner acknowledge a Director workstream from Mobile Admin after reviewing the current CEO-style status brief.",
+    "reviewBoundary": "The endpoint records low-risk production owner review state after exact confirmation, idempotency, current Director source-revision checks, stale-state token checks, and audit correlation. It changes only Director review state and creates no billing mutation, publishing mutation, push notification, distribution state change, public agent write, or private-row change.",
+    "publicSourceDataSummary": "/mobile-admin/source-data and /mobile-admin/dashboard/source-data may expose the Director review API route, status, counts, latest reviewed workstream labels, and redaction flags; owner-only GET /api/mobile-admin/director-reviews is required before stale-state tokens are returned.",
+    "requiredInputs": [
+      "workstreamId",
+      "expectedDirectorGeneratedAt",
+      "staleStateToken",
+      "confirmationText",
+      "idempotencyKey",
+      "auditCorrelationId"
+    ],
+    "redactionFlags": [
+      "actorEmailIncluded=false",
+      "actorEmailHashIncluded=false",
+      "actorUserIdIncluded=false",
+      "reviewNoteIncluded=false",
+      "idempotencyKeysIncluded=false",
+      "staleStateTokenIncludedInPublicSourceData=false",
+      "staleStateTokenHashIncluded=false",
+      "rawRowsIncluded=false",
+      "billingMutationCreated=false",
+      "pushNotificationSent=false",
+      "distributionStateChanged=false",
+      "publicAgentWriteCreated=false"
     ]
   },
   "actionIntentApi": {
@@ -257,15 +289,14 @@
       "id": "mobile-confirm-review-agent-work",
       "issue": 414,
       "title": "Review and confirm agent work",
-      "status": "owner-intent-api-ready",
+      "status": "owner-director-review-api-ready",
       "surface": "For-Mark and work-log inbox",
-      "confirmationText": "CONFIRM MOBILE ADMIN ACTION",
+      "confirmationText": "ACKNOWLEDGE DIRECTOR WORKSTREAM",
       "requiredInputs": [
         "actorUserId",
         "role",
-        "actionId",
-        "sourceRoute",
-        "expectedContractUpdatedAt",
+        "workstreamId",
+        "expectedDirectorGeneratedAt",
         "idempotencyKey",
         "staleStateToken",
         "auditCorrelationId"
@@ -275,7 +306,7 @@
         "Check the current source-data revision before accepting stale mobile approvals.",
         "Return redacted result metadata only; never return raw private payloads to public source-data."
       ],
-      "mutationBoundary": "The current /api/mobile-admin/actions endpoint can record owner-gated, audit-only intent evidence for this action. Future domain-specific confirmed-write endpoints must implement any production mutation before a mobile approval can change production state."
+      "mutationBoundary": "The current /api/mobile-admin/director-reviews endpoint can record owner-confirmed Director workstream review state for this action. /api/mobile-admin/actions remains available for audit-only action intent evidence, but higher-risk production mutations still require domain-specific confirmed-write APIs."
     },
     {
       "id": "mobile-confirm-commerce-change",
@@ -510,6 +541,19 @@
       ]
     },
     {
+      "id": "mobile-api-director-review",
+      "route": "/api/mobile-admin/director-reviews",
+      "purpose": "Owner-confirmed Director workstream acknowledgement API for mobile clients, with exact confirmation, stale Director payload checks, idempotency, audit correlation, and redaction.",
+      "authBoundary": "owner-session",
+      "stableIds": [
+        "directorWorkstreamId",
+        "mobileDirectorReviewId",
+        "idempotencyKey",
+        "auditCorrelationId",
+        "staleStateToken"
+      ]
+    },
+    {
       "id": "mobile-api-push-boundary",
       "route": "/mobile-admin/source-data",
       "purpose": "Public-safe push-notification readiness boundary for APNs/FCM provider requirements, disabled send status, blockers, and redaction flags before any Mobile Admin push sends exist.",
@@ -537,7 +581,8 @@
   "confirmedWriteRules": [
     "The first private mobile row slice is read-only through /api/mobile-admin/private-rows and cannot mutate production state.",
     "The first Mobile Admin private-row confirmed-write slice can mark private rows read or deferred through /api/mobile-admin/private-rows/actions, but it cannot mutate billing, commerce, publishing, moderation, creator speech, push notifications, distribution, or public agent state.",
-    "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but production mutations remain disabled until domain-specific confirmed-write APIs exist.",
+    "The first domain-specific Mobile Admin confirmed-write slice can acknowledge Director workstreams through /api/mobile-admin/director-reviews, but it mutates only low-risk owner review state.",
+    "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but higher-risk production mutations remain disabled until additional domain-specific confirmed-write APIs exist.",
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",
     "Billing-impacting mobile actions require amount, currency, price/product stale-state checks, idempotency, audit correlation, redaction, and webhook evidence.",

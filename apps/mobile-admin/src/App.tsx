@@ -113,6 +113,17 @@ type PrivateRowActionsApiContract = {
   requiredInputs: string[];
 };
 
+type DirectorReviewApiContract = {
+  id: string;
+  issue: number;
+  status: string;
+  route: string;
+  authBoundary: string;
+  purpose: string;
+  reviewBoundary: string;
+  requiredInputs: string[];
+};
+
 type PushNotificationBoundaryContract = {
   id: string;
   issue: number;
@@ -208,6 +219,7 @@ export default function App() {
   const privateAuth = mobileAdminContractFixture.privateAuth as PrivateAuthContract;
   const privateRowsApi = mobileAdminContractFixture.privateRowsApi as PrivateRowsApiContract;
   const privateRowActionsApi = mobileAdminContractFixture.privateRowActionsApi as PrivateRowActionsApiContract;
+  const directorReviewApi = mobileAdminContractFixture.directorReviewApi as DirectorReviewApiContract;
   const actionIntentApi = mobileAdminContractFixture.actionIntentApi as ActionIntentApiContract;
   const pushBoundary = mobileAdminContractFixture.pushNotificationBoundary as PushNotificationBoundaryContract;
   const distributionReadiness = mobileAdminContractFixture.distributionReadiness as DistributionReadinessContract;
@@ -314,6 +326,16 @@ export default function App() {
           <Text style={styles.meta}>Auth: {privateRowActionsApi.authBoundary}</Text>
           <Text style={styles.meta}>Boundary: {privateRowActionsApi.actionBoundary}</Text>
           <Text style={styles.meta}>Inputs: {privateRowActionsApi.requiredInputs.join(", ")}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Director review API</Text>
+          <Text style={styles.panelTitle}>{directorReviewApi.route}</Text>
+          <Text style={styles.body}>{directorReviewApi.purpose}</Text>
+          <Text style={styles.meta}>Status: {directorReviewApi.status} · issue #{directorReviewApi.issue}</Text>
+          <Text style={styles.meta}>Auth: {directorReviewApi.authBoundary}</Text>
+          <Text style={styles.meta}>Boundary: {directorReviewApi.reviewBoundary}</Text>
+          <Text style={styles.meta}>Inputs: {directorReviewApi.requiredInputs.join(", ")}</Text>
         </View>
 
         <View style={styles.panel}>
