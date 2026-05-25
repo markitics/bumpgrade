@@ -42,5 +42,12 @@ assert.equal(
   "1",
   "Worker runtime vars keep NEXT_PRIVATE_MINIMAL_MODE enabled for deployed OpenNext routes",
 );
+assert.equal(wranglerConfig.vars?.PLATFORM_OWNER_EMAILS, undefined, "Owner emails stay out of public Worker vars");
+assert.equal(wranglerConfig.vars?.EMAIL_FORWARD_TO, undefined, "Forward-to emails stay out of public Worker vars");
+assert.doesNotMatch(
+  JSON.stringify(wranglerConfig.vars ?? {}),
+  /m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com/i,
+  "Public Worker vars do not expose owner or trusted sender identities",
+);
 
-console.log(`runtime secret precedence checks passed (${checks.length + 1})`);
+console.log(`runtime secret precedence checks passed (${checks.length + 4})`);

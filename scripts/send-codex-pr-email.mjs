@@ -5,7 +5,6 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 const defaultAccountId = "a139381edda59e39115f93920d1569fd";
-const defaultTo = "m@rkmoriarty.com";
 const defaultFrom = "codex@bumpgrade.com";
 const defaultFromName = "Bumpgrade Codex";
 
@@ -16,7 +15,7 @@ function usage() {
 
 function parseArgs(argv) {
   const args = {
-    to: process.env.CODEX_NOTICE_TO ?? defaultTo,
+    to: process.env.CODEX_NOTICE_TO ?? process.env.BUMPGRADE_EMAIL_FORWARD_TO ?? process.env.EMAIL_FORWARD_TO ?? null,
     from: process.env.CODEX_NOTICE_FROM ?? defaultFrom,
     fromName: process.env.CODEX_NOTICE_FROM_NAME ?? defaultFromName,
     accountId: process.env.CLOUDFLARE_EMAIL_ACCOUNT_ID ?? defaultAccountId,
@@ -45,6 +44,7 @@ function parseArgs(argv) {
   }
 
   if (!args.pr) usage();
+  if (!args.to) throw new Error("Set CODEX_NOTICE_TO or BUMPGRADE_EMAIL_FORWARD_TO, or pass --to, before sending.");
   return args;
 }
 

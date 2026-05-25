@@ -105,7 +105,7 @@ export default function AdminSurfacesAgentDocPage() {
               <p>Public-safe admin state for agents and future MCP resources.</p>
               <div className="feature-detail">
                 <strong>Must not include</strong>
-                <span>Secrets, private inbox bodies, raw provider IDs, raw MIME, or private customer data.</span>
+                <span>Secrets, private inbox bodies, raw provider IDs, raw mail content, or private customer data.</span>
               </div>
             </article>
           ))}

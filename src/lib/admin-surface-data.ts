@@ -305,7 +305,18 @@ function ownerSafeRequestText(value: string): string {
     .replace(/\bMark asked for\b/g, "Owner requested")
     .replace(/\bMark asked\b/g, "Owner requested")
     .replace(/\bMark-facing\b/g, "Owner-facing")
-    .replace(/\bMark\b/g, "the owner");
+    .replace(/\bMark\b/g, "the owner")
+    .replace(/\b(?:m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com)\b/gi, "a private trusted sender")
+    .replace(/\b(?:codex_outbound_messages|codex_inbound_messages)\b/g, "private operational records")
+    .replace(/\bbumpgrade-mail\b/g, "private mail storage")
+    .replace(/\braw inbound MIME\b/gi, "raw mail content")
+    .replace(/\braw MIME\b/gi, "raw mail content")
+    .replace(/\bsender-authentication\b/gi, "sender authentication")
+    .replace(/\bsmtp\.mailfrom=[^\s`.,;)]+/gi, "runtime sender evidence")
+    .replace(/\bheader\.from=[^\s`.,;)]+/gi, "runtime domain evidence")
+    .replace(/\bexplicitly allowlisted and authenticated sender addresses\b/gi, "private runtime sender rules")
+    .replace(/\ballowlisted-and-authenticated\b/gi, "private runtime authenticated")
+    .replace(/\ballowlisted and authenticated\b/gi, "private runtime authenticated");
 }
 
 function ownerSafeRequestTexts(values: string[]): string[] {
@@ -424,7 +435,6 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     screenshotLinks: [
       { label: "Owner-attention response channels", url: "https://bumpgrade.com/pr-screenshots/issue-73-for-mark-response-channels.png", kind: "screenshot" },
-      { label: "Owner-attention email auth", url: "https://bumpgrade.com/pr-screenshots/issue-61-for-mark-email-auth.png", kind: "screenshot" },
       { label: "User-journey proof matrix", url: "https://bumpgrade.com/pr-screenshots/issue-240-user-journeys-proof-matrix.png", kind: "screenshot" },
     ],
     validationLinks: [

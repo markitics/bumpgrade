@@ -590,24 +590,24 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 10,
     summary:
-      "Cloudflare email sending/routing for `codex@bumpgrade.com`, shipped-feature notices, reply monitoring, and attachment-aware follow-up.",
+      "Project email sending/routing for shipped-feature notices, reply monitoring, and attachment-aware follow-up.",
     audience: "The Bumpgrade owner and Codex sessions that need durable non-chat coordination.",
     expectedCapabilities: [
-      "Outbound shipped-feature and attention emails from `codex@bumpgrade.com`.",
+      "Outbound shipped-feature and attention emails from a project-owned sender.",
       "Inbound routing and reply detection.",
       "Attachment and inline-image visibility checks.",
-      "D1/R2-backed evidence for outbound notices and inbound replies.",
+      "Private runtime evidence for outbound notices and inbound replies.",
     ],
     evidence: [
       "Tracked by issue #10.",
-      "Cloudflare Email Routing for bumpgrade.com reports ready after required DNS records were installed.",
-      "`codex_outbound_messages` and `codex_inbound_messages` persist notice and reply evidence.",
-      "A delayed PR #40 notice returned delivered from codex@bumpgrade.com to m@rkmoriarty.com.",
-      "Cloudflare routes codex@bumpgrade.com to Worker bumpgrade for inbound processing.",
-      "Per-session plus addressing is deferred because Cloudflare reports subaddressing disabled for bumpgrade.com.",
+      "Project email routing reports ready after required domain records were installed.",
+      "Private operational storage persists notice and reply evidence without exposing trusted identities.",
+      "A delayed PR #40 notice returned delivered and is recorded in private operational evidence.",
+      "Inbound project mail reaches the Worker for capture and forwarding.",
+      "Per-session plus addressing is deferred until the mail provider supports it for bumpgrade.com.",
     ],
     agentContract:
-      "Agents should send shipped PR notices, poll trusted recent replies before unrelated large work, and keep private inbox bodies out of GitHub.",
+      "Agents should send shipped PR notices when the work merits it, poll trusted recent replies before unrelated large work, and keep trusted identities, private inbox bodies, and raw mail details out of public surfaces.",
   },
   {
     id: "feature-stripe-commerce",

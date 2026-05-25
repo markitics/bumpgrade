@@ -4,8 +4,6 @@ import { createAuth, getAppEnv, getRuntimeEnvValue } from "@/lib/auth";
 import type { AdminIdentity, AdminRole } from "@/lib/admin-roles";
 export { roleLabel } from "@/lib/admin-roles";
 
-const DEFAULT_OWNER_EMAILS = ["m@rkmoriarty.com"];
-
 export type SessionAdminState = {
   identity: AdminIdentity | null;
   userId: string | null;
@@ -34,7 +32,6 @@ function uniqueEmails(emails: string[]) {
 
 export function getOwnerEmails() {
   return uniqueEmails([
-    ...DEFAULT_OWNER_EMAILS,
     ...parseEmailList(getRuntimeEnvValue("PLATFORM_OWNER_EMAILS")),
     ...parseEmailList(getRuntimeEnvValue("BUMPGRADE_OWNER_EMAILS")),
     ...parseEmailList(getRuntimeEnvValue("OWNER_EMAILS")),
