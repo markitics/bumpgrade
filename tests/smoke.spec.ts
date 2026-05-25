@@ -435,6 +435,14 @@ import {
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
 import { importerPlatforms, importerSourceData, importerSourceDataRoute } from "../src/lib/importers";
 import {
+  anonymousPlaygroundApiRoute,
+  anonymousPlaygroundClaimApiRoute,
+  anonymousPlaygroundClaimConfirmationText,
+  anonymousPlaygroundCookieName,
+  anonymousPlaygroundSourceData,
+  anonymousPlaygroundSourceDataRoute,
+} from "../src/lib/anonymous-playground";
+import {
   freeBuildModeContract,
   pricingSourceData,
   pricingSourceDataRoute,
@@ -459,6 +467,7 @@ const routes = [
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/imports", heading: "Bring your current launch stack" },
   { path: "/imports/clickfunnels", heading: "Import from ClickFunnels" },
+  { path: "/playground", heading: "Try Bumpgrade before you sign up" },
   { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
   { path: "/pricing", heading: "Start building your publisher launch system today" },
   { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
@@ -524,20 +533,24 @@ function publicCopyTextValues(value: unknown, path = ""): string[] {
 }
 
 const authSecret = "playwright-local-better-auth-secret";
+const testAuthOrigin = "http://localhost:3100";
 
 async function signInOrCreateAccount(page: Page, email: string, password: string, name: string) {
   let response = await page.request.post("/api/auth/sign-in/email", {
+    headers: { origin: testAuthOrigin },
     data: { email, password, callbackURL: "/admin/roadmap" },
   });
 
   if (!response.ok()) {
     response = await page.request.post("/api/auth/sign-up/email", {
+      headers: { origin: testAuthOrigin },
       data: { email, password, name, callbackURL: "/admin/roadmap" },
     });
   }
 
   if (!response.ok()) {
     response = await page.request.post("/api/auth/sign-in/email", {
+      headers: { origin: testAuthOrigin },
       data: { email, password, callbackURL: "/admin/roadmap" },
     });
   }
@@ -726,6 +739,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/resources",
       "/imports",
       "/imports/clickfunnels",
+      "/playground",
       "/brand",
       "/pricing",
       "/pricing-v2",
@@ -795,6 +809,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/content/source-data",
       "/pricing/source-data",
       importerSourceDataRoute,
+      anonymousPlaygroundSourceDataRoute,
       "/agent-docs/source-data",
       "/agent-docs/bumpgrade-admin-surfaces",
       "/admin/source-data",
@@ -902,6 +917,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/imports");
     expect(sitemapXml).toContain("https://bumpgrade.com/imports/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/imports/clickfunnels");
+    expect(sitemapXml).toContain("https://bumpgrade.com/playground");
+    expect(sitemapXml).toContain("https://bumpgrade.com/playground/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/email-campaigns");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/order-bump");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/ai-business-coach");
@@ -1059,6 +1076,8 @@ test.describe("Bumpgrade scaffold", () => {
         "/brand",
         "/pricing",
         pricingSourceDataRoute,
+        "/playground",
+        anonymousPlaygroundSourceDataRoute,
         "/pricing-v2",
         importerSourceDataRoute,
         "/content/source-data",
@@ -1125,6 +1144,8 @@ test.describe("Bumpgrade scaffold", () => {
         ]),
         evidenceRoutes: expect.arrayContaining([
           "/pricing",
+          "/playground",
+          anonymousPlaygroundSourceDataRoute,
           pricingSourceDataRoute,
           "/pricing-v2",
           "/api/billing/checkout",
@@ -1145,13 +1166,22 @@ test.describe("Bumpgrade scaffold", () => {
         id: pricingSourceData.id,
         updatedAt: pricingSourceData.updatedAt,
         issueNumbers: expect.arrayContaining([316, 466, 473]),
-        routes: expect.arrayContaining(["/pricing", pricingSourceDataRoute, "/api/billing/checkout", "/pricing/success"]),
+        routes: expect.arrayContaining([
+          "/pricing",
+          pricingSourceDataRoute,
+          "/playground",
+          anonymousPlaygroundSourceDataRoute,
+          anonymousPlaygroundApiRoute,
+          anonymousPlaygroundClaimApiRoute,
+          "/api/billing/checkout",
+          "/pricing/success",
+        ]),
         freeBuildMode: expect.objectContaining({
           id: freeBuildModeContract.id,
           issue: 466,
           currentAvailability: expect.objectContaining({
             signedInFreeWorkspaceLive: true,
-            anonymousPlaygroundLive: false,
+            anonymousPlaygroundLive: true,
             paidGoLiveRequired: true,
           }),
           signedInWorkspace: expect.objectContaining({
@@ -1160,7 +1190,11 @@ test.describe("Bumpgrade scaffold", () => {
             route: "/api/account/publisher/free-build-workspace",
             planStatus: "free_build",
           }),
-          anonymousPlayground: expect.objectContaining({ status: "designed-not-live" }),
+          anonymousPlayground: expect.objectContaining({
+            status: "live",
+            route: "/playground",
+            sourceDataRoute: anonymousPlaygroundSourceDataRoute,
+          }),
         }),
         paidGoLiveGates: expect.arrayContaining([
           expect.objectContaining({ id: "go-live-live-checkout" }),
@@ -1169,7 +1203,116 @@ test.describe("Bumpgrade scaffold", () => {
         redaction: expect.objectContaining({
           rawStripeIdsIncluded: false,
           anonymousBrowserIdentifiersIncluded: false,
+          anonymousRecoveryCookieValueIncluded: false,
+          anonymousRecoveryTokenHashIncluded: false,
           customerDataIncluded: false,
+        }),
+      }),
+    );
+  });
+
+  test("anonymous playground source data and API persist browser-scoped draft state", async ({ request }) => {
+    const sourceResponse = await request.get(anonymousPlaygroundSourceDataRoute);
+    expect(sourceResponse.ok()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    expect(sourcePayload).toEqual(
+      expect.objectContaining({
+        id: anonymousPlaygroundSourceData.id,
+        status: "live",
+        issue: 466,
+        routes: expect.objectContaining({
+          playground: "/playground",
+          sourceData: anonymousPlaygroundSourceDataRoute,
+          saveApi: anonymousPlaygroundApiRoute,
+          claimApi: anonymousPlaygroundClaimApiRoute,
+        }),
+        currentAvailability: expect.objectContaining({
+          loggedOutSaveLive: true,
+          browserRecoveryLive: true,
+          claimToSignedInFreeBuildLive: true,
+          paidGoLiveRequired: true,
+        }),
+        redaction: expect.objectContaining({
+          recoveryCookieValueIncluded: false,
+          recoveryTokenHashIncluded: false,
+          billingStateCreated: false,
+          publicPublishingEnabled: false,
+        }),
+      }),
+    );
+
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const saveResponse = await request.post(anonymousPlaygroundApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        offerName: `Anonymous offer ${suffix}`,
+        audience: "Publishers trying Bumpgrade before signup",
+        launchGoal: "Save a private launch draft and return tomorrow",
+        selectedImporterSlug: "clickfunnels",
+        idempotencyKey: `playwright-anonymous-playground-${suffix}`,
+      },
+    });
+    expect(saveResponse.ok(), await saveResponse.text()).toBeTruthy();
+    expect(saveResponse.headers()["set-cookie"]).toContain(anonymousPlaygroundCookieName);
+    const savePayload = await saveResponse.json();
+    expect(savePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 466,
+        paidGoLiveRequired: true,
+        workspace: expect.objectContaining({
+          status: "active",
+          draft: expect.objectContaining({
+            offerName: `Anonymous offer ${suffix}`,
+            selectedImporter: expect.objectContaining({ slug: "clickfunnels" }),
+          }),
+          redaction: expect.objectContaining({
+            recoveryCookieValueIncluded: false,
+            recoveryTokenHashIncluded: false,
+            publicPublishingEnabled: false,
+          }),
+        }),
+      }),
+    );
+    expect(JSON.stringify(savePayload)).not.toContain("apg_");
+
+    const replayResponse = await request.post(anonymousPlaygroundApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        offerName: `Anonymous offer ${suffix}`,
+        audience: "Publishers trying Bumpgrade before signup",
+        launchGoal: "Save a private launch draft and return tomorrow",
+        selectedImporterSlug: "clickfunnels",
+        idempotencyKey: `playwright-anonymous-playground-${suffix}`,
+      },
+    });
+    expect(replayResponse.ok(), await replayResponse.text()).toBeTruthy();
+    expect(await replayResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: true,
+        idempotent: true,
+        workspace: expect.objectContaining({ id: savePayload.workspace.id }),
+      }),
+    );
+
+    const unauthenticatedClaim = await request.post(anonymousPlaygroundClaimApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        confirmationText: anonymousPlaygroundClaimConfirmationText,
+      },
+    });
+    expect(unauthenticatedClaim.status()).toBe(401);
+    expect(await unauthenticatedClaim.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PUBLISHER_SESSION_REQUIRED",
+        issue: 466,
+        redaction: expect.objectContaining({
+          recoveryCookieValueIncluded: false,
+          recoveryTokenHashIncluded: false,
         }),
       }),
     );
@@ -1286,6 +1429,10 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         accountSetup: "/account/setup",
         accountSourceData: "/account/source-data",
+        anonymousPlayground: "/playground",
+        anonymousPlaygroundSourceData: anonymousPlaygroundSourceDataRoute,
+        anonymousPlaygroundApi: anonymousPlaygroundApiRoute,
+        anonymousPlaygroundClaimApi: anonymousPlaygroundClaimApiRoute,
         freeBuildWorkspaceApi: "/api/account/publisher/free-build-workspace",
         reserveSubdomainApi: "/api/account/publisher/subdomain",
         customDomainApi: "/api/account/publisher/custom-domain",
@@ -1297,8 +1444,15 @@ test.describe("Bumpgrade scaffold", () => {
         issue: 473,
         parentIssue: 466,
         signedInWorkspaceLive: true,
-        anonymousPlaygroundLive: false,
+        anonymousPlaygroundLive: true,
         route: "/api/account/publisher/free-build-workspace",
+        anonymousPlayground: expect.objectContaining({
+          status: "live",
+          route: "/playground",
+          sourceDataRoute: anonymousPlaygroundSourceDataRoute,
+          saveApiRoute: anonymousPlaygroundApiRoute,
+          claimApiRoute: anonymousPlaygroundClaimApiRoute,
+        }),
         privateBuildPlanStatus: "free_build",
         paidGoLiveGates: expect.arrayContaining([
           "Bumpgrade subdomain reservation",
@@ -20354,6 +20508,19 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         }),
         expect.objectContaining({
+          id: "journey-prospect-saves-anonymous-playground",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-anonymous-playground.png" }),
+            ]),
+            validationLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/playground/source-data" }),
+              expect.objectContaining({ url: "https://github.com/markitics/bumpgrade/issues/466" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           proof: expect.objectContaining({
             status: "passed",
@@ -29174,6 +29341,81 @@ test.describe("Bumpgrade scaffold", () => {
           publicPublishingEnabled: false,
           workspaceCreated: false,
         }),
+      }),
+    );
+  });
+
+  test("verified publisher can claim anonymous playground into Free Build while go-live stays gated", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const saveResponse = await page.request.post(anonymousPlaygroundApiRoute, {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        offerName: `Claimed playground ${suffix}`,
+        audience: "Logged-out publishers who return after signup",
+        launchGoal: "Attach saved launch context to Free Build",
+        selectedImporterSlug: "samcart",
+        idempotencyKey: `playwright-claim-playground-${suffix}`,
+      },
+    });
+    expect(saveResponse.ok(), await saveResponse.text()).toBeTruthy();
+    const savePayload = await saveResponse.json();
+
+    const email = `anonymous-playground-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Anonymous Playground Publisher");
+    await verifyEmail(page, email);
+
+    const claimResponse = await page.request.post(anonymousPlaygroundClaimApiRoute, {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: anonymousPlaygroundClaimConfirmationText,
+      },
+    });
+    expect(claimResponse.ok(), await claimResponse.text()).toBeTruthy();
+    const claimPayload = await claimResponse.json();
+    expect(claimPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 466,
+        paidGoLiveRequired: true,
+        workspace: expect.objectContaining({
+          id: savePayload.workspace.id,
+          status: "claimed",
+          claimed: true,
+          draft: expect.objectContaining({
+            offerName: `Claimed playground ${suffix}`,
+            selectedImporter: expect.objectContaining({ slug: "samcart" }),
+          }),
+        }),
+        tenant: expect.objectContaining({
+          planStatus: "free_build",
+          defaultSubdomain: null,
+          primaryHostname: null,
+        }),
+        redaction: expect.objectContaining({
+          recoveryCookieValueIncluded: false,
+          recoveryTokenHashIncluded: false,
+          publicPublishingEnabled: false,
+        }),
+      }),
+    );
+
+    const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        subdomain: `anonymous-playground-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-claim-playground-subdomain-${suffix}`,
+      },
+    });
+    expect(subdomainResponse.status()).toBe(402);
+    expect(await subdomainResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 222,
       }),
     );
   });

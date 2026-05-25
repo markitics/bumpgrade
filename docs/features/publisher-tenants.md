@@ -1,8 +1,9 @@
 # Publisher Tenants And Bumpgrade Subdomains
 
 Issues #221-#224 add the first paid publisher tenant setup path, domain
-onboarding, and auth-boundary contract. Issue #473 adds verified signed-in Free
-Build workspace creation before paid go-live.
+onboarding, and auth-boundary contract. Issue #466 adds logged-out playground
+recovery, and issue #473 adds verified signed-in Free Build workspace creation
+before paid go-live.
 
 ## Live Slice
 
@@ -10,6 +11,15 @@ Build workspace creation before paid go-live.
 - `/account/source-data`: public-safe contract for paid publisher tenants,
   Free Build workspaces, default Bumpgrade subdomains, existing-domain DNS
   onboarding, and auth boundaries.
+- `/playground`: logged-out browser-scoped launch playground for saving basic
+  offer, audience, goal, and starting-platform context before signup.
+- `/playground/source-data`: public-safe contract for anonymous recovery,
+  claim-to-account, redaction, cookie, and go-live gate boundaries.
+- `POST /api/playground/anonymous-workspace`: saves or updates a browser-scoped
+  anonymous playground. The cookie stores a recovery token only; D1 stores the
+  token hash and draft fields.
+- `POST /api/playground/claim`: attaches the saved playground to a verified
+  signed-in account and creates or reuses a private Free Build workspace.
 - `POST /api/account/publisher/free-build-workspace`: creates or confirms a
   private `plan_status=free_build` workspace for an email-confirmed signed-in
   publisher before payment, with exact confirmation, idempotency, audit
@@ -21,10 +31,13 @@ Build workspace creation before paid go-live.
   the publisher already owns, returns CNAME instructions, and re-checks DNS
   verification state.
 
-The Free Build write path records a tenant row and audit event in D1 without a
-public hostname. The paid go-live write path records a tenant row, subdomain
-reservation row, and audit event. Domain requests reject signed-out, unverified,
-unpaid, invalid, reserved-name, and already-taken subdomain requests.
+The anonymous playground write path records browser-scoped launch context in D1
+without a public hostname, billing state, email send, fulfillment state, or raw
+cookie value. The Free Build write path records a tenant row and audit event in
+D1 without a public hostname. The paid go-live write path records a tenant row,
+subdomain reservation row, and audit event. Domain requests reject signed-out,
+unverified, unpaid, invalid, reserved-name, and already-taken subdomain
+requests.
 
 ## Paid Gate
 
@@ -32,10 +45,10 @@ Default Bumpgrade subdomains are not free-account inventory. Reservation require
 an active row in `publisher_plan_entitlements`, created after a verified
 Bumpgrade plan checkout or an owner-approved manual entitlement.
 
-Free Build workspaces can hold private launch setup state before payment, but
-they cannot reserve domains, publish public buyer paths, collect live payments,
-send subscribers, or fulfill protected access until the account has a paid or
-explicitly approved go-live entitlement.
+Anonymous playgrounds and Free Build workspaces can hold private launch setup
+state before payment, but they cannot reserve domains, publish public buyer
+paths, collect live payments, send subscribers, or fulfill protected access until
+the account has a paid or explicitly approved go-live entitlement.
 
 ## Auth Boundary
 
@@ -72,7 +85,8 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Logged-out anonymous workspace recovery.
+- Anonymous playground expansion beyond basic launch context into real draft
+  funnel, offer, product, audience, and importer records.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

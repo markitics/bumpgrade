@@ -45,6 +45,13 @@ export const topNavItems: NavItem[] = [
     status: "live",
   },
   {
+    label: "Playground",
+    href: "/playground",
+    description: "Save a private launch draft before signup, then attach it to Free Build when ready.",
+    icon: Sparkles,
+    status: "live",
+  },
+  {
     label: "Users",
     href: "/users",
     description: "Use cases for creators, coaches, course sellers, agencies, publishers, and indie hackers.",
@@ -179,6 +186,7 @@ export const scaffoldRoutes = [
   "/developers-and-agents",
   "/resources",
   "/imports",
+  "/playground",
   "/brand",
   "/pricing",
   "/pricing-v2",

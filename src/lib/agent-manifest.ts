@@ -181,6 +181,7 @@ import {
   publisherTenantParentIssue,
 } from "@/lib/publisher-tenants";
 import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
+import { anonymousPlaygroundSourceDataRoute } from "@/lib/anonymous-playground";
 import { importerIssue, importerSourceDataRoute } from "@/lib/importers";
 
 export const agentManifestUpdatedAt = "2026-05-25";
@@ -391,11 +392,28 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read the free build-before-go-live policy from issue #466",
       "Distinguish live signed-in private Free Build workspace creation from paid go-live actions",
-      "Confirm signed-in Free Build workspace creation is live and anonymous playground recovery is not live until implementation evidence exists",
+      "Confirm logged-out anonymous playground recovery and signed-in Free Build workspace creation are live",
       "Cite paid go-live gates for publishing, checkout, subscriber sends, domains, and fulfillment",
     ],
     writeBoundary:
-      "Agents may read the pricing policy only. Creating signed-in Free Build workspaces uses the authenticated account setup API; recovering anonymous work, publishing, charging buyers, sending email, connecting domains, and fulfillment changes require future confirmed-write APIs or existing paid-plan flows.",
+      "Agents may read the pricing policy only. Saving anonymous playground state is browser-scoped and redacted; creating signed-in Free Build workspaces uses authenticated account setup APIs; publishing, charging buyers, sending email, connecting domains, and fulfillment changes require paid-plan flows.",
+  },
+  {
+    id: "read-anonymous-playground",
+    title: "Anonymous playground recovery",
+    route: anonymousPlaygroundSourceDataRoute,
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/anonymous-playground.ts",
+    stableIds: ["anonymousPlaygroundId", "anonymousPlaygroundRoute", "anonymousPlaygroundGateId"],
+    safeForAgents: [
+      "Read the browser-scoped playground contract",
+      "Distinguish anonymous save and signed-in claim routes",
+      "Confirm recovery cookie values and token hashes are not public source-data",
+      "Cite paid go-live gates before discussing publishing, checkout, sends, domains, or fulfillment",
+    ],
+    writeBoundary:
+      "Anonymous playground writes are limited to browser-scoped draft launch context. Attaching a playground requires an authenticated, email-verified publisher account and still creates only private Free Build state.",
   },
   {
     id: "read-admin-source",
@@ -2771,10 +2789,19 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-pricing-policy",
     route: pricingSourceDataRoute,
     resolves:
-      "Bumpgrade account-plan pricing, signed-in Free Build workspace status, anonymous playground non-live state, paid go-live gates, setup add-on, and redaction policy.",
+      "Bumpgrade account-plan pricing, logged-out anonymous playground status, signed-in Free Build workspace status, paid go-live gates, setup add-on, and redaction policy.",
     stableIds: [freeBuildModeContract.id, "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
     volatileClaims:
-      "Signed-in Free Build workspace creation is live; anonymous playground persistence is not live until implementation evidence exists; paid go-live actions still require entitlement and confirmation.",
+      "Anonymous playground persistence and signed-in Free Build workspace creation are live; paid go-live actions still require entitlement and confirmation.",
+  },
+  {
+    id: "evidence-anonymous-playground",
+    route: anonymousPlaygroundSourceDataRoute,
+    resolves:
+      "Browser-scoped logged-out playground recovery, save and claim routes, cookie boundaries, redaction policy, and paid go-live gates.",
+    stableIds: ["anonymousPlaygroundId", "anonymousPlaygroundRoute", "anonymousPlaygroundGateId"],
+    volatileClaims:
+      "The playground saves basic launch context only; it is not public publishing, live checkout, subscriber sends, domain reservation, fulfillment, or product access.",
   },
   {
     id: "evidence-agent-manifest",
@@ -3097,9 +3124,18 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://pricing-policy",
     status: "ready-contract",
     backedBy: pricingSourceDataRoute,
-    purpose: "Expose pricing plans, signed-in Free Build workspace state, anonymous playground non-live state, and paid go-live gates.",
+    purpose: "Expose pricing plans, logged-out anonymous playground state, signed-in Free Build workspace state, and paid go-live gates.",
     safetyBoundary:
-      "Read-only pricing resource; signed-in Free Build workspace creation uses authenticated account setup APIs, while anonymous recovery, public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement or future confirmed-write APIs.",
+      "Read-only pricing resource; anonymous playground saves are browser-scoped, signed-in Free Build workspace creation uses authenticated account setup APIs, and public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement.",
+  },
+  {
+    id: "mcp-resource-anonymous-playground",
+    resourceOrTool: "resource bumpgrade://anonymous-playground",
+    status: "ready-contract",
+    backedBy: anonymousPlaygroundSourceDataRoute,
+    purpose: "Expose the logged-out playground recovery, claim, redaction, and go-live gate contract.",
+    safetyBoundary:
+      "No public publishing, billing mutation, subscriber send, domain reservation, fulfillment, cookie disclosure, or token-hash disclosure may be performed from this resource.",
   },
   {
     id: "mcp-resource-content",

@@ -164,11 +164,14 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Pricing tracks include the published
   Bumpgrade account-plan names and amounts, but they are not proof of
   publisher-offer billing, trials, limits, or planned feature availability.
-- `/pricing/source-data` exposes the issue #466 Free Build policy, signed-in
-  private workspace state, paid go-live gates, and anonymous playground
-  boundary. Logged-out recovery is not live until implementation evidence exists;
-  public publishing, live checkout, subscriber sends, domains, and fulfillment
+- `/pricing/source-data` exposes the issue #466 Free Build policy, logged-out
+  playground state, signed-in private workspace state, and paid go-live gates.
+  Public publishing, live checkout, subscriber sends, domains, and fulfillment
   still require paid or explicitly approved go-live state.
+- `/playground/source-data` exposes the browser-scoped anonymous playground
+  contract, save route, claim route, recovery-cookie boundary, redaction policy,
+  and paid go-live gates. It does not expose recovery cookie values, token
+  hashes, private customer data, billing state, or buyer-facing launch state.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes signed-in Free Build workspace creation, paid

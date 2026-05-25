@@ -640,17 +640,19 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(20),
     group: "Marketing surfaces",
     summary:
-      "Defines the $0 private-building path, the paid go-live gates, and the anonymous playground recovery boundary before any public, billing, sending, domain, or fulfillment action is treated as live.",
+      "Defines the $0 private-building path, logged-out browser playground recovery, signed-in Free Build workspace creation, paid go-live gates, and the handoff before public, billing, sending, domain, or fulfillment actions are treated as live.",
     publicEvidence: [
       "Issue #466 tracks the Free Build pricing model and optional anonymous playground.",
+      "`/playground` lets logged-out visitors save basic launch setup progress in this browser.",
+      "`/playground/source-data` exposes browser recovery, cookie, claim, redaction, and go-live gate contracts.",
       "`/pricing` explains the build-first message in plain public copy.",
-      "`/pricing/source-data` exposes the Free Build design, non-live anonymous playground state, and paid go-live gates.",
+      "`/pricing/source-data` exposes the Free Build design, live anonymous playground state, and paid go-live gates.",
       "`/account/setup` lets verified signed-in users create a private Free Build workspace before payment.",
       "`/account/source-data` exposes the signed-in Free Build workspace contract and paid go-live gates.",
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
     nextMilestone:
-      "Implement logged-out anonymous browser recovery only after privacy, abuse, expiration, merge-to-account, redaction, and cleanup rules are ready.",
+      "Broaden the anonymous playground from basic launch context into real draft funnel, offer, product, audience, and importer records after abuse limits, cleanup policy, and merge semantics are proven.",
   },
 ];
 

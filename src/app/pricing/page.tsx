@@ -83,8 +83,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             the public, buyer-facing actions that need a paid go-live state.
           </p>
           <div className="hero-actions">
-            <Link href="#build-first" className="primary-action">
-              See build mode
+            <Link href="/playground" className="primary-action">
+              Try playground
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link href="#plans" className="secondary-action">
@@ -103,8 +103,9 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           <ShieldCheck aria-hidden="true" />
           <strong>Pay when it is time to go live</strong>
           <p>
-            Private building keeps setup work moving before payment. The paid plan unlocks public publishing,
-            live checkout, subscriber sends, custom domains, and fulfillment.
+            Private building keeps setup work moving before payment. The playground saves early launch context before
+            signup; the paid plan unlocks public publishing, live checkout, subscriber sends, custom domains, and
+            fulfillment.
           </p>
         </aside>
       </section>

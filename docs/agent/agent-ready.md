@@ -196,6 +196,16 @@ tracks. Experiment, Grow, Enterprise, and White glove setup are current public
 pricing records; future limits, trials, and usage-meter rates still require
 fresh source evidence before agents cite them as current.
 
+Current anonymous playground boundary: `/playground/source-data` is the
+public-safe contract for logged-out launch drafts that persist in one browser.
+`POST /api/playground/anonymous-workspace` saves basic offer, audience, goal,
+and starting-platform context behind a recovery cookie; D1 stores a token hash,
+not the raw cookie value. `POST /api/playground/claim` requires an
+email-verified publisher session and attaches the saved playground to a private
+Free Build workspace. The playground cannot publish routes, collect live
+payments, send subscribers, reserve domains, fulfill protected access, expose
+private customer data, expose recovery cookie values, or expose token hashes.
+
 Current importer boundary: `/imports/source-data` is the public-safe contract for
 ClickFunnels and first-wave competitor import paths. It exposes supported
 platform IDs, competitor IDs, source IDs, input kinds, generated private record

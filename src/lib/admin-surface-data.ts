@@ -644,7 +644,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     environment: "Local OpenNext preview, focused Playwright source-data smoke, and PR screenshot artifacts for issue #466.",
     method: "Pricing route smoke, pricing source-data inspection, content source-data inspection, agent-docs source-data inspection, public-copy scan, and screenshot review.",
     summary:
-      "The Free Build journey has route and source-data proof for private build-before-payment messaging, signed-in private workspace creation, and paid go-live gates while anonymous browser recovery remains explicitly not live.",
+      "The Free Build journey has route and source-data proof for private build-before-payment messaging, logged-out browser playground recovery, signed-in private workspace creation, and paid go-live gates.",
     ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
     screenshotLinks: [
       { label: "Free Build pricing", url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-free-build.png", kind: "screenshot" },
@@ -656,14 +656,42 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Pricing", url: "https://bumpgrade.com/pricing", kind: "route" },
+      { label: "Playground", url: "https://bumpgrade.com/playground", kind: "route" },
+      { label: "Playground source data", url: "https://bumpgrade.com/playground/source-data", kind: "source-data" },
       { label: "Pricing source data", url: "https://bumpgrade.com/pricing/source-data", kind: "source-data" },
       { label: "Content source data", url: "https://bumpgrade.com/content/source-data", kind: "source-data" },
       { label: "Agent docs source data", url: "https://bumpgrade.com/agent-docs/source-data", kind: "source-data" },
       { label: "PR #472", url: issue466PrUrl, kind: "pr" },
       { label: "Issue #466", url: "https://github.com/markitics/bumpgrade/issues/466", kind: "issue" },
     ],
+    notes: ["The current proof separates browser-scoped anonymous saves, signed-in Free Build, and paid go-live actions."],
+  },
+  "journey-prospect-saves-anonymous-playground": {
+    status: "passed",
+    lastTestedAt: "2026-05-25T15:40:00.000Z",
+    environment: "Local OpenNext preview, browser recovery smoke, authenticated claim smoke, and PR screenshot artifacts for issue #466.",
+    method:
+      "Logged-out save, recovery-cookie persistence after refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, and paid go-live gate checks.",
+    summary:
+      "Logged-out visitors can save a basic launch playground in one browser, return later, and attach it to a verified Free Build account without enabling public publishing, billing, sends, domains, or fulfillment.",
+    ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
+    screenshotLinks: [
+      {
+        label: "Anonymous playground",
+        url: "https://bumpgrade.com/pr-screenshots/issue-466-anonymous-playground.png",
+        kind: "screenshot",
+      },
+    ],
+    validationLinks: [
+      { label: "Playground", url: "https://bumpgrade.com/playground", kind: "route" },
+      { label: "Playground source data", url: "https://bumpgrade.com/playground/source-data", kind: "source-data" },
+      { label: "Pricing source data", url: "https://bumpgrade.com/pricing/source-data", kind: "source-data" },
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "Issue #466", url: "https://github.com/markitics/bumpgrade/issues/466", kind: "issue" },
+    ],
     notes: [
-      "The current proof separates signed-in private workspace creation from non-live anonymous playground recovery.",
+      "Anonymous recovery depends on the browser cookie remaining available.",
+      "The playground stores basic launch context only and keeps buyer-facing actions paid-gated.",
     ],
   },
   "journey-publisher-creates-free-build-workspace": {
@@ -1039,7 +1067,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "Source-data smoke covers /account/source-data Free Build policy.",
     ],
     flagsAttention:
-      "Signed-in Free Build workspace creation is live in this slice; logged-out anonymous recovery remains future work.",
+      "Signed-in Free Build workspace creation is live in this slice; the browser-scoped playground recovery is tracked on the parent #466 journey.",
     firstPromptAt: "2026-05-25T12:40:00.000Z",
     completedAt: "2026-05-25T12:55:00.000Z",
     relevantUrls: [
@@ -1080,7 +1108,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "git diff --check",
     ],
     flagsAttention:
-      "This was the policy and source-data slice. Issue #473 now covers signed-in Free Build workspace creation; anonymous playground recovery remains future work.",
+      "This was the policy and source-data slice. Later #466 work covers browser-scoped playground recovery, and issue #473 covers signed-in Free Build workspace creation.",
     firstPromptAt: "2026-05-25T12:00:00.000Z",
     completedAt: "2026-05-25T12:35:00.000Z",
     relevantUrls: [
@@ -1764,7 +1792,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Return from Stripe to /pricing/success and continue to account setup with the same email.",
     ],
     edgeCases: [
-      "Free Build supports signed-in private workspace creation; logged-out anonymous recovery is not live until implementation evidence exists.",
+      "Free Build supports browser-scoped playground recovery and signed-in private workspace creation before paid go-live.",
       "Enterprise is a contact path, not self-serve checkout.",
       "/pricing-v2 is an alternate usage-based draft and is not the default pricing model.",
       "Successful Checkout Sessions are verified server-side before a publisher plan entitlement is activated.",
@@ -1785,6 +1813,46 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     updatedAt: null,
   },
   {
+    id: "journey-prospect-saves-anonymous-playground",
+    title: "Prospect saves a logged-out launch playground",
+    featureId: "feature-resources-use-cases-pricing",
+    featureStatus: "live",
+    issueNumbers: [466],
+    primaryUser: "Publisher exploring Bumpgrade before signup",
+    userGoal:
+      "Try the product, save launch context in this browser, return later, and attach the work to a Free Build account without paying first.",
+    sourceEvidence: [
+      "https://bumpgrade.com/playground",
+      "https://bumpgrade.com/playground/source-data",
+      "https://bumpgrade.com/pricing/source-data",
+      "https://github.com/markitics/bumpgrade/issues/466",
+    ],
+    happyPath: [
+      "Open /playground while logged out.",
+      "Enter an offer name, audience, launch goal, and starting platform.",
+      "Save the playground and refresh the page.",
+      "Return from the same browser and see the saved draft.",
+      "Create or sign into a verified account and attach the playground to a private Free Build workspace.",
+      "Choose a paid go-live plan before public publishing, live checkout, sends, domains, or fulfillment.",
+    ],
+    edgeCases: [
+      "Recovery depends on the browser cookie remaining available.",
+      "The cookie stores a recovery token only; D1 stores its hash, not the raw cookie value.",
+      "Anonymous playground rows expire after 30 days unless extended by later saves.",
+      "Playground saves do not create billing state, public domains, buyer routes, subscriber sends, or product access.",
+      "Attaching to an account creates or reuses a private Free Build workspace and keeps paid go-live gates intact.",
+    ],
+    agentAccess:
+      "Agents can read /playground/source-data for the anonymous playground contract. Saving playground state is browser-scoped and redacted; attaching it requires authenticated, email-verified publisher context and still does not authorize public or billing-impacting actions.",
+    validation: [
+      "Playwright covers logged-out save, recovery-cookie persistence across refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, and paid go-live gate preservation.",
+      "/pricing/source-data and /account/source-data distinguish anonymous playground, signed-in Free Build, and paid go-live actions.",
+    ],
+    proof: createJourneyProof("journey-prospect-saves-anonymous-playground", "feature-resources-use-cases-pricing"),
+    sortOrder: 41,
+    updatedAt: null,
+  },
+  {
     id: "journey-prospect-understands-free-build",
     title: "Prospect understands Free Build before going live",
     featureId: "feature-resources-use-cases-pricing",
@@ -1801,20 +1869,23 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Open /pricing.",
       "Read the build-first explanation.",
+      "Open /playground to save launch context before signup.",
       "Review what can be assembled privately before payment.",
       "Review which buyer-facing actions require a paid or approved go-live state.",
       "Use /pricing/source-data when an agent needs stable IDs for the same policy.",
     ],
     edgeCases: [
-      "The first policy slice does not prove logged-out browser recovery is live.",
+      "Logged-out playground recovery is browser-scoped and depends on the recovery cookie still being present.",
       "Signed-in Free Build workspace creation is covered by /account/setup and /account/source-data.",
       "Buyer-facing publishing, live checkout, email sends, domains, and fulfillment remain gated.",
+      "Anonymous playground state can attach to a verified account, but it still does not create public buyer-facing state.",
     ],
     agentAccess:
-      "Agents can read /pricing/source-data for Free Build capability IDs, paid go-live gate IDs, non-live anonymous playground state, and redaction boundaries.",
+      "Agents can read /pricing/source-data and /playground/source-data for Free Build capability IDs, anonymous playground routes, paid go-live gate IDs, and redaction boundaries.",
     validation: [
       "Pricing route smoke confirms the public copy avoids internal implementation language.",
       "/pricing/source-data exposes Free Build capability records and paid go-live gate records.",
+      "/playground and /playground/source-data expose logged-out browser recovery as live.",
       "/account/source-data exposes signed-in Free Build workspace creation as live.",
       "/content/source-data and /agent-docs/source-data include the pricing policy as agent-readable evidence.",
     ],
@@ -1851,13 +1922,13 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Unverified users must confirm email first.",
       "Idempotent replays return the same workspace.",
       "Free Build workspaces cannot reserve Bumpgrade subdomains or add custom domains until a paid plan is active.",
-      "Logged-out anonymous browser recovery remains out of scope.",
+      "Logged-out anonymous browser recovery is covered by the separate playground journey.",
     ],
     agentAccess:
       "Agents can read /account/source-data for the signed-in Free Build contract, but creating workspaces requires authenticated publisher context, explicit confirmation, idempotency, and redacted audit evidence.",
     validation: [
       "Playwright covers verified signed-in Free Build creation, idempotent replay, paid subdomain gate preservation, paid custom-domain gate preservation, and /account/setup state.",
-      "/account/source-data exposes signed-in Free Build as live and anonymous playground recovery as not live.",
+      "/account/source-data exposes signed-in Free Build and anonymous playground recovery as live with separate auth and browser boundaries.",
     ],
     proof: createJourneyProof("journey-publisher-creates-free-build-workspace", "feature-better-auth"),
     sortOrder: 43,

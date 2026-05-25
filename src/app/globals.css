@@ -4177,6 +4177,39 @@ h3 {
   text-transform: uppercase;
 }
 
+.playground-form {
+  display: grid;
+  gap: 12px;
+}
+
+.playground-form input,
+.playground-form textarea,
+.playground-form select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf9f2;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  padding: 13px 14px;
+}
+
+.playground-form textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.playground-form input:focus,
+.playground-form textarea:focus,
+.playground-form select:focus {
+  outline: 3px solid rgba(55, 95, 76, 0.18);
+}
+
+.inline-action-form {
+  margin-top: 14px;
+}
+
 .subdomain-input-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
