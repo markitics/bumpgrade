@@ -10,6 +10,7 @@ import {
   Database,
   Eye,
   GitBranch,
+  GripVertical,
   PanelsTopLeft,
   PencilLine,
   Plus,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { AdminLocked } from "@/components/admin-auth-gate";
+import { AdminFunnelBlockDragDrop } from "@/components/admin-funnel-block-drag-drop";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import {
@@ -91,10 +93,10 @@ export default async function AdminFunnelsPage() {
             preserving checkout-linked block safety, and owners can now unlink checkout metadata from private draft blocks
             before removing or relinking them. Owners can also link resource and delivery blocks to public-safe product
             access assets without exposing private R2 keys or signed URLs, attach external webinar registration and replay
-            URLs to webinar blocks, and move existing blocks between draft steps while preserving block metadata. Owners
-            can archive private drafts or unpublish public D1 draft routes without deleting audit evidence. Destructive
-            deletion, freeform drag-and-drop layout editing, live webinar scheduling, attendance tracking, replay hosting,
-            arbitrary resource delivery automation, and direct agent edits still need
+            URLs to webinar blocks, and drag existing blocks into position within or across draft steps while preserving
+            block metadata. Owners can archive private drafts or unpublish public D1 draft routes without deleting audit
+            evidence. Destructive deletion, freeform canvas layout styling, live webinar scheduling, attendance tracking,
+            replay hosting, arbitrary resource delivery automation, and direct agent edits still need
             confirmed-write slices.
           </p>
           <div className="hero-actions">
@@ -494,9 +496,21 @@ export default async function AdminFunnelsPage() {
                         <Plus aria-hidden="true" />
                       </button>
                     </form>
-                    <div className="admin-block-edit-list" aria-label={`${step.title} blocks`}>
+                    <AdminFunnelBlockDragDrop
+                      draftId={draft.id}
+                      revisionId={draft.revisionId}
+                      stepId={step.id}
+                      label={`${step.title} blocks`}
+                      disabled={!canMutateDraft}
+                    >
                       {step.blocks.map((block, blockIndex) => (
-                        <div className="admin-block-editor-shell" key={block.id}>
+                        <div
+                          className="admin-block-editor-shell"
+                          key={block.id}
+                          data-funnel-block-id={block.id}
+                          data-funnel-block-step-id={step.id}
+                          data-funnel-block-index={blockIndex}
+                        >
                           <form
                             action="/api/admin/funnels/drafts"
                             method="post"
@@ -509,6 +523,17 @@ export default async function AdminFunnelsPage() {
                             <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
                             <input type="hidden" name="idempotencyKey" value={`block-edit-${draft.id}-${block.id}-${draft.revisionId}`} />
                             <div className="admin-block-edit-heading">
+                              <button
+                                type="button"
+                                className="admin-block-drag-handle"
+                                draggable={canMutateDraft}
+                                disabled={!canMutateDraft}
+                                aria-label={`Drag ${block.title}`}
+                                data-funnel-drag-block-id={block.id}
+                                data-funnel-drag-step-id={step.id}
+                              >
+                                <GripVertical aria-hidden="true" />
+                              </button>
                               <span className="admin-pill">{block.kind.replaceAll("_", " ")}</span>
                               <strong>{block.id}</strong>
                               {block.checkoutLink ? <span className="status-badge pending">checkout link preserved</span> : null}
@@ -790,7 +815,7 @@ export default async function AdminFunnelsPage() {
                           ) : null}
                         </div>
                       ))}
-                    </div>
+                    </AdminFunnelBlockDragDrop>
                     {checkoutBlock ? (
                       <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-checkout-link-form">
                         <input type="hidden" name="mode" value="link-checkout" />

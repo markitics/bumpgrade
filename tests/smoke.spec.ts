@@ -1130,7 +1130,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "draft-purge-ready",
+        status: "drag-drop-block-placement-ready",
         issue: 417,
         parentIssue: 14,
       }),
@@ -1269,6 +1269,8 @@ test.describe("Bumpgrade scaffold", () => {
         staleRevisionRequired: true,
         moveScope: "within-step",
         directions: expect.arrayContaining(["up", "down"]),
+        dragDropUi: true,
+        dragDropReusesEndpoint: true,
         preservesStepMembership: true,
         preservesBlockIds: true,
         preservesBlockKinds: true,
@@ -1290,6 +1292,8 @@ test.describe("Bumpgrade scaffold", () => {
         staleRevisionRequired: true,
         moveScope: "cross-step",
         target: "append-to-destination-step",
+        dragDropUi: true,
+        dragDropReusesEndpoint: true,
         refusesSourceStepEmpty: true,
         preservesBlockIds: true,
         preservesBlockKinds: true,
@@ -18934,6 +18938,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session checkout unlinking from issue #417",
             "Discover owner-session resource delivery linking from issue #417",
             "Discover owner-session block reordering from issue #417",
+            "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -25834,6 +25839,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(draftCard.getByRole("button", { name: /Save block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Add block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
+    await expect(draftCard.getByRole("button", { name: /Drag /i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Move up/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Move down/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Move to step/i }).first()).toBeVisible();
@@ -26146,6 +26152,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Save block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Add block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Drag /i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Move up/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Move down/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Move to step/i })).toHaveCount(0);
@@ -26155,6 +26162,91 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByLabel(/Purge confirmation/i)).toBeVisible();
     await expect(archivedDraftCard.getByRole("button", { name: /Purge archived draft/i })).toBeVisible();
     await expect(archivedDraftCard.getByText("Physically deletes this archived draft and its step rows")).toBeVisible();
+  });
+
+  test("owner can drag a draft block through the existing move endpoint", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Drag/drop owner UI is covered once on desktop.");
+    await signInOrCreateOwner(page);
+
+    const title = `Drag drop placement draft ${Date.now()}`;
+    const createResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-post-purchase-offer",
+        title,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: `playwright-drag-drop-draft-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(createResponse.ok(), await createResponse.text()).toBeTruthy();
+    const createPayload = await createResponse.json();
+    const checkoutStep = createPayload.draft.steps.find((step: { kind: string }) => step.kind === "checkout");
+    expect(checkoutStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(checkoutStep.blocks.length).toBeGreaterThanOrEqual(2);
+    const [firstBlock, secondBlock] = checkoutStep.blocks as Array<{ id: string }>;
+
+    await page.goto("/admin/funnels");
+    const draftCard = page.getByRole("article").filter({ hasText: createPayload.draft.id });
+    const dragHandle = draftCard.locator(`[data-funnel-drag-block-id="${secondBlock.id}"]`);
+    const targetBlock = draftCard.locator(`[data-funnel-block-id="${firstBlock.id}"]`);
+
+    await expect(dragHandle).toBeVisible();
+    await expect(targetBlock).toBeVisible();
+
+    const moveResponsePromise = page.waitForResponse(
+      (response) => response.url().includes("/api/admin/funnels/drafts") && response.request().method() === "POST",
+    );
+    await draftCard.evaluate(
+      (card, input) => {
+        const source = card.querySelector(`[data-funnel-drag-block-id="${CSS.escape(input.sourceBlockId)}"]`);
+        const target = card.querySelector(`[data-funnel-block-id="${CSS.escape(input.targetBlockId)}"]`);
+        if (!(source instanceof HTMLElement) || !(target instanceof HTMLElement)) {
+          throw new Error("Drag/drop test target was not found.");
+        }
+
+        const targetRect = target.getBoundingClientRect();
+        const clientX = targetRect.left + 16;
+        const clientY = targetRect.top + 6;
+        const dataTransfer = new DataTransfer();
+
+        source.dispatchEvent(
+          new DragEvent("dragstart", {
+            bubbles: true,
+            cancelable: true,
+            clientX,
+            clientY,
+            dataTransfer,
+          }),
+        );
+        target.dispatchEvent(
+          new DragEvent("dragover", {
+            bubbles: true,
+            cancelable: true,
+            clientX,
+            clientY,
+            dataTransfer,
+          }),
+        );
+        target.dispatchEvent(
+          new DragEvent("drop", {
+            bubbles: true,
+            cancelable: true,
+            clientX,
+            clientY,
+            dataTransfer,
+          }),
+        );
+      },
+      { sourceBlockId: secondBlock.id, targetBlockId: firstBlock.id },
+    );
+    const moveResponse = await moveResponsePromise;
+    expect(moveResponse.ok(), await moveResponse.text()).toBeTruthy();
+
+    await expect(
+      draftCard.locator(`[data-funnel-drag-step-id="${checkoutStep.id}"] [data-funnel-block-id]`).first(),
+    ).toHaveAttribute("data-funnel-block-id", secondBlock.id);
   });
 
   test("publisher auth form trims email whitespace before submit", async ({ page }, testInfo) => {

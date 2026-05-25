@@ -2054,6 +2054,18 @@ h3 {
   gap: 12px;
   padding: 12px 0;
   border-top: 1px solid var(--line);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.admin-block-edit-list.drag-target {
+  border-color: rgba(31, 83, 107, 0.42);
+  background: rgba(31, 83, 107, 0.05);
+}
+
+.admin-block-edit-list.drag-saving {
+  opacity: 0.76;
 }
 
 .admin-block-add-form {
@@ -2075,6 +2087,16 @@ h3 {
   border-radius: 8px;
   background: #fffdf8;
   overflow: hidden;
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.admin-block-editor-shell:has(.admin-block-drag-handle:focus-visible),
+.admin-block-editor-shell:hover {
+  border-color: rgba(31, 83, 107, 0.36);
+  box-shadow: 0 12px 26px rgba(31, 83, 107, 0.09);
 }
 
 .admin-block-edit-form {
@@ -2189,11 +2211,55 @@ h3 {
   flex-wrap: wrap;
 }
 
+.admin-block-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(31, 83, 107, 0.22);
+  border-radius: 8px;
+  background: #f6f0e3;
+  color: var(--blue);
+  cursor: grab;
+}
+
+.admin-block-drag-handle:active {
+  cursor: grabbing;
+}
+
+.admin-block-drag-handle:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.admin-block-drag-handle svg {
+  width: 18px;
+  height: 18px;
+}
+
 .admin-block-edit-heading strong {
   margin: 0;
   color: var(--ink);
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.admin-block-drag-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.admin-block-drag-status.done {
+  color: var(--green);
+  font-weight: 800;
+}
+
+.admin-block-drag-status.error {
+  color: #7a2d2d;
+  font-weight: 800;
 }
 
 .admin-checkout-link-summary {

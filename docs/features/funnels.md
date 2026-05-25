@@ -16,15 +16,16 @@ readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
 owner-confirmed checkout unlinking, owner-confirmed resource delivery links to
 product/access catalog assets, owner-confirmed webinar event/replay links to
 public-safe external URLs, owner-session within-step block reordering,
-cross-step block moves, and owner-confirmed archived-draft purge with tombstone
-evidence. Issue #430 adds owner-session granular block title/body editing that
+drag/drop block placement through existing move endpoints, cross-step block
+moves, and owner-confirmed archived-draft purge with tombstone evidence. Issue
+#430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
 reusable block library while refusing checkout-linked block removal. Issue #409
 links owner-created product test checkout links to the seeded offer/funnel
 delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
-for freeform drag-and-drop canvas editing, arbitrary private R2 delivery, live
+for freeform canvas layout styling, arbitrary private R2 delivery, live
 fulfillment automation, full webinar integrations, bulk retention policy, and
 direct agent-safe write tools.
 
@@ -53,7 +54,8 @@ Live in this slice:
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, duplicate private
   drafts, edit existing block title/body copy, add reusable block-library blocks,
-  reorder existing blocks within the same step, move existing blocks between
+  reorder existing blocks within the same step, drag/drop existing blocks
+  through the same owner-session move endpoints, move existing blocks between
   steps, remove safe unlinked blocks, attach the seeded sandbox checkout offer to
   checkout blocks, unlink checkout metadata from draft blocks, link
   resource/delivery blocks to product access assets, link webinar blocks to
@@ -76,7 +78,7 @@ Live in this slice:
 
 Not live in this slice:
 
-- Freeform drag-and-drop visual editing.
+- Freeform canvas layout styling or arbitrary visual layout editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
 - Direct agent purge, non-archived purge, checkout-linked direct deletion, or
@@ -91,7 +93,7 @@ Not live in this slice:
   arbitrary customer fulfillment from delivery-gate links.
 - Agent-initiated draft edits or publishing tools.
 
-These post-MVP gaps are intentionally tracked together in issue #417 so future
+The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
 work moves a coherent funnel workflow instead of adding more isolated readiness
 metadata. Live publisher-offer billing remains separate in issue #219.
 

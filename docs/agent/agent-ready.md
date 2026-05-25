@@ -181,7 +181,7 @@ the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
 granular block title/body edit, block add/remove, within-step block reorder,
-cross-step block move, private preview, exact-confirmed publish,
+drag/drop block placement through existing move endpoints, cross-step block move, private preview, exact-confirmed publish,
 exact-confirmed archive/unpublish, exact-confirmed checkout-unlink, exact-confirmed resource-delivery-link,
 exact-confirmed webinar-event-link, and exact-confirmed archived-draft purge
 surface from issues #91, #93, #95, #135, #159, #161, #163, #165, #213, #215,
@@ -199,7 +199,8 @@ owner-session resource delivery linking from issue #417 while preserving block
 IDs, kinds, title/body copy, step order, and audit evidence, owner-session
 within-step block reordering from issue #417 while preserving block IDs, kinds,
 copy, checkout-link metadata, resource-link metadata, step membership, and audit
-evidence, owner-session cross-step block moves from issue #417 while preserving
+evidence, owner-session drag/drop block placement from issue #417 while reusing
+the same move endpoint modes with fresh revision checks, owner-session cross-step block moves from issue #417 while preserving
 block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and audit
 evidence while changing step membership, owner-session webinar event/replay
 linking from issue #417 while preserving block IDs, kinds, title/body copy, step
@@ -225,13 +226,13 @@ scheduling, reminders, attendance tracking, or hosted replay media. It is not di
 block editing, direct agent block add/remove, direct agent checkout unlinking,
 direct agent resource delivery linking, direct agent block reordering,
 direct agent cross-step block moves, direct agent webinar event linking, live
-billing mutation, freeform drag-and-drop editing, direct agent archive/unpublish,
+billing mutation, freeform canvas layout styling, direct agent archive/unpublish,
 direct agent purge, non-archived purge, one-click upsell charging, arbitrary private R2
 delivery, signed URL creation, live fulfillment automation, live webinar
 scheduling, attendance tracking, replay hosting, or a direct agent write API. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
-links, webinar event/replay links, within-step block reordering, cross-step block moves, and archived-draft purge, and remains the pending advanced funnel
-parity bucket for freeform drag-and-drop editing, arbitrary private R2 delivery, live fulfillment automation, full webinar
+links, webinar event/replay links, within-step block reordering, drag/drop block placement, cross-step block moves, and archived-draft purge, and remains the pending advanced funnel
+parity bucket for freeform canvas layout styling, arbitrary private R2 delivery, live fulfillment automation, full webinar
 integrations, bulk purge policy, and direct agent-safe write tools. Live
 publisher-offer billing remains separate in issue #219.
 
