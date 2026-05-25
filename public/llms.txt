@@ -108,7 +108,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Import center: https://bumpgrade.com/imports
 - Importer source data: https://bumpgrade.com/imports/source-data
 - Dedicated importers: https://bumpgrade.com/imports/clickfunnels, https://bumpgrade.com/imports/samcart, https://bumpgrade.com/imports/kit, https://bumpgrade.com/imports/kajabi, https://bumpgrade.com/imports/shopify, https://bumpgrade.com/imports/podia, https://bumpgrade.com/imports/systeme-io, https://bumpgrade.com/imports/kartra, https://bumpgrade.com/imports/thrivecart
-- Private importer APIs: each platform record in https://bumpgrade.com/imports/source-data includes its API route and exact confirmation text
+- Private importer APIs: each platform record in https://bumpgrade.com/imports/source-data includes its create and rollback API routes plus exact confirmation text
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
 - Kit alternative: https://bumpgrade.com/compare/kit-alternative
 - Shopify alternative: https://bumpgrade.com/compare/shopify-alternative
@@ -185,10 +185,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   confirmation, idempotency, and redacted responses. It can create or reuse a
   Free Build workspace, save a private draft funnel, and reuse an existing
   private draft when platform, workspace, normalized title, and source URL or
-  export file name match. It does not publish pages, run live checkout, send
-  subscribers, connect domains, enable fulfillment, transfer accounts, migrate
-  payment credentials, import customer passwords, or expose pasted source
-  material or export file contents in the response.
+  export file name match. The rollback route archives the signed-in publisher's
+  private importer draft without deleting draft rows, step rows, or audit rows so
+  the same source can be restarted as a fresh private plan. It does not publish
+  pages, run live checkout, send subscribers, connect domains, enable
+  fulfillment, transfer accounts, migrate payment credentials, import customer
+  passwords, or expose pasted source material or export file contents in the
+  response.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes signed-in Free Build workspace creation, paid

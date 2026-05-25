@@ -58,12 +58,24 @@ export function importerDraftImportApiRoute(slug: string) {
   return `/api/imports/${slug}/draft`;
 }
 
+export function importerDraftRollbackApiRoute(slug: string) {
+  return `/api/imports/${slug}/draft/rollback`;
+}
+
 export function importerDraftImportConfirmationText(platformName: string) {
   return `Create private ${platformName} import plan`;
 }
 
+export function importerDraftRollbackConfirmationText(platformName: string) {
+  return `Archive private ${platformName} import plan`;
+}
+
 export function importerDraftImportCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-import`;
+}
+
+export function importerDraftRollbackCapabilityId(platformId: string) {
+  return `${platformId.replace(/^importer-/, "")}-private-draft-rollback`;
 }
 
 export const clickFunnelsDraftImportApiRoute = importerDraftImportApiRoute("clickfunnels");
@@ -75,6 +87,7 @@ export const commonImporterSafetyGates = [
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
   "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
+  "Rollback archives private import drafts without deleting draft rows, step rows, or audit rows, so the same source can be restarted cleanly.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];
@@ -560,10 +573,20 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       writesRecords: false,
       createsDraft: false,
       rawSourceEchoed: false,
-      goLiveEffectsEnabled: false,
-    },
-    duplicateProtection:
-      "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
+    goLiveEffectsEnabled: false,
+  },
+  rollback: {
+    route: importerDraftRollbackApiRoute(platform.slug),
+    confirmationText: importerDraftRollbackConfirmationText(platform.platformName),
+    auth: "verified publisher session",
+    archives: ["private_draft_funnel"],
+    deletesRecords: false,
+    restartsAvailable: true,
+    rawSourceEchoed: false,
+    goLiveEffectsEnabled: false,
+  },
+  duplicateProtection:
+    "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
     duplicateReview: {
       responseField: "duplicateReview",
       statuses: ["created", "idempotent_replay", "source_match_reused"],
@@ -601,6 +624,7 @@ export const importerSourceData = {
     preflightReviewLive: true,
     sourceMatchDuplicateReviewLive: true,
     sourceFileNameDuplicateReviewLive: true,
+    privateDraftRollbackLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -617,6 +641,8 @@ export const importerSourceData = {
       "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs or normalized export file names inside the same platform, target workspace, and normalized title.",
     preflightReview:
       "Public preflight review routes return a redacted import map before private draft creation. They do not persist records, require payment, publish pages, run checkout, send subscribers, connect domains, enable fulfillment, or echo pasted source material or export file names.",
+    rollback:
+      "Verified publisher rollback routes archive private importer-created draft funnels without deleting draft rows, step rows, or audit rows. Archived importer drafts are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",

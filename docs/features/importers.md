@@ -23,6 +23,10 @@ dedicated importer pages:
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized
   source URL or normalized export file name.
+- The `rollback.route` listed for each platform lets the verified publisher who
+  created a private import draft archive that draft without deleting draft rows,
+  step rows, or audit rows. Archived importer drafts no longer block a fresh
+  import from the same source.
 
 Imported material starts in a private Bumpgrade workspace. Public publishing,
 live checkout, subscriber sends, domains, and fulfillment remain behind go-live

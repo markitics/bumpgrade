@@ -9,6 +9,8 @@ import {
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
   importerDraftPreviewApiRoute,
+  importerDraftRollbackApiRoute,
+  importerDraftRollbackConfirmationText,
   importerPlatforms,
 } from "@/lib/importers";
 import { site } from "@/lib/site";
@@ -63,6 +65,9 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
     notFound();
   }
 
+  const importDraftId = firstSearchValue(search.importDraft);
+  const importRevision = firstSearchValue(search.importRevision);
+  const rollbackConfirmationText = importerDraftRollbackConfirmationText(platform.platformName);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -176,11 +181,32 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
             private Free Build plan so you can keep editing before any buyer-facing change.
           </p>
         </div>
-        {firstSearchValue(search.importDraft) ? (
+        {firstSearchValue(search.importRollback) === "archived" ? (
+          <p className="account-success">Private {platform.platformName} import plan archived. You can start a fresh import map now.</p>
+        ) : null}
+        {importDraftId && firstSearchValue(search.importRollback) !== "archived" ? (
           <p className="account-success">Private {platform.platformName} import plan created in your Free Build workspace.</p>
         ) : null}
         {firstSearchValue(search.importError) ? (
           <p className="account-error">{firstSearchValue(search.importError)}</p>
+        ) : null}
+        {importDraftId && importRevision && firstSearchValue(search.importRollback) !== "archived" ? (
+          <form action={importerDraftRollbackApiRoute(platform.slug)} method="post" className="importer-rollback-form">
+            <input type="hidden" name="draftId" value={importDraftId} />
+            <input type="hidden" name="expectedRevisionId" value={importRevision} />
+            <input
+              type="hidden"
+              name="idempotencyKey"
+              value={`${platform.slug}-rollback-${importDraftId}-${importRevision}`}
+            />
+            <label>
+              Type this to archive the private import plan and start again: <strong>{rollbackConfirmationText}</strong>
+              <input name="confirmationText" type="text" maxLength={80} required />
+            </label>
+            <button type="submit" className="secondary-action">
+              Archive private import plan
+            </button>
+          </form>
         ) : null}
         <ImporterDraftForm
           action={importerDraftImportApiRoute(platform.slug)}

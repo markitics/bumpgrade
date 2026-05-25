@@ -118,6 +118,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Public preflight review maps that summarize likely draft areas before sign-in or private draft creation.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
+      "Rollback controls that archive private importer drafts without deleting rows and allow the same source to be restarted as a fresh private plan.",
       "Dedicated importer pages for first-wave competitor platforms.",
       "Agent-readable importer metadata at `/imports/source-data`.",
       "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",
@@ -125,10 +126,10 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, dedicated importer pages, `/imports/source-data`, public preview API routes, and the private platform API routes listed in source-data define the importer contract slice.",
+      "`/imports`, dedicated importer pages, `/imports/source-data`, public preview API routes, private platform create routes, and private platform rollback routes listed in source-data define the importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",

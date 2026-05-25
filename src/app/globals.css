@@ -4174,7 +4174,8 @@ h3 {
   font-weight: 900;
 }
 
-.importer-draft-form {
+.importer-draft-form,
+.importer-rollback-form {
   display: grid;
   gap: 16px;
   max-width: 920px;
@@ -4191,7 +4192,8 @@ h3 {
   gap: 14px;
 }
 
-.importer-draft-form label {
+.importer-draft-form label,
+.importer-rollback-form label {
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -4200,14 +4202,16 @@ h3 {
   text-transform: uppercase;
 }
 
-.importer-draft-form strong {
+.importer-draft-form strong,
+.importer-rollback-form strong {
   color: var(--ink);
   text-transform: none;
 }
 
 .importer-draft-form input[type="text"],
 .importer-draft-form input[type="url"],
-.importer-draft-form textarea {
+.importer-draft-form textarea,
+.importer-rollback-form input[type="text"] {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -4224,7 +4228,8 @@ h3 {
 }
 
 .importer-draft-form input:focus,
-.importer-draft-form textarea:focus {
+.importer-draft-form textarea:focus,
+.importer-rollback-form input:focus {
   outline: 2px solid rgba(55, 95, 76, 0.18);
   border-color: rgba(55, 95, 76, 0.46);
 }
@@ -4242,7 +4247,8 @@ h3 {
   align-items: center;
 }
 
-.importer-draft-form .secondary-action {
+.importer-draft-form .secondary-action,
+.importer-rollback-form .secondary-action {
   border: 1px solid var(--line);
   cursor: pointer;
   font: inherit;
