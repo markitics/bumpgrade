@@ -65,7 +65,7 @@ export function FunnelResourceDeliveryPanel({
       <div className="feature-detail">
         <strong>Private delivery</strong>
         <span>
-          {productTitle} / {assetTitle}
+          File asset: {assetTitle} for {productTitle}
         </span>
       </div>
       <label htmlFor={`checkout-intent-${blockId}`}>Checkout intent ID</label>
