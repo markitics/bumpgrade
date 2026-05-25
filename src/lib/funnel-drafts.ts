@@ -1158,6 +1158,7 @@ export async function updateDraftFunnelBlockVisualStyle(
     visualStyleId: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1211,6 +1212,7 @@ export async function updateDraftFunnelBlockVisualStyle(
         issue: draftFunnelAdvancedParityIssue,
         action: "block_visual_style_update",
         draftFunnelBlockVisualStyleCapability: draftFunnelBlockVisualStyleCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit, { publicRouteMutation: draft.status === "published" }),
         expectedRevisionId: input.expectedRevisionId,
         stepId: step.id,
         blockId: block.id,

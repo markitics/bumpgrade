@@ -22,6 +22,7 @@ import {
   removeDraftFunnelBlock,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
+  updateDraftFunnelBlockVisualStyle,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
 import {
@@ -50,6 +51,7 @@ type AgentFunnelDraftWriteRequestBody = {
   registrationUrl?: unknown;
   replayUrl?: unknown;
   providerLabel?: unknown;
+  visualStyleId?: unknown;
   title?: unknown;
   body?: unknown;
   expectedRevisionId?: unknown;
@@ -219,6 +221,29 @@ export async function POST(request: NextRequest) {
         idempotencyKey,
         agentWriteAudit,
       });
+    } else if (operationId === "update-block-style") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+      const visualStyleId = stringValue(body.visualStyleId, 80);
+
+      if (!stepId || !blockId || !visualStyleId) {
+        return jsonError(
+          400,
+          "invalid_update_block_style_request",
+          "update-block-style requires stepId, blockId, and visualStyleId.",
+        );
+      }
+
+      draft = await updateDraftFunnelBlockVisualStyle(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        visualStyleId,
+        expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+      publicRouteMutationCreated = draft.status === "published";
     } else if (operationId === "add-block") {
       const stepId = stringValue(body.stepId, 220);
       const blockKind = stringValue(body.blockKind, 80);

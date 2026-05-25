@@ -1564,6 +1564,16 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "update-block", requiresStepId: true, requiresBlockId: true }),
         expect.objectContaining({
+          id: "update-block-style",
+          requiresStepId: true,
+          requiresBlockId: true,
+          requiresVisualStyleId: true,
+          allowedVisualStyleIds: expect.arrayContaining(["standard", "spotlight", "split", "compact"]),
+          publicRouteMutation: false,
+          publicRouteRenderingCanChangeWhenPublished: true,
+          liveBillingMutation: false,
+        }),
+        expect.objectContaining({
           id: "add-block",
           requiresStepId: true,
           requiresBlockKind: true,
@@ -1790,6 +1800,23 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
   });
 
+  test("funnel draft endpoint rejects unauthenticated JSON writes before validation", async ({ request }) => {
+    const response = await request.post("/api/admin/funnels/drafts", {
+      data: {
+        mode: "update-block-style",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: "funnel-draft-indie-launch-working-copy-block-2-sales-1",
+        visualStyleId: "spotlight",
+        expectedRevisionId: "unknown",
+        idempotencyKey: `playwright-funnel-json-unauthenticated-${Date.now()}`,
+      },
+    });
+
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
+  });
+
   test("agent funnel draft write endpoint requires owner session", async ({ request }) => {
     const response = await request.post(agentFunnelDraftWriteApiRoute, {
       data: {
@@ -1897,6 +1924,43 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(updatePayload)).not.toContain("m@rkmoriarty.com");
 
+    const styleAuditCorrelationId = `playwright-agent-funnel-style-audit-${suffix}`;
+    const styleUpdate = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "update-block-style",
+        draftId: draft.id,
+        stepId: editableStep.id,
+        blockId: editableBlock.id,
+        visualStyleId: "spotlight",
+        expectedRevisionId: updatePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-style-${suffix}`,
+        auditCorrelationId: styleAuditCorrelationId,
+      },
+    });
+    expect(styleUpdate.ok(), await styleUpdate.text()).toBeTruthy();
+    const styleUpdatePayload = await styleUpdate.json();
+    expect(styleUpdatePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "update-block-style",
+        auditCorrelationId: styleAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: draft.id,
+          status: "draft",
+          revisionId: expect.any(String),
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          publicRouteMutationCreated: false,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
     const structureStep = draft.steps.find(
       (step: { blocks: Array<{ kind: string }> }) => step.blocks.length > 1 && step.blocks.some((block) => block.kind !== "resource"),
     );
@@ -1914,7 +1978,7 @@ test.describe("Bumpgrade scaffold", () => {
         blockKind: "proof",
         title: "Agent-added proof block",
         body: "This reusable proof block was added through the owner-session agent write endpoint.",
-        expectedRevisionId: updatePayload.draft.revisionId,
+        expectedRevisionId: styleUpdatePayload.draft.revisionId,
         confirmationText: agentFunnelDraftWriteConfirmationText,
         idempotencyKey: `playwright-agent-funnel-add-block-${suffix}`,
         auditCorrelationId: addBlockAuditCorrelationId,
@@ -20325,7 +20389,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session visual style controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe draft writes for block copy edits, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",

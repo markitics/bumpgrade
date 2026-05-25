@@ -27,35 +27,89 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type RequestFields = {
+  wantsJson: boolean;
+  value(key: string): string;
+};
+
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
 }
 
-function wantsJson(request: NextRequest, formData: FormData) {
+function headerWantsJson(request: NextRequest) {
+  const accept = request.headers.get("accept") ?? "";
+  const contentType = request.headers.get("content-type") ?? "";
+  return accept.includes("application/json") || contentType.includes("application/json");
+}
+
+function formWantsJson(request: NextRequest, formData: FormData) {
   return formValue(formData, "return") === "json" || (request.headers.get("accept") ?? "").includes("application/json");
+}
+
+async function readRequestFields(request: NextRequest): Promise<RequestFields> {
+  const contentType = request.headers.get("content-type") ?? "";
+  const wantsJsonFromHeaders = headerWantsJson(request);
+
+  if (contentType.includes("application/json")) {
+    let body: unknown = {};
+
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+
+    const record = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
+
+    return {
+      wantsJson: true,
+      value(key) {
+        const value = record[key];
+        return typeof value === "string" ? value : "";
+      },
+    };
+  }
+
+  try {
+    const formData = await request.formData();
+
+    return {
+      wantsJson: formWantsJson(request, formData),
+      value(key) {
+        return formValue(formData, key);
+      },
+    };
+  } catch {
+    return {
+      wantsJson: wantsJsonFromHeaders,
+      value() {
+        return "";
+      },
+    };
+  }
 }
 
 function fallbackIdempotencyKey() {
   return `funnel-draft-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`;
 }
 
-function resourceDeliverySelection(formData: FormData) {
-  const resourceDeliveryRef = formValue(formData, "resourceDeliveryRef");
+function resourceDeliverySelection(fields: RequestFields) {
+  const resourceDeliveryRef = fields.value("resourceDeliveryRef");
   if (resourceDeliveryRef.includes("::")) {
     const [productId, assetId] = resourceDeliveryRef.split("::");
     return { productId, assetId };
   }
 
   return {
-    productId: formValue(formData, "productId"),
-    assetId: formValue(formData, "assetId"),
+    productId: fields.value("productId"),
+    assetId: fields.value("assetId"),
   };
 }
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData();
-  const json = wantsJson(request, formData);
+  const fields = await readRequestFields(request);
+  const json = fields.wantsJson;
   const adminState = await getSessionAdminState(request.headers);
 
   if (!adminState.identity) {
@@ -70,39 +124,39 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = await getFunnelDraftD1OrThrow();
-    const mode = formValue(formData, "mode") || "create";
-    const idempotencyKey = formValue(formData, "idempotencyKey") || fallbackIdempotencyKey();
+    const mode = fields.value("mode") || "create";
+    const idempotencyKey = fields.value("idempotencyKey") || fallbackIdempotencyKey();
     let draft;
 
     if (mode === "seed") {
       draft = await seedEditableFunnelDraft(db, adminState.identity, idempotencyKey);
     } else if (mode === "create-from-template") {
       draft = await createDraftFunnelFromLibraryTemplate(db, adminState.identity, {
-        templateId: formValue(formData, "templateId"),
-        title: formValue(formData, "title"),
-        confirmationText: formValue(formData, "confirmationText"),
+        templateId: fields.value("templateId"),
+        title: fields.value("title"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "duplicate") {
       draft = await duplicateDraftFunnel(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        title: formValue(formData, "title"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        title: fields.value("title"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "archive") {
       draft = await archiveDraftFunnel(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "purge") {
       const purge = await purgeArchivedDraftFunnel(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
 
@@ -115,128 +169,128 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(redirect, { status: 303 });
     } else if (mode === "update-step") {
       draft = await updateDraftFunnelStep(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        title: formValue(formData, "title"),
-        goal: formValue(formData, "goal"),
-        kind: formValue(formData, "kind"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        title: fields.value("title"),
+        goal: fields.value("goal"),
+        kind: fields.value("kind"),
         idempotencyKey,
       });
     } else if (mode === "update-block") {
       draft = await updateDraftFunnelBlock(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        title: formValue(formData, "title"),
-        body: formValue(formData, "body"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        title: fields.value("title"),
+        body: fields.value("body"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "update-block-style") {
       draft = await updateDraftFunnelBlockVisualStyle(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        visualStyleId: formValue(formData, "visualStyleId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        visualStyleId: fields.value("visualStyleId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "add-block") {
       draft = await addDraftFunnelBlock(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockKind: formValue(formData, "blockKind"),
-        title: formValue(formData, "title"),
-        body: formValue(formData, "body"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockKind: fields.value("blockKind"),
+        title: fields.value("title"),
+        body: fields.value("body"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "remove-block") {
       draft = await removeDraftFunnelBlock(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "move-block") {
       draft = await reorderDraftFunnelBlock(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        direction: formValue(formData, "direction"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        direction: fields.value("direction"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "move-block-to-step") {
       draft = await moveDraftFunnelBlockToStep(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        targetStepId: formValue(formData, "targetStepId"),
-        blockId: formValue(formData, "blockId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        targetStepId: fields.value("targetStepId"),
+        blockId: fields.value("blockId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });
     } else if (mode === "link-checkout") {
       draft = await linkDraftFunnelStepToCheckoutOffer(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        offerId: formValue(formData, "offerId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        offerId: fields.value("offerId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "unlink-checkout") {
       draft = await unlinkDraftFunnelCheckoutLink(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "link-resource-delivery") {
-      const selection = resourceDeliverySelection(formData);
+      const selection = resourceDeliverySelection(fields);
       draft = await linkDraftFunnelBlockToResourceDelivery(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
         productId: selection.productId,
         assetId: selection.assetId,
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "link-webinar-event") {
       draft = await linkDraftFunnelBlockToWebinarEvent(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        blockId: formValue(formData, "blockId"),
-        eventTitle: formValue(formData, "eventTitle"),
-        registrationUrl: formValue(formData, "registrationUrl"),
-        replayUrl: formValue(formData, "replayUrl"),
-        providerLabel: formValue(formData, "providerLabel"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        eventTitle: fields.value("eventTitle"),
+        registrationUrl: fields.value("registrationUrl"),
+        replayUrl: fields.value("replayUrl"),
+        providerLabel: fields.value("providerLabel"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else if (mode === "move-step") {
       draft = await reorderDraftFunnelStep(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        stepId: formValue(formData, "stepId"),
-        direction: formValue(formData, "direction"),
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        direction: fields.value("direction"),
         idempotencyKey,
       });
     } else if (mode === "publish") {
       draft = await publishDraftFunnel(db, adminState.identity, {
-        draftId: formValue(formData, "draftId"),
-        expectedRevisionId: formValue(formData, "expectedRevisionId"),
-        confirmationText: formValue(formData, "confirmationText"),
+        draftId: fields.value("draftId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        confirmationText: fields.value("confirmationText"),
         idempotencyKey,
       });
     } else {
       draft = await createDraftFunnelFromTemplate(db, adminState.identity, {
-        title: formValue(formData, "title"),
+        title: fields.value("title"),
         idempotencyKey,
       });
     }
