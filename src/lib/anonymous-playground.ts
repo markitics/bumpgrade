@@ -19,6 +19,13 @@ export type AnonymousPlaygroundDraft = {
   offerName: string;
   audience: string;
   launchGoal: string;
+  productFormat: string;
+  pricePoint: string;
+  leadMagnet: string;
+  checkoutPlan: string;
+  deliveryPlan: string;
+  followUpPlan: string;
+  sourceUrl: string;
   selectedImporterSlug: string | null;
 };
 
@@ -41,6 +48,13 @@ type AnonymousPlaygroundWorkspaceRow = {
   offer_name: string | null;
   audience: string | null;
   launch_goal: string | null;
+  product_format: string | null;
+  price_point: string | null;
+  lead_magnet: string | null;
+  checkout_plan: string | null;
+  delivery_plan: string | null;
+  follow_up_plan: string | null;
+  source_url: string | null;
   selected_importer_slug: string | null;
   revision: number | null;
   expires_at: number | null;
@@ -95,6 +109,13 @@ const defaultDraft: AnonymousPlaygroundDraft = {
   offerName: "",
   audience: "",
   launchGoal: "",
+  productFormat: "",
+  pricePoint: "",
+  leadMagnet: "",
+  checkoutPlan: "",
+  deliveryPlan: "",
+  followUpPlan: "",
+  sourceUrl: "",
   selectedImporterSlug: "clickfunnels",
 };
 
@@ -126,6 +147,13 @@ function workspaceFromRow(row: AnonymousPlaygroundWorkspaceRow | null | undefine
       offerName: row.offer_name ?? "",
       audience: row.audience ?? "",
       launchGoal: row.launch_goal ?? "",
+      productFormat: row.product_format ?? "",
+      pricePoint: row.price_point ?? "",
+      leadMagnet: row.lead_magnet ?? "",
+      checkoutPlan: row.checkout_plan ?? "",
+      deliveryPlan: row.delivery_plan ?? "",
+      followUpPlan: row.follow_up_plan ?? "",
+      sourceUrl: row.source_url ?? "",
       selectedImporterSlug: normalizeImporterSlug(row.selected_importer_slug) ?? defaultDraft.selectedImporterSlug,
     },
     revision: row.revision ?? 1,
@@ -143,12 +171,31 @@ export function normalizeAnonymousPlaygroundDraft(input: Partial<AnonymousPlaygr
     offerName: clampText(input.offerName ?? "", 90),
     audience: clampText(input.audience ?? "", 180),
     launchGoal: clampText(input.launchGoal ?? "", 260),
+    productFormat: clampText(input.productFormat ?? "", 140),
+    pricePoint: clampText(input.pricePoint ?? "", 80),
+    leadMagnet: clampText(input.leadMagnet ?? "", 180),
+    checkoutPlan: clampText(input.checkoutPlan ?? "", 220),
+    deliveryPlan: clampText(input.deliveryPlan ?? "", 220),
+    followUpPlan: clampText(input.followUpPlan ?? "", 220),
+    sourceUrl: clampText(input.sourceUrl ?? "", 260),
     selectedImporterSlug: normalizeImporterSlug(input.selectedImporterSlug) ?? defaultDraft.selectedImporterSlug,
   };
 }
 
 export function hasAnonymousPlaygroundDraftContent(draft: AnonymousPlaygroundDraft) {
-  return Boolean(draft.offerName || draft.audience || draft.launchGoal || draft.selectedImporterSlug);
+  return Boolean(
+    draft.offerName ||
+      draft.audience ||
+      draft.launchGoal ||
+      draft.productFormat ||
+      draft.pricePoint ||
+      draft.leadMagnet ||
+      draft.checkoutPlan ||
+      draft.deliveryPlan ||
+      draft.followUpPlan ||
+      draft.sourceUrl ||
+      draft.selectedImporterSlug,
+  );
 }
 
 export async function getOptionalAnonymousPlaygroundD1() {
@@ -282,6 +329,13 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
          SET offer_name = ?,
              audience = ?,
              launch_goal = ?,
+             product_format = ?,
+             price_point = ?,
+             lead_magnet = ?,
+             checkout_plan = ?,
+             delivery_plan = ?,
+             follow_up_plan = ?,
+             source_url = ?,
              selected_importer_slug = ?,
              revision = revision + 1,
              expires_at = unixepoch() + ?,
@@ -293,6 +347,13 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
         draft.offerName,
         draft.audience,
         draft.launchGoal,
+        draft.productFormat,
+        draft.pricePoint,
+        draft.leadMagnet,
+        draft.checkoutPlan,
+        draft.deliveryPlan,
+        draft.followUpPlan,
+        draft.sourceUrl,
         draft.selectedImporterSlug,
         anonymousPlaygroundCookieMaxAgeSeconds,
         existing.id,
@@ -307,6 +368,7 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
         sourceIssueNumber: anonymousPlaygroundIssue,
         revisionBeforeSave: existing.revision,
         selectedImporterSlug: draft.selectedImporterSlug,
+        structuredBuilderFieldsStored: true,
         paidGoLiveRequired: true,
         rawCookieStored: false,
         publicPublishingEnabled: false,
@@ -321,9 +383,10 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
     .prepare(
       `INSERT INTO anonymous_playground_workspaces (
         id, recovery_token_sha256, status, offer_name, audience, launch_goal,
-        selected_importer_slug, revision, expires_at, source_issue_number,
+        product_format, price_point, lead_magnet, checkout_plan, delivery_plan,
+        follow_up_plan, source_url, selected_importer_slug, revision, expires_at, source_issue_number,
         metadata_json, created_at, updated_at, last_seen_at
-      ) VALUES (?, ?, 'active', ?, ?, ?, ?, 1, unixepoch() + ?, ?, ?, unixepoch(), unixepoch(), unixepoch())`,
+      ) VALUES (?, ?, 'active', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, unixepoch() + ?, ?, ?, unixepoch(), unixepoch(), unixepoch())`,
     )
     .bind(
       workspaceId,
@@ -331,6 +394,13 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
       draft.offerName,
       draft.audience,
       draft.launchGoal,
+      draft.productFormat,
+      draft.pricePoint,
+      draft.leadMagnet,
+      draft.checkoutPlan,
+      draft.deliveryPlan,
+      draft.followUpPlan,
+      draft.sourceUrl,
       draft.selectedImporterSlug,
       anonymousPlaygroundCookieMaxAgeSeconds,
       anonymousPlaygroundIssue,
@@ -351,6 +421,7 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
     metadata: {
       sourceIssueNumber: anonymousPlaygroundIssue,
       selectedImporterSlug: draft.selectedImporterSlug,
+      structuredBuilderFieldsStored: true,
       paidGoLiveRequired: true,
       rawCookieStored: false,
       publicPublishingEnabled: false,
@@ -385,6 +456,13 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     offerName: workspace.draft.offerName,
     audience: workspace.draft.audience,
     launchGoal: workspace.draft.launchGoal,
+    productFormat: workspace.draft.productFormat,
+    pricePoint: workspace.draft.pricePoint,
+    leadMagnet: workspace.draft.leadMagnet,
+    checkoutPlan: workspace.draft.checkoutPlan,
+    deliveryPlan: workspace.draft.deliveryPlan,
+    followUpPlan: workspace.draft.followUpPlan,
+    sourceUrl: workspace.draft.sourceUrl,
     selectedImporterSlug: workspace.draft.selectedImporterSlug,
     sourceIssueNumber: anonymousPlaygroundIssue,
     idempotencyKey: `anonymous-playground-draft-${workspace.id}-${user.id}`,
@@ -409,6 +487,7 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
         claimedDraftFunnelId: draft.id,
         claimedDraftStepCount: draft.steps.length,
         claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+        structuredBuilderFieldsClaimed: true,
         publicPublishingEnabled: false,
         liveCheckoutEnabled: false,
         emailSendsEnabled: false,
@@ -428,6 +507,7 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
       claimedDraftFunnelId: draft.id,
       claimedDraftStepCount: draft.steps.length,
       claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+      structuredBuilderFieldsClaimed: true,
       tenantPlanStatus: freeBuild.tenant.planStatus,
       paidGoLiveRequired: freeBuild.paidGoLiveRequired,
       rawCookieStored: false,
@@ -474,6 +554,13 @@ export function publicAnonymousPlaygroundWorkspace(workspace: AnonymousPlaygroun
       offerName: workspace.draft.offerName,
       audience: workspace.draft.audience,
       launchGoal: workspace.draft.launchGoal,
+      productFormat: workspace.draft.productFormat,
+      pricePoint: workspace.draft.pricePoint,
+      leadMagnet: workspace.draft.leadMagnet,
+      checkoutPlan: workspace.draft.checkoutPlan,
+      deliveryPlan: workspace.draft.deliveryPlan,
+      followUpPlan: workspace.draft.followUpPlan,
+      sourceUrl: workspace.draft.sourceUrl,
       selectedImporter: importer
         ? {
             slug: importer.slug,
@@ -530,19 +617,29 @@ export const anonymousPlaygroundSourceData = {
     { id: "offerName", label: "Offer name", maxLength: 90 },
     { id: "audience", label: "Audience", maxLength: 180 },
     { id: "launchGoal", label: "Launch goal", maxLength: 260 },
+    { id: "productFormat", label: "Product format", maxLength: 140 },
+    { id: "pricePoint", label: "Price point", maxLength: 80 },
+    { id: "leadMagnet", label: "Lead magnet or first opt-in", maxLength: 180 },
+    { id: "checkoutPlan", label: "Checkout plan", maxLength: 220 },
+    { id: "deliveryPlan", label: "Delivery plan", maxLength: 220 },
+    { id: "followUpPlan", label: "Follow-up plan", maxLength: 220 },
+    { id: "sourceUrl", label: "Existing source URL", maxLength: 260 },
     { id: "selectedImporterSlug", label: "Starting platform", allowedValues: importerPlatforms.map((platform) => platform.slug) },
   ],
   currentAvailability: {
     loggedOutSaveLive: true,
     browserRecoveryLive: true,
+    structuredBuilderFieldsLive: true,
     claimToSignedInFreeBuildLive: true,
     claimCreatesPrivateDraftFunnelLive: true,
+    claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
     paidGoLiveRequired: true,
   },
   generatedPrivateRecordTypes: ["publisher_tenant", "funnel_draft", "funnel_draft_step", "funnel_audit_event"],
   claimResult: {
     createsOrReusesFreeBuildWorkspace: true,
     createsPrivateDraftFunnel: true,
+    mapsStructuredFieldsToDraftBlocks: true,
     draftSourceDataRoute: "/funnels/source-data",
     publicPublishingEnabled: false,
     liveCheckoutEnabled: false,
@@ -553,5 +650,5 @@ export const anonymousPlaygroundSourceData = {
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates private Free Build workspace plus private funnel draft records only. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie or token hash.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates private Free Build workspace plus private funnel draft records only. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie or token hash.",
 };

@@ -683,7 +683,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     method:
       "Logged-out save, recovery-cookie persistence after refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, and paid go-live gate checks.",
     summary:
-      "Logged-out visitors can save a basic launch playground in one browser, return later, and attach it to a verified Free Build account plus private launch draft without enabling public publishing, billing, sends, domains, or fulfillment.",
+      "Logged-out visitors can save a structured launch playground in one browser, return later, and attach it to a verified Free Build account plus private launch draft without enabling public publishing, billing, sends, domains, or fulfillment.",
     ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
     screenshotLinks: [
       {
@@ -702,7 +702,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     notes: [
       "Anonymous recovery depends on the browser cookie remaining available.",
-      "The playground stores basic launch context and creates a private draft only after verified-account claim; buyer-facing actions remain paid-gated.",
+      "The playground stores structured launch context and creates a private draft only after verified-account claim; buyer-facing actions remain paid-gated.",
     ],
   },
   "journey-publisher-creates-free-build-workspace": {
@@ -1888,7 +1888,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     happyPath: [
       "Open /playground while logged out.",
-      "Enter an offer name, audience, launch goal, and starting platform.",
+      "Enter offer, audience, product, opt-in, checkout, delivery, follow-up, and migration starting-point details.",
       "Save the playground and refresh the page.",
       "Return from the same browser and see the saved draft.",
       "Create or sign into a verified account and attach the playground to a private Free Build workspace and launch draft.",
@@ -1899,10 +1899,10 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "The cookie stores a recovery token only; D1 stores its hash, not the raw cookie value.",
       "Anonymous playground rows expire after 30 days unless extended by later saves.",
       "Playground saves do not create billing state, public domains, buyer routes, subscriber sends, or product access.",
-      "Attaching to an account creates or reuses a private Free Build workspace, creates an idempotent private funnel draft, and keeps paid go-live gates intact.",
+      "Attaching to an account creates or reuses a private Free Build workspace, maps structured playground fields into an idempotent private funnel draft, and keeps paid go-live gates intact.",
     ],
     agentAccess:
-      "Agents can read /playground/source-data for the anonymous playground contract. Saving playground state is browser-scoped and redacted; attaching it requires authenticated, email-verified publisher context, creates private draft records, and still does not authorize public or billing-impacting actions.",
+      "Agents can read /playground/source-data for the anonymous playground contract. Saving structured playground state is browser-scoped and redacted; attaching it requires authenticated, email-verified publisher context, creates private draft records, and still does not authorize public or billing-impacting actions.",
     validation: [
       "Playwright covers logged-out save, recovery-cookie persistence across refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, private draft creation, idempotent claim replay, and paid go-live gate preservation.",
       "/pricing/source-data and /account/source-data distinguish anonymous playground, signed-in Free Build, and paid go-live actions.",
