@@ -52,6 +52,7 @@ export function describeBetterAuthSessionBoundary(input?: {
   siteUrl?: string | null;
   cookieDomain?: string | null;
 }): BetterAuthSessionBoundary {
+  const appEnv = getAppEnv();
   const siteUrl = input?.siteUrl ?? getRuntimeEnvValue("PUBLIC_SITE_URL") ?? null;
   const authUrl = input?.authUrl ?? getRuntimeEnvValue("BETTER_AUTH_URL") ?? siteUrl ?? "http://localhost:3000";
   const cookieDomain = betterAuthCookieDomain(authUrl, input?.cookieDomain ?? undefined);
@@ -61,6 +62,7 @@ export function describeBetterAuthSessionBoundary(input?: {
     "https://bumpgrade.com",
     "https://www.bumpgrade.com",
     "https://*.bumpgrade.com",
+    appEnv === "production" ? undefined : "http://bumpgrade.com",
     "http://localhost:*",
     "http://127.0.0.1:*",
   ]);

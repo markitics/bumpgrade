@@ -230,8 +230,8 @@ export const pricingPrinciples: PricingPrinciple[] = [
     title: "Build before paying",
     status: "live",
     summary:
-      "Issue #466 defines the free private-building path and paid go-live gates; issue #473 adds signed-in Free Build workspace creation while anonymous recovery remains planned.",
-    evidenceRoutes: ["/pricing", pricingSourceDataRoute, "/account/source-data", "/content/source-data"],
+      "Issue #466 defines the logged-out playground, free private-building path, and paid go-live gates; issue #473 adds signed-in Free Build workspace creation.",
+    evidenceRoutes: ["/pricing", "/playground", "/playground/source-data", pricingSourceDataRoute, "/account/source-data", "/content/source-data"],
   },
   {
     id: "pricing-self-serve",
@@ -326,7 +326,7 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   domainPurchase:
     "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
   payments: [
-    "Free Build supports signed-in private workspace creation before payment; anonymous browser recovery is still planned.",
+    "Free Build supports signed-in private workspace creation before payment; the anonymous playground saves browser-scoped launch setup before signup.",
     "Experiment is $97/month.",
     "Grow is $197/month.",
     "White glove setup is an optional one-time $1,000 add-on.",
@@ -336,6 +336,8 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
     "Customer-facing checkout for a publisher's own offer remains offer-specific; Bumpgrade subscription checkout is the self-serve account plan path.",
   evidenceRoutes: [
     "/pricing",
+    "/playground",
+    "/playground/source-data",
     pricingSourceDataRoute,
     "/pricing-v2",
     "/api/billing/checkout",
@@ -358,6 +360,8 @@ export const contentSourceData = {
     "/brand",
     "/pricing",
     pricingSourceDataRoute,
+    "/playground",
+    "/playground/source-data",
     "/pricing-v2",
     "/account/setup",
     importerSourceDataRoute,

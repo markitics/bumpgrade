@@ -4711,6 +4711,59 @@ export const publisherTenantAuditEvents = sqliteTable(
   }),
 );
 
+export const anonymousPlaygroundWorkspaces = sqliteTable(
+  "anonymous_playground_workspaces",
+  {
+    id: text("id").primaryKey(),
+    recoveryTokenSha256: text("recovery_token_sha256").notNull(),
+    status: text("status").notNull().default("active"),
+    offerName: text("offer_name"),
+    audience: text("audience"),
+    launchGoal: text("launch_goal"),
+    selectedImporterSlug: text("selected_importer_slug"),
+    revision: integer("revision").notNull().default(1),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    claimedByUserId: text("claimed_by_user_id").references(() => user.id, { onDelete: "set null" }),
+    claimedTenantId: text("claimed_tenant_id").references(() => publisherTenants.id, { onDelete: "set null" }),
+    sourceIssueNumber: integer("source_issue_number").notNull().default(466),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    recoveryTokenUnique: uniqueIndex("anonymous_playground_workspaces_recovery_token_unique").on(
+      table.recoveryTokenSha256,
+    ),
+    statusExpiryIdx: index("anonymous_playground_workspaces_status_expiry_idx").on(table.status, table.expiresAt),
+    claimedUserIdx: index("anonymous_playground_workspaces_claimed_user_idx").on(
+      table.claimedByUserId,
+      table.updatedAt,
+    ),
+  }),
+);
+
+export const anonymousPlaygroundAuditEvents = sqliteTable(
+  "anonymous_playground_audit_events",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => anonymousPlaygroundWorkspaces.id, { onDelete: "cascade" }),
+    eventKind: text("event_kind").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("anonymous_playground_audit_events_idempotency_unique").on(table.idempotencyKey),
+    workspaceCreatedIdx: index("anonymous_playground_audit_events_workspace_created_idx").on(
+      table.workspaceId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {

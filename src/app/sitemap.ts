@@ -21,6 +21,7 @@ const sourceDataRoutes = [
   "/admin/for-mark/source-data",
   "/compare/source-data",
   "/imports/source-data",
+  "/playground/source-data",
   "/commerce/source-data",
   "/content/source-data",
   "/pricing/source-data",

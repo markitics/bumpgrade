@@ -1,3 +1,10 @@
+import {
+  anonymousPlaygroundApiRoute,
+  anonymousPlaygroundClaimApiRoute,
+  anonymousPlaygroundRoute,
+  anonymousPlaygroundSourceDataRoute,
+} from "@/lib/anonymous-playground";
+
 export type PricingPlanSlug = "experiment" | "grow" | "enterprise";
 export type SelfServePricingPlanSlug = Exclude<PricingPlanSlug, "enterprise">;
 
@@ -273,7 +280,7 @@ export const freeBuildModeContract = {
   paidGoLiveGates,
   currentAvailability: {
     signedInFreeWorkspaceLive: true,
-    anonymousPlaygroundLive: false,
+    anonymousPlaygroundLive: true,
     paidGoLiveRequired: true,
   },
   signedInWorkspace: {
@@ -286,11 +293,15 @@ export const freeBuildModeContract = {
       "Verified signed-in users can create a private Free Build workspace before payment; public go-live actions still require a paid plan.",
   },
   anonymousPlayground: {
-    status: "designed-not-live",
+    status: "live",
+    route: anonymousPlaygroundRoute,
+    sourceDataRoute: anonymousPlaygroundSourceDataRoute,
+    saveApiRoute: anonymousPlaygroundApiRoute,
+    claimApiRoute: anonymousPlaygroundClaimApiRoute,
     persistenceModel:
-      "A future logged-out workspace should use browser-scoped recovery, expiration, abuse limits, redaction, and a claim-to-account merge before any public or billing side effect.",
+      "Logged-out visitors can save basic launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, public-safe draft fields, expiry, and claim status.",
     privacyBoundary:
-      "Anonymous work must not expose private customer data, create billing records, send email, publish buyer-facing routes, or grant product access.",
+      "Anonymous work does not expose private customer data, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
   },
 };
 
@@ -298,7 +309,16 @@ export const pricingSourceData = {
   id: "bumpgrade-pricing-policy-source-data",
   updatedAt: selfServePricingUpdatedAt,
   issueNumbers: [pricingSourceIssue, freeBuildModeIssue, signedInFreeBuildWorkspaceIssue],
-  routes: ["/pricing", pricingSourceDataRoute, billingCheckoutRoute, billingCheckoutSuccessRoute],
+  routes: [
+    "/pricing",
+    pricingSourceDataRoute,
+    anonymousPlaygroundRoute,
+    anonymousPlaygroundSourceDataRoute,
+    anonymousPlaygroundApiRoute,
+    anonymousPlaygroundClaimApiRoute,
+    billingCheckoutRoute,
+    billingCheckoutSuccessRoute,
+  ],
   selfServePricing: {
     contract: "bumpgrade-self-serve-pricing-v1",
     status: "live",
@@ -317,10 +337,12 @@ export const pricingSourceData = {
     rawStripeIdsIncluded: false,
     privateWorkspaceRowsIncluded: false,
     anonymousBrowserIdentifiersIncluded: false,
+    anonymousRecoveryCookieValueIncluded: false,
+    anonymousRecoveryTokenHashIncluded: false,
     customerDataIncluded: false,
   },
   agentBoundary:
-    "Agents may cite the pricing policy, signed-in Free Build workspace creation, and paid go-live gates, but must not claim anonymous playground persistence is live until implementation evidence exists.",
+    "Agents may cite the pricing policy, anonymous browser playground, signed-in Free Build workspace creation, and paid go-live gates. Anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, or fulfill access.",
 };
 
 const planOrder: Record<PricingPlanSlug, number> = {
