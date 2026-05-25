@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
       JSONObject privateAuth = contract.getJSONObject("privateAuth");
       JSONObject privateRowsApi = contract.getJSONObject("privateRowsApi");
       JSONObject privateRowActionsApi = contract.getJSONObject("privateRowActionsApi");
+      JSONObject directorReviewApi = contract.getJSONObject("directorReviewApi");
       JSONObject actionIntentApi = contract.getJSONObject("actionIntentApi");
       JSONObject pushNotificationBoundary = contract.getJSONObject("pushNotificationBoundary");
       JSONObject distributionReadiness = contract.getJSONObject("distributionReadiness");
@@ -133,6 +134,16 @@ public class MainActivity extends Activity {
       privateRowActionsPanel.addView(meta("Boundary: " + privateRowActionsApi.getString("actionBoundary")));
       privateRowActionsPanel.addView(meta("Inputs: " + joinStrings(privateRowActionsApi.getJSONArray("requiredInputs"))));
       content.addView(privateRowActionsPanel);
+
+      LinearLayout directorReviewPanel = panel();
+      directorReviewPanel.addView(kicker("Director review API"));
+      directorReviewPanel.addView(panelTitle(directorReviewApi.getString("route")));
+      directorReviewPanel.addView(body(directorReviewApi.getString("purpose")));
+      directorReviewPanel.addView(meta("Status: " + directorReviewApi.getString("status") + " · issue #" + directorReviewApi.getInt("issue")));
+      directorReviewPanel.addView(meta("Auth: " + directorReviewApi.getString("authBoundary")));
+      directorReviewPanel.addView(meta("Boundary: " + directorReviewApi.getString("reviewBoundary")));
+      directorReviewPanel.addView(meta("Inputs: " + joinStrings(directorReviewApi.getJSONArray("requiredInputs"))));
+      content.addView(directorReviewPanel);
 
       LinearLayout actionIntentPanel = panel();
       actionIntentPanel.addView(kicker("Action intent API"));
