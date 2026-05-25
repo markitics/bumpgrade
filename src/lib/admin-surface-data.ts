@@ -333,6 +333,7 @@ const issue242PrUrl = "https://github.com/markitics/bumpgrade/pull/243";
 const issue242CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26175118817";
 const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
 const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
+const issue466PrUrl = "https://github.com/markitics/bumpgrade/pull/472";
 const journeyProofRefreshAt = "2026-05-20T17:20:00.000Z";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -606,6 +607,34 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     notes: [
       "Bumpgrade account-plan checkout is separate from customer-facing checkout for a publisher's own offer.",
       "Live webhook-backed renewal and cancellation automation remains a follow-up until a live Stripe webhook signing secret is configured.",
+    ],
+  },
+  "journey-prospect-understands-free-build": {
+    status: "passed",
+    lastTestedAt: "2026-05-25T12:25:00.000Z",
+    environment: "Local OpenNext preview, focused Playwright source-data smoke, and PR screenshot artifacts for issue #466.",
+    method: "Pricing route smoke, pricing source-data inspection, content source-data inspection, agent-docs source-data inspection, public-copy scan, and screenshot review.",
+    summary:
+      "The Free Build journey has route and source-data proof for private build-before-payment messaging and paid go-live gates while signed-in free workspace persistence and anonymous browser recovery remain explicitly not live.",
+    ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
+    screenshotLinks: [
+      { label: "Free Build pricing", url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-free-build.png", kind: "screenshot" },
+      {
+        label: "Pricing source data",
+        url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-source-data.png",
+        kind: "screenshot",
+      },
+    ],
+    validationLinks: [
+      { label: "Pricing", url: "https://bumpgrade.com/pricing", kind: "route" },
+      { label: "Pricing source data", url: "https://bumpgrade.com/pricing/source-data", kind: "source-data" },
+      { label: "Content source data", url: "https://bumpgrade.com/content/source-data", kind: "source-data" },
+      { label: "Agent docs source data", url: "https://bumpgrade.com/agent-docs/source-data", kind: "source-data" },
+      { label: "PR #472", url: issue466PrUrl, kind: "pr" },
+      { label: "Issue #466", url: "https://github.com/markitics/bumpgrade/issues/466", kind: "issue" },
+    ],
+    notes: [
+      "The current slice proves the public policy, stable source-data IDs, paid go-live gates, and non-live anonymous playground boundary.",
     ],
   },
   "journey-publisher-reserves-bumpgrade-subdomain": {
@@ -929,6 +958,48 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-25-free-build-before-go-live",
+    title: "Added Free Build pricing policy and go-live gates",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-free-build-before-go-live",
+    promptFromMark:
+      "Owner asked for Bumpgrade to make it clear publishers should be able to build before paying and only pay when ready to go live.",
+    githubIssues: [{ number: 466, url: "https://github.com/markitics/bumpgrade/issues/466" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/pricing/source-data",
+      "https://bumpgrade.com/content/source-data",
+      "https://bumpgrade.com/agent-docs/source-data",
+    ],
+    roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
+    userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys/source-data"],
+    documentationUpdated: ["public/llms.txt"],
+    validation: [
+      "npm run typecheck",
+      "npm run lint",
+      "npm run test:runtime-secrets",
+      "npm run db:migrate:local",
+      "npm run cf:build",
+      "npx playwright test tests/smoke.spec.ts --project=chromium -g pricing/source-data/content/commerce/agent/public-copy focus",
+      "Pricing screenshots captured under docs/pr-screenshots and public/pr-screenshots.",
+      "git diff --check",
+    ],
+    flagsAttention:
+      "This is the policy and source-data slice. Signed-in free workspace persistence and anonymous playground recovery are not live until issue #466 has implementation evidence.",
+    firstPromptAt: "2026-05-25T12:00:00.000Z",
+    completedAt: "2026-05-25T12:35:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/466",
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/pricing/source-data",
+      "https://bumpgrade.com/content/source-data",
+      "https://bumpgrade.com/agent-docs/source-data",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-25-public-copy-cleanup",
     title: "Cleaned public copy and source-data note phrasing",
@@ -1543,38 +1614,81 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect reviews launch pricing and payment options",
     featureId: "feature-resources-use-cases-pricing",
     featureStatus: "live",
-    issueNumbers: [20, 46, 217, 222, 223, 225, 226, 234],
+    issueNumbers: [20, 46, 217, 222, 223, 225, 226, 234, 466],
     primaryUser: "Publisher ready to start a Bumpgrade workspace",
-    userGoal: "Understand Experiment, Grow, Enterprise, White glove setup, and live payment handling before starting the account plan checkout.",
+    userGoal:
+      "Understand Free Build, Experiment, Grow, Enterprise, White glove setup, and live payment handling before starting or upgrading the account plan.",
     sourceEvidence: [
       "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/pricing/source-data",
       "https://bumpgrade.com/commerce/source-data",
       "https://github.com/markitics/bumpgrade/issues/46",
       "https://github.com/markitics/bumpgrade/issues/217",
+      "https://github.com/markitics/bumpgrade/issues/466",
     ],
     happyPath: [
       "Open /pricing.",
+      "Review the build-first message and paid go-live gates.",
       "Compare Experiment, Grow, Enterprise, and the optional White glove setup add-on.",
       "Submit Experiment or Grow to start Stripe Checkout for the Bumpgrade account plan.",
       "Return from Stripe to /pricing/success and continue to account setup with the same email.",
     ],
     edgeCases: [
+      "Free Build is a tracked build-before-payment model; signed-in free workspace persistence and anonymous recovery are not live until implementation evidence exists.",
       "Enterprise is a contact path, not self-serve checkout.",
       "/pricing-v2 is an alternate usage-based draft and is not the default pricing model.",
       "Successful Checkout Sessions are verified server-side before a publisher plan entitlement is activated.",
       "Bumpgrade connects domains customers already own; it does not sell, register, renew, transfer, or price domains today.",
     ],
     agentAccess:
-      "Agents can read /pricing and /content/source-data, but billing-impacting recommendations must cite /commerce/source-data and current Stripe proof.",
+      "Agents can read /pricing, /pricing/source-data, and /content/source-data, but billing-impacting recommendations must cite /commerce/source-data and current Stripe proof.",
     validation: [
       "Issue #217 rewrites pricing as launch-facing copy.",
       "Issue #225 clarifies the domain purchase policy.",
       "Issue #226 refreshes launch signup and pricing copy for paid domain readiness.",
       "Issue #234 refreshes pricing user-journey proof with the latest PR #233 CI and issue #226 screenshot links.",
       "Issue #316 adds live self-serve Bumpgrade plan checkout, success verification, and seeded product/price records.",
+      "Issue #466 adds the Free Build policy source data and paid go-live gate evidence.",
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
     sortOrder: 43,
+    updatedAt: null,
+  },
+  {
+    id: "journey-prospect-understands-free-build",
+    title: "Prospect understands Free Build before going live",
+    featureId: "feature-resources-use-cases-pricing",
+    featureStatus: "live",
+    issueNumbers: [20, 316, 466],
+    primaryUser: "Publisher who wants to start building before paying",
+    userGoal:
+      "See that Bumpgrade can be shaped before payment while public publishing, live checkout, subscriber sends, domains, and fulfillment stay gated until go-live.",
+    sourceEvidence: [
+      "https://bumpgrade.com/pricing",
+      "https://bumpgrade.com/pricing/source-data",
+      "https://github.com/markitics/bumpgrade/issues/466",
+    ],
+    happyPath: [
+      "Open /pricing.",
+      "Read the build-first explanation.",
+      "Review what can be assembled privately before payment.",
+      "Review which buyer-facing actions require a paid or approved go-live state.",
+      "Use /pricing/source-data when an agent needs stable IDs for the same policy.",
+    ],
+    edgeCases: [
+      "The first policy slice does not prove signed-in free workspace persistence is live.",
+      "The first policy slice does not prove logged-out browser recovery is live.",
+      "Buyer-facing publishing, live checkout, email sends, domains, and fulfillment remain gated.",
+    ],
+    agentAccess:
+      "Agents can read /pricing/source-data for Free Build capability IDs, paid go-live gate IDs, non-live anonymous playground state, and redaction boundaries.",
+    validation: [
+      "Pricing route smoke confirms the public copy avoids internal implementation language.",
+      "/pricing/source-data exposes Free Build capability records and paid go-live gate records.",
+      "/content/source-data and /agent-docs/source-data include the pricing policy as agent-readable evidence.",
+    ],
+    proof: createJourneyProof("journey-prospect-understands-free-build", "feature-resources-use-cases-pricing"),
+    sortOrder: 42,
     updatedAt: null,
   },
   {

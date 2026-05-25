@@ -685,16 +685,19 @@ export const featureCatalog: FeatureRecord[] = [
       "Use cases for creators, coaches, course sellers, agencies, and publishers.",
       "Developer and agent pages backed by real contracts.",
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
-      "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, and an alternate usage-based pricing draft.",
+      "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, a Free Build policy, and an alternate usage-based pricing draft.",
+      "Agent-readable `/pricing/source-data` for Free Build capability boundaries and paid go-live gates.",
       "Agent-readable `/content/source-data` records for personas, resources, and pricing contracts.",
     ],
     evidence: [
       "Tracked by issue #20.",
+      "Issue #466 tracks the free build-before-go-live pricing policy.",
       "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, and `/pricing-v2` are live destinations.",
+      "`/pricing/source-data` exposes the Free Build design, non-live anonymous playground state, and paid go-live gates.",
       "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
-      "Agents may read content surface records and draft resource copy, but public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records, pricing policy records, and draft resource copy, but they must distinguish the planned Free Build workspace and anonymous recovery path from live paid checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 
