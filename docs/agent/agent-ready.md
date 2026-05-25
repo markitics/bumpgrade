@@ -246,22 +246,29 @@ through `/api/funnels/resource-delivery` only after checkout intent and
 entitlement scope match the linked product and file asset. Published
 webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
-scheduling, reminders, attendance tracking, or hosted replay media. It is not direct agent template creation, direct agent
-block editing, direct agent block add/remove, direct agent checkout unlinking,
-direct agent resource delivery linking, direct agent block reordering,
+scheduling, reminders, attendance tracking, or hosted replay media.
+`/api/agent/funnels/draft-writes` lets verified owner-session agents perform
+direct agent-safe private draft writes for block title/body edits, private draft
+duplication, and archive/unpublish only after exact confirmation, idempotency,
+fresh revision checks, and audit correlation; responses are redacted draft
+summaries and do not expose owner identity or raw rows. It is not direct agent
+template creation, direct agent block add/remove, direct agent checkout
+unlinking, direct agent resource delivery linking, direct agent block reordering,
 direct agent-created delivery tokens, direct agent cross-step block moves,
-direct agent webinar event linking, live
-billing mutation, freeform canvas layout styling, direct agent archive/unpublish,
-direct agent purge, non-archived purge, one-click upsell charging, arbitrary
-uploaded private asset delivery, signed URL creation, live fulfillment automation, live webinar
-scheduling, attendance tracking, replay hosting, or a direct agent write API. Issue #14 is the shipped MVP boundary;
+direct agent webinar event linking, live billing mutation, freeform canvas
+layout styling, direct agent purge, non-archived purge, one-click upsell
+charging, arbitrary uploaded private asset delivery, signed URL creation, live
+fulfillment automation, live webinar scheduling, attendance tracking, replay
+hosting, direct agent public publishing, or public unauthenticated agent writes. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
 links, funnel-scoped private download-token delivery, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
-and archived-draft purge, and remains the pending advanced funnel parity bucket
-for freeform canvas layout styling, arbitrary uploaded private asset delivery,
-live fulfillment automation, full webinar integrations, bulk purge policy,
-direct agent-created delivery tokens, and direct agent-safe write tools. Live
+archived-draft purge, and direct agent-safe private draft writes, and remains
+the pending advanced funnel parity bucket for freeform canvas layout styling,
+arbitrary uploaded private asset delivery, live fulfillment automation, full
+webinar integrations, bulk purge policy, direct agent-created delivery tokens,
+direct agent public publishing, direct agent checkout/resource/webinar linking,
+and direct agent purge. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read

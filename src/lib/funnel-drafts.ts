@@ -40,6 +40,8 @@ import {
   draftFunnelStepEditingIssue,
   draftFunnelTemplateCreationIssue,
   editableDraftCapability,
+  agentFunnelDraftWriteApiRoute,
+  agentFunnelDraftWriteCapability,
   funnelBlockLibrary,
   funnelTemplateLibrary,
   seededFunnel,
@@ -107,6 +109,11 @@ export type DraftFunnelPurgeResult = {
   idempotencyKey: string;
   metadata: Record<string, unknown>;
   createdAt: string | null;
+};
+
+export type AgentFunnelWriteAudit = {
+  operationId: string;
+  auditCorrelationId: string;
 };
 
 type D1FunnelDraftRow = {
@@ -202,6 +209,23 @@ function runtimeId(prefix: string) {
 
 function identityEmail(identity: AdminIdentity) {
   return identity.email ?? "unknown-owner@bumpgrade.local";
+}
+
+function agentFunnelWriteMetadata(audit: AgentFunnelWriteAudit | undefined) {
+  if (!audit) return {};
+
+  return {
+    agentFunnelDraftWriteIssue: agentFunnelDraftWriteCapability.issue,
+    agentFunnelDraftWriteCapability: agentFunnelDraftWriteCapability.id,
+    agentFunnelDraftWriteApiRoute,
+    agentFunnelDraftWriteOperationId: audit.operationId,
+    auditCorrelationId: audit.auditCorrelationId,
+    directAgentSafeWrite: true,
+    publicAgentWrite: false,
+    ownerSessionRequired: true,
+    exactAgentConfirmationRequired: true,
+    responseRedacted: true,
+  };
 }
 
 function draftBlocksForStep(step: FunnelStep): FunnelBlock[] {
@@ -746,6 +770,7 @@ export async function duplicateDraftFunnel(
     expectedRevisionId: string;
     confirmationText: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -790,6 +815,7 @@ export async function duplicateDraftFunnel(
   };
 
   return persistDraft(db, draft, identity, "draft_duplicated", input.idempotencyKey, {
+    ...agentFunnelWriteMetadata(input.agentWriteAudit),
     draftFunnelDuplicationCapability: draftFunnelDuplicationCapability.id,
     sourceDraftId: sourceDraft.id,
     sourceRevisionId: sourceDraft.revisionId,
@@ -1039,6 +1065,7 @@ export async function updateDraftFunnelBlock(
     body: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1085,6 +1112,7 @@ export async function updateDraftFunnelBlock(
       input.idempotencyKey,
       `${identityEmail(identity)} updated block ${block.id} in ${draft.title}.`,
       {
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         issue: draftFunnelBlockEditingIssue,
         action: "block_update",
         draftFunnelBlockEditingCapability: draftFunnelBlockEditingCapability.id,
@@ -1860,7 +1888,13 @@ export async function publishDraftFunnel(
 export async function archiveDraftFunnel(
   db: D1Database,
   identity: AdminIdentity,
-  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+  input: {
+    draftId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
+  },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
   if (replay) return replay;
@@ -1896,6 +1930,7 @@ export async function archiveDraftFunnel(
       input.idempotencyKey,
       `${identityEmail(identity)} archived ${draft.title}.`,
       {
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         issue: draftFunnelArchiveIssue,
         action: "draft_archive",
         draftFunnelArchiveCapability: draftFunnelArchiveCapability.id,
