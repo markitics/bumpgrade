@@ -417,7 +417,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "Private draft creation is live for verified publishers on dedicated importer paths; broader source-match duplicate review, rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
+      "Private draft creation is live for verified publishers on dedicated importer paths; source-match duplicate review now reuses matching private drafts by platform, workspace, normalized title, and source URL. Rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },

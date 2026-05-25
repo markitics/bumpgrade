@@ -116,6 +116,7 @@ export const featureCatalog: FeatureRecord[] = [
     expectedCapabilities: [
       "Dedicated importer paths with a reusable platform-aware importer contract.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
+      "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL match.",
       "Dedicated importer pages for first-wave competitor platforms.",
       "Agent-readable importer metadata at `/imports/source-data`.",
       "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",
@@ -126,7 +127,7 @@ export const featureCatalog: FeatureRecord[] = [
       "`/imports`, dedicated importer pages, `/imports/source-data`, and the platform API routes listed in source-data define the private importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, duplicate-review statuses, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",
