@@ -4771,6 +4771,44 @@ export const anonymousPlaygroundAuditEvents = sqliteTable(
   }),
 );
 
+export const anonymousPlaygroundClaimRecords = sqliteTable(
+  "anonymous_playground_claim_records",
+  {
+    id: text("id").primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => anonymousPlaygroundWorkspaces.id, { onDelete: "cascade" }),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => publisherTenants.id, { onDelete: "cascade" }),
+    draftFunnelId: text("draft_funnel_id")
+      .notNull()
+      .references(() => funnelDrafts.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    recordKind: text("record_kind").notNull(),
+    status: text("status").notNull().default("private_draft"),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    sourceUrl: text("source_url"),
+    selectedImporterSlug: text("selected_importer_slug"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    workspaceKindUnique: uniqueIndex("anonymous_playground_claim_records_workspace_kind_unique").on(
+      table.workspaceId,
+      table.recordKind,
+    ),
+    tenantKindIdx: index("anonymous_playground_claim_records_tenant_kind_idx").on(
+      table.tenantId,
+      table.recordKind,
+      table.updatedAt,
+    ),
+    draftIdx: index("anonymous_playground_claim_records_draft_idx").on(table.draftFunnelId, table.recordKind),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {

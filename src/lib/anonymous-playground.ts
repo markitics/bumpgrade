@@ -14,6 +14,7 @@ import {
 } from "@/lib/publisher-tenants";
 
 export type AnonymousPlaygroundStatus = "active" | "claimed" | "expired";
+export type AnonymousPlaygroundClaimRecordKind = "offer" | "product" | "audience" | "importer_review";
 
 export type AnonymousPlaygroundDraft = {
   offerName: string;
@@ -42,6 +43,18 @@ export type AnonymousPlaygroundWorkspace = {
   lastSeenAt: string | null;
 };
 
+export type AnonymousPlaygroundClaimRecord = {
+  id: string;
+  kind: AnonymousPlaygroundClaimRecordKind;
+  status: string;
+  title: string;
+  summary: string;
+  sourceUrl: string | null;
+  selectedImporterSlug: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
 type AnonymousPlaygroundWorkspaceRow = {
   id: string;
   status: AnonymousPlaygroundStatus;
@@ -68,6 +81,18 @@ type AnonymousPlaygroundWorkspaceRow = {
 type AnonymousPlaygroundAuditRow = {
   workspace_id: string;
   event_kind: string;
+};
+
+type AnonymousPlaygroundClaimRecordRow = {
+  id: string;
+  record_kind: AnonymousPlaygroundClaimRecordKind;
+  status: string;
+  title: string;
+  summary: string;
+  source_url: string | null;
+  selected_importer_slug: string | null;
+  created_at: number | null;
+  updated_at: number | null;
 };
 
 type SaveAnonymousPlaygroundInput = AnonymousPlaygroundDraft & {
@@ -103,6 +128,38 @@ export const anonymousPlaygroundGoLiveGates = [
   "Buyer or subscriber sends",
   "Custom domains and Bumpgrade subdomains",
   "Fulfillment and protected product access",
+];
+
+export const anonymousPlaygroundClaimRecordKinds: {
+  id: AnonymousPlaygroundClaimRecordKind;
+  privateRecordType: string;
+  label: string;
+  sourceFields: (keyof AnonymousPlaygroundDraft)[];
+}[] = [
+  {
+    id: "offer",
+    privateRecordType: "playground_offer_record",
+    label: "Offer record",
+    sourceFields: ["offerName", "launchGoal", "pricePoint", "checkoutPlan"],
+  },
+  {
+    id: "product",
+    privateRecordType: "playground_product_record",
+    label: "Product record",
+    sourceFields: ["productFormat", "pricePoint", "deliveryPlan"],
+  },
+  {
+    id: "audience",
+    privateRecordType: "playground_audience_record",
+    label: "Audience record",
+    sourceFields: ["audience", "leadMagnet", "followUpPlan"],
+  },
+  {
+    id: "importer_review",
+    privateRecordType: "playground_importer_review_record",
+    label: "Importer review record",
+    sourceFields: ["selectedImporterSlug", "sourceUrl"],
+  },
 ];
 
 const defaultDraft: AnonymousPlaygroundDraft = {
@@ -163,6 +220,20 @@ function workspaceFromRow(row: AnonymousPlaygroundWorkspaceRow | null | undefine
     createdAt: isoFromSeconds(row.created_at),
     updatedAt: isoFromSeconds(row.updated_at),
     lastSeenAt: isoFromSeconds(row.last_seen_at),
+  };
+}
+
+function claimRecordFromRow(row: AnonymousPlaygroundClaimRecordRow): AnonymousPlaygroundClaimRecord {
+  return {
+    id: row.id,
+    kind: row.record_kind,
+    status: row.status,
+    title: row.title,
+    summary: row.summary,
+    sourceUrl: row.source_url,
+    selectedImporterSlug: normalizeImporterSlug(row.selected_importer_slug),
+    createdAt: isoFromSeconds(row.created_at),
+    updatedAt: isoFromSeconds(row.updated_at),
   };
 }
 
@@ -431,6 +502,168 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
   return { workspace: (await loadWorkspaceById(db, workspaceId))!, idempotent: false };
 }
 
+function privateClaimRecordSummary(parts: string[]) {
+  return clampText(parts.filter(Boolean).join(" "), 900);
+}
+
+function privateClaimRecordInputs(
+  workspace: AnonymousPlaygroundWorkspace,
+  input: { tenantId: string; draftFunnelId: string; ownerUserId: string },
+) {
+  const draft = workspace.draft;
+  const offerName = draft.offerName || "Saved playground launch";
+  const importer = draft.selectedImporterSlug ? getImporterBySlug(draft.selectedImporterSlug) : null;
+  const importerName = importer?.platformName ?? "starting platform";
+
+  return [
+    {
+      kind: "offer" as const,
+      title: clampText(offerName, 160),
+      summary: privateClaimRecordSummary([
+        draft.launchGoal ? `Launch goal: ${draft.launchGoal}.` : "Launch goal still needs a first pass.",
+        draft.pricePoint ? `Price or offer structure: ${draft.pricePoint}.` : "Price or offer structure still needs review.",
+        draft.checkoutPlan ? `Checkout handoff: ${draft.checkoutPlan}.` : "Checkout handoff still needs setup.",
+      ]),
+      sourceUrl: draft.sourceUrl || null,
+      selectedImporterSlug: draft.selectedImporterSlug,
+      metadata: {
+        sourceIssueNumber: anonymousPlaygroundIssue,
+        anonymousPlaygroundWorkspaceId: workspace.id,
+        tenantId: input.tenantId,
+        draftFunnelId: input.draftFunnelId,
+        ownerUserId: input.ownerUserId,
+        privateRecordType: "playground_offer_record",
+        goLiveGated: true,
+        publicPublishingEnabled: false,
+      },
+    },
+    {
+      kind: "product" as const,
+      title: clampText(draft.productFormat || `${offerName} product`, 160),
+      summary: privateClaimRecordSummary([
+        draft.productFormat ? `Format: ${draft.productFormat}.` : "Product or service format still needs review.",
+        draft.pricePoint ? `Offer structure: ${draft.pricePoint}.` : "Offer structure still needs review.",
+        draft.deliveryPlan ? `Delivery promise: ${draft.deliveryPlan}.` : "Delivery promise still needs setup.",
+      ]),
+      sourceUrl: draft.sourceUrl || null,
+      selectedImporterSlug: draft.selectedImporterSlug,
+      metadata: {
+        sourceIssueNumber: anonymousPlaygroundIssue,
+        anonymousPlaygroundWorkspaceId: workspace.id,
+        tenantId: input.tenantId,
+        draftFunnelId: input.draftFunnelId,
+        ownerUserId: input.ownerUserId,
+        privateRecordType: "playground_product_record",
+        fulfillmentEnabled: false,
+        billingMutationEnabled: false,
+      },
+    },
+    {
+      kind: "audience" as const,
+      title: clampText(draft.audience || `${offerName} audience`, 160),
+      summary: privateClaimRecordSummary([
+        draft.audience ? `Audience: ${draft.audience}.` : "Audience still needs definition.",
+        draft.leadMagnet ? `First opt-in: ${draft.leadMagnet}.` : "First opt-in still needs review.",
+        draft.followUpPlan ? `Follow-up path: ${draft.followUpPlan}.` : "Follow-up path still needs setup.",
+      ]),
+      sourceUrl: draft.sourceUrl || null,
+      selectedImporterSlug: draft.selectedImporterSlug,
+      metadata: {
+        sourceIssueNumber: anonymousPlaygroundIssue,
+        anonymousPlaygroundWorkspaceId: workspace.id,
+        tenantId: input.tenantId,
+        draftFunnelId: input.draftFunnelId,
+        ownerUserId: input.ownerUserId,
+        privateRecordType: "playground_audience_record",
+        subscriberSendsEnabled: false,
+        rawSubscriberRowsStored: false,
+      },
+    },
+    {
+      kind: "importer_review" as const,
+      title: clampText(`${importerName} review`, 160),
+      summary: privateClaimRecordSummary([
+        importer ? `Starting platform: ${importer.platformName}.` : "Starting platform still needs review.",
+        draft.sourceUrl ? `Source URL to inspect: ${draft.sourceUrl}.` : "No source URL was saved.",
+        "Review claims, guarantees, checkout language, delivery promises, and follow-up assumptions before any public import or go-live step.",
+      ]),
+      sourceUrl: draft.sourceUrl || null,
+      selectedImporterSlug: draft.selectedImporterSlug,
+      metadata: {
+        sourceIssueNumber: anonymousPlaygroundIssue,
+        anonymousPlaygroundWorkspaceId: workspace.id,
+        tenantId: input.tenantId,
+        draftFunnelId: input.draftFunnelId,
+        ownerUserId: input.ownerUserId,
+        privateRecordType: "playground_importer_review_record",
+        sourceUrlStoredPrivately: Boolean(draft.sourceUrl),
+        importerSlug: draft.selectedImporterSlug,
+        importMutationEnabled: false,
+      },
+    },
+  ];
+}
+
+async function loadClaimRecordsForWorkspace(db: D1Database, workspaceId: string) {
+  const rows = await db
+    .prepare(
+      `SELECT id, record_kind, status, title, summary, source_url, selected_importer_slug, created_at, updated_at
+       FROM anonymous_playground_claim_records
+       WHERE workspace_id = ?`,
+    )
+    .bind(workspaceId)
+    .all<AnonymousPlaygroundClaimRecordRow>();
+
+  const records = (rows.results ?? []).map(claimRecordFromRow);
+  const order = new Map<AnonymousPlaygroundClaimRecordKind, number>(
+    anonymousPlaygroundClaimRecordKinds.map((record, index) => [record.id, index]),
+  );
+  return records.sort((left, right) => (order.get(left.kind) ?? 99) - (order.get(right.kind) ?? 99));
+}
+
+async function createAnonymousPlaygroundClaimRecords(
+  db: D1Database,
+  workspace: AnonymousPlaygroundWorkspace,
+  input: { tenantId: string; draftFunnelId: string; ownerUserId: string },
+) {
+  for (const record of privateClaimRecordInputs(workspace, input)) {
+    await db
+      .prepare(
+        `INSERT INTO anonymous_playground_claim_records (
+          id, workspace_id, tenant_id, draft_funnel_id, owner_user_id, record_kind, status,
+          title, summary, source_url, selected_importer_slug, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, 'private_draft', ?, ?, ?, ?, ?, unixepoch(), unixepoch())
+        ON CONFLICT(workspace_id, record_kind) DO UPDATE SET
+          tenant_id = excluded.tenant_id,
+          draft_funnel_id = excluded.draft_funnel_id,
+          owner_user_id = excluded.owner_user_id,
+          status = excluded.status,
+          title = excluded.title,
+          summary = excluded.summary,
+          source_url = excluded.source_url,
+          selected_importer_slug = excluded.selected_importer_slug,
+          metadata_json = excluded.metadata_json,
+          updated_at = excluded.updated_at`,
+      )
+      .bind(
+        runtimeId("anonymous-playground-claim-record"),
+        workspace.id,
+        input.tenantId,
+        input.draftFunnelId,
+        input.ownerUserId,
+        record.kind,
+        record.title,
+        record.summary,
+        record.sourceUrl,
+        record.selectedImporterSlug,
+        JSON.stringify(record.metadata),
+      )
+      .run();
+  }
+
+  return loadClaimRecordsForWorkspace(db, workspace.id);
+}
+
 export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: string, user: PublisherSessionUser) {
   const workspace = await loadAnonymousPlaygroundWorkspace(db, token);
   if (!workspace) {
@@ -467,6 +700,11 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     sourceIssueNumber: anonymousPlaygroundIssue,
     idempotencyKey: `anonymous-playground-draft-${workspace.id}-${user.id}`,
   });
+  const claimRecords = await createAnonymousPlaygroundClaimRecords(db, workspace, {
+    tenantId: freeBuild.tenant.id,
+    draftFunnelId: draft.id,
+    ownerUserId: user.id,
+  });
 
   await db
     .prepare(
@@ -487,7 +725,10 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
         claimedDraftFunnelId: draft.id,
         claimedDraftStepCount: draft.steps.length,
         claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+        privateClaimRecordCount: claimRecords.length,
+        privateClaimRecordKinds: claimRecords.map((record) => record.kind),
         structuredBuilderFieldsClaimed: true,
+        privateLaunchRecordsCreated: true,
         publicPublishingEnabled: false,
         liveCheckoutEnabled: false,
         emailSendsEnabled: false,
@@ -507,7 +748,10 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
       claimedDraftFunnelId: draft.id,
       claimedDraftStepCount: draft.steps.length,
       claimedDraftBlockCount: draft.steps.reduce((total, step) => total + step.blocks.length, 0),
+      privateClaimRecordCount: claimRecords.length,
+      privateClaimRecordKinds: claimRecords.map((record) => record.kind),
       structuredBuilderFieldsClaimed: true,
+      privateLaunchRecordsCreated: true,
       tenantPlanStatus: freeBuild.tenant.planStatus,
       paidGoLiveRequired: freeBuild.paidGoLiveRequired,
       rawCookieStored: false,
@@ -519,6 +763,7 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     workspace: (await loadWorkspaceById(db, workspace.id)) ?? workspace,
     tenant: freeBuild.tenant,
     draft,
+    claimRecords,
     idempotent: workspace.status === "claimed",
     paidGoLiveRequired: freeBuild.paidGoLiveRequired,
   };
@@ -541,6 +786,20 @@ export function publicAnonymousPlaygroundClaimedDraft(draft: DraftFunnelRecord |
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
   };
+}
+
+export function publicAnonymousPlaygroundClaimRecords(records: AnonymousPlaygroundClaimRecord[]) {
+  return records.map((record) => ({
+    id: record.id,
+    kind: record.kind,
+    status: record.status,
+    title: record.title,
+    summary: record.summary,
+    sourceUrl: record.sourceUrl,
+    selectedImporterSlug: record.selectedImporterSlug,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  }));
 }
 
 export function publicAnonymousPlaygroundWorkspace(workspace: AnonymousPlaygroundWorkspace | null) {
@@ -577,7 +836,10 @@ export function publicAnonymousPlaygroundWorkspace(workspace: AnonymousPlaygroun
   };
 }
 
-export function anonymousPlaygroundRedaction(overrides?: { workspaceIncluded?: boolean }) {
+export function anonymousPlaygroundRedaction(overrides?: {
+  workspaceIncluded?: boolean;
+  privateLaunchRecordContentIncluded?: boolean;
+}) {
   return {
     recoveryCookieValueIncluded: false,
     recoveryTokenHashIncluded: false,
@@ -587,6 +849,7 @@ export function anonymousPlaygroundRedaction(overrides?: { workspaceIncluded?: b
     billingStateCreated: false,
     publicPublishingEnabled: false,
     workspaceIncluded: overrides?.workspaceIncluded ?? false,
+    privateLaunchRecordContentIncluded: overrides?.privateLaunchRecordContentIncluded ?? false,
     rawDraftContentIncluded: false,
   };
 }
@@ -633,13 +896,28 @@ export const anonymousPlaygroundSourceData = {
     claimToSignedInFreeBuildLive: true,
     claimCreatesPrivateDraftFunnelLive: true,
     claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
+    claimCreatesPrivateLaunchRecordsLive: true,
     paidGoLiveRequired: true,
   },
-  generatedPrivateRecordTypes: ["publisher_tenant", "funnel_draft", "funnel_draft_step", "funnel_audit_event"],
+  generatedPrivateRecordTypes: [
+    "publisher_tenant",
+    "funnel_draft",
+    "funnel_draft_step",
+    "funnel_audit_event",
+    ...anonymousPlaygroundClaimRecordKinds.map((record) => record.privateRecordType),
+  ],
+  privateClaimRecords: {
+    storage: "D1 anonymous_playground_claim_records",
+    createdOnClaim: true,
+    publicSourceDataExposesContent: false,
+    kinds: anonymousPlaygroundClaimRecordKinds,
+  },
   claimResult: {
     createsOrReusesFreeBuildWorkspace: true,
     createsPrivateDraftFunnel: true,
     mapsStructuredFieldsToDraftBlocks: true,
+    createsPrivateLaunchRecords: true,
+    privateClaimRecordKinds: anonymousPlaygroundClaimRecordKinds.map((record) => record.id),
     draftSourceDataRoute: "/funnels/source-data",
     publicPublishingEnabled: false,
     liveCheckoutEnabled: false,
@@ -650,5 +928,5 @@ export const anonymousPlaygroundSourceData = {
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates private Free Build workspace plus private funnel draft records only. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie or token hash.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, or private claim-record content in public source-data.",
 };

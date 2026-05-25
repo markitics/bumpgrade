@@ -15,13 +15,15 @@ before paid go-live.
   structured offer, audience, product, opt-in, checkout, delivery, follow-up,
   source URL, and starting-platform context before signup.
 - `/playground/source-data`: public-safe contract for anonymous recovery,
-  claim-to-account, redaction, cookie, and go-live gate boundaries.
+  claim-to-account, private claim-record, redaction, cookie, and go-live gate
+  boundaries.
 - `POST /api/playground/anonymous-workspace`: saves or updates a browser-scoped
   anonymous playground. The cookie stores a recovery token only; D1 stores the
   token hash and draft fields.
 - `POST /api/playground/claim`: attaches the saved playground to a verified
   signed-in account, creates or reuses a private Free Build workspace, and saves
-  a private launch draft in the funnel draft tables.
+  a private launch draft plus private offer, product, audience, and
+  importer-review claim records.
 - `POST /api/account/publisher/free-build-workspace`: creates or confirms a
   private `plan_status=free_build` workspace for an email-confirmed signed-in
   publisher before payment, with exact confirmation, idempotency, audit
@@ -88,9 +90,8 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Anonymous playground expansion beyond structured private funnel drafts into
-  dedicated offer, product, audience, importer, cleanup, and abuse-control
-  records.
+- Anonymous playground cleanup, retention controls, abuse limits, and deeper
+  claim/merge semantics for users with existing workspaces.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

@@ -1311,6 +1311,7 @@ test.describe("Bumpgrade scaffold", () => {
           claimToSignedInFreeBuildLive: true,
           claimCreatesPrivateDraftFunnelLive: true,
           claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
+          claimCreatesPrivateLaunchRecordsLive: true,
           paidGoLiveRequired: true,
         }),
         draftFields: expect.arrayContaining([
@@ -1322,11 +1323,32 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({ id: "followUpPlan" }),
           expect.objectContaining({ id: "sourceUrl" }),
         ]),
-        generatedPrivateRecordTypes: expect.arrayContaining(["publisher_tenant", "funnel_draft", "funnel_draft_step", "funnel_audit_event"]),
+        generatedPrivateRecordTypes: expect.arrayContaining([
+          "publisher_tenant",
+          "funnel_draft",
+          "funnel_draft_step",
+          "funnel_audit_event",
+          "playground_offer_record",
+          "playground_product_record",
+          "playground_audience_record",
+          "playground_importer_review_record",
+        ]),
+        privateClaimRecords: expect.objectContaining({
+          createdOnClaim: true,
+          publicSourceDataExposesContent: false,
+          kinds: expect.arrayContaining([
+            expect.objectContaining({ id: "offer", privateRecordType: "playground_offer_record" }),
+            expect.objectContaining({ id: "product", privateRecordType: "playground_product_record" }),
+            expect.objectContaining({ id: "audience", privateRecordType: "playground_audience_record" }),
+            expect.objectContaining({ id: "importer_review", privateRecordType: "playground_importer_review_record" }),
+          ]),
+        }),
         claimResult: expect.objectContaining({
           createsOrReusesFreeBuildWorkspace: true,
           createsPrivateDraftFunnel: true,
           mapsStructuredFieldsToDraftBlocks: true,
+          createsPrivateLaunchRecords: true,
+          privateClaimRecordKinds: ["offer", "product", "audience", "importer_review"],
           draftSourceDataRoute: "/funnels/source-data",
           publicPublishingEnabled: false,
           liveCheckoutEnabled: false,
@@ -1336,6 +1358,7 @@ test.describe("Bumpgrade scaffold", () => {
           recoveryTokenHashIncluded: false,
           billingStateCreated: false,
           publicPublishingEnabled: false,
+          privateLaunchRecordContentIncluded: false,
           rawDraftContentIncluded: false,
         }),
       }),
@@ -29708,14 +29731,39 @@ test.describe("Bumpgrade scaffold", () => {
           previewRoute: null,
           sourceDataRoute: "/funnels/source-data",
         }),
+        claimRecords: expect.arrayContaining([
+          expect.objectContaining({
+            kind: "offer",
+            status: "private_draft",
+            title: `Claimed playground ${suffix}`,
+          }),
+          expect.objectContaining({
+            kind: "product",
+            status: "private_draft",
+            title: "Workshop with a template library",
+          }),
+          expect.objectContaining({
+            kind: "audience",
+            status: "private_draft",
+            title: "Logged-out publishers who return after signup",
+          }),
+          expect.objectContaining({
+            kind: "importer_review",
+            status: "private_draft",
+            selectedImporterSlug: "samcart",
+            sourceUrl: "https://example.com/claimed-playground",
+          }),
+        ]),
         redaction: expect.objectContaining({
           recoveryCookieValueIncluded: false,
           recoveryTokenHashIncluded: false,
           publicPublishingEnabled: false,
+          privateLaunchRecordContentIncluded: true,
           rawDraftContentIncluded: false,
         }),
       }),
     );
+    expect(claimPayload.claimRecords).toHaveLength(4);
 
     const replayClaimResponse = await page.request.post(anonymousPlaygroundClaimApiRoute, {
       headers: { accept: "application/json" },
@@ -29733,8 +29781,15 @@ test.describe("Bumpgrade scaffold", () => {
         workspace: expect.objectContaining({ id: claimPayload.workspace.id }),
         tenant: expect.objectContaining({ id: claimPayload.tenant.id }),
         draft: expect.objectContaining({ id: claimPayload.draft.id }),
+        claimRecords: expect.arrayContaining([
+          expect.objectContaining({ kind: "offer" }),
+          expect.objectContaining({ kind: "product" }),
+          expect.objectContaining({ kind: "audience" }),
+          expect.objectContaining({ kind: "importer_review" }),
+        ]),
       }),
     );
+    expect(replayClaimPayload.claimRecords).toHaveLength(4);
 
     const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
       headers: { accept: "application/json" },

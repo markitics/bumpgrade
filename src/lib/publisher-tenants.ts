@@ -1430,11 +1430,11 @@ export const publisherTenantSourceData = {
     whatWorksToday: [
       "Logged-out visitors can save structured launch context in a browser-scoped playground before signup.",
       "Returning from the same browser reloads saved playground progress while the recovery cookie is present.",
-      "Verified signed-in users can attach the saved playground to a private Free Build workspace and private launch draft.",
+      "Verified signed-in users can attach the saved playground to a private Free Build workspace, private launch draft, and private offer/product/audience/importer-review records.",
       "Verified signed-in users can create a private Free Build workspace before payment.",
       "The workspace is persisted in publisher_tenants with plan_status=free_build.",
       "Idempotent replays return the same workspace instead of duplicating tenant rows.",
-      "Claimed playground launch drafts preserve offer, audience, product, opt-in, checkout, delivery, follow-up, and migration-starting-point notes in private funnel_drafts and funnel_draft_steps with funnel_audit_events evidence.",
+      "Claimed playground launch drafts preserve offer, audience, product, opt-in, checkout, delivery, follow-up, and migration-starting-point notes in private funnel_drafts, funnel_draft_steps, anonymous_playground_claim_records, and funnel_audit_events evidence.",
     ],
     paidGoLiveGates: [
       "Bumpgrade subdomain reservation",
@@ -1445,7 +1445,7 @@ export const publisherTenantSourceData = {
       "Fulfillment and protected access",
     ],
     redaction:
-      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, private funnel content, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
+      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, private funnel content, private claim-record content, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
   },
   subdomainPolicy: {
     defaultDomain: publisherDefaultDomain,
