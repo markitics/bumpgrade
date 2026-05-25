@@ -17,7 +17,7 @@ dedicated importer pages:
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized
-  source URL. File-name matching waits for live file uploads.
+  source URL or normalized export file name.
 
 Imported material starts in a private Bumpgrade workspace. Public publishing,
 live checkout, subscriber sends, domains, and fulfillment remain behind go-live

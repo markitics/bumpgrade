@@ -88,10 +88,10 @@ export const roadmapItems: RoadmapItem[] = [
       "`/imports` lists supported importer paths.",
       "Dedicated importer pages support private Free Build import-plan creation.",
       "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
-      "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL match.",
+      "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
     ],
     nextMilestone:
-      "Add rollback controls, file-upload/file-name matching, and platform-specific preview depth after the shared private draft path is stable.",
+      "Add rollback controls and platform-specific preview depth after the shared private draft path is stable.",
   },
   {
     id: "roadmap-feature-catalog",

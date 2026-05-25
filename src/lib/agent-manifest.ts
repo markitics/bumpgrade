@@ -344,13 +344,13 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read supported importer platforms",
       "Resolve importer routes from competitor IDs",
-      "Inspect input kinds and generated private record types",
+      "Inspect input kinds, duplicate-review fields, and generated private record types",
       "Identify verified-publisher private-draft API routes for supported importer platforms",
       "Cite safety gates and unsupported fields before describing migration capability",
       `Cite issue #${importerIssue} for the active importer feature request`,
     ],
     writeBoundary:
-      "Importer source-data is read-only. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
+      "Importer source-data is read-only. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; source URL and export file name duplicate review can reuse a matching private draft, while public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
   },
   {
     id: "read-commerce-contract",

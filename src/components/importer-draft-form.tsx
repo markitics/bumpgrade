@@ -39,6 +39,11 @@ export function ImporterDraftForm({ action, confirmationText, platformName }: Im
       </label>
 
       <label>
+        Export file names
+        <textarea name="sourceFileNames" maxLength={1000} rows={3} />
+      </label>
+
+      <label>
         Launch goal
         <textarea name="launchGoal" maxLength={300} rows={3} />
       </label>

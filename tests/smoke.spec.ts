@@ -1091,6 +1091,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.commonContract.redaction).toContain("Raw exports");
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
+    expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1112,7 +1113,14 @@ test.describe("Bumpgrade scaffold", () => {
           duplicateReview: expect.objectContaining({
             responseField: "duplicateReview",
             statuses: expect.arrayContaining(["created", "idempotent_replay", "source_match_reused"]),
-            checkedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_url"]),
+            checkedFields: expect.arrayContaining([
+              "source_platform",
+              "target_workspace",
+              "normalized_title",
+              "source_url",
+              "source_file_name",
+            ]),
+            sourceFileNameMatchingLive: true,
             rawSourceEchoed: false,
           }),
         }),
@@ -1131,7 +1139,7 @@ test.describe("Bumpgrade scaffold", () => {
           }),
           duplicateReview: expect.objectContaining({
             sourceUrlMatchingLive: true,
-            sourceFileNameMatchingLive: false,
+            sourceFileNameMatchingLive: true,
           }),
         }),
       ]),
@@ -29534,6 +29542,7 @@ test.describe("Bumpgrade scaffold", () => {
       audience: "Publishers migrating a checkout path before paying",
       launchGoal: "Create a private Bumpgrade draft from current checkout and offer notes",
       sourceUrl: "https://example.com/samcart/source-page",
+      sourceFileNames: "samcart-export-main.zip\ncustomers-private.csv",
       pageCopy: "A focused checkout path with offer promise, bump context, product handoff, and thank-you follow-up.",
       followUpNotes: "Review buyer confirmation and delivery expectations before any send.",
       confirmationText: importerDraftImportConfirmationText("SamCart"),
@@ -29576,10 +29585,17 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         duplicateReview: expect.objectContaining({
           status: "created",
-          checkedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_url"]),
+          checkedFields: expect.arrayContaining([
+            "source_platform",
+            "target_workspace",
+            "normalized_title",
+            "source_url",
+            "source_file_name",
+          ]),
           createsNewDraft: true,
           reusesExistingDraft: false,
           sourceUrlCompared: true,
+          sourceFileNameCompared: true,
           rawSourceEchoed: false,
         }),
         redaction: expect.objectContaining({
@@ -29593,6 +29609,7 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(createPayload)).not.toContain(requestBody.pageCopy);
+    expect(JSON.stringify(createPayload)).not.toContain("samcart-export-main.zip");
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
@@ -29639,6 +29656,37 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(sourceMatchPayload)).not.toContain("revised private note");
+
+    const sourceFileNameMatchResponse = await page.request.post(samcartDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        ...requestBody,
+        sourceUrl: "https://example.com/samcart/changed-page",
+        sourceFileNames: ["SamCart Export Main.zip"],
+        pageCopy: "A revised private note for the same export file should not create a near-duplicate draft.",
+        idempotencyKey: `playwright-samcart-import-source-file-match-${suffix}`,
+      },
+    });
+    expect(sourceFileNameMatchResponse.ok(), await sourceFileNameMatchResponse.text()).toBeTruthy();
+    const sourceFileNameMatchPayload = await sourceFileNameMatchResponse.json();
+    expect(sourceFileNameMatchPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        tenant: expect.objectContaining({ id: createPayload.tenant.id }),
+        duplicateReview: expect.objectContaining({
+          status: "source_match_reused",
+          matchedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_file_name"]),
+          createsNewDraft: false,
+          reusesExistingDraft: true,
+          sourceUrlCompared: true,
+          sourceFileNameCompared: true,
+          rawSourceEchoed: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("SamCart Export Main.zip");
+    expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("revised private note for the same export file");
 
     const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
       headers: { accept: "application/json" },
