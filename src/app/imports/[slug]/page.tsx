@@ -3,11 +3,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BadgeCheck, FileUp, ShieldCheck } from "lucide-react";
 
-import { getImporterBySlug, importerPlatforms } from "@/lib/importers";
+import { ImporterDraftForm } from "@/components/importer-draft-form";
+import {
+  clickFunnelsDraftImportApiRoute,
+  clickFunnelsDraftImportConfirmationText,
+  getImporterBySlug,
+  importerPlatforms,
+} from "@/lib/importers";
 import { site } from "@/lib/site";
 
 type ImporterPageProps = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export function generateStaticParams() {
@@ -35,15 +42,20 @@ export async function generateMetadata({ params }: ImporterPageProps): Promise<M
 }
 
 function statusLabel(platformId: string) {
-  return platformId === "importer-clickfunnels" ? "Ready to plan" : "Dedicated path";
+  return platformId === "importer-clickfunnels" ? "Private import ready" : "Dedicated path";
 }
 
 function publicEntityLabel(entity: string) {
   return entity.replace(/^draft_/, "").replaceAll("_", " ");
 }
 
-export default async function ImporterPage({ params }: ImporterPageProps) {
+function firstSearchValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function ImporterPage({ params, searchParams }: ImporterPageProps) {
   const { slug } = await params;
+  const search = searchParams ? await searchParams : {};
   const platform = getImporterBySlug(slug);
 
   if (!platform) {
@@ -151,6 +163,32 @@ export default async function ImporterPage({ params }: ImporterPageProps) {
           ))}
         </div>
       </section>
+
+      {platform.id === "importer-clickfunnels" ? (
+        <section className="content-band" id="private-draft">
+          <div className="split-heading">
+            <div>
+              <p className="eyebrow">Create a private import plan</p>
+              <h2>Start the import without paying or going live.</h2>
+            </div>
+            <p>
+              Paste the strongest page, offer, or follow-up material from ClickFunnels. Bumpgrade saves it as a private
+              Free Build plan so you can keep editing before any buyer-facing change.
+            </p>
+          </div>
+          {firstSearchValue(search.importDraft) ? (
+            <p className="account-success">Private ClickFunnels import plan created in your Free Build workspace.</p>
+          ) : null}
+          {firstSearchValue(search.importError) ? (
+            <p className="account-error">{firstSearchValue(search.importError)}</p>
+          ) : null}
+          <ImporterDraftForm
+            action={clickFunnelsDraftImportApiRoute}
+            confirmationText={clickFunnelsDraftImportConfirmationText}
+            platformName={platform.platformName}
+          />
+        </section>
+      ) : null}
 
       <section className="content-band dark-band">
         <div className="feature-section-heading">

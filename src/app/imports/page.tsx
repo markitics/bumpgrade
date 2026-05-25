@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 function statusLabel(platformId: string) {
-  return platformId === "importer-clickfunnels" ? "Ready to plan" : "Dedicated path";
+  return platformId === "importer-clickfunnels" ? "Private import ready" : "Dedicated path";
 }
 
 export default function ImportsPage() {

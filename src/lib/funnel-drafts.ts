@@ -16,6 +16,10 @@ import type {
   FunnelTemplateStep,
 } from "@/lib/funnels";
 import {
+  clickFunnelsDraftImportCapability,
+  importerIssue,
+} from "@/lib/importers";
+import {
   checkoutLinkingCapability,
   draftFunnelAdvancedParityIssue,
   draftFunnelArchiveCapability,
@@ -212,6 +216,10 @@ function runtimeId(prefix: string) {
 
 function identityEmail(identity: AdminIdentity) {
   return identity.email ?? "unknown-owner@bumpgrade.local";
+}
+
+function publisherIdentityEmail(identity: { email: string }) {
+  return identity.email.trim().toLowerCase();
 }
 
 function agentFunnelWriteMetadata(
@@ -628,7 +636,7 @@ function insertAuditStatement(
       eventKind,
       summary ?? `${identityEmail(identity)} ${action} ${draft.title}.`,
       idempotencyKey,
-      JSON.stringify({ issue, parentIssue: draftFunnelBuilderParentIssue, ...metadata }),
+      JSON.stringify({ issue, parentIssue: draft.parentIssueNumber, ...metadata }),
     );
 }
 
@@ -643,7 +651,7 @@ async function persistDraft(
   await db.batch([
     insertDraftStatement(db, draft, {
       issue: draft.sourceIssueNumber,
-      parentIssue: draftFunnelBuilderParentIssue,
+      parentIssue: draft.parentIssueNumber,
       editableDraftCapability: editableDraftCapability.id,
       ...metadata,
     }),
@@ -721,6 +729,206 @@ export async function createDraftFunnelFromTemplate(
   };
 
   return persistDraft(db, draft, identity, "draft_created", input.idempotencyKey);
+}
+
+export type ClickFunnelsImportedDraftInput = {
+  tenantId: string;
+  offerTitle: string;
+  audience: string;
+  launchGoal: string;
+  sourceUrls: string[];
+  pageCopy: string;
+  followUpNotes: string;
+  idempotencyKey: string;
+};
+
+function compactImportText(value: string, maxLength: number) {
+  return value.trim().replace(/\s+/g, " ").slice(0, maxLength);
+}
+
+function importedBlock(id: string, kind: FunnelBlockKind, title: string, body: string, agentEditable: boolean): FunnelBlock {
+  return {
+    id,
+    kind,
+    title: compactImportText(title, 120),
+    body: compactImportText(body, 1_200),
+    agentEditable,
+  };
+}
+
+function importedClickFunnelsSteps(
+  draftId: string,
+  input: Pick<ClickFunnelsImportedDraftInput, "offerTitle" | "audience" | "launchGoal" | "sourceUrls" | "pageCopy" | "followUpNotes">,
+): DraftFunnelStepRecord[] {
+  const offerTitle = compactImportText(input.offerTitle, 120) || "ClickFunnels import draft";
+  const audience = compactImportText(input.audience, 180) || "the intended buyers";
+  const launchGoal = compactImportText(input.launchGoal, 300) || "turn the imported material into a private launch path";
+  const sourceUrlSummary = input.sourceUrls.length
+    ? `Imported starting URLs: ${input.sourceUrls.join(", ")}.`
+    : "No public source URL was attached to this import.";
+  const pageCopy =
+    compactImportText(input.pageCopy, 900) ||
+    "Review the imported source material, then refine the page copy before publishing.";
+  const followUpNotes =
+    compactImportText(input.followUpNotes, 600) ||
+    "Decide the follow-up message, delivery expectation, and next relationship step before any subscriber send.";
+
+  return [
+    {
+      id: `${draftId}-opt-in-1`,
+      slug: "imported-opt-in",
+      order: 1,
+      kind: "opt_in",
+      title: "Imported opt-in step",
+      goal: `Capture interest from ${audience}.`,
+      routeAnchor: "imported-opt-in",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-opt-in-hero`,
+          "hero",
+          `${offerTitle} opening promise`,
+          `Shape the first promise for ${audience}. ${launchGoal}`,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-opt-in-benefits`,
+          "benefits",
+          "Why this audience should continue",
+          pageCopy,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-opt-in-cta`,
+          "cta",
+          "Private opt-in next step",
+          "Connect the opt-in only after consent, tagging, and follow-up gates are ready.",
+          false,
+        ),
+      ],
+    },
+    {
+      id: `${draftId}-sales-2`,
+      slug: "imported-sales-page",
+      order: 2,
+      kind: "sales",
+      title: "Imported sales page",
+      goal: `Turn the ClickFunnels source material into a private Bumpgrade sales path for ${offerTitle}.`,
+      routeAnchor: "imported-sales-page",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-sales-hero`,
+          "hero",
+          `${offerTitle} sales promise`,
+          pageCopy,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-sales-proof`,
+          "proof",
+          "Source material to verify",
+          `${sourceUrlSummary} Review screenshots, examples, testimonials, guarantees, and claims before any public page uses them.`,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-sales-checkout`,
+          "checkout",
+          "Checkout handoff stays private",
+          "Map the old offer, bump, upsell, and product notes here. Live checkout remains off until the paid go-live gates are satisfied.",
+          false,
+        ),
+      ],
+    },
+    {
+      id: `${draftId}-thank-you-3`,
+      slug: "imported-follow-up",
+      order: 3,
+      kind: "thank_you",
+      title: "Imported follow-up",
+      goal: "Confirm what happens after signup or purchase without creating sends or fulfillment state.",
+      routeAnchor: "imported-follow-up",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-follow-up-hero`,
+          "hero",
+          "Post-action confirmation",
+          "Tell the buyer or subscriber what happened and what to expect next after the import is reviewed.",
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-follow-up-delivery`,
+          "delivery",
+          "Delivery expectation",
+          "Attach product access, files, or membership delivery only after fulfillment gates are ready.",
+          false,
+        ),
+        importedBlock(
+          `${draftId}-block-follow-up-cta`,
+          "cta",
+          "Follow-up plan",
+          followUpNotes,
+          true,
+        ),
+      ],
+    },
+  ];
+}
+
+export async function createClickFunnelsImportedDraftFunnel(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: ClickFunnelsImportedDraftInput,
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const baseTitle = compactImportText(input.offerTitle, 120) || "ClickFunnels import draft";
+  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(`${baseTitle} ClickFunnels import`));
+  const draftId = `funnel-draft-${slug}`;
+  const draft: DraftFunnelRecord = {
+    id: draftId,
+    slug,
+    title: baseTitle,
+    status: "draft",
+    summary: `Private ClickFunnels import draft for ${baseTitle}. Review the imported pages, offer notes, checkout handoff, and follow-up plan before going live.`,
+    sourceIssueNumber: importerIssue,
+    parentIssueNumber: importerIssue,
+    previewRoute: null,
+    sourceDataRoute: "/funnels/source-data",
+    revisionId: `funnel-draft-revision-${slug}-${new Date().toISOString().slice(0, 10)}`,
+    createdByEmail: publisherIdentityEmail(owner),
+    ownerUserId: owner.userId,
+    steps: importedClickFunnelsSteps(draftId, input),
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  return persistDraft(
+    db,
+    draft,
+    { userId: owner.userId, email: publisherIdentityEmail(owner), role: "owner", name: publisherIdentityEmail(owner) },
+    "draft_created",
+    input.idempotencyKey,
+    {
+      importerCapabilityId: clickFunnelsDraftImportCapability.id,
+      importerPlatformId: clickFunnelsDraftImportCapability.platformId,
+      importerIssue,
+      tenantId: input.tenantId,
+      sourceUrlCount: input.sourceUrls.length,
+      sourceUrls: input.sourceUrls,
+      pastedCopyLength: input.pageCopy.trim().length,
+      followUpNotesLength: input.followUpNotes.trim().length,
+      privateDraftOnly: true,
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+      rawExportStored: false,
+      customerRowsStored: false,
+      paymentCredentialsStored: false,
+      sessionCookiesStored: false,
+    },
+  );
 }
 
 export async function createDraftFunnelFromLibraryTemplate(

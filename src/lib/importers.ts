@@ -1,6 +1,6 @@
 import { competitors, type Competitor } from "@/lib/comparison-data";
 
-export type ImporterStatus = "launch-preview" | "queued";
+export type ImporterStatus = "launch-preview" | "private-draft-live" | "queued";
 
 export type ImportInputKind = "public_url" | "export_file" | "csv_upload" | "manual_paste" | "api_connection";
 
@@ -50,6 +50,8 @@ export const importerUpdatedAt = "2026-05-25";
 export const importerIssue = 467;
 export const importerSourceDataRoute = "/imports/source-data";
 export const importerHubRoute = "/imports";
+export const clickFunnelsDraftImportApiRoute = "/api/imports/clickfunnels/draft";
+export const clickFunnelsDraftImportConfirmationText = "Create private ClickFunnels import plan";
 
 export const commonImporterSafetyGates = [
   "Imported material starts in a private workspace and does not publish public pages.",
@@ -59,6 +61,35 @@ export const commonImporterSafetyGates = [
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];
+
+export const clickFunnelsDraftImportCapability = {
+  id: "clickfunnels-private-draft-import",
+  status: "live",
+  issue: importerIssue,
+  platformId: "importer-clickfunnels",
+  route: "/imports/clickfunnels",
+  apiRoute: clickFunnelsDraftImportApiRoute,
+  confirmationText: clickFunnelsDraftImportConfirmationText,
+  auth: "verified publisher session",
+  creates: ["free_build_workspace_if_needed", "private_draft_funnel", "funnel_audit_event"],
+  accepts: ["public_url", "manual_paste"],
+  redaction: {
+    rawExportFilesIncluded: false,
+    customerRowsIncluded: false,
+    privateEmailsIncluded: false,
+    paymentCredentialsIncluded: false,
+    sessionCookiesIncluded: false,
+    rawPastedMaterialIncludedInResponse: false,
+  },
+  goLiveEffects: {
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
+  },
+  duplicateProtection: "Idempotency replays the same private draft. Broader source-match duplicate review remains a follow-up.",
+};
 
 export const importInputs: Record<ImportInputKind, ImportInput> = {
   public_url: {
@@ -122,7 +153,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: clickfunnels.id,
     platformName: clickfunnels.name,
     slug: "clickfunnels",
-    status: "launch-preview",
+    status: "private-draft-live",
     route: "/imports/clickfunnels",
     compareRoute: compareRouteFor(clickfunnels),
     sourceIds: clickfunnels.sourceIds ?? [clickfunnels.sourceId],
@@ -154,14 +185,15 @@ export const importerPlatforms: ImporterPlatform[] = [
     ],
     unsupportedNow: [...universalUnsupported, "One-click transfer of ClickFunnels account settings"],
     firstReviewSteps: [
+      "Sign in or create a Free Build workspace without paying first.",
       "Choose the funnel or offer path that matters most.",
       "Add public URLs, export files, or pasted copy.",
       "Review the detected pages, offer steps, products, assets, and follow-up notes.",
-      "Create private Bumpgrade records only after the review matches the launch you want.",
+      "Create a private import plan only after the map matches the launch you want.",
       "Go live when the page, checkout, email, product access, and domain gates are ready.",
     ],
     agentContract:
-      "Agents can read the ClickFunnels importer contract, input kinds, generated draft entity types, safety gates, source IDs, and limitations from /imports/source-data. Agents must not claim live account-to-account transfer, customer password migration, live checkout migration, or subscriber sends.",
+      "Agents can read the ClickFunnels importer contract, input kinds, generated draft entity types, verified-publisher private draft API, safety gates, source IDs, and limitations from /imports/source-data. Agents must not claim live account-to-account transfer, customer password migration, live checkout migration, subscriber sends, domains, fulfillment, or public publishing from this importer.",
   },
   {
     id: "importer-samcart",
@@ -485,9 +517,15 @@ export const importerSourceData = {
   id: "bumpgrade-competitor-importer-source-data",
   updatedAt: importerUpdatedAt,
   issue: importerIssue,
-  status: "launch-preview",
+  status: "private-draft-live",
   generatedFrom: "src/lib/importers.ts",
   routes: [importerHubRoute, importerSourceDataRoute, ...importerRoutes],
+  currentAvailability: {
+    publicImporterPagesLive: true,
+    clickFunnelsPrivateDraftImportLive: true,
+    otherDedicatedImportPathsLive: true,
+    paidGoLiveRequired: true,
+  },
   commonContract: {
     importedContentLandsAs: "private Bumpgrade draft records",
     goLiveRequires: [
@@ -501,6 +539,7 @@ export const importerSourceData = {
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
+    liveWriteActions: [clickFunnelsDraftImportCapability],
   },
   platforms: importerPlatforms,
 };

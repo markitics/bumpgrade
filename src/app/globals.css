@@ -4164,6 +4164,82 @@ h3 {
   font-weight: 900;
 }
 
+.account-error {
+  margin: 18px 0 0;
+  padding: 12px;
+  border: 1px solid rgba(134, 39, 43, 0.28);
+  border-radius: 8px;
+  background: #fff1f1;
+  color: #86272b;
+  font-weight: 900;
+}
+
+.importer-draft-form {
+  display: grid;
+  gap: 16px;
+  max-width: 920px;
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.importer-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.importer-draft-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.importer-draft-form strong {
+  color: var(--ink);
+  text-transform: none;
+}
+
+.importer-draft-form input[type="text"],
+.importer-draft-form input[type="url"],
+.importer-draft-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  background: #fffdf7;
+}
+
+.importer-draft-form textarea {
+  resize: vertical;
+}
+
+.importer-draft-form input:focus,
+.importer-draft-form textarea:focus {
+  outline: 2px solid rgba(55, 95, 76, 0.18);
+  border-color: rgba(55, 95, 76, 0.46);
+}
+
+.importer-draft-form .primary-action {
+  width: fit-content;
+  border: 0;
+  cursor: pointer;
+}
+
+.importer-draft-form .primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .subdomain-reservation-form {
   max-width: 820px;
   margin-top: 22px;
@@ -4859,6 +4935,7 @@ h3 {
   .launch-proof-grid,
   .agent-resource-grid,
   .account-setup-grid,
+  .importer-form-grid,
   .custom-domain-list,
   .journey-proof-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
