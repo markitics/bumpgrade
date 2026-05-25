@@ -87,7 +87,7 @@ export const commonImporterSafetyGates = [
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
   "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
-  "Rollback archives private import drafts without deleting draft rows, step rows, or audit rows, so the same source can be restarted cleanly.",
+  "Rollback archives private import plans without deleting saved work or audit history, so the same source can be restarted cleanly.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];
