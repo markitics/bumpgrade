@@ -256,28 +256,28 @@ scheduling, reminders, attendance tracking, or hosted replay media.
 direct agent-safe draft writes for block title/body edits, curated visual style
 presets, reusable block add/remove, checkout-offer linking, checkout unlinking,
 resource-delivery linking, webinar-event linking, within-step block reordering,
-cross-step block moves, private draft duplication, public publishing, and
-archive/unpublish only after exact confirmation,
+cross-step block moves, private draft duplication, public publishing,
+archive/unpublish, and archived-draft purge only after exact confirmation,
 idempotency, fresh revision
-checks, and audit correlation; responses are redacted draft
+checks, and audit correlation; responses are redacted draft or purge tombstone
 summaries and do not expose owner identity or raw rows. Direct agent block
 removal refuses checkout-linked blocks and keeps at least one block per step. It
 is not direct agent template creation, direct agent-created delivery
-tokens, live billing mutation, full absolute-position canvas editing, direct agent
-purge, non-archived purge, one-click upsell
+tokens, live billing mutation, full absolute-position canvas editing,
+non-archived purge, bulk purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
 hosting, unauthenticated public agent publishing, or public unauthenticated agent writes. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
 links, funnel-scoped private download-token delivery, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
-owner-session visual block styles,
-archived-draft purge, and expanded owner-session direct agent-safe draft writes
-including visual styles, reusable block add/remove, and public publishing, and remains
+owner-session visual block styles, owner-session archived-draft purge UI, and
+expanded owner-session direct agent-safe draft writes
+including visual styles, reusable block add/remove, public publishing, and archived-draft purge, and remains
 the pending advanced funnel parity bucket for full absolute-position canvas editing,
 arbitrary uploaded private asset delivery, live fulfillment automation, full
 webinar integrations, bulk purge policy, direct agent-created delivery tokens,
-unauthenticated public agent publishing, and direct agent purge. Live
+and unauthenticated public agent publishing. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read

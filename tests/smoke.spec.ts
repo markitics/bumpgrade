@@ -1554,6 +1554,7 @@ test.describe("Bumpgrade scaffold", () => {
         staleRevisionRequired: true,
         auditCorrelationRequired: true,
         returnsRedactedDraft: true,
+        returnsRedactedPurge: true,
         rawOwnerDataIncluded: false,
         actorEmailIncluded: false,
         actorUserIdIncluded: false,
@@ -1642,6 +1643,17 @@ test.describe("Bumpgrade scaffold", () => {
           rollbackOperationId: "archive-draft",
         }),
         expect.objectContaining({ id: "archive-draft", publicRouteMutation: true }),
+        expect.objectContaining({
+          id: "purge-archived-draft",
+          requiresArchivedStatus: true,
+          recordsTombstone: true,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+          deletesProductAssets: false,
+          deletesR2Objects: false,
+          deletesBuyerRecords: false,
+          deletesAuditRows: false,
+        }),
       ]),
     );
     expect(payload.templateLibraryIssue).toBe(159);
@@ -2407,6 +2419,57 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+
+    const purgeAuditCorrelationId = `playwright-agent-funnel-purge-audit-${suffix}`;
+    const purge = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "purge-archived-draft",
+        draftId: archivePayload.draft.id,
+        expectedRevisionId: archivePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-purge-${suffix}`,
+        auditCorrelationId: purgeAuditCorrelationId,
+      },
+    });
+    expect(purge.ok(), await purge.text()).toBeTruthy();
+    const purgePayload = await purge.json();
+    expect(purgePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "purge-archived-draft",
+        auditCorrelationId: purgeAuditCorrelationId,
+        purge: expect.objectContaining({
+          draftId: archivePayload.draft.id,
+          draftSlug: publishPayload.draft.slug,
+          previousStatus: "archived",
+          previousRevisionId: archivePayload.draft.revisionId,
+          actorEmailIncluded: false,
+          idempotencyKeyIncluded: false,
+          rawRowsIncluded: false,
+          metadata: expect.objectContaining({
+            action: "archived_draft_purge",
+            directAgentWrite: true,
+            directAgentSafeWrite: true,
+            publicAgentWrite: false,
+            deletedDraftRows: true,
+            deletedStepRows: true,
+            deletedAuditRows: false,
+            deletedProductAssets: false,
+            deletedR2Objects: false,
+            deletedBuyerRecords: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          ownerEmailIncluded: false,
+          idempotencyKeyIncluded: false,
+          rawRowsIncluded: false,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(purgePayload)).not.toContain("m@rkmoriarty.com");
   });
 
   test("funnel draft purge endpoint rejects unauthenticated writes", async ({ request }) => {
@@ -20389,7 +20452,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session visual style controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, archive/unpublish, and archived-draft purge from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",

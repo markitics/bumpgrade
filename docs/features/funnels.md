@@ -21,8 +21,8 @@ drag/drop block placement through existing move endpoints, cross-step block
 moves, owner-session direct agent-safe draft writes for block copy edits,
 visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery
 linking, webinar-event linking, block movement, duplication, public publishing,
-and archive/unpublish, owner-session visual block style controls, and owner-confirmed archived-draft purge
-with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
+archive/unpublish, and archived-draft purge, owner-session visual block style controls,
+and owner-confirmed archived-draft purge with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
 reusable block library while refusing checkout-linked block removal. Issue #409
@@ -31,8 +31,7 @@ delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
 for full absolute-position canvas editing, arbitrary uploaded private asset delivery,
 live fulfillment automation, full webinar integrations, bulk retention policy,
-direct agent-created delivery tokens, unauthenticated public agent publishing, direct
-agent purge.
+direct agent-created delivery tokens, and unauthenticated public agent publishing.
 
 Live in this slice:
 
@@ -83,8 +82,9 @@ Live in this slice:
   template-to-draft path.
 - `/api/agent/funnels/draft-writes`: owner-session JSON endpoint for direct
   agent-safe draft writes. It allows block copy edits, visual style presets,
-  checkout linking/unlinking, resource-delivery linking, webinar-event linking,
-  block movement, private draft duplication, public publishing, and archive/unpublish only after exact confirmation, idempotency, current draft
+  reusable block add/remove, checkout linking/unlinking, resource-delivery linking,
+  webinar-event linking, block movement, private draft duplication, public publishing,
+  archive/unpublish, and archived-draft purge only after exact confirmation, idempotency, current draft
   revision, and audit correlation checks. Responses are redacted
   and exclude owner email, owner user ID, private session data, raw rows, buyer
   data, R2 keys, signed URLs, billing mutations, and public agent write state.
@@ -98,7 +98,7 @@ Not live in this slice:
 - Full absolute-position canvas editing, arbitrary CSS, or script injection from funnel editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
-- Direct agent purge, non-archived purge, checkout-linked direct deletion, or
+- Non-archived purge, checkout-linked direct deletion, or
   bulk purge policy.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
@@ -110,7 +110,7 @@ Not live in this slice:
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
 - Unauthenticated public agent publishing, direct checkout linking without owner-session confirmation,
-  direct agent-created delivery tokens, purge, or unauthenticated public writes.
+  direct agent-created delivery tokens, non-archived purge, bulk purge, or unauthenticated public writes.
 
 The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
 work moves a coherent funnel workflow instead of adding more isolated readiness
@@ -197,11 +197,11 @@ an idempotency key, the current draft revision ID, and an audit correlation ID.
 It can update private draft block title/body copy, link and unlink checkout
 metadata, apply curated visual style presets, add reusable blocks, remove eligible unlinked blocks, link
 resource-delivery metadata, link webinar-event metadata, move blocks, duplicate
-a private draft, publish a draft, or
-archive/unpublish a draft while returning only redacted draft summaries.
+a private draft, publish a draft, archive/unpublish a draft, or purge an already
+archived draft while returning only redacted draft or purge tombstone summaries.
 Future unauthenticated public agent publishing, direct agent-created delivery tokens, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment
-automation, non-archived purge, bulk purge, and direct-agent draft destruction
+automation, non-archived purge, and bulk purge
 must add stronger rollback and provider safety notes before acting on draft
 state.
