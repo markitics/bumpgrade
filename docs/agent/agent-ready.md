@@ -249,26 +249,26 @@ registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
 `/api/agent/funnels/draft-writes` lets verified owner-session agents perform
 direct agent-safe private draft writes for block title/body edits,
-resource-delivery linking, webinar-event linking, private draft duplication, and
-archive/unpublish only after exact confirmation, idempotency, fresh revision
+checkout-offer linking, checkout unlinking, resource-delivery linking,
+webinar-event linking, within-step block reordering, cross-step block moves,
+private draft duplication, and archive/unpublish only after exact confirmation,
+idempotency, fresh revision
 checks, and audit correlation; responses are redacted draft
 summaries and do not expose owner identity or raw rows. It is not direct agent
-template creation, direct agent block add/remove, direct agent checkout
-unlinking, direct agent block reordering, direct agent-created delivery tokens,
-direct agent cross-step block moves, live billing mutation, freeform canvas
-layout styling, direct agent purge, non-archived purge, one-click upsell
+template creation, direct agent block add/remove, direct agent-created delivery
+tokens, live billing mutation, freeform canvas layout styling, direct agent
+purge, non-archived purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
 hosting, direct agent public publishing, or public unauthenticated agent writes. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
 links, funnel-scoped private download-token delivery, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
-archived-draft purge, and direct agent-safe private draft writes, and remains
+archived-draft purge, and expanded direct agent-safe private draft writes, and remains
 the pending advanced funnel parity bucket for freeform canvas layout styling,
 arbitrary uploaded private asset delivery, live fulfillment automation, full
 webinar integrations, bulk purge policy, direct agent-created delivery tokens,
-direct agent public publishing, direct agent checkout linking, and direct agent
-purge. Live
+direct agent public publishing, direct agent block add/remove, and direct agent purge. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read

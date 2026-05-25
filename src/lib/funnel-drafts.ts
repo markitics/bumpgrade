@@ -1299,6 +1299,7 @@ export async function reorderDraftFunnelBlock(
     direction: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1349,6 +1350,7 @@ export async function reorderDraftFunnelBlock(
         issue: draftFunnelAdvancedParityIssue,
         action: "block_reorder",
         draftFunnelBlockReorderCapability: draftFunnelBlockReorderCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         stepId: step.id,
         blockId: block.id,
@@ -1384,6 +1386,7 @@ export async function moveDraftFunnelBlockToStep(
     blockId: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1439,6 +1442,7 @@ export async function moveDraftFunnelBlockToStep(
         issue: draftFunnelAdvancedParityIssue,
         action: "block_cross_step_move",
         draftFunnelBlockCrossStepMoveCapability: draftFunnelBlockCrossStepMoveCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         sourceStepId: sourceStep.id,
         targetStepId: targetStep.id,
@@ -1475,6 +1479,7 @@ export async function linkDraftFunnelStepToCheckoutOffer(
     expectedRevisionId: string;
     confirmationText: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1534,6 +1539,7 @@ export async function linkDraftFunnelStepToCheckoutOffer(
         issue: draftFunnelCheckoutLinkingIssue,
         action: "checkout_link",
         checkoutLinkingCapability: checkoutLinkingCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         offerCatalogRevisionId: checkoutOfferStack.revisionId,
         before: compactStepForAudit(step),
@@ -1560,6 +1566,7 @@ export async function unlinkDraftFunnelCheckoutLink(
     expectedRevisionId: string;
     confirmationText: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1614,6 +1621,7 @@ export async function unlinkDraftFunnelCheckoutLink(
         issue: draftFunnelAdvancedParityIssue,
         action: "checkout_unlink",
         draftFunnelCheckoutUnlinkCapability: draftFunnelCheckoutUnlinkCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         stepId: step.id,
         blockId: block.id,

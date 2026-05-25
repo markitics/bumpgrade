@@ -4,6 +4,8 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   archiveDraftFunnel,
   draftFunnelArchiveConfirmationText,
+  draftFunnelCheckoutLinkConfirmationText,
+  draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelWebinarEventLinkConfirmationText,
@@ -11,6 +13,10 @@ import {
   getFunnelDraftD1OrThrow,
   linkDraftFunnelBlockToResourceDelivery,
   linkDraftFunnelBlockToWebinarEvent,
+  linkDraftFunnelStepToCheckoutOffer,
+  moveDraftFunnelBlockToStep,
+  reorderDraftFunnelBlock,
+  unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
@@ -29,7 +35,10 @@ type AgentFunnelDraftWriteRequestBody = {
   operationId?: unknown;
   draftId?: unknown;
   stepId?: unknown;
+  targetStepId?: unknown;
   blockId?: unknown;
+  direction?: unknown;
+  offerId?: unknown;
   productId?: unknown;
   assetId?: unknown;
   eventTitle?: unknown;
@@ -225,6 +234,92 @@ export async function POST(request: NextRequest) {
         assetId,
         expectedRevisionId,
         confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "link-checkout-offer") {
+      const stepId = stringValue(body.stepId, 220);
+      const offerId = stringValue(body.offerId, 220);
+
+      if (!stepId || !offerId) {
+        return jsonError(
+          400,
+          "invalid_checkout_link_request",
+          "link-checkout-offer requires stepId and offerId.",
+        );
+      }
+
+      draft = await linkDraftFunnelStepToCheckoutOffer(db, adminState.identity, {
+        draftId,
+        stepId,
+        offerId,
+        expectedRevisionId,
+        confirmationText: draftFunnelCheckoutLinkConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "unlink-checkout") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+
+      if (!stepId || !blockId) {
+        return jsonError(
+          400,
+          "invalid_checkout_unlink_request",
+          "unlink-checkout requires stepId and blockId.",
+        );
+      }
+
+      draft = await unlinkDraftFunnelCheckoutLink(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        expectedRevisionId,
+        confirmationText: draftFunnelCheckoutUnlinkConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "move-block") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+      const direction = stringValue(body.direction, 12);
+
+      if (!stepId || !blockId || (direction !== "up" && direction !== "down")) {
+        return jsonError(
+          400,
+          "invalid_block_move_request",
+          "move-block requires stepId, blockId, and direction of up or down.",
+        );
+      }
+
+      draft = await reorderDraftFunnelBlock(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        direction,
+        expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "move-block-to-step") {
+      const stepId = stringValue(body.stepId, 220);
+      const targetStepId = stringValue(body.targetStepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+
+      if (!stepId || !targetStepId || !blockId) {
+        return jsonError(
+          400,
+          "invalid_cross_step_block_move_request",
+          "move-block-to-step requires stepId, targetStepId, and blockId.",
+        );
+      }
+
+      draft = await moveDraftFunnelBlockToStep(db, adminState.identity, {
+        draftId,
+        stepId,
+        targetStepId,
+        blockId,
+        expectedRevisionId,
         idempotencyKey,
         agentWriteAudit,
       });
