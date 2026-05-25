@@ -253,8 +253,8 @@ webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
 `/api/agent/funnels/draft-writes` lets verified owner-session agents perform
-direct agent-safe draft writes for block title/body edits,
-reusable block add/remove, checkout-offer linking, checkout unlinking,
+direct agent-safe draft writes for block title/body edits, curated visual style
+presets, reusable block add/remove, checkout-offer linking, checkout unlinking,
 resource-delivery linking, webinar-event linking, within-step block reordering,
 cross-step block moves, private draft duplication, public publishing, and
 archive/unpublish only after exact confirmation,
@@ -263,7 +263,7 @@ checks, and audit correlation; responses are redacted draft
 summaries and do not expose owner identity or raw rows. Direct agent block
 removal refuses checkout-linked blocks and keeps at least one block per step. It
 is not direct agent template creation, direct agent-created delivery
-tokens, direct agent visual style writes, live billing mutation, full absolute-position canvas editing, direct agent
+tokens, live billing mutation, full absolute-position canvas editing, direct agent
 purge, non-archived purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
@@ -273,10 +273,10 @@ links, funnel-scoped private download-token delivery, webinar event/replay links
 within-step block reordering, drag/drop block placement, cross-step block moves,
 owner-session visual block styles,
 archived-draft purge, and expanded owner-session direct agent-safe draft writes
-including reusable block add/remove and public publishing, and remains
+including visual styles, reusable block add/remove, and public publishing, and remains
 the pending advanced funnel parity bucket for full absolute-position canvas editing,
 arbitrary uploaded private asset delivery, live fulfillment automation, full
-webinar integrations, bulk purge policy, direct agent visual style writes, direct agent-created delivery tokens,
+webinar integrations, bulk purge policy, direct agent-created delivery tokens,
 unauthenticated public agent publishing, and direct agent purge. Live
 publisher-offer billing remains separate in issue #219.
 
