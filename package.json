@@ -14,7 +14,7 @@
     "cf:build": "rm -rf .next .open-next && npm exec opennextjs-cloudflare build",
     "preview:worker": "wrangler dev",
     "preview": "npm run cf:build && wrangler dev",
-    "deploy": "npm run cf:build && scripts/with-cloudflare-env.sh npm exec opennextjs-cloudflare deploy",
+    "deploy": "scripts/deploy-cloudflare.sh",
     "cf:types": "wrangler types src/worker-configuration.d.ts --include-runtime false",
     "cf:whoami": "scripts/with-cloudflare-env.sh npx --yes wrangler whoami",
     "mobile:ios:validate": "npm --prefix apps/mobile-admin run validate:ios",
