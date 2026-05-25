@@ -1530,6 +1530,22 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "update-block", requiresStepId: true, requiresBlockId: true }),
         expect.objectContaining({
+          id: "add-block",
+          requiresStepId: true,
+          requiresBlockKind: true,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+        }),
+        expect.objectContaining({
+          id: "remove-block",
+          requiresStepId: true,
+          requiresBlockId: true,
+          refusesCheckoutLinkedBlocks: true,
+          keepsAtLeastOneBlockPerStep: true,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+        }),
+        expect.objectContaining({
           id: "link-checkout-offer",
           requiresStepId: true,
           requiresOfferId: true,
@@ -1843,6 +1859,81 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(updatePayload)).not.toContain("m@rkmoriarty.com");
 
+    const structureStep = draft.steps.find(
+      (step: { blocks: Array<{ kind: string }> }) => step.blocks.length > 1 && step.blocks.some((block) => block.kind !== "resource"),
+    );
+    const removableBlock = structureStep?.blocks.find((block: { kind: string }) => block.kind !== "resource");
+    expect(structureStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(removableBlock).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    if (!structureStep || !removableBlock) throw new Error("Expected resource draft to include a removable unlinked block.");
+
+    const addBlockAuditCorrelationId = `playwright-agent-funnel-add-block-audit-${suffix}`;
+    const addBlock = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "add-block",
+        draftId: draft.id,
+        stepId: structureStep.id,
+        blockKind: "proof",
+        title: "Agent-added proof block",
+        body: "This reusable proof block was added through the owner-session agent write endpoint.",
+        expectedRevisionId: updatePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-add-block-${suffix}`,
+        auditCorrelationId: addBlockAuditCorrelationId,
+      },
+    });
+    expect(addBlock.ok(), await addBlock.text()).toBeTruthy();
+    const addBlockPayload = await addBlock.json();
+    expect(addBlockPayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "add-block",
+        auditCorrelationId: addBlockAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: draft.id,
+          status: "draft",
+          blockCount: updatePayload.draft.blockCount + 1,
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          publicRouteMutationCreated: false,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const removeBlockAuditCorrelationId = `playwright-agent-funnel-remove-block-audit-${suffix}`;
+    const removeBlock = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "remove-block",
+        draftId: draft.id,
+        stepId: structureStep.id,
+        blockId: removableBlock.id,
+        expectedRevisionId: addBlockPayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-remove-block-${suffix}`,
+        auditCorrelationId: removeBlockAuditCorrelationId,
+      },
+    });
+    expect(removeBlock.ok(), await removeBlock.text()).toBeTruthy();
+    const removeBlockPayload = await removeBlock.json();
+    expect(removeBlockPayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "remove-block",
+        auditCorrelationId: removeBlockAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: draft.id,
+          status: "draft",
+          blockCount: updatePayload.draft.blockCount,
+          ownerUserIdIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+
     const resourceStep = draft.steps.find((step: { kind: string }) => step.kind === "resource");
     const resourceBlock = resourceStep?.blocks.find((block: { kind: string }) => block.kind === "resource");
     expect(resourceStep).toEqual(expect.objectContaining({ id: expect.any(String), kind: "resource" }));
@@ -1858,7 +1949,7 @@ test.describe("Bumpgrade scaffold", () => {
         blockId: resourceBlock.id,
         productId: "product-launch-checklist-download",
         assetId: "asset-launch-checklist-pdf",
-        expectedRevisionId: updatePayload.draft.revisionId,
+        expectedRevisionId: removeBlockPayload.draft.revisionId,
         confirmationText: agentFunnelDraftWriteConfirmationText,
         idempotencyKey: `playwright-agent-funnel-resource-${suffix}`,
         auditCorrelationId: resourceAuditCorrelationId,
@@ -1943,6 +2034,26 @@ test.describe("Bumpgrade scaffold", () => {
           billingMutationCreated: false,
           publicAgentWriteCreated: false,
         }),
+      }),
+    );
+
+    const linkedCheckoutRemove = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "remove-block",
+        draftId: checkoutDraft.id,
+        stepId: checkoutStep.id,
+        blockId: checkoutBlock.id,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-linked-checkout-remove-${suffix}`,
+        auditCorrelationId: `playwright-agent-funnel-linked-checkout-remove-audit-${suffix}`,
+      },
+    });
+    expect(linkedCheckoutRemove.status()).toBe(400);
+    await expect(linkedCheckoutRemove.json()).resolves.toEqual(
+      expect.objectContaining({
+        code: "invalid_agent_funnel_write",
+        message: expect.stringContaining("Checkout-linked blocks"),
       }),
     );
 
@@ -20174,7 +20285,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe draft writes for block copy edits, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe draft writes for block copy edits, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",

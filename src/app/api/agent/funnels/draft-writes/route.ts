@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getSessionAdminState } from "@/lib/admin-auth";
 import {
+  addDraftFunnelBlock,
   archiveDraftFunnel,
   draftFunnelArchiveConfirmationText,
   draftFunnelCheckoutLinkConfirmationText,
@@ -18,6 +19,7 @@ import {
   moveDraftFunnelBlockToStep,
   publishDraftFunnel,
   reorderDraftFunnelBlock,
+  removeDraftFunnelBlock,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
   type DraftFunnelRecord,
@@ -39,6 +41,7 @@ type AgentFunnelDraftWriteRequestBody = {
   stepId?: unknown;
   targetStepId?: unknown;
   blockId?: unknown;
+  blockKind?: unknown;
   direction?: unknown;
   offerId?: unknown;
   productId?: unknown;
@@ -212,6 +215,42 @@ export async function POST(request: NextRequest) {
         blockId,
         title,
         body: blockBody,
+        expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "add-block") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockKind = stringValue(body.blockKind, 80);
+      const title = stringValue(body.title, 140);
+      const blockBody = stringValue(body.body);
+
+      if (!stepId || !blockKind) {
+        return jsonError(400, "invalid_add_block_request", "add-block requires stepId and blockKind.");
+      }
+
+      draft = await addDraftFunnelBlock(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockKind,
+        title,
+        body: blockBody,
+        expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "remove-block") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+
+      if (!stepId || !blockId) {
+        return jsonError(400, "invalid_remove_block_request", "remove-block requires stepId and blockId.");
+      }
+
+      draft = await removeDraftFunnelBlock(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
         expectedRevisionId,
         idempotencyKey,
         agentWriteAudit,

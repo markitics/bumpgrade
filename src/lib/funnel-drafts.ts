@@ -1154,6 +1154,7 @@ export async function addDraftFunnelBlock(
     body: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1200,6 +1201,7 @@ export async function addDraftFunnelBlock(
       input.idempotencyKey,
       `${identityEmail(identity)} added ${libraryItem.kind} block ${addedBlock.id} to ${draft.title}.`,
       {
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         issue: draftFunnelBlockStructureIssue,
         action: "block_add",
         draftFunnelBlockStructureCapability: draftFunnelBlockStructureCapability.id,
@@ -1231,6 +1233,7 @@ export async function removeDraftFunnelBlock(
     blockId: string;
     expectedRevisionId: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1276,6 +1279,7 @@ export async function removeDraftFunnelBlock(
       input.idempotencyKey,
       `${identityEmail(identity)} removed block ${block.id} from ${draft.title}.`,
       {
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         issue: draftFunnelBlockStructureIssue,
         action: "block_remove",
         draftFunnelBlockStructureCapability: draftFunnelBlockStructureCapability.id,
