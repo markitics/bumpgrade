@@ -10,6 +10,7 @@ import {
   claimAnonymousPlaygroundWorkspace,
   getOptionalAnonymousPlaygroundD1,
   isLikelyAnonymousPlaygroundToken,
+  publicAnonymousPlaygroundClaimedDraft,
   publicAnonymousPlaygroundWorkspace,
   AnonymousPlaygroundError,
 } from "@/lib/anonymous-playground";
@@ -139,6 +140,7 @@ export async function POST(request: NextRequest) {
         issue: anonymousPlaygroundIssue,
         sourceDataRoute: anonymousPlaygroundSourceDataRoute,
         workspace: publicAnonymousPlaygroundWorkspace(result.workspace),
+        draft: publicAnonymousPlaygroundClaimedDraft(result.draft),
         tenant: {
           id: result.tenant.id,
           status: result.tenant.status,

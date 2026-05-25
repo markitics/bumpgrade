@@ -99,7 +99,7 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
         <aside className="account-status-panel">
           <Sparkles aria-hidden="true" />
           <p>Browser recovery</p>
-          <strong>{workspace ? (workspace.status === "claimed" ? "Attached to account" : "Progress saved") : "Ready to try"}</strong>
+          <strong>{workspace ? (workspace.status === "claimed" ? "Private draft ready" : "Progress saved") : "Ready to try"}</strong>
           <span>
             {workspace
               ? "This browser can recover the playground while the recovery cookie is present."
@@ -121,7 +121,9 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
         </div>
 
         {params?.saved === "1" ? <p className="account-success">Playground progress saved for this browser.</p> : null}
-        {params?.claimed === "1" ? <p className="account-success">Playground attached to your Free Build account.</p> : null}
+        {params?.claimed === "1" ? (
+          <p className="account-success">Playground attached to your Free Build account and private launch draft.</p>
+        ) : null}
         {params?.error ? <p className="auth-error">{params.error}</p> : null}
 
         <form action={anonymousPlaygroundApiRoute} method="post" className="playground-form subdomain-reservation-form">
@@ -174,7 +176,7 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
             <h3>{user ? (user.emailVerified ? "Attach to Free Build" : "Confirm email first") : "Sign up to keep going"}</h3>
             <p>
               {user
-                ? "Attach this playground to your account and continue setup in a private Free Build workspace."
+                ? "Attach this playground to your account and continue setup as a private Free Build launch draft."
                 : "Create an account when the progress is worth keeping; the same browser can attach the work after signup."}
             </p>
             {workspace && user?.emailVerified && workspace.status !== "claimed" ? (

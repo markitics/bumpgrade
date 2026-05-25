@@ -1261,13 +1261,23 @@ test.describe("Bumpgrade scaffold", () => {
           loggedOutSaveLive: true,
           browserRecoveryLive: true,
           claimToSignedInFreeBuildLive: true,
+          claimCreatesPrivateDraftFunnelLive: true,
           paidGoLiveRequired: true,
+        }),
+        generatedPrivateRecordTypes: expect.arrayContaining(["publisher_tenant", "funnel_draft", "funnel_draft_step", "funnel_audit_event"]),
+        claimResult: expect.objectContaining({
+          createsOrReusesFreeBuildWorkspace: true,
+          createsPrivateDraftFunnel: true,
+          draftSourceDataRoute: "/funnels/source-data",
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
         }),
         redaction: expect.objectContaining({
           recoveryCookieValueIncluded: false,
           recoveryTokenHashIncluded: false,
           billingStateCreated: false,
           publicPublishingEnabled: false,
+          rawDraftContentIncluded: false,
         }),
       }),
     );
@@ -1483,6 +1493,8 @@ test.describe("Bumpgrade scaffold", () => {
           sourceDataRoute: anonymousPlaygroundSourceDataRoute,
           saveApiRoute: anonymousPlaygroundApiRoute,
           claimApiRoute: anonymousPlaygroundClaimApiRoute,
+          claimCreatesPrivateDraftFunnel: true,
+          draftSourceDataRoute: "/funnels/source-data",
         }),
         privateBuildPlanStatus: "free_build",
         paidGoLiveGates: expect.arrayContaining([
@@ -29494,7 +29506,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
-  test("verified publisher can claim anonymous playground into Free Build while go-live stays gated", async ({ page }, testInfo) => {
+  test("verified publisher can claim anonymous playground into Free Build draft while go-live stays gated", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
     const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
     const saveResponse = await page.request.post(anonymousPlaygroundApiRoute, {
@@ -29543,11 +29555,41 @@ test.describe("Bumpgrade scaffold", () => {
           defaultSubdomain: null,
           primaryHostname: null,
         }),
+        draft: expect.objectContaining({
+          title: `Claimed playground ${suffix}`,
+          status: "draft",
+          sourceIssueNumber: 466,
+          parentIssueNumber: 466,
+          stepCount: 3,
+          blockCount: 8,
+          previewRoute: null,
+          sourceDataRoute: "/funnels/source-data",
+        }),
         redaction: expect.objectContaining({
           recoveryCookieValueIncluded: false,
           recoveryTokenHashIncluded: false,
           publicPublishingEnabled: false,
+          rawDraftContentIncluded: false,
         }),
+      }),
+    );
+
+    const replayClaimResponse = await page.request.post(anonymousPlaygroundClaimApiRoute, {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: anonymousPlaygroundClaimConfirmationText,
+      },
+    });
+    expect(replayClaimResponse.ok(), await replayClaimResponse.text()).toBeTruthy();
+    const replayClaimPayload = await replayClaimResponse.json();
+    expect(replayClaimPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        idempotent: true,
+        workspace: expect.objectContaining({ id: claimPayload.workspace.id }),
+        tenant: expect.objectContaining({ id: claimPayload.tenant.id }),
+        draft: expect.objectContaining({ id: claimPayload.draft.id }),
       }),
     );
 

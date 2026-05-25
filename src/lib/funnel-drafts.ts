@@ -17,6 +17,7 @@ import type {
 } from "@/lib/funnels";
 import {
   clickFunnelsDraftImportCapability,
+  getImporterBySlug,
   importerIssue,
 } from "@/lib/importers";
 import {
@@ -742,6 +743,17 @@ export type ClickFunnelsImportedDraftInput = {
   idempotencyKey: string;
 };
 
+export type AnonymousPlaygroundClaimedDraftInput = {
+  tenantId: string;
+  workspaceId: string;
+  offerName: string;
+  audience: string;
+  launchGoal: string;
+  selectedImporterSlug: string | null;
+  sourceIssueNumber: number;
+  idempotencyKey: string;
+};
+
 function compactImportText(value: string, maxLength: number) {
   return value.trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
@@ -873,6 +885,111 @@ function importedClickFunnelsSteps(
   ];
 }
 
+function anonymousPlaygroundSteps(
+  draftId: string,
+  input: Pick<AnonymousPlaygroundClaimedDraftInput, "offerName" | "audience" | "launchGoal" | "selectedImporterSlug">,
+): DraftFunnelStepRecord[] {
+  const offerName = compactImportText(input.offerName, 120) || "Saved playground launch";
+  const audience = compactImportText(input.audience, 180) || "the people this launch should serve";
+  const launchGoal = compactImportText(input.launchGoal, 300) || "turn the saved playground notes into a private launch path";
+  const importer = input.selectedImporterSlug ? getImporterBySlug(input.selectedImporterSlug) : null;
+  const importerText = importer
+    ? `Starting platform noted in the playground: ${importer.platformName}.`
+    : "No starting platform was attached to the playground.";
+
+  return [
+    {
+      id: `${draftId}-playground-opt-in-1`,
+      slug: "playground-opt-in",
+      order: 1,
+      kind: "opt_in",
+      title: "Playground opt-in step",
+      goal: `Shape the first relationship step for ${audience}.`,
+      routeAnchor: "playground-opt-in",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-playground-opt-in-hero`,
+          "hero",
+          `${offerName} opening promise`,
+          `Start the launch story for ${audience}. ${launchGoal}`,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-playground-opt-in-benefits`,
+          "benefits",
+          "Why this audience should keep going",
+          "Turn the saved audience and goal notes into benefits, lead magnet language, or the first reason to join the launch list.",
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-playground-opt-in-cta`,
+          "cta",
+          "Private opt-in action",
+          "Connect consent, tags, and follow-up only after the launch is ready for real visitors.",
+          false,
+        ),
+      ],
+    },
+    {
+      id: `${draftId}-playground-offer-2`,
+      slug: "playground-offer",
+      order: 2,
+      kind: "sales",
+      title: "Playground offer step",
+      goal: `Map the first offer path for ${offerName}.`,
+      routeAnchor: "playground-offer",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-playground-offer-hero`,
+          "hero",
+          `${offerName} offer promise`,
+          launchGoal,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-playground-offer-proof`,
+          "proof",
+          "Starting material to verify",
+          `${importerText} Review examples, testimonials, guarantees, claims, and price language before public use.`,
+          true,
+        ),
+        importedBlock(
+          `${draftId}-block-playground-offer-checkout`,
+          "checkout",
+          "Checkout stays off",
+          "Keep price, order bump, upsell, and buyer handoff notes private until paid go-live gates are satisfied.",
+          false,
+        ),
+      ],
+    },
+    {
+      id: `${draftId}-playground-follow-up-3`,
+      slug: "playground-follow-up",
+      order: 3,
+      kind: "thank_you",
+      title: "Playground follow-up",
+      goal: "Decide what happens after a visitor signs up or buys, without creating sends or fulfillment state.",
+      routeAnchor: "playground-follow-up",
+      blocks: [
+        importedBlock(
+          `${draftId}-block-playground-follow-up-delivery`,
+          "delivery",
+          "Delivery expectation",
+          "Attach product access, files, community access, or membership delivery only after fulfillment gates are ready.",
+          false,
+        ),
+        importedBlock(
+          `${draftId}-block-playground-follow-up-cta`,
+          "cta",
+          "Next edit pass",
+          "Review the saved playground plan, sharpen the offer, and choose the first private setup step before going live.",
+          true,
+        ),
+      ],
+    },
+  ];
+}
+
 export async function createClickFunnelsImportedDraftFunnel(
   db: D1Database,
   owner: { userId: string; email: string },
@@ -927,6 +1044,62 @@ export async function createClickFunnelsImportedDraftFunnel(
       customerRowsStored: false,
       paymentCredentialsStored: false,
       sessionCookiesStored: false,
+    },
+  );
+}
+
+export async function createAnonymousPlaygroundDraftFunnel(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: AnonymousPlaygroundClaimedDraftInput,
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const baseTitle = compactImportText(input.offerName, 120) || "Saved playground launch";
+  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(`${baseTitle} playground`));
+  const draftId = `funnel-draft-${slug}`;
+  const draft: DraftFunnelRecord = {
+    id: draftId,
+    slug,
+    title: baseTitle,
+    status: "draft",
+    summary: `Private Free Build draft created from saved playground work for ${baseTitle}. Review the opt-in, offer, checkout handoff, and follow-up before going live.`,
+    sourceIssueNumber: input.sourceIssueNumber,
+    parentIssueNumber: input.sourceIssueNumber,
+    previewRoute: null,
+    sourceDataRoute: "/funnels/source-data",
+    revisionId: `funnel-draft-revision-${slug}-${new Date().toISOString().slice(0, 10)}`,
+    createdByEmail: publisherIdentityEmail(owner),
+    ownerUserId: owner.userId,
+    steps: anonymousPlaygroundSteps(draftId, input),
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  return persistDraft(
+    db,
+    draft,
+    { userId: owner.userId, email: publisherIdentityEmail(owner), role: "owner", name: publisherIdentityEmail(owner) },
+    "draft_created",
+    input.idempotencyKey,
+    {
+      sourceIssueNumber: input.sourceIssueNumber,
+      anonymousPlaygroundWorkspaceId: input.workspaceId,
+      tenantId: input.tenantId,
+      selectedImporterSlug: input.selectedImporterSlug,
+      offerNameLength: input.offerName.trim().length,
+      audienceLength: input.audience.trim().length,
+      launchGoalLength: input.launchGoal.trim().length,
+      privateDraftOnly: true,
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+      billingMutationEnabled: false,
+      recoveryCookieStored: false,
+      recoveryTokenHashExposed: false,
     },
   );
 }
