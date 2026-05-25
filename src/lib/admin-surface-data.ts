@@ -333,6 +333,7 @@ const issue242PrUrl = "https://github.com/markitics/bumpgrade/pull/243";
 const issue242CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26175118817";
 const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
 const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
+const issue466PrUrl = "https://github.com/markitics/bumpgrade/pull/472";
 const journeyProofRefreshAt = "2026-05-20T17:20:00.000Z";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -606,6 +607,34 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     notes: [
       "Bumpgrade account-plan checkout is separate from customer-facing checkout for a publisher's own offer.",
       "Live webhook-backed renewal and cancellation automation remains a follow-up until a live Stripe webhook signing secret is configured.",
+    ],
+  },
+  "journey-prospect-understands-free-build": {
+    status: "passed",
+    lastTestedAt: "2026-05-25T12:25:00.000Z",
+    environment: "Local OpenNext preview, focused Playwright source-data smoke, and PR screenshot artifacts for issue #466.",
+    method: "Pricing route smoke, pricing source-data inspection, content source-data inspection, agent-docs source-data inspection, public-copy scan, and screenshot review.",
+    summary:
+      "The Free Build journey has route and source-data proof for private build-before-payment messaging and paid go-live gates while signed-in free workspace persistence and anonymous browser recovery remain explicitly not live.",
+    ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
+    screenshotLinks: [
+      { label: "Free Build pricing", url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-free-build.png", kind: "screenshot" },
+      {
+        label: "Pricing source data",
+        url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-source-data.png",
+        kind: "screenshot",
+      },
+    ],
+    validationLinks: [
+      { label: "Pricing", url: "https://bumpgrade.com/pricing", kind: "route" },
+      { label: "Pricing source data", url: "https://bumpgrade.com/pricing/source-data", kind: "source-data" },
+      { label: "Content source data", url: "https://bumpgrade.com/content/source-data", kind: "source-data" },
+      { label: "Agent docs source data", url: "https://bumpgrade.com/agent-docs/source-data", kind: "source-data" },
+      { label: "PR #472", url: issue466PrUrl, kind: "pr" },
+      { label: "Issue #466", url: "https://github.com/markitics/bumpgrade/issues/466", kind: "issue" },
+    ],
+    notes: [
+      "The current slice proves the public policy, stable source-data IDs, paid go-live gates, and non-live anonymous playground boundary.",
     ],
   },
   "journey-publisher-reserves-bumpgrade-subdomain": {

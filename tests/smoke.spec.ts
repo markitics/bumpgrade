@@ -20207,6 +20207,20 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         }),
         expect.objectContaining({
+          id: "journey-prospect-understands-free-build",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-free-build.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-source-data.png" }),
+            ]),
+            validationLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pricing/source-data" }),
+              expect.objectContaining({ url: "https://github.com/markitics/bumpgrade/issues/466" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
           id: "journey-publisher-plans-first-checkout",
           proof: expect.objectContaining({
             status: "passed",
