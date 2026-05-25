@@ -50,6 +50,10 @@ export const importerUpdatedAt = "2026-05-25";
 export const importerIssue = 467;
 export const importerSourceDataRoute = "/imports/source-data";
 export const importerHubRoute = "/imports";
+export function importerDraftPreviewApiRoute(slug: string) {
+  return `/api/imports/${slug}/preview`;
+}
+
 export function importerDraftImportApiRoute(slug: string) {
   return `/api/imports/${slug}/draft`;
 }
@@ -63,6 +67,7 @@ export function importerDraftImportCapabilityId(platformId: string) {
 }
 
 export const clickFunnelsDraftImportApiRoute = importerDraftImportApiRoute("clickfunnels");
+export const clickFunnelsDraftPreviewApiRoute = importerDraftPreviewApiRoute("clickfunnels");
 export const clickFunnelsDraftImportConfirmationText = importerDraftImportConfirmationText("ClickFunnels");
 
 export const commonImporterSafetyGates = [
@@ -80,6 +85,7 @@ export const clickFunnelsDraftImportCapability = {
   issue: importerIssue,
   platformId: "importer-clickfunnels",
   route: "/imports/clickfunnels",
+  previewApiRoute: clickFunnelsDraftPreviewApiRoute,
   apiRoute: clickFunnelsDraftImportApiRoute,
   confirmationText: clickFunnelsDraftImportConfirmationText,
   auth: "verified publisher session",
@@ -526,6 +532,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
     platformId: platform.id,
     platformName: platform.platformName,
     route: platform.route,
+    previewApiRoute: importerDraftPreviewApiRoute(platform.slug),
     apiRoute: importerDraftImportApiRoute(platform.slug),
     confirmationText: importerDraftImportConfirmationText(platform.platformName),
     auth: "verified publisher session",
@@ -546,6 +553,14 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       subscriberSendsEnabled: false,
       customDomainsEnabled: false,
       fulfillmentEnabled: false,
+    },
+    preflightReview: {
+      route: importerDraftPreviewApiRoute(platform.slug),
+      auth: "public redacted preflight",
+      writesRecords: false,
+      createsDraft: false,
+      rawSourceEchoed: false,
+      goLiveEffectsEnabled: false,
     },
     duplicateProtection:
       "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
@@ -583,6 +598,7 @@ export const importerSourceData = {
     allDedicatedPrivateDraftImportersLive: true,
     privateDraftImportPlatformIds: importerPlatforms.map((platform) => platform.id),
     otherDedicatedImportPathsLive: true,
+    preflightReviewLive: true,
     sourceMatchDuplicateReviewLive: true,
     sourceFileNameDuplicateReviewLive: true,
     paidGoLiveRequired: true,
@@ -599,6 +615,8 @@ export const importerSourceData = {
     ],
     duplicateReview:
       "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs or normalized export file names inside the same platform, target workspace, and normalized title.",
+    preflightReview:
+      "Public preflight review routes return a redacted import map before private draft creation. They do not persist records, require payment, publish pages, run checkout, send subscribers, connect domains, enable fulfillment, or echo pasted source material or export file names.",
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",

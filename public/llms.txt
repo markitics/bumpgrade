@@ -176,15 +176,19 @@ GitHub repo: https://github.com/markitics/bumpgrade
   token hashes, private customer data, raw draft or claim-record content,
   billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
-  generated private record types, safety gates, limitations, and private importer
-  API routes. Posting to a platform API route requires a verified publisher
-  session, exact confirmation, idempotency, and redacted responses. It can create
-  or reuse a Free Build workspace, save a private draft funnel, and reuse an
-  existing private draft when platform, workspace, normalized title, and source
-  URL or export file name match. It does not publish pages, run live checkout,
-  send subscribers, connect domains, enable fulfillment, transfer accounts,
-  migrate payment credentials, import customer passwords, or expose pasted
-  source material or export file contents in the response.
+  generated private record types, safety gates, limitations, public preflight
+  review routes, and private importer API routes. Posting to a platform preflight
+  review route returns a redacted import map before sign-in or private draft
+  creation; it does not persist records or echo pasted source material, export
+  file names, customer rows, credentials, sessions, or payment data. Posting to a
+  private platform API route requires a verified publisher session, exact
+  confirmation, idempotency, and redacted responses. It can create or reuse a
+  Free Build workspace, save a private draft funnel, and reuse an existing
+  private draft when platform, workspace, normalized title, and source URL or
+  export file name match. It does not publish pages, run live checkout, send
+  subscribers, connect domains, enable fulfillment, transfer accounts, migrate
+  payment credentials, import customer passwords, or expose pasted source
+  material or export file contents in the response.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes signed-in Free Build workspace creation, paid

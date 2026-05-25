@@ -438,6 +438,7 @@ import {
   clickFunnelsDraftImportConfirmationText,
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
+  importerDraftPreviewApiRoute,
   importerPlatforms,
   importerSourceData,
   importerSourceDataRoute,
@@ -1041,6 +1042,7 @@ test.describe("Bumpgrade scaffold", () => {
           publicImporterPagesLive: true,
           clickFunnelsPrivateDraftImportLive: true,
           allDedicatedPrivateDraftImportersLive: true,
+          preflightReviewLive: true,
           sourceMatchDuplicateReviewLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
@@ -1091,11 +1093,13 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.commonContract.redaction).toContain("Raw exports");
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
+    expect(payload.commonContract.preflightReview).toContain("redacted import map");
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: "clickfunnels-private-draft-import",
+          previewApiRoute: importerDraftPreviewApiRoute("clickfunnels"),
           apiRoute: clickFunnelsDraftImportApiRoute,
           confirmationText: clickFunnelsDraftImportConfirmationText,
           auth: "verified publisher session",
@@ -1123,11 +1127,20 @@ test.describe("Bumpgrade scaffold", () => {
             sourceFileNameMatchingLive: true,
             rawSourceEchoed: false,
           }),
+          preflightReview: expect.objectContaining({
+            route: importerDraftPreviewApiRoute("clickfunnels"),
+            auth: "public redacted preflight",
+            writesRecords: false,
+            createsDraft: false,
+            rawSourceEchoed: false,
+            goLiveEffectsEnabled: false,
+          }),
         }),
         expect.objectContaining({
           id: "samcart-private-draft-import",
           platformId: "importer-samcart",
           platformName: "SamCart",
+          previewApiRoute: importerDraftPreviewApiRoute("samcart"),
           apiRoute: importerDraftImportApiRoute("samcart"),
           confirmationText: importerDraftImportConfirmationText("SamCart"),
           auth: "verified publisher session",
@@ -1144,6 +1157,75 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("public importer preflight review returns a redacted map before private draft creation", async ({ request }) => {
+    const previewRoute = importerDraftPreviewApiRoute("samcart");
+    const response = await request.post(previewRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        offerTitle: "Imported SamCart review map",
+        sourceUrl: "https://example.com/samcart/checkout",
+        sourceFileNames: ["samcart-export-main.zip", "customers-private.csv"],
+        pageCopy: "PRIVATE_IMPORT_COPY_SHOULD_NOT_ECHO",
+        followUpNotes: "PRIVATE_FOLLOW_UP_SHOULD_NOT_ECHO",
+      },
+    });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 467,
+        route: previewRoute,
+        platform: expect.objectContaining({
+          id: "importer-samcart",
+          slug: "samcart",
+          platformName: "SamCart",
+          route: "/imports/samcart",
+        }),
+        preview: expect.objectContaining({
+          title: "Imported SamCart review map",
+          status: "ready_for_private_plan",
+          writesRecords: false,
+          paidGoLiveRequired: true,
+          inputSummary: expect.objectContaining({
+            sourceUrlProvided: true,
+            sourceFileNameCount: 2,
+            pageCopyProvided: true,
+            followUpNotesProvided: true,
+            rawSourceEchoed: false,
+          }),
+          detectedAreas: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-offers",
+              status: "ready_to_review",
+              draftEntities: expect.arrayContaining(["draft_checkout_offer", "draft_product_catalog"]),
+            }),
+          ]),
+          safetyGates: expect.arrayContaining([
+            expect.stringContaining("does not create records"),
+            expect.stringContaining("verified publisher session"),
+          ]),
+        }),
+        redaction: expect.objectContaining({
+          rawExportFilesIncluded: false,
+          exportFileNamesEchoed: false,
+          rawPastedMaterialIncludedInResponse: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+          persistsRecords: false,
+        }),
+      }),
+    );
+
+    const serialized = JSON.stringify(payload);
+    expect(serialized).not.toContain("https://example.com/samcart/checkout");
+    expect(serialized).not.toContain("samcart-export-main.zip");
+    expect(serialized).not.toContain("customers-private.csv");
+    expect(serialized).not.toContain("PRIVATE_IMPORT_COPY_SHOULD_NOT_ECHO");
+    expect(serialized).not.toContain("PRIVATE_FOLLOW_UP_SHOULD_NOT_ECHO");
   });
 
   test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {
