@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { affiliatePrograms } from "@/lib/affiliate-referrals";
+import { affiliatePartnerPortalRoute, affiliatePrograms } from "@/lib/affiliate-referrals";
 import { analyticsDashboards } from "@/lib/analytics-experiments";
 import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
@@ -52,6 +52,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const audienceRoutes = audienceAutomationWorkspaces.map((workspace) => workspace.previewRoute);
   const analyticsRoutes = analyticsDashboards.map((dashboard) => dashboard.previewRoute);
   const affiliateRoutes = affiliatePrograms.map((program) => program.previewRoute);
+  const affiliatePartnerRoutes = affiliatePrograms.flatMap((program) =>
+    program.partners.map((partner) => affiliatePartnerPortalRoute(program.slug, partner.portalSlug)),
+  );
   const marketingFeatureRoutes = marketingFeatures.map((feature) => `/features/${feature.slug}`);
   return [
     "",
@@ -65,6 +68,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...audienceRoutes,
     ...analyticsRoutes,
     ...affiliateRoutes,
+    ...affiliatePartnerRoutes,
   ].map((path) => ({
       url: `${site.url}${path}`,
       lastModified,

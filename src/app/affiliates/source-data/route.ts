@@ -6,6 +6,8 @@ import {
   loadAffiliateCommissionLedgerSummary,
 } from "@/lib/affiliate-commission-ledger";
 import {
+  affiliatePartnerPortalId,
+  affiliatePartnerPortalRoute,
   affiliatePrograms,
   affiliateReferralsSourceData,
   type AffiliatePartnerReport,
@@ -324,6 +326,175 @@ function buildPayoutPreparationSummary(input: {
   };
 }
 
+type PartnerEvidenceSummary = {
+  status: string;
+  currentEvidence?: {
+    affiliatePartnerId?: string;
+    reviewFlagId?: string;
+    partnerNotificationSent?: boolean;
+    notificationProviderCalled?: boolean;
+    notificationProviderSendEnabled?: boolean;
+    notificationProviderConfigured?: boolean;
+    fraudDecisionEnforced?: boolean;
+  } | null;
+};
+
+function evidenceStatusForPartner(
+  summary: PartnerEvidenceSummary,
+  partnerId: string,
+  reviewFlagIds: string[],
+  activeLabel: string,
+) {
+  const evidence = summary.currentEvidence;
+  if (!evidence) return "none_recorded";
+  if (evidence.affiliatePartnerId === partnerId) return activeLabel;
+  if (evidence.reviewFlagId && reviewFlagIds.includes(evidence.reviewFlagId)) return activeLabel;
+  return "none_recorded";
+}
+
+function buildPartnerPortalSummary(input: {
+  partnerReportSummary: ReturnType<typeof buildPartnerReportSummary>;
+  payoutPreparationSummary: ReturnType<typeof buildPayoutPreparationSummary>;
+  fraudReviewRecords: PartnerEvidenceSummary;
+  fraudEnforcementRecords: PartnerEvidenceSummary;
+  partnerNotificationReadinessRecords: PartnerEvidenceSummary;
+  partnerNotificationSendPreflightRecords: PartnerEvidenceSummary;
+  partnerNotificationProviderReadinessRecords: PartnerEvidenceSummary;
+}) {
+  const portals = affiliatePrograms.flatMap((program) =>
+    program.partners.map((partner) => {
+      const partnerReferralLinkIds = new Set(partner.referralLinkIds);
+      const reportRows = input.partnerReportSummary.reports.filter((report) => report.affiliatePartnerId === partner.id);
+      const reportIds = new Set(reportRows.map((report) => report.affiliatePartnerReportId));
+      const payoutRows = input.payoutPreparationSummary.batches.filter((batch) =>
+        batch.partnerReportIds.some((reportId) => reportIds.has(reportId)),
+      );
+      const ledgerIds = new Set(
+        program.commissionLedger
+          .filter((ledger) => partnerReferralLinkIds.has(ledger.referralLinkId))
+          .map((ledger) => ledger.id),
+      );
+      const reviewFlagIds = program.reviewFlags
+        .filter((flag) => flag.linkedLedgerIds.some((ledgerId) => ledgerIds.has(ledgerId)))
+        .map((flag) => flag.id);
+      const blockedChecklistCount = payoutRows.reduce(
+        (sum, batch) => sum + batch.readinessChecklist.filter((item) => item.status !== "passed").length,
+        0,
+      );
+
+      return {
+        affiliatePartnerPortalId: affiliatePartnerPortalId(partner.id),
+        affiliatePartnerPortalRoute: affiliatePartnerPortalRoute(program.slug, partner.portalSlug),
+        affiliatePartnerPortalStatus: "public_safe_partner_status_ready",
+        auth: "public-preview-redacted",
+        issue: 424,
+        programId: program.id,
+        programSlug: program.slug,
+        partnerId: partner.id,
+        partnerSlug: partner.portalSlug,
+        partnerDisplayName: partner.displayName,
+        partnerStatus: partner.status,
+        referralLinkIds: partner.referralLinkIds,
+        partnerReportIds: [...reportIds],
+        payoutPreparationIds: payoutRows.map((batch) => batch.payoutPreparationId),
+        payoutBatchIds: payoutRows.map((batch) => batch.payoutBatchId),
+        reviewFlagIds,
+        totals: {
+          totalClicks: reportRows.reduce((sum, report) => sum + report.totals.totalClicks, 0),
+          attributedCheckouts: reportRows.reduce((sum, report) => sum + report.totals.attributedCheckouts, 0),
+          reviewOnlyLedgers: reportRows.reduce((sum, report) => sum + report.totals.reviewOnlyLedgers, 0),
+          totalCommissionCents: reportRows.reduce((sum, report) => sum + report.totals.totalCommissionCents, 0),
+          currency: "USD",
+        },
+        payoutReadiness: {
+          status: reportRows.some((report) => report.payoutReadiness.status === "review_required")
+            ? "review_required"
+            : "not_payable",
+          blockedChecklistCount,
+          payableCommissionCreated: false,
+          stripePayoutCreated: false,
+          payoutAccountStored: false,
+          taxDataCollected: false,
+        },
+        riskAndNotificationStatus: {
+          fraudReview: evidenceStatusForPartner(input.fraudReviewRecords, partner.id, reviewFlagIds, "review_recorded"),
+          fraudEnforcement: evidenceStatusForPartner(
+            input.fraudEnforcementRecords,
+            partner.id,
+            reviewFlagIds,
+            "enforcement_recorded",
+          ),
+          notificationReadiness: evidenceStatusForPartner(
+            input.partnerNotificationReadinessRecords,
+            partner.id,
+            reviewFlagIds,
+            "readiness_recorded",
+          ),
+          notificationSendPreflight: evidenceStatusForPartner(
+            input.partnerNotificationSendPreflightRecords,
+            partner.id,
+            reviewFlagIds,
+            "send_preflight_recorded",
+          ),
+          notificationProviderReadiness: evidenceStatusForPartner(
+            input.partnerNotificationProviderReadinessRecords,
+            partner.id,
+            reviewFlagIds,
+            "provider_readiness_recorded",
+          ),
+          partnerNotificationSent: false,
+          notificationProviderCalled: false,
+          notificationProviderSendEnabled: false,
+          notificationProviderConfigured: false,
+        },
+        redaction: {
+          partnerEmailIncluded: false,
+          buyerDataIncluded: false,
+          rawClickRowsIncluded: false,
+          rawCheckoutRowsIncluded: false,
+          rawLedgerRowsIncluded: false,
+          rawActorIdentityIncluded: false,
+          privateFraudSignalsIncluded: false,
+          payoutAccountIncluded: false,
+          taxDataIncluded: false,
+          stripeIdsIncluded: false,
+          recipientEmailIncluded: false,
+          notificationBodyIncluded: false,
+          sendPayloadIncluded: false,
+          providerSecretIncluded: false,
+          providerMessageIdIncluded: false,
+          sendQueueRowsIncluded: false,
+        },
+        notLive: [
+          "private partner authentication",
+          "payable commission state",
+          "Stripe payout or transfer execution",
+          "payout account storage",
+          "tax form collection",
+          "partner notification sending",
+          "provider configuration or calls",
+          "queue dispatch",
+          "direct public agent writes",
+        ],
+      };
+    }),
+  );
+
+  return {
+    status: "available",
+    portals,
+    rawRowsIncluded: false,
+    privateDataIncluded: false,
+    buyerDataIncluded: false,
+    payoutAccountsIncluded: false,
+    taxRowsIncluded: false,
+    stripeIdsIncluded: false,
+    recipientEmailsIncluded: false,
+    notificationBodiesIncluded: false,
+    providerSecretsIncluded: false,
+  };
+}
+
 export async function GET() {
   const db = await getDb();
   const [
@@ -351,6 +522,17 @@ export async function GET() {
       getAffiliatePartnerNotificationProviderReadinessRecordSummary(db ?? undefined),
     ]);
 
+  const partnerReportSummary = buildPartnerReportSummary({
+    clickSummary,
+    checkoutAttributionSummary,
+    commissionLedgerSummary,
+    partnerReviewActionSummary,
+  });
+  const payoutPreparationSummary = buildPayoutPreparationSummary({
+    commissionLedgerSummary,
+    partnerReviewActionSummary,
+  });
+
   return NextResponse.json({
     ...affiliateReferralsSourceData,
     clickSummary,
@@ -360,16 +542,17 @@ export async function GET() {
       contract: affiliateCommissionReviewActionsContract,
     },
     partnerReviewActionSummary,
-    partnerReportSummary: buildPartnerReportSummary({
-      clickSummary,
-      checkoutAttributionSummary,
-      commissionLedgerSummary,
-      partnerReviewActionSummary,
+    partnerReportSummary,
+    partnerPortalSummary: buildPartnerPortalSummary({
+      partnerReportSummary,
+      payoutPreparationSummary,
+      fraudReviewRecords,
+      fraudEnforcementRecords,
+      partnerNotificationReadinessRecords,
+      partnerNotificationSendPreflightRecords,
+      partnerNotificationProviderReadinessRecords,
     }),
-    payoutPreparationSummary: buildPayoutPreparationSummary({
-      commissionLedgerSummary,
-      partnerReviewActionSummary,
-    }),
+    payoutPreparationSummary,
     payoutPreparationRecords,
     fraudReviewRecords,
     fraudEnforcementRecords,

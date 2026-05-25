@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 
 import {
+  affiliatePartnerPortalRoute,
   affiliatePrograms,
   getAffiliateProgramBySlug,
+  type AffiliatePartner,
   type AffiliatePartnerReport,
   type CommissionLedgerFixture,
   type PayoutBatchFixture,
@@ -152,6 +154,28 @@ function PartnerReportCard({ report }: { report: AffiliatePartnerReport }) {
   );
 }
 
+function PartnerCard({ partner, programSlug }: { partner: AffiliatePartner; programSlug: string }) {
+  return (
+    <article className="feature-card compact-content-card">
+      <div className="feature-card-top">
+        <span className="status-badge active">{publicStatusLabel(partner.status)}</span>
+        <span className="admin-pill">{partner.referralLinkIds.length} links</span>
+      </div>
+      <UserCheck aria-hidden="true" />
+      <h3>{partner.displayName}</h3>
+      <p>{partnerProfileCopy(partner.publicProfile)}</p>
+      <div className="feature-detail">
+        <strong>Private data excluded</strong>
+        <span>{partner.privateDataExcluded.length} fields</span>
+      </div>
+      <Link href={affiliatePartnerPortalRoute(programSlug, partner.portalSlug)} className="text-link compact-link">
+        Partner portal status
+        <ArrowRight aria-hidden="true" />
+      </Link>
+    </article>
+  );
+}
+
 function PayoutPreparationCard({ batch }: { batch: PayoutBatchFixture }) {
   const blockedCount = batch.readinessChecklist.filter((item) => item.status !== "passed").length;
 
@@ -265,19 +289,7 @@ export default async function AffiliateProgramPage({ params }: AffiliatePageProp
         </div>
         <div className="feature-grid">
           {program.partners.map((partner) => (
-            <article key={partner.id} className="feature-card compact-content-card">
-              <div className="feature-card-top">
-                <span className="status-badge active">{publicStatusLabel(partner.status)}</span>
-                <span className="admin-pill">{partner.referralLinkIds.length} links</span>
-              </div>
-              <UserCheck aria-hidden="true" />
-              <h3>{partner.displayName}</h3>
-              <p>{partnerProfileCopy(partner.publicProfile)}</p>
-              <div className="feature-detail">
-                <strong>Private data excluded</strong>
-                <span>{partner.privateDataExcluded.length} fields</span>
-              </div>
-            </article>
+            <PartnerCard key={partner.id} partner={partner} programSlug={program.slug} />
           ))}
           {program.commissionRules.slice(0, 2).map((rule) => (
             <article key={rule.id} className="feature-card compact-content-card">
