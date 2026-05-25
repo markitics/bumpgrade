@@ -11,6 +11,7 @@ import {
   Eye,
   GitBranch,
   GripVertical,
+  Palette,
   PanelsTopLeft,
   PencilLine,
   Plus,
@@ -36,7 +37,13 @@ import {
   draftFunnelWebinarEventLinkConfirmationText,
   getDraftFunnelAdminState,
 } from "@/lib/funnel-drafts";
-import { draftFunnelAdvancedParityIssue, funnelBlockLibrary, funnelTemplateLibrary } from "@/lib/funnels";
+import {
+  draftFunnelAdvancedParityIssue,
+  funnelBlockLibrary,
+  funnelBlockVisualStyleForId,
+  funnelBlockVisualStyles,
+  funnelTemplateLibrary,
+} from "@/lib/funnels";
 import { productAccessCatalogs } from "@/lib/product-access";
 
 export const metadata: Metadata = {
@@ -98,7 +105,8 @@ export default async function AdminFunnelsPage() {
             evidence, and owner-session agents can now use a confirmed JSON write contract for private block copy edits,
             reusable block add/remove, checkout linking and unlinking, resource-delivery linking, webinar-event linking,
             block movement, private draft duplication, public publishing with archive rollback, and archive/unpublish.
-            Destructive agent purge, freeform canvas layout styling,
+            Owner-session visual style controls now render in private previews and public published routes. Destructive agent purge,
+            full absolute-position canvas editing,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
             unauthenticated public agent publishing, and direct agent-created delivery tokens still need confirmed-write slices.
           </p>
@@ -226,7 +234,7 @@ export default async function AdminFunnelsPage() {
             <Database aria-hidden="true" />
           </Link>
         </div>
-        <div className="roadmap-grid admin-record-grid">
+        <div className="roadmap-grid admin-record-grid admin-funnel-draft-grid">
           {state.drafts.map((draft) => {
             const isArchived = draft.status === "archived";
             const canMutateDraft = state.canWrite && !isArchived;
@@ -506,14 +514,18 @@ export default async function AdminFunnelsPage() {
                       label={`${step.title} blocks`}
                       disabled={!canMutateDraft}
                     >
-                      {step.blocks.map((block, blockIndex) => (
-                        <div
-                          className="admin-block-editor-shell"
-                          key={block.id}
-                          data-funnel-block-id={block.id}
-                          data-funnel-block-step-id={step.id}
-                          data-funnel-block-index={blockIndex}
-                        >
+                      {step.blocks.map((block, blockIndex) => {
+                        const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+
+                        return (
+                          <div
+                            className="admin-block-editor-shell"
+                            key={block.id}
+                            data-funnel-block-id={block.id}
+                            data-funnel-block-step-id={step.id}
+                            data-funnel-block-index={blockIndex}
+                            data-funnel-block-style={visualStyle.id}
+                          >
                           <form
                             action="/api/admin/funnels/drafts"
                             method="post"
@@ -546,6 +558,7 @@ export default async function AdminFunnelsPage() {
                               {block.webinarEventLink ? (
                                 <span className="status-badge active">webinar link preserved</span>
                               ) : null}
+                              <span className="status-badge planned">{visualStyle.label}</span>
                             </div>
                             <label>
                               Block title
@@ -558,6 +571,36 @@ export default async function AdminFunnelsPage() {
                             <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
                               Save block
                               <PencilLine aria-hidden="true" />
+                            </button>
+                          </form>
+                          <form action="/api/admin/funnels/drafts" method="post" className="admin-block-style-form">
+                            <input type="hidden" name="mode" value="update-block-style" />
+                            <input type="hidden" name="draftId" value={draft.id} />
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <input type="hidden" name="blockId" value={block.id} />
+                            <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                            <input
+                              type="hidden"
+                              name="idempotencyKey"
+                              value={`block-style-${draft.id}-${block.id}-${draft.revisionId}`}
+                            />
+                            <div className="admin-checkout-link-summary">
+                              <Palette aria-hidden="true" />
+                              <p>{visualStyle.description}</p>
+                            </div>
+                            <label>
+                              Visual style
+                              <select name="visualStyleId" defaultValue={visualStyle.id} disabled={!canMutateDraft}>
+                                {funnelBlockVisualStyles.map((style) => (
+                                  <option value={style.id} key={style.id}>
+                                    {style.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
+                              Apply style
+                              <Palette aria-hidden="true" />
                             </button>
                           </form>
                           <div className="admin-block-move-row" aria-label={`Move ${block.title}`}>
@@ -816,8 +859,9 @@ export default async function AdminFunnelsPage() {
                               </button>
                             </form>
                           ) : null}
-                        </div>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </AdminFunnelBlockDragDrop>
                     {checkoutBlock ? (
                       <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-checkout-link-form">

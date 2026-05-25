@@ -320,6 +320,7 @@ import {
   draftFunnelBlockEditingCapability,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
+  draftFunnelBlockVisualStyleCapability,
   draftFunnelDuplicationCapability,
   draftFunnelPurgeCapability,
   draftFunnelResourceDeliveryLinkCapability,
@@ -1202,6 +1203,7 @@ test.describe("Bumpgrade scaffold", () => {
         webinarEventLinkEndpoint: "/api/admin/funnels/drafts",
         blockEditEndpoint: "/api/admin/funnels/drafts",
         blockStructureEndpoint: "/api/admin/funnels/drafts",
+        blockVisualStyleEndpoint: "/api/admin/funnels/drafts",
         blockReorderEndpoint: "/api/admin/funnels/drafts",
         blockCrossStepMoveEndpoint: "/api/admin/funnels/drafts",
         auth: "owner-session",
@@ -1292,6 +1294,38 @@ test.describe("Bumpgrade scaffold", () => {
         refusesLastBlockRemoval: true,
         rawOwnerDataIncluded: false,
       }),
+    );
+    expect(payload.draftFunnelBlockVisualStyleCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelBlockVisualStyleCapability.id,
+        status: "owner-session-block-visual-style-ready",
+        issue: 417,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        auth: "owner-session",
+        confirmationRequired: false,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        styleIds: expect.arrayContaining(["standard", "spotlight", "split", "compact"]),
+        defaultStyleId: "standard",
+        privatePreviewRendersStyle: true,
+        publicPublishedRouteRendersStyle: true,
+        fullAbsoluteCanvasEditingEnabled: false,
+        preservesBlockId: true,
+        preservesBlockKind: true,
+        preservesBlockTitle: true,
+        preservesBlockBody: true,
+        preservesCheckoutLinks: true,
+        rawOwnerDataIncluded: false,
+      }),
+    );
+    expect(payload.funnelBlockVisualStyles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "standard", label: "Standard" }),
+        expect.objectContaining({ id: "spotlight", label: "Spotlight" }),
+        expect.objectContaining({ id: "split", label: "Split" }),
+        expect.objectContaining({ id: "compact", label: "Compact" }),
+      ]),
     );
     expect(payload.draftFunnelBlockReorderCapability).toEqual(
       expect.objectContaining({
@@ -1605,6 +1639,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         "funnelTemplateId",
         "funnelBlockTemplateId",
+        "funnelDraftBlockVisualStyleId",
         "funnelDraftBlockReorderId",
         "funnelDraftBlockCrossStepMoveId",
         "funnelCheckoutLinkId",
@@ -1638,7 +1673,9 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.caveat).toContain("owner-session visual style controls");
     expect(payload.caveat).toContain("owner-session block reordering");
+    expect(payload.caveat).toContain("full absolute-position canvas editing");
     expect(payload.caveat).toContain("owner-confirmed direct agent public publishing");
     expect(payload.templates).toEqual(
       expect.arrayContaining([
@@ -1713,6 +1750,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("owner-session checkout unlinking");
     expect(payload.caveat).toContain("owner-session resource delivery linking");
     expect(payload.caveat).toContain("owner-session webinar event/replay linking");
+    expect(payload.caveat).toContain("owner-session visual style controls");
     expect(payload.caveat).toContain("owner-confirmed archived-draft purge");
     expect(payload.caveat).toContain("public sandbox checkout start rendering");
     expect(payload.caveat).toContain("webinar and resource page shapes");
@@ -20266,6 +20304,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftArchiveId",
             "funnelDraftBlockEditId",
             "funnelDraftBlockStructureEditId",
+            "funnelDraftBlockVisualStyleId",
             "funnelDraftBlockReorderId",
             "funnelDraftBlockCrossStepMoveId",
             "funnelCheckoutUnlinkId",
@@ -20283,6 +20322,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session checkout unlinking from issue #417",
             "Discover owner-session resource delivery linking from issue #417",
             "Discover public funnel-scoped resource delivery tokens from issue #417",
+            "Discover owner-session visual style controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
             "Discover owner-session direct agent-safe draft writes for block copy edits, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
@@ -20300,6 +20340,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftArchiveId",
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
+            "funnelDraftBlockVisualStyleId",
             "funnelDraftBlockReorderId",
             "funnelDraftBlockCrossStepMoveId",
             "funnelDraftBlockId",
@@ -27238,6 +27279,82 @@ test.describe("Bumpgrade scaffold", () => {
     expect(replayCheckoutBlock.title).toBe(blockEditTitle);
     expect(replayCheckoutBlock.checkoutLink.offerId).toBe(checkoutOfferStack.primaryOffer.id);
 
+    const staleBlockStyleResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block-style",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        visualStyleId: "spotlight",
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        idempotencyKey: `playwright-block-style-stale-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(staleBlockStyleResponse.status()).toBe(503);
+    await expect(staleBlockStyleResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("revision changed") }),
+    );
+
+    const blockStyleIdempotencyKey = `playwright-block-style-${Date.now()}`;
+    const blockStyleResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block-style",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        visualStyleId: "spotlight",
+        expectedRevisionId: blockEditPayload.draft.revisionId,
+        idempotencyKey: blockStyleIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockStyleResponse.ok(), await blockStyleResponse.text()).toBeTruthy();
+    const blockStylePayload = await blockStyleResponse.json();
+    expect(blockStylePayload.mode).toBe("update-block-style");
+    const styledSalesStep = blockStylePayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    const styledCheckoutBlock = styledSalesStep.blocks.find((block: { id: string }) => block.id === linkedCheckoutBlock.id);
+    expect(styledCheckoutBlock).toEqual(
+      expect.objectContaining({
+        id: linkedCheckoutBlock.id,
+        kind: "checkout",
+        title: blockEditTitle,
+        body: blockEditBody,
+        visualStyle: "spotlight",
+        checkoutLink: expect.objectContaining({
+          offerId: checkoutOfferStack.primaryOffer.id,
+          priceId: checkoutOfferStack.primaryOffer.priceId,
+        }),
+      }),
+    );
+
+    const blockStyleReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "update-block-style",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        visualStyleId: "compact",
+        expectedRevisionId: blockEditPayload.draft.revisionId,
+        idempotencyKey: blockStyleIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(blockStyleReplay.ok(), await blockStyleReplay.text()).toBeTruthy();
+    const blockStyleReplayPayload = await blockStyleReplay.json();
+    const replayStyledSalesStep = blockStyleReplayPayload.draft.steps.find(
+      (step: { id: string }) => step.id === "funnel-draft-indie-launch-working-copy-sales-2",
+    );
+    const replayStyledCheckoutBlock = replayStyledSalesStep.blocks.find(
+      (block: { id: string }) => block.id === linkedCheckoutBlock.id,
+    );
+    expect(replayStyledCheckoutBlock.visualStyle).toBe("spotlight");
+
     const blockAddIdempotencyKey = `playwright-block-add-${Date.now()}`;
     const blockAddTitle = "Owner-added proof block";
     const blockAddBody = "Add a reusable proof block before publishing without touching checkout metadata.";
@@ -27250,7 +27367,7 @@ test.describe("Bumpgrade scaffold", () => {
         blockKind: "proof",
         title: blockAddTitle,
         body: blockAddBody,
-        expectedRevisionId: blockEditPayload.draft.revisionId,
+        expectedRevisionId: blockStylePayload.draft.revisionId,
         idempotencyKey: blockAddIdempotencyKey,
         return: "json",
       },
@@ -27281,7 +27398,7 @@ test.describe("Bumpgrade scaffold", () => {
         blockKind: "resource",
         title: "Replay should not add another block",
         body: "Replay should return the original added proof block.",
-        expectedRevisionId: blockEditPayload.draft.revisionId,
+        expectedRevisionId: blockStylePayload.draft.revisionId,
         idempotencyKey: blockAddIdempotencyKey,
         return: "json",
       },
@@ -28016,6 +28133,10 @@ test.describe("Bumpgrade scaffold", () => {
     const editedBlockForm = draftCard.locator(".admin-block-edit-form").filter({ hasText: linkedCheckoutBlock.id });
     await expect(editedBlockForm.locator('input[name="title"]')).toHaveValue(blockEditTitle);
     await expect(editedBlockForm.locator('textarea[name="body"]')).toHaveValue(blockEditBody);
+    const editedBlockShell = draftCard.locator(`[data-funnel-block-id="${linkedCheckoutBlock.id}"]`);
+    await expect(editedBlockShell).toHaveAttribute("data-funnel-block-style", "spotlight");
+    await expect(editedBlockShell.getByLabel("Visual style")).toHaveValue("spotlight");
+    await expect(editedBlockShell.getByRole("button", { name: /Apply style/i })).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Save block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Add block/i }).first()).toBeVisible();
     await expect(draftCard.getByRole("button", { name: /Remove block/i }).first()).toBeVisible();
@@ -28041,6 +28162,9 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Current private funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
+    const privateStyledBlock = page.locator(`article[data-funnel-block-style="spotlight"]`).filter({ hasText: blockEditTitle });
+    await expect(privateStyledBlock).toBeVisible();
+    await expect(privateStyledBlock.locator(".status-badge", { hasText: "Spotlight" })).toBeVisible();
     await expect(page.getByText(blockEditBody)).toBeVisible();
     await expect(page.getByText("Launch checklist download / Launch checklist PDF")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Warm list opt-in edited" })).toBeVisible();
@@ -28050,6 +28174,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Published funnel sequence" })).toBeVisible();
     await expect(page.locator(".roadmap-grid > article").first()).toContainText("Offer sales page");
     await expect(page.getByRole("heading", { name: blockEditTitle })).toBeVisible();
+    await expect(page.locator(`article[data-funnel-block-style="spotlight"]`).filter({ hasText: blockEditTitle })).toBeVisible();
     await expect(page.getByText(blockEditBody)).toBeVisible();
     await expect(page.getByText("Launch checklist download / Launch checklist PDF")).toBeVisible();
     await expect(page.getByText("Access stays entitlement-gated")).toBeVisible();
@@ -28080,6 +28205,7 @@ test.describe("Bumpgrade scaffold", () => {
                 expect.objectContaining({
                   kind: "checkout",
                   title: blockEditTitle,
+                  visualStyle: "spotlight",
                   checkoutLink: expect.objectContaining({
                     offerId: checkoutOfferStack.primaryOffer.id,
                     liveBillingEnabled: false,
@@ -28209,6 +28335,23 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
     );
 
+    const archivedBlockStyleResponse = await page.request.post("/api/admin/funnels/drafts", {
+      form: {
+        mode: "update-block-style",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: linkedCheckoutBlock.id,
+        visualStyleId: "compact",
+        expectedRevisionId: archivePublishedPayload.draft.revisionId,
+        idempotencyKey: `playwright-archived-block-style-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(archivedBlockStyleResponse.status()).toBe(503);
+    await expect(archivedBlockStyleResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Archived draft funnels are read-only") }),
+    );
+
     const archivedBlockAddResponse = await page.request.post("/api/admin/funnels/drafts", {
       form: {
         mode: "add-block",
@@ -28330,6 +28473,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(archivedDraftCard.getByRole("button", { name: /Duplicate draft/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Save step/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Save block/i })).toHaveCount(0);
+    await expect(archivedDraftCard.getByRole("button", { name: /Apply style/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Add block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Remove block/i })).toHaveCount(0);
     await expect(archivedDraftCard.getByRole("button", { name: /Drag /i })).toHaveCount(0);

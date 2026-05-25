@@ -4,6 +4,16 @@ import { productDeliveryGateApiRoute } from "@/lib/product-delivery-gates";
 export type FunnelStatus = "draft" | "published";
 export type FunnelStepKind = "opt_in" | "sales" | "checkout" | "upsell" | "webinar" | "resource" | "thank_you";
 export type FunnelBlockKind = "hero" | "benefits" | "proof" | "cta" | "checkout" | "delivery" | "webinar" | "resource";
+export type FunnelBlockVisualStyleId = "standard" | "spotlight" | "split" | "compact";
+
+export type FunnelBlockVisualStyle = {
+  id: FunnelBlockVisualStyleId;
+  label: string;
+  description: string;
+  layout: "stacked" | "split" | "compact";
+  emphasis: "neutral" | "high" | "conversion" | "quiet";
+  className: string;
+};
 
 export type FunnelBlock = {
   id: string;
@@ -11,6 +21,7 @@ export type FunnelBlock = {
   title: string;
   body: string;
   agentEditable: boolean;
+  visualStyle?: FunnelBlockVisualStyleId;
   checkoutLink?: FunnelCheckoutLink | null;
   resourceDeliveryLink?: FunnelResourceDeliveryLink | null;
   webinarEventLink?: FunnelWebinarEventLink | null;
@@ -168,6 +179,41 @@ export const draftFunnelBuilderParentIssue = 14;
 export const agentFunnelDraftWriteIssue = draftFunnelAdvancedParityIssue;
 export const agentFunnelDraftWriteApiRoute = "/api/agent/funnels/draft-writes";
 export const agentFunnelDraftWriteConfirmationText = "CONFIRM AGENT FUNNEL DRAFT WRITE";
+export const defaultFunnelBlockVisualStyleId: FunnelBlockVisualStyleId = "standard";
+export const funnelBlockVisualStyles: FunnelBlockVisualStyle[] = [
+  {
+    id: "standard",
+    label: "Standard",
+    description: "Default stacked card treatment for ordinary funnel page blocks.",
+    layout: "stacked",
+    emphasis: "neutral",
+    className: "funnel-block-style-standard",
+  },
+  {
+    id: "spotlight",
+    label: "Spotlight",
+    description: "High-emphasis treatment for hero, proof, webinar, and offer promise blocks.",
+    layout: "stacked",
+    emphasis: "high",
+    className: "funnel-block-style-spotlight",
+  },
+  {
+    id: "split",
+    label: "Split",
+    description: "Two-column editorial treatment for comparison, proof, and benefit blocks.",
+    layout: "split",
+    emphasis: "conversion",
+    className: "funnel-block-style-split",
+  },
+  {
+    id: "compact",
+    label: "Compact",
+    description: "Dense treatment for follow-up, delivery, and secondary CTA blocks.",
+    layout: "compact",
+    emphasis: "quiet",
+    className: "funnel-block-style-compact",
+  },
+];
 export const agentFunnelDraftWriteOperationIds = [
   "update-block",
   "add-block",
@@ -183,8 +229,16 @@ export const agentFunnelDraftWriteOperationIds = [
   "archive-draft",
 ] as const;
 
+export function isFunnelBlockVisualStyleId(value: string): value is FunnelBlockVisualStyleId {
+  return funnelBlockVisualStyles.some((style) => style.id === value);
+}
+
+export function funnelBlockVisualStyleForId(value: string | null | undefined) {
+  return funnelBlockVisualStyles.find((style) => style.id === value) ?? funnelBlockVisualStyles[0];
+}
+
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, block reordering within a step while preserving checkout/resource/webinar metadata, drag/drop block placement through the existing block reorder and cross-step move endpoints, cross-step block moves that preserve block metadata, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, exact-confirmed archived-draft purge with tombstone evidence, exact-confirmed checkout-offer linking on private draft steps, exact-confirmed checkout unlinking on private draft blocks, exact-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery on published resource blocks, exact-confirmed webinar event/replay links on private webinar blocks, and owner-session direct agent-safe draft writes for block copy edits, block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, public publishing, and archive/unpublish through /api/agent/funnels/draft-writes. Freeform canvas layout styling, direct agent purge, direct agent-created delivery tokens, direct webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, and unauthenticated public agent writes still require future confirmed-write APIs with stronger rollback and provider safety notes.";
+  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, owner-session visual style controls for existing blocks, block reordering within a step while preserving checkout/resource/webinar metadata, drag/drop block placement through the existing block reorder and cross-step move endpoints, cross-step block moves that preserve block metadata, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, exact-confirmed archived-draft purge with tombstone evidence, exact-confirmed checkout-offer linking on private draft steps, exact-confirmed checkout unlinking on private draft blocks, exact-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery on published resource blocks, exact-confirmed webinar event/replay links on private webinar blocks, and owner-session direct agent-safe draft writes for block copy edits, block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, public publishing, and archive/unpublish through /api/agent/funnels/draft-writes. Full absolute-position canvas editing, direct agent purge, direct agent-created delivery tokens, direct webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, and unauthenticated public agent writes still require future confirmed-write APIs with stronger rollback and provider safety notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -205,6 +259,7 @@ export const editableDraftCapability = {
   webinarEventLinkEndpoint: "/api/admin/funnels/drafts",
   blockEditEndpoint: "/api/admin/funnels/drafts",
   blockStructureEndpoint: "/api/admin/funnels/drafts",
+  blockVisualStyleEndpoint: "/api/admin/funnels/drafts",
   blockReorderEndpoint: "/api/admin/funnels/drafts",
   blockCrossStepMoveEndpoint: "/api/admin/funnels/drafts",
   storage: ["funnel_drafts", "funnel_draft_steps", "funnel_audit_events", "funnel_purge_events"],
@@ -214,6 +269,7 @@ export const editableDraftCapability = {
     "Read that owner sessions can update and reorder draft funnel steps.",
     "Read that owner sessions can edit draft block titles and body copy while preserving block IDs, kinds, and checkout-link metadata.",
     "Read that owner sessions can add reusable block-library blocks to draft steps and remove safe unlinked blocks.",
+    "Read that owner sessions can apply visual style presets to existing draft blocks and render them in private previews and public published routes.",
     "Read that owner sessions can reorder blocks within the same step while preserving block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and webinar-link metadata.",
     "Read that owner sessions can move blocks across steps while preserving block IDs, kinds, copy, checkout-link metadata, resource-link metadata, and webinar-link metadata.",
     "Read that owner sessions can drag/drop existing blocks in the /admin/funnels UI while the UI reuses the same owner-session reorder and cross-step move endpoint modes.",
@@ -234,7 +290,7 @@ export const editableDraftCapability = {
     "Cite issues #91, #93, #95, #135, #163, #165, #213, #215, #341, #417, #430, and #432 before claiming editable, publishable, checkout-linkable, checkout-unlinkable, public checkout-start, webinar-linkable, webinar-template, resource-template, duplicate, archive/unpublish, archived-draft purge, granular block-edit, block add/remove, block reorder, or cross-step block move capability.",
   ],
   notYetLive: [
-    "Freeform canvas layout styling or absolute-position visual layout editing",
+    "Full absolute-position visual layout editing",
     "Live webinar scheduling, attendance tracking, or replay hosting",
     "Arbitrary private R2 delivery, signed URLs, or live fulfillment automation",
     "Direct agent public publishing without owner-session confirmation",
@@ -242,6 +298,48 @@ export const editableDraftCapability = {
     "Direct agent purge without owner confirmation",
   ],
   writeBoundary: draftFunnelBuilderWriteBoundary,
+};
+
+export const draftFunnelBlockVisualStyleCapability = {
+  id: "funnel-draft-block-visual-style-owner-confirmed",
+  status: "owner-session-block-visual-style-ready",
+  issue: draftFunnelAdvancedParityIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  adminRoute: "/admin/funnels",
+  editEndpoint: "/api/admin/funnels/drafts",
+  auth: "owner-session",
+  confirmationRequired: false,
+  idempotencyRequired: true,
+  staleRevisionRequired: true,
+  storesIn: "funnel_draft_steps.blocks_json",
+  styleIds: funnelBlockVisualStyles.map((style) => style.id),
+  defaultStyleId: defaultFunnelBlockVisualStyleId,
+  privatePreviewRendersStyle: true,
+  publicPublishedRouteRendersStyle: true,
+  fullAbsoluteCanvasEditingEnabled: false,
+  preservesBlockId: true,
+  preservesBlockKind: true,
+  preservesBlockTitle: true,
+  preservesBlockBody: true,
+  preservesCheckoutLinks: true,
+  preservesResourceDeliveryLinks: true,
+  preservesWebinarEventLinks: true,
+  rawOwnerDataIncluded: false,
+  safeForPublicAgents: [
+    "Read that verified owners can apply standard, spotlight, split, or compact visual styles to existing draft blocks from /admin/funnels.",
+    "Read that visual style updates require an owner session, idempotency key, and fresh draft revision.",
+    "Read that private previews and public published funnel routes render the saved visual style.",
+    "Read that visual style updates preserve block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, webinar-link metadata, and audit evidence.",
+    "Distinguish owner-session block visual styles from full absolute-position canvas editing, arbitrary CSS injection, billing mutation, live fulfillment automation, webinar provider automation, and direct public agent writes.",
+  ],
+  notYetLive: [
+    "Full absolute-position canvas editing",
+    "Arbitrary CSS or script injection from funnel editing",
+    "Direct agent visual style writes",
+    "Live billing or fulfillment mutation from visual style changes",
+  ],
+  writeBoundary:
+    "Issue #417 lets verified owners apply curated visual style presets to existing draft funnel blocks after idempotency and a fresh revision check. The write stores a small style ID in funnel_draft_steps.blocks_json, preserves block content and linked checkout/resource/webinar metadata, and renders the same style in owner private preview and public published routes. It does not provide arbitrary CSS, script injection, absolute-position canvas editing, live billing, live fulfillment automation, webinar provider automation, direct agent purge, direct agent-created delivery tokens, or unauthenticated public agent writes.",
 };
 
 export const agentFunnelDraftWriteCapability = {
@@ -460,11 +558,11 @@ export const draftFunnelBlockReorderCapability = {
     "Read that the /admin/funnels drag/drop UI reuses the same owner-session block reorder mode with fresh revision checks.",
     "Read that block reordering requires an owner session, idempotency key, and fresh draft revision.",
     "Read that block reordering preserves block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, webinar-link metadata, and step membership.",
-    "Distinguish block reordering from block add/remove, freeform canvas layout styling, live billing, webinar scheduling, arbitrary uploaded private asset delivery, live fulfillment automation, or direct public agent writes.",
+    "Distinguish block reordering from block add/remove, full absolute-position canvas editing, live billing, webinar scheduling, arbitrary uploaded private asset delivery, live fulfillment automation, or direct public agent writes.",
   ],
   notYetLive: [
     "Direct public or unauthenticated agent block reordering",
-    "Freeform canvas layout styling or arbitrary visual layout editing",
+    "Full absolute-position canvas editing or arbitrary visual layout editing",
     "Live billing or fulfillment mutation from block reordering",
   ],
   writeBoundary:
@@ -504,15 +602,15 @@ export const draftFunnelBlockCrossStepMoveCapability = {
     "Read that cross-step block moves require an owner session, idempotency key, and fresh draft revision.",
     "Read that cross-step block moves append the block to the destination step and refuse to empty the source step.",
     "Read that cross-step block moves preserve block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, webinar-link metadata, and audit evidence.",
-    "Distinguish cross-step block moves from freeform canvas layout styling, live billing, webinar scheduling, arbitrary uploaded private asset delivery, live fulfillment automation, or direct public agent writes.",
+    "Distinguish cross-step block moves from full absolute-position canvas editing, live billing, webinar scheduling, arbitrary uploaded private asset delivery, live fulfillment automation, or direct public agent writes.",
   ],
   notYetLive: [
     "Direct public or unauthenticated agent cross-step block moves",
-    "Freeform canvas layout styling or arbitrary visual layout editing",
+    "Full absolute-position canvas editing or arbitrary visual layout editing",
     "Live billing or fulfillment mutation from cross-step block moves",
   ],
   writeBoundary:
-    "Issue #417 lets verified owners move an existing draft block from one step to another after idempotency and a fresh revision check. The /admin/funnels drag/drop UI reuses that same endpoint mode for cross-step drops and, when the owner drops before or after a target block, replays within-step moves with fresh revisions to complete placement. The cross-step write appends the block to the destination step, refuses moves that would leave the source step empty, and preserves block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, webinar-link metadata, and audit evidence. It does not provide freeform canvas layout styling, publish, bill, fulfill, schedule webinars, track attendance, host replays, expose arbitrary uploaded private asset delivery, create signed URLs, run live fulfillment automation, or create direct public agent writes.",
+    "Issue #417 lets verified owners move an existing draft block from one step to another after idempotency and a fresh revision check. The /admin/funnels drag/drop UI reuses that same endpoint mode for cross-step drops and, when the owner drops before or after a target block, replays within-step moves with fresh revisions to complete placement. The cross-step write appends the block to the destination step, refuses moves that would leave the source step empty, and preserves block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, webinar-link metadata, and audit evidence. It does not provide full absolute-position canvas editing, publish, bill, fulfill, schedule webinars, track attendance, host replays, expose arbitrary uploaded private asset delivery, create signed URLs, run live fulfillment automation, or create direct public agent writes.",
 };
 
 export const draftFunnelWebinarEventLinkCapability = {
@@ -629,12 +727,12 @@ export const draftFunnelBlockEditingCapability = {
     "Read that verified owners can edit draft block title and body copy from /admin/funnels.",
     "Read that block edits require an owner session, idempotency key, and fresh draft revision.",
     "Read that block ID, kind, agent-editable flag, and checkout-link metadata are preserved by block edits.",
-    "Distinguish granular block copy editing from block placement, block add/remove, freeform canvas layout styling, live billing, arbitrary uploaded private asset delivery, live fulfillment automation, or direct agent writes.",
+    "Distinguish granular block copy editing from block placement, block add/remove, visual style presets, full absolute-position canvas editing, live billing, arbitrary uploaded private asset delivery, live fulfillment automation, or direct agent writes.",
   ],
   notYetLive: [
     "Direct agent block edits without owner confirmation",
     "Block add/remove through the title/body edit action",
-    "Freeform canvas layout styling",
+    "Full absolute-position canvas editing",
     "Checkout-link deletion from block editing",
     "Live billing or fulfillment mutation from block editing",
   ],
@@ -664,12 +762,12 @@ export const draftFunnelBlockStructureCapability = {
     "Read that verified owners can add reusable block-library items to draft funnel steps from /admin/funnels.",
     "Read that verified owners can remove draft blocks only when the block is not carrying checkout-link metadata and the step keeps at least one block.",
     "Read that block add/remove writes require an owner session, idempotency key, and fresh draft revision.",
-    "Distinguish block add/remove from the dedicated checkout unlink action, freeform canvas layout styling, destructive funnel deletion, arbitrary uploaded private asset delivery, live fulfillment automation, live billing, or direct public agent writes.",
+    "Distinguish block add/remove from the dedicated checkout unlink action, visual style presets, full absolute-position canvas editing, destructive funnel deletion, arbitrary uploaded private asset delivery, live fulfillment automation, live billing, or direct public agent writes.",
   ],
   notYetLive: [
     "Unauthenticated or delegated agent block add/remove without owner-session confirmation",
     "Checkout-link unlinking through block removal instead of the dedicated confirmed action",
-    "Freeform canvas layout styling",
+    "Full absolute-position canvas editing",
     "Direct agent or non-archived purge of draft rows, and any purge of audit events",
     "Live billing or fulfillment mutation from block structure edits",
   ],
@@ -1222,6 +1320,7 @@ export const funnelSourceData = {
     "funnelBlockTemplateId",
     "funnelDraftBlockEditId",
     "funnelDraftBlockStructureEditId",
+    "funnelDraftBlockVisualStyleId",
     "funnelDraftBlockReorderId",
     "funnelDraftBlockCrossStepMoveId",
     "funnelCheckoutLinkId",
@@ -1250,6 +1349,8 @@ export const funnelSourceData = {
   editableDraftCapability,
   draftFunnelBlockEditingCapability,
   draftFunnelBlockStructureCapability,
+  draftFunnelBlockVisualStyleCapability,
+  funnelBlockVisualStyles,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockCrossStepMoveCapability,
   draftFunnelWebinarEventLinkCapability,
@@ -1269,5 +1370,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-session direct agent-safe draft writes for block copy edits, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, and archive/unpublish from issue #417, and owner-confirmed archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, freeform canvas visual styling, direct agent purge, and unconfirmed unauthenticated agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session visual style controls for existing blocks, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-session direct agent-safe draft writes for block copy edits, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, and archive/unpublish from issue #417, and owner-confirmed archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, full absolute-position canvas editing, direct agent purge, and unconfirmed unauthenticated agent-write APIs are not live.",
 };

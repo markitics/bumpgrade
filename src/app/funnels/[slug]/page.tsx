@@ -11,6 +11,7 @@ import { analyticsDashboard } from "@/lib/analytics-experiments";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
 import {
+  funnelBlockVisualStyleForId,
   funnelBlockLibrary,
   funnelTemplateLibrary,
   getFunnelBySlug,
@@ -187,80 +188,88 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
         </div>
         <div className="feature-grid">
           {funnel.steps.flatMap((step) =>
-            step.blocks.map((block) => (
-              <article key={block.id} className="feature-card compact-content-card">
-                <div className="feature-card-top">
-                  <span className={`status-badge ${block.agentEditable ? "active" : "blocked"}`}>
-                    {block.agentEditable ? "Reusable" : "Protected"}
-                  </span>
-                  <span className="admin-pill">{step.title}</span>
-                </div>
-                {routedExperiment && block.id === "block-opt-in-hero" ? (
-                  <FunnelExperimentRoutedCopy
-                    experimentId={routedExperiment.id}
-                    sourceRoute={funnel.previewRoute}
-                    fallbackTitle={block.title}
-                    fallbackBody={customerFacingCopy(block.body)}
-                    variants={routedExperiment.variants.map((variant) => ({
-                      id: variant.id,
-                      label: variant.label,
-                      routingRole: variant.routingRole,
-                      routedTitle: variant.routedTitle,
-                      routedBody: variant.routedBody,
-                    }))}
-                  />
-                ) : (
-                  <>
-                    <h3>{block.title}</h3>
-                    <p>{customerFacingCopy(block.body)}</p>
-                  </>
-                )}
-                <div className="feature-detail">
-                  <strong>Purpose</strong>
-                  <span>{block.kind.replaceAll("_", " ")}</span>
-                </div>
-                {block.resourceDeliveryLink ? (
-                  <>
+            step.blocks.map((block) => {
+              const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+
+              return (
+                <article
+                  key={block.id}
+                  className={`feature-card compact-content-card funnel-block-card ${visualStyle.className}`}
+                  data-funnel-block-style={visualStyle.id}
+                >
+                  <div className="feature-card-top">
+                    <span className={`status-badge ${block.agentEditable ? "active" : "blocked"}`}>
+                      {block.agentEditable ? "Reusable" : "Protected"}
+                    </span>
+                    <span className="admin-pill">{step.title}</span>
+                  </div>
+                  {routedExperiment && block.id === "block-opt-in-hero" ? (
+                    <FunnelExperimentRoutedCopy
+                      experimentId={routedExperiment.id}
+                      sourceRoute={funnel.previewRoute}
+                      fallbackTitle={block.title}
+                      fallbackBody={customerFacingCopy(block.body)}
+                      variants={routedExperiment.variants.map((variant) => ({
+                        id: variant.id,
+                        label: variant.label,
+                        routingRole: variant.routingRole,
+                        routedTitle: variant.routedTitle,
+                        routedBody: variant.routedBody,
+                      }))}
+                    />
+                  ) : (
+                    <>
+                      <h3>{block.title}</h3>
+                      <p>{customerFacingCopy(block.body)}</p>
+                    </>
+                  )}
+                  <div className="feature-detail">
+                    <strong>Purpose</strong>
+                    <span>{block.kind.replaceAll("_", " ")}</span>
+                  </div>
+                  {block.resourceDeliveryLink ? (
+                    <>
+                      <div className="feature-detail">
+                        <strong>Resource access</strong>
+                        <span>
+                          {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. Access stays
+                          entitlement-gated; private files and signed URLs are not exposed on this page.
+                        </span>
+                      </div>
+                      {published ? (
+                        <FunnelResourceDeliveryPanel
+                          funnelSlug={funnel.slug}
+                          blockId={block.id}
+                          productTitle={block.resourceDeliveryLink.productTitle}
+                          assetTitle={block.resourceDeliveryLink.assetTitle}
+                        />
+                      ) : null}
+                    </>
+                  ) : null}
+                  {block.webinarEventLink ? (
                     <div className="feature-detail">
-                      <strong>Resource access</strong>
+                      <strong>Webinar access</strong>
                       <span>
-                        {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. Access stays
-                        entitlement-gated; private files and signed URLs are not exposed on this page.
+                        {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}.{" "}
+                        <a href={block.webinarEventLink.registrationUrl} rel="noreferrer" target="_blank">
+                          Registration
+                        </a>
+                        {block.webinarEventLink.replayUrl ? (
+                          <>
+                            {" "}
+                            and{" "}
+                            <a href={block.webinarEventLink.replayUrl} rel="noreferrer" target="_blank">
+                              replay
+                            </a>
+                          </>
+                        ) : null}{" "}
+                        stay external; Bumpgrade does not expose provider secrets or attendee records.
                       </span>
                     </div>
-                    {published ? (
-                      <FunnelResourceDeliveryPanel
-                        funnelSlug={funnel.slug}
-                        blockId={block.id}
-                        productTitle={block.resourceDeliveryLink.productTitle}
-                        assetTitle={block.resourceDeliveryLink.assetTitle}
-                      />
-                    ) : null}
-                  </>
-                ) : null}
-                {block.webinarEventLink ? (
-                  <div className="feature-detail">
-                    <strong>Webinar access</strong>
-                    <span>
-                      {block.webinarEventLink.eventTitle} via {block.webinarEventLink.providerLabel}.{" "}
-                      <a href={block.webinarEventLink.registrationUrl} rel="noreferrer" target="_blank">
-                        Registration
-                      </a>
-                      {block.webinarEventLink.replayUrl ? (
-                        <>
-                          {" "}
-                          and{" "}
-                          <a href={block.webinarEventLink.replayUrl} rel="noreferrer" target="_blank">
-                            replay
-                          </a>
-                        </>
-                      ) : null}{" "}
-                      stay external; Bumpgrade does not expose provider secrets or attendee records.
-                    </span>
-                  </div>
-                ) : null}
-              </article>
-            )),
+                  ) : null}
+                </article>
+              );
+            }),
           )}
         </div>
       </section>
