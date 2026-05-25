@@ -13,7 +13,7 @@ import {
   audienceSequenceReceiptPayloadReadinessIssue,
   audienceSequenceReceiptPayloadReadinessStatus,
 } from "@/lib/audience-sequence-receipt-payload-readiness";
-import { audienceSequenceTestSendApiRoute } from "@/lib/audience-sequence-test-sends";
+import { audienceSequenceTestSendApiRoute } from "@/lib/audience-sequence-test-send-constants";
 import { audienceUnsubscribeApiRoute, audienceUnsubscribeWriteContract } from "@/lib/audience-unsubscribe";
 
 export type AudienceAutomationStatus = "draft";

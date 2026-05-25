@@ -212,13 +212,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   routes through `/api/funnels/resource-delivery` after checkout and
   entitlement scope match. Published webinar-linked blocks can render external
   registration/replay references. `/api/agent/funnels/draft-writes` lets
-  verified owner-session agents update private draft block copy, duplicate a
-  private draft, or archive/unpublish a draft after exact confirmation,
-  idempotency, a fresh revision check, and audit correlation; responses are
-  redacted draft summaries. It is not direct agent template creation, direct
+  verified owner-session agents update private draft block copy, link
+  resource-delivery metadata, link webinar-event metadata, duplicate a private
+  draft, or archive/unpublish a draft after exact confirmation, idempotency, a
+  fresh revision check, and audit correlation; responses are redacted draft
+  summaries. It is not direct agent template creation, direct
   agent block add/remove, direct agent block reordering, direct agent cross-step
-  block moves, direct agent checkout unlinking, direct agent resource delivery
-  linking, direct agent-created delivery tokens, direct agent webinar event linking, direct agent purge,
+  block moves, direct agent checkout unlinking, direct agent-created delivery tokens, direct agent purge,
   direct agent public publishing, non-archived purge, live billing mutation,
   one-click upsell charging, drag-and-drop visual editing, arbitrary uploaded
   private asset delivery, signed URL creation, live fulfillment automation, live
@@ -231,7 +231,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   for freeform drag-and-drop layout editing, arbitrary uploaded private asset delivery,
   live fulfillment automation, full webinar integrations, bulk purge policy,
   direct agent-created delivery tokens, direct agent public publishing,
-  direct agent checkout/resource/webinar linking, and direct agent purge;
+  direct agent checkout linking, and direct agent purge;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`

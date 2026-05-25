@@ -1525,6 +1525,23 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.agentFunnelDraftWriteCapability.allowedOperations).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "update-block", requiresStepId: true, requiresBlockId: true }),
+        expect.objectContaining({
+          id: "link-resource-delivery",
+          requiresStepId: true,
+          requiresBlockId: true,
+          requiresProductId: true,
+          requiresAssetId: true,
+          publicRouteMutation: false,
+        }),
+        expect.objectContaining({
+          id: "link-webinar-event",
+          requiresStepId: true,
+          requiresBlockId: true,
+          requiresEventTitle: true,
+          requiresRegistrationUrl: true,
+          requiresProviderLabel: true,
+          publicRouteMutation: false,
+        }),
         expect.objectContaining({ id: "duplicate-draft", publicRouteMutation: false }),
         expect.objectContaining({ id: "archive-draft", publicRouteMutation: true }),
       ]),
@@ -1788,13 +1805,122 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(updatePayload)).not.toContain("m@rkmoriarty.com");
 
+    const resourceStep = draft.steps.find((step: { kind: string }) => step.kind === "resource");
+    const resourceBlock = resourceStep?.blocks.find((block: { kind: string }) => block.kind === "resource");
+    expect(resourceStep).toEqual(expect.objectContaining({ id: expect.any(String), kind: "resource" }));
+    expect(resourceBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "resource" }));
+    if (!resourceStep || !resourceBlock) throw new Error("Expected resource draft to include a resource block.");
+
+    const resourceAuditCorrelationId = `playwright-agent-funnel-resource-audit-${suffix}`;
+    const resourceLink = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "link-resource-delivery",
+        draftId: draft.id,
+        stepId: resourceStep.id,
+        blockId: resourceBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: updatePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-resource-${suffix}`,
+        auditCorrelationId: resourceAuditCorrelationId,
+      },
+    });
+    expect(resourceLink.ok(), await resourceLink.text()).toBeTruthy();
+    const resourceLinkPayload = await resourceLink.json();
+    expect(resourceLinkPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "link-resource-delivery",
+        issue: agentFunnelDraftWriteCapability.issue,
+        route: agentFunnelDraftWriteApiRoute,
+        auditCorrelationId: resourceAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: draft.id,
+          status: "draft",
+          revisionId: expect.any(String),
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          buyerDataIncluded: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const webinarCreate = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-webinar-registration-replay",
+        title: `Agent-safe webinar draft ${suffix}`,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-webinar-create-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(webinarCreate.ok(), await webinarCreate.text()).toBeTruthy();
+    const webinarCreatePayload = await webinarCreate.json();
+    const webinarDraft = webinarCreatePayload.draft;
+    const webinarStep = webinarDraft.steps.find((step: { kind: string }) => step.kind === "webinar");
+    const webinarBlock = webinarStep?.blocks.find((block: { kind: string }) => block.kind === "webinar");
+    expect(webinarStep).toEqual(expect.objectContaining({ id: expect.any(String), kind: "webinar" }));
+    expect(webinarBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "webinar" }));
+    if (!webinarStep || !webinarBlock) throw new Error("Expected webinar draft to include a webinar block.");
+
+    const webinarAuditCorrelationId = `playwright-agent-funnel-webinar-audit-${suffix}`;
+    const webinarLink = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "link-webinar-event",
+        draftId: webinarDraft.id,
+        stepId: webinarStep.id,
+        blockId: webinarBlock.id,
+        eventTitle: "Agent-safe launch workshop",
+        providerLabel: "External webinar provider",
+        registrationUrl: "https://events.example.com/register",
+        replayUrl: "https://events.example.com/replay",
+        expectedRevisionId: webinarDraft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-webinar-${suffix}`,
+        auditCorrelationId: webinarAuditCorrelationId,
+      },
+    });
+    expect(webinarLink.ok(), await webinarLink.text()).toBeTruthy();
+    const webinarLinkPayload = await webinarLink.json();
+    expect(webinarLinkPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "link-webinar-event",
+        issue: agentFunnelDraftWriteCapability.issue,
+        route: agentFunnelDraftWriteApiRoute,
+        auditCorrelationId: webinarAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: webinarDraft.id,
+          status: "draft",
+          revisionId: expect.any(String),
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          providerSecretsIncluded: false,
+          publicAgentWriteCreated: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+
     const duplicateAuditCorrelationId = `playwright-agent-funnel-duplicate-audit-${suffix}`;
     const duplicate = await page.request.post(agentFunnelDraftWriteApiRoute, {
       data: {
         operationId: "duplicate-draft",
         draftId: draft.id,
         title: `Agent-safe duplicate ${suffix}`,
-        expectedRevisionId: updatePayload.draft.revisionId,
+        expectedRevisionId: resourceLinkPayload.draft.revisionId,
         confirmationText: agentFunnelDraftWriteConfirmationText,
         idempotencyKey: `playwright-agent-funnel-duplicate-${suffix}`,
         auditCorrelationId: duplicateAuditCorrelationId,
@@ -19463,7 +19589,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe private draft writes for block copy edits, private duplication, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe private draft writes for block copy edits, resource-delivery linking, webinar-event linking, private duplication, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
