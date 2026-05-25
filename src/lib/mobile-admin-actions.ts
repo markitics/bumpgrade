@@ -174,6 +174,7 @@ const sourceRoutesByActionId: Record<string, string[]> = {
     "/admin/director/source-data",
     "/agent-docs/source-data",
   ],
+  "mobile-confirm-commerce-health-review": ["/commerce/source-data", "/features/source-data", "/roadmap/source-data"],
   "mobile-confirm-commerce-change": ["/commerce/source-data", "/features/source-data", "/roadmap/source-data"],
 };
 
@@ -355,7 +356,7 @@ async function loadCounts(db: D1Database) {
       `SELECT
         COUNT(*) AS action_intents,
         SUM(CASE WHEN action_id = 'mobile-confirm-review-agent-work' THEN 1 ELSE 0 END) AS review_agent_work_intents,
-        SUM(CASE WHEN action_id = 'mobile-confirm-commerce-change' THEN 1 ELSE 0 END) AS commerce_change_intents,
+        SUM(CASE WHEN action_id IN ('mobile-confirm-commerce-health-review', 'mobile-confirm-commerce-change') THEN 1 ELSE 0 END) AS commerce_change_intents,
         SUM(production_mutation_created) AS production_mutations_created_records,
         SUM(billing_mutation_created) AS billing_mutations_created_records,
         SUM(push_notification_sent) AS push_notifications_sent_records,

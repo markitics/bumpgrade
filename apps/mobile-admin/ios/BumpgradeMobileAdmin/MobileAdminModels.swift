@@ -14,6 +14,7 @@ struct MobileAdminContract: Decodable {
     let privateRowsApi: MobilePrivateRowsApi
     let privateRowActionsApi: MobilePrivateRowActionsApi
     let directorReviewApi: MobileDirectorReviewApi
+    let commerceReviewApi: MobileCommerceReviewApi
     let actionIntentApi: MobileActionIntentApi
     let pushNotificationBoundary: MobilePushNotificationBoundary
     let distributionReadiness: MobileDistributionReadiness
@@ -102,6 +103,19 @@ struct MobileActionIntentApi: Decodable {
 }
 
 struct MobileDirectorReviewApi: Decodable {
+    let id: String
+    let issue: Int
+    let status: String
+    let route: String
+    let authBoundary: String
+    let purpose: String
+    let reviewBoundary: String
+    let publicSourceDataSummary: String
+    let requiredInputs: [String]
+    let redactionFlags: [String]
+}
+
+struct MobileCommerceReviewApi: Decodable {
     let id: String
     let issue: Int
     let status: String

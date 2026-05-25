@@ -124,6 +124,17 @@ type DirectorReviewApiContract = {
   requiredInputs: string[];
 };
 
+type CommerceReviewApiContract = {
+  id: string;
+  issue: number;
+  status: string;
+  route: string;
+  authBoundary: string;
+  purpose: string;
+  reviewBoundary: string;
+  requiredInputs: string[];
+};
+
 type PushNotificationBoundaryContract = {
   id: string;
   issue: number;
@@ -220,6 +231,7 @@ export default function App() {
   const privateRowsApi = mobileAdminContractFixture.privateRowsApi as PrivateRowsApiContract;
   const privateRowActionsApi = mobileAdminContractFixture.privateRowActionsApi as PrivateRowActionsApiContract;
   const directorReviewApi = mobileAdminContractFixture.directorReviewApi as DirectorReviewApiContract;
+  const commerceReviewApi = mobileAdminContractFixture.commerceReviewApi as CommerceReviewApiContract;
   const actionIntentApi = mobileAdminContractFixture.actionIntentApi as ActionIntentApiContract;
   const pushBoundary = mobileAdminContractFixture.pushNotificationBoundary as PushNotificationBoundaryContract;
   const distributionReadiness = mobileAdminContractFixture.distributionReadiness as DistributionReadinessContract;
@@ -227,7 +239,7 @@ export default function App() {
   const iosDistributionEvidence =
     distributionReadiness.platformEvidence.find((evidence) => evidence.platform === "ios") ??
     distributionReadiness.platformEvidence[0];
-  const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 2) as ConfirmedActionContract[];
+  const confirmedActions = mobileAdminContractFixture.confirmedActions.slice(0, 3) as ConfirmedActionContract[];
   const [dashboard, setDashboard] = useState<DashboardPanel>(() => fixtureDashboardPanel());
 
   useEffect(() => {
@@ -336,6 +348,16 @@ export default function App() {
           <Text style={styles.meta}>Auth: {directorReviewApi.authBoundary}</Text>
           <Text style={styles.meta}>Boundary: {directorReviewApi.reviewBoundary}</Text>
           <Text style={styles.meta}>Inputs: {directorReviewApi.requiredInputs.join(", ")}</Text>
+        </View>
+
+        <View style={styles.panel}>
+          <Text style={styles.kicker}>Commerce review API</Text>
+          <Text style={styles.panelTitle}>{commerceReviewApi.route}</Text>
+          <Text style={styles.body}>{commerceReviewApi.purpose}</Text>
+          <Text style={styles.meta}>Status: {commerceReviewApi.status} · issue #{commerceReviewApi.issue}</Text>
+          <Text style={styles.meta}>Auth: {commerceReviewApi.authBoundary}</Text>
+          <Text style={styles.meta}>Boundary: {commerceReviewApi.reviewBoundary}</Text>
+          <Text style={styles.meta}>Inputs: {commerceReviewApi.requiredInputs.join(", ")}</Text>
         </View>
 
         <View style={styles.panel}>

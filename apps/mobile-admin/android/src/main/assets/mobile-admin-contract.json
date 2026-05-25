@@ -1,13 +1,13 @@
 {
   "id": "bumpgrade-mobile-admin-contract",
-  "updatedAt": "2026-05-24",
+  "updatedAt": "2026-05-25",
   "publicBaseUrl": "https://bumpgrade.com",
   "parentIssue": 13,
   "currentFollowupIssue": 414,
   "status": "contract-ready",
   "featureId": "feature-mobile-admin",
   "stackDecision": "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
-  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, owner-confirmed Director workstream review API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk billing/publishing mobile mutations, App Store distribution, or Play Store distribution.",
+  "scaffoldBoundary": "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, owner-confirmed Director workstream review API, owner-confirmed commerce health review API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk billing/publishing mobile mutations, App Store distribution, or Play Store distribution.",
   "liveDashboard": {
     "id": "mobile-live-dashboard-source-data",
     "issue": 153,
@@ -134,6 +134,43 @@
       "staleStateTokenHashIncluded=false",
       "rawRowsIncluded=false",
       "billingMutationCreated=false",
+      "pushNotificationSent=false",
+      "distributionStateChanged=false",
+      "publicAgentWriteCreated=false"
+    ]
+  },
+  "commerceReviewApi": {
+    "id": "mobile-commerce-review-api",
+    "issue": 414,
+    "status": "owner-mobile-commerce-review-ready",
+    "route": "/api/mobile-admin/commerce-reviews",
+    "authBoundary": "owner-session",
+    "purpose": "Let a verified owner acknowledge current commerce health from Mobile Admin after reviewing the public-safe commerce source-data contract.",
+    "reviewBoundary": "The endpoint records low-risk owner commerce review state after exact confirmation, idempotency, current commerce source-revision checks, stale-state token checks, and audit correlation. It changes only commerce review state and creates no billing mutation, refund, subscription change, price change, fulfillment change, entitlement change, push notification, distribution state change, public agent write, or private-row change.",
+    "publicSourceDataSummary": "/mobile-admin/source-data and /mobile-admin/dashboard/source-data may expose the commerce review API route, status, counts, latest reviewed commerce target labels, and redaction flags; owner-only GET /api/mobile-admin/commerce-reviews is required before stale-state tokens are returned.",
+    "requiredInputs": [
+      "reviewTargetId",
+      "expectedCommerceGeneratedAt",
+      "staleStateToken",
+      "confirmationText",
+      "idempotencyKey",
+      "auditCorrelationId"
+    ],
+    "redactionFlags": [
+      "actorEmailIncluded=false",
+      "actorEmailHashIncluded=false",
+      "actorUserIdIncluded=false",
+      "reviewNoteIncluded=false",
+      "idempotencyKeysIncluded=false",
+      "staleStateTokenIncludedInPublicSourceData=false",
+      "staleStateTokenHashIncluded=false",
+      "rawRowsIncluded=false",
+      "billingMutationCreated=false",
+      "refundCreated=false",
+      "subscriptionChanged=false",
+      "priceChanged=false",
+      "fulfillmentStateChanged=false",
+      "entitlementStateChanged=false",
       "pushNotificationSent=false",
       "distributionStateChanged=false",
       "publicAgentWriteCreated=false"
@@ -309,6 +346,29 @@
       "mutationBoundary": "The current /api/mobile-admin/director-reviews endpoint can record owner-confirmed Director workstream review state for this action. /api/mobile-admin/actions remains available for audit-only action intent evidence, but higher-risk production mutations still require domain-specific confirmed-write APIs."
     },
     {
+      "id": "mobile-confirm-commerce-health-review",
+      "issue": 414,
+      "title": "Review commerce health",
+      "status": "owner-commerce-review-api-ready",
+      "surface": "Commerce health summary",
+      "confirmationText": "ACKNOWLEDGE MOBILE COMMERCE HEALTH",
+      "requiredInputs": [
+        "actorUserId",
+        "role",
+        "reviewTargetId",
+        "expectedCommerceGeneratedAt",
+        "idempotencyKey",
+        "staleStateToken",
+        "auditCorrelationId"
+      ],
+      "safetyRules": [
+        "Require exact confirmation before recording owner commerce-health review state.",
+        "Check the current /commerce/source-data revision before accepting stale mobile acknowledgements.",
+        "Return redacted result metadata only; never return buyer identity, Stripe identifiers, entitlement rows, signed URLs, or R2 object keys to public source-data."
+      ],
+      "mutationBoundary": "The current /api/mobile-admin/commerce-reviews endpoint can record owner-confirmed commerce-health review state for this action. It does not create checkout, refund, subscription, price, fulfillment, entitlement, push, distribution, private-row, or public agent mutations."
+    },
+    {
       "id": "mobile-confirm-commerce-change",
       "issue": 414,
       "title": "Confirm commerce or fulfillment changes",
@@ -407,10 +467,11 @@
       "firstScreen": "Commerce health summary",
       "sourceRoutes": [
         "/mobile-admin/dashboard/source-data",
+        "/api/mobile-admin/commerce-reviews",
         "/commerce/source-data",
         "/api/commerce/checkout"
       ],
-      "writeBoundary": "No live checkout, refund, subscription, price, or fulfillment mutation from mobile until confirmed-write APIs ship."
+      "writeBoundary": "Mobile can record owner-confirmed commerce-health review state through /api/mobile-admin/commerce-reviews, but no live checkout, refund, subscription, price, fulfillment, or entitlement mutation from mobile is live until higher-risk confirmed-write APIs ship."
     }
   ],
   "apiDependencies": [
@@ -554,6 +615,19 @@
       ]
     },
     {
+      "id": "mobile-api-commerce-review",
+      "route": "/api/mobile-admin/commerce-reviews",
+      "purpose": "Owner-confirmed commerce-health acknowledgement API for mobile clients, with exact confirmation, stale commerce source-data checks, idempotency, audit correlation, and redaction.",
+      "authBoundary": "owner-session",
+      "stableIds": [
+        "commerceReviewTargetId",
+        "mobileCommerceReviewId",
+        "idempotencyKey",
+        "auditCorrelationId",
+        "staleStateToken"
+      ]
+    },
+    {
       "id": "mobile-api-push-boundary",
       "route": "/mobile-admin/source-data",
       "purpose": "Public-safe push-notification readiness boundary for APNs/FCM provider requirements, disabled send status, blockers, and redaction flags before any Mobile Admin push sends exist.",
@@ -582,6 +656,7 @@
     "The first private mobile row slice is read-only through /api/mobile-admin/private-rows and cannot mutate production state.",
     "The first Mobile Admin private-row confirmed-write slice can mark private rows read or deferred through /api/mobile-admin/private-rows/actions, but it cannot mutate billing, commerce, publishing, moderation, creator speech, push notifications, distribution, or public agent state.",
     "The first domain-specific Mobile Admin confirmed-write slice can acknowledge Director workstreams through /api/mobile-admin/director-reviews, but it mutates only low-risk owner review state.",
+    "The first Mobile Admin commerce review slice can acknowledge commerce source-data health through /api/mobile-admin/commerce-reviews, but it cannot create checkouts, refunds, subscription changes, price changes, fulfillment changes, entitlement changes, push notifications, distribution state, private-row changes, or public agent writes.",
     "The first mobile app slices can record audit-only action intents through /api/mobile-admin/actions, but higher-risk production mutations remain disabled until additional domain-specific confirmed-write APIs exist.",
     "Do not ship mobile-only product semantics; mobile reads and writes must map to the same feature, roadmap, commerce, admin, and agent contracts as web.",
     "Public, destructive, billing-impacting, publishing, moderation, source-editing, and creator-speech writes require explicit confirmation text.",

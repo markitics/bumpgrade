@@ -4,6 +4,7 @@ import { commerceTables } from "@/lib/commerce";
 import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "@/lib/director-status";
 import { featureCatalog, featureCatalogUpdatedAt, type FeatureStatus } from "@/lib/feature-catalog";
 import { getMobileAdminActionIntentSummary } from "@/lib/mobile-admin-actions";
+import { getMobileAdminCommerceReviewSummary } from "@/lib/mobile-admin-commerce-reviews";
 import { getMobileAdminDirectorReviewSummary } from "@/lib/mobile-admin-director-reviews";
 import { getMobileAdminPrivateRowActionSummary } from "@/lib/mobile-admin-private-row-actions";
 import { getMobileAdminPrivateRowsSummary } from "@/lib/mobile-admin-private-rows";
@@ -52,6 +53,7 @@ export async function getMobileAdminDashboardSourceData() {
   const adminData = await getAdminSurfaceData();
   const director = buildDirectorStatusData(adminData);
   const actionIntentSummary = await getMobileAdminActionIntentSummary({ includeStaleStateTokens: false });
+  const commerceReviewSummary = await getMobileAdminCommerceReviewSummary({ includeStaleStateTokens: false });
   const directorReviewSummary = await getMobileAdminDirectorReviewSummary({ includeStaleStateTokens: false });
   const privateRowsSummary = await getMobileAdminPrivateRowsSummary();
   const privateRowActionSummary = await getMobileAdminPrivateRowActionSummary();
@@ -76,6 +78,7 @@ export async function getMobileAdminDashboardSourceData() {
       mobileAdminContract.privateRowsApi.route,
       mobileAdminContract.privateRowActionsApi.route,
       mobileAdminContract.directorReviewApi.route,
+      mobileAdminContract.commerceReviewApi.route,
       mobileAdminContract.actionIntentApi.route,
       "/features/source-data",
       "/roadmap/source-data",
@@ -85,7 +88,7 @@ export async function getMobileAdminDashboardSourceData() {
       "/agent-docs/source-data",
     ],
     caveat:
-      "This dashboard contract is public-safe. It gives mobile clients one live digest route, redacted Director workstream briefings, public-safe private-row counts, redacted low-risk private-row action summaries, redacted Director review summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk billing or publishing confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
+      "This dashboard contract is public-safe. It gives mobile clients one live digest route, redacted Director workstream briefings, public-safe private-row counts, redacted low-risk private-row action summaries, redacted Director review summaries, redacted commerce review summaries, push-readiness blockers, and distribution-readiness blockers, but it is not live push notifications, high-risk billing or publishing confirmed-write support, physical-device proof, App Store distribution, or Play Store distribution.",
     redaction: {
       privateBuyerDataIncluded: false,
       rawInboxBodiesIncluded: false,
@@ -199,6 +202,37 @@ export async function getMobileAdminDashboardSourceData() {
         reviewNoteRecorded: review.reviewNoteRecorded,
         productionAdminStateRecorded: review.productionAdminStateRecorded,
         billingMutationCreated: review.billingMutationCreated,
+        pushNotificationSent: review.pushNotificationSent,
+        distributionStateChanged: review.distributionStateChanged,
+        publicAgentWriteCreated: review.publicAgentWriteCreated,
+        createdAt: review.createdAt,
+      })),
+    },
+    commerceReviewApi: {
+      id: mobileAdminContract.commerceReviewApi.id,
+      issue: mobileAdminContract.commerceReviewApi.issue,
+      status: mobileAdminContract.commerceReviewApi.status,
+      route: mobileAdminContract.commerceReviewApi.route,
+      authBoundary: mobileAdminContract.commerceReviewApi.authBoundary,
+      reviewBoundary: mobileAdminContract.commerceReviewApi.reviewBoundary,
+      summarySource: commerceReviewSummary.source,
+      loadError: commerceReviewSummary.loadError,
+      counts: commerceReviewSummary.counts,
+      redaction: commerceReviewSummary.redaction,
+      latestReviews: commerceReviewSummary.latestReviews.map((review) => ({
+        id: review.id,
+        reviewTargetId: review.reviewTargetId,
+        reviewTargetTitle: review.reviewTargetTitle,
+        reviewTargetStatus: review.reviewTargetStatus,
+        auditCorrelationId: review.auditCorrelationId,
+        reviewNoteRecorded: review.reviewNoteRecorded,
+        commerceStateRecorded: review.commerceStateRecorded,
+        billingMutationCreated: review.billingMutationCreated,
+        refundCreated: review.refundCreated,
+        subscriptionChanged: review.subscriptionChanged,
+        priceChanged: review.priceChanged,
+        fulfillmentStateChanged: review.fulfillmentStateChanged,
+        entitlementStateChanged: review.entitlementStateChanged,
         pushNotificationSent: review.pushNotificationSent,
         distributionStateChanged: review.distributionStateChanged,
         publicAgentWriteCreated: review.publicAgentWriteCreated,
@@ -387,6 +421,8 @@ export async function getMobileAdminDashboardSourceData() {
       sourceDataRoute: "/commerce/source-data",
       tableCount: commerceTables.length,
       liveTables: commerceTables.filter((table) => table.status === "live").map((table) => table.table),
+      reviewApiRoute: mobileAdminContract.commerceReviewApi.route,
+      reviewedTargetCount: commerceReviewSummary.counts.reviewedTargets,
       privateFieldsIncluded: false,
     },
     agentDigest: {
@@ -403,7 +439,7 @@ export async function getMobileAdminDashboardSourceData() {
         })),
     },
     nextMobileMilestones: [
-      "Add higher-risk domain-specific confirmed-write APIs before mobile can approve billing-impacting, publishing, moderation, or creator-speech actions.",
+      "Add higher-risk domain-specific confirmed-write APIs before mobile can approve billing-impacting, fulfillment, publishing, moderation, or creator-speech actions.",
       "Add physical-device proof for private mobile row inspection beyond simulator/emulator scaffolds.",
       "Choose and configure private APNs/FCM provider credentials, device-token registration, send preflight, queue, delivery-result, and receipt contracts before any push sends.",
       "Record physical-device and App Store/TestFlight or Play Store/internal-testing evidence separately from simulator/emulator proof before claiming installable app readiness.",
