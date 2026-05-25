@@ -1650,6 +1650,7 @@ export async function linkDraftFunnelBlockToResourceDelivery(
     expectedRevisionId: string;
     confirmationText: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1710,6 +1711,7 @@ export async function linkDraftFunnelBlockToResourceDelivery(
         issue: draftFunnelAdvancedParityIssue,
         action: "resource_delivery_link",
         draftFunnelResourceDeliveryLinkCapability: draftFunnelResourceDeliveryLinkCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         stepId: step.id,
         blockId: block.id,
@@ -1751,6 +1753,7 @@ export async function linkDraftFunnelBlockToWebinarEvent(
     expectedRevisionId: string;
     confirmationText: string;
     idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
   },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
@@ -1806,6 +1809,7 @@ export async function linkDraftFunnelBlockToWebinarEvent(
         issue: draftFunnelAdvancedParityIssue,
         action: "webinar_event_link",
         draftFunnelWebinarEventLinkCapability: draftFunnelWebinarEventLinkCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit),
         expectedRevisionId: input.expectedRevisionId,
         stepId: step.id,
         blockId: block.id,

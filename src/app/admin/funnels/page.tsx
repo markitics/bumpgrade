@@ -96,10 +96,10 @@ export default async function AdminFunnelsPage() {
             URLs to webinar blocks, and drag existing blocks into position within or across draft steps while preserving
             block metadata. Owners can archive private drafts or unpublish public D1 draft routes without deleting audit
             evidence, and owner-session agents can now use a confirmed JSON write contract for private block copy edits,
-            private draft duplication, and archive/unpublish. Destructive agent purge, freeform canvas layout styling,
+            resource-delivery linking, webinar-event linking, private draft duplication, and archive/unpublish.
+            Destructive agent purge, freeform canvas layout styling,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
-            direct agent public publishing, and direct agent checkout/resource/webinar linking still need confirmed-write
-            slices.
+            direct agent public publishing, and direct agent checkout linking still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">

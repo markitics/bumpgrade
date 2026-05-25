@@ -5,8 +5,12 @@ import {
   archiveDraftFunnel,
   draftFunnelArchiveConfirmationText,
   draftFunnelDuplicationConfirmationText,
+  draftFunnelResourceDeliveryLinkConfirmationText,
+  draftFunnelWebinarEventLinkConfirmationText,
   duplicateDraftFunnel,
   getFunnelDraftD1OrThrow,
+  linkDraftFunnelBlockToResourceDelivery,
+  linkDraftFunnelBlockToWebinarEvent,
   updateDraftFunnelBlock,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
@@ -26,6 +30,12 @@ type AgentFunnelDraftWriteRequestBody = {
   draftId?: unknown;
   stepId?: unknown;
   blockId?: unknown;
+  productId?: unknown;
+  assetId?: unknown;
+  eventTitle?: unknown;
+  registrationUrl?: unknown;
+  replayUrl?: unknown;
+  providerLabel?: unknown;
   title?: unknown;
   body?: unknown;
   expectedRevisionId?: unknown;
@@ -190,6 +200,60 @@ export async function POST(request: NextRequest) {
         title,
         body: blockBody,
         expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "link-resource-delivery") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+      const productId = stringValue(body.productId, 220);
+      const assetId = stringValue(body.assetId, 220);
+
+      if (!stepId || !blockId || !productId || !assetId) {
+        return jsonError(
+          400,
+          "invalid_resource_delivery_link_request",
+          "link-resource-delivery requires stepId, blockId, productId, and assetId.",
+        );
+      }
+
+      draft = await linkDraftFunnelBlockToResourceDelivery(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        productId,
+        assetId,
+        expectedRevisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "link-webinar-event") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+      const eventTitle = stringValue(body.eventTitle, 180);
+      const registrationUrl = stringValue(body.registrationUrl, 600);
+      const replayUrl = stringValue(body.replayUrl, 600);
+      const providerLabel = stringValue(body.providerLabel, 120);
+
+      if (!stepId || !blockId || !eventTitle || !registrationUrl || !providerLabel) {
+        return jsonError(
+          400,
+          "invalid_webinar_event_link_request",
+          "link-webinar-event requires stepId, blockId, eventTitle, registrationUrl, and providerLabel.",
+        );
+      }
+
+      draft = await linkDraftFunnelBlockToWebinarEvent(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        eventTitle,
+        registrationUrl,
+        replayUrl,
+        providerLabel,
+        expectedRevisionId,
+        confirmationText: draftFunnelWebinarEventLinkConfirmationText,
         idempotencyKey,
         agentWriteAudit,
       });

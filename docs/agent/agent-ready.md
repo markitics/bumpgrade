@@ -248,14 +248,14 @@ webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
 `/api/agent/funnels/draft-writes` lets verified owner-session agents perform
-direct agent-safe private draft writes for block title/body edits, private draft
-duplication, and archive/unpublish only after exact confirmation, idempotency,
-fresh revision checks, and audit correlation; responses are redacted draft
+direct agent-safe private draft writes for block title/body edits,
+resource-delivery linking, webinar-event linking, private draft duplication, and
+archive/unpublish only after exact confirmation, idempotency, fresh revision
+checks, and audit correlation; responses are redacted draft
 summaries and do not expose owner identity or raw rows. It is not direct agent
 template creation, direct agent block add/remove, direct agent checkout
-unlinking, direct agent resource delivery linking, direct agent block reordering,
-direct agent-created delivery tokens, direct agent cross-step block moves,
-direct agent webinar event linking, live billing mutation, freeform canvas
+unlinking, direct agent block reordering, direct agent-created delivery tokens,
+direct agent cross-step block moves, live billing mutation, freeform canvas
 layout styling, direct agent purge, non-archived purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
@@ -267,8 +267,8 @@ archived-draft purge, and direct agent-safe private draft writes, and remains
 the pending advanced funnel parity bucket for freeform canvas layout styling,
 arbitrary uploaded private asset delivery, live fulfillment automation, full
 webinar integrations, bulk purge policy, direct agent-created delivery tokens,
-direct agent public publishing, direct agent checkout/resource/webinar linking,
-and direct agent purge. Live
+direct agent public publishing, direct agent checkout linking, and direct agent
+purge. Live
 publisher-offer billing remains separate in issue #219.
 
 Current checkout-offer boundary: `/offers/source-data` is the public-safe read
