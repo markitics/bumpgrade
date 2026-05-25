@@ -29019,6 +29019,30 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Paid plan required")).toBeVisible();
   });
 
+  test("Free Build workspace API rejects unauthenticated JSON writes with public redaction", async ({ request }) => {
+    const response = await request.post("/api/account/publisher/free-build-workspace", {
+      headers: { accept: "application/json" },
+      data: {
+        confirmationText: publisherFreeBuildWorkspaceConfirmationText,
+        idempotencyKey: "playwright-free-build-unauthenticated-redaction",
+      },
+    });
+    expect(response.status()).toBe(401);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PUBLISHER_SESSION_REQUIRED",
+        issue: 473,
+        parentIssue: 466,
+        redaction: expect.objectContaining({
+          rawOwnerDataIncluded: false,
+          publicPublishingEnabled: false,
+          workspaceCreated: false,
+        }),
+      }),
+    );
+  });
+
   test("verified publisher can create Free Build workspace while domains stay paid-gated", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
     const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
