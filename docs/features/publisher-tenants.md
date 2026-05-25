@@ -19,7 +19,8 @@ before paid go-live.
   anonymous playground. The cookie stores a recovery token only; D1 stores the
   token hash and draft fields.
 - `POST /api/playground/claim`: attaches the saved playground to a verified
-  signed-in account and creates or reuses a private Free Build workspace.
+  signed-in account, creates or reuses a private Free Build workspace, and saves
+  a private launch draft in the funnel draft tables.
 - `POST /api/account/publisher/free-build-workspace`: creates or confirms a
   private `plan_status=free_build` workspace for an email-confirmed signed-in
   publisher before payment, with exact confirmation, idempotency, audit
@@ -45,10 +46,11 @@ Default Bumpgrade subdomains are not free-account inventory. Reservation require
 an active row in `publisher_plan_entitlements`, created after a verified
 Bumpgrade plan checkout or an owner-approved manual entitlement.
 
-Anonymous playgrounds and Free Build workspaces can hold private launch setup
-state before payment, but they cannot reserve domains, publish public buyer
-paths, collect live payments, send subscribers, or fulfill protected access until
-the account has a paid or explicitly approved go-live entitlement.
+Anonymous playgrounds, claimed launch drafts, and Free Build workspaces can hold
+private launch setup state before payment, but they cannot reserve domains,
+publish public buyer paths, collect live payments, send subscribers, or fulfill
+protected access until the account has a paid or explicitly approved go-live
+entitlement.
 
 ## Auth Boundary
 
@@ -85,8 +87,9 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Anonymous playground expansion beyond basic launch context into real draft
-  funnel, offer, product, audience, and importer records.
+- Anonymous playground expansion beyond the claimed private funnel draft into
+  dedicated offer, product, audience, importer, cleanup, and abuse-control
+  records.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

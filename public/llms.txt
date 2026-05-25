@@ -171,8 +171,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   still require paid or explicitly approved go-live state.
 - `/playground/source-data` exposes the browser-scoped anonymous playground
   contract, save route, claim route, recovery-cookie boundary, redaction policy,
-  and paid go-live gates. It does not expose recovery cookie values, token
-  hashes, private customer data, billing state, or buyer-facing launch state.
+  private draft creation on claim, and paid go-live gates. It does not expose
+  recovery cookie values, token hashes, private customer data, raw draft
+  content, billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
   generated private record types, safety gates, limitations, and the
   ClickFunnels private import API. `POST /api/imports/clickfunnels/draft`

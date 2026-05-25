@@ -559,7 +559,7 @@ export const featureCatalog: FeatureRecord[] = [
       "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
-      "Browser-scoped anonymous playground claim into a verified Free Build account.",
+      "Browser-scoped anonymous playground claim into a verified Free Build account and private launch draft.",
       "Signed-in Free Build workspace creation before payment.",
       "Paid-plan entitlement gate for publisher account setup.",
       "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
@@ -573,7 +573,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #9 owns the Better Auth foundation slice.",
       "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
       "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
-      "Issue #466 adds logged-out playground save and verified account claim while keeping go-live actions paid-gated.",
+      "Issue #466 adds logged-out playground save, verified account claim, and private launch draft creation while keeping go-live actions paid-gated.",
       "Issue #473 adds signed-in Free Build workspace creation while keeping public go-live actions paid-gated.",
       "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
       "Issue #223 adds existing custom-domain onboarding, DNS instructions, and redacted verification state.",
@@ -715,7 +715,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
       "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, logged-out playground, signed-in Free Build, and an alternate usage-based pricing draft.",
       "Agent-readable `/pricing/source-data` for Free Build capability boundaries, anonymous playground state, signed-in workspace state, and paid go-live gates.",
-      "Logged-out `/playground` route with browser-scoped recovery and account claim path.",
+      "Logged-out `/playground` route with browser-scoped recovery, account claim path, and private launch draft creation after signup.",
       "Agent-readable `/content/source-data` records for personas, resources, and pricing contracts.",
     ],
     evidence: [
@@ -723,12 +723,12 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #466 tracks the free build-before-go-live pricing policy.",
       "Issue #473 adds signed-in Free Build workspace creation.",
       "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, `/playground`, and `/pricing-v2` are live destinations.",
-      "`/playground/source-data` exposes logged-out recovery, account claim, redaction, and paid go-live gates.",
+      "`/playground/source-data` exposes logged-out recovery, account claim, private draft creation, redaction, and paid go-live gates.",
       "`/pricing/source-data` exposes the Free Build design, logged-out playground state, signed-in workspace state, and paid go-live gates.",
       "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
-      "Agents may read content surface records, pricing policy records, anonymous playground records, and draft resource copy, but they must distinguish browser-scoped anonymous saves, signed-in Free Build workspace creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records, pricing policy records, anonymous playground records, claimed private draft boundaries, and draft resource copy, but they must distinguish browser-scoped anonymous saves, signed-in Free Build workspace creation, private draft creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 
