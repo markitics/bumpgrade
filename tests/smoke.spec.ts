@@ -19048,6 +19048,17 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     const pendingNext = payload.executiveQueue.find((lane: { id: string }) => lane.id === "pending-next");
+    const inFlight = payload.executiveQueue.find((lane: { id: string }) => lane.id === "in-flight");
+    expect(inFlight?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "roadmap-advanced-funnel-builder-parity",
+          queueLabel: "In flight",
+          workstreamId: "product-commerce",
+          evidence: expect.arrayContaining([expect.objectContaining({ number: 417 })]),
+        }),
+      ]),
+    );
     expect(pendingNext?.items).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -19055,12 +19066,6 @@ test.describe("Bumpgrade scaffold", () => {
           queueLabel: "Pending next",
           workstreamId: "product-commerce",
           evidence: expect.arrayContaining([expect.objectContaining({ number: 219 })]),
-        }),
-        expect.objectContaining({
-          id: "roadmap-advanced-funnel-builder-parity",
-          queueLabel: "Pending next",
-          workstreamId: "product-commerce",
-          evidence: expect.arrayContaining([expect.objectContaining({ number: 417 })]),
         }),
         expect.objectContaining({
           id: "roadmap-live-affiliate-execution",
