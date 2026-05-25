@@ -224,10 +224,13 @@ reuse a Free Build workspace and save a private D1 funnel draft after exact
 confirmation and idempotency. Responses include redacted `duplicateReview.status`
 values for created drafts, idempotency replay, and
 same-platform/source-file/workspace/title reuse, and do not echo pasted material
-or export file contents. Imported material starts in a private Bumpgrade
-workspace; public publishing, live checkout, subscriber sends, domains,
-fulfillment, account-to-account transfer, payment migration, customer password
-migration, and raw export storage are not live from this contract.
+or export file contents. The platform rollback route can archive the signed-in
+publisher's own private importer draft without deleting draft rows, step rows, or
+audit rows, which allows a fresh import from the same source to start cleanly.
+Imported material starts in a private Bumpgrade workspace; public publishing,
+live checkout, subscriber sends, domains, fulfillment, account-to-account
+transfer, payment migration, customer password migration, and raw export storage
+are not live from this contract.
 
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template

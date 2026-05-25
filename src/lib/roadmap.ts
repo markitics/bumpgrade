@@ -90,9 +90,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Dedicated importer pages support private Free Build import-plan creation.",
       "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
+      "Private importer rollback routes archive private drafts without deleting draft rows, step rows, or audit rows so the same source can be restarted.",
     ],
     nextMilestone:
-      "Add rollback controls and deeper platform-specific extraction after the shared review and private draft paths are stable.",
+      "Add deeper platform-specific extraction after shared review, private draft, duplicate review, and rollback/restart paths are stable.",
   },
   {
     id: "roadmap-feature-catalog",

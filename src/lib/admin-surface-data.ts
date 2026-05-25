@@ -396,12 +396,12 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   },
   "journey-prospect-imports-from-clickfunnels": {
     status: "passed",
-    lastTestedAt: "2026-05-25T22:00:00.000Z",
+    lastTestedAt: "2026-05-25T22:58:24.000Z",
     environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
     method:
-      "Importer hub route smoke, dedicated importer route smoke, importer source-data inspection, public redacted preflight review coverage, verified-publisher private import API coverage, public discovery checks, and admin user-journey proof summary checks.",
+      "Importer hub route smoke, dedicated importer route smoke, importer source-data inspection, public redacted preflight review coverage, verified-publisher private import API coverage, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
     summary:
-      "The importer journey has route, source-data, screenshot, issue, and API evidence for previewing an import map and saving imported material into a private Free Build draft without claiming live account transfer or buyer-facing changes.",
+      "The importer journey has route, source-data, screenshot, issue, and API evidence for previewing an import map, saving imported material into a private Free Build draft, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
     ciLinks: [
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
@@ -418,13 +418,14 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Import center", url: "https://bumpgrade.com/imports", kind: "route" },
       { label: "ClickFunnels importer", url: "https://bumpgrade.com/imports/clickfunnels", kind: "route" },
       { label: "Importer source data", url: "https://bumpgrade.com/imports/source-data", kind: "source-data" },
+      { label: "SamCart importer rollback API", url: "https://bumpgrade.com/api/imports/samcart/draft/rollback", kind: "api" },
       { label: "Comparison source data", url: "https://bumpgrade.com/compare/source-data", kind: "source-data" },
       { label: "PR #483", url: issue467PrUrl, kind: "pr" },
       { label: "PR #494", url: issue467PreflightPrUrl, kind: "pr" },
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "Public redacted preflight review maps are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review now reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Rollback controls, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
+      "Public redacted preflight review maps are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Private rollback controls archive importer-created drafts without deleting rows so the same source can restart as a fresh private plan. Subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1059,6 +1060,41 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-25-importer-rollback-restart-controls",
+    title: "Added private importer rollback and restart controls",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Mark asked for easy importer flows and public copy geared toward real users while keeping owner-visible progress broad and quiet unless action is needed.",
+    githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/api/imports/samcart/draft/rollback",
+    ],
+    roadmapUpdated: ["roadmap-competitor-importers"],
+    userJourneysUpdated: ["journey-prospect-imports-from-clickfunnels"],
+    documentationUpdated: ["docs/features/importers.md", "docs/agent/agent-ready.md", "public/llms.txt"],
+    validation: [
+      "Focused importer source-data and verified-publisher create rollback restart smoke coverage",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+    ],
+    flagsAttention: null,
+    firstPromptAt: "2026-05-25T20:25:57.422Z",
+    completedAt: "2026-05-25T22:58:24.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/api/imports/samcart/draft/rollback",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-25-anonymous-playground-claimed-drafts",
     title: "Turned claimed playgrounds into private launch drafts",
@@ -1706,21 +1742,24 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Sign in or create a verified publisher account.",
       "Confirm the private importer action.",
       "Bumpgrade creates or reuses a Free Build workspace and saves a private D1 funnel draft.",
-      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, generated private record types, safety gates, limitations, source IDs, and private import API routes.",
+      "Archive a private importer draft when the source map was wrong, then start a fresh import from the same source.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, generated private record types, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
     ],
     edgeCases: [
       "Imported material starts in a private workspace and is not buyer-facing by default.",
       "The public review map does not create records or echo pasted source material, export file names, customer rows, private emails, payment credentials, API keys, or session cookies.",
       "Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.",
+      "Rollback APIs require the same verified publisher, the current draft revision, exact confirmation, and idempotency; they archive only private importer drafts and do not delete draft rows, step rows, or audit rows.",
       "The response does not echo pasted source material, raw exports, customer rows, private emails, payment credentials, API keys, or session cookies.",
       "Account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, redacted preflight review routes, duplicate-review fields, generated private record types, safety gates, source IDs, limitations, and private import API routes. Creating a private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, redacted preflight review routes, duplicate-review fields, generated private record types, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating or archiving a private draft requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
       "Issue #467 adds /imports, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
       "Private importer APIs create or reuse a Free Build workspace and save a private D1 funnel draft with no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
+      "Private importer rollback APIs archive importer-created private drafts, preserve draft rows, step rows, and audit rows, and let the same source restart as a fresh private plan.",
       "Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, and pasted source material out of public responses.",
     ],
     proof: createJourneyProof("journey-prospect-imports-from-clickfunnels", "feature-competitor-importers"),

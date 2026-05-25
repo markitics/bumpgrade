@@ -351,6 +351,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
 
     const redirect = new URL(platform.route, request.url);
     redirect.searchParams.set("importDraft", draftResult.draft.id);
+    redirect.searchParams.set("importRevision", draftResult.draft.revisionId);
     redirect.searchParams.set("duplicateReview", draftResult.duplicateReview.status);
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {

@@ -17,6 +17,8 @@ import type {
 } from "@/lib/funnels";
 import {
   importerDraftImportCapabilityId,
+  importerDraftRollbackCapabilityId,
+  importerDraftRollbackConfirmationText,
   getImporterBySlug,
   importerIssue,
 } from "@/lib/importers";
@@ -773,6 +775,24 @@ export type CompetitorImportedDraftResult = {
   duplicateReview: ImporterDuplicateReview;
 };
 
+export type CompetitorImportedDraftRollbackResult = {
+  draft: DraftFunnelRecord;
+  previousStatus: DraftFunnelStatus;
+  previousRevisionId: string;
+  previousPreviewRoute: string | null;
+  idempotent: boolean;
+  restartsAvailable: true;
+  deletedDraftRows: false;
+  deletedStepRows: false;
+  deletedAuditRows: false;
+  publicPublishingEnabled: false;
+  liveCheckoutEnabled: false;
+  subscriberSendsEnabled: false;
+  customDomainsEnabled: false;
+  fulfillmentEnabled: false;
+  rawSourceEchoed: false;
+};
+
 export type AnonymousPlaygroundClaimedDraftInput = {
   tenantId: string;
   workspaceId: string;
@@ -1074,6 +1094,181 @@ async function findImporterSourceMatchDraft(
   }
 
   return null;
+}
+
+async function loadDraftRowWithMetadataFromD1(db: D1Database, draftId: string) {
+  const row = await db
+    .prepare("SELECT * FROM funnel_drafts WHERE id = ? OR slug = ? LIMIT 1")
+    .bind(draftId, draftId)
+    .first<D1FunnelDraftRow>();
+  if (!row) return null;
+
+  return {
+    row,
+    draft: draftFromRow(row, await loadDraftStepsFromD1(db, row.id)),
+    metadata: parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {}),
+  };
+}
+
+export async function rollbackCompetitorImportedDraftFunnel(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportedDraftRollbackResult> {
+  const importer = getImporterBySlug(input.importerSlug);
+  const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
+  const importerPlatformId = importer?.id ?? `importer-${input.importerSlug}`;
+  const loaded = await loadDraftRowWithMetadataFromD1(db, input.draftId.trim());
+  if (!loaded) throw new Error("Private import draft not found.");
+
+  const { draft, metadata } = loaded;
+  const tenantId = typeof metadata.tenantId === "string" ? metadata.tenantId : "";
+  const metadataImporterPlatformId = typeof metadata.importerPlatformId === "string" ? metadata.importerPlatformId : "";
+
+  if (draft.ownerUserId !== owner.userId) {
+    throw new Error("Only the publisher who created this private import plan can archive it from the importer page.");
+  }
+
+  if (
+    draft.sourceIssueNumber !== importerIssue ||
+    metadataImporterPlatformId !== importerPlatformId ||
+    metadata.privateDraftOnly !== true ||
+    !tenantId
+  ) {
+    throw new Error("Only private importer-created draft plans can be archived from this importer path.");
+  }
+
+  if (draft.status === "published" || draft.previewRoute) {
+    throw new Error("Only private unpublished importer drafts can be archived from this importer path.");
+  }
+
+  const replay = await db
+    .prepare("SELECT funnel_draft_id FROM funnel_audit_events WHERE idempotency_key = ?")
+    .bind(input.idempotencyKey)
+    .first<{ funnel_draft_id: string | null }>();
+  if (replay?.funnel_draft_id) {
+    if (replay.funnel_draft_id !== draft.id) {
+      throw new Error("Importer rollback idempotency key already belongs to another draft.");
+    }
+
+    return {
+      draft,
+      previousStatus: draft.status,
+      previousRevisionId: draft.revisionId,
+      previousPreviewRoute: draft.previewRoute,
+      idempotent: true,
+      restartsAvailable: true,
+      deletedDraftRows: false,
+      deletedStepRows: false,
+      deletedAuditRows: false,
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+      rawSourceEchoed: false,
+    };
+  }
+
+  if (input.confirmationText !== importerDraftRollbackConfirmationText(platformName)) {
+    throw new Error("Exact private import archive confirmation text is required.");
+  }
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Private import draft revision changed. Refresh before archiving.");
+  }
+
+  if (draft.status === "archived") {
+    return {
+      draft,
+      previousStatus: "archived",
+      previousRevisionId: draft.revisionId,
+      previousPreviewRoute: draft.previewRoute,
+      idempotent: false,
+      restartsAvailable: true,
+      deletedDraftRows: false,
+      deletedStepRows: false,
+      deletedAuditRows: false,
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+      rawSourceEchoed: false,
+    };
+  }
+
+  const previousStatus = draft.status;
+  const previousRevisionId = draft.revisionId;
+  const previousPreviewRoute = draft.previewRoute;
+  const nextRevisionId = `${draft.revisionId}-import-rollback-${Date.now()}`;
+  const identity = { userId: owner.userId, email: publisherIdentityEmail(owner), role: "owner" as const, name: publisherIdentityEmail(owner) };
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_drafts SET status = 'archived', preview_route = NULL, revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${publisherIdentityEmail(owner)} archived private ${platformName} import plan ${draft.title}.`,
+      {
+        issue: importerIssue,
+        action: "competitor_import_draft_rollback",
+        importerRollbackCapabilityId: importerDraftRollbackCapabilityId(importerPlatformId),
+        importerPlatformId,
+        importerPlatformName: platformName,
+        importerIssue,
+        tenantId,
+        previousStatus,
+        nextStatus: "archived",
+        previousRevisionId,
+        expectedRevisionId: input.expectedRevisionId,
+        previousPreviewRoute,
+        previewRouteCleared: true,
+        sourceMatchEligibleForRestart: true,
+        privateDraftOnly: true,
+        deletedDraftRows: false,
+        deletedStepRows: false,
+        deletedAuditRows: false,
+        publicPublishingEnabled: false,
+        liveCheckoutEnabled: false,
+        subscriberSendsEnabled: false,
+        customDomainsEnabled: false,
+        fulfillmentEnabled: false,
+        rawSourceEchoed: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return {
+    draft: (await loadDraftFromD1(db, draft.id)) ?? { ...draft, status: "archived", previewRoute: null, revisionId: nextRevisionId },
+    previousStatus,
+    previousRevisionId,
+    previousPreviewRoute,
+    idempotent: false,
+    restartsAvailable: true,
+    deletedDraftRows: false,
+    deletedStepRows: false,
+    deletedAuditRows: false,
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
+    rawSourceEchoed: false,
+  };
 }
 
 function anonymousPlaygroundSteps(

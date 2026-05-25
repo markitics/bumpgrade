@@ -439,6 +439,8 @@ import {
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
   importerDraftPreviewApiRoute,
+  importerDraftRollbackApiRoute,
+  importerDraftRollbackConfirmationText,
   importerPlatforms,
   importerSourceData,
   importerSourceDataRoute,
@@ -1044,6 +1046,7 @@ test.describe("Bumpgrade scaffold", () => {
           allDedicatedPrivateDraftImportersLive: true,
           preflightReviewLive: true,
           sourceMatchDuplicateReviewLive: true,
+          privateDraftRollbackLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1094,6 +1097,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.redaction).toContain("Raw exports");
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
     expect(payload.commonContract.preflightReview).toContain("redacted import map");
+    expect(payload.commonContract.rollback).toContain("archive private importer-created draft funnels");
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
@@ -1135,6 +1139,15 @@ test.describe("Bumpgrade scaffold", () => {
             rawSourceEchoed: false,
             goLiveEffectsEnabled: false,
           }),
+          rollback: expect.objectContaining({
+            route: importerDraftRollbackApiRoute("clickfunnels"),
+            confirmationText: importerDraftRollbackConfirmationText("ClickFunnels"),
+            auth: "verified publisher session",
+            deletesRecords: false,
+            restartsAvailable: true,
+            rawSourceEchoed: false,
+            goLiveEffectsEnabled: false,
+          }),
         }),
         expect.objectContaining({
           id: "samcart-private-draft-import",
@@ -1153,6 +1166,11 @@ test.describe("Bumpgrade scaffold", () => {
           duplicateReview: expect.objectContaining({
             sourceUrlMatchingLive: true,
             sourceFileNameMatchingLive: true,
+          }),
+          rollback: expect.objectContaining({
+            route: importerDraftRollbackApiRoute("samcart"),
+            confirmationText: importerDraftRollbackConfirmationText("SamCart"),
+            restartsAvailable: true,
           }),
         }),
       ]),
@@ -20671,8 +20689,9 @@ test.describe("Bumpgrade scaffold", () => {
             ]),
           }),
           happyPath: expect.arrayContaining([expect.stringContaining("Review the redacted import map")]),
-          agentAccess: expect.stringContaining("preflight review routes"),
-          validation: expect.arrayContaining([expect.stringContaining("public redacted preflight review")]),
+          edgeCases: expect.arrayContaining([expect.stringContaining("Rollback APIs require")]),
+          agentAccess: expect.stringContaining("rollback routes"),
+          validation: expect.arrayContaining([expect.stringContaining("Private importer rollback APIs")]),
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
@@ -29614,6 +29633,38 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("ClickFunnels importer rejects unauthenticated rollback writes with public redaction", async ({ request }) => {
+    const rollbackRoute = importerDraftRollbackApiRoute("clickfunnels");
+    const response = await request.post(rollbackRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        draftId: "funnel-draft-private-import",
+        expectedRevisionId: "funnel-draft-revision-private-import",
+        confirmationText: importerDraftRollbackConfirmationText("ClickFunnels"),
+        idempotencyKey: "playwright-clickfunnels-import-rollback-unauthenticated-redaction",
+      },
+    });
+    expect(response.status()).toBe(401);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PUBLISHER_SESSION_REQUIRED",
+        issue: 467,
+        route: rollbackRoute,
+        redaction: expect.objectContaining({
+          rawPastedMaterialIncludedInResponse: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+          deletedDraftRows: false,
+          deletedStepRows: false,
+          deletedAuditRows: false,
+        }),
+      }),
+    );
+  });
+
   test("verified publisher can create a private SamCart import draft while go-live stays gated", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
     const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
@@ -29774,6 +29825,112 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("SamCart Export Main.zip");
     expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("revised private note for the same export file");
+
+    const samcartRollbackApiRoute = importerDraftRollbackApiRoute("samcart");
+    const rollbackBody = {
+      return: "json",
+      draftId: createPayload.draft.id,
+      expectedRevisionId: createPayload.draft.revisionId,
+      confirmationText: importerDraftRollbackConfirmationText("SamCart"),
+      idempotencyKey: `playwright-samcart-import-rollback-${suffix}`,
+    };
+    const rollbackResponse = await page.request.post(samcartRollbackApiRoute, {
+      headers: { accept: "application/json" },
+      data: rollbackBody,
+    });
+    expect(rollbackResponse.ok(), await rollbackResponse.text()).toBeTruthy();
+    const rollbackPayload = await rollbackResponse.json();
+    expect(rollbackPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 467,
+        route: samcartRollbackApiRoute,
+        platform: expect.objectContaining({
+          id: "importer-samcart",
+          slug: "samcart",
+          platformName: "SamCart",
+        }),
+        draft: expect.objectContaining({
+          id: createPayload.draft.id,
+          status: "archived",
+          previewRoute: null,
+        }),
+        rollback: expect.objectContaining({
+          action: "archive_private_import_plan",
+          previousStatus: "draft",
+          previousRevisionId: createPayload.draft.revisionId,
+          previousPreviewRoute: null,
+          idempotent: false,
+          restartsAvailable: true,
+          deletedDraftRows: false,
+          deletedStepRows: false,
+          deletedAuditRows: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+          rawSourceEchoed: false,
+        }),
+        redaction: expect.objectContaining({
+          rawPastedMaterialIncludedInResponse: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+          deletedDraftRows: false,
+          deletedStepRows: false,
+          deletedAuditRows: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(rollbackPayload)).not.toContain(requestBody.pageCopy);
+    expect(JSON.stringify(rollbackPayload)).not.toContain("samcart-export-main.zip");
+
+    const rollbackReplayResponse = await page.request.post(samcartRollbackApiRoute, {
+      headers: { accept: "application/json" },
+      data: rollbackBody,
+    });
+    expect(rollbackReplayResponse.ok(), await rollbackReplayResponse.text()).toBeTruthy();
+    const rollbackReplayPayload = await rollbackReplayResponse.json();
+    expect(rollbackReplayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        draft: expect.objectContaining({ id: createPayload.draft.id, status: "archived" }),
+        rollback: expect.objectContaining({
+          idempotent: true,
+          restartsAvailable: true,
+          deletedDraftRows: false,
+        }),
+      }),
+    );
+
+    const restartResponse = await page.request.post(samcartDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        ...requestBody,
+        pageCopy: "A restarted private import after archive should create a new draft plan.",
+        idempotencyKey: `playwright-samcart-import-restart-after-rollback-${suffix}`,
+      },
+    });
+    expect(restartResponse.ok(), await restartResponse.text()).toBeTruthy();
+    const restartPayload = await restartResponse.json();
+    expect(restartPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        draft: expect.objectContaining({
+          title: `Imported SamCart launch ${suffix}`,
+          status: "draft",
+        }),
+        duplicateReview: expect.objectContaining({
+          status: "created",
+          createsNewDraft: true,
+          reusesExistingDraft: false,
+          sourceUrlCompared: true,
+          sourceFileNameCompared: true,
+          rawSourceEchoed: false,
+        }),
+      }),
+    );
+    expect(restartPayload.draft.id).not.toBe(createPayload.draft.id);
+    expect(JSON.stringify(restartPayload)).not.toContain("restarted private import after archive");
 
     const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
       headers: { accept: "application/json" },
