@@ -16,6 +16,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Brand kit: https://bumpgrade.com/brand
 - Brand source data: https://bumpgrade.com/brand/source-data
 - Pricing direction: https://bumpgrade.com/pricing
+- Pricing policy source data: https://bumpgrade.com/pricing/source-data
 - Content surface source data: https://bumpgrade.com/content/source-data
 - Publisher account setup: https://bumpgrade.com/account/setup
 - Publisher account source data: https://bumpgrade.com/account/source-data
@@ -160,6 +161,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Pricing tracks include the published
   Bumpgrade account-plan names and amounts, but they are not proof of
   publisher-offer billing, trials, limits, or planned feature availability.
+- `/pricing/source-data` exposes the issue #466 Free Build policy, paid go-live
+  gates, and anonymous playground boundary. Signed-in free workspace
+  persistence and logged-out recovery are not live until implementation evidence
+  exists; public publishing, live checkout, subscriber sends, domains, and
+  fulfillment still require paid or explicitly approved go-live state.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
 - `/account/source-data` exposes paid publisher tenant setup, default

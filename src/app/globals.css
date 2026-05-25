@@ -4429,6 +4429,78 @@ h3 {
   padding: 18px;
 }
 
+.free-build-grid .payment-option-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.free-build-grid span {
+  width: fit-content;
+  padding: 5px 8px;
+  border: 1px solid rgba(55, 95, 76, 0.2);
+  border-radius: 999px;
+  background: #edf7ef;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pricing-gate-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.pricing-gate-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 280px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.pricing-gate-card > div {
+  display: grid;
+  gap: 10px;
+}
+
+.pricing-gate-card svg {
+  width: 24px;
+  height: 24px;
+  color: var(--green);
+}
+
+.pricing-gate-card p,
+.pricing-gate-card li {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.pricing-gate-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pricing-gate-card li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+}
+
+.pricing-gate-card li svg {
+  width: 18px;
+  height: 18px;
+}
+
 .journey-proof-card {
   display: grid;
   gap: 16px;
@@ -4741,6 +4813,7 @@ h3 {
   .marketing-feature-grid,
   .pricing-card-grid,
   .payment-option-grid,
+  .pricing-gate-grid,
   .usage-pricing-grid,
   .brand-asset-grid,
   .brand-color-grid,
@@ -4879,6 +4952,7 @@ h3 {
   .marketing-feature-grid,
   .pricing-card-grid,
   .payment-option-grid,
+  .pricing-gate-grid,
   .usage-pricing-grid,
   .brand-asset-grid,
   .brand-color-grid,

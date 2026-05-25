@@ -433,7 +433,13 @@ import {
   productProtectedContentStatus,
 } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
-import { selfServePricingContract, whiteGloveSetupAddon } from "../src/lib/pricing-plans";
+import {
+  freeBuildModeContract,
+  pricingSourceData,
+  pricingSourceDataRoute,
+  selfServePricingContract,
+  whiteGloveSetupAddon,
+} from "../src/lib/pricing-plans";
 import { publisherTenantSourceData } from "../src/lib/publisher-tenants";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
@@ -772,6 +778,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/features/source-data",
       "/roadmap/source-data",
       "/content/source-data",
+      "/pricing/source-data",
       "/agent-docs/source-data",
       "/agent-docs/bumpgrade-admin-surfaces",
       "/admin/source-data",
@@ -872,6 +879,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/pricing/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/source-data");
@@ -963,7 +971,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.audienceSegments).toHaveLength(audienceSegments.length);
     expect(payload.resourceHubItems).toHaveLength(resourceHubItems.length);
     expect(payload.plannedPricingTracks).toHaveLength(plannedPricingTracks.length);
-    expect(payload.routes).toEqual(expect.arrayContaining(["/users", "/resources", "/brand", "/pricing", "/pricing-v2", "/content/source-data"]));
+    expect(payload.routes).toEqual(
+      expect.arrayContaining(["/users", "/resources", "/brand", "/pricing", pricingSourceDataRoute, "/pricing-v2", "/content/source-data"]),
+    );
     expect(payload.audienceSegments).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -994,6 +1004,12 @@ test.describe("Bumpgrade scaffold", () => {
           price: "$97/mo",
           checkoutStatus: expect.stringContaining("/api/billing/checkout"),
         }),
+        expect.objectContaining({
+          id: "pricing-track-free-build",
+          price: "$0 while building",
+          status: "planned",
+          issueNumbers: expect.arrayContaining([466]),
+        }),
         expect.objectContaining({ id: "pricing-track-agent", price: "Contact us" }),
       ]),
     );
@@ -1001,18 +1017,60 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         id: "self-serve-pricing-and-account-setup",
         status: "live",
-        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316]),
-        defaultSubdomain: expect.stringContaining("paid plan entitlement"),
+        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316, 466]),
+        freeBuildMode: expect.objectContaining({ id: freeBuildModeContract.id }),
+        defaultSubdomain: expect.stringContaining("go-live entitlement"),
         customDomain: expect.stringContaining("domain they already own"),
         domainPurchase: expect.stringContaining("does not sell, register, renew, transfer, price, or check availability"),
         payments: expect.arrayContaining([
+          expect.stringContaining("Free Build"),
           expect.stringContaining("Experiment is $97/month"),
           expect.stringContaining("White glove setup is an optional one-time $1,000 add-on"),
         ]),
-        evidenceRoutes: expect.arrayContaining(["/pricing", "/pricing-v2", "/api/billing/checkout", "/account/setup", "/account/source-data"]),
+        evidenceRoutes: expect.arrayContaining([
+          "/pricing",
+          pricingSourceDataRoute,
+          "/pricing-v2",
+          "/api/billing/checkout",
+          "/account/setup",
+          "/account/source-data",
+        ]),
       }),
     );
     expect(payload.caveat).toContain("does not turn planned product features");
+  });
+
+  test("pricing source data exposes free build policy and go-live gates", async ({ request }) => {
+    const response = await request.get(pricingSourceDataRoute);
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: pricingSourceData.id,
+        updatedAt: pricingSourceData.updatedAt,
+        issueNumbers: expect.arrayContaining([316, 466]),
+        routes: expect.arrayContaining(["/pricing", pricingSourceDataRoute, "/api/billing/checkout", "/pricing/success"]),
+        freeBuildMode: expect.objectContaining({
+          id: freeBuildModeContract.id,
+          issue: 466,
+          currentAvailability: expect.objectContaining({
+            signedInFreeWorkspaceLive: false,
+            anonymousPlaygroundLive: false,
+            paidGoLiveRequired: true,
+          }),
+          anonymousPlayground: expect.objectContaining({ status: "designed-not-live" }),
+        }),
+        paidGoLiveGates: expect.arrayContaining([
+          expect.objectContaining({ id: "go-live-live-checkout" }),
+          expect.objectContaining({ id: "go-live-email-sends" }),
+        ]),
+        redaction: expect.objectContaining({
+          rawStripeIdsIncluded: false,
+          anonymousBrowserIdentifiersIncluded: false,
+          customerDataIncluded: false,
+        }),
+      }),
+    );
   });
 
   test("brand source data exposes logo assets, palette, and usage boundaries", async ({ page, request }) => {
@@ -1062,7 +1120,9 @@ test.describe("Bumpgrade scaffold", () => {
           id: selfServePricingContract.id,
           checkoutRoute: "/api/billing/checkout",
           successRoute: "/pricing/success",
+          pricingSourceDataRoute,
           stripeMode: "live",
+          freeBuildMode: expect.objectContaining({ id: freeBuildModeContract.id }),
         }),
         setupAddon: expect.objectContaining({
           slug: whiteGloveSetupAddon.slug,
@@ -20270,7 +20330,9 @@ test.describe("Bumpgrade scaffold", () => {
           id: selfServePricingContract.id,
           checkoutRoute: "/api/billing/checkout",
           successRoute: "/pricing/success",
+          pricingSourceDataRoute,
           stripeMode: "live",
+          freeBuildMode: expect.objectContaining({ id: freeBuildModeContract.id }),
         }),
         setupAddon: expect.objectContaining({
           slug: whiteGloveSetupAddon.slug,
@@ -20381,6 +20443,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.mcpPlan).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "mcp-resource-features", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-pricing-policy", status: "ready-contract" }),
         expect.objectContaining({
           id: "mcp-resource-checkout-offers",
           status: "ready-contract",
@@ -20458,6 +20521,12 @@ test.describe("Bumpgrade scaffold", () => {
           safeForAgents: expect.arrayContaining([expect.stringContaining("briefing controls")]),
         }),
         expect.objectContaining({ id: "read-agent-manifest", route: "/agent-docs/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-pricing-policy",
+          route: pricingSourceDataRoute,
+          auth: "public",
+          stableIds: expect.arrayContaining(["freeBuildModeId", "paidGoLiveGateId"]),
+        }),
         expect.objectContaining({ id: "read-content-surfaces", route: "/content/source-data", auth: "public" }),
         expect.objectContaining({
           id: "read-publisher-account-setup",

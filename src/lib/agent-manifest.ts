@@ -180,6 +180,7 @@ import {
   publisherTenantIssue,
   publisherTenantParentIssue,
 } from "@/lib/publisher-tenants";
+import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
 
 export const agentManifestUpdatedAt = "2026-05-25";
 
@@ -361,6 +362,23 @@ export const agentReadContracts: AgentReadContract[] = [
       "Non-billing post-purchase decisions can be recorded only for trusted checkout state; billing-impacting and payable commission writes require exact confirmation, idempotency, stale-state checks, audit correlation, owner review, and webhook evidence.",
   },
   {
+    id: "read-pricing-policy",
+    title: "Pricing policy and free-build gates",
+    route: pricingSourceDataRoute,
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/pricing-plans.ts",
+    stableIds: ["pricingPolicyId", "freeBuildModeId", "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
+    safeForAgents: [
+      "Read the free build-before-go-live policy from issue #466",
+      "Distinguish private free-building design from paid go-live actions",
+      "Confirm signed-in free workspace and anonymous playground persistence are not live until implementation evidence exists",
+      "Cite paid go-live gates for publishing, checkout, subscriber sends, domains, and fulfillment",
+    ],
+    writeBoundary:
+      "Agents may read the pricing policy only. Creating free workspaces, recovering anonymous work, publishing, charging buyers, sending email, connecting domains, and fulfillment changes require future authenticated confirmed-write APIs or existing paid-plan flows.",
+  },
+  {
     id: "read-admin-source",
     title: "Admin source-data bundle",
     route: "/admin/source-data",
@@ -417,7 +435,7 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/content-surfaces.ts",
-    stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
+    stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId", "freeBuildModeId"],
     safeForAgents: ["Read use-case records", "Read resource hub records", "Read pricing caveats"],
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
   },
@@ -2729,6 +2747,15 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "Live payment capability, one-click post-purchase charging, fulfillment, and payable commission state are not enabled until separate rollout and webhook smoke evidence prove them.",
   },
   {
+    id: "evidence-pricing-policy",
+    route: pricingSourceDataRoute,
+    resolves:
+      "Bumpgrade account-plan pricing, Free Build design, anonymous playground non-live state, paid go-live gates, setup add-on, and redaction policy.",
+    stableIds: [freeBuildModeContract.id, "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
+    volatileClaims:
+      "Signed-in free workspaces and anonymous playground persistence are not live until implementation evidence exists; paid go-live actions still require entitlement and confirmation.",
+  },
+  {
     id: "evidence-agent-manifest",
     route: "/agent-docs/source-data",
     resolves: "Agent doc links, read contracts, evidence routes, MCP plan, and write-safety rules.",
@@ -3034,6 +3061,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/commerce/source-data",
     purpose: "Expose redacted commerce architecture, sandbox checkout status, referral attribution evidence, and billing write rules.",
     safetyBoundary: "No live billing, commission write, payout mutation, or destructive action may be performed by this resource.",
+  },
+  {
+    id: "mcp-resource-pricing-policy",
+    resourceOrTool: "resource bumpgrade://pricing-policy",
+    status: "ready-contract",
+    backedBy: pricingSourceDataRoute,
+    purpose: "Expose pricing plans, Free Build design, anonymous playground non-live state, and paid go-live gates.",
+    safetyBoundary:
+      "Read-only; free workspace creation, anonymous recovery, public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement or future confirmed-write APIs.",
   },
   {
     id: "mcp-resource-content",

@@ -609,9 +609,28 @@ export const roadmapItems: RoadmapItem[] = [
       "Tracked by issue #20.",
       "`/users`, `/developers-and-agents`, `/resources`, and `/pricing` are live navbar destinations.",
       "`/content/source-data` exposes stable audience, resource, and pricing-direction records for agents.",
+      "Issue #466 now tracks the Free Build pricing policy and paid go-live gates.",
     ],
     nextMilestone:
       "Promote planned migration guides, launch playbooks, and blog posts into dedicated pages as funnel, checkout, automation, and analytics slices ship.",
+  },
+  {
+    id: "roadmap-free-build-before-go-live",
+    title: "Free build-before-go-live pricing model",
+    status: "active",
+    issue: 466,
+    featureId: featureIdFor(20),
+    group: "Marketing surfaces",
+    summary:
+      "Defines the $0 private-building path, the paid go-live gates, and the anonymous playground recovery boundary before any public, billing, sending, domain, or fulfillment action is treated as live.",
+    publicEvidence: [
+      "Issue #466 tracks the Free Build pricing model and optional anonymous playground.",
+      "`/pricing` explains the build-first message in plain public copy.",
+      "`/pricing/source-data` exposes the Free Build design, non-live anonymous playground state, and paid go-live gates.",
+      "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
+    ],
+    nextMilestone:
+      "Implement signed-in free workspace persistence and anonymous browser recovery only after privacy, abuse, expiration, merge-to-account, redaction, and cleanup rules are ready.",
   },
 ];
 

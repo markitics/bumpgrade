@@ -1,3 +1,5 @@
+import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
+
 export type ContentSurfaceStatus = "live" | "planned";
 
 export type AudienceSegment = {
@@ -48,6 +50,7 @@ export type LaunchSignupPolicy = {
   status: ContentSurfaceStatus;
   issueNumbers: number[];
   summary: string;
+  freeBuildMode: typeof freeBuildModeContract;
   defaultSubdomain: string;
   customDomain: string;
   domainPurchase: string;
@@ -209,6 +212,14 @@ export const resourceHubItems: ResourceHubItem[] = [
 
 export const pricingPrinciples: PricingPrinciple[] = [
   {
+    id: "pricing-build-before-go-live",
+    title: "Build before paying",
+    status: "planned",
+    summary:
+      "Issue #466 defines the free private-building path and the paid go-live gates before signed-in free workspaces or anonymous recovery are treated as live.",
+    evidenceRoutes: ["/pricing", pricingSourceDataRoute, "/content/source-data"],
+  },
+  {
     id: "pricing-self-serve",
     title: "Self-serve subscription checkout",
     status: "live",
@@ -232,6 +243,22 @@ export const pricingPrinciples: PricingPrinciple[] = [
 ];
 
 export const plannedPricingTracks: PlannedPricingTrack[] = [
+  {
+    id: "pricing-track-free-build",
+    title: "Free Build",
+    status: "planned",
+    intendedFor: "Publishers who want to assemble launch pages, offers, products, audience setup, and AI context before paying.",
+    price: "$0 while building",
+    includes: [
+      "Private launch workspace design",
+      "Offer, product, and audience setup",
+      "AI-readable launch context",
+      "Paid go-live gates for public publishing, live checkout, subscriber sends, domains, and fulfillment",
+    ],
+    checkoutStatus:
+      "Issue #466 tracks the free build-before-go-live path. Paid go-live actions still require the right entitlement.",
+    issueNumbers: [466],
+  },
   {
     id: "pricing-track-publisher",
     title: "Experiment",
@@ -274,16 +301,18 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
 export const launchSignupPolicy: LaunchSignupPolicy = {
   id: "self-serve-pricing-and-account-setup",
   status: "live",
-  issueNumbers: [217, 222, 223, 225, 226, 316],
+  issueNumbers: [217, 222, 223, 225, 226, 316, 466],
   summary:
-    "Bumpgrade offers self-serve Experiment and Grow subscriptions through Stripe Checkout, plus an Enterprise contact path.",
+    "Bumpgrade offers self-serve Experiment and Grow subscriptions through Stripe Checkout, an Enterprise contact path, and a tracked free build-before-go-live model in issue #466.",
+  freeBuildMode: freeBuildModeContract,
   defaultSubdomain:
-    "A publisher can reserve a default *.bumpgrade.com hostname after a paid plan entitlement is active.",
+    "A publisher can reserve a default *.bumpgrade.com hostname after a paid or explicitly approved go-live entitlement is active.",
   customDomain:
     "Grow and Enterprise publishers can connect a domain they already own after reserving the default Bumpgrade hostname; Bumpgrade shows the CNAME target and verification state.",
   domainPurchase:
     "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
   payments: [
+    "Free Build is the planned private-building path from issue #466; signed-in free workspace persistence and anonymous recovery are not live until implementation evidence exists.",
     "Experiment is $97/month.",
     "Grow is $197/month.",
     "White glove setup is an optional one-time $1,000 add-on.",
@@ -291,14 +320,33 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   ],
   customerCheckout:
     "Customer-facing checkout for a publisher's own offer remains offer-specific; Bumpgrade subscription checkout is the self-serve account plan path.",
-  evidenceRoutes: ["/pricing", "/pricing-v2", "/api/billing/checkout", "/account/setup", "/account/source-data", "/commerce/source-data", "/admin/user-journeys/source-data"],
+  evidenceRoutes: [
+    "/pricing",
+    pricingSourceDataRoute,
+    "/pricing-v2",
+    "/api/billing/checkout",
+    "/account/setup",
+    "/account/source-data",
+    "/commerce/source-data",
+    "/admin/user-journeys/source-data",
+  ],
 };
 
 export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: ["/users", "/developers-and-agents", "/resources", "/brand", "/pricing", "/pricing-v2", "/account/setup", "/content/source-data"],
+  routes: [
+    "/users",
+    "/developers-and-agents",
+    "/resources",
+    "/brand",
+    "/pricing",
+    pricingSourceDataRoute,
+    "/pricing-v2",
+    "/account/setup",
+    "/content/source-data",
+  ],
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,

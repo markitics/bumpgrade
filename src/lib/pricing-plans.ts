@@ -25,10 +25,28 @@ export type PricingFeature = {
   availability: Record<PricingPlanSlug, string>;
 };
 
-export const selfServePricingUpdatedAt = "2026-05-22";
+export type FreeBuildCapability = {
+  id: string;
+  title: string;
+  status: "before-payment" | "designed-next";
+  summary: string;
+  allowedBeforePayment: boolean;
+  requiresPaidGoLive: boolean;
+};
+
+export type FreeBuildGoLiveGate = {
+  id: string;
+  title: string;
+  summary: string;
+  requires: string[];
+};
+
+export const selfServePricingUpdatedAt = "2026-05-25";
 export const billingCheckoutRoute = "/api/billing/checkout";
 export const billingCheckoutSuccessRoute = "/pricing/success";
 export const pricingSourceIssue = 316;
+export const freeBuildModeIssue = 466;
+export const pricingSourceDataRoute = "/pricing/source-data";
 
 export const whiteGloveSetupAddon = {
   slug: "white-glove-setup",
@@ -179,6 +197,122 @@ export const pricingFeatureMatrix: PricingFeature[] = [
   },
 ];
 
+export const freeBuildCapabilities: FreeBuildCapability[] = [
+  {
+    id: "free-build-private-launch-paths",
+    title: "Private launch paths",
+    status: "before-payment",
+    summary: "Create and edit launch pages, opt-in paths, checkout handoffs, thank-you pages, and reusable launch structure privately before payment.",
+    allowedBeforePayment: true,
+    requiresPaidGoLive: false,
+  },
+  {
+    id: "free-build-offers-products-audience",
+    title: "Offer, product, and audience setup",
+    status: "before-payment",
+    summary: "Shape offers, products, lead capture, audience notes, and launch context while buyer-facing actions stay off.",
+    allowedBeforePayment: true,
+    requiresPaidGoLive: false,
+  },
+  {
+    id: "free-build-ai-launch-context",
+    title: "AI launch context",
+    status: "before-payment",
+    summary: "Let agents inspect the private build state through public-safe records that separate free building from live selling.",
+    allowedBeforePayment: true,
+    requiresPaidGoLive: false,
+  },
+  {
+    id: "free-build-anonymous-playground",
+    title: "Logged-out recovery design",
+    status: "designed-next",
+    summary:
+      "The logged-out playground path is being designed around browser return, claim-to-account, expiration, rate limits, and private-data cleanup before it becomes a live flow.",
+    allowedBeforePayment: false,
+    requiresPaidGoLive: false,
+  },
+];
+
+export const paidGoLiveGates: FreeBuildGoLiveGate[] = [
+  {
+    id: "go-live-public-publishing",
+    title: "Public publishing",
+    summary: "Turning private work into public buyer-facing routes requires a paid or explicitly approved go-live state.",
+    requires: ["Paid plan entitlement", "Fresh workspace revision", "Confirmed publish action"],
+  },
+  {
+    id: "go-live-live-checkout",
+    title: "Live checkout and payment collection",
+    summary: "Charging buyers, collecting tax-relevant payment state, and changing billing records stay behind paid plan and confirmed checkout rules.",
+    requires: ["Paid plan entitlement", "Stripe readiness", "Confirmed billing-impacting action"],
+  },
+  {
+    id: "go-live-email-sends",
+    title: "Buyer and subscriber sends",
+    summary: "Sending email to subscribers, customers, affiliates, or launch audiences requires sender readiness, consent checks, and paid go-live authority.",
+    requires: ["Paid plan entitlement", "Sender readiness", "Consent and suppression checks"],
+  },
+  {
+    id: "go-live-domain-fulfillment",
+    title: "Domains and fulfillment",
+    summary: "Custom domains, fulfillment delivery, protected content access, and public customer paths require paid ownership and current entitlement checks.",
+    requires: ["Paid plan entitlement", "Verified ownership", "Current entitlement checks"],
+  },
+];
+
+export const freeBuildModeContract = {
+  id: "free-build-before-go-live",
+  status: "designed-free-build",
+  issue: freeBuildModeIssue,
+  updatedAt: selfServePricingUpdatedAt,
+  headline: "Build first. Pay when you are ready to go live.",
+  summary:
+    "Free Build separates private launch setup from buyer-facing go-live actions, so publishers do not need a paid plan while they are still getting ready.",
+  freeBuildCapabilities,
+  paidGoLiveGates,
+  currentAvailability: {
+    signedInFreeWorkspaceLive: false,
+    anonymousPlaygroundLive: false,
+    paidGoLiveRequired: true,
+  },
+  anonymousPlayground: {
+    status: "designed-not-live",
+    persistenceModel:
+      "A future logged-out workspace should use browser-scoped recovery, expiration, abuse limits, redaction, and a claim-to-account merge before any public or billing side effect.",
+    privacyBoundary:
+      "Anonymous work must not expose private customer data, create billing records, send email, publish buyer-facing routes, or grant product access.",
+  },
+};
+
+export const pricingSourceData = {
+  id: "bumpgrade-pricing-policy-source-data",
+  updatedAt: selfServePricingUpdatedAt,
+  issueNumbers: [pricingSourceIssue, freeBuildModeIssue],
+  routes: ["/pricing", pricingSourceDataRoute, billingCheckoutRoute, billingCheckoutSuccessRoute],
+  selfServePricing: {
+    contract: "bumpgrade-self-serve-pricing-v1",
+    status: "live",
+    plans: pricingPlans.map((plan) => ({
+      slug: plan.slug,
+      name: plan.name,
+      status: plan.status,
+      monthlyAmountCents: plan.monthlyAmountCents,
+      billingInterval: plan.billingInterval,
+    })),
+    setupAddon: whiteGloveSetupAddon,
+  },
+  freeBuildMode: freeBuildModeContract,
+  paidGoLiveGates,
+  redaction: {
+    rawStripeIdsIncluded: false,
+    privateWorkspaceRowsIncluded: false,
+    anonymousBrowserIdentifiersIncluded: false,
+    customerDataIncluded: false,
+  },
+  agentBoundary:
+    "Agents may cite the pricing policy, free-build design, and paid go-live gates, but must not claim signed-in free workspaces or anonymous playground persistence are live until implementation evidence exists.",
+};
+
 const planOrder: Record<PricingPlanSlug, number> = {
   experiment: 1,
   grow: 2,
@@ -217,6 +351,7 @@ export const selfServePricingContract = {
   updatedAt: selfServePricingUpdatedAt,
   checkoutRoute: billingCheckoutRoute,
   successRoute: billingCheckoutSuccessRoute,
+  pricingSourceDataRoute,
   stripeMode: "live",
   publicPlans: pricingPlans.map((plan) => ({
     slug: plan.slug,
@@ -228,6 +363,7 @@ export const selfServePricingContract = {
     priceId: plan.priceId,
   })),
   setupAddon: whiteGloveSetupAddon,
+  freeBuildMode: freeBuildModeContract,
   provisioning:
     "Successful Stripe Checkout Sessions are verified server-side on /pricing/success and create active publisher plan entitlements keyed by buyer email.",
   webhookCaveat:

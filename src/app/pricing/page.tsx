@@ -5,6 +5,7 @@ import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, Globe2, ShieldCheck, 
 import {
   billingCheckoutRoute,
   formatUsd,
+  freeBuildModeContract,
   planIncludesFeature,
   pricingFeatureMatrix,
   pricingPlans,
@@ -33,6 +34,10 @@ function planPrice(plan: PricingPlan) {
   return `${formatUsd(plan.monthlyAmountCents)}/mo`;
 }
 
+function buildCapabilityLabel(status: string) {
+  return status === "before-payment" ? "Before payment" : "Designed next";
+}
+
 function PlanCheckoutForm({ plan }: { plan: PricingPlan }) {
   if (plan.status === "contact") {
     return (
@@ -48,7 +53,7 @@ function PlanCheckoutForm({ plan }: { plan: PricingPlan }) {
       <input type="hidden" name="planSlug" value={plan.slug} />
       <label>
         Email
-        <input name="buyerEmail" type="email" autoComplete="email" placeholder="you@example.com" />
+        <input name="buyerEmail" type="email" autoComplete="email" />
       </label>
       <label className="setup-addon-choice">
         <input name="whiteGloveSetup" type="checkbox" />
@@ -74,16 +79,16 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           <p className="eyebrow">Bumpgrade pricing</p>
           <h1>Start building your publisher launch system today.</h1>
           <p className="lede">
-            Choose a self-serve plan, go through Stripe Checkout, then set up your Bumpgrade publisher workspace with
-            funnels, checkout, products, audience workflows, analytics, and AI launch context.
+            No need to pay while you are still getting the launch ready. Free Build separates private setup from
+            the public, buyer-facing actions that need a paid go-live state.
           </p>
           <div className="hero-actions">
-            <Link href="#plans" className="primary-action">
-              Choose a plan
+            <Link href="#build-first" className="primary-action">
+              See build mode
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/pricing-v2" className="secondary-action">
-              Compare usage pricing
+            <Link href="#plans" className="secondary-action">
+              Choose paid plan
               <Sparkles aria-hidden="true" />
             </Link>
           </div>
@@ -95,24 +100,78 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           ) : null}
         </div>
         <aside className="pricing-note">
-          <CreditCard aria-hidden="true" />
-          <strong>Self-serve Stripe checkout</strong>
+          <ShieldCheck aria-hidden="true" />
+          <strong>Pay when it is time to go live</strong>
           <p>
-            Experiment and Grow start through live Stripe Checkout. Successful checkout activates the paid publisher
-            account by email so setup can unlock the workspace.
+            Private building keeps setup work moving before payment. The paid plan unlocks public publishing,
+            live checkout, subscriber sends, custom domains, and fulfillment.
           </p>
         </aside>
+      </section>
+
+      <section className="content-band alternate" id="build-first">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Build first</p>
+            <h2>{freeBuildModeContract.headline}</h2>
+          </div>
+          <p>{freeBuildModeContract.summary}</p>
+        </div>
+        <div className="payment-option-grid free-build-grid">
+          {freeBuildModeContract.freeBuildCapabilities
+            .filter((capability) => capability.allowedBeforePayment)
+            .map((capability) => (
+              <article key={capability.id} className="payment-option-card">
+                <ShieldCheck aria-hidden="true" />
+                <span>{buildCapabilityLabel(capability.status)}</span>
+                <h3>{capability.title}</h3>
+                <p>{capability.summary}</p>
+              </article>
+            ))}
+        </div>
+      </section>
+
+      <section className="content-band" id="go-live-gates">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Go live</p>
+            <h2>The paid plan unlocks the buyer-facing switch.</h2>
+          </div>
+          <Link href="/pricing/source-data" className="text-link">
+            Policy JSON
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="pricing-gate-grid">
+          {freeBuildModeContract.paidGoLiveGates.map((gate) => (
+            <article key={gate.id} className="pricing-gate-card">
+              <div>
+                <Globe2 aria-hidden="true" />
+                <h3>{gate.title}</h3>
+              </div>
+              <p>{gate.summary}</p>
+              <ul>
+                {gate.requires.map((requirement) => (
+                  <li key={requirement}>
+                    <CheckCircle2 aria-hidden="true" />
+                    {requirement}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="content-band alternate" id="plans">
         <div className="split-heading">
           <div>
             <p className="eyebrow">Plans</p>
-            <h2>Pick the amount of launch surface you need now.</h2>
+            <h2>Pick the paid launch surface when you are ready.</h2>
           </div>
           <p>
-            Start with the plan that matches today’s launch. Bumpgrade keeps the plan structure flexible, so your account
-            can grow as you add more offers, domains, partners, and reporting needs.
+            Start with the plan that matches the launch you want to put in front of buyers. Bumpgrade keeps the plan
+            structure flexible, so your account can grow as you add more offers, domains, partners, and reporting needs.
           </p>
         </div>
         <div className="pricing-card-grid">
