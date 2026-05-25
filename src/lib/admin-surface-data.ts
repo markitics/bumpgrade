@@ -346,6 +346,7 @@ const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
 const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
 const issue466PrUrl = "https://github.com/markitics/bumpgrade/pull/472";
 const issue467PrUrl = "https://github.com/markitics/bumpgrade/pull/483";
+const issue467PreflightPrUrl = "https://github.com/markitics/bumpgrade/pull/494";
 const journeyProofRefreshAt = "2026-05-20T17:20:00.000Z";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -407,6 +408,11 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     screenshotLinks: [
       { label: "Importer center", url: "https://bumpgrade.com/pr-screenshots/issue-467-imports.png", kind: "screenshot" },
       { label: "ClickFunnels importer", url: "https://bumpgrade.com/pr-screenshots/issue-467-clickfunnels-importer.png", kind: "screenshot" },
+      {
+        label: "Importer preflight review",
+        url: "https://bumpgrade.com/pr-screenshots/issue-467-importer-preflight-review.png",
+        kind: "screenshot",
+      },
     ],
     validationLinks: [
       { label: "Import center", url: "https://bumpgrade.com/imports", kind: "route" },
@@ -414,6 +420,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Importer source data", url: "https://bumpgrade.com/imports/source-data", kind: "source-data" },
       { label: "Comparison source data", url: "https://bumpgrade.com/compare/source-data", kind: "source-data" },
       { label: "PR #483", url: issue467PrUrl, kind: "pr" },
+      { label: "PR #494", url: issue467PreflightPrUrl, kind: "pr" },
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
