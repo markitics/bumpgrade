@@ -4,13 +4,21 @@ import type { AdminIdentity } from "@/lib/admin-roles";
 import { sha256Hex } from "@/lib/analytics-events";
 import { audienceAutomationWorkspace, type EmailSequenceStep } from "@/lib/audience-automation";
 import { getAudienceSequenceDeliveryReadinessSummary } from "@/lib/audience-sequence-readiness";
+import {
+  audienceSequenceTestSendApiRoute,
+  audienceSequenceTestSendConfirmationText,
+  audienceSequenceTestSendIssue,
+  audienceSequenceTestSendStatus,
+} from "@/lib/audience-sequence-test-send-constants";
 import { sendTransactionalEmail, simpleEmailHtml, type TransactionalEmailSendResult } from "@/lib/email";
 
-export const audienceSequenceTestSendIssue = 420;
-export const audienceSequenceTestSendStatus = "sequence-owner-test-send-ready";
-export const audienceSequenceTestSendUpdatedAt = "2026-05-25";
-export const audienceSequenceTestSendApiRoute = "/api/admin/audience/sequences/test-sends";
-export const audienceSequenceTestSendConfirmationText = "SEND BUMPGRADE SEQUENCE TEST EMAIL TO OWNER";
+export {
+  audienceSequenceTestSendApiRoute,
+  audienceSequenceTestSendConfirmationText,
+  audienceSequenceTestSendIssue,
+  audienceSequenceTestSendStatus,
+  audienceSequenceTestSendUpdatedAt,
+} from "@/lib/audience-sequence-test-send-constants";
 
 type AudienceRuntime = {
   db: D1Database;
