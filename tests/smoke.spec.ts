@@ -433,7 +433,13 @@ import {
   productProtectedContentStatus,
 } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
-import { importerPlatforms, importerSourceData, importerSourceDataRoute } from "../src/lib/importers";
+import {
+  clickFunnelsDraftImportApiRoute,
+  clickFunnelsDraftImportConfirmationText,
+  importerPlatforms,
+  importerSourceData,
+  importerSourceDataRoute,
+} from "../src/lib/importers";
 import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
@@ -1020,6 +1026,11 @@ test.describe("Bumpgrade scaffold", () => {
         id: importerSourceData.id,
         issue: 467,
         routes: expect.arrayContaining(["/imports", importerSourceDataRoute, "/imports/clickfunnels"]),
+        currentAvailability: expect.objectContaining({
+          publicImporterPagesLive: true,
+          clickFunnelsPrivateDraftImportLive: true,
+          paidGoLiveRequired: true,
+        }),
       }),
     );
     expect(payload.platforms).toHaveLength(importerPlatforms.length);
@@ -1028,7 +1039,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "importer-clickfunnels",
           platformName: "ClickFunnels",
-          status: "launch-preview",
+          status: "private-draft-live",
           compareRoute: "/compare/clickfunnels-alternative",
           inputs: expect.arrayContaining([expect.objectContaining({ kind: "public_url" })]),
           importableAreas: expect.arrayContaining([
@@ -1058,6 +1069,26 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.commonContract.redaction).toContain("Raw exports");
+    expect(payload.commonContract.liveWriteActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "clickfunnels-private-draft-import",
+          apiRoute: clickFunnelsDraftImportApiRoute,
+          confirmationText: clickFunnelsDraftImportConfirmationText,
+          auth: "verified publisher session",
+          creates: expect.arrayContaining(["free_build_workspace_if_needed", "private_draft_funnel"]),
+          goLiveEffects: expect.objectContaining({
+            publicPublishingEnabled: false,
+            liveCheckoutEnabled: false,
+            subscriberSendsEnabled: false,
+          }),
+          redaction: expect.objectContaining({
+            rawPastedMaterialIncludedInResponse: false,
+            customerRowsIncluded: false,
+          }),
+        }),
+      ]),
+    );
   });
 
   test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {
@@ -29341,6 +29372,124 @@ test.describe("Bumpgrade scaffold", () => {
           publicPublishingEnabled: false,
           workspaceCreated: false,
         }),
+      }),
+    );
+  });
+
+  test("ClickFunnels importer rejects unauthenticated draft writes with public redaction", async ({ request }) => {
+    const response = await request.post(clickFunnelsDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        offerTitle: "Imported launch",
+        sourceUrl: "https://example.com/sales-page",
+        confirmationText: clickFunnelsDraftImportConfirmationText,
+        idempotencyKey: "playwright-clickfunnels-import-unauthenticated-redaction",
+      },
+    });
+    expect(response.status()).toBe(401);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PUBLISHER_SESSION_REQUIRED",
+        issue: 467,
+        route: clickFunnelsDraftImportApiRoute,
+        redaction: expect.objectContaining({
+          rawPastedMaterialIncludedInResponse: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+        }),
+      }),
+    );
+  });
+
+  test("verified publisher can create a private ClickFunnels import draft while go-live stays gated", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `clickfunnels-import-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "ClickFunnels Import Publisher");
+    await verifyEmail(page, email);
+
+    const requestBody = {
+      return: "json",
+      offerTitle: `Imported ClickFunnels launch ${suffix}`,
+      audience: "Publishers migrating a funnel before paying",
+      launchGoal: "Create a private Bumpgrade draft from current page and offer notes",
+      sourceUrl: "https://example.com/clickfunnels/source-page",
+      pageCopy: "A focused launch page with opt-in, offer promise, checkout handoff, and thank-you follow-up.",
+      followUpNotes: "Tag interested subscribers and review the welcome email before any send.",
+      confirmationText: clickFunnelsDraftImportConfirmationText,
+      idempotencyKey: `playwright-clickfunnels-import-${suffix}`,
+    };
+    const createResponse = await page.request.post(clickFunnelsDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: requestBody,
+    });
+    expect(createResponse.ok(), await createResponse.text()).toBeTruthy();
+    const createPayload = await createResponse.json();
+    expect(createPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 467,
+        freeBuildParentIssue: 466,
+        route: clickFunnelsDraftImportApiRoute,
+        paidGoLiveRequired: true,
+        tenant: expect.objectContaining({
+          planStatus: "free_build",
+          defaultSubdomain: null,
+          primaryHostname: null,
+        }),
+        draft: expect.objectContaining({
+          title: `Imported ClickFunnels launch ${suffix}`,
+          status: "draft",
+          sourceIssueNumber: 467,
+          parentIssueNumber: 467,
+          stepCount: 3,
+          blockCount: 9,
+          previewRoute: null,
+          sourceDataRoute: "/funnels/source-data",
+        }),
+        redaction: expect.objectContaining({
+          rawPastedMaterialIncludedInResponse: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          subscriberSendsEnabled: false,
+          customDomainsEnabled: false,
+          fulfillmentEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(createPayload)).not.toContain(requestBody.pageCopy);
+
+    const replayResponse = await page.request.post(clickFunnelsDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: requestBody,
+    });
+    expect(replayResponse.ok(), await replayResponse.text()).toBeTruthy();
+    const replayPayload = await replayResponse.json();
+    expect(replayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        tenant: expect.objectContaining({ id: createPayload.tenant.id }),
+      }),
+    );
+
+    const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        subdomain: `clickfunnels-import-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-clickfunnels-import-subdomain-${suffix}`,
+      },
+    });
+    expect(subdomainResponse.status()).toBe(402);
+    expect(await subdomainResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 222,
       }),
     );
   });
