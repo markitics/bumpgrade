@@ -735,7 +735,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public launch pages avoid internal build language", async ({ page }) => {
     const internalTerms =
-      /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access/i;
+      /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access|Open example/i;
 
     const publicCopyRoutes = [
       "/",

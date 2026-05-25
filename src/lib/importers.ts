@@ -69,7 +69,7 @@ export const commonImporterSafetyGates = [
   "Imported material starts in a private workspace and does not publish public pages.",
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
-  "Duplicate review reuses an existing private draft when the source platform, target workspace, normalized title, and normalized source URL match.",
+  "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL match.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];

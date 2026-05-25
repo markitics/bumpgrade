@@ -54,6 +54,11 @@ function exampleRouteLabel(route: string) {
   if (route.startsWith("/audience/")) return "Open waitlist";
   if (route.startsWith("/analytics/")) return "Open analytics dashboard";
   if (route.startsWith("/affiliates/")) return "Open partner program";
+  if (route === "/imports") return "Open import center";
+  if (route.startsWith("/imports/clickfunnels")) return "Open ClickFunnels importer";
+  if (route.startsWith("/imports/samcart")) return "Open SamCart importer";
+  if (route.startsWith("/imports/kit")) return "Open Kit importer";
+  if (route.startsWith("/imports/")) return "Open importer";
   if (route.startsWith("/agent-docs")) return "Open AI helper notes";
   if (route.startsWith("/pricing")) return "Open pricing";
   if (route.startsWith("/compare")) return "Open comparison hub";
