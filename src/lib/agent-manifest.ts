@@ -371,12 +371,12 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["pricingPolicyId", "freeBuildModeId", "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
     safeForAgents: [
       "Read the free build-before-go-live policy from issue #466",
-      "Distinguish private free-building design from paid go-live actions",
-      "Confirm signed-in free workspace and anonymous playground persistence are not live until implementation evidence exists",
+      "Distinguish live signed-in private Free Build workspace creation from paid go-live actions",
+      "Confirm signed-in Free Build workspace creation is live and anonymous playground recovery is not live until implementation evidence exists",
       "Cite paid go-live gates for publishing, checkout, subscriber sends, domains, and fulfillment",
     ],
     writeBoundary:
-      "Agents may read the pricing policy only. Creating free workspaces, recovering anonymous work, publishing, charging buyers, sending email, connecting domains, and fulfillment changes require future authenticated confirmed-write APIs or existing paid-plan flows.",
+      "Agents may read the pricing policy only. Creating signed-in Free Build workspaces uses the authenticated account setup API; recovering anonymous work, publishing, charging buyers, sending email, connecting domains, and fulfillment changes require future confirmed-write APIs or existing paid-plan flows.",
   },
   {
     id: "read-admin-source",
@@ -451,10 +451,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "publisherSubdomainReservationId",
       "publisherCustomDomainId",
       "publisherPlanEntitlementId",
+      "publisherFreeBuildWorkspaceId",
       "publisherAuthBoundaryId",
       "issue",
     ],
     safeForAgents: [
+      "Read signed-in Free Build workspace creation policy",
       "Read paid-plan gate requirements",
       "Read default Bumpgrade subdomain reservation policy",
       "Read custom-domain DNS instruction and verification policy",
@@ -462,7 +464,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Distinguish Bumpgrade subdomains, existing custom domains, and the current no-domain-purchase policy",
     ],
     writeBoundary:
-      "Subdomain reservation and custom-domain onboarding require a signed-in, email-confirmed publisher with active paid-plan entitlement, idempotency, audit correlation, and redacted outputs; Bumpgrade does not sell, register, renew, transfer, or price domains today.",
+      "Free Build workspace creation requires a signed-in, email-confirmed publisher with explicit confirmation, idempotency, audit correlation, and redacted outputs; subdomain reservation and custom-domain onboarding also require active paid-plan entitlement. Bumpgrade does not sell, register, renew, transfer, or price domains today.",
   },
   {
     id: "read-funnel-contract",
@@ -2750,10 +2752,10 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     id: "evidence-pricing-policy",
     route: pricingSourceDataRoute,
     resolves:
-      "Bumpgrade account-plan pricing, Free Build design, anonymous playground non-live state, paid go-live gates, setup add-on, and redaction policy.",
+      "Bumpgrade account-plan pricing, signed-in Free Build workspace status, anonymous playground non-live state, paid go-live gates, setup add-on, and redaction policy.",
     stableIds: [freeBuildModeContract.id, "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
     volatileClaims:
-      "Signed-in free workspaces and anonymous playground persistence are not live until implementation evidence exists; paid go-live actions still require entitlement and confirmation.",
+      "Signed-in Free Build workspace creation is live; anonymous playground persistence is not live until implementation evidence exists; paid go-live actions still require entitlement and confirmation.",
   },
   {
     id: "evidence-agent-manifest",
@@ -3067,9 +3069,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://pricing-policy",
     status: "ready-contract",
     backedBy: pricingSourceDataRoute,
-    purpose: "Expose pricing plans, Free Build design, anonymous playground non-live state, and paid go-live gates.",
+    purpose: "Expose pricing plans, signed-in Free Build workspace state, anonymous playground non-live state, and paid go-live gates.",
     safetyBoundary:
-      "Read-only; free workspace creation, anonymous recovery, public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement or future confirmed-write APIs.",
+      "Read-only pricing resource; signed-in Free Build workspace creation uses authenticated account setup APIs, while anonymous recovery, public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement or future confirmed-write APIs.",
   },
   {
     id: "mcp-resource-content",

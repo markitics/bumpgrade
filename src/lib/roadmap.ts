@@ -627,10 +627,12 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #466 tracks the Free Build pricing model and optional anonymous playground.",
       "`/pricing` explains the build-first message in plain public copy.",
       "`/pricing/source-data` exposes the Free Build design, non-live anonymous playground state, and paid go-live gates.",
+      "`/account/setup` lets verified signed-in users create a private Free Build workspace before payment.",
+      "`/account/source-data` exposes the signed-in Free Build workspace contract and paid go-live gates.",
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
     nextMilestone:
-      "Implement signed-in free workspace persistence and anonymous browser recovery only after privacy, abuse, expiration, merge-to-account, redaction, and cleanup rules are ready.",
+      "Implement logged-out anonymous browser recovery only after privacy, abuse, expiration, merge-to-account, redaction, and cleanup rules are ready.",
   },
 ];
 

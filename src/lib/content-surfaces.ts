@@ -59,7 +59,7 @@ export type LaunchSignupPolicy = {
   evidenceRoutes: string[];
 };
 
-export const contentSurfacesUpdatedAt = "2026-05-22";
+export const contentSurfacesUpdatedAt = "2026-05-25";
 
 export const audienceSegments: AudienceSegment[] = [
   {
@@ -214,10 +214,10 @@ export const pricingPrinciples: PricingPrinciple[] = [
   {
     id: "pricing-build-before-go-live",
     title: "Build before paying",
-    status: "planned",
+    status: "live",
     summary:
-      "Issue #466 defines the free private-building path and the paid go-live gates before signed-in free workspaces or anonymous recovery are treated as live.",
-    evidenceRoutes: ["/pricing", pricingSourceDataRoute, "/content/source-data"],
+      "Issue #466 defines the free private-building path and paid go-live gates; issue #473 adds signed-in Free Build workspace creation while anonymous recovery remains planned.",
+    evidenceRoutes: ["/pricing", pricingSourceDataRoute, "/account/source-data", "/content/source-data"],
   },
   {
     id: "pricing-self-serve",
@@ -246,7 +246,7 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
   {
     id: "pricing-track-free-build",
     title: "Free Build",
-    status: "planned",
+    status: "live",
     intendedFor: "Publishers who want to assemble launch pages, offers, products, audience setup, and AI context before paying.",
     price: "$0 while building",
     includes: [
@@ -256,8 +256,8 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
       "Paid go-live gates for public publishing, live checkout, subscriber sends, domains, and fulfillment",
     ],
     checkoutStatus:
-      "Issue #466 tracks the free build-before-go-live path. Paid go-live actions still require the right entitlement.",
-    issueNumbers: [466],
+      "Issue #473 adds signed-in private workspace creation. Paid go-live actions still require the right entitlement.",
+    issueNumbers: [466, 473],
   },
   {
     id: "pricing-track-publisher",
@@ -301,9 +301,9 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
 export const launchSignupPolicy: LaunchSignupPolicy = {
   id: "self-serve-pricing-and-account-setup",
   status: "live",
-  issueNumbers: [217, 222, 223, 225, 226, 316, 466],
+  issueNumbers: [217, 222, 223, 225, 226, 316, 466, 473],
   summary:
-    "Bumpgrade offers self-serve Experiment and Grow subscriptions through Stripe Checkout, an Enterprise contact path, and a tracked free build-before-go-live model in issue #466.",
+    "Bumpgrade offers signed-in Free Build workspace creation, self-serve Experiment and Grow subscriptions through Stripe Checkout, and an Enterprise contact path.",
   freeBuildMode: freeBuildModeContract,
   defaultSubdomain:
     "A publisher can reserve a default *.bumpgrade.com hostname after a paid or explicitly approved go-live entitlement is active.",
@@ -312,7 +312,7 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   domainPurchase:
     "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
   payments: [
-    "Free Build is the planned private-building path from issue #466; signed-in free workspace persistence and anonymous recovery are not live until implementation evidence exists.",
+    "Free Build supports signed-in private workspace creation before payment; anonymous browser recovery is still planned.",
     "Experiment is $97/month.",
     "Grow is $197/month.",
     "White glove setup is an optional one-time $1,000 add-on.",
