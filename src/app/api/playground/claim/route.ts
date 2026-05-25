@@ -11,6 +11,7 @@ import {
   getOptionalAnonymousPlaygroundD1,
   isLikelyAnonymousPlaygroundToken,
   publicAnonymousPlaygroundClaimedDraft,
+  publicAnonymousPlaygroundClaimRecords,
   publicAnonymousPlaygroundWorkspace,
   AnonymousPlaygroundError,
 } from "@/lib/anonymous-playground";
@@ -151,7 +152,11 @@ export async function POST(request: NextRequest) {
         },
         idempotent: result.idempotent,
         paidGoLiveRequired: result.paidGoLiveRequired,
-        redaction: anonymousPlaygroundRedaction({ workspaceIncluded: true }),
+        claimRecords: publicAnonymousPlaygroundClaimRecords(result.claimRecords),
+        redaction: anonymousPlaygroundRedaction({
+          workspaceIncluded: true,
+          privateLaunchRecordContentIncluded: true,
+        }),
       });
     }
 

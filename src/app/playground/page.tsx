@@ -129,7 +129,7 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
 
         {params?.saved === "1" ? <p className="account-success">Playground progress saved for this browser.</p> : null}
         {params?.claimed === "1" ? (
-          <p className="account-success">Playground attached to your Free Build account and private launch draft.</p>
+          <p className="account-success">Playground attached to your Free Build account, private launch draft, and setup records.</p>
         ) : null}
         {params?.error ? <p className="auth-error">{params.error}</p> : null}
 

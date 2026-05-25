@@ -653,7 +653,7 @@ export const roadmapItems: RoadmapItem[] = [
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
     nextMilestone:
-      "Broaden the anonymous playground claim path into dedicated offer, product, audience, importer-review, cleanup, and abuse-limit records after structured funnel-draft mapping is proven.",
+      "Add anonymous playground cleanup, retention controls, abuse limits, and deeper claim/merge semantics for users with existing workspaces.",
   },
 ];
 

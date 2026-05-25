@@ -344,7 +344,7 @@ export const pricingSourceData = {
     customerDataIncluded: false,
   },
   agentBoundary:
-    "Agents may cite the pricing policy, anonymous browser playground, signed-in Free Build workspace creation, and paid go-live gates. Anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, or fulfill access.",
+    "Agents may cite the pricing policy, anonymous browser playground, signed-in Free Build workspace creation, private claim-record boundary, and paid go-live gates. Anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, or fulfill access.",
 };
 
 const planOrder: Record<PricingPlanSlug, number> = {
