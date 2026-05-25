@@ -896,7 +896,12 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     ],
     roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
     userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys", "https://bumpgrade.com/admin/user-journeys/source-data"],
-    documentationUpdated: ["docs/features/funnels.md", "docs/agent/agent-ready.md", "public/llms.txt"],
+    documentationUpdated: [
+      "docs/features/funnels.md",
+      "docs/agent/agent-ready.md",
+      "public/llms.txt",
+      "docs/pr-screenshots/issue-417-agent-funnel-editor-operations.png",
+    ],
     validation: [
       "npm run typecheck",
       "npm run lint",

@@ -60,7 +60,7 @@ INSERT INTO admin_work_log_entries (
   '["https://bumpgrade.com/admin/funnels","https://bumpgrade.com/funnels/source-data","https://bumpgrade.com/features/source-data","https://bumpgrade.com/agent-docs/source-data"]',
   '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
   '["https://bumpgrade.com/admin/user-journeys","https://bumpgrade.com/admin/user-journeys/source-data"]',
-  '["docs/features/funnels.md","docs/agent/agent-ready.md","public/llms.txt"]',
+  '["docs/features/funnels.md","docs/agent/agent-ready.md","public/llms.txt","docs/pr-screenshots/issue-417-agent-funnel-editor-operations.png"]',
   '["npm run typecheck","npm run lint","npm run test:runtime-secrets","npm run cf:build","npx playwright test tests/smoke.spec.ts --project=chromium -g \"funnel source data exposes|agent funnel draft write endpoint\"","npx playwright test tests/smoke.spec.ts --project=chromium -g \"admin source data exposes|admin user journeys source data exposes|agent docs source data exposes|agent manifest\""]',
   'This keeps the writes private and owner-session confirmed. It adds direct agent-safe checkout link/unlink and block movement, but still excludes direct public publishing, purge, block add/remove, signed URLs, live billing, live fulfillment automation, and unauthenticated public agent writes.',
   1779586640,
