@@ -6,6 +6,7 @@ import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
 import { seededFunnels } from "@/lib/funnels";
+import { importerRoutes } from "@/lib/importers";
 import { marketingFeatures } from "@/lib/marketing-features";
 import { productAccessCatalogs } from "@/lib/product-access";
 import { scaffoldRoutes, site } from "@/lib/site";
@@ -19,6 +20,7 @@ const sourceDataRoutes = [
   "/admin/user-journeys/source-data",
   "/admin/for-mark/source-data",
   "/compare/source-data",
+  "/imports/source-data",
   "/commerce/source-data",
   "/content/source-data",
   "/pricing/source-data",
@@ -63,6 +65,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...sourceDataRoutes,
     ...marketingFeatureRoutes,
     ...comparisonRoutes,
+    ...importerRoutes,
     ...funnelRoutes,
     ...offerRoutes,
     ...productRoutes,

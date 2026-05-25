@@ -196,6 +196,14 @@ tracks. Experiment, Grow, Enterprise, and White glove setup are current public
 pricing records; future limits, trials, and usage-meter rates still require
 fresh source evidence before agents cite them as current.
 
+Current importer boundary: `/imports/source-data` is the public-safe contract for
+ClickFunnels and first-wave competitor import paths. It exposes supported
+platform IDs, competitor IDs, source IDs, input kinds, generated private record
+types, safety gates, unsupported fields, and routes. Imported material starts in
+a private Bumpgrade workspace; public publishing, live checkout, subscriber
+sends, domains, fulfillment, account-to-account transfer, payment migration, and
+customer password migration are not live from this contract.
+
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and

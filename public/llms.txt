@@ -105,6 +105,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Login and signup: https://bumpgrade.com/login
 - Public comparisons: https://bumpgrade.com/compare
 - Comparison source data: https://bumpgrade.com/compare/source-data
+- Import center: https://bumpgrade.com/imports
+- Importer source data: https://bumpgrade.com/imports/source-data
+- ClickFunnels importer: https://bumpgrade.com/imports/clickfunnels
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
 - Kit alternative: https://bumpgrade.com/compare/kit-alternative
 - Shopify alternative: https://bumpgrade.com/compare/shopify-alternative

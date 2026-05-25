@@ -334,6 +334,7 @@ const issue242CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26
 const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
 const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
 const issue466PrUrl = "https://github.com/markitics/bumpgrade/pull/472";
+const issue467PrUrl = "https://github.com/markitics/bumpgrade/pull/483";
 const journeyProofRefreshAt = "2026-05-20T17:20:00.000Z";
 
 const defaultJourneyProof: AdminUserJourneyProof = {
@@ -378,6 +379,34 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #242", url: "https://github.com/markitics/bumpgrade/issues/242", kind: "issue" },
     ],
     notes: [
+      "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
+    ],
+  },
+  "journey-prospect-imports-from-clickfunnels": {
+    status: "passed",
+    lastTestedAt: "2026-05-25T14:54:02.000Z",
+    environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
+    method:
+      "Importer hub route smoke, ClickFunnels importer route smoke, importer source-data inspection, public discovery checks, and admin user-journey proof summary checks.",
+    summary:
+      "The ClickFunnels import planning journey has route, source-data, screenshot, and issue evidence for a review-first private workspace importer without claiming live account transfer or record creation.",
+    ciLinks: [
+      { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+    ],
+    screenshotLinks: [
+      { label: "Importer center", url: "https://bumpgrade.com/pr-screenshots/issue-467-imports.png", kind: "screenshot" },
+      { label: "ClickFunnels importer", url: "https://bumpgrade.com/pr-screenshots/issue-467-clickfunnels-importer.png", kind: "screenshot" },
+    ],
+    validationLinks: [
+      { label: "Import center", url: "https://bumpgrade.com/imports", kind: "route" },
+      { label: "ClickFunnels importer", url: "https://bumpgrade.com/imports/clickfunnels", kind: "route" },
+      { label: "Importer source data", url: "https://bumpgrade.com/imports/source-data", kind: "source-data" },
+      { label: "Comparison source data", url: "https://bumpgrade.com/compare/source-data", kind: "source-data" },
+      { label: "PR #483", url: issue467PrUrl, kind: "pr" },
+      { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
+    ],
+    notes: [
+      "This proof is for public planning and agent-readable contracts only; authenticated import preview creation, private record creation, subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1562,6 +1591,44 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     proof: createJourneyProof("journey-prospect-explores-launch-marketing", "feature-public-feature-catalog"),
     sortOrder: 8,
+    updatedAt: null,
+  },
+  {
+    id: "journey-prospect-imports-from-clickfunnels",
+    title: "Prospect plans a ClickFunnels import",
+    featureId: "feature-competitor-importers",
+    featureStatus: "launch-preview",
+    issueNumbers: [5, 14, 15, 17, 467],
+    primaryUser: "Publisher moving a launch from ClickFunnels or another familiar platform",
+    userGoal:
+      "Understand what Bumpgrade can bring into a private workspace before public publishing, checkout, subscriber sends, domains, or fulfillment go live.",
+    sourceEvidence: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/clickfunnels",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/compare/source-data",
+      "https://github.com/markitics/bumpgrade/issues/467",
+    ],
+    happyPath: [
+      "Open /imports.",
+      "Choose the current platform, starting with ClickFunnels.",
+      "Review accepted starting material such as public URLs, exported files, CSVs, or pasted copy.",
+      "Review mapped pages, offers, products, assets, audience notes, follow-up outlines, unsupported fields, and go-live gates.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, generated private record types, safety gates, limitations, and source IDs.",
+    ],
+    edgeCases: [
+      "Imported material starts in a private workspace and is not buyer-facing by default.",
+      "Account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment require later confirmed-write evidence.",
+      "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
+    ],
+    agentAccess:
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, generated private record types, safety gates, source IDs, and limitations. Agent writes are not live for import previews or record creation in this slice.",
+    validation: [
+      "Issue #467 adds /imports, /imports/clickfunnels, /imports/source-data, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
+      "Importer source-data keeps raw exports, customer rows, private emails, payment credentials, API keys, session cookies, and private files out of public contracts.",
+    ],
+    proof: createJourneyProof("journey-prospect-imports-from-clickfunnels", "feature-competitor-importers"),
+    sortOrder: 9,
     updatedAt: null,
   },
   {

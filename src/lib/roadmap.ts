@@ -75,6 +75,24 @@ export const roadmapItems: RoadmapItem[] = [
     nextMilestone: "Refresh competitor sources when pricing or packaging copy is used in user-facing answers.",
   },
   {
+    id: "roadmap-competitor-importers",
+    title: "Easy importers from ClickFunnels and competitor platforms",
+    status: "active",
+    issue: 467,
+    featureId: featureIdFor(467),
+    group: "Migration",
+    summary:
+      "Importer center, ClickFunnels import path, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
+    publicEvidence: [
+      "Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.",
+      "`/imports` lists supported importer paths.",
+      "`/imports/clickfunnels` is the first dedicated ClickFunnels import path.",
+      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, safety gates, limitations, and source evidence IDs for agents.",
+    ],
+    nextMilestone:
+      "Implement owner-authenticated import preview and create-private-record flows after this review-first public and agent-readable contract is stable.",
+  },
+  {
     id: "roadmap-feature-catalog",
     title: "Public feature catalog",
     status: "shipped",

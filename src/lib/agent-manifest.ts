@@ -181,6 +181,7 @@ import {
   publisherTenantParentIssue,
 } from "@/lib/publisher-tenants";
 import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
+import { importerIssue, importerSourceDataRoute } from "@/lib/importers";
 
 export const agentManifestUpdatedAt = "2026-05-25";
 
@@ -330,6 +331,24 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["competitorId", "sourceId", "seoTargetId"],
     safeForAgents: ["Resolve competitor claims", "Read retrieved dates", "Cite official source URLs"],
     writeBoundary: "Refresh competitor claims from official sources before changing dated pricing, packaging, or feature claims.",
+  },
+  {
+    id: "read-competitor-importers",
+    title: "Competitor importers",
+    route: importerSourceDataRoute,
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/importers.ts",
+    stableIds: ["importerPlatformId", "competitorId", "sourceId", "importInputKind", "importDraftEntity"],
+    safeForAgents: [
+      "Read supported importer platforms",
+      "Resolve importer routes from competitor IDs",
+      "Inspect input kinds and generated private record types",
+      "Cite safety gates and unsupported fields before describing migration capability",
+      `Cite issue #${importerIssue} for the active importer feature request`,
+    ],
+    writeBoundary:
+      "Importer source-data is read-only. Creating import previews, private records, or public launch changes requires owner authentication, exact confirmation, idempotency, stale-state checks, audit correlation, and later API evidence.",
   },
   {
     id: "read-commerce-contract",
@@ -3055,6 +3074,15 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     backedBy: "/compare/source-data, /features/source-data, /roadmap/source-data, /admin/work-log/source-data",
     purpose: "Resolve a public claim to source IDs, URLs, issues, PRs, and work-log evidence.",
     safetyBoundary: "Must return caveats when evidence is stale, missing, planned-only, or private.",
+  },
+  {
+    id: "mcp-resource-competitor-importers",
+    resourceOrTool: "resource bumpgrade://importers",
+    status: "ready-contract",
+    backedBy: importerSourceDataRoute,
+    purpose: "Expose importer platform IDs, competitor mappings, input kinds, generated private record types, limitations, and safety gates.",
+    safetyBoundary:
+      "Read-only; no export parsing, private record creation, public publishing, checkout migration, subscriber send, domain, fulfillment, or account-to-account transfer may be performed by this resource.",
   },
   {
     id: "mcp-resource-commerce",

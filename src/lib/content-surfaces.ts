@@ -1,4 +1,5 @@
 import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
+import { importerHubRoute, importerIssue, importerSourceDataRoute } from "@/lib/importers";
 
 export type ContentSurfaceStatus = "live" | "planned";
 
@@ -144,14 +145,27 @@ export const resourceHubItems: ResourceHubItem[] = [
   },
   {
     id: "resource-clickfunnels-migration",
-    title: "ClickFunnels migration guide",
+    title: "ClickFunnels importer",
     type: "migration",
-    status: "planned",
-    route: "/compare/clickfunnels-alternative",
-    summary: "Use the comparison page as the current evidence base before a dedicated migration guide exists.",
-    evidenceRoutes: ["/compare/source-data", "/roadmap/source-data"],
-    issueNumbers: [5, 14, 15, 20],
-    agentBoundary: "Migration steps are draft guidance until funnel/page and checkout implementations ship.",
+    status: "live",
+    route: "/imports/clickfunnels",
+    summary: "Review-first path for bringing ClickFunnels pages, offer paths, products, and follow-up context into Bumpgrade.",
+    evidenceRoutes: [importerSourceDataRoute, "/compare/source-data", "/roadmap/source-data"],
+    issueNumbers: [importerIssue, 5, 14, 15, 20],
+    agentBoundary:
+      "Importer guidance creates private workspace records only after review; public publishing, live checkout, subscriber sends, domains, and fulfillment require go-live approval.",
+  },
+  {
+    id: "resource-import-center",
+    title: "Importer center",
+    type: "migration",
+    status: "live",
+    route: importerHubRoute,
+    summary: "Dedicated import paths for ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, and ThriveCart.",
+    evidenceRoutes: [importerSourceDataRoute, "/features/source-data"],
+    issueNumbers: [importerIssue],
+    agentBoundary:
+      "Agents can cite supported platforms, input kinds, generated private record types, safety gates, and limitations; account-to-account transfer and live buyer-facing actions need later proof.",
   },
   {
     id: "resource-launch-playbook",
@@ -340,11 +354,13 @@ export const contentSourceData = {
     "/users",
     "/developers-and-agents",
     "/resources",
+    importerHubRoute,
     "/brand",
     "/pricing",
     pricingSourceDataRoute,
     "/pricing-v2",
     "/account/setup",
+    importerSourceDataRoute,
     "/content/source-data",
   ],
   audienceSegments,

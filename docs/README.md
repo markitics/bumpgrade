@@ -20,6 +20,8 @@ then open the relevant shelf for the task.
 - `operations.md`: production facts, secrets, migrations, and auth notes.
 - `features/content-surfaces.md`: users, resources, pricing, and
   `/content/source-data` content contracts from issue #20.
+- `features/importers.md`: ClickFunnels and competitor importer paths,
+  `/imports/source-data`, private workspace boundaries, and issue #467 limits.
 - `features/funnels.md`: funnel source-data and preview contract from issue #79,
   plus the owner-gated D1 draft builder, step editing, and private preview
   slices from issues #91, #93, and #95.
