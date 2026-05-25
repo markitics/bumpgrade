@@ -1529,6 +1529,20 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({ id: "update-block", requiresStepId: true, requiresBlockId: true }),
         expect.objectContaining({
+          id: "link-checkout-offer",
+          requiresStepId: true,
+          requiresOfferId: true,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+        }),
+        expect.objectContaining({
+          id: "unlink-checkout",
+          requiresStepId: true,
+          requiresBlockId: true,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+        }),
+        expect.objectContaining({
           id: "link-resource-delivery",
           requiresStepId: true,
           requiresBlockId: true,
@@ -1543,6 +1557,20 @@ test.describe("Bumpgrade scaffold", () => {
           requiresEventTitle: true,
           requiresRegistrationUrl: true,
           requiresProviderLabel: true,
+          publicRouteMutation: false,
+        }),
+        expect.objectContaining({
+          id: "move-block",
+          requiresStepId: true,
+          requiresBlockId: true,
+          requiresDirection: true,
+          publicRouteMutation: false,
+        }),
+        expect.objectContaining({
+          id: "move-block-to-step",
+          requiresStepId: true,
+          requiresTargetStepId: true,
+          requiresBlockId: true,
           publicRouteMutation: false,
         }),
         expect.objectContaining({ id: "duplicate-draft", publicRouteMutation: false }),
@@ -1851,6 +1879,159 @@ test.describe("Bumpgrade scaffold", () => {
           signedUrlsIncluded: false,
           buyerDataIncluded: false,
           publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const checkoutCreate = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-launch-sales-stack",
+        title: `Agent-safe checkout draft ${suffix}`,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-checkout-create-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(checkoutCreate.ok(), await checkoutCreate.text()).toBeTruthy();
+    const checkoutCreatePayload = await checkoutCreate.json();
+    const checkoutDraft = checkoutCreatePayload.draft;
+    const checkoutStep = checkoutDraft.steps.find((step: { blocks: { kind: string }[] }) =>
+      step.blocks.some((block) => block.kind === "checkout"),
+    );
+    const checkoutBlock = checkoutStep?.blocks.find((block: { kind: string }) => block.kind === "checkout");
+    expect(checkoutStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(checkoutBlock).toEqual(expect.objectContaining({ id: expect.any(String), kind: "checkout" }));
+    if (!checkoutStep || !checkoutBlock) throw new Error("Expected checkout draft to include a checkout block.");
+
+    const checkoutLinkAuditCorrelationId = `playwright-agent-funnel-checkout-link-audit-${suffix}`;
+    const checkoutLink = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "link-checkout-offer",
+        draftId: checkoutDraft.id,
+        stepId: checkoutStep.id,
+        offerId: checkoutOfferStack.primaryOffer.id,
+        expectedRevisionId: checkoutDraft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-checkout-link-${suffix}`,
+        auditCorrelationId: checkoutLinkAuditCorrelationId,
+      },
+    });
+    expect(checkoutLink.ok(), await checkoutLink.text()).toBeTruthy();
+    const checkoutLinkPayload = await checkoutLink.json();
+    expect(checkoutLinkPayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "link-checkout-offer",
+        auditCorrelationId: checkoutLinkAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: checkoutDraft.id,
+          status: "draft",
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          buyerDataIncluded: false,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const checkoutUnlinkAuditCorrelationId = `playwright-agent-funnel-checkout-unlink-audit-${suffix}`;
+    const checkoutUnlink = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "unlink-checkout",
+        draftId: checkoutDraft.id,
+        stepId: checkoutStep.id,
+        blockId: checkoutBlock.id,
+        expectedRevisionId: checkoutLinkPayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-checkout-unlink-${suffix}`,
+        auditCorrelationId: checkoutUnlinkAuditCorrelationId,
+      },
+    });
+    expect(checkoutUnlink.ok(), await checkoutUnlink.text()).toBeTruthy();
+    const checkoutUnlinkPayload = await checkoutUnlink.json();
+    expect(checkoutUnlinkPayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "unlink-checkout",
+        auditCorrelationId: checkoutUnlinkAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: checkoutDraft.id,
+          status: "draft",
+          ownerUserIdIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+
+    const movableStep = checkoutDraft.steps.find((step: { blocks: { id: string }[] }) => step.blocks.length > 1);
+    const targetStep = checkoutDraft.steps.find((step: { id: string }) => step.id !== movableStep?.id);
+    const movableBlock = movableStep?.blocks[1];
+    expect(movableStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(targetStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(movableBlock).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    if (!movableStep || !targetStep || !movableBlock) throw new Error("Expected checkout draft to include movable blocks.");
+
+    const moveBlockAuditCorrelationId = `playwright-agent-funnel-move-block-audit-${suffix}`;
+    const moveBlock = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "move-block",
+        draftId: checkoutDraft.id,
+        stepId: movableStep.id,
+        blockId: movableBlock.id,
+        direction: "up",
+        expectedRevisionId: checkoutUnlinkPayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-move-block-${suffix}`,
+        auditCorrelationId: moveBlockAuditCorrelationId,
+      },
+    });
+    expect(moveBlock.ok(), await moveBlock.text()).toBeTruthy();
+    const moveBlockPayload = await moveBlock.json();
+    expect(moveBlockPayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "move-block",
+        auditCorrelationId: moveBlockAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: checkoutDraft.id,
+          status: "draft",
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+
+    const crossStepAuditCorrelationId = `playwright-agent-funnel-cross-step-audit-${suffix}`;
+    const crossStepMove = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "move-block-to-step",
+        draftId: checkoutDraft.id,
+        stepId: movableStep.id,
+        targetStepId: targetStep.id,
+        blockId: movableBlock.id,
+        expectedRevisionId: moveBlockPayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-cross-step-${suffix}`,
+        auditCorrelationId: crossStepAuditCorrelationId,
+      },
+    });
+    expect(crossStepMove.ok(), await crossStepMove.text()).toBeTruthy();
+    const crossStepMovePayload = await crossStepMove.json();
+    expect(crossStepMovePayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "move-block-to-step",
+        auditCorrelationId: crossStepAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: checkoutDraft.id,
+          status: "draft",
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
         }),
       }),
     );
@@ -19846,7 +20027,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe private draft writes for block copy edits, resource-delivery linking, webinar-event linking, private duplication, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe private draft writes for block copy edits, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
