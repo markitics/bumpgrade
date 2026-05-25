@@ -1041,6 +1041,7 @@ test.describe("Bumpgrade scaffold", () => {
           publicImporterPagesLive: true,
           clickFunnelsPrivateDraftImportLive: true,
           allDedicatedPrivateDraftImportersLive: true,
+          sourceMatchDuplicateReviewLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1089,6 +1090,7 @@ test.describe("Bumpgrade scaffold", () => {
       ]),
     );
     expect(payload.commonContract.redaction).toContain("Raw exports");
+    expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1106,6 +1108,13 @@ test.describe("Bumpgrade scaffold", () => {
             rawPastedMaterialIncludedInResponse: false,
             customerRowsIncluded: false,
           }),
+          duplicateProtection: expect.stringContaining("Source-match duplicate review reuses"),
+          duplicateReview: expect.objectContaining({
+            responseField: "duplicateReview",
+            statuses: expect.arrayContaining(["created", "idempotent_replay", "source_match_reused"]),
+            checkedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_url"]),
+            rawSourceEchoed: false,
+          }),
         }),
         expect.objectContaining({
           id: "samcart-private-draft-import",
@@ -1119,6 +1128,10 @@ test.describe("Bumpgrade scaffold", () => {
             publicPublishingEnabled: false,
             liveCheckoutEnabled: false,
             subscriberSendsEnabled: false,
+          }),
+          duplicateReview: expect.objectContaining({
+            sourceUrlMatchingLive: true,
+            sourceFileNameMatchingLive: false,
           }),
         }),
       ]),
@@ -29505,6 +29518,14 @@ test.describe("Bumpgrade scaffold", () => {
           previewRoute: null,
           sourceDataRoute: "/funnels/source-data",
         }),
+        duplicateReview: expect.objectContaining({
+          status: "created",
+          checkedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_url"]),
+          createsNewDraft: true,
+          reusesExistingDraft: false,
+          sourceUrlCompared: true,
+          rawSourceEchoed: false,
+        }),
         redaction: expect.objectContaining({
           rawPastedMaterialIncludedInResponse: false,
           publicPublishingEnabled: false,
@@ -29528,8 +29549,40 @@ test.describe("Bumpgrade scaffold", () => {
         ok: true,
         draft: expect.objectContaining({ id: createPayload.draft.id }),
         tenant: expect.objectContaining({ id: createPayload.tenant.id }),
+        duplicateReview: expect.objectContaining({
+          status: "idempotent_replay",
+          matchedFields: expect.arrayContaining(["idempotency_key"]),
+          reusesExistingDraft: true,
+        }),
       }),
     );
+
+    const sourceMatchResponse = await page.request.post(samcartDraftImportApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        ...requestBody,
+        pageCopy: "A revised private note for the same source page should not create a near-duplicate draft.",
+        idempotencyKey: `playwright-samcart-import-source-match-${suffix}`,
+      },
+    });
+    expect(sourceMatchResponse.ok(), await sourceMatchResponse.text()).toBeTruthy();
+    const sourceMatchPayload = await sourceMatchResponse.json();
+    expect(sourceMatchPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        tenant: expect.objectContaining({ id: createPayload.tenant.id }),
+        duplicateReview: expect.objectContaining({
+          status: "source_match_reused",
+          matchedFields: expect.arrayContaining(["source_platform", "target_workspace", "normalized_title", "source_url"]),
+          createsNewDraft: false,
+          reusesExistingDraft: true,
+          sourceUrlCompared: true,
+          rawSourceEchoed: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(sourceMatchPayload)).not.toContain("revised private note");
 
     const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
       headers: { accept: "application/json" },

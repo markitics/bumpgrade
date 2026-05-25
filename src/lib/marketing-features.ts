@@ -402,6 +402,7 @@ export const marketingFeatures: MarketingFeature[] = [
     benefits: [
       "Start from public URLs, exported files, CSVs, or pasted copy when a platform does not have a clean transfer path.",
       "Review detected pages, offers, products, audience notes, assets, and follow-up ideas before Bumpgrade creates private workspace records.",
+      "Avoid near-duplicate private drafts when the same source page and title are imported again in the same workspace.",
       "Create a private import plan in Free Build before paying or going live.",
       "Keep publishing, checkout, subscriber sends, domains, and fulfillment off until the launch is approved.",
     ],

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createAuth } from "@/lib/auth";
-import { createCompetitorImportedDraftFunnel } from "@/lib/funnel-drafts";
+import { createCompetitorImportedDraftFunnel, type DraftFunnelRecord, type ImporterDuplicateReview } from "@/lib/funnel-drafts";
 import {
   getImporterBySlug,
   importerDraftImportApiRoute,
@@ -179,7 +179,7 @@ function publicTenant(tenant: Awaited<ReturnType<typeof createFreeBuildWorkspace
   };
 }
 
-function publicDraft(draft: Awaited<ReturnType<typeof createCompetitorImportedDraftFunnel>>) {
+function publicDraft(draft: DraftFunnelRecord) {
   return {
     id: draft.id,
     slug: draft.slug,
@@ -194,6 +194,19 @@ function publicDraft(draft: Awaited<ReturnType<typeof createCompetitorImportedDr
     sourceDataRoute: draft.sourceDataRoute,
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
+  };
+}
+
+function publicDuplicateReview(review: ImporterDuplicateReview) {
+  return {
+    status: review.status,
+    checkedFields: review.checkedFields,
+    matchedFields: review.matchedFields,
+    createsNewDraft: review.createsNewDraft,
+    reusesExistingDraft: review.reusesExistingDraft,
+    sourceUrlCompared: review.sourceUrlCompared,
+    sourceFileNameCompared: review.sourceFileNameCompared,
+    rawSourceEchoed: review.rawSourceEchoed,
   };
 }
 
@@ -279,7 +292,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
       confirmationText: publisherFreeBuildWorkspaceConfirmationText,
       idempotencyKey: `competitor-import-workspace:${platform.slug}:${input.idempotencyKey}`,
     });
-    const draft = await createCompetitorImportedDraftFunnel(db, { userId: user.id, email: user.email }, {
+    const draftResult = await createCompetitorImportedDraftFunnel(db, { userId: user.id, email: user.email }, {
       ...input,
       importerSlug: platform.slug,
       platformName: platform.platformName,
@@ -294,16 +307,18 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
         freeBuildParentIssue: publisherFreeBuildParentIssue,
         route,
         platform: publicPlatform(platform),
-        idempotent: workspace.idempotent,
+        idempotent: workspace.idempotent || draftResult.duplicateReview.status === "idempotent_replay",
         paidGoLiveRequired: true,
         tenant: publicTenant(workspace.tenant),
-        draft: publicDraft(draft),
+        draft: publicDraft(draftResult.draft),
+        duplicateReview: publicDuplicateReview(draftResult.duplicateReview),
         redaction: redaction(),
       });
     }
 
     const redirect = new URL(platform.route, request.url);
-    redirect.searchParams.set("importDraft", draft.id);
+    redirect.searchParams.set("importDraft", draftResult.draft.id);
+    redirect.searchParams.set("duplicateReview", draftResult.duplicateReview.status);
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {
     const status =

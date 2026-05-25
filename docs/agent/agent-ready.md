@@ -215,8 +215,10 @@ platform IDs, competitor IDs, source IDs, input kinds, generated private record
 types, safety gates, unsupported fields, routes, and the verified-publisher
 private-draft API route listed for each dedicated importer. Posting to one of
 those platform API routes can create or reuse a Free Build workspace and save a
-private D1 funnel draft after exact confirmation and idempotency; responses stay
-redacted and do not echo pasted material. Imported material
+private D1 funnel draft after exact confirmation and idempotency. Responses
+include redacted `duplicateReview.status` values for created drafts,
+idempotency replay, and same-platform/source/workspace/title reuse, and do not
+echo pasted material. Imported material
 starts in a private Bumpgrade workspace; public publishing, live checkout,
 subscriber sends, domains, fulfillment, account-to-account transfer, payment
 migration, customer password migration, and raw export storage are not live from

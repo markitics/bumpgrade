@@ -3109,7 +3109,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://importers",
     status: "ready-contract",
     backedBy: importerSourceDataRoute,
-    purpose: "Expose importer platform IDs, competitor mappings, input kinds, generated private record types, limitations, and safety gates.",
+    purpose: "Expose importer platform IDs, competitor mappings, input kinds, generated private record types, duplicate-review statuses, limitations, and safety gates.",
     safetyBoundary:
       "Read-only; no export parsing, private record creation, public publishing, checkout migration, subscriber send, domain, fulfillment, or account-to-account transfer may be performed by this resource.",
   },

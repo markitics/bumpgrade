@@ -137,6 +137,7 @@ type D1FunnelDraftRow = {
   source_data_route: string;
   revision_id: string;
   created_by_email: string;
+  metadata_json: string | null;
   created_at: number;
   updated_at: number;
 };
@@ -430,9 +431,32 @@ async function loadDraftsFromD1(db: D1Database): Promise<DraftFunnelRecord[]> {
   return rows.map((row) => draftFromRow(row, stepsByDraftId.get(row.id) ?? []));
 }
 
+async function loadDraftStepsFromD1(db: D1Database, draftId: string) {
+  const stepResult = await db
+    .prepare("SELECT * FROM funnel_draft_steps WHERE funnel_draft_id = ? ORDER BY step_order ASC")
+    .bind(draftId)
+    .all<D1FunnelStepRow>();
+
+  return (stepResult.results ?? []).map((step) => ({
+    id: step.id,
+    slug: step.slug,
+    order: step.step_order,
+    kind: step.kind,
+    title: step.title,
+    goal: step.goal,
+    routeAnchor: step.route_anchor,
+    blocks: parseJson<FunnelBlock[]>(step.blocks_json, []),
+  }));
+}
+
 async function loadDraftFromD1(db: D1Database, draftId: string) {
-  const drafts = await loadDraftsFromD1(db);
-  return drafts.find((draft) => draft.id === draftId) ?? null;
+  const row = await db
+    .prepare("SELECT * FROM funnel_drafts WHERE id = ? OR slug = ? LIMIT 1")
+    .bind(draftId, draftId)
+    .first<D1FunnelDraftRow>();
+  if (!row) return null;
+
+  return draftFromRow(row, await loadDraftStepsFromD1(db, row.id));
 }
 
 async function purgeEventForIdempotencyKey(db: D1Database, idempotencyKey: string) {
@@ -450,24 +474,7 @@ async function loadDraftBySlugFromD1(db: D1Database, slug: string, status?: Draf
     : await db.prepare("SELECT * FROM funnel_drafts WHERE slug = ?").bind(slug).first<D1FunnelDraftRow>();
 
   if (!row) return null;
-
-  const stepResult = await db
-    .prepare("SELECT * FROM funnel_draft_steps WHERE funnel_draft_id = ? ORDER BY step_order ASC")
-    .bind(row.id)
-    .all<D1FunnelStepRow>();
-
-  const steps = (stepResult.results ?? []).map((step) => ({
-    id: step.id,
-    slug: step.slug,
-    order: step.step_order,
-    kind: step.kind,
-    title: step.title,
-    goal: step.goal,
-    routeAnchor: step.route_anchor,
-    blocks: parseJson<FunnelBlock[]>(step.blocks_json, []),
-  }));
-
-  return draftFromRow(row, steps);
+  return draftFromRow(row, await loadDraftStepsFromD1(db, row.id));
 }
 
 function fixtureDraftForId(draftId: string) {
@@ -747,6 +754,24 @@ export type CompetitorImportedDraftInput = {
 
 export type ClickFunnelsImportedDraftInput = Omit<CompetitorImportedDraftInput, "importerSlug" | "platformName">;
 
+export type ImporterDuplicateReviewStatus = "created" | "idempotent_replay" | "source_match_reused";
+
+export type ImporterDuplicateReview = {
+  status: ImporterDuplicateReviewStatus;
+  checkedFields: string[];
+  matchedFields: string[];
+  createsNewDraft: boolean;
+  reusesExistingDraft: boolean;
+  sourceUrlCompared: boolean;
+  sourceFileNameCompared: boolean;
+  rawSourceEchoed: false;
+};
+
+export type CompetitorImportedDraftResult = {
+  draft: DraftFunnelRecord;
+  duplicateReview: ImporterDuplicateReview;
+};
+
 export type AnonymousPlaygroundClaimedDraftInput = {
   tenantId: string;
   workspaceId: string;
@@ -893,6 +918,113 @@ function importedCompetitorSteps(
   ];
 }
 
+function normalizeImportTitleForMatch(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 160);
+}
+
+function normalizeImportSourceUrlForMatch(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    const url = new URL(trimmed);
+    url.protocol = url.protocol.toLowerCase();
+    url.hostname = url.hostname.toLowerCase();
+    url.hash = "";
+    url.searchParams.sort();
+    const normalized = url.toString();
+    return normalized.endsWith("/") && url.pathname === "/" && !url.search ? normalized.slice(0, -1) : normalized;
+  } catch {
+    return trimmed.toLowerCase().replace(/#.*$/, "").replace(/\/$/, "");
+  }
+}
+
+function stringArrayMetadata(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+}
+
+function duplicateReviewFor(
+  status: ImporterDuplicateReviewStatus,
+  matchedFields: string[],
+  options: { sourceUrlCompared: boolean; sourceFileNameCompared?: boolean },
+): ImporterDuplicateReview {
+  return {
+    status,
+    checkedFields: ["source_platform", "target_workspace", "normalized_title", "source_url"],
+    matchedFields,
+    createsNewDraft: status === "created",
+    reusesExistingDraft: status !== "created",
+    sourceUrlCompared: options.sourceUrlCompared,
+    sourceFileNameCompared: options.sourceFileNameCompared ?? false,
+    rawSourceEchoed: false,
+  };
+}
+
+async function findImporterSourceMatchDraft(
+  db: D1Database,
+  input: {
+    ownerUserId: string;
+    importerPlatformId: string;
+    tenantId: string;
+    offerTitle: string;
+    sourceUrls: string[];
+  },
+) {
+  const normalizedTitle = normalizeImportTitleForMatch(input.offerTitle);
+  const normalizedSourceUrls = input.sourceUrls.map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url));
+  if (!normalizedTitle || normalizedSourceUrls.length === 0) return null;
+
+  const rows = await db
+    .prepare(
+      `SELECT *
+       FROM funnel_drafts
+       WHERE owner_user_id = ?
+         AND source_issue_number = ?
+         AND status IN ('draft', 'review')
+       ORDER BY updated_at DESC
+       LIMIT 100`,
+    )
+    .bind(input.ownerUserId, importerIssue)
+    .all<D1FunnelDraftRow>();
+
+  const incomingSourceUrls = new Set(normalizedSourceUrls);
+  for (const row of rows.results ?? []) {
+    const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+    const rowPlatformId = typeof metadata.importerPlatformId === "string" ? metadata.importerPlatformId : "";
+    const rowTenantId = typeof metadata.tenantId === "string" ? metadata.tenantId : "";
+    if (rowPlatformId !== input.importerPlatformId || rowTenantId !== input.tenantId) continue;
+
+    const rowTitle =
+      typeof metadata.normalizedOfferTitle === "string" && metadata.normalizedOfferTitle
+        ? metadata.normalizedOfferTitle
+        : normalizeImportTitleForMatch(row.title);
+    if (rowTitle !== normalizedTitle) continue;
+
+    const rowSourceUrls = (
+      stringArrayMetadata(metadata.normalizedSourceUrls).length
+        ? stringArrayMetadata(metadata.normalizedSourceUrls)
+        : stringArrayMetadata(metadata.sourceUrls).map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url))
+    );
+    const hasSourceUrlMatch = rowSourceUrls.some((url) => incomingSourceUrls.has(url));
+    if (!hasSourceUrlMatch) continue;
+
+    return {
+      draft: draftFromRow(row, await loadDraftStepsFromD1(db, row.id)),
+      normalizedTitle,
+      normalizedSourceUrlCount: normalizedSourceUrls.length,
+      matchedFields: ["source_platform", "target_workspace", "normalized_title", "source_url"],
+    };
+  }
+
+  return null;
+}
+
 function anonymousPlaygroundSteps(
   draftId: string,
   input: Pick<AnonymousPlaygroundClaimedDraftInput, "offerName" | "audience" | "launchGoal" | "selectedImporterSlug">,
@@ -1002,14 +1134,62 @@ export async function createCompetitorImportedDraftFunnel(
   db: D1Database,
   owner: { userId: string; email: string },
   input: CompetitorImportedDraftInput,
-) {
+): Promise<CompetitorImportedDraftResult> {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
-  if (replay) return replay;
+  if (replay) {
+    return {
+      draft: replay,
+      duplicateReview: duplicateReviewFor("idempotent_replay", ["idempotency_key"], {
+        sourceUrlCompared: input.sourceUrls.length > 0,
+      }),
+    };
+  }
 
   const importer = getImporterBySlug(input.importerSlug);
   const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
   const importerPlatformId = importer?.id ?? `importer-${input.importerSlug}`;
   const baseTitle = compactImportText(input.offerTitle, 120) || `${platformName} import draft`;
+  const normalizedOfferTitle = normalizeImportTitleForMatch(baseTitle);
+  const normalizedSourceUrls = input.sourceUrls.map(normalizeImportSourceUrlForMatch).filter((url): url is string => Boolean(url));
+  const sourceMatch = await findImporterSourceMatchDraft(db, {
+    ownerUserId: owner.userId,
+    importerPlatformId,
+    tenantId: input.tenantId,
+    offerTitle: baseTitle,
+    sourceUrls: input.sourceUrls,
+  });
+  if (sourceMatch) {
+    await insertAuditStatement(
+      db,
+      sourceMatch.draft,
+      { userId: owner.userId, email: publisherIdentityEmail(owner), role: "owner", name: publisherIdentityEmail(owner) },
+      "draft_created",
+      input.idempotencyKey,
+      `${publisherIdentityEmail(owner)} reused ${sourceMatch.draft.title} after importer source-match duplicate review.`,
+      {
+        importerCapabilityId: importerDraftImportCapabilityId(importerPlatformId),
+        importerPlatformId,
+        importerPlatformName: platformName,
+        importerIssue,
+        tenantId: input.tenantId,
+        duplicateReviewStatus: "source_match_reused",
+        duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url",
+        matchedFields: sourceMatch.matchedFields,
+        matchedSourceUrlCount: sourceMatch.normalizedSourceUrlCount,
+        privateDraftOnly: true,
+        responseRedacted: true,
+        rawSourceEchoed: false,
+      },
+    ).run();
+
+    return {
+      draft: sourceMatch.draft,
+      duplicateReview: duplicateReviewFor("source_match_reused", sourceMatch.matchedFields, {
+        sourceUrlCompared: true,
+      }),
+    };
+  }
+
   const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(`${baseTitle} ${platformName} import`));
   const draftId = `funnel-draft-${slug}`;
   const draft: DraftFunnelRecord = {
@@ -1030,7 +1210,7 @@ export async function createCompetitorImportedDraftFunnel(
     updatedAt: null,
   };
 
-  return persistDraft(
+  const persisted = await persistDraft(
     db,
     draft,
     { userId: owner.userId, email: publisherIdentityEmail(owner), role: "owner", name: publisherIdentityEmail(owner) },
@@ -1042,6 +1222,10 @@ export async function createCompetitorImportedDraftFunnel(
       importerPlatformName: platformName,
       importerIssue,
       tenantId: input.tenantId,
+      duplicateReviewStatus: "created",
+      duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url",
+      normalizedOfferTitle,
+      normalizedSourceUrls,
       sourceUrlCount: input.sourceUrls.length,
       sourceUrls: input.sourceUrls,
       pastedCopyLength: input.pageCopy.trim().length,
@@ -1058,6 +1242,13 @@ export async function createCompetitorImportedDraftFunnel(
       sessionCookiesStored: false,
     },
   );
+
+  return {
+    draft: persisted,
+    duplicateReview: duplicateReviewFor("created", [], {
+      sourceUrlCompared: normalizedSourceUrls.length > 0,
+    }),
+  };
 }
 
 export async function createClickFunnelsImportedDraftFunnel(
