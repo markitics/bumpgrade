@@ -237,7 +237,6 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
               id="publisher-subdomain"
               name="subdomain"
               type="text"
-              placeholder="your-name"
               minLength={3}
               maxLength={63}
               pattern="[A-Za-z0-9-]+"
@@ -368,7 +367,6 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
               id="publisher-custom-domain"
               name="domainName"
               type="text"
-              placeholder="www.example.com"
               disabled={!state.canAddCustomDomain}
               required
             />
