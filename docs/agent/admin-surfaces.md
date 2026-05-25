@@ -174,9 +174,12 @@ them, and link to an owner-gated private preview route. This is private/admin st
 `/funnels/source-data` for the capability boundary, not scrape private draft
 copy. Publishing, checkout-linking, checkout-unlinking, resource delivery
 linking, within-step block reordering, drag/drop block placement, cross-step block moves, and archive/unpublish lifecycle actions are owner-confirmed; physical
-deletion, freeform canvas layout styling, arbitrary private R2 delivery, signed URL
-creation, live fulfillment automation, webinar integrations, and direct agent
-edits still need future confirmed-write APIs.
+deletion, freeform canvas layout styling, arbitrary uploaded private asset delivery, signed URL
+creation, live fulfillment automation, webinar integrations, direct agent-created
+delivery tokens, and direct agent edits still need future confirmed-write APIs.
+Published resource-linked blocks can mint short-lived Bumpgrade download routes
+through `/api/funnels/resource-delivery` only after checkout intent and
+entitlement scope match the linked product and file asset.
 
 ## Admin `/admin/products`
 

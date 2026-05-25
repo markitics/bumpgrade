@@ -277,9 +277,13 @@ function isTrustedCheckoutStatus(status: string | null) {
 export async function createProductDownloadToken(input: {
   checkoutIntentId: string | null | undefined;
   entitlementId: string | null | undefined;
+  productId?: string | null | undefined;
+  assetId?: string | null | undefined;
 }): Promise<ProductDownloadTokenResult> {
   const checkoutIntentId = input.checkoutIntentId?.trim();
   const entitlementId = input.entitlementId?.trim();
+  const productId = input.productId?.trim();
+  const assetId = input.assetId?.trim();
   if (!checkoutIntentId || !entitlementId) {
     return resultError("invalid_request", "checkoutIntentId and entitlementId are required.");
   }
@@ -309,10 +313,16 @@ export async function createProductDownloadToken(input: {
     if (entitlement.status !== "active" || !isTrustedCheckoutStatus(entitlement.checkout_status)) {
       return resultError("not_eligible", "This entitlement is not eligible for download delivery yet.");
     }
+    if (productId && entitlement.product_id !== productId) {
+      return resultError("not_eligible", "This entitlement does not match the requested product.");
+    }
 
     const asset = downloadableAssetForProduct(entitlement.product_id);
     if (!asset) {
       return resultError("not_eligible", "This entitlement does not include a private file asset.");
+    }
+    if (assetId && asset.assetId !== assetId) {
+      return resultError("not_eligible", "This entitlement does not match the requested asset.");
     }
 
     const token = randomToken();

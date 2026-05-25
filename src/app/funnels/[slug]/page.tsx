@@ -6,6 +6,7 @@ import { ArrowRight, PanelsTopLeft, ShieldCheck } from "lucide-react";
 import { CheckoutStartPanel } from "@/components/checkout-start-panel";
 import { FunnelExperimentRoutedCopy } from "@/components/funnel-experiment-routed-copy";
 import { FunnelPageViewBeacon } from "@/components/funnel-page-view-beacon";
+import { FunnelResourceDeliveryPanel } from "@/components/funnel-resource-delivery-panel";
 import { analyticsDashboard } from "@/lib/analytics-experiments";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
@@ -219,13 +220,23 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                   <span>{block.kind.replaceAll("_", " ")}</span>
                 </div>
                 {block.resourceDeliveryLink ? (
-                  <div className="feature-detail">
-                    <strong>Resource access</strong>
-                    <span>
-                      {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. Access stays
-                      entitlement-gated; private files and signed URLs are not exposed on this page.
-                    </span>
-                  </div>
+                  <>
+                    <div className="feature-detail">
+                      <strong>Resource access</strong>
+                      <span>
+                        {block.resourceDeliveryLink.productTitle} / {block.resourceDeliveryLink.assetTitle}. Access stays
+                        entitlement-gated; private files and signed URLs are not exposed on this page.
+                      </span>
+                    </div>
+                    {published ? (
+                      <FunnelResourceDeliveryPanel
+                        funnelSlug={funnel.slug}
+                        blockId={block.id}
+                        productTitle={block.resourceDeliveryLink.productTitle}
+                        assetTitle={block.resourceDeliveryLink.assetTitle}
+                      />
+                    ) : null}
+                  </>
                 ) : null}
                 {block.webinarEventLink ? (
                   <div className="feature-detail">

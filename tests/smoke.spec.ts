@@ -311,10 +311,16 @@ import {
   editableDraftCapability,
   funnelSourceData,
   publicFunnelCheckoutStartCapability,
+  publicFunnelResourceDeliveryTokenCapability,
   seededFunnel,
   templateDraftCreationCapability,
   webinarResourceTemplateCapability,
 } from "../src/lib/funnels";
+import {
+  funnelResourceDeliveryApiRoute,
+  funnelResourceDeliveryIssue,
+  funnelResourceDeliveryStatus,
+} from "../src/lib/funnel-resource-delivery";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import {
   mobileAdminActionIntentApiRoute,
@@ -1136,7 +1142,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "drag-drop-block-placement-ready",
+        status: "funnel-resource-delivery-token-ready",
         issue: 417,
         parentIssue: 14,
       }),
@@ -1148,6 +1154,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/products/source-data",
         "/api/products/download-tokens",
         "/api/products/protected-content",
+        funnelResourceDeliveryApiRoute,
         "/funnels/indie-launch-sandbox",
       ]),
     );
@@ -1455,6 +1462,27 @@ test.describe("Bumpgrade scaffold", () => {
         rawStripeIdsIncluded: false,
       }),
     );
+    expect(payload.publicFunnelResourceDeliveryTokenCapability).toEqual(
+      expect.objectContaining({
+        id: publicFunnelResourceDeliveryTokenCapability.id,
+        status: funnelResourceDeliveryStatus,
+        issue: funnelResourceDeliveryIssue,
+        publicRoutePattern: "/funnels/:slug",
+        apiRoute: funnelResourceDeliveryApiRoute,
+        productDownloadTokenEndpoint: "/api/products/download-tokens",
+        productDownloadRoutePrefix: "/api/products/downloads",
+        requiresPublishedFunnel: true,
+        requiresResourceDeliveryLink: true,
+        requiresCheckoutIntentAndEntitlement: true,
+        verifiesBlockProductAndAsset: true,
+        deliveryMode: "funnel-scoped-private-r2-token",
+        rawR2KeysIncluded: false,
+        signedUrlsIncluded: false,
+        buyerDataIncluded: false,
+        arbitraryUploadedAssetDeliveryEnabled: false,
+        liveFulfillmentAutomationEnabled: false,
+      }),
+    );
     expect(payload.templateLibraryIssue).toBe(159);
     expect(payload.stableIds).toEqual(
       expect.arrayContaining([
@@ -1465,6 +1493,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelCheckoutLinkId",
         "funnelCheckoutUnlinkId",
         "funnelResourceDeliveryLinkId",
+        "funnelResourceDeliveryTokenId",
         "funnelWebinarEventLinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
@@ -2576,6 +2605,166 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: "Launch checklist download" })).toBeVisible();
     await expect(page.locator("body")).not.toContainText(buyerEmail);
     await expect(page.locator("body")).not.toContainText(grant.eventId);
+  });
+
+  test("published funnel resource blocks mint scoped private delivery tokens", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Funnel-scoped private delivery flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const buyerEmail = `funnel-resource-customer-${suffix}@example.com`;
+    await signInOrCreateOwner(page);
+
+    const seed = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "seed",
+        idempotencyKey: `funnel-resource-seed-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(seed.ok(), await seed.text()).toBeTruthy();
+    let draft = (await seed.json()).draft;
+    const deliveryStep = draft.steps.find((step: { blocks: { kind: string }[] }) =>
+      step.blocks.some((block) => block.kind === "delivery"),
+    );
+    const deliveryBlock = deliveryStep?.blocks.find((block: { kind: string }) => block.kind === "delivery");
+    if (!deliveryStep || !deliveryBlock) throw new Error("Expected seeded draft delivery block.");
+
+    const link = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "link-resource-delivery",
+        draftId: draft.id,
+        stepId: deliveryStep.id,
+        blockId: deliveryBlock.id,
+        productId: "product-launch-checklist-download",
+        assetId: "asset-launch-checklist-pdf",
+        expectedRevisionId: draft.revisionId,
+        confirmationText: draftFunnelResourceDeliveryLinkConfirmationText,
+        idempotencyKey: `funnel-resource-link-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(link.ok(), await link.text()).toBeTruthy();
+    draft = (await link.json()).draft;
+
+    const publish = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "publish",
+        draftId: draft.id,
+        expectedRevisionId: draft.revisionId,
+        confirmationText: draftFunnelPublishConfirmationText,
+        idempotencyKey: `funnel-resource-publish-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(publish.ok(), await publish.text()).toBeTruthy();
+    const publishedDraft = (await publish.json()).draft;
+    expect(publishedDraft).toEqual(
+      expect.objectContaining({
+        status: "published",
+        slug: "indie-launch-working-copy",
+        previewRoute: "/funnels/indie-launch-working-copy",
+      }),
+    );
+
+    const grant = await grantSandboxProductEntitlements(request, buyerEmail);
+    const lookup = await request.get(`/api/products/entitlements?checkoutIntentId=${encodeURIComponent(grant.checkoutIntentId)}`);
+    expect(lookup.ok(), await lookup.text()).toBeTruthy();
+    const lookupPayload = await lookup.json();
+    const downloadEntitlement = lookupPayload.entitlements.find(
+      (entitlement: { productId?: string }) => entitlement.productId === "product-launch-checklist-download",
+    );
+    const bundleEntitlement = lookupPayload.entitlements.find(
+      (entitlement: { productId?: string }) => entitlement.productId === "product-launch-bundle",
+    );
+    if (!downloadEntitlement || !bundleEntitlement) throw new Error("Expected downloadable and mismatched bundle entitlements.");
+
+    const mismatch = await request.post(funnelResourceDeliveryApiRoute, {
+      data: {
+        funnelSlug: publishedDraft.slug,
+        blockId: deliveryBlock.id,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: bundleEntitlement.id,
+      },
+    });
+    expect(mismatch.status(), await mismatch.text()).toBe(409);
+    await expect(mismatch.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        status: "not_eligible",
+        issue: funnelResourceDeliveryIssue,
+      }),
+    );
+
+    const token = await request.post(funnelResourceDeliveryApiRoute, {
+      data: {
+        funnelSlug: publishedDraft.slug,
+        blockId: deliveryBlock.id,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: downloadEntitlement.id,
+      },
+    });
+    expect(token.status(), await token.text()).toBe(201);
+    const tokenPayload = await token.json();
+    expect(tokenPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: funnelResourceDeliveryStatus,
+        issue: funnelResourceDeliveryIssue,
+        token: expect.stringMatching(/^download-token-/),
+        downloadUrl: expect.stringContaining("/api/products/downloads?token=download-token-"),
+        funnel: expect.objectContaining({
+          slug: publishedDraft.slug,
+          title: publishedDraft.title,
+        }),
+        block: expect.objectContaining({
+          id: deliveryBlock.id,
+          productId: "product-launch-checklist-download",
+          assetId: "asset-launch-checklist-pdf",
+        }),
+        redaction: expect.objectContaining({
+          buyerEmailIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawFunnelRowsIncluded: false,
+          rawEntitlementRowsIncluded: false,
+        }),
+      }),
+    );
+    const tokenText = JSON.stringify(tokenPayload);
+    expect(tokenText).not.toContain(buyerEmail);
+    expect(tokenText).not.toContain(grant.eventId);
+    expect(tokenText).not.toContain("products/fixtures/");
+    expect(tokenText).not.toContain("signed_url");
+
+    const download = await request.get(tokenPayload.downloadUrl);
+    expect(download.ok(), await download.text()).toBeTruthy();
+    expect(download.headers()["x-bumpgrade-delivery"]).toContain("private-r2-fixture");
+    const downloadText = await download.text();
+    expect(downloadText).toContain("Bumpgrade Launch Checklist");
+    expect(downloadText).not.toContain(buyerEmail);
+    expect(downloadText).not.toContain("products/fixtures/");
+    expect(downloadText).not.toContain("signed_url");
+
+    const replay = await request.get(tokenPayload.downloadUrl);
+    expect(replay.status()).toBe(410);
+
+    await page.goto("/funnels/indie-launch-working-copy");
+    await expect(page.getByRole("heading", { name: "Indie launch working draft" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Get private resource/i })).toBeVisible();
+    await expect(page.getByLabel(/Checkout intent ID/i)).toBeVisible();
+    await expect(page.getByLabel(/Entitlement ID/i)).toBeVisible();
+    await expect(page.locator("body")).not.toContainText(buyerEmail);
+
+    const source = await request.get("/funnels/source-data");
+    const sourceText = await source.text();
+    expect(source.ok(), sourceText).toBeTruthy();
+    expect(sourceText).toContain(funnelResourceDeliveryStatus);
+    expect(sourceText).toContain(funnelResourceDeliveryApiRoute);
+    expect(sourceText).not.toContain(buyerEmail);
+    expect(sourceText).not.toContain(downloadEntitlement.id);
   });
 
   test("subscription webhook syncs membership entitlement state from billing status", async ({ request }, testInfo) => {
@@ -18935,6 +19124,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftBlockCrossStepMoveId",
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
+            "funnelResourceDeliveryTokenId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
@@ -18943,6 +19133,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session private draft archive/unpublish from issue #341",
             "Discover owner-session checkout unlinking from issue #417",
             "Discover owner-session resource delivery linking from issue #417",
+            "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
@@ -18993,6 +19184,12 @@ test.describe("Bumpgrade scaffold", () => {
           id: "create-sandbox-product-download-token",
           route: "/api/products/download-tokens",
           auth: "public",
+        }),
+        expect.objectContaining({
+          id: "create-public-funnel-resource-delivery-token",
+          route: funnelResourceDeliveryApiRoute,
+          auth: "public",
+          stableIds: expect.arrayContaining(["funnelResourceDeliveryTokenId", "checkoutIntentId", "productEntitlementId"]),
         }),
         expect.objectContaining({
           id: "read-protected-product-content",
