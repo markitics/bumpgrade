@@ -83,7 +83,7 @@ export function AdminBroadcastTestSendForm({ drafts, latestTestSendId }: AdminBr
       <div className="admin-step-editor-heading">
         <div>
           <span>Owner test send</span>
-          <strong>{selectedDraft?.title ?? "No broadcast draft"}</strong>
+          <strong>{selectedDraft?.id ?? "No broadcast draft"}</strong>
           <p>
             Sends only to the verified owner session email. Subscriber payloads, Queue messages, public agent sends, raw
             recipient emails, and provider message IDs stay disabled.
