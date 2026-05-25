@@ -5,9 +5,9 @@ import { ArrowLeft, ArrowRight, BadgeCheck, FileUp, ShieldCheck } from "lucide-r
 
 import { ImporterDraftForm } from "@/components/importer-draft-form";
 import {
-  clickFunnelsDraftImportApiRoute,
-  clickFunnelsDraftImportConfirmationText,
   getImporterBySlug,
+  importerDraftImportApiRoute,
+  importerDraftImportConfirmationText,
   importerPlatforms,
 } from "@/lib/importers";
 import { site } from "@/lib/site";
@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: ImporterPageProps): Promise<M
   };
 }
 
-function statusLabel(platformId: string) {
-  return platformId === "importer-clickfunnels" ? "Private import ready" : "Dedicated path";
+function statusLabel(status: string) {
+  return status === "private-draft-live" ? "Private import ready" : "Dedicated path";
 }
 
 function publicEntityLabel(entity: string) {
@@ -98,7 +98,7 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
         </div>
         <aside className="route-status-panel" aria-label={`${platform.platformName} importer status`}>
           <FileUp aria-hidden="true" />
-          <p>{statusLabel(platform.id)}</p>
+          <p>{statusLabel(platform.status)}</p>
           <strong>{platform.platformName}</strong>
           <span>Import the useful context into a private workspace, then approve the launch when the pieces are ready.</span>
         </aside>
@@ -164,31 +164,29 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
         </div>
       </section>
 
-      {platform.id === "importer-clickfunnels" ? (
-        <section className="content-band" id="private-draft">
-          <div className="split-heading">
-            <div>
-              <p className="eyebrow">Create a private import plan</p>
-              <h2>Start the import without paying or going live.</h2>
-            </div>
-            <p>
-              Paste the strongest page, offer, or follow-up material from ClickFunnels. Bumpgrade saves it as a private
-              Free Build plan so you can keep editing before any buyer-facing change.
-            </p>
+      <section className="content-band" id="private-draft">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Create a private import plan</p>
+            <h2>Start the import without paying or going live.</h2>
           </div>
-          {firstSearchValue(search.importDraft) ? (
-            <p className="account-success">Private ClickFunnels import plan created in your Free Build workspace.</p>
-          ) : null}
-          {firstSearchValue(search.importError) ? (
-            <p className="account-error">{firstSearchValue(search.importError)}</p>
-          ) : null}
-          <ImporterDraftForm
-            action={clickFunnelsDraftImportApiRoute}
-            confirmationText={clickFunnelsDraftImportConfirmationText}
-            platformName={platform.platformName}
-          />
-        </section>
-      ) : null}
+          <p>
+            Paste the strongest page, offer, or follow-up material from {platform.platformName}. Bumpgrade saves it as a
+            private Free Build plan so you can keep editing before any buyer-facing change.
+          </p>
+        </div>
+        {firstSearchValue(search.importDraft) ? (
+          <p className="account-success">Private {platform.platformName} import plan created in your Free Build workspace.</p>
+        ) : null}
+        {firstSearchValue(search.importError) ? (
+          <p className="account-error">{firstSearchValue(search.importError)}</p>
+        ) : null}
+        <ImporterDraftForm
+          action={importerDraftImportApiRoute(platform.slug)}
+          confirmationText={importerDraftImportConfirmationText(platform.platformName)}
+          platformName={platform.platformName}
+        />
+      </section>
 
       <section className="content-band dark-band">
         <div className="feature-section-heading">

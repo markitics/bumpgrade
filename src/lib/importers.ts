@@ -50,8 +50,20 @@ export const importerUpdatedAt = "2026-05-25";
 export const importerIssue = 467;
 export const importerSourceDataRoute = "/imports/source-data";
 export const importerHubRoute = "/imports";
-export const clickFunnelsDraftImportApiRoute = "/api/imports/clickfunnels/draft";
-export const clickFunnelsDraftImportConfirmationText = "Create private ClickFunnels import plan";
+export function importerDraftImportApiRoute(slug: string) {
+  return `/api/imports/${slug}/draft`;
+}
+
+export function importerDraftImportConfirmationText(platformName: string) {
+  return `Create private ${platformName} import plan`;
+}
+
+export function importerDraftImportCapabilityId(platformId: string) {
+  return `${platformId.replace(/^importer-/, "")}-private-draft-import`;
+}
+
+export const clickFunnelsDraftImportApiRoute = importerDraftImportApiRoute("clickfunnels");
+export const clickFunnelsDraftImportConfirmationText = importerDraftImportConfirmationText("ClickFunnels");
 
 export const commonImporterSafetyGates = [
   "Imported material starts in a private workspace and does not publish public pages.",
@@ -63,7 +75,7 @@ export const commonImporterSafetyGates = [
 ];
 
 export const clickFunnelsDraftImportCapability = {
-  id: "clickfunnels-private-draft-import",
+  id: importerDraftImportCapabilityId("importer-clickfunnels"),
   status: "live",
   issue: importerIssue,
   platformId: "importer-clickfunnels",
@@ -200,7 +212,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: samcart.id,
     platformName: samcart.name,
     slug: "samcart",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/samcart",
     compareRoute: compareRouteFor(samcart),
     sourceIds: samcart.sourceIds ?? [samcart.sourceId],
@@ -238,7 +250,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: kit.id,
     platformName: kit.name,
     slug: "kit",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/kit",
     compareRoute: compareRouteFor(kit),
     sourceIds: kit.sourceIds ?? [kit.sourceId],
@@ -276,7 +288,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: kajabi.id,
     platformName: kajabi.name,
     slug: "kajabi",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/kajabi",
     compareRoute: compareRouteFor(kajabi),
     sourceIds: kajabi.sourceIds ?? [kajabi.sourceId],
@@ -314,7 +326,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: shopify.id,
     platformName: shopify.name,
     slug: "shopify",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/shopify",
     compareRoute: compareRouteFor(shopify),
     sourceIds: shopify.sourceIds ?? [shopify.sourceId],
@@ -352,7 +364,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: podia.id,
     platformName: podia.name,
     slug: "podia",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/podia",
     compareRoute: compareRouteFor(podia),
     sourceIds: podia.sourceIds ?? [podia.sourceId],
@@ -390,7 +402,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: systeme.id,
     platformName: systeme.name,
     slug: "systeme-io",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/systeme-io",
     compareRoute: compareRouteFor(systeme),
     sourceIds: systeme.sourceIds ?? [systeme.sourceId],
@@ -428,7 +440,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: kartra.id,
     platformName: kartra.name,
     slug: "kartra",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/kartra",
     compareRoute: compareRouteFor(kartra),
     sourceIds: kartra.sourceIds ?? [kartra.sourceId],
@@ -466,7 +478,7 @@ export const importerPlatforms: ImporterPlatform[] = [
     competitorId: thrivecart.id,
     platformName: thrivecart.name,
     slug: "thrivecart",
-    status: "queued",
+    status: "private-draft-live",
     route: "/imports/thrivecart",
     compareRoute: compareRouteFor(thrivecart),
     sourceIds: thrivecart.sourceIds ?? [thrivecart.sourceId],
@@ -505,6 +517,42 @@ export const importerRoutes = importerPlatforms.map((platform) => platform.route
 
 export const featuredImporter = importerPlatforms.find((platform) => platform.id === "importer-clickfunnels") ?? importerPlatforms[0];
 
+export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatform) {
+  return {
+    id: importerDraftImportCapabilityId(platform.id),
+    status: "live",
+    issue: importerIssue,
+    platformId: platform.id,
+    platformName: platform.platformName,
+    route: platform.route,
+    apiRoute: importerDraftImportApiRoute(platform.slug),
+    confirmationText: importerDraftImportConfirmationText(platform.platformName),
+    auth: "verified publisher session",
+    creates: ["free_build_workspace_if_needed", "private_draft_funnel", "funnel_audit_event"],
+    accepts: platform.inputs.map((input) => input.kind),
+    draftEntities: Array.from(new Set(platform.importableAreas.flatMap((area) => area.draftEntities))),
+    redaction: {
+      rawExportFilesIncluded: false,
+      customerRowsIncluded: false,
+      privateEmailsIncluded: false,
+      paymentCredentialsIncluded: false,
+      sessionCookiesIncluded: false,
+      rawPastedMaterialIncludedInResponse: false,
+    },
+    goLiveEffects: {
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+    },
+    duplicateProtection:
+      "Idempotency replays the same private draft. Broader source-match duplicate review remains a follow-up.",
+  };
+}
+
+export const importerDraftImportCapabilities = importerPlatforms.map(privateDraftImportCapabilityForPlatform);
+
 export function getImporterBySlug(slug: string) {
   return importerPlatforms.find((platform) => platform.slug === slug);
 }
@@ -523,6 +571,8 @@ export const importerSourceData = {
   currentAvailability: {
     publicImporterPagesLive: true,
     clickFunnelsPrivateDraftImportLive: true,
+    allDedicatedPrivateDraftImportersLive: true,
+    privateDraftImportPlatformIds: importerPlatforms.map((platform) => platform.id),
     otherDedicatedImportPathsLive: true,
     paidGoLiveRequired: true,
   },
@@ -539,7 +589,7 @@ export const importerSourceData = {
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, generated draft entity types, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
-    liveWriteActions: [clickFunnelsDraftImportCapability],
+    liveWriteActions: importerDraftImportCapabilities,
   },
   platforms: importerPlatforms,
 };

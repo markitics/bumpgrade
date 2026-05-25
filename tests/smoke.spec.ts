@@ -436,6 +436,8 @@ import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-d
 import {
   clickFunnelsDraftImportApiRoute,
   clickFunnelsDraftImportConfirmationText,
+  importerDraftImportApiRoute,
+  importerDraftImportConfirmationText,
   importerPlatforms,
   importerSourceData,
   importerSourceDataRoute,
@@ -472,7 +474,7 @@ const routes = [
   { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/imports", heading: "Bring your current launch stack" },
-  { path: "/imports/clickfunnels", heading: "Import from ClickFunnels" },
+  ...importerPlatforms.map((platform) => ({ path: platform.route, heading: platform.headline })),
   { path: "/playground", heading: "Try Bumpgrade before you sign up" },
   { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
   { path: "/pricing", heading: "Start building your publisher launch system today" },
@@ -744,7 +746,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/users",
       "/resources",
       "/imports",
-      "/imports/clickfunnels",
+      ...importerPlatforms.map((platform) => platform.route),
       "/playground",
       "/brand",
       "/pricing",
@@ -1038,11 +1040,14 @@ test.describe("Bumpgrade scaffold", () => {
         currentAvailability: expect.objectContaining({
           publicImporterPagesLive: true,
           clickFunnelsPrivateDraftImportLive: true,
+          allDedicatedPrivateDraftImportersLive: true,
+          privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
       }),
     );
     expect(payload.platforms).toHaveLength(importerPlatforms.length);
+    expect(payload.platforms.every((platform: { status: string }) => platform.status === "private-draft-live")).toBe(true);
     expect(payload.platforms).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1058,6 +1063,12 @@ test.describe("Bumpgrade scaffold", () => {
             }),
           ]),
           unsupportedNow: expect.arrayContaining(["Public publishing without go-live approval"]),
+        }),
+        expect.objectContaining({
+          id: "importer-samcart",
+          platformName: "SamCart",
+          status: "private-draft-live",
+          route: "/imports/samcart",
         }),
         expect.objectContaining({
           id: "importer-kit",
@@ -1094,6 +1105,20 @@ test.describe("Bumpgrade scaffold", () => {
           redaction: expect.objectContaining({
             rawPastedMaterialIncludedInResponse: false,
             customerRowsIncluded: false,
+          }),
+        }),
+        expect.objectContaining({
+          id: "samcart-private-draft-import",
+          platformId: "importer-samcart",
+          platformName: "SamCart",
+          apiRoute: importerDraftImportApiRoute("samcart"),
+          confirmationText: importerDraftImportConfirmationText("SamCart"),
+          auth: "verified publisher session",
+          creates: expect.arrayContaining(["free_build_workspace_if_needed", "private_draft_funnel"]),
+          goLiveEffects: expect.objectContaining({
+            publicPublishingEnabled: false,
+            liveCheckoutEnabled: false,
+            subscriberSendsEnabled: false,
           }),
         }),
       ]),
@@ -29425,25 +29450,28 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
-  test("verified publisher can create a private ClickFunnels import draft while go-live stays gated", async ({ page }, testInfo) => {
+  test("verified publisher can create a private SamCart import draft while go-live stays gated", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
     const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
-    const email = `clickfunnels-import-${suffix}@example.com`;
-    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "ClickFunnels Import Publisher");
+    const platform = importerPlatforms.find((item) => item.id === "importer-samcart");
+    expect(platform).toBeTruthy();
+    const email = `samcart-import-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "SamCart Import Publisher");
     await verifyEmail(page, email);
 
     const requestBody = {
       return: "json",
-      offerTitle: `Imported ClickFunnels launch ${suffix}`,
-      audience: "Publishers migrating a funnel before paying",
-      launchGoal: "Create a private Bumpgrade draft from current page and offer notes",
-      sourceUrl: "https://example.com/clickfunnels/source-page",
-      pageCopy: "A focused launch page with opt-in, offer promise, checkout handoff, and thank-you follow-up.",
-      followUpNotes: "Tag interested subscribers and review the welcome email before any send.",
-      confirmationText: clickFunnelsDraftImportConfirmationText,
-      idempotencyKey: `playwright-clickfunnels-import-${suffix}`,
+      offerTitle: `Imported SamCart launch ${suffix}`,
+      audience: "Publishers migrating a checkout path before paying",
+      launchGoal: "Create a private Bumpgrade draft from current checkout and offer notes",
+      sourceUrl: "https://example.com/samcart/source-page",
+      pageCopy: "A focused checkout path with offer promise, bump context, product handoff, and thank-you follow-up.",
+      followUpNotes: "Review buyer confirmation and delivery expectations before any send.",
+      confirmationText: importerDraftImportConfirmationText("SamCart"),
+      idempotencyKey: `playwright-samcart-import-${suffix}`,
     };
-    const createResponse = await page.request.post(clickFunnelsDraftImportApiRoute, {
+    const samcartDraftImportApiRoute = importerDraftImportApiRoute("samcart");
+    const createResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
       data: requestBody,
     });
@@ -29454,7 +29482,13 @@ test.describe("Bumpgrade scaffold", () => {
         ok: true,
         issue: 467,
         freeBuildParentIssue: 466,
-        route: clickFunnelsDraftImportApiRoute,
+        route: samcartDraftImportApiRoute,
+        platform: expect.objectContaining({
+          id: "importer-samcart",
+          slug: "samcart",
+          platformName: "SamCart",
+          route: "/imports/samcart",
+        }),
         paidGoLiveRequired: true,
         tenant: expect.objectContaining({
           planStatus: "free_build",
@@ -29462,7 +29496,7 @@ test.describe("Bumpgrade scaffold", () => {
           primaryHostname: null,
         }),
         draft: expect.objectContaining({
-          title: `Imported ClickFunnels launch ${suffix}`,
+          title: `Imported SamCart launch ${suffix}`,
           status: "draft",
           sourceIssueNumber: 467,
           parentIssueNumber: 467,
@@ -29483,7 +29517,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(createPayload)).not.toContain(requestBody.pageCopy);
 
-    const replayResponse = await page.request.post(clickFunnelsDraftImportApiRoute, {
+    const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
       data: requestBody,
     });
@@ -29501,8 +29535,8 @@ test.describe("Bumpgrade scaffold", () => {
       headers: { accept: "application/json" },
       form: {
         return: "json",
-        subdomain: `clickfunnels-import-${suffix}`.slice(0, 50),
-        idempotencyKey: `playwright-clickfunnels-import-subdomain-${suffix}`,
+        subdomain: `samcart-import-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-samcart-import-subdomain-${suffix}`,
       },
     });
     expect(subdomainResponse.status()).toBe(402);

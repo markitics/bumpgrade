@@ -16,7 +16,7 @@ import type {
   FunnelTemplateStep,
 } from "@/lib/funnels";
 import {
-  clickFunnelsDraftImportCapability,
+  importerDraftImportCapabilityId,
   getImporterBySlug,
   importerIssue,
 } from "@/lib/importers";
@@ -732,8 +732,10 @@ export async function createDraftFunnelFromTemplate(
   return persistDraft(db, draft, identity, "draft_created", input.idempotencyKey);
 }
 
-export type ClickFunnelsImportedDraftInput = {
+export type CompetitorImportedDraftInput = {
   tenantId: string;
+  importerSlug: string;
+  platformName: string;
   offerTitle: string;
   audience: string;
   launchGoal: string;
@@ -742,6 +744,8 @@ export type ClickFunnelsImportedDraftInput = {
   followUpNotes: string;
   idempotencyKey: string;
 };
+
+export type ClickFunnelsImportedDraftInput = Omit<CompetitorImportedDraftInput, "importerSlug" | "platformName">;
 
 export type AnonymousPlaygroundClaimedDraftInput = {
   tenantId: string;
@@ -768,11 +772,15 @@ function importedBlock(id: string, kind: FunnelBlockKind, title: string, body: s
   };
 }
 
-function importedClickFunnelsSteps(
+function importedCompetitorSteps(
   draftId: string,
-  input: Pick<ClickFunnelsImportedDraftInput, "offerTitle" | "audience" | "launchGoal" | "sourceUrls" | "pageCopy" | "followUpNotes">,
+  input: Pick<
+    CompetitorImportedDraftInput,
+    "platformName" | "offerTitle" | "audience" | "launchGoal" | "sourceUrls" | "pageCopy" | "followUpNotes"
+  >,
 ): DraftFunnelStepRecord[] {
-  const offerTitle = compactImportText(input.offerTitle, 120) || "ClickFunnels import draft";
+  const platformName = compactImportText(input.platformName, 80) || "current platform";
+  const offerTitle = compactImportText(input.offerTitle, 120) || `${platformName} import draft`;
   const audience = compactImportText(input.audience, 180) || "the intended buyers";
   const launchGoal = compactImportText(input.launchGoal, 300) || "turn the imported material into a private launch path";
   const sourceUrlSummary = input.sourceUrls.length
@@ -824,7 +832,7 @@ function importedClickFunnelsSteps(
       order: 2,
       kind: "sales",
       title: "Imported sales page",
-      goal: `Turn the ClickFunnels source material into a private Bumpgrade sales path for ${offerTitle}.`,
+      goal: `Turn the ${platformName} source material into a private Bumpgrade sales path for ${offerTitle}.`,
       routeAnchor: "imported-sales-page",
       blocks: [
         importedBlock(
@@ -990,23 +998,26 @@ function anonymousPlaygroundSteps(
   ];
 }
 
-export async function createClickFunnelsImportedDraftFunnel(
+export async function createCompetitorImportedDraftFunnel(
   db: D1Database,
   owner: { userId: string; email: string },
-  input: ClickFunnelsImportedDraftInput,
+  input: CompetitorImportedDraftInput,
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
   if (replay) return replay;
 
-  const baseTitle = compactImportText(input.offerTitle, 120) || "ClickFunnels import draft";
-  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(`${baseTitle} ClickFunnels import`));
+  const importer = getImporterBySlug(input.importerSlug);
+  const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
+  const importerPlatformId = importer?.id ?? `importer-${input.importerSlug}`;
+  const baseTitle = compactImportText(input.offerTitle, 120) || `${platformName} import draft`;
+  const slug = await uniqueDraftSlug(db, slugifyDraftFunnelTitle(`${baseTitle} ${platformName} import`));
   const draftId = `funnel-draft-${slug}`;
   const draft: DraftFunnelRecord = {
     id: draftId,
     slug,
     title: baseTitle,
     status: "draft",
-    summary: `Private ClickFunnels import draft for ${baseTitle}. Review the imported pages, offer notes, checkout handoff, and follow-up plan before going live.`,
+    summary: `Private ${platformName} import draft for ${baseTitle}. Review the imported pages, offer notes, checkout handoff, and follow-up plan before going live.`,
     sourceIssueNumber: importerIssue,
     parentIssueNumber: importerIssue,
     previewRoute: null,
@@ -1014,7 +1025,7 @@ export async function createClickFunnelsImportedDraftFunnel(
     revisionId: `funnel-draft-revision-${slug}-${new Date().toISOString().slice(0, 10)}`,
     createdByEmail: publisherIdentityEmail(owner),
     ownerUserId: owner.userId,
-    steps: importedClickFunnelsSteps(draftId, input),
+    steps: importedCompetitorSteps(draftId, { ...input, platformName }),
     createdAt: null,
     updatedAt: null,
   };
@@ -1026,8 +1037,9 @@ export async function createClickFunnelsImportedDraftFunnel(
     "draft_created",
     input.idempotencyKey,
     {
-      importerCapabilityId: clickFunnelsDraftImportCapability.id,
-      importerPlatformId: clickFunnelsDraftImportCapability.platformId,
+      importerCapabilityId: importerDraftImportCapabilityId(importerPlatformId),
+      importerPlatformId,
+      importerPlatformName: platformName,
       importerIssue,
       tenantId: input.tenantId,
       sourceUrlCount: input.sourceUrls.length,
@@ -1046,6 +1058,18 @@ export async function createClickFunnelsImportedDraftFunnel(
       sessionCookiesStored: false,
     },
   );
+}
+
+export async function createClickFunnelsImportedDraftFunnel(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: ClickFunnelsImportedDraftInput,
+) {
+  return createCompetitorImportedDraftFunnel(db, owner, {
+    ...input,
+    importerSlug: "clickfunnels",
+    platformName: "ClickFunnels",
+  });
 }
 
 export async function createAnonymousPlaygroundDraftFunnel(

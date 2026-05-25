@@ -111,11 +111,11 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 467,
     summary:
-      "Public import center, dedicated platform import paths, `/imports/source-data`, and verified-publisher ClickFunnels private draft creation for moving competitor context into Bumpgrade launch workspaces.",
+      "Public import center, dedicated platform import paths, `/imports/source-data`, and verified-publisher private draft creation for moving competitor context into Bumpgrade launch workspaces.",
     audience: "Prospects and agents planning a move from ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
     expectedCapabilities: [
-      "Dedicated ClickFunnels import path with reusable importer contract.",
-      "Verified-publisher ClickFunnels import action that creates or reuses a Free Build workspace and saves a private draft funnel.",
+      "Dedicated importer paths with a reusable platform-aware importer contract.",
+      "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Dedicated importer pages for first-wave competitor platforms.",
       "Agent-readable importer metadata at `/imports/source-data`.",
       "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",
@@ -123,10 +123,10 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, `/imports/clickfunnels`, `/imports/source-data`, and `/api/imports/clickfunnels/draft` define the first importer contract slice.",
+      "`/imports`, dedicated importer pages, `/imports/source-data`, and the platform API routes listed in source-data define the private importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, and the verified-publisher ClickFunnels private-draft API from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, broader competitor writes, or public publishing without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, and verified-publisher private-draft APIs from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",

@@ -385,7 +385,7 @@ export const marketingFeatures: MarketingFeature[] = [
     category: "Migration",
     status: "launch-preview",
     availability:
-      "ClickFunnels private import planning is live, and dedicated competitor import paths are ready for review-first migrations into private workspaces.",
+      "Private import planning is live for the dedicated competitor import paths, starting from review-first drafts in Free Build workspaces.",
     eyebrow: "Move what matters",
     hero: "Bring your existing launch stack into Bumpgrade before going live.",
     summary:
@@ -402,7 +402,7 @@ export const marketingFeatures: MarketingFeature[] = [
     benefits: [
       "Start from public URLs, exported files, CSVs, or pasted copy when a platform does not have a clean transfer path.",
       "Review detected pages, offers, products, audience notes, assets, and follow-up ideas before Bumpgrade creates private workspace records.",
-      "Create a private ClickFunnels import plan in Free Build before paying or going live.",
+      "Create a private import plan in Free Build before paying or going live.",
       "Keep publishing, checkout, subscriber sends, domains, and fulfillment off until the launch is approved.",
     ],
     useCases: [

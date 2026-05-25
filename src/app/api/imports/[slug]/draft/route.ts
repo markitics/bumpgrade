@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createAuth } from "@/lib/auth";
-import { createClickFunnelsImportedDraftFunnel } from "@/lib/funnel-drafts";
+import { createCompetitorImportedDraftFunnel } from "@/lib/funnel-drafts";
 import {
-  clickFunnelsDraftImportApiRoute,
-  clickFunnelsDraftImportConfirmationText,
+  getImporterBySlug,
+  importerDraftImportApiRoute,
+  importerDraftImportConfirmationText,
   importerIssue,
+  type ImporterPlatform,
 } from "@/lib/importers";
 import {
   createFreeBuildWorkspace,
@@ -21,6 +23,10 @@ export const revalidate = 0;
 
 type RequestPayload = {
   get: (key: string) => string;
+};
+
+type ImporterDraftRouteContext = {
+  params: Promise<{ slug: string }>;
 };
 
 class ImporterDraftError extends Error {
@@ -112,10 +118,14 @@ function normalizePublicUrl(value: string) {
   return parsed.toString().slice(0, 500);
 }
 
-function normalizedInput(payload: RequestPayload) {
+function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
   const confirmationText = payload.get("confirmationText").trim();
-  if (confirmationText !== clickFunnelsDraftImportConfirmationText) {
-    throw new ImporterDraftError("Confirm the ClickFunnels private import plan before continuing.", 400, "CONFIRMATION_REQUIRED");
+  if (confirmationText !== importerDraftImportConfirmationText(platform.platformName)) {
+    throw new ImporterDraftError(
+      `Confirm the ${platform.platformName} private import plan before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
   }
 
   const idempotencyKey = payload.get("idempotencyKey").trim();
@@ -146,6 +156,15 @@ function normalizedInput(payload: RequestPayload) {
   };
 }
 
+function publicPlatform(platform: ImporterPlatform) {
+  return {
+    id: platform.id,
+    slug: platform.slug,
+    platformName: platform.platformName,
+    route: platform.route,
+  };
+}
+
 function publicTenant(tenant: Awaited<ReturnType<typeof createFreeBuildWorkspace>>["tenant"]) {
   return {
     id: tenant.id,
@@ -160,7 +179,7 @@ function publicTenant(tenant: Awaited<ReturnType<typeof createFreeBuildWorkspace
   };
 }
 
-function publicDraft(draft: Awaited<ReturnType<typeof createClickFunnelsImportedDraftFunnel>>) {
+function publicDraft(draft: Awaited<ReturnType<typeof createCompetitorImportedDraftFunnel>>) {
   return {
     id: draft.id,
     slug: draft.slug,
@@ -194,15 +213,38 @@ function redaction() {
   };
 }
 
-function redirectWithError(request: NextRequest, message: string) {
-  const redirect = new URL("/imports/clickfunnels", request.url);
+function redirectWithError(request: NextRequest, platform: ImporterPlatform | null, message: string) {
+  const redirect = new URL(platform?.route ?? "/imports", request.url);
   redirect.searchParams.set("importError", message);
   return NextResponse.redirect(redirect, { status: 303 });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: ImporterDraftRouteContext) {
   const payload = await readPayload(request);
   const json = wantsJson(request, payload);
+  const { slug } = await params;
+  const platform = getImporterBySlug(slug);
+  const route = importerDraftImportApiRoute(slug);
+
+  if (!platform) {
+    const message = "Choose a supported importer path before creating a private import plan.";
+    if (json) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: message,
+          code: "IMPORTER_NOT_FOUND",
+          issue: importerIssue,
+          route,
+          redaction: redaction(),
+        },
+        { status: 404 },
+      );
+    }
+
+    return redirectWithError(request, null, message);
+  }
+
   const user = await getSessionUser(request.headers);
 
   if (!user) {
@@ -213,7 +255,8 @@ export async function POST(request: NextRequest) {
           error: "Publisher session required.",
           code: "PUBLISHER_SESSION_REQUIRED",
           issue: importerIssue,
-          route: clickFunnelsDraftImportApiRoute,
+          route,
+          platform: publicPlatform(platform),
           redaction: redaction(),
         },
         { status: 401 },
@@ -221,7 +264,7 @@ export async function POST(request: NextRequest) {
     }
 
     const login = new URL("/login", request.url);
-    login.searchParams.set("callbackURL", "/imports/clickfunnels");
+    login.searchParams.set("callbackURL", platform.route);
     return NextResponse.redirect(login, { status: 303 });
   }
 
@@ -230,15 +273,17 @@ export async function POST(request: NextRequest) {
       throw new ImporterDraftError("Confirm your email before creating a private import plan.", 403, "EMAIL_UNVERIFIED");
     }
 
-    const input = normalizedInput(payload);
+    const input = normalizedInput(payload, platform);
     const db = await getPublisherTenantD1OrThrow();
     const workspace = await createFreeBuildWorkspace(db, user, {
       confirmationText: publisherFreeBuildWorkspaceConfirmationText,
-      idempotencyKey: `clickfunnels-import-workspace:${input.idempotencyKey}`,
+      idempotencyKey: `competitor-import-workspace:${platform.slug}:${input.idempotencyKey}`,
     });
-    const draft = await createClickFunnelsImportedDraftFunnel(db, { userId: user.id, email: user.email }, {
+    const draft = await createCompetitorImportedDraftFunnel(db, { userId: user.id, email: user.email }, {
       ...input,
-      idempotencyKey: `clickfunnels-import-draft:${input.idempotencyKey}`,
+      importerSlug: platform.slug,
+      platformName: platform.platformName,
+      idempotencyKey: `competitor-import-draft:${platform.slug}:${input.idempotencyKey}`,
       tenantId: workspace.tenant.id,
     });
 
@@ -247,7 +292,8 @@ export async function POST(request: NextRequest) {
         ok: true,
         issue: importerIssue,
         freeBuildParentIssue: publisherFreeBuildParentIssue,
-        route: clickFunnelsDraftImportApiRoute,
+        route,
+        platform: publicPlatform(platform),
         idempotent: workspace.idempotent,
         paidGoLiveRequired: true,
         tenant: publicTenant(workspace.tenant),
@@ -256,7 +302,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const redirect = new URL("/imports/clickfunnels", request.url);
+    const redirect = new URL(platform.route, request.url);
     redirect.searchParams.set("importDraft", draft.id);
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {
@@ -267,7 +313,7 @@ export async function POST(request: NextRequest) {
         ? error.code
         : error instanceof PublisherTenantError
           ? error.code
-          : "CLICKFUNNELS_IMPORT_DRAFT_FAILED";
+          : "COMPETITOR_IMPORT_DRAFT_FAILED";
     const message = error instanceof Error ? error.message : "Unable to create that private import plan.";
 
     if (json) {
@@ -277,13 +323,14 @@ export async function POST(request: NextRequest) {
           error: message,
           code,
           issue: importerIssue,
-          route: clickFunnelsDraftImportApiRoute,
+          route,
+          platform: publicPlatform(platform),
           redaction: redaction(),
         },
         { status },
       );
     }
 
-    return redirectWithError(request, message);
+    return redirectWithError(request, platform, message);
   }
 }
