@@ -778,6 +778,13 @@ export type AnonymousPlaygroundClaimedDraftInput = {
   offerName: string;
   audience: string;
   launchGoal: string;
+  productFormat: string;
+  pricePoint: string;
+  leadMagnet: string;
+  checkoutPlan: string;
+  deliveryPlan: string;
+  followUpPlan: string;
+  sourceUrl: string;
   selectedImporterSlug: string | null;
   sourceIssueNumber: number;
   idempotencyKey: string;
@@ -1027,14 +1034,34 @@ async function findImporterSourceMatchDraft(
 
 function anonymousPlaygroundSteps(
   draftId: string,
-  input: Pick<AnonymousPlaygroundClaimedDraftInput, "offerName" | "audience" | "launchGoal" | "selectedImporterSlug">,
+  input: Pick<
+    AnonymousPlaygroundClaimedDraftInput,
+    | "offerName"
+    | "audience"
+    | "launchGoal"
+    | "productFormat"
+    | "pricePoint"
+    | "leadMagnet"
+    | "checkoutPlan"
+    | "deliveryPlan"
+    | "followUpPlan"
+    | "sourceUrl"
+    | "selectedImporterSlug"
+  >,
 ): DraftFunnelStepRecord[] {
   const offerName = compactImportText(input.offerName, 120) || "Saved playground launch";
   const audience = compactImportText(input.audience, 180) || "the people this launch should serve";
   const launchGoal = compactImportText(input.launchGoal, 300) || "turn the saved playground notes into a private launch path";
+  const productFormat = compactImportText(input.productFormat, 180) || "the product or service format still to define";
+  const pricePoint = compactImportText(input.pricePoint, 120) || "pricing still to decide";
+  const leadMagnet = compactImportText(input.leadMagnet, 220) || "the first opt-in or reason to join the launch list";
+  const checkoutPlan = compactImportText(input.checkoutPlan, 260) || "the checkout handoff still to shape";
+  const deliveryPlan = compactImportText(input.deliveryPlan, 260) || "the private delivery promise still to shape";
+  const followUpPlan = compactImportText(input.followUpPlan, 260) || "the first follow-up path still to shape";
+  const sourceUrl = compactImportText(input.sourceUrl, 300);
   const importer = input.selectedImporterSlug ? getImporterBySlug(input.selectedImporterSlug) : null;
   const importerText = importer
-    ? `Starting platform noted in the playground: ${importer.platformName}.`
+    ? `Starting platform noted in the playground: ${importer.platformName}.${sourceUrl ? ` Source page noted: ${sourceUrl}.` : ""}`
     : "No starting platform was attached to the playground.";
 
   return [
@@ -1057,8 +1084,8 @@ function anonymousPlaygroundSteps(
         importedBlock(
           `${draftId}-block-playground-opt-in-benefits`,
           "benefits",
-          "Why this audience should keep going",
-          "Turn the saved audience and goal notes into benefits, lead magnet language, or the first reason to join the launch list.",
+          "First reason to keep going",
+          leadMagnet,
           true,
         ),
         importedBlock(
@@ -1083,7 +1110,7 @@ function anonymousPlaygroundSteps(
           `${draftId}-block-playground-offer-hero`,
           "hero",
           `${offerName} offer promise`,
-          launchGoal,
+          `${launchGoal} Format: ${productFormat}.`,
           true,
         ),
         importedBlock(
@@ -1097,7 +1124,7 @@ function anonymousPlaygroundSteps(
           `${draftId}-block-playground-offer-checkout`,
           "checkout",
           "Checkout stays off",
-          "Keep price, order bump, upsell, and buyer handoff notes private until paid go-live gates are satisfied.",
+          `Planned price or offer structure: ${pricePoint}. Checkout handoff: ${checkoutPlan}. Keep payment collection private until paid go-live gates are satisfied.`,
           false,
         ),
       ],
@@ -1115,14 +1142,14 @@ function anonymousPlaygroundSteps(
           `${draftId}-block-playground-follow-up-delivery`,
           "delivery",
           "Delivery expectation",
-          "Attach product access, files, community access, or membership delivery only after fulfillment gates are ready.",
+          `${deliveryPlan} Attach product access, files, community access, or membership delivery only after fulfillment gates are ready.`,
           false,
         ),
         importedBlock(
           `${draftId}-block-playground-follow-up-cta`,
           "cta",
           "Next edit pass",
-          "Review the saved playground plan, sharpen the offer, and choose the first private setup step before going live.",
+          `${followUpPlan} Review the saved playground plan, sharpen the offer, and choose the first private setup step before going live.`,
           true,
         ),
       ],
@@ -1303,9 +1330,17 @@ export async function createAnonymousPlaygroundDraftFunnel(
       anonymousPlaygroundWorkspaceId: input.workspaceId,
       tenantId: input.tenantId,
       selectedImporterSlug: input.selectedImporterSlug,
+      structuredBuilderFieldsClaimed: true,
       offerNameLength: input.offerName.trim().length,
       audienceLength: input.audience.trim().length,
       launchGoalLength: input.launchGoal.trim().length,
+      productFormatLength: input.productFormat.trim().length,
+      pricePointLength: input.pricePoint.trim().length,
+      leadMagnetLength: input.leadMagnet.trim().length,
+      checkoutPlanLength: input.checkoutPlan.trim().length,
+      deliveryPlanLength: input.deliveryPlan.trim().length,
+      followUpPlanLength: input.followUpPlan.trim().length,
+      sourceUrlIncluded: Boolean(input.sourceUrl.trim()),
       privateDraftOnly: true,
       publicPublishingEnabled: false,
       liveCheckoutEnabled: false,

@@ -11,8 +11,9 @@ before paid go-live.
 - `/account/source-data`: public-safe contract for paid publisher tenants,
   Free Build workspaces, default Bumpgrade subdomains, existing-domain DNS
   onboarding, and auth boundaries.
-- `/playground`: logged-out browser-scoped launch playground for saving basic
-  offer, audience, goal, and starting-platform context before signup.
+- `/playground`: logged-out browser-scoped launch playground for saving
+  structured offer, audience, product, opt-in, checkout, delivery, follow-up,
+  source URL, and starting-platform context before signup.
 - `/playground/source-data`: public-safe contract for anonymous recovery,
   claim-to-account, redaction, cookie, and go-live gate boundaries.
 - `POST /api/playground/anonymous-workspace`: saves or updates a browser-scoped
@@ -32,13 +33,13 @@ before paid go-live.
   the publisher already owns, returns CNAME instructions, and re-checks DNS
   verification state.
 
-The anonymous playground write path records browser-scoped launch context in D1
-without a public hostname, billing state, email send, fulfillment state, or raw
-cookie value. The Free Build write path records a tenant row and audit event in
-D1 without a public hostname. The paid go-live write path records a tenant row,
-subdomain reservation row, and audit event. Domain requests reject signed-out,
-unverified, unpaid, invalid, reserved-name, and already-taken subdomain
-requests.
+The anonymous playground write path records browser-scoped structured launch
+context in D1 without a public hostname, billing state, email send, fulfillment
+state, or raw cookie value. The Free Build write path records a tenant row and
+audit event in D1 without a public hostname. The paid go-live write path records
+a tenant row, subdomain reservation row, and audit event. Domain requests reject
+signed-out, unverified, unpaid, invalid, reserved-name, and already-taken
+subdomain requests.
 
 ## Paid Gate
 
@@ -87,7 +88,7 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Anonymous playground expansion beyond the claimed private funnel draft into
+- Anonymous playground expansion beyond structured private funnel drafts into
   dedicated offer, product, audience, importer, cleanup, and abuse-control
   records.
 - Raw browser-cookie sharing across unrelated custom domains.

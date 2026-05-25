@@ -103,7 +103,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
           <ShieldCheck aria-hidden="true" />
           <strong>Pay when it is time to go live</strong>
           <p>
-            Private building keeps setup work moving before payment. The playground saves early launch context before
+            Private building keeps setup work moving before payment. The playground saves structured launch context before
             signup; the paid plan unlocks public publishing, live checkout, subscriber sends, custom domains, and
             fulfillment.
           </p>

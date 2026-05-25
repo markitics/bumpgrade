@@ -232,11 +232,11 @@ export const freeBuildCapabilities: FreeBuildCapability[] = [
   },
   {
     id: "free-build-anonymous-playground",
-    title: "Logged-out recovery design",
-    status: "designed-next",
+    title: "Logged-out structured playground",
+    status: "before-payment",
     summary:
-      "The logged-out playground path is being designed around browser return, claim-to-account, expiration, rate limits, and private-data cleanup before it becomes a live flow.",
-    allowedBeforePayment: false,
+      "Save structured offer, audience, product, opt-in, checkout, delivery, follow-up, and migration-starting-point notes in one browser before signup.",
+    allowedBeforePayment: true,
     requiresPaidGoLive: false,
   },
 ];
@@ -299,9 +299,11 @@ export const freeBuildModeContract = {
     saveApiRoute: anonymousPlaygroundApiRoute,
     claimApiRoute: anonymousPlaygroundClaimApiRoute,
     persistenceModel:
-      "Logged-out visitors can save basic launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, public-safe draft fields, expiry, and claim status.",
+      "Logged-out visitors can save structured launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, draft fields, expiry, and claim status.",
     privacyBoundary:
       "Anonymous work does not expose private customer data, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
+    structuredBuilderFieldsLive: true,
+    claimMapsStructuredFieldsToPrivateDraftBlocks: true,
   },
 };
 

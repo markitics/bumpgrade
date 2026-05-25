@@ -644,8 +644,8 @@ export const roadmapItems: RoadmapItem[] = [
       "Defines the $0 private-building path, logged-out browser playground recovery, signed-in Free Build workspace creation, paid go-live gates, and the handoff before public, billing, sending, domain, or fulfillment actions are treated as live.",
     publicEvidence: [
       "Issue #466 tracks the Free Build pricing model and optional anonymous playground.",
-      "`/playground` lets logged-out visitors save basic launch setup progress in this browser.",
-      "`/playground/source-data` exposes browser recovery, cookie, claim, redaction, and go-live gate contracts.",
+      "`/playground` lets logged-out visitors save structured offer, audience, product, opt-in, checkout, delivery, follow-up, and migration-starting-point progress in this browser.",
+      "`/playground/source-data` exposes browser recovery, structured builder fields, cookie, claim, redaction, and go-live gate contracts.",
       "`/pricing` explains the build-first message in plain public copy.",
       "`/pricing/source-data` exposes the Free Build design, live anonymous playground state, and paid go-live gates.",
       "`/account/setup` lets verified signed-in users create a private Free Build workspace before payment.",
@@ -653,7 +653,7 @@ export const roadmapItems: RoadmapItem[] = [
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
     nextMilestone:
-      "Broaden the anonymous playground from basic launch context into real draft funnel, offer, product, audience, and importer records after abuse limits, cleanup policy, and merge semantics are proven.",
+      "Broaden the anonymous playground claim path into dedicated offer, product, audience, importer-review, cleanup, and abuse-limit records after structured funnel-draft mapping is proven.",
   },
 ];
 

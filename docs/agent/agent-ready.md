@@ -198,16 +198,16 @@ fresh source evidence before agents cite them as current.
 
 Current anonymous playground boundary: `/playground/source-data` is the
 public-safe contract for logged-out launch drafts that persist in one browser.
-`POST /api/playground/anonymous-workspace` saves basic offer, audience, goal,
-and starting-platform context behind a recovery cookie; D1 stores a token hash,
-not the raw cookie value. `POST /api/playground/claim` requires an
-email-verified publisher session, attaches the saved playground to a private
-Free Build workspace, and creates a private D1 funnel draft from the saved
-offer, audience, launch goal, and starting-platform context. The playground
-cannot publish routes, collect live payments, send subscribers, reserve domains,
-fulfill protected access, expose private customer data, expose raw draft
-content in public source-data, expose recovery cookie values, or expose token
-hashes.
+`POST /api/playground/anonymous-workspace` saves structured offer, audience,
+product, opt-in, checkout, delivery, follow-up, source URL, and
+starting-platform context behind a recovery cookie; D1 stores a token hash, not
+the raw cookie value. `POST /api/playground/claim` requires an email-verified
+publisher session, attaches the saved playground to a private Free Build
+workspace, and creates a private D1 funnel draft whose blocks preserve the saved
+structured context. The playground cannot publish routes, collect live payments,
+send subscribers, reserve domains, fulfill protected access, expose private
+customer data, expose raw draft content in public source-data, expose recovery
+cookie values, or expose token hashes.
 
 Current importer boundary: `/imports/source-data` is the public-safe contract for
 ClickFunnels and first-wave competitor import paths. It exposes supported

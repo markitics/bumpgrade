@@ -72,6 +72,13 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
     offerName: "",
     audience: "",
     launchGoal: "",
+    productFormat: "",
+    pricePoint: "",
+    leadMagnet: "",
+    checkoutPlan: "",
+    deliveryPlan: "",
+    followUpPlan: "",
+    sourceUrl: "",
     selectedImporterSlug: "clickfunnels",
   };
 
@@ -115,8 +122,8 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
             <h2>Save enough context to keep exploring.</h2>
           </div>
           <p>
-            Keep the first notes simple: what you are selling, who it is for, and what platform or launch material you
-            may want Bumpgrade to shape into private launch plans.
+            Shape the offer, first opt-in, checkout handoff, delivery promise, follow-up path, and migration starting
+            point before you decide whether to create an account.
           </p>
         </div>
 
@@ -134,6 +141,24 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
           <textarea id="audience" name="audience" maxLength={180} defaultValue={draft.audience} />
           <label htmlFor="launch-goal">What do you want to build first?</label>
           <textarea id="launch-goal" name="launchGoal" maxLength={260} defaultValue={draft.launchGoal} />
+          <label htmlFor="product-format">Product or service format</label>
+          <input
+            id="product-format"
+            name="productFormat"
+            type="text"
+            maxLength={140}
+            defaultValue={draft.productFormat}
+          />
+          <label htmlFor="price-point">Price or offer structure</label>
+          <input id="price-point" name="pricePoint" type="text" maxLength={80} defaultValue={draft.pricePoint} />
+          <label htmlFor="lead-magnet">First opt-in idea</label>
+          <textarea id="lead-magnet" name="leadMagnet" maxLength={180} defaultValue={draft.leadMagnet} />
+          <label htmlFor="checkout-plan">Checkout handoff</label>
+          <textarea id="checkout-plan" name="checkoutPlan" maxLength={220} defaultValue={draft.checkoutPlan} />
+          <label htmlFor="delivery-plan">Delivery promise</label>
+          <textarea id="delivery-plan" name="deliveryPlan" maxLength={220} defaultValue={draft.deliveryPlan} />
+          <label htmlFor="follow-up-plan">Follow-up path</label>
+          <textarea id="follow-up-plan" name="followUpPlan" maxLength={220} defaultValue={draft.followUpPlan} />
           <label htmlFor="selected-importer">Starting platform</label>
           <select id="selected-importer" name="selectedImporterSlug" defaultValue={draft.selectedImporterSlug ?? "clickfunnels"}>
             {importerPlatforms.map((platform) => (
@@ -142,6 +167,8 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
               </option>
             ))}
           </select>
+          <label htmlFor="source-url">Existing page or checkout URL</label>
+          <input id="source-url" name="sourceUrl" type="url" maxLength={260} defaultValue={draft.sourceUrl} />
           <button type="submit" className="primary-action">
             Save playground
             <Save aria-hidden="true" />

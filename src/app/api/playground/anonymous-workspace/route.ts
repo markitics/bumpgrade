@@ -116,6 +116,13 @@ export async function POST(request: NextRequest) {
       offerName: payload.get("offerName"),
       audience: payload.get("audience"),
       launchGoal: payload.get("launchGoal"),
+      productFormat: payload.get("productFormat"),
+      pricePoint: payload.get("pricePoint"),
+      leadMagnet: payload.get("leadMagnet"),
+      checkoutPlan: payload.get("checkoutPlan"),
+      deliveryPlan: payload.get("deliveryPlan"),
+      followUpPlan: payload.get("followUpPlan"),
+      sourceUrl: payload.get("sourceUrl"),
       selectedImporterSlug: payload.get("selectedImporterSlug"),
       idempotencyKey: payload.get("idempotencyKey"),
     });
