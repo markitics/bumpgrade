@@ -184,6 +184,12 @@ import {
   audienceSequenceScheduleIntentIssue,
   audienceSequenceScheduleIntentStatus,
 } from "../src/lib/audience-sequence-schedule-intents";
+import {
+  audienceSequenceTestSendApiRoute,
+  audienceSequenceTestSendConfirmationText,
+  audienceSequenceTestSendIssue,
+  audienceSequenceTestSendStatus,
+} from "../src/lib/audience-sequence-test-sends";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
 import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
@@ -5659,6 +5665,42 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.audienceSequenceTestSends).toEqual(
+      expect.objectContaining({
+        id: "audience-sequence-owner-test-send-contract",
+        status: audienceSequenceTestSendStatus,
+        issue: audienceSequenceTestSendIssue,
+        parentIssue: 420,
+        apiRoute: audienceSequenceTestSendApiRoute,
+        ownerRoute: "/admin/audience",
+        allowedRecipientScope: "verified-owner-session-email-only",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceSequenceTestSendConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          testSends: expect.any(Number),
+          subscriberPayloadsCreatedRecords: 0,
+          publicAgentSendCreatedRecords: 0,
+          queueMessagesCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+          rawRecipientEmailStoredRecords: 0,
+          rawEmailBodyStoredRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          rawRecipientEmailsIncluded: false,
+          rawRecipientEmailHashesIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          confirmationTextHashesIncluded: false,
+          providerMessageIdsIncluded: false,
+          rawEmailBodyIncluded: false,
+          queuePayloadsIncluded: false,
+          publicAgentSendCreated: false,
+        }),
+      }),
+    );
     expect(payload.importIntents).toEqual(
       expect.objectContaining({
         id: "audience-import-intent-contract",
@@ -6287,6 +6329,32 @@ test.describe("Bumpgrade scaffold", () => {
     expect(unauthorizedPost.status()).toBe(401);
     await expect(unauthorizedPost.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedSequenceTestSend = await request.post(audienceSequenceTestSendApiRoute, {
+      data: {
+        sequenceId: "sequence-indie-launch-nurture",
+        stepId: "email-step-deliver-checklist",
+        expectedWorkspaceRevisionId: audienceAutomationWorkspace.revisionId,
+        expectedSequenceStatus: "draft",
+        expectedReadyEnrollmentCount: 0,
+        confirmationText: audienceSequenceTestSendConfirmationText,
+        idempotencyKey: `playwright-sequence-test-send-unauth-${suffix}`,
+        auditCorrelationId: `playwright-sequence-test-send-unauth-${suffix}`,
+      },
+    });
+    expect(unauthorizedSequenceTestSend.status()).toBe(401);
+    await expect(unauthorizedSequenceTestSend.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawRecipientEmailsIncluded: false,
+          idempotencyKeysIncluded: false,
+          providerMessageIdsIncluded: false,
+          queuePayloadsIncluded: false,
+        }),
+      }),
     );
 
     const unauthorizedPreflightGet = await request.get(audienceImportPreflightApiRoute);
@@ -19532,6 +19600,7 @@ test.describe("Bumpgrade scaffold", () => {
             "sequenceDeliveryStatusWebhookReadinessId",
             "sequenceProviderPollingReadinessId",
             "sequenceReceiptPayloadReadinessId",
+            "sequenceTestSendId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
@@ -19557,7 +19626,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
             "Inspect dispatch preflight dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
             "Inspect dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, provider responses, or provider sends",
-            "Inspect owner-only broadcast test-send evidence without raw recipient email, subscriber payloads, public agent sends, or provider message IDs",
+            "Inspect owner-only broadcast and sequence test-send evidence without raw recipient email, subscriber payloads, Queue messages, public agent sends, or provider message IDs",
             "Inspect sender-domain readiness without private DNS credentials, raw DNS records, provider secrets, or provider sends",
             "Inspect provider-event readiness without provider secrets, raw provider payloads, provider responses, or provider message IDs",
             "Inspect provider rate-limit readiness without provider secrets, provider limit secrets, raw provider payloads, provider responses, or provider message IDs",
@@ -19716,6 +19785,12 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
         }),
         expect.objectContaining({
+          id: "create-owner-sequence-test-send",
+          route: audienceSequenceTestSendApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["sequenceTestSendId", "emailSequenceId", "auditCorrelationId"]),
+        }),
+        expect.objectContaining({
           id: "create-owner-broadcast-schedule-intent",
           route: audienceBroadcastScheduleIntentApiRoute,
           auth: "owner-session",
@@ -19761,6 +19836,7 @@ test.describe("Bumpgrade scaffold", () => {
             "sequenceDispatchAttemptId",
             "sequenceQueueProducerReadinessId",
             "sequenceQueueConsumerReadinessId",
+            "sequenceTestSendId",
             "audienceImportIntentId",
             "audienceImportPreflightId",
             "audienceExportReadinessId",
@@ -22399,6 +22475,144 @@ test.describe("Bumpgrade scaffold", () => {
         deliveryEnabled: false,
       }),
     );
+    const sequenceTestSendContractResponse = await page.request.get(audienceSequenceTestSendApiRoute);
+    expect(sequenceTestSendContractResponse.ok(), await sequenceTestSendContractResponse.text()).toBeTruthy();
+    await expect(sequenceTestSendContractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: audienceSequenceTestSendStatus,
+        route: audienceSequenceTestSendApiRoute,
+        confirmation: expect.objectContaining({
+          text: audienceSequenceTestSendConfirmationText,
+        }),
+        contract: expect.objectContaining({
+          id: "audience-sequence-owner-test-send-contract",
+          allowedRecipientScope: "verified-owner-session-email-only",
+          redaction: expect.objectContaining({
+            rawRecipientEmailsIncluded: false,
+            rawRecipientEmailHashesIncluded: false,
+            actorEmailIncluded: false,
+            idempotencyKeysIncluded: false,
+            providerMessageIdsIncluded: false,
+            queuePayloadsIncluded: false,
+          }),
+        }),
+      }),
+    );
+    const sequenceStep = audienceAutomationWorkspace.sequences[0].steps[0];
+    const sequenceTestSendIdempotencyKey = `playwright-sequence-owner-test-send-${Date.now()}`;
+    const missingConfirmationSequenceTestSendResponse = await page.request.post(audienceSequenceTestSendApiRoute, {
+      data: {
+        sequenceId: sequenceRecord.sequenceId,
+        stepId: sequenceStep.id,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+        confirmationText: "send it",
+        idempotencyKey: `playwright-sequence-owner-test-send-missing-confirmation-${Date.now()}`,
+        auditCorrelationId: `playwright-sequence-owner-test-send-missing-confirmation-${Date.now()}`,
+      },
+    });
+    expect(missingConfirmationSequenceTestSendResponse.status()).toBe(400);
+    await expect(missingConfirmationSequenceTestSendResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "confirmation_required",
+      }),
+    );
+    const staleSequenceTestSendResponse = await page.request.post(audienceSequenceTestSendApiRoute, {
+      data: {
+        sequenceId: sequenceRecord.sequenceId,
+        stepId: sequenceStep.id,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments + 1,
+        confirmationText: audienceSequenceTestSendConfirmationText,
+        idempotencyKey: `playwright-sequence-owner-test-send-stale-${Date.now()}`,
+        auditCorrelationId: `playwright-sequence-owner-test-send-stale-${Date.now()}`,
+      },
+    });
+    expect(staleSequenceTestSendResponse.status()).toBe(409);
+    await expect(staleSequenceTestSendResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+      }),
+    );
+    const sequenceTestSendResponse = await page.request.post(audienceSequenceTestSendApiRoute, {
+      data: {
+        sequenceId: sequenceRecord.sequenceId,
+        stepId: sequenceStep.id,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+        confirmationText: audienceSequenceTestSendConfirmationText,
+        idempotencyKey: sequenceTestSendIdempotencyKey,
+        auditCorrelationId: `playwright-sequence-owner-test-send-${Date.now()}`,
+      },
+    });
+    expect(sequenceTestSendResponse.ok(), await sequenceTestSendResponse.text()).toBeTruthy();
+    const sequenceTestSendPayload = await sequenceTestSendResponse.json();
+    expect(sequenceTestSendPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "sequence_owner_test_send_recorded",
+        duplicate: false,
+        testSend: expect.objectContaining({
+          sequenceId: sequenceRecord.sequenceId,
+          stepId: sequenceStep.id,
+          provider: "test",
+          providerOk: true,
+          ownerTestEmailCaptured: true,
+          subscriberPayloadsCreated: false,
+          publicAgentSendCreated: false,
+          queueMessagesCreated: false,
+          providerMessageIdsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          rawRecipientEmailsIncluded: false,
+          actorEmailIncluded: false,
+          subscriberPayloadsIncluded: false,
+          queuePayloadsIncluded: false,
+          providerMessageIdsIncluded: false,
+        }),
+      }),
+    );
+    const replaySequenceTestSendResponse = await page.request.post(audienceSequenceTestSendApiRoute, {
+      data: {
+        sequenceId: sequenceRecord.sequenceId,
+        stepId: sequenceStep.id,
+        expectedWorkspaceRevisionId: sequenceReadiness.workspace.revisionId,
+        expectedSequenceStatus: sequenceRecord.status,
+        expectedReadyEnrollmentCount: sequenceReadiness.counts.readyEnrollments,
+        confirmationText: audienceSequenceTestSendConfirmationText,
+        idempotencyKey: sequenceTestSendIdempotencyKey,
+        auditCorrelationId: `playwright-sequence-owner-test-send-replay-${Date.now()}`,
+      },
+    });
+    expect(replaySequenceTestSendResponse.ok(), await replaySequenceTestSendResponse.text()).toBeTruthy();
+    await expect(replaySequenceTestSendResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        testSend: expect.objectContaining({ id: sequenceTestSendPayload.testSend.id }),
+      }),
+    );
+    const audienceSourceAfterSequenceTestSend = await page.request.get("/audience/source-data");
+    expect(audienceSourceAfterSequenceTestSend.ok(), await audienceSourceAfterSequenceTestSend.text()).toBeTruthy();
+    const audienceSourceAfterSequenceTestSendPayload = await audienceSourceAfterSequenceTestSend.json();
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.testSends).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.testCaptures).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.subscriberPayloadsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.publicAgentSendCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.queueMessagesCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.providerMessageIdsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.rawRecipientEmailStoredRecords).toBe(0);
+    expect(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends.counts.rawEmailBodyStoredRecords).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends)).not.toContain("m@rkmoriarty.com");
+    expect(JSON.stringify(audienceSourceAfterSequenceTestSendPayload.audienceSequenceTestSends)).not.toContain(audienceEmail);
+
     const sequenceScheduleIntentIdempotencyKey = `playwright-sequence-schedule-intent-${Date.now()}`;
     const sequenceScheduleIntentResponse = await page.request.post(audienceSequenceScheduleIntentApiRoute, {
       data: {
@@ -25395,6 +25609,16 @@ test.describe("Bumpgrade scaffold", () => {
     expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.rawEmailBodyStoredRecords).toBe(0);
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastTestSends)).not.toContain("m@rkmoriarty.com");
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastTestSends)).not.toContain(audienceEmail);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.testSends).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.testCaptures).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.subscriberPayloadsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.publicAgentSendCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.queueMessagesCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.providerMessageIdsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.rawRecipientEmailStoredRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.audienceSequenceTestSends.counts.rawEmailBodyStoredRecords).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceTestSends)).not.toContain("m@rkmoriarty.com");
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.audienceSequenceTestSends)).not.toContain(audienceEmail);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.senderDomainReadinessRecords).toBeGreaterThanOrEqual(1);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.providerSendEnabledRecords).toBe(0);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.cloudflareQueueProducerEnabledRecords).toBe(0);

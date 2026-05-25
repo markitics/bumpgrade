@@ -35,6 +35,7 @@ import { getAudienceSequenceProviderCallReadinessSummary } from "@/lib/audience-
 import { getAudienceSequenceQueueConsumerReadinessSummary } from "@/lib/audience-sequence-queue-consumer-readiness";
 import { getAudienceSequenceQueueProducerReadinessSummary } from "@/lib/audience-sequence-queue-producer-readiness";
 import { getAudienceSequenceScheduleIntentSummary } from "@/lib/audience-sequence-schedule-intents";
+import { getAudienceSequenceTestSendSummary } from "@/lib/audience-sequence-test-sends";
 import { getAudienceSubscriberInspectionSummary } from "@/lib/audience-subscribers";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,7 @@ export async function GET() {
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
     audienceSequenceReceiptPayloadReadiness,
+    audienceSequenceTestSends,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -108,6 +110,7 @@ export async function GET() {
     getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
     getAudienceSequenceProviderPollingReadinessSummary(),
     getAudienceSequenceReceiptPayloadReadinessSummary(),
+    getAudienceSequenceTestSendSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -138,6 +141,7 @@ export async function GET() {
         audienceSequenceDeliveryStatusWebhookReadiness.apiRoute,
         audienceSequenceProviderPollingReadiness.apiRoute,
         audienceSequenceReceiptPayloadReadiness.apiRoute,
+        audienceSequenceTestSends.apiRoute,
         importIntents.apiRoute,
         importPreflights.apiRoute,
       ]),
@@ -173,6 +177,7 @@ export async function GET() {
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
     audienceSequenceReceiptPayloadReadiness,
+    audienceSequenceTestSends,
     audienceExportReadiness,
     importIntents,
     importPreflights,

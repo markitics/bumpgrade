@@ -393,6 +393,8 @@ boundary, the owner-gated
 boundary, the owner-gated
 `/api/admin/audience/broadcasts/dispatch-attempts` dry-run dispatch attempt
 boundary, the owner-gated
+`/api/admin/audience/sequences/test-sends` owner-only sequence test-send
+boundary, the owner-gated
 `/api/admin/audience/broadcasts/test-sends` owner-only broadcast test-send
 boundary,
 the owner-gated `/api/admin/audience/import-intents` non-destructive import
@@ -422,7 +424,7 @@ sequence provider-polling readiness records,
 sequence receipt-payload readiness records,
 aggregate audience export-readiness records,
 broadcast preview/footer safety records, queue readiness records,
-owner-only broadcast test-send records,
+owner-only sequence and broadcast test-send records,
 suppression-aware broadcast readiness, and aggregate
 subscriber/suppression/timeline inspection redaction flags.
 `/audience/indie-launch-waitlist` can capture explicit-consent waitlist
@@ -443,7 +445,7 @@ readiness, dry-run sequence delivery batches, dry-run sequence queue messages,
 dry-run sequence dispatch preflights, dry-run sequence dispatch attempts,
 sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, sequence provider-polling readiness, sequence receipt-payload readiness, import intent, import preflight, and
 export readiness records from D1. It can record private CRM notes, owner-only
-broadcast test sends to the verified owner-session email, dry-run
+sequence and broadcast test sends to the verified owner-session email, dry-run
 schedule intents, sequence delivery-batch dry runs, sequence queue-message dry
 runs, sequence dispatch preflight dry runs, sequence dispatch attempt receipts,
 sequence Queue producer readiness gates, sequence Queue consumer readiness gates, sequence provider-call readiness gates, sequence delivery-attempt readiness gates, sequence delivery-result readiness gates, sequence delivery-status webhook readiness gates, sequence provider-polling readiness gates, sequence receipt-payload readiness gates, delivery-batch dry runs, dry-run
@@ -471,7 +473,7 @@ payloads, delivery queue rows, body templates, unsubscribe URLs, CRM automation,
 direct agent subscriber write capability.
 
 Issue #17 is the live MVP boundary for audience/email automation. Issue #420
-now includes the first owner-only broadcast test-send execution path while
+now includes the first owner-only sequence and broadcast test-send execution paths while
 still grouping the remaining subscriber delivery, automation execution,
 sender/provider, Queue, receipt, import/export, and agent-safe write work so agents do not infer
 that every readiness gate is a separate shipped product milestone.

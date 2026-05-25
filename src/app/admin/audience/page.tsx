@@ -29,6 +29,7 @@ import { AdminBroadcastDispatchAttemptForm } from "@/components/admin-broadcast-
 import { AdminBroadcastDispatchPreflightForm } from "@/components/admin-broadcast-dispatch-preflight-form";
 import { AdminBroadcastScheduleIntentForm } from "@/components/admin-broadcast-schedule-intent-form";
 import { AdminBroadcastTestSendForm } from "@/components/admin-broadcast-test-send-form";
+import { AdminSequenceTestSendForm } from "@/components/admin-sequence-test-send-form";
 import { AdminSequenceDeliveryBatchForm } from "@/components/admin-sequence-delivery-batch-form";
 import { AdminSequenceDeliveryQueueMessageForm } from "@/components/admin-sequence-delivery-queue-message-form";
 import { AdminSequenceDispatchAttemptForm } from "@/components/admin-sequence-dispatch-attempt-form";
@@ -136,6 +137,11 @@ import {
   audienceSequenceScheduleIntentIssue,
   getAudienceSequenceScheduleIntentSummary,
 } from "@/lib/audience-sequence-schedule-intents";
+import {
+  audienceSequenceTestSendIssue,
+  getAudienceSequenceTestSendSummary,
+} from "@/lib/audience-sequence-test-sends";
+import { audienceAutomationWorkspace } from "@/lib/audience-automation";
 import { getAdminAudienceInspectionState } from "@/lib/audience-subscribers";
 
 export const metadata: Metadata = {
@@ -192,6 +198,7 @@ export default async function AdminAudiencePage() {
     audienceSequenceDeliveryStatusWebhookReadiness,
     audienceSequenceProviderPollingReadiness,
     audienceSequenceReceiptPayloadReadiness,
+    audienceSequenceTestSends,
     audienceExportReadiness,
     importIntents,
     importPreflights,
@@ -227,6 +234,7 @@ export default async function AdminAudiencePage() {
     getAudienceSequenceDeliveryStatusWebhookReadinessSummary(),
     getAudienceSequenceProviderPollingReadinessSummary(),
     getAudienceSequenceReceiptPayloadReadinessSummary(),
+    getAudienceSequenceTestSendSummary(),
     getAudienceExportReadinessSummary(),
     getAudienceImportIntentSummary(),
     getAudienceImportPreflightSummary(),
@@ -659,6 +667,15 @@ export default async function AdminAudiencePage() {
               {broadcastTestSends.counts.testSends} owner-only test
               {broadcastTestSends.counts.testSends === 1 ? "" : "s"} recorded;{" "}
               {broadcastTestSends.counts.cloudflareBindingSends} Cloudflare binding sends.
+            </p>
+          </div>
+          <div>
+            <MailCheck aria-hidden="true" />
+            <h3>Sequence test sends</h3>
+            <p>
+              {audienceSequenceTestSends.counts.testSends} owner-only sequence test
+              {audienceSequenceTestSends.counts.testSends === 1 ? "" : "s"} recorded;{" "}
+              {audienceSequenceTestSends.counts.cloudflareBindingSends} Cloudflare binding sends.
             </p>
           </div>
           <div>
@@ -2875,6 +2892,91 @@ export default async function AdminAudiencePage() {
               <p>
                 Record one from a current dispatch preflight after queue-producer, provider-response, suppression,
                 unsubscribe, sender-domain, and audit gates are checked.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="roadmap-section-heading">
+          <div>
+            <p className="eyebrow">Owner sequence test sends</p>
+            <h2>Send one verified-owner sequence step before automation delivery exists</h2>
+          </div>
+          <Link href={`https://github.com/markitics/bumpgrade/issues/${audienceSequenceTestSendIssue}`} className="text-link compact-link">
+            Issue #{audienceSequenceTestSendIssue}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <div className="roadmap-grid admin-record-grid">
+          <article className="roadmap-card active">
+            <div className="roadmap-card-top">
+              <span className="status-badge active">owner only</span>
+              <span className="admin-pill">{audienceSequenceTestSends.counts.providerOkRows} provider OK</span>
+            </div>
+            <MailCheck aria-hidden="true" />
+            <h3>Controlled sequence test path</h3>
+            <p>
+              Sends only to the verified owner session email after exact confirmation, idempotency, audit correlation,
+              workspace revision checks, sequence status checks, and readiness count checks.
+            </p>
+            <div className="roadmap-detail">
+              <strong>Cloudflare binding sends</strong>
+              <span>{audienceSequenceTestSends.counts.cloudflareBindingSends}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Test captures</strong>
+              <span>{audienceSequenceTestSends.counts.testCaptures}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Queue messages</strong>
+              <span>{audienceSequenceTestSends.counts.queueMessagesCreatedRecords}</span>
+            </div>
+            <div className="roadmap-detail">
+              <strong>Provider message IDs</strong>
+              <span>{audienceSequenceTestSends.counts.providerMessageIdsCreatedRecords}</span>
+            </div>
+            <AdminSequenceTestSendForm
+              sequences={audienceAutomationWorkspace.sequences}
+              readiness={audienceSequenceDeliveryReadiness}
+              latestTestSendId={audienceSequenceTestSends.latestTestSends[0]?.id ?? null}
+            />
+          </article>
+          {audienceSequenceTestSends.latestTestSends.length > 0 ? (
+            audienceSequenceTestSends.latestTestSends.map((testSend) => (
+              <article key={testSend.id} className="roadmap-card active">
+                <div className="roadmap-card-top">
+                  <span className="status-badge active">{testSend.provider}</span>
+                  <span className="admin-pill">{testSend.providerOk ? "accepted" : "failed"}</span>
+                </div>
+                <MailCheck aria-hidden="true" />
+                <h3>Sequence test send {testSend.id.replace("sequence-owner-test-send-", "").slice(0, 8)}</h3>
+                <p>{testSend.previewText}</p>
+                <div className="roadmap-detail">
+                  <strong>Step</strong>
+                  <span>{testSend.stepId}</span>
+                </div>
+                <div className="roadmap-detail">
+                  <strong>Audit correlation</strong>
+                  <span>{testSend.auditCorrelationId}</span>
+                </div>
+                <p className="card-note">
+                  Raw recipient email, raw email body, subscriber payloads, Queue messages, public agent sends, and
+                  provider message IDs are excluded from the response and source-data.
+                </p>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No sequence test</span>
+                <span className="admin-pill">Issue #{audienceSequenceTestSendIssue}</span>
+              </div>
+              <h3>No owner-only sequence test sends yet</h3>
+              <p>
+                Send one from the seeded sequence after current workspace revision, sequence status, and readiness
+                counts are checked.
               </p>
             </article>
           )}
