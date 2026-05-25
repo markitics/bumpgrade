@@ -161,19 +161,22 @@ GitHub repo: https://github.com/markitics/bumpgrade
   records for public content surfaces. Pricing tracks include the published
   Bumpgrade account-plan names and amounts, but they are not proof of
   publisher-offer billing, trials, limits, or planned feature availability.
-- `/pricing/source-data` exposes the issue #466 Free Build policy, paid go-live
-  gates, and anonymous playground boundary. Signed-in free workspace
-  persistence and logged-out recovery are not live until implementation evidence
-  exists; public publishing, live checkout, subscriber sends, domains, and
-  fulfillment still require paid or explicitly approved go-live state.
+- `/pricing/source-data` exposes the issue #466 Free Build policy, signed-in
+  private workspace state, paid go-live gates, and anonymous playground
+  boundary. Logged-out recovery is not live until implementation evidence exists;
+  public publishing, live checkout, subscriber sends, domains, and fulfillment
+  still require paid or explicitly approved go-live state.
 - `/brand/source-data` exposes public logo, favicon, social-card, palette,
   typography, voice, and UI principles from issue #318.
-- `/account/source-data` exposes paid publisher tenant setup, default
-  `*.bumpgrade.com` subdomain reservation policy, existing custom-domain DNS
-  onboarding policy, D1 table boundaries, and cross-subdomain Better Auth
-  configuration from issues #221, #222, #223, and #224.
-  `POST /api/account/publisher/subdomain` requires a signed-in,
-  email-confirmed publisher with an active paid-plan or launch-pilot
+- `/account/source-data` exposes signed-in Free Build workspace creation, paid
+  publisher tenant setup, default `*.bumpgrade.com` subdomain reservation policy,
+  existing custom-domain DNS onboarding policy, D1 table boundaries, and
+  cross-subdomain Better Auth configuration from issues #221, #222, #223, #224,
+  and #473.
+  `POST /api/account/publisher/free-build-workspace` requires a signed-in,
+  email-confirmed publisher plus exact confirmation, idempotency, audit
+  correlation, and redaction. `POST /api/account/publisher/subdomain` requires a
+  signed-in, email-confirmed publisher with an active paid-plan or launch-pilot
   entitlement, plus idempotency and audit correlation. `POST
   /api/account/publisher/custom-domain` starts existing-domain onboarding and
   DNS verification state for paid publishers after the default Bumpgrade

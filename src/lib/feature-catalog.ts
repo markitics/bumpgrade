@@ -535,6 +535,7 @@ export const featureCatalog: FeatureRecord[] = [
       "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
+      "Signed-in Free Build workspace creation before payment.",
       "Paid-plan entitlement gate for publisher account setup.",
       "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
       "Existing-domain onboarding with deterministic CNAME instructions and DNS verification state.",
@@ -547,13 +548,14 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #9 owns the Better Auth foundation slice.",
       "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
       "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
+      "Issue #473 adds signed-in Free Build workspace creation while keeping public go-live actions paid-gated.",
       "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
       "Issue #223 adds existing custom-domain onboarding, DNS instructions, and redacted verification state.",
       "Issue #224 documents and tests the publisher-site auth boundary for Bumpgrade subdomains and custom domains.",
       "Issue #53 researches Cloudflare, Better Auth, Twilio Verify, AWS Notify, Telnyx, Vonage, Bird, Sinch, and Stripe phone-number collection boundaries before any phone collection exists.",
     ],
     agentContract:
-      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; tenant, subdomain, custom-domain, and future phone-verification writes require signed-in publisher context, paid-plan checks where relevant, idempotency, audit correlation, DNS or provider verification state, rate limits, spend controls, and redaction.",
+      "Agents must not bypass auth or scrape private admin UI when authenticated APIs are the appropriate surface; Free Build workspace, tenant, subdomain, custom-domain, and future phone-verification writes require signed-in publisher context, paid-plan checks where relevant, idempotency, audit correlation, DNS or provider verification state, rate limits, spend controls, and redaction.",
   },
   {
     id: "feature-codex-email",
@@ -685,19 +687,20 @@ export const featureCatalog: FeatureRecord[] = [
       "Use cases for creators, coaches, course sellers, agencies, and publishers.",
       "Developer and agent pages backed by real contracts.",
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
-      "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, a Free Build policy, and an alternate usage-based pricing draft.",
-      "Agent-readable `/pricing/source-data` for Free Build capability boundaries and paid go-live gates.",
+      "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, signed-in Free Build, and an alternate usage-based pricing draft.",
+      "Agent-readable `/pricing/source-data` for Free Build capability boundaries, signed-in workspace state, and paid go-live gates.",
       "Agent-readable `/content/source-data` records for personas, resources, and pricing contracts.",
     ],
     evidence: [
       "Tracked by issue #20.",
       "Issue #466 tracks the free build-before-go-live pricing policy.",
+      "Issue #473 adds signed-in Free Build workspace creation.",
       "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, and `/pricing-v2` are live destinations.",
-      "`/pricing/source-data` exposes the Free Build design, non-live anonymous playground state, and paid go-live gates.",
+      "`/pricing/source-data` exposes the Free Build design, signed-in workspace state, non-live anonymous playground state, and paid go-live gates.",
       "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
-      "Agents may read content surface records, pricing policy records, and draft resource copy, but they must distinguish the planned Free Build workspace and anonymous recovery path from live paid checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records, pricing policy records, and draft resource copy, but they must distinguish signed-in Free Build workspace creation from planned anonymous recovery and from paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 

@@ -615,7 +615,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     environment: "Local OpenNext preview, focused Playwright source-data smoke, and PR screenshot artifacts for issue #466.",
     method: "Pricing route smoke, pricing source-data inspection, content source-data inspection, agent-docs source-data inspection, public-copy scan, and screenshot review.",
     summary:
-      "The Free Build journey has route and source-data proof for private build-before-payment messaging and paid go-live gates while signed-in free workspace persistence and anonymous browser recovery remain explicitly not live.",
+      "The Free Build journey has route and source-data proof for private build-before-payment messaging, signed-in private workspace creation, and paid go-live gates while anonymous browser recovery remains explicitly not live.",
     ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
     screenshotLinks: [
       { label: "Free Build pricing", url: "https://bumpgrade.com/pr-screenshots/issue-466-pricing-free-build.png", kind: "screenshot" },
@@ -634,7 +634,33 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #466", url: "https://github.com/markitics/bumpgrade/issues/466", kind: "issue" },
     ],
     notes: [
-      "The current slice proves the public policy, stable source-data IDs, paid go-live gates, and non-live anonymous playground boundary.",
+      "The current proof separates signed-in private workspace creation from non-live anonymous playground recovery.",
+    ],
+  },
+  "journey-publisher-creates-free-build-workspace": {
+    status: "passed",
+    lastTestedAt: "2026-05-25T12:55:00.000Z",
+    environment: "Local OpenNext preview, authenticated Playwright account setup flow, source-data smoke, and PR screenshot artifacts for issue #473.",
+    method:
+      "Verified signed-in Free Build API creation, idempotent replay, paid subdomain/custom-domain gate checks, account setup UI smoke, and account source-data inspection.",
+    summary:
+      "Verified publishers can create a private Free Build workspace before payment while subdomain reservation, custom-domain onboarding, public publishing, live checkout, sends, and fulfillment remain paid-gated.",
+    ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
+    screenshotLinks: [
+      {
+        label: "Free Build account setup",
+        url: "https://bumpgrade.com/pr-screenshots/issue-473-free-build-account-setup.png",
+        kind: "screenshot",
+      },
+    ],
+    validationLinks: [
+      { label: "Account setup", url: "https://bumpgrade.com/account/setup", kind: "route" },
+      { label: "Account source data", url: "https://bumpgrade.com/account/source-data", kind: "source-data" },
+      { label: "Issue #473", url: "https://github.com/markitics/bumpgrade/issues/473", kind: "issue" },
+    ],
+    notes: [
+      "Logged-out anonymous browser recovery remains outside this signed-in workspace slice.",
+      "Buyer-facing actions still require paid go-live state.",
     ],
   },
   "journey-publisher-reserves-bumpgrade-subdomain": {
@@ -959,6 +985,43 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
   {
+    id: "work-log-2026-05-25-signed-in-free-build-workspace",
+    title: "Added signed-in Free Build workspace creation",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-signed-in-free-build-workspace",
+    promptFromMark:
+      "Owner asked for users to play with Bumpgrade without paying and keep their work before going live.",
+    githubIssues: [
+      { number: 466, url: "https://github.com/markitics/bumpgrade/issues/466" },
+      { number: 473, url: "https://github.com/markitics/bumpgrade/issues/473" },
+    ],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/account/setup",
+      "https://bumpgrade.com/account/source-data",
+      "https://bumpgrade.com/pricing/source-data",
+    ],
+    roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
+    userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys/source-data"],
+    documentationUpdated: ["docs/features/publisher-tenants.md", "public/llms.txt"],
+    validation: [
+      "Focused Playwright covers signed-in Free Build workspace creation, idempotent replay, and paid domain gate preservation.",
+      "Source-data smoke covers /account/source-data Free Build policy.",
+    ],
+    flagsAttention:
+      "Signed-in Free Build workspace creation is live in this slice; logged-out anonymous recovery remains future work.",
+    firstPromptAt: "2026-05-25T12:40:00.000Z",
+    completedAt: "2026-05-25T12:55:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/473",
+      "https://bumpgrade.com/account/setup",
+      "https://bumpgrade.com/account/source-data",
+      "https://bumpgrade.com/pricing/source-data",
+    ],
+    prCommentUrl: null,
+  },
+  {
     id: "work-log-2026-05-25-free-build-before-go-live",
     title: "Added Free Build pricing policy and go-live gates",
     agentName: "Codex",
@@ -988,7 +1051,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "git diff --check",
     ],
     flagsAttention:
-      "This is the policy and source-data slice. Signed-in free workspace persistence and anonymous playground recovery are not live until issue #466 has implementation evidence.",
+      "This was the policy and source-data slice. Issue #473 now covers signed-in Free Build workspace creation; anonymous playground recovery remains future work.",
     firstPromptAt: "2026-05-25T12:00:00.000Z",
     completedAt: "2026-05-25T12:35:00.000Z",
     relevantUrls: [
@@ -1634,7 +1697,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Return from Stripe to /pricing/success and continue to account setup with the same email.",
     ],
     edgeCases: [
-      "Free Build is a tracked build-before-payment model; signed-in free workspace persistence and anonymous recovery are not live until implementation evidence exists.",
+      "Free Build supports signed-in private workspace creation; logged-out anonymous recovery is not live until implementation evidence exists.",
       "Enterprise is a contact path, not self-serve checkout.",
       "/pricing-v2 is an alternate usage-based draft and is not the default pricing model.",
       "Successful Checkout Sessions are verified server-side before a publisher plan entitlement is activated.",
@@ -1676,8 +1739,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Use /pricing/source-data when an agent needs stable IDs for the same policy.",
     ],
     edgeCases: [
-      "The first policy slice does not prove signed-in free workspace persistence is live.",
       "The first policy slice does not prove logged-out browser recovery is live.",
+      "Signed-in Free Build workspace creation is covered by /account/setup and /account/source-data.",
       "Buyer-facing publishing, live checkout, email sends, domains, and fulfillment remain gated.",
     ],
     agentAccess:
@@ -1685,10 +1748,52 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     validation: [
       "Pricing route smoke confirms the public copy avoids internal implementation language.",
       "/pricing/source-data exposes Free Build capability records and paid go-live gate records.",
+      "/account/source-data exposes signed-in Free Build workspace creation as live.",
       "/content/source-data and /agent-docs/source-data include the pricing policy as agent-readable evidence.",
     ],
     proof: createJourneyProof("journey-prospect-understands-free-build", "feature-resources-use-cases-pricing"),
     sortOrder: 42,
+    updatedAt: null,
+  },
+  {
+    id: "journey-publisher-creates-free-build-workspace",
+    title: "Publisher creates a private Free Build workspace",
+    featureId: "feature-better-auth",
+    featureStatus: "live",
+    issueNumbers: [9, 221, 466, 473],
+    primaryUser: "Verified publisher who wants to start setup before paying",
+    userGoal:
+      "Create a private Bumpgrade workspace before payment and return later without unlocking public buyer-facing actions.",
+    sourceEvidence: [
+      "https://bumpgrade.com/account/setup",
+      "https://bumpgrade.com/account/source-data",
+      "https://bumpgrade.com/pricing/source-data",
+      "https://github.com/markitics/bumpgrade/issues/466",
+      "https://github.com/markitics/bumpgrade/issues/473",
+    ],
+    happyPath: [
+      "Create or sign into a Bumpgrade publisher account.",
+      "Confirm the account email.",
+      "Open /account/setup.",
+      "Create the private Free Build workspace.",
+      "Return to /account/setup and see that Free Build is active.",
+      "Choose a paid go-live plan before reserving domains or enabling public buyer-facing actions.",
+    ],
+    edgeCases: [
+      "Signed-out users must sign in first.",
+      "Unverified users must confirm email first.",
+      "Idempotent replays return the same workspace.",
+      "Free Build workspaces cannot reserve Bumpgrade subdomains or add custom domains until a paid plan is active.",
+      "Logged-out anonymous browser recovery remains out of scope.",
+    ],
+    agentAccess:
+      "Agents can read /account/source-data for the signed-in Free Build contract, but creating workspaces requires authenticated publisher context, explicit confirmation, idempotency, and redacted audit evidence.",
+    validation: [
+      "Playwright covers verified signed-in Free Build creation, idempotent replay, paid subdomain gate preservation, paid custom-domain gate preservation, and /account/setup state.",
+      "/account/source-data exposes signed-in Free Build as live and anonymous playground recovery as not live.",
+    ],
+    proof: createJourneyProof("journey-publisher-creates-free-build-workspace", "feature-better-auth"),
+    sortOrder: 43,
     updatedAt: null,
   },
   {

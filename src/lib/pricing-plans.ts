@@ -46,6 +46,7 @@ export const billingCheckoutRoute = "/api/billing/checkout";
 export const billingCheckoutSuccessRoute = "/pricing/success";
 export const pricingSourceIssue = 316;
 export const freeBuildModeIssue = 466;
+export const signedInFreeBuildWorkspaceIssue = 473;
 export const pricingSourceDataRoute = "/pricing/source-data";
 
 export const whiteGloveSetupAddon = {
@@ -262,7 +263,7 @@ export const paidGoLiveGates: FreeBuildGoLiveGate[] = [
 
 export const freeBuildModeContract = {
   id: "free-build-before-go-live",
-  status: "designed-free-build",
+  status: "signed-in-free-build-live",
   issue: freeBuildModeIssue,
   updatedAt: selfServePricingUpdatedAt,
   headline: "Build first. Pay when you are ready to go live.",
@@ -271,9 +272,18 @@ export const freeBuildModeContract = {
   freeBuildCapabilities,
   paidGoLiveGates,
   currentAvailability: {
-    signedInFreeWorkspaceLive: false,
+    signedInFreeWorkspaceLive: true,
     anonymousPlaygroundLive: false,
     paidGoLiveRequired: true,
+  },
+  signedInWorkspace: {
+    status: "live",
+    issue: signedInFreeBuildWorkspaceIssue,
+    route: "/api/account/publisher/free-build-workspace",
+    accountSetupRoute: "/account/setup",
+    planStatus: "free_build",
+    summary:
+      "Verified signed-in users can create a private Free Build workspace before payment; public go-live actions still require a paid plan.",
   },
   anonymousPlayground: {
     status: "designed-not-live",
@@ -287,7 +297,7 @@ export const freeBuildModeContract = {
 export const pricingSourceData = {
   id: "bumpgrade-pricing-policy-source-data",
   updatedAt: selfServePricingUpdatedAt,
-  issueNumbers: [pricingSourceIssue, freeBuildModeIssue],
+  issueNumbers: [pricingSourceIssue, freeBuildModeIssue, signedInFreeBuildWorkspaceIssue],
   routes: ["/pricing", pricingSourceDataRoute, billingCheckoutRoute, billingCheckoutSuccessRoute],
   selfServePricing: {
     contract: "bumpgrade-self-serve-pricing-v1",
@@ -310,7 +320,7 @@ export const pricingSourceData = {
     customerDataIncluded: false,
   },
   agentBoundary:
-    "Agents may cite the pricing policy, free-build design, and paid go-live gates, but must not claim signed-in free workspaces or anonymous playground persistence are live until implementation evidence exists.",
+    "Agents may cite the pricing policy, signed-in Free Build workspace creation, and paid go-live gates, but must not claim anonymous playground persistence is live until implementation evidence exists.",
 };
 
 const planOrder: Record<PricingPlanSlug, number> = {

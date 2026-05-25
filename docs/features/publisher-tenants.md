@@ -1,14 +1,19 @@
 # Publisher Tenants And Bumpgrade Subdomains
 
 Issues #221-#224 add the first paid publisher tenant setup path, domain
-onboarding, and auth-boundary contract.
+onboarding, and auth-boundary contract. Issue #473 adds verified signed-in Free
+Build workspace creation before paid go-live.
 
 ## Live Slice
 
 - `/account/setup`: signed-in publisher account setup surface.
 - `/account/source-data`: public-safe contract for paid publisher tenants,
-  default Bumpgrade subdomains, existing-domain DNS onboarding, and auth
-  boundaries.
+  Free Build workspaces, default Bumpgrade subdomains, existing-domain DNS
+  onboarding, and auth boundaries.
+- `POST /api/account/publisher/free-build-workspace`: creates or confirms a
+  private `plan_status=free_build` workspace for an email-confirmed signed-in
+  publisher before payment, with exact confirmation, idempotency, audit
+  correlation, and redaction.
 - `POST /api/account/publisher/subdomain`: reserves a unique
   `*.bumpgrade.com` hostname for an email-confirmed account with an active
   paid plan entitlement.
@@ -16,15 +21,21 @@ onboarding, and auth-boundary contract.
   the publisher already owns, returns CNAME instructions, and re-checks DNS
   verification state.
 
-The write path records a tenant row, subdomain reservation row, and audit event
-in D1. It rejects signed-out, unverified, unpaid, invalid, reserved-name, and
-already-taken subdomain requests.
+The Free Build write path records a tenant row and audit event in D1 without a
+public hostname. The paid go-live write path records a tenant row, subdomain
+reservation row, and audit event. Domain requests reject signed-out, unverified,
+unpaid, invalid, reserved-name, and already-taken subdomain requests.
 
 ## Paid Gate
 
 Default Bumpgrade subdomains are not free-account inventory. Reservation requires
 an active row in `publisher_plan_entitlements`, created after a verified
 Bumpgrade plan checkout or an owner-approved manual entitlement.
+
+Free Build workspaces can hold private launch setup state before payment, but
+they cannot reserve domains, publish public buyer paths, collect live payments,
+send subscribers, or fulfill protected access until the account has a paid or
+explicitly approved go-live entitlement.
 
 ## Auth Boundary
 
@@ -61,6 +72,7 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
+- Logged-out anonymous workspace recovery.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

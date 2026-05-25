@@ -4,6 +4,7 @@ import { describeBetterAuthSessionBoundary } from "@/lib/auth";
 
 export type PublisherPlanEntitlementStatus = "active" | "inactive" | "expired";
 export type PublisherTenantStatus = "active" | "suspended";
+export type PublisherTenantPlanStatus = "free_build" | "paid";
 export type PublisherSubdomainReservationStatus = "active" | "reserved" | "released";
 export type PublisherCustomDomainStatus =
   | "pending_dns"
@@ -12,7 +13,7 @@ export type PublisherCustomDomainStatus =
   | "active"
   | "failed"
   | "disabled";
-export type PublisherAccountStateKind = "signed_out" | "ready" | "unverified" | "unpaid" | "unavailable";
+export type PublisherAccountStateKind = "signed_out" | "ready" | "free_build" | "unverified" | "unpaid" | "unavailable";
 
 export type PublisherSessionUser = {
   id: string;
@@ -39,7 +40,7 @@ export type PublisherTenant = {
   ownerEmail: string;
   displayName: string;
   status: PublisherTenantStatus;
-  planStatus: string;
+  planStatus: PublisherTenantPlanStatus;
   defaultSubdomain: string | null;
   primaryHostname: string | null;
   sourceIssueNumber: number;
@@ -93,6 +94,7 @@ export type PublisherAccountState = {
   tenant: PublisherTenant | null;
   reservation: PublisherSubdomainReservation | null;
   customDomains: PublisherCustomDomain[];
+  canCreateFreeBuildWorkspace: boolean;
   canReserveSubdomain: boolean;
   canAddCustomDomain: boolean;
   message: string;
@@ -118,7 +120,7 @@ type PublisherTenantRow = {
   owner_email: string;
   display_name: string;
   status: PublisherTenantStatus;
-  plan_status: string;
+  plan_status: PublisherTenantPlanStatus;
   default_subdomain: string | null;
   primary_hostname: string | null;
   source_issue_number: number;
@@ -165,6 +167,11 @@ type ReservePublisherSubdomainInput = {
   idempotencyKey: string;
 };
 
+type CreateFreeBuildWorkspaceInput = {
+  confirmationText: string;
+  idempotencyKey: string;
+};
+
 type StartPublisherCustomDomainInput = {
   domainName: string;
   idempotencyKey: string;
@@ -192,13 +199,17 @@ export const publisherCustomDomainIssue = 223;
 export const publisherCustomerAuthIssue = 224;
 export const publisherDomainPurchaseIssue = 225;
 export const publisherTenantParentIssue = 221;
-export const publisherTenantUpdatedAt = "2026-05-20";
+export const publisherFreeBuildIssue = 473;
+export const publisherFreeBuildParentIssue = 466;
+export const publisherTenantUpdatedAt = "2026-05-25";
 export const publisherSubdomainApiRoute = "/api/account/publisher/subdomain";
 export const publisherCustomDomainApiRoute = "/api/account/publisher/custom-domain";
+export const publisherFreeBuildWorkspaceApiRoute = "/api/account/publisher/free-build-workspace";
 export const publisherAccountSetupRoute = "/account/setup";
 export const publisherAccountSourceDataRoute = "/account/source-data";
 export const publisherDefaultDomain = "bumpgrade.com";
 export const publisherCustomDomainTarget = "custom-domains.bumpgrade.com";
+export const publisherFreeBuildWorkspaceConfirmationText = "Create my private Free Build workspace";
 export const publisherSubdomainConfirmationText = "Reserve this Bumpgrade subdomain for my paid publisher account";
 export const publisherCustomDomainConfirmationText = "Connect this existing domain to my paid Bumpgrade account";
 export const publisherHostedAuthBoundary = describeBetterAuthSessionBoundary({
@@ -652,6 +663,85 @@ async function upsertTenant(db: D1Database, user: PublisherSessionUser, entitlem
   return tenant;
 }
 
+async function upsertFreeBuildTenant(db: D1Database, user: PublisherSessionUser) {
+  const existing = await loadTenant(db, user);
+  const email = normalizeEmail(user.email);
+  const displayName = (user.name ?? email).trim() || email;
+
+  if (existing) {
+    await db
+      .prepare(
+        `UPDATE publisher_tenants
+         SET owner_user_id = COALESCE(owner_user_id, ?),
+             owner_email = ?,
+             display_name = ?,
+             updated_at = unixepoch()
+         WHERE id = ?`,
+      )
+      .bind(user.id, email, displayName, existing.id)
+      .run();
+
+    return {
+      ...existing,
+      ownerUserId: existing.ownerUserId ?? user.id,
+      ownerEmail: email,
+      displayName,
+    };
+  }
+
+  const tenant: PublisherTenant = {
+    id: runtimeId("publisher-tenant"),
+    ownerUserId: user.id,
+    ownerEmail: email,
+    displayName,
+    status: "active",
+    planStatus: "free_build",
+    defaultSubdomain: null,
+    primaryHostname: null,
+    sourceIssueNumber: publisherFreeBuildIssue,
+    createdAt: null,
+    updatedAt: null,
+  };
+
+  await db
+    .prepare(
+      `INSERT INTO publisher_tenants (
+        id, owner_user_id, owner_email, display_name, status, plan_status,
+        default_subdomain, primary_hostname, source_issue_number, metadata_json, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, unixepoch(), unixepoch())`,
+    )
+    .bind(
+      tenant.id,
+      tenant.ownerUserId,
+      tenant.ownerEmail,
+      tenant.displayName,
+      tenant.status,
+      tenant.planStatus,
+      tenant.sourceIssueNumber,
+      JSON.stringify({
+        parentIssueNumber: publisherFreeBuildParentIssue,
+        sourceIssueNumber: publisherFreeBuildIssue,
+        privateBuildOnly: true,
+        paidGoLiveRequired: true,
+      }),
+    )
+    .run();
+
+  return tenant;
+}
+
+async function loadTenantAuditEventByIdempotencyKey(db: D1Database, idempotencyKey: string) {
+  return db
+    .prepare(
+      `SELECT tenant_id, event_kind
+       FROM publisher_tenant_audit_events
+       WHERE idempotency_key = ?
+       LIMIT 1`,
+    )
+    .bind(idempotencyKey)
+    .first<{ tenant_id: string | null; event_kind: string }>();
+}
+
 async function writeTenantAuditEvent(
   db: D1Database,
   input: {
@@ -696,6 +786,7 @@ export async function loadPublisherAccountState(
       reservation: null,
       customDomains: [],
       canReserveSubdomain: false,
+      canCreateFreeBuildWorkspace: false,
       canAddCustomDomain: false,
       message: "Sign in or create a publisher account before reserving a Bumpgrade subdomain.",
       customDomainMessage: "Sign in before adding a custom domain.",
@@ -712,6 +803,7 @@ export async function loadPublisherAccountState(
       reservation: null,
       customDomains: [],
       canReserveSubdomain: false,
+      canCreateFreeBuildWorkspace: false,
       canAddCustomDomain: false,
       message: "Confirm your email before reserving a Bumpgrade subdomain.",
       customDomainMessage: "Confirm your email before adding a custom domain.",
@@ -728,6 +820,7 @@ export async function loadPublisherAccountState(
       reservation: null,
       customDomains: [],
       canReserveSubdomain: false,
+      canCreateFreeBuildWorkspace: false,
       canAddCustomDomain: false,
       message: "Publisher account storage is unavailable in this runtime.",
       customDomainMessage: "Custom-domain storage is unavailable in this runtime.",
@@ -741,6 +834,23 @@ export async function loadPublisherAccountState(
   const customDomains = tenant ? await loadCustomDomainsForTenant(db, tenant.id) : [];
 
   if (!entitlement) {
+    if (tenant) {
+      return {
+        kind: "free_build",
+        user,
+        entitlement: null,
+        tenant,
+        reservation: null,
+        customDomains,
+        canCreateFreeBuildWorkspace: false,
+        canReserveSubdomain: false,
+        canAddCustomDomain: false,
+        message: "Private Free Build workspace is ready. A paid go-live plan is required before public domains or buyer-facing launch actions.",
+        customDomainMessage: "A paid go-live plan and default Bumpgrade hostname are required before adding a custom domain.",
+        source: "d1",
+      };
+    }
+
     return {
       kind: "unpaid",
       user,
@@ -748,9 +858,10 @@ export async function loadPublisherAccountState(
       tenant,
       reservation: null,
       customDomains,
+      canCreateFreeBuildWorkspace: true,
       canReserveSubdomain: false,
       canAddCustomDomain: false,
-      message: "A paid plan entitlement is required before choosing a Bumpgrade subdomain.",
+      message: "Create a private Free Build workspace now, then choose a paid go-live plan before public domains or buyer-facing launch actions.",
       customDomainMessage: "A paid plan entitlement is required before adding a custom domain.",
       source: "d1",
     };
@@ -763,6 +874,7 @@ export async function loadPublisherAccountState(
     tenant,
     reservation,
     customDomains,
+    canCreateFreeBuildWorkspace: false,
     canReserveSubdomain: !reservation,
     canAddCustomDomain: Boolean(tenant && reservation),
     message: reservation
@@ -775,6 +887,80 @@ export async function loadPublisherAccountState(
           : "This paid publisher account can add an existing custom domain."
         : "Reserve the default Bumpgrade hostname before adding a custom domain.",
     source: "d1",
+  };
+}
+
+export async function createFreeBuildWorkspace(
+  db: D1Database,
+  user: PublisherSessionUser,
+  input: CreateFreeBuildWorkspaceInput,
+) {
+  if (!user.emailVerified) {
+    throw new PublisherTenantError("Confirm your email before creating a Free Build workspace.", 403, "EMAIL_UNVERIFIED");
+  }
+
+  const idempotencyKey = input.idempotencyKey.trim();
+  if (!idempotencyKey) {
+    throw new PublisherTenantError("An idempotency key is required.", 400, "IDEMPOTENCY_REQUIRED");
+  }
+
+  if (input.confirmationText.trim() !== publisherFreeBuildWorkspaceConfirmationText) {
+    throw new PublisherTenantError(
+      "Exact Free Build workspace confirmation text is required.",
+      400,
+      "FREE_BUILD_CONFIRMATION_REQUIRED",
+    );
+  }
+
+  const existingForIdempotency = await loadTenantAuditEventByIdempotencyKey(db, idempotencyKey);
+  const existingTenant = await loadTenant(db, user);
+  if (existingForIdempotency && existingForIdempotency.tenant_id !== existingTenant?.id) {
+    throw new PublisherTenantError("That idempotency key is already used.", 409, "IDEMPOTENCY_CONFLICT");
+  }
+  if (
+    existingForIdempotency &&
+    existingForIdempotency.event_kind !== "free_build_workspace_created" &&
+    existingForIdempotency.event_kind !== "paid_workspace_confirmed_from_free_build"
+  ) {
+    throw new PublisherTenantError("That idempotency key is already used.", 409, "IDEMPOTENCY_CONFLICT");
+  }
+
+  const entitlement = await loadActivePlanEntitlement(db, user);
+  const tenant = entitlement ? await upsertTenant(db, user, entitlement) : await upsertFreeBuildTenant(db, user);
+  if (existingForIdempotency) {
+    return {
+      tenant,
+      planStatus: tenant.planStatus,
+      idempotent: true,
+      paidGoLiveRequired: !entitlement,
+    };
+  }
+
+  await writeTenantAuditEvent(db, {
+    tenantId: tenant.id,
+    user,
+    eventKind: entitlement ? "paid_workspace_confirmed_from_free_build" : "free_build_workspace_created",
+    summary: entitlement
+      ? `Confirmed paid publisher workspace ${tenant.id} through the Free Build setup path.`
+      : `Created private Free Build workspace ${tenant.id}.`,
+    idempotencyKey,
+    metadata: {
+      parentIssueNumber: publisherFreeBuildParentIssue,
+      sourceIssueNumber: publisherFreeBuildIssue,
+      planStatus: tenant.planStatus,
+      paidEntitlementPresent: Boolean(entitlement),
+      paidGoLiveRequired: !entitlement,
+      publicPublishingEnabled: Boolean(entitlement),
+      customDomainsEnabled: Boolean(entitlement),
+      rawOwnerDataRedacted: true,
+    },
+  });
+
+  return {
+    tenant,
+    planStatus: tenant.planStatus,
+    idempotent: false,
+    paidGoLiveRequired: !entitlement,
   };
 }
 
@@ -1144,6 +1330,7 @@ export const publisherTenantSourceData = {
   routes: {
     accountSetup: publisherAccountSetupRoute,
     accountSourceData: publisherAccountSourceDataRoute,
+    freeBuildWorkspaceApi: publisherFreeBuildWorkspaceApiRoute,
     reserveSubdomainApi: publisherSubdomainApiRoute,
     customDomainApi: publisherCustomDomainApiRoute,
   },
@@ -1156,7 +1343,7 @@ export const publisherTenantSourceData = {
     },
     {
       name: "publisher_tenants",
-      purpose: "One publisher workspace with owner identity, paid plan status, default subdomain, and primary hostname.",
+      purpose: "One publisher workspace with owner identity, private Free Build or paid plan status, default subdomain, and primary hostname.",
       publicSafeFields: ["id", "status", "plan_status", "default_subdomain", "primary_hostname", "source_issue_number"],
       privateFields: ["owner_user_id", "owner_email"],
     },
@@ -1183,11 +1370,36 @@ export const publisherTenantSourceData = {
     },
     {
       name: "publisher_tenant_audit_events",
-      purpose: "Append-only tenant setup evidence for subdomain reservation and future domain/custom-domain changes.",
+      purpose: "Append-only tenant setup evidence for Free Build creation, subdomain reservation, and domain/custom-domain changes.",
       publicSafeFields: ["event_kind", "summary", "created_at"],
       privateFields: ["actor_user_id", "actor_email", "metadata_json"],
     },
   ],
+  freeBuildPolicy: {
+    status: "live",
+    issue: publisherFreeBuildIssue,
+    parentIssue: publisherFreeBuildParentIssue,
+    signedInWorkspaceLive: true,
+    anonymousPlaygroundLive: false,
+    confirmationText: publisherFreeBuildWorkspaceConfirmationText,
+    privateBuildPlanStatus: "free_build",
+    route: publisherFreeBuildWorkspaceApiRoute,
+    whatWorksToday: [
+      "Verified signed-in users can create a private Free Build workspace before payment.",
+      "The workspace is persisted in publisher_tenants with plan_status=free_build.",
+      "Idempotent replays return the same workspace instead of duplicating tenant rows.",
+    ],
+    paidGoLiveGates: [
+      "Bumpgrade subdomain reservation",
+      "Custom-domain onboarding",
+      "Public publishing",
+      "Live checkout and payment collection",
+      "Buyer or subscriber sends",
+      "Fulfillment and protected access",
+    ],
+    redaction:
+      "Public source data describes the Free Build contract and gate IDs only; private owner identity, idempotency keys, and audit metadata stay behind authenticated context.",
+  },
   subdomainPolicy: {
     defaultDomain: publisherDefaultDomain,
     paidPlanRequired: true,
@@ -1264,6 +1476,7 @@ export const publisherTenantSourceData = {
   notIncludedYet: [
     "Buying, registering, renewing, or transferring domains through Bumpgrade.",
     "Publisher site editor parity for arbitrary pages on the reserved hostname.",
+    "Logged-out anonymous workspace recovery.",
     "Raw browser-cookie sharing across unrelated custom domains.",
   ],
 };
