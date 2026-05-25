@@ -220,13 +220,13 @@ dedicated importer. Posting to a platform preview route returns an import review
 map before sign-in or private draft creation; it does not persist records, create
 drafts, echo pasted source material, echo export file names, or enable any
 go-live effect. Posting to one of the private platform API routes can create or
-reuse a Free Build workspace and save a private D1 funnel draft after exact
+reuse a Free Build workspace and save a private import plan after exact
 confirmation and idempotency. Responses include redacted `duplicateReview.status`
 values for created drafts, idempotency replay, and
 same-platform/source-file/workspace/title reuse, and do not echo pasted material
 or export file contents. The platform rollback route can archive the signed-in
-publisher's own private importer draft without deleting draft rows, step rows, or
-audit rows, which allows a fresh import from the same source to start cleanly.
+publisher's own private import plan while preserving saved content, steps, and
+audit history, which allows a fresh import from the same source to start cleanly.
 Imported material starts in a private Bumpgrade workspace; public publishing,
 live checkout, subscriber sends, domains, fulfillment, account-to-account
 transfer, payment migration, customer password migration, and raw export storage

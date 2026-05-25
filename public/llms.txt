@@ -176,7 +176,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   token hashes, private customer data, raw draft or claim-record content,
   billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
-  generated private record types, safety gates, limitations, public preflight
+  saved private plan parts, safety gates, limitations, public preflight
   review routes, and private importer API routes. Posting to a platform preflight
   review route returns a redacted import map before sign-in or private draft
   creation; it does not persist records or echo pasted source material, export
@@ -186,8 +186,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Free Build workspace, save a private draft funnel, and reuse an existing
   private draft when platform, workspace, normalized title, and source URL or
   export file name match. The rollback route archives the signed-in publisher's
-  private importer draft without deleting draft rows, step rows, or audit rows so
-  the same source can be restarted as a fresh private plan. It does not publish
+  private importer plan while preserving saved content, steps, and audit history
+  so the same source can be restarted as a fresh private plan. It does not publish
   pages, run live checkout, send subscribers, connect domains, enable
   fulfillment, transfer accounts, migrate payment credentials, import customer
   passwords, or expose pasted source material or export file contents in the

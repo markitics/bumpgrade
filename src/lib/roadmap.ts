@@ -88,9 +88,9 @@ export const roadmapItems: RoadmapItem[] = [
       "`/imports` lists supported importer paths.",
       "Dedicated importer pages can show a redacted preflight review map before sign-in or private draft creation.",
       "Dedicated importer pages support private Free Build import-plan creation.",
-      "`/imports/source-data` exposes platform IDs, input kinds, generated private record types, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "`/imports/source-data` exposes platform IDs, input kinds, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
-      "Private importer rollback routes archive private drafts without deleting draft rows, step rows, or audit rows so the same source can be restarted.",
+      "Private importer rollback routes archive private import plans without deleting saved plan content, steps, or audit history so the same source can be restarted.",
     ],
     nextMilestone:
       "Add deeper platform-specific extraction after shared review, private draft, duplicate review, and rollback/restart paths are stable.",
