@@ -157,8 +157,8 @@ function ExecutiveQueue({ director }: { director: ReturnType<typeof buildDirecto
           <p className="eyebrow">Executive queue</p>
           <h2>Due now, in flight, pending next, and watchlist</h2>
         </div>
-        <Link href="https://github.com/markitics/bumpgrade/issues/448" className="text-link compact-link">
-          Track issue #448
+        <Link href="/admin/roadmap" className="text-link compact-link">
+          Roadmap evidence
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
@@ -248,8 +248,8 @@ export default async function DirectorDashboardPage() {
               Director JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/448" className="secondary-action">
-              Track issue #448
+            <Link href="/admin/work-log?window=past-7-days" className="secondary-action">
+              Past week changes
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>

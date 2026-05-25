@@ -20,6 +20,20 @@ function sourceLabel(source: string) {
   return "Fixture fallback";
 }
 
+function roadmapIssueLink(issueNumber: number) {
+  if (issueNumber === 8) {
+    return {
+      href: "/admin/director",
+      label: "Director dashboard",
+    };
+  }
+
+  return {
+    href: `https://github.com/markitics/bumpgrade/issues/${issueNumber}`,
+    label: `Issue #${issueNumber}`,
+  };
+}
+
 export default async function AdminRoadmapPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/roadmap" />;
@@ -42,8 +56,8 @@ export default async function AdminRoadmapPage() {
               Admin JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/8" className="secondary-action">
-              Track issue #8
+            <Link href="/admin/director" className="secondary-action">
+              Director dashboard
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>
@@ -84,7 +98,9 @@ export default async function AdminRoadmapPage() {
             <article key={item.id} className={`roadmap-card ${item.status === "live" ? "shipped" : item.status}`}>
               <div className="roadmap-card-top">
                 <span className={`status-badge ${item.status === "live" ? "shipped" : item.status}`}>{item.status}</span>
-                {item.issueNumber ? <Link href={`https://github.com/markitics/bumpgrade/issues/${item.issueNumber}`}>Issue #{item.issueNumber}</Link> : null}
+                {item.issueNumber ? (
+                  <Link href={roadmapIssueLink(item.issueNumber).href}>{roadmapIssueLink(item.issueNumber).label}</Link>
+                ) : null}
               </div>
               <h3>{item.title}</h3>
               <p>{item.summary}</p>
