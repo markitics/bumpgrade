@@ -1,27 +1,37 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  CODEX_TRUSTED_SENDER_EMAILS_ENV,
+  configuredCodexTrustedSenderEmails,
   evaluateCodexSenderTrust,
-  TRUSTED_CODEX_SENDER_EMAILS,
+  parseCodexTrustedSenderEmails,
   UNTRUSTED_CODEX_SENDER_REPLY,
 } from "../src/lib/codex-mail-trust";
 
 test.describe("Codex inbound mail trust policy", () => {
-  test("uses exactly Mark's three trusted sender identities", () => {
-    expect(TRUSTED_CODEX_SENDER_EMAILS).toEqual([
-      "m@rkmoriarty.com",
-      "mark@awesound.com",
-      "markmoriarty@stripe.com",
-    ]);
+  const trustedSenderEmails = ["owner@example.test", "agent-operator@example.test"];
+
+  test("loads trusted sender identities from private runtime configuration", () => {
+    expect(parseCodexTrustedSenderEmails(" Owner@Example.test,agent-operator@example.test ; ")).toEqual(
+      trustedSenderEmails,
+    );
+
+    const previous = process.env[CODEX_TRUSTED_SENDER_EMAILS_ENV];
+    delete process.env[CODEX_TRUSTED_SENDER_EMAILS_ENV];
+    expect(configuredCodexTrustedSenderEmails()).toEqual([]);
+    process.env[CODEX_TRUSTED_SENDER_EMAILS_ENV] = "owner@example.test, agent-operator@example.test";
+    expect(configuredCodexTrustedSenderEmails()).toEqual(trustedSenderEmails);
+    if (previous === undefined) delete process.env[CODEX_TRUSTED_SENDER_EMAILS_ENV];
+    else process.env[CODEX_TRUSTED_SENDER_EMAILS_ENV] = previous;
   });
 
   test("trusts an allowlisted sender only when DMARC aligns", () => {
     const headers = new Headers({
       "authentication-results":
-        "mx.cloudflare.net; dmarc=pass header.from=awesound.com; dkim=pass header.d=awesound.com; spf=pass smtp.mailfrom=mark@awesound.com",
+        "mx.cloudflare.net; dmarc=pass header.from=example.test; dkim=pass header.d=example.test; spf=pass smtp.mailfrom=owner@example.test",
     });
 
-    const evaluation = evaluateCodexSenderTrust("mark@awesound.com", headers);
+    const evaluation = evaluateCodexSenderTrust("owner@example.test", headers, { trustedSenderEmails });
 
     expect(evaluation.trustedSender).toBe(true);
     expect(evaluation.status).toBe("trusted_authenticated");
@@ -31,10 +41,10 @@ test.describe("Codex inbound mail trust policy", () => {
   test("holds an allowlisted sender when authentication does not align", () => {
     const headers = new Headers({
       "authentication-results":
-        "mx.cloudflare.net; dmarc=none header.from=rkmoriarty.com; spf=pass smtp.mailfrom=markeffect@gmail.com; arc=pass",
+        "mx.cloudflare.net; dmarc=none header.from=example.test; spf=pass smtp.mailfrom=other@example.test; arc=pass",
     });
 
-    const evaluation = evaluateCodexSenderTrust("m@rkmoriarty.com", headers);
+    const evaluation = evaluateCodexSenderTrust("owner@example.test", headers, { trustedSenderEmails });
 
     expect(evaluation.trustedSender).toBe(false);
     expect(evaluation.status).toBe("trusted_unverified");
@@ -44,10 +54,10 @@ test.describe("Codex inbound mail trust policy", () => {
 
   test("rejects removed or unlisted sender identities even with authentication", () => {
     const headers = new Headers({
-      "authentication-results": "mx.cloudflare.net; dmarc=pass header.from=gmail.com; spf=pass smtp.mailfrom=markeffect@gmail.com",
+      "authentication-results": "mx.cloudflare.net; dmarc=pass header.from=example.test; spf=pass smtp.mailfrom=other@example.test",
     });
 
-    const evaluation = evaluateCodexSenderTrust("markeffect@gmail.com", headers);
+    const evaluation = evaluateCodexSenderTrust("other@example.test", headers, { trustedSenderEmails });
 
     expect(evaluation.trustedSender).toBe(false);
     expect(evaluation.status).toBe("untrusted_sender");

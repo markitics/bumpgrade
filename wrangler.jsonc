@@ -83,8 +83,6 @@
     "APP_ENV": "production",
     "PUBLIC_SITE_URL": "https://bumpgrade.com",
     "BETTER_AUTH_URL": "https://bumpgrade.com",
-    "PLATFORM_OWNER_EMAILS": "m@rkmoriarty.com",
-    "EMAIL_FORWARD_TO": "m@rkmoriarty.com",
     "STRIPE_ACTIVE_MODE": "sandbox",
     "STRIPE_API_VERSION": "2026-04-22.dahlia",
     "CLOUDFLARE_ACCOUNT_ID": "a139381edda59e39115f93920d1569fd",

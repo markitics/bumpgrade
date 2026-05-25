@@ -14,6 +14,8 @@ declare namespace Cloudflare {
     BUMPGRADE_OWNER_EMAILS?: string;
     BUMPGRADE_ENFORCE_EMAIL_VERIFICATION?: string;
     EMAIL_FORWARD_TO?: string;
+    BUMPGRADE_EMAIL_FORWARD_TO?: string;
+    CODEX_TRUSTED_SENDER_EMAILS?: string;
     STRIPE_ACTIVE_MODE?: string;
     STRIPE_API_VERSION?: string;
     STRIPE_SECRET_KEY_LIVE?: string;

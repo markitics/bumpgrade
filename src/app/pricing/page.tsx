@@ -41,7 +41,7 @@ function buildCapabilityLabel(status: string) {
 function PlanCheckoutForm({ plan }: { plan: PricingPlan }) {
   if (plan.status === "contact") {
     return (
-      <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20Enterprise" className="primary-action">
+      <Link href="mailto:codex@bumpgrade.com?subject=Bumpgrade%20Enterprise" className="primary-action">
         {plan.cta}
         <ArrowRight aria-hidden="true" />
       </Link>

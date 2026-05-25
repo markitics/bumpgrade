@@ -87,7 +87,7 @@ export default function PricingV2Page() {
               Use simple plans
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="mailto:m@rkmoriarty.com?subject=Bumpgrade%20usage%20pricing" className="secondary-action">
+            <Link href="mailto:codex@bumpgrade.com?subject=Bumpgrade%20usage%20pricing" className="secondary-action">
               Discuss usage pricing
               <Mail aria-hidden="true" />
             </Link>

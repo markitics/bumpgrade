@@ -575,8 +575,8 @@ async function verifyEmail(page: Page, email: string) {
 }
 
 async function signInOrCreateOwner(page: Page) {
-  const email = "m@rkmoriarty.com";
-  await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Mark");
+  const email = "owner@example.com";
+  await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Owner");
   await verifyEmail(page, email);
 }
 
@@ -809,9 +809,16 @@ test.describe("Bumpgrade scaffold", () => {
   test("public and agent-readable source-data avoids placeholder and private-note phrasing", async ({ request }) => {
     const internalSourceDataTerms =
       /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working/;
+    const publicTrustDetailTerms =
+      /m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com|codex_outbound_messages|codex_inbound_messages|raw inbound MIME|raw MIME|bumpgrade-mail|sender-authentication|smtp\.mailfrom|header\.from|allowlisted-and-authenticated|allowlisted and authenticated|trusted reply addresses|trusted sender identities/i;
     const publicSourceDataRoutes = [
+      "/llms.txt",
+      "/features",
       "/features/source-data",
+      "/roadmap",
       "/roadmap/source-data",
+      "/pricing",
+      "/pricing-v2",
       "/content/source-data",
       "/pricing/source-data",
       importerSourceDataRoute,
@@ -836,6 +843,8 @@ test.describe("Bumpgrade scaffold", () => {
       expect(payloadText, `${path} still exposes promptFromMark`).not.toContain("promptFromMark");
       const match = copyText.match(internalSourceDataTerms);
       expect(match, `${path} leaked "${match?.[0] ?? ""}"`).toBeNull();
+      const trustDetailMatch = payloadText.match(publicTrustDetailTerms);
+      expect(trustDetailMatch, `${path} leaked public trust detail "${trustDetailMatch?.[0] ?? ""}"`).toBeNull();
     }
   });
 

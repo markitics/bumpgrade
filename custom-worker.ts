@@ -6,10 +6,11 @@
 import nextWorker from "./.open-next/worker.js";
 import {
   evaluateCodexSenderTrust,
+  parseCodexTrustedSenderEmails,
   UNTRUSTED_CODEX_SENDER_REPLY,
 } from "./src/lib/codex-mail-trust";
 
-const defaultForwardTo = "m@rkmoriarty.com";
+const defaultForwardTo = "";
 const maxInboundTextLength = 20_000;
 const codexSenderEmail = "codex@bumpgrade.com";
 const codexSenderName = "Bumpgrade Codex";
@@ -81,7 +82,7 @@ async function sendUntrustedSenderReply(
 async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: Cloudflare.Env) {
   const id = `codex-inbound-${crypto.randomUUID()}`;
   const receivedAt = new Date();
-  const forwardTo = env.EMAIL_FORWARD_TO?.trim() || defaultForwardTo;
+  const forwardTo = env.BUMPGRADE_EMAIL_FORWARD_TO?.trim() || env.EMAIL_FORWARD_TO?.trim() || defaultForwardTo;
   let forwardedAt: Date | null = null;
   let forwardError: string | null = null;
   let autoRepliedAt: Date | null = null;
@@ -116,7 +117,9 @@ async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: C
   const fromHeader = headerValue(message.headers, "from") ?? message.from;
   const fromEmail = extractEmailAddress(fromHeader);
   const subject = headerValue(message.headers, "subject");
-  const trustEvaluation = evaluateCodexSenderTrust(fromEmail, message.headers);
+  const trustEvaluation = evaluateCodexSenderTrust(fromEmail, message.headers, {
+    trustedSenderEmails: parseCodexTrustedSenderEmails(env.CODEX_TRUSTED_SENDER_EMAILS),
+  });
 
   if (trustEvaluation.status === "untrusted_sender") {
     const replyResult = await sendUntrustedSenderReply(message, env, fromEmail, subject);
