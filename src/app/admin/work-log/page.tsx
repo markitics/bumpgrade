@@ -72,8 +72,8 @@ export default async function WorkLogPage({ searchParams }: WorkLogPageProps) {
               Admin JSON
               <Database aria-hidden="true" />
             </Link>
-            <Link href="https://github.com/markitics/bumpgrade/issues/8" className="secondary-action">
-              Track issue #8
+            <Link href="/admin/director" className="secondary-action">
+              Director dashboard
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>

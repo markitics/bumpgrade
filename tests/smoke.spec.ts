@@ -23559,6 +23559,42 @@ test.describe("Bumpgrade scaffold", () => {
 
     await page.goto("/admin/roadmap");
     await expect(page.getByRole("heading", { name: /Roadmap command center/i })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("Track issue #8");
+    await expect(page.locator('main a[href="https://github.com/markitics/bumpgrade/issues/8"]')).toHaveCount(0);
+    await expect(page.locator("main").getByRole("link", { name: "Director dashboard", exact: true }).first()).toHaveAttribute(
+      "href",
+      "/admin/director",
+    );
+
+    await page.goto("/admin/work-log");
+    await expect(page.getByRole("heading", { name: /Durable diary of shipped agent work/i })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("Track issue #8");
+    await expect(page.locator('main a[href="https://github.com/markitics/bumpgrade/issues/8"]')).toHaveCount(0);
+    await expect(page.locator("main").getByRole("link", { name: "Director dashboard", exact: true }).first()).toHaveAttribute(
+      "href",
+      "/admin/director",
+    );
+    await expect(page.locator("main").getByRole("link", { name: "Past 1 day", exact: true })).toHaveAttribute(
+      "href",
+      "/admin/work-log?window=past-1-day",
+    );
+    await expect(page.locator("main").getByRole("link", { name: "Past 7 days", exact: true })).toHaveAttribute(
+      "href",
+      "/admin/work-log?window=past-7-days",
+    );
+
+    await page.goto("/admin/director");
+    await expect(page.getByRole("heading", { name: /One screen for what changed/i })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("Track issue #448");
+    await expect(page.locator('main a[href="https://github.com/markitics/bumpgrade/issues/448"]')).toHaveCount(0);
+    await expect(page.locator("main").getByRole("link", { name: "Past week changes", exact: true })).toHaveAttribute(
+      "href",
+      "/admin/work-log?window=past-7-days",
+    );
+    await expect(page.locator("main").getByRole("link", { name: "Roadmap evidence", exact: true })).toHaveAttribute(
+      "href",
+      "/admin/roadmap",
+    );
 
     await page.goto("/admin/for-mark");
     await expect(page.getByRole("heading", { name: /Non-blocking attention/i })).toBeVisible();
