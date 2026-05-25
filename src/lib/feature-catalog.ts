@@ -612,7 +612,7 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 414,
     summary:
-      "Read-only live mobile dashboard hydration, redacted Director workstream digesting, iOS/Android scaffolds, owner-session private-row inspection, low-risk private-row actions, owner-confirmed Director workstream review actions, push/distribution readiness boundaries, and the shared confirmed-action contract are proven; installable private mobile admin parity is still tracked as the current follow-up.",
+      "Read-only live mobile dashboard hydration, redacted Director workstream digesting, iOS/Android scaffolds, owner-session private-row inspection, low-risk private-row actions, owner-confirmed Director workstream review actions, owner-confirmed commerce-health review actions, push/distribution readiness boundaries, and the shared confirmed-action contract are proven; installable private mobile admin parity is still tracked as the current follow-up.",
     audience: "Publishers who run launches away from a desktop dashboard.",
     expectedCapabilities: [
       "Shared `/mobile-admin/source-data` contract for iOS and Android.",
@@ -625,6 +625,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Owner-gated `/api/mobile-admin/private-rows` exposes read-only private mobile row inspection from issue #414 without exposing owner-only notes in public source-data.",
       "Owner-gated `/api/mobile-admin/private-rows/actions` marks private rows read or deferred from issue #428 without enabling billing, commerce, publishing, moderation, push, distribution, creator-speech, or public agent writes.",
       "Owner-gated `/api/mobile-admin/director-reviews` records Director workstream acknowledgements from issue #414 without enabling billing, publishing, push, distribution, private-row, or public agent writes.",
+      "Owner-gated `/api/mobile-admin/commerce-reviews` records commerce-health acknowledgements from issue #414 without enabling checkout, refund, subscription, price, fulfillment, entitlement, push, distribution, private-row, or public agent writes.",
       "Owner-gated `/api/mobile-admin/actions` records audit-only mobile action intent evidence from issue #414 without enabling production mutations.",
       "Public-safe push-notification boundary names APNs/FCM requirements, disabled send status, blockers, and redaction flags.",
       "Public-safe distribution boundary separates simulator/emulator evidence from physical-device, App Store/TestFlight, and Play Store/internal-testing claims.",
@@ -645,6 +646,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Mobile owner-session private-row inspection API tracked by issue #414.",
       "Mobile owner-confirmed private-row workflow action API tracked by issue #428.",
       "Mobile owner-confirmed Director workstream review API tracked by issue #414.",
+      "Mobile owner-confirmed commerce-health review API tracked by issue #414.",
       "Mobile audit-only action intent API tracked by issue #414.",
       "Mobile Director workstream digest tracked by issue #414.",
       "Mobile push-notification readiness boundary tracked by issue #414.",
@@ -654,13 +656,14 @@ export const featureCatalog: FeatureRecord[] = [
       "`/api/mobile-admin/private-rows` is owner-session-only and returns read-only private rows without production mutations.",
       "`/api/mobile-admin/private-rows/actions` is owner-session-only and mutates only low-risk private-row workflow state with redacted audit evidence.",
       "`/api/mobile-admin/director-reviews` is owner-session-only and records low-risk Director workstream acknowledgement state with redacted audit evidence.",
+      "`/api/mobile-admin/commerce-reviews` is owner-session-only and records low-risk commerce-health acknowledgement state with redacted audit evidence.",
       "`/api/mobile-admin/actions` is owner-gated and records redacted action intent evidence without production admin, billing, push, distribution, or private-row mutation.",
       "`/mobile-admin/source-data` exposes push-readiness and distribution-readiness boundaries without APNs/FCM credentials, device tokens, signing credentials, provisioning profiles, keystore material, private tester lists, or store account identifiers.",
       "`/mobile-admin/ios/source-data` exposes the first iOS scaffold, fixture, simulator target, smoke command, and screenshot path.",
       "`/mobile-admin/android/source-data` exposes the first Android scaffold, fixture asset, emulator smoke command, and screenshot path.",
     ],
     agentContract:
-      "Mobile apps can read the shared public-safe dashboard digest, render the redacted Director workstream brief, render the shared owner-session plus confirmed-action requirements, inspect owner-gated read-only private rows through /api/mobile-admin/private-rows, mark private rows read or deferred through /api/mobile-admin/private-rows/actions, acknowledge Director workstreams through /api/mobile-admin/director-reviews, record owner-gated audit-only action intents through /api/mobile-admin/actions, and inspect public-safe APNs/FCM plus distribution readiness blockers. Issue #414 still tracks live push execution, physical-device proof, installable distribution, and high-risk billing/publishing domain-specific production confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
+      "Mobile apps can read the shared public-safe dashboard digest, render the redacted Director workstream brief, render the shared owner-session plus confirmed-action requirements, inspect owner-gated read-only private rows through /api/mobile-admin/private-rows, mark private rows read or deferred through /api/mobile-admin/private-rows/actions, acknowledge Director workstreams through /api/mobile-admin/director-reviews, acknowledge commerce health through /api/mobile-admin/commerce-reviews, record owner-gated audit-only action intents through /api/mobile-admin/actions, and inspect public-safe APNs/FCM plus distribution readiness blockers. Issue #414 still tracks live push execution, physical-device proof, installable distribution, and high-risk billing/publishing/fulfillment domain-specific production confirmed-write parity work that must reuse web/admin contracts and the same audit rules as web admin actions.",
   },
   {
     id: "feature-resources-use-cases-pricing",

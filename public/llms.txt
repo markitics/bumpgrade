@@ -94,6 +94,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Owner-gated mobile private-row API: https://bumpgrade.com/api/mobile-admin/private-rows
 - Owner-gated mobile private-row action API: https://bumpgrade.com/api/mobile-admin/private-rows/actions
 - Owner-gated mobile Director review API: https://bumpgrade.com/api/mobile-admin/director-reviews
+- Owner-gated mobile commerce review API: https://bumpgrade.com/api/mobile-admin/commerce-reviews
 - Owner-gated mobile action-intent API: https://bumpgrade.com/api/mobile-admin/actions
 - iOS mobile admin source data: https://bumpgrade.com/mobile-admin/ios/source-data
 - Android mobile admin source data: https://bumpgrade.com/mobile-admin/android/source-data
@@ -487,7 +488,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   private mobile auth, confirmed-write UX, device proof, push-notification
   boundaries, and distribution readiness. The #414 contract now renders the
   shared owner-session, private-row API, private-row action API, Director review
-  API, push-readiness boundary, distribution-readiness boundary, and confirmed-action requirements
+  API, commerce review API, push-readiness boundary, distribution-readiness boundary, and confirmed-action requirements
   in the Expo, iOS, and Android scaffolds.
   `/api/mobile-admin/private-rows` lets a
   verified owner inspect read-only private mobile rows through the shared Better
@@ -500,6 +501,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   verified owner acknowledge a Director workstream after exact confirmation,
   idempotency, current Director source-revision checks, stale-state token checks,
   and audit-correlation checks; it mutates only low-risk owner review state.
+  `/api/mobile-admin/commerce-reviews` lets a verified owner acknowledge
+  commerce-health source-data after exact confirmation, idempotency, current
+  commerce source-revision checks, stale-state token checks, and
+  audit-correlation checks; it mutates only low-risk owner review state and
+  creates no checkout, refund, subscription, price, fulfillment, entitlement,
+  push, distribution, private-row, or public agent write.
   `/api/mobile-admin/actions` records owner-gated
   audit-only action intent evidence after exact confirmation, idempotency,
   contract revision, stale-state, source-route, and audit-correlation checks.

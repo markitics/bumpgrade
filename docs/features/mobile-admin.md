@@ -43,6 +43,12 @@ semantics for roadmap, work-log, commerce, agent approvals, or confirmed writes.
   confirmation, idempotency, current Director source-revision checks,
   stale-state token checks, and audit correlation. It mutates only low-risk
   owner review state.
+- Mobile commerce review API issue: #414. `/api/mobile-admin/commerce-reviews`
+  now lets a verified owner acknowledge commerce-health source-data after exact
+  confirmation, idempotency, current commerce source-revision checks,
+  stale-state token checks, and audit correlation. It mutates only low-risk
+  owner review state and creates no billing, refund, fulfillment, entitlement,
+  push, distribution, private-row, or public agent mutation.
 - Mobile action-intent API issue: #414. `/api/mobile-admin/actions` now lets a
   verified owner record redacted audit-only action intent evidence after exact
   confirmation, idempotency, contract revision, stale-state, source-route, and
@@ -126,6 +132,18 @@ correlation. Public source-data exposes only route, status, counts, latest
 reviewed workstream labels, and redaction flags; it excludes actor identity,
 review notes, idempotency keys, stale-state tokens, token hashes, and raw rows.
 
+The current #414 commerce review slice gives Mobile Admin a low-risk commerce
+acknowledgement path without crossing into billing or fulfillment mutation.
+Owner-authenticated GET `/api/mobile-admin/commerce-reviews` exposes current
+commerce review targets and stale-state tokens only to accepted owners.
+Owner-authenticated POST records a redacted commerce-health acknowledgement
+after exact confirmation, idempotency, current commerce source-revision checks,
+stale-state token checks, and audit correlation. Public source-data exposes only
+route, status, counts, latest reviewed commerce target labels, and redaction
+flags; it excludes actor identity, review notes, idempotency keys,
+stale-state tokens, token hashes, raw rows, buyer identity, Stripe identifiers,
+entitlement rows, signed URLs, and R2 object keys.
+
 The current #414 action-intent slice turns the future endpoint into an
 owner-gated audit trail without enabling production mutations. Owner-authenticated
 GET `/api/mobile-admin/actions` exposes the confirmation contract and current
@@ -191,6 +209,10 @@ evidence are included.
   actions. This can mark private rows read or deferred; it must not perform
   billing, commerce, publishing, moderation, creator-speech, push, distribution,
   or public agent writes.
+- `/api/mobile-admin/commerce-reviews`: owner-confirmed commerce-health
+  acknowledgements. This can record review state for `/commerce/source-data`;
+  it must not create checkout, refund, subscription, price, fulfillment,
+  entitlement, push, distribution, private-row, or public agent writes.
 - `/api/mobile-admin/actions`: owner-gated audit-only action intents for mobile
   admin actions. Future domain-specific APIs must still perform any production
   mutation.
@@ -231,8 +253,9 @@ The smoke command targets the `MusicWebs_API_36` AVD by default and writes
 The first iOS and Android slices can inspect owner-session private rows through
 `/api/mobile-admin/private-rows`, mark those private rows read or deferred
 through `/api/mobile-admin/private-rows/actions`, acknowledge Director
-workstreams through `/api/mobile-admin/director-reviews`, record audit-only
-action intents through `/api/mobile-admin/actions`, and render push/distribution
+workstreams through `/api/mobile-admin/director-reviews`, acknowledge commerce
+health through `/api/mobile-admin/commerce-reviews`, record audit-only action
+intents through `/api/mobile-admin/actions`, and render push/distribution
 readiness boundaries from `/mobile-admin/source-data`, but high-risk production
 mobile writes still require additional domain-specific confirmed-write APIs. Public,
 destructive, billing-impacting, publishing, moderation, source-editing,
@@ -241,8 +264,9 @@ confirmation text, idempotency, stale-state checks, audit correlation, platform
 evidence, and redaction.
 
 The current #414 surface proves that iOS and Android expose the same private
-auth, private-row, private-row action, Director review, action-intent, push-readiness,
-distribution-readiness, and confirmed-action rules the web/admin app uses; it
+auth, private-row, private-row action, Director review, commerce review,
+action-intent, push-readiness, distribution-readiness, and confirmed-action
+rules the web/admin app uses; it
 does not prove App Store/TestFlight or Play Store/internal-testing distribution,
 live push notifications, physical-device private row proof, billing mutation,
 publishing mutation, commerce mutation, or full mobile write parity.
