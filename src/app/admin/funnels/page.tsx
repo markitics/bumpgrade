@@ -104,8 +104,9 @@ export default async function AdminFunnelsPage() {
             block metadata. Owners can archive private drafts or unpublish public D1 draft routes without deleting audit
             evidence, and owner-session agents can now use a confirmed JSON write contract for private block copy edits,
             reusable block add/remove, checkout linking and unlinking, resource-delivery linking, webinar-event linking,
-            block movement, private draft duplication, public publishing with archive rollback, and archive/unpublish.
-            Owner-session visual style controls now render in private previews and public published routes. Destructive agent purge,
+            block movement, private draft duplication, public publishing with archive rollback, archive/unpublish, and
+            archived-draft purge with tombstone evidence. Owner-session visual style controls now render in private
+            previews and public published routes. Non-archived purge,
             full absolute-position canvas editing,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
             unauthenticated public agent publishing, and direct agent-created delivery tokens still need confirmed-write slices.

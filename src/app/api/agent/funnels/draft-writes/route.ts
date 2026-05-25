@@ -8,6 +8,7 @@ import {
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
+  draftFunnelPurgeConfirmationText,
   draftFunnelPublishConfirmationText,
   draftFunnelResourceDeliveryLinkConfirmationText,
   draftFunnelWebinarEventLinkConfirmationText,
@@ -18,11 +19,13 @@ import {
   linkDraftFunnelStepToCheckoutOffer,
   moveDraftFunnelBlockToStep,
   publishDraftFunnel,
+  purgeArchivedDraftFunnel,
   reorderDraftFunnelBlock,
   removeDraftFunnelBlock,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
   updateDraftFunnelBlockVisualStyle,
+  type DraftFunnelPurgeResult,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
 import {
@@ -105,6 +108,23 @@ function redactedDraftSummary(draft: DraftFunnelRecord, input: { publicRouteChan
     publicRouteChanged: input.publicRouteChanged ?? false,
     ownerEmailIncluded: false,
     ownerUserIdIncluded: false,
+    rawRowsIncluded: false,
+  };
+}
+
+function redactedPurgeSummary(purge: DraftFunnelPurgeResult) {
+  return {
+    id: purge.id,
+    draftId: purge.draftId,
+    draftSlug: purge.draftSlug,
+    draftTitle: purge.draftTitle,
+    previousStatus: purge.previousStatus,
+    previousRevisionId: purge.previousRevisionId,
+    summary: purge.summary.replaceAll(purge.actorEmail, "owner"),
+    metadata: purge.metadata,
+    createdAt: purge.createdAt,
+    actorEmailIncluded: false,
+    idempotencyKeyIncluded: false,
     rawRowsIncluded: false,
   };
 }
@@ -194,7 +214,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const db = await getFunnelDraftD1OrThrow();
-    let draft: DraftFunnelRecord;
+    let draft: DraftFunnelRecord | null = null;
+    let purge: DraftFunnelPurgeResult | null = null;
     let publicRouteMutationCreated = false;
 
     if (operationId === "update-block") {
@@ -438,6 +459,14 @@ export async function POST(request: NextRequest) {
         idempotencyKey,
         agentWriteAudit,
       });
+    } else if (operationId === "purge-archived-draft") {
+      purge = await purgeArchivedDraftFunnel(db, adminState.identity, {
+        draftId,
+        expectedRevisionId,
+        confirmationText: draftFunnelPurgeConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
     } else {
       const archiveTarget = await db
         .prepare("SELECT status, preview_route FROM funnel_drafts WHERE id = ?")
@@ -451,6 +480,26 @@ export async function POST(request: NextRequest) {
         idempotencyKey,
         agentWriteAudit,
       });
+    }
+
+    if (purge) {
+      return NextResponse.json(
+        {
+          ok: true,
+          status: "agent_funnel_draft_write_recorded",
+          operationId,
+          issue: agentFunnelDraftWriteIssue,
+          route: agentFunnelDraftWriteApiRoute,
+          auditCorrelationId,
+          purge: redactedPurgeSummary(purge),
+          redaction: redaction(),
+        },
+        { status: 201 },
+      );
+    }
+
+    if (!draft) {
+      return jsonError(400, "invalid_agent_funnel_write", "Unable to record agent funnel draft write.");
     }
 
     return NextResponse.json(

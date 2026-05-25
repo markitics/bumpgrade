@@ -219,11 +219,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   visual style presets, add reusable blocks, remove eligible unlinked blocks,
   link and unlink checkout metadata, link resource-delivery metadata,
   link webinar-event metadata, reorder blocks, move blocks across steps,
-  duplicate a private draft, publish a draft, or
-  archive/unpublish a draft after exact confirmation, idempotency, a fresh
-  revision check, and audit correlation; responses are redacted draft summaries.
-  It is not direct agent template creation, direct agent-created delivery tokens, direct agent purge,
-  unauthenticated public agent publishing, non-archived purge, live billing mutation,
+  duplicate a private draft, publish a draft, archive/unpublish a draft, or
+  purge an already archived draft after exact confirmation, idempotency, a fresh
+  revision check, and audit correlation; responses are redacted draft or purge
+  tombstone summaries.
+  It is not direct agent template creation, direct agent-created delivery tokens,
+  unauthenticated public agent publishing, non-archived purge, bulk purge, live billing mutation,
   one-click upsell charging, full absolute-position canvas editing, arbitrary
   uploaded private asset delivery, signed URL creation, live fulfillment automation, live
   webinar scheduling, attendance tracking, replay hosting, or an unconfirmed
@@ -233,11 +234,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   event/replay links, funnel-scoped private download-token delivery,
   owner-session visual block styles, within-step block reordering, cross-step
   block moves, archived-draft purge, and expanded owner-session direct
-  agent-safe draft writes including visual styles, reusable block add/remove and public
-  publishing, and remains the pending advanced funnel parity bucket
+  agent-safe draft writes including visual styles, reusable block add/remove, public
+  publishing, and archived-draft purge, and remains the pending advanced funnel parity bucket
   for full absolute-position canvas editing, arbitrary uploaded private asset delivery,
   live fulfillment automation, full webinar integrations, bulk purge policy,
-  direct agent-created delivery tokens, unauthenticated public agent publishing, and direct agent purge;
+  direct agent-created delivery tokens, and unauthenticated public agent publishing;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`

@@ -2085,7 +2085,13 @@ export async function archiveDraftFunnel(
 export async function purgeArchivedDraftFunnel(
   db: D1Database,
   identity: AdminIdentity,
-  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+  input: {
+    draftId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
+  },
 ): Promise<DraftFunnelPurgeResult> {
   const replay = await purgeEventForIdempotencyKey(db, input.idempotencyKey);
   if (replay) return replay;
@@ -2122,8 +2128,9 @@ export async function purgeArchivedDraftFunnel(
     deletedProductAssets: false,
     deletedR2Objects: false,
     deletedBuyerRecords: false,
-    directAgentWrite: false,
+    directAgentWrite: Boolean(input.agentWriteAudit),
     privateAuthDataIncluded: false,
+    ...agentFunnelWriteMetadata(input.agentWriteAudit),
   };
   const eventId = runtimeId("funnel-purge");
   const summary = `${identityEmail(identity)} purged archived draft ${draft.title} after tombstone evidence was recorded.`;
