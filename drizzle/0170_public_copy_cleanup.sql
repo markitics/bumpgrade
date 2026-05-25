@@ -1,0 +1,41 @@
+INSERT INTO admin_work_log_entries (
+  id, title, agent_name, agent_kind, session_name, prompt_from_mark,
+  github_issues_json, closed_prs_json, features_updated_json, roadmap_updated_json,
+  user_journeys_updated_json, documentation_updated_json, validation_json,
+  flags_attention, first_prompt_at, completed_at, relevant_urls_json, pr_comment_url, updated_at
+) VALUES (
+  'work-log-2026-05-25-public-copy-cleanup',
+  'Cleaned public copy and source-data note phrasing',
+  'Codex',
+  'codex',
+  'bumpgrade-public-copy-cleanup',
+  'Owner requested that public/product surfaces stop reading like private notes, placeholders, or implementation commentary while preserving honest agent-readable contracts.',
+  '[{"number":468,"url":"https://github.com/markitics/bumpgrade/issues/468"}]',
+  '[]',
+  '["https://bumpgrade.com/features/source-data","https://bumpgrade.com/content/source-data","https://bumpgrade.com/roadmap/source-data","https://bumpgrade.com/agent-docs/source-data"]',
+  '["https://bumpgrade.com/admin/roadmap","https://bumpgrade.com/roadmap/source-data"]',
+  '["https://bumpgrade.com/admin/user-journeys/source-data"]',
+  '["docs/agent/admin-surfaces.md"]',
+  '["npm run typecheck","npm run lint","npm run test:runtime-secrets","npm run db:migrate:local","Next dev route smoke of public-safe source-data banned-copy guard for /features/source-data, /roadmap/source-data, /content/source-data, /agent-docs/source-data, /agent-docs/bumpgrade-admin-surfaces, /admin/source-data, /admin/director/source-data, /admin/work-log/source-data, /admin/user-journeys/source-data, and /admin/for-mark/source-data","git diff --check"]',
+  'This is a focused first pass for issue #468: public source-data now has a regression guard for exact placeholder/private-note phrases. Local Worker-preview Playwright validation was blocked by OpenNext/Next missing-artifact churn in this checkout and should be rechecked through branch CI.',
+  1779706260,
+  1779706512,
+  '["https://github.com/markitics/bumpgrade/issues/468","https://bumpgrade.com/features/source-data","https://bumpgrade.com/content/source-data","https://bumpgrade.com/roadmap/source-data","https://bumpgrade.com/agent-docs/source-data"]',
+  NULL,
+  unixepoch()
+)
+ON CONFLICT(id) DO UPDATE SET
+  title=excluded.title,
+  prompt_from_mark=excluded.prompt_from_mark,
+  github_issues_json=excluded.github_issues_json,
+  closed_prs_json=excluded.closed_prs_json,
+  features_updated_json=excluded.features_updated_json,
+  roadmap_updated_json=excluded.roadmap_updated_json,
+  user_journeys_updated_json=excluded.user_journeys_updated_json,
+  documentation_updated_json=excluded.documentation_updated_json,
+  validation_json=excluded.validation_json,
+  flags_attention=excluded.flags_attention,
+  completed_at=excluded.completed_at,
+  relevant_urls_json=excluded.relevant_urls_json,
+  pr_comment_url=excluded.pr_comment_url,
+  updated_at=excluded.updated_at;

@@ -56,7 +56,7 @@ test.describe("Codex inbound mail trust policy", () => {
 
   test("keeps the untrusted sender acknowledgement safe and non-executing", () => {
     expect(UNTRUSTED_CODEX_SENDER_REPLY).toBe(
-      "Thanks for your input, we've passed it on to Mark. At this time, only verified senders can steer Codex. Contact Mark if you'd like to become a verified senders.",
+      "Thanks for your input, we've passed it to the Bumpgrade owner. At this time, only verified senders can steer Codex. Contact the owner if you'd like to become a verified sender.",
     );
   });
 });

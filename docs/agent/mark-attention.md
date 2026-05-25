@@ -1,6 +1,7 @@
-# Mark Attention
+# Owner Attention
 
-Use this for important items Mark should not miss while agents keep working.
+Use this for important items the Bumpgrade owner should not miss while agents
+keep working.
 
 ## Prefixes
 
@@ -11,11 +12,11 @@ Include:
 
 - exact action needed;
 - why it blocks progress;
-- where Mark should report completion;
+- where the owner should report completion;
 - issue/PR/session link;
 - deadline or urgency if real.
 
-Use `MARK ATTENTION REQUIRED` when work can continue but Mark should notice a
+Use `MARK ATTENTION REQUIRED` when work can continue but the owner should notice a
 decision, risk, cost, tradeoff, or caveat.
 
 ## Do Not Block For Non-Blocking Attention

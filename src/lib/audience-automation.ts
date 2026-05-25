@@ -198,7 +198,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     {
       id: "tag-lead-magnet-launch-checklist",
       label: "lead-magnet:launch-checklist",
-      purpose: "Mark contacts who requested the launch checklist lead magnet.",
+      purpose: "Tag contacts who requested the launch checklist lead magnet.",
     },
     {
       id: "tag-source-funnel-indie-launch",

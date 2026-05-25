@@ -174,7 +174,7 @@ export const resourceHubItems: ResourceHubItem[] = [
   },
   {
     id: "resource-commerce-notes",
-    title: "Commerce implementation notes",
+    title: "Commerce setup notes",
     type: "product",
     status: "live",
     route: "/agent-docs/bumpgrade-commerce-contract",

@@ -23,8 +23,8 @@ export const featureCatalog: FeatureRecord[] = [
     status: "live",
     issue: 4,
     summary:
-      "Core public routes, admin placeholders, screenshots, smoke coverage, and deployed paths for the first Bumpgrade launch surfaces.",
-    audience: "Agents and Mark need a stable launch base with route proof instead of local-only setup.",
+      "Core public routes, admin shells, screenshots, smoke coverage, and deployed paths for the first Bumpgrade launch surfaces.",
+    audience: "Agents and the Bumpgrade owner need a stable launch base with route proof instead of local-only setup.",
     expectedCapabilities: [
       "Live route for bumpgrade.com and www.bumpgrade.com.",
       "Persistent app state and cache bindings for launch surfaces.",
@@ -90,12 +90,12 @@ export const featureCatalog: FeatureRecord[] = [
     issue: 7,
     summary:
       "Public `/roadmap` surface with shipped, blocked, next, and planned lanes tied to feature IDs, GitHub issues, evidence, and `/roadmap/source-data` JSON.",
-    audience: "Prospects, Mark, and agents who need public-safe project status without reading private admin notes.",
+    audience: "Prospects, the Bumpgrade owner, and agents who need public-safe project status without reading private admin notes.",
     expectedCapabilities: [
       "Roadmap lanes derived from tracked feature and issue records.",
       "Public-safe blocker notes and next milestones.",
       "Agent-readable JSON at `/roadmap/source-data`.",
-      "Admin roadmap and For Mark placeholders that mirror current public-safe state until owner-backed records ship.",
+      "Admin roadmap and owner-attention surfaces that mirror current public-safe state until owner-backed records ship.",
     ],
     evidence: [
       "Issue #7 owns this feature slice.",
@@ -478,18 +478,18 @@ export const featureCatalog: FeatureRecord[] = [
   },
   {
     id: "feature-admin-state",
-    title: "Admin roadmap, work log, journeys, and for-Mark surfaces",
+    title: "Admin roadmap, work log, journeys, and owner-attention surfaces",
     group: "Admin and operations",
     status: "live",
     issue: 8,
     summary:
       "Owner-backed admin surfaces for roadmap status, work logs, user journeys, blockers, owner notes, and durable project memory.",
-    audience: "Mark and future agents coordinating parallel work.",
+    audience: "The Bumpgrade owner and agents coordinating parallel work.",
     expectedCapabilities: [
       "Roadmap lanes with issue and PR links.",
       "Work-log entries for substantive work bursts and shipped features.",
       "User journeys tied to feature IDs and validation evidence.",
-      "For-Mark attention items for non-blocking decisions and risks.",
+      "Owner-attention items for non-blocking decisions and risks.",
     ],
     evidence: [
       "Issue #8 owns the D1 admin surface slice.",
@@ -541,7 +541,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Better Auth cookie configuration for one login across bumpgrade.com subdomains.",
       "Custom-domain login boundary that uses a central Bumpgrade sign-in handoff rather than raw cross-domain cookie sharing.",
       "Documented phone verification and SMS provider research from issue #53; phone collection and SMS OTP are not live.",
-      "Role and permission model for future agent actions.",
+      "Role and permission model for delegated agent actions.",
     ],
     evidence: [
       "Issue #9 owns the Better Auth foundation slice.",
@@ -563,7 +563,7 @@ export const featureCatalog: FeatureRecord[] = [
     issue: 10,
     summary:
       "Cloudflare email sending/routing for `codex@bumpgrade.com`, shipped-feature notices, reply monitoring, and attachment-aware follow-up.",
-    audience: "Mark and Codex sessions that need durable non-chat coordination.",
+    audience: "The Bumpgrade owner and Codex sessions that need durable non-chat coordination.",
     expectedCapabilities: [
       "Outbound shipped-feature and attention emails from `codex@bumpgrade.com`.",
       "Inbound routing and reply detection.",

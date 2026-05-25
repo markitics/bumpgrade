@@ -30,7 +30,7 @@ export default function RoadmapPage() {
           <h1>Public roadmap from feature evidence.</h1>
           <p className="lede">
             This roadmap turns the feature catalog into public execution state. Shipped means merged and
-            deployed. Active means Codex is working the issue. Blocked means the unblock condition is exact.
+            deployed. Active means the work is underway. Blocked means the next unblock condition is explicit.
             Everything else stays honest as next or planned.
           </p>
           <div className="hero-actions">
@@ -128,12 +128,12 @@ export default function RoadmapPage() {
           <div>
             <GitBranch aria-hidden="true" />
             <h3>Issue backed</h3>
-            <p>Every item has a GitHub issue. Future admin data should update these records rather than forking the story.</p>
+            <p>Every item has a GitHub issue. Admin data should update these records rather than forking the story.</p>
           </div>
           <div>
             <Database aria-hidden="true" />
             <h3>Agent readable</h3>
-            <p>/roadmap/source-data exposes the same IDs, status, evidence, and Mark-attention caveats for agents.</p>
+            <p>/roadmap/source-data exposes the same IDs, status, evidence, and owner-attention caveats for agents.</p>
           </div>
           <div>
             <ShieldAlert aria-hidden="true" />

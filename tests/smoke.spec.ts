@@ -490,6 +490,30 @@ const compareRoutes = competitors.map((competitor) => ({
   heading: competitor.headline,
 }));
 
+function publicCopyTextValues(value: unknown, path = ""): string[] {
+  if (typeof value === "string") {
+    if (/^(?:https?:\/\/|mailto:|\/)/.test(value)) return [];
+    if (/^[a-z0-9._:/#?=&+@-]+$/i.test(value)) return [];
+    return [value];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap((item, index) => publicCopyTextValues(item, `${path}[${index}]`));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, nestedValue]) => {
+      const nextPath = path ? `${path}.${key}` : key;
+      if (/(^|\.)(id|url|href|route|sourceRoute|sourceOfTruth|generatedFrom|stableIds|featureId|roadmapItemId|markAttentionId|workLogEntryId|userJourneyId|metadata)$/i.test(nextPath)) {
+        return [];
+      }
+      return publicCopyTextValues(nestedValue, nextPath);
+    });
+  }
+
+  return [];
+}
+
 const authSecret = "playwright-local-better-auth-secret";
 
 async function signInOrCreateAccount(page: Page, email: string, password: string, name: string) {
@@ -738,6 +762,36 @@ test.describe("Bumpgrade scaffold", () => {
       await page.goto(path);
       const visibleText = await page.locator("body").innerText();
       expect(visibleText).not.toMatch(testFixtureTerms);
+    }
+  });
+
+  test("public and agent-readable source-data avoids placeholder and private-note phrasing", async ({ request }) => {
+    const internalSourceDataTerms =
+      /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working/;
+    const publicSourceDataRoutes = [
+      "/features/source-data",
+      "/roadmap/source-data",
+      "/content/source-data",
+      "/agent-docs/source-data",
+      "/agent-docs/bumpgrade-admin-surfaces",
+      "/admin/source-data",
+      "/admin/director/source-data",
+      "/admin/work-log/source-data",
+      "/admin/user-journeys/source-data",
+      "/admin/for-mark/source-data",
+    ];
+
+    for (const path of publicSourceDataRoutes) {
+      const response = await request.get(path);
+      const body = await response.text();
+      expect(response.ok(), body).toBeTruthy();
+      const contentType = response.headers()["content-type"] ?? "";
+      const payload = contentType.includes("application/json") ? JSON.parse(body) : null;
+      const payloadText = payload ? JSON.stringify(payload) : body;
+      const copyText = payload ? publicCopyTextValues(payload).join("\n") : body;
+      expect(payloadText, `${path} still exposes promptFromMark`).not.toContain("promptFromMark");
+      const match = copyText.match(internalSourceDataTerms);
+      expect(match, `${path} leaked "${match?.[0] ?? ""}"`).toBeNull();
     }
   });
 
@@ -19381,7 +19435,7 @@ test.describe("Bumpgrade scaffold", () => {
         emailPolicy: expect.objectContaining({
           mode: "digest-first",
           immediateEmailOnlyFor: expect.arrayContaining([
-            expect.stringContaining("Blocked work requiring Mark action"),
+            expect.stringContaining("Blocked work requiring owner action"),
           ]),
         }),
         executiveQueue: expect.arrayContaining([
@@ -19521,7 +19575,7 @@ test.describe("Bumpgrade scaffold", () => {
             agentKind: "codex",
             sessionName: "bumpgrade-build-heartbeat",
             promptFromMark:
-              "Mark asked for expandable categories like Marketing and Security, but this record belongs to project control.",
+              "Owner requested expandable categories like Marketing and Security, but this record belongs to project control.",
             githubIssues: [{ number: 388, url: "https://github.com/markitics/bumpgrade/issues/388", kind: "issue" }],
             closedPrs: [],
             featuresUpdated: ["/admin/director", "/admin/director/source-data", "/admin/work-log"],
@@ -19563,7 +19617,7 @@ test.describe("Bumpgrade scaffold", () => {
             agentName: "Codex",
             agentKind: "codex",
             sessionName: "bumpgrade-build-heartbeat",
-            promptFromMark: "Mark asked for clearer recent-change summaries.",
+            promptFromMark: "Owner requested clearer recent-change summaries.",
             githubIssues: [{ number: 396, url: "https://github.com/markitics/bumpgrade/issues/396", kind: "issue" }],
             closedPrs: [{ number: 397, url: "https://github.com/markitics/bumpgrade/pull/397", kind: "pr" }],
             featuresUpdated: ["/pricing"],
@@ -19583,7 +19637,7 @@ test.describe("Bumpgrade scaffold", () => {
             agentName: "Codex",
             agentKind: "codex",
             sessionName: "bumpgrade-build-heartbeat",
-            promptFromMark: "Mark asked for clearer recent-change summaries.",
+            promptFromMark: "Owner requested clearer recent-change summaries.",
             githubIssues: [{ number: 396, url: "https://github.com/markitics/bumpgrade/issues/396", kind: "issue" }],
             closedPrs: [],
             featuresUpdated: ["/agent-docs/bumpgrade-admin-surfaces"],
@@ -19659,7 +19713,7 @@ test.describe("Bumpgrade scaffold", () => {
       agentName: "Codex",
       agentKind: "codex",
       sessionName: "bumpgrade-build-heartbeat",
-      promptFromMark: "Mark asked for quieter work-log windows.",
+      promptFromMark: "Owner requested quieter work-log windows.",
       githubIssues: [],
       closedPrs: [],
       featuresUpdated: [],
@@ -19805,7 +19859,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "attention-security-review",
           priority: "high",
-          queueLabel: "Needs Mark",
+          queueLabel: "Needs owner action",
           workstreamId: "security-trust",
           workstreamTitle: "Security / Trust",
         }),
@@ -19907,7 +19961,7 @@ test.describe("Bumpgrade scaffold", () => {
             agentName: "Codex",
             agentKind: "codex",
             sessionName: "bumpgrade-build-heartbeat",
-            promptFromMark: "Mark asked for a better executive overview.",
+            promptFromMark: "Owner requested a better executive overview.",
             githubIssues: [{ number: 392, url: "https://github.com/markitics/bumpgrade/issues/392", kind: "issue" }],
             closedPrs: [],
             featuresUpdated: ["/admin/director/source-data"],
@@ -19967,7 +20021,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "roadmap-pending-owner-decision",
-          queueLabel: "Needs Mark",
+          queueLabel: "Needs owner action",
           workstreamId: "marketing",
         }),
       ]),
@@ -20174,7 +20228,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
-  test("For Mark source data exposes explicit response channels", async ({ request }) => {
+  test("owner attention source data exposes explicit response channels", async ({ request }) => {
     const response = await request.get("/admin/for-mark/source-data");
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();

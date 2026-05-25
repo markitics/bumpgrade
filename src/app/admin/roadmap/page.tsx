@@ -34,7 +34,7 @@ export default async function AdminRoadmapPage() {
           <p className="eyebrow">Admin roadmap</p>
           <h1>Roadmap command center backed by D1.</h1>
           <p className="lede">
-            This page reads the durable admin roadmap records that future agents should update when feature
+            This page reads the durable admin roadmap records that Bumpgrade agents should update when feature
             state changes. Better Auth now gates this human admin view while source-data routes stay public-safe.
           </p>
           <div className="hero-actions">
@@ -52,7 +52,7 @@ export default async function AdminRoadmapPage() {
           <GitBranch aria-hidden="true" />
           <p>{sourceLabel(data.source)}</p>
           <strong>{data.roadmapItems.length} records</strong>
-          <span>{data.loadError ?? "D1 admin records loaded. Scripts can append work-log and For Mark rows without a git change."}</span>
+          <span>{data.loadError ?? "D1 admin records loaded. Scripts can append work-log and owner-attention rows without a git change."}</span>
         </aside>
       </section>
 

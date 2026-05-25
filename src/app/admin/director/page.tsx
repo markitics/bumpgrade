@@ -237,7 +237,7 @@ export default async function DirectorDashboardPage() {
       <section className="roadmap-hero director-hero">
         <div>
           <p className="eyebrow">Director dashboard</p>
-          <h1>One screen for what changed, what is due, and what needs Mark.</h1>
+          <h1>One screen for what changed, what is due, and what needs owner action.</h1>
           <p className="lede">
             This is the executive layer above the work log. It groups active work by team-like workstream, keeps the
             detailed audit trail one click away, and makes nesting visible without turning every technical slice into
@@ -260,7 +260,7 @@ export default async function DirectorDashboardPage() {
           <strong>{director.totals.workstreams} workstreams</strong>
           <span>
             {director.loadError ??
-              "Work-log, roadmap, journey, and For-Mark records are grouped into director-level status."}
+              "Work-log, roadmap, journey, and owner-attention records are grouped into director-level status."}
           </span>
         </aside>
       </section>
@@ -288,7 +288,7 @@ export default async function DirectorDashboardPage() {
             <p>Have explicit blocked roadmap or attention evidence.</p>
           </div>
           <div>
-            <span>Needs Mark</span>
+            <span>Needs owner action</span>
             <strong>{director.totals.needsMark}</strong>
             <p>Open decisions or important non-blocking attention items.</p>
           </div>
@@ -366,7 +366,7 @@ export default async function DirectorDashboardPage() {
                     <span>{workstream.counts.active} active</span>
                     <span>{workstream.counts.pending} pending</span>
                     <span>{workstream.counts.changedPastWeek} changed 7d</span>
-                    <span>{workstream.counts.needsMark} needs Mark</span>
+                    <span>{workstream.counts.needsMark} needs owner action</span>
                   </div>
                 </div>
                 <WorkstreamBriefSignals signals={workstream.brief.signals} />
@@ -392,7 +392,7 @@ export default async function DirectorDashboardPage() {
                   />
                   <InitiativeList title="In flight" items={workstream.inFlight} empty="No active roadmap record in this workstream." />
                   <InitiativeList title="Pending" items={workstream.pending} empty="No pending roadmap record in this workstream." />
-                  <InitiativeList title="Needs Mark" items={workstream.needsMark} empty="No open decision or attention item." />
+                  <InitiativeList title="Needs owner action" items={workstream.needsMark} empty="No open decision or attention item." />
                   <InitiativeList title="Watchlist" items={workstream.watchlist} empty="No live caveats to monitor." />
                 </div>
               </div>

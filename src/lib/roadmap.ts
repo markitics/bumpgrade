@@ -26,7 +26,7 @@ export const roadmapLanes: Array<{ status: RoadmapStatus; label: string; descrip
   {
     status: "active",
     label: "Active",
-    description: "Currently being implemented or validated in the Codex issue loop.",
+    description: "Currently being implemented or validated.",
   },
   {
     status: "blocked",
@@ -116,11 +116,11 @@ export const roadmapItems: RoadmapItem[] = [
     ],
     nextMilestone: "Harden inbound Codex mail so only explicitly allowlisted and authenticated senders can steer Codex.",
     markAttention:
-      "Mark asked that only m@rkmoriarty.com, mark@awesound.com, and markmoriarty@stripe.com can steer Codex, and that messages must pass sender authentication rather than trusting From text.",
+      "Owner policy requires explicitly allowlisted and authenticated sender addresses before inbound email can steer Codex; From text alone is not trusted.",
   },
   {
     id: "roadmap-admin-surfaces",
-    title: "Owner-backed admin roadmap, work log, journeys, and for-Mark surfaces",
+    title: "Owner-backed admin roadmap, work log, journeys, and owner-attention surfaces",
     status: "shipped",
     issue: 8,
     featureId: featureIdFor(8),

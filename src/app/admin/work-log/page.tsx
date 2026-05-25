@@ -64,8 +64,8 @@ export default async function WorkLogPage({ searchParams }: WorkLogPageProps) {
           <p className="eyebrow">Admin work log</p>
           <h1>Durable diary of shipped agent work.</h1>
           <p className="lede">
-            Work-log entries live in D1 so future agents can recover what shipped, why it changed, where it
-            was validated, and what still needs Mark attention without reading chat history.
+            Work-log entries live in D1 so Bumpgrade agents can recover what shipped, why it changed, where it
+            was validated, and what still needs owner attention without reading chat history.
           </p>
           <div className="hero-actions">
             <Link href="/admin/source-data" className="primary-action">

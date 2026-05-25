@@ -550,7 +550,7 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 414,
       title: "Review and confirm agent work",
       status: "owner-director-review-api-ready",
-      surface: "For-Mark and work-log inbox",
+      surface: "Owner-attention and work-log inbox",
       confirmationText: "ACKNOWLEDGE DIRECTOR WORKSTREAM",
       requiredInputs: [
         "actorUserId",
@@ -666,8 +666,8 @@ export const mobileAdminContract: MobileAdminContract = {
       id: "mobile-job-approve-agent-work",
       title: "Review agent work and confirm safe follow-up actions",
       primaryUser: "Owner receiving Codex, ChatGPT, Claude, or automation proposals",
-      goal: "Inspect work-log entries, for-Mark items, screenshots, and required confirmations before approving public or billing-impacting work.",
-      firstScreen: "For-Mark and work-log inbox",
+      goal: "Inspect work-log entries, owner-attention items, screenshots, and required confirmations before approving public or billing-impacting work.",
+      firstScreen: "Owner-attention and work-log inbox",
       sourceRoutes: [
         "/mobile-admin/dashboard/source-data",
         "/api/mobile-admin/private-rows",
@@ -731,7 +731,7 @@ export const mobileAdminContract: MobileAdminContract = {
     {
       id: "mobile-api-admin-source",
       route: "/admin/source-data",
-      purpose: "Public-safe roadmap, work-log, user-journey, and Mark-attention digest for the first mobile admin screen.",
+      purpose: "Public-safe roadmap, work-log, user-journey, and owner-attention digest for the first mobile admin screen.",
       authBoundary: "public-safe",
       stableIds: ["workLogEntryId", "userJourneyId", "markAttentionId", "roadmapItemId"],
     },

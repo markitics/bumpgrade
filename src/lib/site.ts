@@ -117,9 +117,9 @@ export const adminNavItems: NavItem[] = [
     icon: ChartNoAxesCombined,
   },
   {
-    label: "For Mark",
+    label: "Owner attention",
     href: "/admin/for-mark",
-    description: "Non-blocking decisions, risks, and blockers Mark should not miss.",
+    description: "Non-blocking owner decisions, risks, and blockers.",
     icon: Mail,
   },
 ];
@@ -151,7 +151,7 @@ export const featurePillars = [
   },
   {
     title: "Admin and agents",
-    body: "Owner roadmap, work-log, journeys, for-Mark attention, public docs, manifests, and MCP path.",
+    body: "Owner roadmap, work-log, journeys, owner-attention queue, public docs, manifests, and MCP path.",
     icon: LayoutDashboard,
     issue: "#8",
   },
