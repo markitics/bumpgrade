@@ -32,6 +32,14 @@ function publicTenant(tenant: Awaited<ReturnType<typeof createFreeBuildWorkspace
   };
 }
 
+function freeBuildWorkspaceRedaction(overrides?: { publicPublishingEnabled?: boolean; workspaceCreated?: boolean }) {
+  return {
+    rawOwnerDataIncluded: false,
+    publicPublishingEnabled: overrides?.publicPublishingEnabled ?? false,
+    workspaceCreated: overrides?.workspaceCreated ?? false,
+  };
+}
+
 function stringValue(value: unknown) {
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
@@ -106,7 +114,19 @@ export async function POST(request: NextRequest) {
   const user = await getSessionUser(request.headers);
 
   if (!user) {
-    if (json) return NextResponse.json({ ok: false, error: "Publisher session required." }, { status: 401 });
+    if (json) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Publisher session required.",
+          code: "PUBLISHER_SESSION_REQUIRED",
+          issue: publisherFreeBuildIssue,
+          parentIssue: publisherFreeBuildParentIssue,
+          redaction: freeBuildWorkspaceRedaction(),
+        },
+        { status: 401 },
+      );
+    }
 
     const login = new URL("/login", request.url);
     login.searchParams.set("callbackURL", "/account/setup");
@@ -134,10 +154,10 @@ export async function POST(request: NextRequest) {
         planStatus: result.planStatus,
         idempotent: result.idempotent,
         paidGoLiveRequired: result.paidGoLiveRequired,
-        redaction: {
-          rawOwnerDataIncluded: false,
+        redaction: freeBuildWorkspaceRedaction({
           publicPublishingEnabled: !result.paidGoLiveRequired,
-        },
+          workspaceCreated: true,
+        }),
       });
     }
 
@@ -151,7 +171,14 @@ export async function POST(request: NextRequest) {
 
     if (json) {
       return NextResponse.json(
-        { ok: false, error: message, code, issue: publisherFreeBuildIssue, parentIssue: publisherFreeBuildParentIssue },
+        {
+          ok: false,
+          error: message,
+          code,
+          issue: publisherFreeBuildIssue,
+          parentIssue: publisherFreeBuildParentIssue,
+          redaction: freeBuildWorkspaceRedaction(),
+        },
         { status },
       );
     }
