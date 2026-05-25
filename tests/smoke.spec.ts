@@ -297,6 +297,9 @@ import {
   draftFunnelWebinarEventLinkConfirmationText,
 } from "../src/lib/funnel-drafts";
 import {
+  agentFunnelDraftWriteApiRoute,
+  agentFunnelDraftWriteCapability,
+  agentFunnelDraftWriteConfirmationText,
   checkoutLinkingCapability,
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelArchiveCapability,
@@ -1148,7 +1151,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: funnelSourceData.id,
-        status: "funnel-resource-delivery-token-ready",
+        status: agentFunnelDraftWriteCapability.status,
         issue: 417,
         parentIssue: 14,
       }),
@@ -1161,6 +1164,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/products/download-tokens",
         "/api/products/protected-content",
         funnelResourceDeliveryApiRoute,
+        agentFunnelDraftWriteApiRoute,
         "/funnels/indie-launch-sandbox",
       ]),
     );
@@ -1489,6 +1493,32 @@ test.describe("Bumpgrade scaffold", () => {
         liveFulfillmentAutomationEnabled: false,
       }),
     );
+    expect(payload.agentFunnelDraftWriteCapability).toEqual(
+      expect.objectContaining({
+        id: agentFunnelDraftWriteCapability.id,
+        status: agentFunnelDraftWriteCapability.status,
+        issue: agentFunnelDraftWriteCapability.issue,
+        apiRoute: agentFunnelDraftWriteApiRoute,
+        auth: "owner-session",
+        confirmationRequired: true,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        auditCorrelationRequired: true,
+        returnsRedactedDraft: true,
+        rawOwnerDataIncluded: false,
+        actorEmailIncluded: false,
+        actorUserIdIncluded: false,
+        rawRowsIncluded: false,
+      }),
+    );
+    expect(payload.agentFunnelDraftWriteCapability.allowedOperations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "update-block", requiresStepId: true, requiresBlockId: true }),
+        expect.objectContaining({ id: "duplicate-draft", publicRouteMutation: false }),
+        expect.objectContaining({ id: "archive-draft", publicRouteMutation: true }),
+      ]),
+    );
     expect(payload.templateLibraryIssue).toBe(159);
     expect(payload.stableIds).toEqual(
       expect.arrayContaining([
@@ -1506,6 +1536,9 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelDraftArchiveId",
         "funnelDraftPurgeId",
         "funnelPurgeEventId",
+        "agentFunnelDraftWriteId",
+        "agentFunnelDraftWriteOperationId",
+        "auditCorrelationId",
         "checkoutIntentId",
         "checkoutOfferStackId",
         "offerId",
@@ -1525,7 +1558,7 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.caveat).toContain("owner-session block reordering");
-    expect(payload.caveat).toContain("direct agent block reordering");
+    expect(payload.caveat).toContain("direct agent public publishing");
     expect(payload.templates).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1604,6 +1637,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
     expect(payload.caveat).toContain("archive/unpublish");
+    expect(payload.caveat).toContain("direct agent-safe private draft writes");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -1635,6 +1669,168 @@ test.describe("Bumpgrade scaffold", () => {
 
     expect(response.status()).toBe(401);
     await expect(response.json()).resolves.toEqual(expect.objectContaining({ error: "Owner session required." }));
+  });
+
+  test("agent funnel draft write endpoint requires owner session", async ({ request }) => {
+    const response = await request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "update-block",
+        draftId: "funnel-draft-indie-launch-working-copy",
+        stepId: "funnel-draft-indie-launch-working-copy-sales-2",
+        blockId: "funnel-draft-indie-launch-working-copy-block-2-sales-1",
+        title: "Agent-safe edit",
+        expectedRevisionId: "unknown",
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-unauth-${Date.now()}`,
+        auditCorrelationId: `playwright-agent-funnel-unauth-audit-${Date.now()}`,
+      },
+    });
+
+    expect(response.status()).toBe(401);
+    await expect(response.json()).resolves.toEqual(expect.objectContaining({ code: "owner_session_required" }));
+  });
+
+  test("agent funnel draft write endpoint records owner-session private edits", async ({ page }) => {
+    await signInOrCreateOwner(page);
+
+    const suffix = Date.now();
+    const create = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "create-from-template",
+        templateId: "template-resource-library-opt-in",
+        title: `Agent-safe resource draft ${suffix}`,
+        confirmationText: draftFunnelTemplateCreationConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-create-${suffix}`,
+        return: "json",
+      },
+    });
+    expect(create.ok(), await create.text()).toBeTruthy();
+    const createPayload = await create.json();
+    const draft = createPayload.draft;
+    const editableStep = draft.steps.find((step: { blocks: { agentEditable: boolean }[] }) =>
+      step.blocks.some((block) => block.agentEditable),
+    );
+    const editableBlock = editableStep?.blocks.find((block: { agentEditable: boolean }) => block.agentEditable);
+    expect(editableStep).toEqual(expect.objectContaining({ id: expect.any(String) }));
+    expect(editableBlock).toEqual(expect.objectContaining({ id: expect.any(String), agentEditable: true }));
+
+    const contract = await page.request.get(agentFunnelDraftWriteApiRoute);
+    expect(contract.ok(), await contract.text()).toBeTruthy();
+    const contractPayload = await contract.json();
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        id: agentFunnelDraftWriteCapability.id,
+        route: agentFunnelDraftWriteApiRoute,
+        confirmation: expect.objectContaining({
+          required: true,
+          exactText: agentFunnelDraftWriteConfirmationText,
+        }),
+        redaction: expect.objectContaining({
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const updateAuditCorrelationId = `playwright-agent-funnel-update-audit-${suffix}`;
+    const update = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "update-block",
+        draftId: draft.id,
+        stepId: editableStep.id,
+        blockId: editableBlock.id,
+        title: "Agent-safe proof edit",
+        body: "This private draft copy was edited through the owner-session agent write endpoint.",
+        expectedRevisionId: draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-update-${suffix}`,
+        auditCorrelationId: updateAuditCorrelationId,
+      },
+    });
+    expect(update.ok(), await update.text()).toBeTruthy();
+    const updatePayload = await update.json();
+    expect(updatePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "update-block",
+        issue: agentFunnelDraftWriteCapability.issue,
+        route: agentFunnelDraftWriteApiRoute,
+        auditCorrelationId: updateAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: draft.id,
+          status: "draft",
+          revisionId: expect.any(String),
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          ownerEmailIncluded: false,
+          ownerUserIdIncluded: false,
+          idempotencyKeyIncluded: false,
+          rawRowsIncluded: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(updatePayload)).not.toContain("m@rkmoriarty.com");
+
+    const duplicateAuditCorrelationId = `playwright-agent-funnel-duplicate-audit-${suffix}`;
+    const duplicate = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "duplicate-draft",
+        draftId: draft.id,
+        title: `Agent-safe duplicate ${suffix}`,
+        expectedRevisionId: updatePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-duplicate-${suffix}`,
+        auditCorrelationId: duplicateAuditCorrelationId,
+      },
+    });
+    expect(duplicate.ok(), await duplicate.text()).toBeTruthy();
+    const duplicatePayload = await duplicate.json();
+    expect(duplicatePayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "duplicate-draft",
+        auditCorrelationId: duplicateAuditCorrelationId,
+        draft: expect.objectContaining({
+          status: "draft",
+          title: `Agent-safe duplicate ${suffix}`,
+          ownerEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const archiveAuditCorrelationId = `playwright-agent-funnel-archive-audit-${suffix}`;
+    const archive = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "archive-draft",
+        draftId: duplicatePayload.draft.id,
+        expectedRevisionId: duplicatePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-archive-${suffix}`,
+        auditCorrelationId: archiveAuditCorrelationId,
+      },
+    });
+    expect(archive.ok(), await archive.text()).toBeTruthy();
+    const archivePayload = await archive.json();
+    expect(archivePayload).toEqual(
+      expect.objectContaining({
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "archive-draft",
+        auditCorrelationId: archiveAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: duplicatePayload.draft.id,
+          status: "archived",
+          ownerUserIdIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
   });
 
   test("funnel draft purge endpoint rejects unauthenticated writes", async ({ request }) => {
@@ -19131,6 +19327,9 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "funnelResourceDeliveryTokenId",
+            "agentFunnelDraftWriteId",
+            "agentFunnelDraftWriteOperationId",
+            "auditCorrelationId",
             "productDeliveryGateLinkId",
           ]),
           safeForAgents: expect.arrayContaining([
@@ -19142,6 +19341,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
+            "Discover owner-session direct agent-safe private draft writes for block copy edits, private duplication, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -19160,6 +19360,23 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelDraftBlockCrossStepMoveId",
             "funnelDraftBlockId",
           ]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-agent-funnel-draft-write",
+          route: agentFunnelDraftWriteApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "agentFunnelDraftWriteId",
+            "agentFunnelDraftWriteOperationId",
+            "funnelDraftId",
+            "funnelRevisionId",
+            "idempotencyKey",
+            "auditCorrelationId",
+          ]),
+          safeForAgents: expect.arrayContaining([
+            expect.stringContaining("direct agent-safe funnel draft write"),
+          ]),
+          writeBoundary: expect.stringContaining("does not publish from an agent"),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({

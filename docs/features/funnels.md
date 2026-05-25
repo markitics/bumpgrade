@@ -18,8 +18,9 @@ product/access catalog assets, funnel-scoped private download-token delivery
 from published linked resource blocks, owner-confirmed webinar event/replay
 links to public-safe external URLs, owner-session within-step block reordering,
 drag/drop block placement through existing move endpoints, cross-step block
-moves, and owner-confirmed archived-draft purge with tombstone evidence. Issue
-#430 adds owner-session granular block title/body editing that
+moves, direct agent-safe private draft writes for block copy edits, private
+duplication, and archive/unpublish, and owner-confirmed archived-draft purge
+with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
 reusable block library while refusing checkout-linked block removal. Issue #409
@@ -28,7 +29,8 @@ delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
 for freeform canvas layout styling, arbitrary uploaded private asset delivery,
 live fulfillment automation, full webinar integrations, bulk retention policy,
-direct agent-created delivery tokens, and direct agent-safe write tools.
+direct agent-created delivery tokens, direct agent public publishing, direct
+agent checkout/resource/webinar linking, and direct agent purge.
 
 Live in this slice:
 
@@ -75,6 +77,12 @@ Live in this slice:
   idempotency, revision checks, audit rows, and purge tombstone evidence.
   Reusable webinar/resource templates use the same exact-confirmed
   template-to-draft path.
+- `/api/agent/funnels/draft-writes`: owner-session JSON endpoint for direct
+  agent-safe private draft writes. It allows block copy edits, private draft
+  duplication, and archive/unpublish only after exact confirmation, idempotency,
+  current draft revision, and audit correlation checks. Responses are redacted
+  and exclude owner email, owner user ID, private session data, raw rows, buyer
+  data, R2 keys, signed URLs, billing mutations, and public agent write state.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, `funnel_audit_events`, and
   `funnel_purge_events`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
@@ -96,7 +104,8 @@ Not live in this slice:
   live billing, one-click upsell charging, or fulfillment.
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
-- Agent-initiated draft edits or publishing tools.
+- Direct agent public publishing, checkout/resource/webinar linking,
+  direct agent-created delivery tokens, purge, or unauthenticated public writes.
 
 The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
 work moves a coherent funnel workflow instead of adding more isolated readiness
@@ -172,12 +181,16 @@ and audit rows. Purging requires a draft that is already `archived`, the exact
 purge confirmation text, an idempotency key, and the current archived revision
 ID; it records a `funnel_purge_events` tombstone before deleting the draft and
 step rows, and it does not delete prior audit rows, product assets, R2 objects,
-buyer records, billing state, or raw owner data. Future direct agent writes,
-direct agent checkout unlinking, direct agent resource delivery linking,
-direct agent-created delivery tokens, direct agent webinar event linking,
-direct agent block reordering, direct agent cross-step block moves, live
+buyer records, billing state, or raw owner data. The direct agent-safe draft
+write endpoint requires an owner session, exact agent-funnel confirmation text,
+an idempotency key, the current draft revision ID, and an audit correlation ID.
+It can update private draft block title/body copy, duplicate a private draft,
+or archive/unpublish a draft while returning only redacted draft summaries.
+Future direct agent public publishing, direct agent checkout unlinking, direct
+agent resource delivery linking, direct agent-created delivery tokens, direct
+agent webinar event linking, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment
 automation, non-archived purge, bulk purge, and direct-agent draft destruction
-must add explicit confirmation, stale-state checks,
-audit correlation, redaction, and rollback notes before acting on draft state.
+must add stronger rollback and provider safety notes before acting on draft
+state.
