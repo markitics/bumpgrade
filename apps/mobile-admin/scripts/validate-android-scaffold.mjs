@@ -62,6 +62,8 @@ assert(fixture.privateRowsApi?.route === "/api/mobile-admin/private-rows", "Fixt
 assert(fixture.privateRowsApi?.status === "owner-mobile-private-rows-ready", "Fixture does not include the mobile private rows API status.");
 assert(fixture.privateRowActionsApi?.route === "/api/mobile-admin/private-rows/actions", "Fixture does not include the mobile private row actions API route.");
 assert(fixture.privateRowActionsApi?.status === "owner-mobile-private-row-actions-ready", "Fixture does not include the mobile private row actions API status.");
+assert(fixture.commerceReviewApi?.route === "/api/mobile-admin/commerce-reviews", "Fixture does not include the mobile commerce review API route.");
+assert(fixture.commerceReviewApi?.status === "owner-mobile-commerce-review-ready", "Fixture does not include the mobile commerce review API status.");
 assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
 assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
 assert(fixture.pushNotificationBoundary?.id === "mobile-push-notification-boundary", "Fixture does not include the mobile push boundary.");
@@ -91,6 +93,7 @@ assert(activitySource.includes("Director brief"), "Android activity does not ren
 assert(activitySource.includes("Private auth"), "Android activity does not render the private auth panel.");
 assert(activitySource.includes("Private rows API"), "Android activity does not render the mobile private rows API panel.");
 assert(activitySource.includes("Private row actions API"), "Android activity does not render the mobile private row actions API panel.");
+assert(activitySource.includes("Commerce review API"), "Android activity does not render the mobile commerce review API panel.");
 assert(activitySource.includes("Action intent API"), "Android activity does not render the mobile action intent API panel.");
 assert(activitySource.includes("Push boundary"), "Android activity does not render the mobile push boundary panel.");
 assert(activitySource.includes("Distribution boundary"), "Android activity does not render the mobile distribution boundary panel.");

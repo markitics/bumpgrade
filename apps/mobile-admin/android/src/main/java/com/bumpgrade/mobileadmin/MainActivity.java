@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
       JSONObject privateRowsApi = contract.getJSONObject("privateRowsApi");
       JSONObject privateRowActionsApi = contract.getJSONObject("privateRowActionsApi");
       JSONObject directorReviewApi = contract.getJSONObject("directorReviewApi");
+      JSONObject commerceReviewApi = contract.getJSONObject("commerceReviewApi");
       JSONObject actionIntentApi = contract.getJSONObject("actionIntentApi");
       JSONObject pushNotificationBoundary = contract.getJSONObject("pushNotificationBoundary");
       JSONObject distributionReadiness = contract.getJSONObject("distributionReadiness");
@@ -145,6 +146,16 @@ public class MainActivity extends Activity {
       directorReviewPanel.addView(meta("Inputs: " + joinStrings(directorReviewApi.getJSONArray("requiredInputs"))));
       content.addView(directorReviewPanel);
 
+      LinearLayout commerceReviewPanel = panel();
+      commerceReviewPanel.addView(kicker("Commerce review API"));
+      commerceReviewPanel.addView(panelTitle(commerceReviewApi.getString("route")));
+      commerceReviewPanel.addView(body(commerceReviewApi.getString("purpose")));
+      commerceReviewPanel.addView(meta("Status: " + commerceReviewApi.getString("status") + " · issue #" + commerceReviewApi.getInt("issue")));
+      commerceReviewPanel.addView(meta("Auth: " + commerceReviewApi.getString("authBoundary")));
+      commerceReviewPanel.addView(meta("Boundary: " + commerceReviewApi.getString("reviewBoundary")));
+      commerceReviewPanel.addView(meta("Inputs: " + joinStrings(commerceReviewApi.getJSONArray("requiredInputs"))));
+      content.addView(commerceReviewPanel);
+
       LinearLayout actionIntentPanel = panel();
       actionIntentPanel.addView(kicker("Action intent API"));
       actionIntentPanel.addView(panelTitle(actionIntentApi.getString("route")));
@@ -190,7 +201,7 @@ public class MainActivity extends Activity {
       }
 
       content.addView(sectionLabel("Confirmed mobile actions"));
-      for (int index = 0; index < Math.min(2, confirmedActions.length()); index += 1) {
+      for (int index = 0; index < Math.min(3, confirmedActions.length()); index += 1) {
         JSONObject action = confirmedActions.getJSONObject(index);
         LinearLayout card = panel();
         card.addView(badge(action.getString("status")));

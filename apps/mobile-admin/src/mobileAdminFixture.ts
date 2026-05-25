@@ -64,6 +64,30 @@ export type MobileAdminContractFixture = {
     requiredInputs: string[];
     redactionFlags: string[];
   };
+  directorReviewApi: {
+    id: string;
+    issue: number;
+    status: string;
+    route: string;
+    authBoundary: string;
+    purpose: string;
+    reviewBoundary: string;
+    publicSourceDataSummary: string;
+    requiredInputs: string[];
+    redactionFlags: string[];
+  };
+  commerceReviewApi: {
+    id: string;
+    issue: number;
+    status: string;
+    route: string;
+    authBoundary: string;
+    purpose: string;
+    reviewBoundary: string;
+    publicSourceDataSummary: string;
+    requiredInputs: string[];
+    redactionFlags: string[];
+  };
   actionIntentApi: {
     id: string;
     issue: number;

@@ -328,6 +328,12 @@ import {
   mobileAdminActionIntentStatus,
 } from "../src/lib/mobile-admin-actions";
 import {
+  mobileAdminCommerceReviewApiRoute,
+  mobileAdminCommerceReviewConfirmationText,
+  mobileAdminCommerceReviewIssue,
+  mobileAdminCommerceReviewStatus,
+} from "../src/lib/mobile-admin-commerce-reviews";
+import {
   mobileAdminDirectorReviewApiRoute,
   mobileAdminDirectorReviewConfirmationText,
   mobileAdminDirectorReviewIssue,
@@ -19799,6 +19805,12 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["mobileDirectorReviewId", "directorWorkstreamId", "idempotencyKey"]),
         }),
         expect.objectContaining({
+          id: "create-owner-mobile-admin-commerce-review",
+          route: mobileAdminCommerceReviewApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["mobileCommerceReviewId", "commerceReviewTargetId", "idempotencyKey"]),
+        }),
+        expect.objectContaining({
           id: "create-owner-mobile-admin-action-intent",
           route: mobileAdminActionIntentApiRoute,
           auth: "owner-session",
@@ -20007,6 +20019,11 @@ test.describe("Bumpgrade scaffold", () => {
           authBoundary: "owner-session",
         }),
         expect.objectContaining({
+          id: "mobile-api-commerce-review",
+          route: mobileAdminCommerceReviewApiRoute,
+          authBoundary: "owner-session",
+        }),
+        expect.objectContaining({
           id: "mobile-api-confirmed-writes",
           route: mobileAdminActionIntentApiRoute,
           authBoundary: "owner-confirmed-intent",
@@ -20100,6 +20117,38 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       }),
     );
+    expect(payload.commerceReviewApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-commerce-review-api",
+        issue: mobileAdminCommerceReviewIssue,
+        status: mobileAdminCommerceReviewStatus,
+        route: mobileAdminCommerceReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
+    expect(payload.commerceReviewSummary).toEqual(
+      expect.objectContaining({
+        id: "mobile-admin-commerce-review-contract",
+        status: mobileAdminCommerceReviewStatus,
+        apiRoute: mobileAdminCommerceReviewApiRoute,
+        sourceRoute: "/commerce/source-data",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+          billingMutationCreated: false,
+          refundCreated: false,
+          subscriptionChanged: false,
+          priceChanged: false,
+          fulfillmentStateChanged: false,
+          entitlementStateChanged: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         id: "mobile-action-intent-api",
@@ -20176,6 +20225,12 @@ test.describe("Bumpgrade scaffold", () => {
           confirmationText: mobileAdminDirectorReviewConfirmationText,
           requiredInputs: expect.arrayContaining(["idempotencyKey", "staleStateToken", "auditCorrelationId"]),
         }),
+        expect.objectContaining({
+          id: "mobile-confirm-commerce-health-review",
+          issue: 414,
+          confirmationText: mobileAdminCommerceReviewConfirmationText,
+          requiredInputs: expect.arrayContaining(["reviewTargetId", "idempotencyKey", "staleStateToken", "auditCorrelationId"]),
+        }),
       ]),
     );
     expect(payload.confirmedWriteRules).toEqual(
@@ -20211,6 +20266,7 @@ test.describe("Bumpgrade scaffold", () => {
         mobileAdminPrivateRowsApiRoute,
         mobileAdminPrivateRowActionApiRoute,
         mobileAdminDirectorReviewApiRoute,
+        mobileAdminCommerceReviewApiRoute,
         mobileAdminActionIntentApiRoute,
         "/features/source-data",
         "/roadmap/source-data",
@@ -20306,6 +20362,31 @@ test.describe("Bumpgrade scaffold", () => {
         counts: expect.objectContaining({
           directorReviews: expect.any(Number),
           billingMutationCreatedRows: 0,
+          pushNotificationSentRows: 0,
+          distributionStateChangedRows: 0,
+          publicAgentWriteCreatedRows: 0,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+        }),
+      }),
+    );
+    expect(payload.commerceReviewApi).toEqual(
+      expect.objectContaining({
+        id: "mobile-commerce-review-api",
+        status: mobileAdminCommerceReviewStatus,
+        route: mobileAdminCommerceReviewApiRoute,
+        counts: expect.objectContaining({
+          commerceReviews: expect.any(Number),
+          billingMutationCreatedRows: 0,
+          refundCreatedRows: 0,
+          subscriptionChangedRows: 0,
+          priceChangedRows: 0,
+          fulfillmentStateChangedRows: 0,
+          entitlementStateChangedRows: 0,
           pushNotificationSentRows: 0,
           distributionStateChangedRows: 0,
           publicAgentWriteCreatedRows: 0,
@@ -20447,6 +20528,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         sourceDataRoute: "/commerce/source-data",
         tableCount: commerceTables.length,
+        reviewApiRoute: mobileAdminCommerceReviewApiRoute,
         privateFieldsIncluded: false,
       }),
     );
@@ -20458,6 +20540,7 @@ test.describe("Bumpgrade scaffold", () => {
           expect.objectContaining({ id: "read-mobile-admin-dashboard" }),
           expect.objectContaining({ id: "read-owner-mobile-admin-private-rows" }),
           expect.objectContaining({ id: "create-owner-mobile-admin-private-row-action" }),
+          expect.objectContaining({ id: "create-owner-mobile-admin-commerce-review" }),
         ]),
       }),
     );
@@ -20862,6 +20945,182 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("m@rkmoriarty.com");
   });
 
+  test("mobile admin commerce reviews require owner confirmation and keep public source-data redacted", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner mobile commerce review flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const reviewNote = `Commerce review note for m@rkmoriarty.com ${suffix}`;
+
+    const unauthorizedGet = await request.get(mobileAdminCommerceReviewApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenIncludedInPublicSourceData: false,
+        }),
+      }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const contractResponse = await page.request.get(mobileAdminCommerceReviewApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    const contractPayload = await contractResponse.json();
+    const commerceProductsTarget = contractPayload.allowedReviewTargets.find(
+      (target: { id: string }) => target.id === "commerce_products",
+    );
+    expect(contractPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: mobileAdminCommerceReviewStatus,
+        issue: mobileAdminCommerceReviewIssue,
+        route: mobileAdminCommerceReviewApiRoute,
+        confirmation: expect.objectContaining({
+          exactText: mobileAdminCommerceReviewConfirmationText,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+          billingMutationCreated: false,
+          refundCreated: false,
+          subscriptionChanged: false,
+          priceChanged: false,
+          fulfillmentStateChanged: false,
+          entitlementStateChanged: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+    expect(commerceProductsTarget).toEqual(
+      expect.objectContaining({
+        id: "commerce_products",
+        title: "Commerce Products",
+        expectedCommerceGeneratedAt: expect.any(String),
+        staleStateToken: expect.any(String),
+      }),
+    );
+
+    const requestBody = {
+      reviewTargetId: commerceProductsTarget.id,
+      expectedCommerceGeneratedAt: commerceProductsTarget.expectedCommerceGeneratedAt,
+      staleStateToken: commerceProductsTarget.staleStateToken,
+      confirmationText: mobileAdminCommerceReviewConfirmationText,
+      idempotencyKey: `mobile-commerce-review-idem-${suffix}`,
+      auditCorrelationId: `audit-commerce-review-${suffix}`,
+      reviewNote,
+    };
+
+    const staleToken = await page.request.post(mobileAdminCommerceReviewApiRoute, {
+      data: { ...requestBody, staleStateToken: "stale-token" },
+    });
+    expect(staleToken.status(), await staleToken.text()).toBe(409);
+    await expect(staleToken.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "stale_state_token" }));
+
+    const missingConfirmation = await page.request.post(mobileAdminCommerceReviewApiRoute, {
+      data: { ...requestBody, confirmationText: "wrong" },
+    });
+    expect(missingConfirmation.status(), await missingConfirmation.text()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const created = await page.request.post(mobileAdminCommerceReviewApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_commerce_review_recorded",
+        duplicate: false,
+        review: expect.objectContaining({
+          reviewTargetId: "commerce_products",
+          reviewTargetTitle: "Commerce Products",
+          sourceRoute: "/commerce/source-data",
+          expectedCommerceGeneratedAt: requestBody.expectedCommerceGeneratedAt,
+          auditCorrelationId: requestBody.auditCorrelationId,
+          reviewNoteRecorded: true,
+          commerceStateRecorded: true,
+          billingMutationCreated: false,
+          refundCreated: false,
+          subscriptionChanged: false,
+          priceChanged: false,
+          fulfillmentStateChanged: false,
+          entitlementStateChanged: false,
+          pushNotificationSent: false,
+          distributionStateChanged: false,
+          publicAgentWriteCreated: false,
+        }),
+        redaction: expect.objectContaining({
+          actorEmailIncluded: false,
+          actorUserIdIncluded: false,
+          reviewNoteIncluded: false,
+          idempotencyKeysIncluded: false,
+          staleStateTokenHashIncluded: false,
+        }),
+      }),
+    );
+    const createdText = JSON.stringify(createdPayload);
+    expect(createdText).not.toContain(requestBody.idempotencyKey);
+    expect(createdText).not.toContain(requestBody.staleStateToken);
+    expect(createdText).not.toContain(reviewNote);
+    expect(createdText).not.toContain("m@rkmoriarty.com");
+
+    const replay = await page.request.post(mobileAdminCommerceReviewApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "mobile_admin_commerce_review_replayed",
+        duplicate: true,
+        review: expect.objectContaining({
+          id: createdPayload.review.id,
+          reviewTargetId: "commerce_products",
+        }),
+      }),
+    );
+
+    const conflict = await page.request.post(mobileAdminCommerceReviewApiRoute, {
+      data: { ...requestBody, reviewNote: `${reviewNote} changed` },
+    });
+    expect(conflict.status(), await conflict.text()).toBe(409);
+    await expect(conflict.json()).resolves.toEqual(expect.objectContaining({ ok: false, code: "idempotency_conflict" }));
+
+    const sourceData = await request.get("/mobile-admin/source-data");
+    const sourceText = await sourceData.text();
+    expect(sourceData.ok(), sourceText).toBeTruthy();
+    const sourcePayload = JSON.parse(sourceText);
+    expect(sourcePayload.commerceReviewSummary.counts.commerceReviews).toBeGreaterThanOrEqual(1);
+    expect(sourcePayload.commerceReviewSummary.counts.billingMutationCreatedRows).toBe(0);
+    expect(sourcePayload.commerceReviewSummary.counts.refundCreatedRows).toBe(0);
+    expect(sourcePayload.commerceReviewSummary.counts.fulfillmentStateChangedRows).toBe(0);
+    expect(sourcePayload.commerceReviewSummary.counts.entitlementStateChangedRows).toBe(0);
+    expect(sourcePayload.commerceReviewSummary.latestReviews).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reviewTargetId: "commerce_products",
+          commerceStateRecorded: true,
+          billingMutationCreated: false,
+        }),
+      ]),
+    );
+    expect(sourceText).not.toContain(requestBody.staleStateToken);
+    expect(sourceText).not.toContain(requestBody.idempotencyKey);
+    expect(sourceText).not.toContain(reviewNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+  });
+
   test("mobile admin action intent API requires owner auth, exact confirmation, idempotency, stale state, and redaction", async ({
     page,
     request,
@@ -21098,6 +21357,14 @@ test.describe("Bumpgrade scaffold", () => {
         authBoundary: "owner-session",
       }),
     );
+    expect(payload.commerceReviewApi).toEqual(
+      expect.objectContaining({
+        issue: mobileAdminCommerceReviewIssue,
+        status: mobileAdminCommerceReviewStatus,
+        route: mobileAdminCommerceReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
     expect(payload.actionIntentApi).toEqual(
       expect.objectContaining({
         issue: 414,
@@ -21163,6 +21430,10 @@ test.describe("Bumpgrade scaffold", () => {
           route: mobileAdminDirectorReviewApiRoute,
         }),
         expect.objectContaining({
+          id: "ios-record-mobile-commerce-review",
+          route: mobileAdminCommerceReviewApiRoute,
+        }),
+        expect.objectContaining({
           id: "ios-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
@@ -21180,6 +21451,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
     expect(payload.writeBoundary).toContain("Director workstream brief");
     expect(payload.writeBoundary).toContain("Director workstream acknowledgements");
+    expect(payload.writeBoundary).toContain("commerce-health acknowledgements");
   });
 
   test("Android mobile admin source data exposes scaffold and emulator smoke evidence", async ({ request }) => {
@@ -21233,6 +21505,14 @@ test.describe("Bumpgrade scaffold", () => {
         issue: mobileAdminDirectorReviewIssue,
         status: mobileAdminDirectorReviewStatus,
         route: mobileAdminDirectorReviewApiRoute,
+        authBoundary: "owner-session",
+      }),
+    );
+    expect(payload.commerceReviewApi).toEqual(
+      expect.objectContaining({
+        issue: mobileAdminCommerceReviewIssue,
+        status: mobileAdminCommerceReviewStatus,
+        route: mobileAdminCommerceReviewApiRoute,
         authBoundary: "owner-session",
       }),
     );
@@ -21301,6 +21581,10 @@ test.describe("Bumpgrade scaffold", () => {
           route: mobileAdminDirectorReviewApiRoute,
         }),
         expect.objectContaining({
+          id: "android-record-mobile-commerce-review",
+          route: mobileAdminCommerceReviewApiRoute,
+        }),
+        expect.objectContaining({
           id: "android-record-mobile-action-intent",
           route: mobileAdminActionIntentApiRoute,
         }),
@@ -21318,6 +21602,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("distribution-readiness boundary");
     expect(payload.writeBoundary).toContain("Director workstream brief");
     expect(payload.writeBoundary).toContain("Director workstream acknowledgements");
+    expect(payload.writeBoundary).toContain("commerce-health acknowledgements");
   });
 
   test("sandbox checkout API returns redacted preview when Stripe sandbox setup is incomplete", async ({ request }) => {

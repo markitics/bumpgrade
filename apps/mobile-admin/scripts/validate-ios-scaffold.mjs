@@ -54,6 +54,8 @@ assert(fixture.privateRowsApi?.route === "/api/mobile-admin/private-rows", "Fixt
 assert(fixture.privateRowsApi?.status === "owner-mobile-private-rows-ready", "Fixture does not include the mobile private rows API status.");
 assert(fixture.privateRowActionsApi?.route === "/api/mobile-admin/private-rows/actions", "Fixture does not include the mobile private row actions API route.");
 assert(fixture.privateRowActionsApi?.status === "owner-mobile-private-row-actions-ready", "Fixture does not include the mobile private row actions API status.");
+assert(fixture.commerceReviewApi?.route === "/api/mobile-admin/commerce-reviews", "Fixture does not include the mobile commerce review API route.");
+assert(fixture.commerceReviewApi?.status === "owner-mobile-commerce-review-ready", "Fixture does not include the mobile commerce review API status.");
 assert(fixture.actionIntentApi?.route === "/api/mobile-admin/actions", "Fixture does not include the mobile action intent API route.");
 assert(fixture.actionIntentApi?.status === "owner-mobile-action-intent-ready", "Fixture does not include the mobile action intent API status.");
 assert(fixture.pushNotificationBoundary?.id === "mobile-push-notification-boundary", "Fixture does not include the mobile push boundary.");
@@ -78,6 +80,7 @@ assert(appSource.includes("Director brief"), "Expo app does not render the Direc
 assert(appSource.includes("Private auth"), "Expo app does not render the private auth panel.");
 assert(appSource.includes("Private rows API"), "Expo app does not render the mobile private rows API panel.");
 assert(appSource.includes("Private row actions API"), "Expo app does not render the mobile private row actions API panel.");
+assert(appSource.includes("Commerce review API"), "Expo app does not render the mobile commerce review API panel.");
 assert(appSource.includes("Action intent API"), "Expo app does not render the mobile action intent API panel.");
 assert(appSource.includes("Push boundary"), "Expo app does not render the mobile push boundary panel.");
 assert(appSource.includes("Distribution boundary"), "Expo app does not render the mobile distribution boundary panel.");

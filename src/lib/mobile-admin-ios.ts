@@ -63,6 +63,13 @@ export const iosMobileAdminSourceData = {
     authBoundary: mobileAdminContract.directorReviewApi.authBoundary,
     reviewBoundary: mobileAdminContract.directorReviewApi.reviewBoundary,
   },
+  commerceReviewApi: {
+    issue: mobileAdminContract.commerceReviewApi.issue,
+    status: mobileAdminContract.commerceReviewApi.status,
+    route: mobileAdminContract.commerceReviewApi.route,
+    authBoundary: mobileAdminContract.commerceReviewApi.authBoundary,
+    reviewBoundary: mobileAdminContract.commerceReviewApi.reviewBoundary,
+  },
   actionIntentApi: {
     issue: mobileAdminContract.actionIntentApi.issue,
     status: mobileAdminContract.actionIntentApi.status,
@@ -136,6 +143,13 @@ export const iosMobileAdminSourceData = {
         "A verified owner can acknowledge a Director workstream after exact confirmation, idempotency, current Director generated-at checks, stale-state token checks, and audit correlation.",
     },
     {
+      id: "ios-record-mobile-commerce-review",
+      route: "/api/mobile-admin/commerce-reviews",
+      fixturePath: null,
+      purpose:
+        "A verified owner can acknowledge commerce-health source-data after exact confirmation, idempotency, current commerce revision checks, stale-state token checks, and audit correlation.",
+    },
+    {
       id: "ios-record-mobile-action-intent",
       route: "/api/mobile-admin/actions",
       fixturePath: null,
@@ -165,7 +179,7 @@ export const iosMobileAdminSourceData = {
     },
   ],
   writeBoundary:
-    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, Director workstream acknowledgements can be recorded through /api/mobile-admin/director-reviews, and audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared Director workstream brief, owner-session, private-row API, private-row action API, Director review API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until additional domain-specific confirmed-write APIs and platform evidence exist.",
+    "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, Director workstream acknowledgements can be recorded through /api/mobile-admin/director-reviews, commerce-health acknowledgements can be recorded through /api/mobile-admin/commerce-reviews, and audit-only action intents can be recorded through /api/mobile-admin/actions. iOS now renders the shared Director workstream brief, owner-session, private-row API, private-row action API, Director review API, commerce review API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, fulfillment, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until additional domain-specific confirmed-write APIs and platform evidence exist.",
   caveat:
-    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, redacted Director workstream digest, owner-session/private-row/private-row-action/Director-review/confirmed-action UI contract, audit-only action-intent route, APNs readiness boundary, and distribution boundary. It does not mean App Store/TestFlight distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
+    "This source-data route proves the iOS scaffold, simulator smoke path, live dashboard hydration, redacted Director workstream digest, owner-session/private-row/private-row-action/Director-review/commerce-review/confirmed-action UI contract, audit-only action-intent route, APNs readiness boundary, and distribution boundary. It does not mean App Store/TestFlight distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

@@ -145,6 +145,10 @@ import {
 } from "@/lib/affiliate-partner-notification-send-preflight-records";
 import { mobileAdminActionIntentApiRoute, mobileAdminActionIntentIssue } from "@/lib/mobile-admin-actions";
 import {
+  mobileAdminCommerceReviewApiRoute,
+  mobileAdminCommerceReviewIssue,
+} from "@/lib/mobile-admin-commerce-reviews";
+import {
   mobileAdminDirectorReviewApiRoute,
   mobileAdminDirectorReviewIssue,
 } from "@/lib/mobile-admin-director-reviews";
@@ -2346,6 +2350,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobilePrivateRowsApiId",
       "mobilePrivateRowActionsApiId",
       "mobileDirectorReviewApiId",
+      "mobileCommerceReviewApiId",
       "mobileActionIntentApiId",
       "mobilePushBoundaryId",
       "mobileDistributionReadinessId",
@@ -2362,6 +2367,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Understand the owner-gated read-only mobile private-row boundary",
       "Understand the low-risk owner-confirmed mobile private-row action boundary",
       "Understand the owner-confirmed Director workstream review boundary",
+      "Understand the owner-confirmed commerce health review boundary",
       "Understand the owner-gated audit-only mobile action intent boundary",
       "Understand the Director workstream digest exposed to mobile clients",
       "Understand push-notification provider requirements and disabled send status",
@@ -2369,7 +2375,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Understand mobile confirmed-action write boundaries",
     ],
     writeBoundary:
-      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, record owner-confirmed Director workstream review state through /api/mobile-admin/director-reviews, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Push sends, provider calls, device-token registration, installable distribution, physical-device proof, and high-risk billing/publishing production writes remain disabled until future domain-specific confirmed-write APIs and platform evidence exist; issue #414 exposes the shared owner-session, private-row, private-row action, Director review, action-intent, push-readiness, distribution-readiness, and confirmed-action contract.",
+      "Mobile apps can inspect owner-gated private rows through /api/mobile-admin/private-rows, mark private rows read/deferred through /api/mobile-admin/private-rows/actions, record owner-confirmed Director workstream review state through /api/mobile-admin/director-reviews, record owner-confirmed commerce-health review state through /api/mobile-admin/commerce-reviews, and record owner-gated audit-only action intents through /api/mobile-admin/actions. Push sends, provider calls, device-token registration, installable distribution, physical-device proof, and high-risk billing/publishing production writes remain disabled until future domain-specific confirmed-write APIs and platform evidence exist; issue #414 exposes the shared owner-session, private-row, private-row action, Director review, commerce review, action-intent, push-readiness, distribution-readiness, and confirmed-action contract.",
   },
   {
     id: "read-mobile-admin-dashboard",
@@ -2390,6 +2396,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "mobilePrivateRowId",
       "mobilePrivateRowActionId",
       "mobileDirectorReviewId",
+      "mobileCommerceReviewId",
       "mobilePushBoundaryId",
       "mobileDistributionReadinessId",
       "agentReadContractId",
@@ -2401,11 +2408,35 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect public-safe private-row counts and labels without owner-only notes or payloads",
       "Inspect redacted private-row workflow action counts without actor, note, idempotency, or stale-token details",
       "Inspect redacted Director review counts without actor, note, idempotency, or stale-token details",
+      "Inspect redacted commerce review counts without actor, note, idempotency, or stale-token details",
       "Inspect public-safe push-readiness and distribution-readiness blockers",
       "Find iOS and Android source-data routes without scraping private admin pages",
     ],
     writeBoundary:
-      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, Director review, action-intent, push-readiness, distribution-readiness, and confirmed-action requirements, but push notifications, physical-device proof, App Store/Play Store distribution, and high-risk billing/publishing confirmed mobile writes require future authenticated APIs and platform evidence.",
+      "Public-safe digest; issue #414 exposes owner-session, private-row, private-row action, Director review, commerce review, action-intent, push-readiness, distribution-readiness, and confirmed-action requirements, but push notifications, physical-device proof, App Store/Play Store distribution, and high-risk billing/publishing confirmed mobile writes require future authenticated APIs and platform evidence.",
+  },
+  {
+    id: "create-owner-mobile-admin-commerce-review",
+    title: "Mobile admin commerce review API",
+    route: mobileAdminCommerceReviewApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "src/lib/mobile-admin-commerce-reviews.ts",
+    stableIds: [
+      "mobileCommerceReviewId",
+      "commerceReviewTargetId",
+      "auditCorrelationId",
+      "idempotencyKey",
+      "staleStateToken",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only commerce review confirmation contract",
+      "Record owner acknowledgements for commerce source-data health only with an owner session",
+      "Use exact confirmation, idempotency, current commerce generated-at checks, stale-state token checks, and audit correlation before writing",
+      "Confirm responses omit actor email, actor hash, actor user id, idempotency keys, review notes, stale-state token hashes, and raw rows",
+    ],
+    writeBoundary:
+      `This owner-session API records low-risk owner review state for commerce source-data targets in D1 after exact confirmation, idempotency, current commerce generated-at checks, stale-state token checks, audit correlation, and redaction. It does not create billing mutations, refunds, subscription changes, price changes, fulfillment changes, entitlement changes, push notifications, distribution state changes, public agent writes, private-row changes, or high-risk production confirmed-write side effects. Issue #${mobileAdminCommerceReviewIssue} tracks this slice.`,
   },
   {
     id: "create-owner-mobile-admin-director-review",

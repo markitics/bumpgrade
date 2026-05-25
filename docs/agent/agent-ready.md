@@ -117,15 +117,17 @@ digest for mobile clients, `/api/mobile-admin/private-rows` is the owner-gated
 read-only private-row inspection API, `/api/mobile-admin/private-rows/actions`
 is the owner-confirmed low-risk private-row workflow action API, and
 `/api/mobile-admin/director-reviews` is the owner-confirmed low-risk Director
-workstream review API, and `/api/mobile-admin/actions` is the owner-gated
+workstream review API, `/api/mobile-admin/commerce-reviews` is the
+owner-confirmed low-risk commerce health review API, and
+`/api/mobile-admin/actions` is the owner-gated
 audit-only action-intent API. The dashboard summarizes feature, roadmap, recent
 work-log, attention, commerce, agent-readiness, platform status, private-row
-counts, private-row action counts, Director review counts, action-intent counts,
-and a redacted Director workstream digest from the same contracts as the web
+counts, private-row action counts, Director review counts, commerce review
+counts, action-intent counts, and a redacted Director workstream digest from the same contracts as the web
 app. It returns counts, statuses, route IDs, issue evidence, recent public-safe
 work-log metadata, Director workstream IDs, compact brief signals, public
-private-row labels, redacted action labels, redacted Director review labels, and
-redaction flags only.
+private-row labels, redacted action labels, redacted Director review labels,
+redacted commerce review labels, and redaction flags only.
 Owner-authenticated GET `/api/mobile-admin/private-rows` returns owner-only
 private row notes and synthetic private payload metadata through the same Better
 Auth owner session as web admin; public source-data must not expose those notes,
@@ -144,6 +146,14 @@ exact confirmation, idempotency, current Director source-revision checks,
 stale-state token checks, and audit correlation. Public source-data must not
 expose actor identity, review notes, idempotency keys, stale-state tokens, token
 hashes, or raw rows.
+Owner-authenticated GET `/api/mobile-admin/commerce-reviews` returns current
+commerce review confirmation contracts and stale-state tokens only to accepted
+owners, and owner-authenticated POST can acknowledge a commerce source-data
+target after exact confirmation, idempotency, current commerce source-revision
+checks, stale-state token checks, and audit correlation. Public source-data must
+not expose actor identity, review notes, idempotency keys, stale-state tokens,
+token hashes, raw rows, buyer identity, Stripe identifiers, entitlement rows,
+signed URLs, R2 object keys, or private fulfillment state.
 Owner-authenticated GET `/api/mobile-admin/actions`
 returns exact stale-state tokens for the supported mobile confirmed actions,
 and owner-authenticated POST records redacted action intent evidence after
@@ -171,12 +181,12 @@ fetch the live public-safe dashboard payload, label live-network versus fallback
 fixture hydration, and keep the generated fixture as a deterministic simulator
 or emulator fallback. Issue #414 now also renders the shared owner-session
 contract, private-row API boundary, private-row action API boundary, action-intent API boundary,
-Director review API boundary, push-readiness boundary, distribution-readiness boundary, and confirmed-action
+Director review API boundary, commerce review API boundary, push-readiness boundary, distribution-readiness boundary, and confirmed-action
 requirements in the Expo, iOS, and Android scaffolds. Those panels reuse the
 web/admin Better Auth, owner allowlist, verified-email, exact-confirmation,
 idempotency, stale-state, audit-correlation, and redaction rules. They can now
 represent low-risk private-row workflow actions and readiness blockers, but they
-are still not high-risk billing or publishing mobile write clients, live push
+are still not high-risk billing, fulfillment, or publishing mobile write clients, live push
 notifications, physical-device proof, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
