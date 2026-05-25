@@ -1,17 +1,18 @@
 # Affiliate And Referral Management
 
-Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, and #281 add the first
+Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, #281,
+and #424 add the first
 affiliate/referral source-data, preview surface, privacy-safe click capture
 path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
-owner-reviewed fraud review record, and owner-reviewed partner notification
-readiness, send preflight, and provider readiness record contracts for parent
-issue #19. Issue #19 is now the live affiliate/referral MVP boundary. Issue
-#424 tracks live payout execution, partner notification sends, fraud
-enforcement, private payout/tax data, private partner portals, buyer attribution
-finalization, and direct agent-safe affiliate/referral writes as one pending
-post-MVP execution bucket.
+owner-reviewed fraud review record, owner-confirmed fraud enforcement record,
+and owner-reviewed partner notification readiness, send preflight, and provider
+readiness record contracts for parent issue #19/#424. Issue #19 is now the live
+affiliate/referral MVP boundary. Issue #424 tracks remaining payout execution,
+partner notification sends, private payout/tax data, private partner portals,
+buyer attribution finalization, and direct agent-safe affiliate/referral writes
+as one pending post-MVP execution bucket.
 
 ## Live Public-Safe Routes
 
@@ -34,6 +35,9 @@ post-MVP execution bucket.
   endpoint for confirmed payout preparation evidence.
 - `/api/admin/affiliates/fraud-review-records`: owner-gated GET/POST endpoint
   for confirmed fraud review evidence.
+- `/api/admin/affiliates/fraud-enforcement-records`: owner-gated GET/POST
+  endpoint for confirmed fraud enforcement records without payout or partner
+  notification side effects.
 - `/api/admin/affiliates/notification-readiness-records`: owner-gated GET/POST
   endpoint for confirmed partner notification readiness evidence.
 - `/api/admin/affiliates/notification-send-preflights`: owner-gated GET/POST
@@ -53,6 +57,8 @@ post-MVP execution bucket.
   payout preparation record counts and latest redacted metadata.
 - `/affiliates/source-data.fraudReviewRecords`: aggregate confirmed fraud
   review record counts and latest redacted metadata.
+- `/affiliates/source-data.fraudEnforcementRecords`: aggregate confirmed fraud
+  enforcement record counts and latest redacted metadata.
 - `/affiliates/source-data.partnerNotificationReadinessRecords`: aggregate
   confirmed partner notification readiness record counts and latest redacted
   metadata.
@@ -75,6 +81,8 @@ The contract introduces stable IDs for:
 - `payoutPreparationRecordStatus`
 - `fraudReviewRecordId`
 - `fraudReviewRecordStatus`
+- `fraudEnforcementRecordId`
+- `fraudEnforcementRecordStatus`
 - `partnerNotificationReadinessRecordId`
 - `partnerNotificationReadinessRecordStatus`
 - `partnerNotificationSendPreflightRecordId`
@@ -165,6 +173,15 @@ Stripe payout IDs, buyer data, raw ledger/click/checkout rows, raw actor
 identity, private fraud signals, and private notes from public source data. It
 proves provider readiness semantics, not provider configuration or partner
 notification sending.
+Issue #424 lets owner sessions record fraud enforcement decisions after exact
+confirmation, idempotency, current program revision checks, payout batch status
+checks, fraud review record status checks, review flag checks, and linked ledger
+count checks while still excluding payable commission state, Stripe payouts,
+payout account storage, tax data, partner notification sends, provider calls,
+buyer data, raw ledger/click/checkout rows, raw actor identity, private fraud
+signals, and direct public agent writes. It proves owner-visible fraud
+enforcement state, not payout execution, partner notification sending, or agent
+affiliate writes.
 
 Tracked by issue #424, not live in the MVP:
 
@@ -174,7 +191,6 @@ Tracked by issue #424, not live in the MVP:
 - direct agent review writes;
 - payout batch execution;
 - payout preparation as payable state;
-- fraud enforcement;
 - payout account storage;
 - tax form collection;
 - Stripe payout actions;

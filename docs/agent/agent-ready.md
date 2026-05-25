@@ -694,8 +694,9 @@ public-safe read contract for seeded affiliate programs, partner records,
 referral links, public-safe partner reports, aggregate click counts, checkout
 attribution evidence, aggregate review-only commission ledger counts,
 read-only payout preparation, owner-confirmed payout preparation records,
-owner-reviewed fraud review records, owner-reviewed partner notification
-readiness records, attribution rules, commission rules, ledger fixtures, payout review, fraud flags, and the
+owner-reviewed fraud review records, owner-confirmed fraud enforcement records,
+owner-reviewed partner notification readiness records, attribution rules,
+commission rules, ledger fixtures, payout review, fraud flags, and the
 `/api/affiliates/clicks` write boundary.
 `/affiliates/indie-launch-partners` is the preview. Seeded referral clicks can
 be captured with idempotency, destination-route validation, and hashed request
@@ -720,7 +721,15 @@ record fraud review evidence after exact confirmation, idempotency, revision
 checks, payout batch status checks, review flag checks, and linked ledger count
 checks without exposing private fraud signals, buyer data, raw ledger rows, raw
 click rows, raw checkout rows, raw actor identity, payout accounts, tax data,
-Stripe payout IDs, or partner notification bodies. Issue #277 lets owners
+Stripe payout IDs, or partner notification bodies. Issue #424 lets owners
+record fraud enforcement decisions after exact confirmation, idempotency,
+revision checks, payout batch status checks, fraud review record status checks,
+review flag checks, and linked ledger count checks without creating payable
+commission state, triggering Stripe payouts or transfers, storing payout
+accounts, collecting tax data, sending partner notifications, exposing buyer
+data, exposing raw ledger/click/checkout rows, exposing private fraud signals,
+or accepting direct public agent writes. This proves owner-visible fraud
+enforcement state, not payout execution. Issue #277 lets owners
 record partner notification readiness evidence after exact confirmation,
 idempotency, revision checks, partner report checks, payout batch status checks,
 payout preparation record status checks, fraud review record status checks,
@@ -757,14 +766,13 @@ exposing actor identity, or creating payout state. This proves affiliate and
 referral
 click-to-checkout-to-ledger-to-review-to-report-to-preparation-to-fraud-review-to-notification-readiness-to-send-preflight-to-provider-readiness semantics, not
 cookie assignment, buyer attribution finalization, payable commission state,
-direct agent review writes, payout execution, tax collection, fraud enforcement,
-Stripe payout capability, private partner portal access, partner notification
-sends, provider-send configuration, provider calls, send payload creation, or
-queue dispatch. Issue #19 is the live affiliate/referral MVP boundary. Issue
+direct agent review writes, payout execution, tax collection, Stripe payout
+capability, private partner portal access, partner notification sends,
+provider-send configuration, provider calls, send payload creation, or queue
+dispatch. Issue #19 is the live affiliate/referral MVP boundary. Issue
 #424 tracks the remaining live payout execution, partner notification execution,
-fraud enforcement, private partner portal, payout/tax-data, buyer attribution
-finalization, and agent-safe affiliate/referral write parity work as one pending
-bucket.
+private partner portal, payout/tax-data, buyer attribution finalization, and
+agent-safe affiliate/referral write parity work as one pending bucket.
 
 ## MCP And Tooling
 

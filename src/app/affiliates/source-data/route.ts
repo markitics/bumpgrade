@@ -11,7 +11,10 @@ import {
   type AffiliatePartnerReport,
   type PayoutBatchFixture,
 } from "@/lib/affiliate-referrals";
-import { getAffiliateFraudReviewRecordSummary } from "@/lib/affiliate-fraud-review-records";
+import {
+  getAffiliateFraudEnforcementRecordSummary,
+  getAffiliateFraudReviewRecordSummary,
+} from "@/lib/affiliate-fraud-review-records";
 import { getAffiliatePartnerNotificationReadinessRecordSummary } from "@/lib/affiliate-partner-notification-readiness-records";
 import { getAffiliatePartnerNotificationProviderReadinessRecordSummary } from "@/lib/affiliate-partner-notification-provider-readiness-records";
 import { getAffiliatePartnerNotificationSendPreflightRecordSummary } from "@/lib/affiliate-partner-notification-send-preflight-records";
@@ -330,6 +333,7 @@ export async function GET() {
     partnerReviewActionSummary,
     payoutPreparationRecords,
     fraudReviewRecords,
+    fraudEnforcementRecords,
     partnerNotificationReadinessRecords,
     partnerNotificationSendPreflightRecords,
     partnerNotificationProviderReadinessRecords,
@@ -341,6 +345,7 @@ export async function GET() {
       loadPartnerReviewActionSummary(db),
       getAffiliatePayoutPreparationRecordSummary(db ?? undefined),
       getAffiliateFraudReviewRecordSummary(db ?? undefined),
+      getAffiliateFraudEnforcementRecordSummary(db ?? undefined),
       getAffiliatePartnerNotificationReadinessRecordSummary(db ?? undefined),
       getAffiliatePartnerNotificationSendPreflightRecordSummary(db ?? undefined),
       getAffiliatePartnerNotificationProviderReadinessRecordSummary(db ?? undefined),
@@ -367,6 +372,7 @@ export async function GET() {
     }),
     payoutPreparationRecords,
     fraudReviewRecords,
+    fraudEnforcementRecords,
     partnerNotificationReadinessRecords,
     partnerNotificationSendPreflightRecords,
     partnerNotificationProviderReadinessRecords,
