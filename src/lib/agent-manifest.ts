@@ -182,7 +182,7 @@ import {
 } from "@/lib/publisher-tenants";
 import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
 import { anonymousPlaygroundSourceDataRoute } from "@/lib/anonymous-playground";
-import { importerIssue, importerSourceDataRoute } from "@/lib/importers";
+import { clickFunnelsDraftImportApiRoute, importerIssue, importerSourceDataRoute } from "@/lib/importers";
 
 export const agentManifestUpdatedAt = "2026-05-25";
 
@@ -345,11 +345,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read supported importer platforms",
       "Resolve importer routes from competitor IDs",
       "Inspect input kinds and generated private record types",
+      `Identify the verified-publisher ClickFunnels private-draft API at ${clickFunnelsDraftImportApiRoute}`,
       "Cite safety gates and unsupported fields before describing migration capability",
       `Cite issue #${importerIssue} for the active importer feature request`,
     ],
     writeBoundary:
-      "Importer source-data is read-only. Creating import previews, private records, or public launch changes requires owner authentication, exact confirmation, idempotency, stale-state checks, audit correlation, and later API evidence.",
+      "Importer source-data is read-only. The ClickFunnels private-draft API requires a verified publisher session, exact confirmation, idempotency, and redacted responses; public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, customer passwords, and broader competitor writes remain outside this contract.",
   },
   {
     id: "read-commerce-contract",
