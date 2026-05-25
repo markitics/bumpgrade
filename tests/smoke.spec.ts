@@ -20267,6 +20267,19 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         }),
         expect.objectContaining({
+          id: "journey-prospect-imports-from-clickfunnels",
+          proof: expect.objectContaining({
+            status: "passed",
+            screenshotLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-imports.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-clickfunnels-importer.png" }),
+            ]),
+            validationLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/imports/source-data" }),
+            ]),
+          }),
+        }),
+        expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureStatus: "live",
         }),
