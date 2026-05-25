@@ -20663,11 +20663,16 @@ test.describe("Bumpgrade scaffold", () => {
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-imports.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-clickfunnels-importer.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-importer-preflight-review.png" }),
             ]),
             validationLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/imports/source-data" }),
+              expect.objectContaining({ url: "https://github.com/markitics/bumpgrade/pull/494" }),
             ]),
           }),
+          happyPath: expect.arrayContaining([expect.stringContaining("Review the redacted import map")]),
+          agentAccess: expect.stringContaining("preflight review routes"),
+          validation: expect.arrayContaining([expect.stringContaining("public redacted preflight review")]),
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
