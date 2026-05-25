@@ -211,7 +211,10 @@ function identityEmail(identity: AdminIdentity) {
   return identity.email ?? "unknown-owner@bumpgrade.local";
 }
 
-function agentFunnelWriteMetadata(audit: AgentFunnelWriteAudit | undefined) {
+function agentFunnelWriteMetadata(
+  audit: AgentFunnelWriteAudit | undefined,
+  options: { publicRouteMutation?: boolean } = {},
+) {
   if (!audit) return {};
 
   return {
@@ -221,6 +224,7 @@ function agentFunnelWriteMetadata(audit: AgentFunnelWriteAudit | undefined) {
     agentFunnelDraftWriteOperationId: audit.operationId,
     auditCorrelationId: audit.auditCorrelationId,
     directAgentSafeWrite: true,
+    publicRouteMutation: options.publicRouteMutation ?? false,
     publicAgentWrite: false,
     ownerSessionRequired: true,
     exactAgentConfirmationRequired: true,
@@ -1849,7 +1853,13 @@ export async function linkDraftFunnelBlockToWebinarEvent(
 export async function publishDraftFunnel(
   db: D1Database,
   identity: AdminIdentity,
-  input: { draftId: string; expectedRevisionId: string; confirmationText: string; idempotencyKey: string },
+  input: {
+    draftId: string;
+    expectedRevisionId: string;
+    confirmationText: string;
+    idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
+  },
 ) {
   const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
   if (replay) return replay;
@@ -1885,10 +1895,14 @@ export async function publishDraftFunnel(
       input.idempotencyKey,
       `${identityEmail(identity)} published ${draft.title} to ${publicRoute}.`,
       {
+        ...agentFunnelWriteMetadata(input.agentWriteAudit, { publicRouteMutation: true }),
         action: "draft_publish",
         publicRoute,
         expectedRevisionId: input.expectedRevisionId,
         stepCount: draft.steps.length,
+        directAgentPublicPublishing: Boolean(input.agentWriteAudit),
+        rollbackAction: "archive-draft",
+        liveBillingMutation: false,
         privateAuthDataIncluded: false,
       },
     ),
@@ -1942,7 +1956,7 @@ export async function archiveDraftFunnel(
       input.idempotencyKey,
       `${identityEmail(identity)} archived ${draft.title}.`,
       {
-        ...agentFunnelWriteMetadata(input.agentWriteAudit),
+        ...agentFunnelWriteMetadata(input.agentWriteAudit, { publicRouteMutation: previousStatus === "published" }),
         issue: draftFunnelArchiveIssue,
         action: "draft_archive",
         draftFunnelArchiveCapability: draftFunnelArchiveCapability.id,

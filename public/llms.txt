@@ -216,11 +216,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   verified owner-session agents update private draft block copy, link and unlink
   checkout metadata, link resource-delivery metadata, link webinar-event
   metadata, reorder blocks, move blocks across steps, duplicate a private
-  draft, or archive/unpublish a draft after exact confirmation, idempotency, a
+  draft, publish a draft, or archive/unpublish a draft after exact confirmation, idempotency, a
   fresh revision check, and audit correlation; responses are redacted draft
   summaries. It is not direct agent template creation, direct
   agent block add/remove, direct agent-created delivery tokens, direct agent purge,
-  direct agent public publishing, non-archived purge, live billing mutation,
+  unauthenticated public agent publishing, non-archived purge, live billing mutation,
   one-click upsell charging, drag-and-drop visual editing, arbitrary uploaded
   private asset delivery, signed URL creation, live fulfillment automation, live
   webinar scheduling, attendance tracking, replay hosting, or an unconfirmed
@@ -228,10 +228,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Treat issue #14 as the shipped MVP boundary. Issue #417 includes
   owner-confirmed checkout unlinking, resource delivery links, webinar
   event/replay links, funnel-scoped private download-token delivery, within-step block reordering, cross-step block moves,
-  archived-draft purge, and expanded direct agent-safe private draft writes, and remains the pending advanced funnel parity bucket
+  archived-draft purge, and expanded owner-session direct agent-safe draft writes including public publishing, and remains the pending advanced funnel parity bucket
   for freeform drag-and-drop layout editing, arbitrary uploaded private asset delivery,
   live fulfillment automation, full webinar integrations, bulk purge policy,
-  direct agent-created delivery tokens, direct agent public publishing,
+  direct agent-created delivery tokens, unauthenticated public agent publishing,
   direct agent block add/remove, and direct agent purge;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox

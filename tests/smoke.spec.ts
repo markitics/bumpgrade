@@ -1575,6 +1575,12 @@ test.describe("Bumpgrade scaffold", () => {
           publicRouteMutation: false,
         }),
         expect.objectContaining({ id: "duplicate-draft", publicRouteMutation: false }),
+        expect.objectContaining({
+          id: "publish-draft",
+          publicRouteMutation: true,
+          liveBillingMutation: false,
+          rollbackOperationId: "archive-draft",
+        }),
         expect.objectContaining({ id: "archive-draft", publicRouteMutation: true }),
       ]),
     );
@@ -1617,7 +1623,7 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(payload.caveat).toContain("owner-session block reordering");
-    expect(payload.caveat).toContain("direct agent public publishing");
+    expect(payload.caveat).toContain("owner-confirmed direct agent public publishing");
     expect(payload.templates).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1696,7 +1702,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("webinar and resource page shapes");
     expect(payload.caveat).toContain("private draft duplication");
     expect(payload.caveat).toContain("archive/unpublish");
-    expect(payload.caveat).toContain("direct agent-safe private draft writes");
+    expect(payload.caveat).toContain("direct agent-safe draft writes");
     expect(payload.caveat).toContain("Direct agent template creation");
 
     await page.goto("/funnels/indie-launch-sandbox");
@@ -2126,12 +2132,47 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const publishAuditCorrelationId = `playwright-agent-funnel-publish-audit-${suffix}`;
+    const publish = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "publish-draft",
+        draftId: checkoutDraft.id,
+        expectedRevisionId: crossStepMovePayload.draft.revisionId,
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-publish-${suffix}`,
+        auditCorrelationId: publishAuditCorrelationId,
+      },
+    });
+    expect(publish.ok(), await publish.text()).toBeTruthy();
+    const publishPayload = await publish.json();
+    expect(publishPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "publish-draft",
+        auditCorrelationId: publishAuditCorrelationId,
+        draft: expect.objectContaining({
+          id: checkoutDraft.id,
+          status: "published",
+          previewRoute: expect.stringContaining(`/funnels/${checkoutDraft.slug}`),
+          publicRouteChanged: true,
+          ownerEmailIncluded: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          publicRouteMutationCreated: true,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+
     const archiveAuditCorrelationId = `playwright-agent-funnel-archive-audit-${suffix}`;
     const archive = await page.request.post(agentFunnelDraftWriteApiRoute, {
       data: {
         operationId: "archive-draft",
-        draftId: duplicatePayload.draft.id,
-        expectedRevisionId: duplicatePayload.draft.revisionId,
+        draftId: publishPayload.draft.id,
+        expectedRevisionId: publishPayload.draft.revisionId,
         confirmationText: agentFunnelDraftWriteConfirmationText,
         idempotencyKey: `playwright-agent-funnel-archive-${suffix}`,
         auditCorrelationId: archiveAuditCorrelationId,
@@ -2145,8 +2186,9 @@ test.describe("Bumpgrade scaffold", () => {
         operationId: "archive-draft",
         auditCorrelationId: archiveAuditCorrelationId,
         draft: expect.objectContaining({
-          id: duplicatePayload.draft.id,
+          id: publishPayload.draft.id,
           status: "archived",
+          publicRouteChanged: true,
           ownerUserIdIncluded: false,
           rawRowsIncluded: false,
         }),
@@ -20132,7 +20174,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe private draft writes for block copy edits, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, and archive/unpublish from issue #417",
+            "Discover owner-session direct agent-safe draft writes for block copy edits, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, and archive/unpublish from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -20167,7 +20209,7 @@ test.describe("Bumpgrade scaffold", () => {
           safeForAgents: expect.arrayContaining([
             expect.stringContaining("direct agent-safe funnel draft write"),
           ]),
-          writeBoundary: expect.stringContaining("does not publish from an agent"),
+          writeBoundary: expect.stringContaining("Publishing creates a public route mutation"),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
