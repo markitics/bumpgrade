@@ -4,6 +4,7 @@ import {
   audienceBroadcastDispatchAttemptApiRoute,
   audienceBroadcastDispatchPreflightApiRoute,
   audienceBroadcastScheduleIntentApiRoute,
+  audienceBroadcastTestSendApiRoute,
 } from "@/lib/audience-broadcasts";
 import { audienceCrmTimelineApiRoute, audienceCrmTimelineWriteContract } from "@/lib/audience-crm";
 import { audienceOptInApiRoute, audienceOptInWriteContract } from "@/lib/audience-opt-in";
@@ -149,13 +150,14 @@ export type AudienceAutomationWorkspace = {
   broadcastDeliveryQueueMessageApiRoute: typeof audienceBroadcastDeliveryQueueMessageApiRoute;
   broadcastDispatchPreflightApiRoute: typeof audienceBroadcastDispatchPreflightApiRoute;
   broadcastDispatchAttemptApiRoute: typeof audienceBroadcastDispatchAttemptApiRoute;
+  broadcastTestSendApiRoute: typeof audienceBroadcastTestSendApiRoute;
   audienceImportIntentApiRoute: "/api/admin/audience/import-intents";
   audienceImportPreflightApiRoute: "/api/admin/audience/import-preflights";
   writeBoundary: string;
   validation: string[];
 };
 
-export const audienceAutomationUpdatedAt = "2026-05-23";
+export const audienceAutomationUpdatedAt = "2026-05-25";
 
 export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   id: "audience-automation-workspace-indie-launch",
@@ -252,7 +254,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
       consentStatement:
         "I want the launch checklist and practical follow-up about Bumpgrade. I can unsubscribe later.",
       writeBoundary:
-        `This form posts to ${audienceOptInApiRoute}. Unsubscribe preferences post to ${audienceUnsubscribeApiRoute}. Owner-only CRM notes, dry-run broadcast evidence, import intents, and import preflights now use separate confirmed-write APIs; export readiness is aggregate-only. Real contact imports, email delivery, broadcast sends, and private exports require future confirmed-write APIs with actor identity, explicit consent or lawful basis, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.`,
+        `This form posts to ${audienceOptInApiRoute}. Unsubscribe preferences post to ${audienceUnsubscribeApiRoute}. Owner-only CRM notes, dry-run broadcast evidence, owner-only broadcast test sends, import intents, and import preflights now use separate confirmed-write APIs; export readiness is aggregate-only. Real contact imports, subscriber email delivery, broadcast blasts, and private exports require future confirmed-write APIs with actor identity, explicit consent or lawful basis, idempotency, audit correlation, redaction, unsubscribe metadata, and spam-safe sending rules.`,
     },
   ],
   sequences: [
@@ -334,7 +336,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
       status: "draft",
       audienceScope: "Only subscribers who explicitly opted into the indie launch waitlist and are not unsubscribed.",
       approvalBoundary:
-        "Issue #211 can inspect Queue consumer readiness for this draft, but real sending still requires verified sender alignment, provider event handling, provider rate-limit handling, provider response handling, send-payload creation, Queue producers/consumers, and audit correlation.",
+        "Issue #420 can send an owner-only test email for this draft, but subscriber sending still requires verified sender alignment, provider event handling, provider rate-limit handling, provider response handling, send-payload creation, Queue producers/consumers, and audit correlation.",
     },
   ],
   unsubscribeManagement: audienceUnsubscribeWriteContract,
@@ -357,6 +359,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
   broadcastDeliveryQueueMessageApiRoute: audienceBroadcastDeliveryQueueMessageApiRoute,
   broadcastDispatchPreflightApiRoute: audienceBroadcastDispatchPreflightApiRoute,
   broadcastDispatchAttemptApiRoute: audienceBroadcastDispatchAttemptApiRoute,
+  broadcastTestSendApiRoute: audienceBroadcastTestSendApiRoute,
   audienceImportIntentApiRoute: "/api/admin/audience/import-intents",
   audienceImportPreflightApiRoute: "/api/admin/audience/import-preflights",
       writeBoundary:
@@ -384,6 +387,7 @@ export const audienceAutomationWorkspace: AudienceAutomationWorkspace = {
     "/api/admin/audience/broadcasts/delivery-queue-messages stores owner-confirmed dry-run queue-message evidence without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs.",
     "/api/admin/audience/broadcasts/dispatch-preflights stores owner-confirmed dispatch preflight evidence without Cloudflare Queue dispatch, recipient payloads, provider sends, or provider message IDs.",
     "/api/admin/audience/broadcasts/dispatch-attempts stores owner-confirmed dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, recipient payloads, provider sends, provider responses, or provider message IDs.",
+    "/api/admin/audience/broadcasts/test-sends sends one owner-only broadcast test email to the verified owner session email with exact confirmation, idempotency, audit correlation, stale-state checks, and redacted D1 evidence.",
     "Sender-domain readiness records expose SPF, DKIM, DMARC, reply-path, bounce-handling, and provider-send gates without private DNS credentials, raw DNS records, provider secrets, queue producers, recipient payloads, provider responses, or provider message IDs.",
     "Provider-event readiness records expose bounce, complaint, delivery-event, suppression-update, and raw-payload storage gates without provider secrets, raw provider payloads, recipient payloads, provider responses, or provider message IDs.",
     "Provider rate-limit readiness records expose throttle windows, retry/backoff, queue backpressure, and provider-limit policies without provider secrets, provider limit secrets, raw provider payloads, recipient payloads, provider responses, or provider message IDs.",
@@ -438,6 +442,7 @@ export const audienceAutomationSourceData = {
     audienceBroadcastDeliveryQueueMessageApiRoute,
     audienceBroadcastDispatchPreflightApiRoute,
     audienceBroadcastDispatchAttemptApiRoute,
+    audienceBroadcastTestSendApiRoute,
     "/api/admin/audience/import-intents",
     "/api/admin/audience/import-preflights",
     "/admin/audience",
@@ -471,6 +476,7 @@ export const audienceAutomationSourceData = {
     "broadcastDeliveryQueueMessageId",
     "broadcastDispatchPreflightId",
     "broadcastDispatchAttemptId",
+    "broadcastTestSendId",
     "broadcastSenderDomainReadinessId",
     "broadcastProviderEventReadinessId",
     "broadcastProviderRateLimitReadinessId",
@@ -497,5 +503,5 @@ export const audienceAutomationSourceData = {
   writeBoundary: audienceAutomationWorkspace.writeBoundary,
   workspaces: audienceAutomationWorkspaces,
   caveat:
-    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, unsubscribe-paused sequence enrollment aggregates from issue #343, aggregate sequence delivery-readiness evidence from issue #351, dry-run sequence schedule-intent evidence from issue #354, dry-run sequence delivery-batch evidence from issue #358, dry-run sequence queue-message evidence from issue #360, dry-run sequence dispatch-preflight evidence from issue #362, dry-run sequence dispatch-attempt receipt evidence from issue #364, sequence Queue producer readiness evidence from issue #366, sequence Queue consumer readiness evidence from issue #368, sequence provider-call readiness evidence from issue #370, sequence delivery-attempt readiness evidence from issue #372, sequence delivery-result readiness evidence from issue #374, sequence delivery-status webhook readiness evidence from issue #376, sequence provider-polling readiness evidence from issue #378, sequence receipt-payload readiness evidence from issue #380, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, broadcast preview/footer safety evidence, delivery queue readiness evidence, delivery-batch dry-run evidence, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, provider-polling readiness gates, receipt-payload readiness gates, owner-confirmed import intent evidence, owner-confirmed import preflight evidence, aggregate export-readiness evidence, and aggregate owner-inspection evidence. It does not import contacts, store raw import rows, store raw emails, create subscriber rows, create sequence enrollments from imports, export private contact data, create export files, expose export URLs, schedule sequence steps, send email, dispatch Cloudflare Queue messages, enable sequence or broadcast Queue producers or consumers, consume or ack Queue messages, create queue payload bodies, read queue payload bodies, create retry/dead-letter rows, create delivery queue rows, create delivery attempts or results, process webhooks, read webhook payloads, poll providers, read provider polling payloads, create provider polling results, create receipt payloads, create receipts, create recipient payloads, create personalized bodies, expose body templates, expose unsubscribe URLs, expose private DNS credentials, expose raw DNS records, expose provider secrets, expose provider limit secrets, expose raw provider payloads, expose raw provider response bodies, expose raw payload bodies, create provider calls, create provider responses, create provider message IDs, expose import private notes, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
+    "This contract proves audience, opt-in, email sequence, automation read/preview semantics, consent-backed subscriber capture, public-safe unsubscribe/suppression evidence, unsubscribe-paused sequence enrollment aggregates from issue #343, aggregate sequence delivery-readiness evidence from issue #351, dry-run sequence schedule-intent evidence from issue #354, dry-run sequence delivery-batch evidence from issue #358, dry-run sequence queue-message evidence from issue #360, dry-run sequence dispatch-preflight evidence from issue #362, dry-run sequence dispatch-attempt receipt evidence from issue #364, sequence Queue producer readiness evidence from issue #366, sequence Queue consumer readiness evidence from issue #368, sequence provider-call readiness evidence from issue #370, sequence delivery-attempt readiness evidence from issue #372, sequence delivery-result readiness evidence from issue #374, sequence delivery-status webhook readiness evidence from issue #376, sequence provider-polling readiness evidence from issue #378, sequence receipt-payload readiness evidence from issue #380, owner-only CRM timeline note evidence, suppression-aware broadcast readiness, owner-confirmed dry-run schedule intent evidence, broadcast preview/footer safety evidence, delivery queue readiness evidence, delivery-batch dry-run evidence, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, provider-polling readiness gates, receipt-payload readiness gates, owner-only broadcast test-send evidence, owner-confirmed import intent evidence, owner-confirmed import preflight evidence, aggregate export-readiness evidence, and aggregate owner-inspection evidence. It does not import contacts, store raw import rows, store raw emails, create subscriber rows, create sequence enrollments from imports, export private contact data, create export files, expose export URLs, schedule sequence steps, send subscriber email, dispatch Cloudflare Queue messages, enable sequence or broadcast Queue producers or consumers, consume or ack Queue messages, create queue payload bodies, read queue payload bodies, create retry/dead-letter rows, create delivery queue rows, create delivery attempts or results, process webhooks, read webhook payloads, poll providers, read provider polling payloads, create provider polling results, create receipt payloads, create receipts, create recipient payloads, create personalized bodies, expose body templates, expose unsubscribe URLs, expose private DNS credentials, expose raw DNS records, expose provider secrets, expose provider limit secrets, expose raw provider payloads, expose raw provider response bodies, expose raw payload bodies, create provider calls, create provider responses, create provider message IDs, expose import private notes, publicly expose private contact data, automate CRM actions, or provide direct confirmed-write public agent APIs.",
 };
