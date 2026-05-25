@@ -440,7 +440,7 @@ import {
   selfServePricingContract,
   whiteGloveSetupAddon,
 } from "../src/lib/pricing-plans";
-import { publisherTenantSourceData } from "../src/lib/publisher-tenants";
+import { publisherFreeBuildWorkspaceConfirmationText, publisherTenantSourceData } from "../src/lib/publisher-tenants";
 import { roadmapItems, roadmapLanes } from "../src/lib/roadmap";
 import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandbox-checkout";
 
@@ -460,7 +460,7 @@ const routes = [
   { path: "/pricing", heading: "Start building your publisher launch system today" },
   { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
   { path: "/pricing/success", heading: "Finish verifying your checkout" },
-  { path: "/account/setup", heading: "Choose the Bumpgrade subdomain" },
+  { path: "/account/setup", heading: "Create the private workspace" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch funnel" },
   { path: "/offers/indie-launch-stack", heading: "Indie launch checkout offer stack" },
   { path: "/products/indie-launch-library", heading: "Indie launch product and access library" },
@@ -1007,8 +1007,8 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "pricing-track-free-build",
           price: "$0 while building",
-          status: "planned",
-          issueNumbers: expect.arrayContaining([466]),
+          status: "live",
+          issueNumbers: expect.arrayContaining([466, 473]),
         }),
         expect.objectContaining({ id: "pricing-track-agent", price: "Contact us" }),
       ]),
@@ -1017,7 +1017,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         id: "self-serve-pricing-and-account-setup",
         status: "live",
-        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316, 466]),
+        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316, 466, 473]),
         freeBuildMode: expect.objectContaining({ id: freeBuildModeContract.id }),
         defaultSubdomain: expect.stringContaining("go-live entitlement"),
         customDomain: expect.stringContaining("domain they already own"),
@@ -1048,15 +1048,21 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         id: pricingSourceData.id,
         updatedAt: pricingSourceData.updatedAt,
-        issueNumbers: expect.arrayContaining([316, 466]),
+        issueNumbers: expect.arrayContaining([316, 466, 473]),
         routes: expect.arrayContaining(["/pricing", pricingSourceDataRoute, "/api/billing/checkout", "/pricing/success"]),
         freeBuildMode: expect.objectContaining({
           id: freeBuildModeContract.id,
           issue: 466,
           currentAvailability: expect.objectContaining({
-            signedInFreeWorkspaceLive: false,
+            signedInFreeWorkspaceLive: true,
             anonymousPlaygroundLive: false,
             paidGoLiveRequired: true,
+          }),
+          signedInWorkspace: expect.objectContaining({
+            status: "live",
+            issue: 473,
+            route: "/api/account/publisher/free-build-workspace",
+            planStatus: "free_build",
           }),
           anonymousPlayground: expect.objectContaining({ status: "designed-not-live" }),
         }),
@@ -1184,8 +1190,26 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         accountSetup: "/account/setup",
         accountSourceData: "/account/source-data",
+        freeBuildWorkspaceApi: "/api/account/publisher/free-build-workspace",
         reserveSubdomainApi: "/api/account/publisher/subdomain",
         customDomainApi: "/api/account/publisher/custom-domain",
+      }),
+    );
+    expect(payload.freeBuildPolicy).toEqual(
+      expect.objectContaining({
+        status: "live",
+        issue: 473,
+        parentIssue: 466,
+        signedInWorkspaceLive: true,
+        anonymousPlaygroundLive: false,
+        route: "/api/account/publisher/free-build-workspace",
+        privateBuildPlanStatus: "free_build",
+        paidGoLiveGates: expect.arrayContaining([
+          "Bumpgrade subdomain reservation",
+          "Custom-domain onboarding",
+          "Public publishing",
+          "Live checkout and payment collection",
+        ]),
       }),
     );
     expect(payload.subdomainPolicy).toEqual(
@@ -28891,7 +28915,7 @@ test.describe("Bumpgrade scaffold", () => {
     await verifyEmail(page, email);
 
     await page.goto("/account/setup");
-    await expect(page.getByRole("heading", { name: /Choose the Bumpgrade subdomain/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Create the private workspace/i })).toBeVisible();
     await expect(page.locator("header.site-header").getByRole("link", { name: "Log in / sign up", exact: true })).toHaveCount(0);
     await expect(page.locator("header.site-header").getByRole("link", { name: "Account", exact: true })).toBeVisible();
 
@@ -28981,7 +29005,105 @@ test.describe("Bumpgrade scaffold", () => {
     );
 
     await page.goto("/account/setup");
-    await expect(page.getByRole("heading", { name: /Choose the Bumpgrade subdomain/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Create the private workspace/i })).toBeVisible();
+    await expect(page.getByText("Paid plan required")).toBeVisible();
+  });
+
+  test("verified publisher can create Free Build workspace while domains stay paid-gated", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const email = `free-build-publisher-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Free Build Publisher");
+    await verifyEmail(page, email);
+
+    const idempotencyKey = `playwright-free-build-workspace-${suffix}`;
+    const createResponse = await page.request.post("/api/account/publisher/free-build-workspace", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: publisherFreeBuildWorkspaceConfirmationText,
+        idempotencyKey,
+      },
+    });
+    expect(createResponse.ok(), await createResponse.text()).toBeTruthy();
+    const createPayload = await createResponse.json();
+    expect(createPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 473,
+        parentIssue: 466,
+        planStatus: "free_build",
+        paidGoLiveRequired: true,
+        idempotent: false,
+        tenant: expect.objectContaining({
+          planStatus: "free_build",
+          defaultSubdomain: null,
+          primaryHostname: null,
+          sourceIssueNumber: 473,
+        }),
+        redaction: expect.objectContaining({
+          rawOwnerDataIncluded: false,
+          publicPublishingEnabled: false,
+        }),
+      }),
+    );
+
+    const replayResponse = await page.request.post("/api/account/publisher/free-build-workspace", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: publisherFreeBuildWorkspaceConfirmationText,
+        idempotencyKey,
+      },
+    });
+    expect(replayResponse.ok(), await replayResponse.text()).toBeTruthy();
+    const replayPayload = await replayResponse.json();
+    expect(replayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        idempotent: true,
+        tenant: expect.objectContaining({ id: createPayload.tenant.id, planStatus: "free_build" }),
+      }),
+    );
+
+    const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        subdomain: `free-build-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-free-build-subdomain-${suffix}`,
+      },
+    });
+    expect(subdomainResponse.status()).toBe(402);
+    expect(await subdomainResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 222,
+      }),
+    );
+
+    const customDomainResponse = await page.request.post("/api/account/publisher/custom-domain", {
+      headers: { accept: "application/json" },
+      data: {
+        return: "json",
+        mode: "start",
+        domainName: `www.free-build-${suffix}.com`,
+        idempotencyKey: `playwright-free-build-custom-domain-${suffix}`,
+      },
+    });
+    expect(customDomainResponse.status()).toBe(402);
+    expect(await customDomainResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 223,
+      }),
+    );
+
+    await page.goto("/account/setup");
+    await expect(page.getByRole("heading", { name: "Free Build active" })).toBeVisible();
+    await expect(page.getByText("Private Free Build workspace is ready.")).toBeVisible();
     await expect(page.getByText("Paid plan required")).toBeVisible();
   });
 

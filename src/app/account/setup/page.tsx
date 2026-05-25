@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
-import { ArrowRight, BadgeCheck, Globe2, LockKeyhole, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Globe2, LockKeyhole, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import {
@@ -9,6 +9,7 @@ import {
   loadPublisherAccountState,
   publisherDefaultDomain,
   publisherCustomDomainConfirmationText,
+  publisherFreeBuildWorkspaceConfirmationText,
   publisherSubdomainConfirmationText,
   type PublisherSessionUser,
 } from "@/lib/publisher-tenants";
@@ -16,7 +17,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Account setup",
-  description: "Set up your Bumpgrade publisher account and reserve your paid Bumpgrade subdomain.",
+  description: "Set up your Bumpgrade publisher account, create a private Free Build workspace, and reserve your paid Bumpgrade subdomain when you are ready to go live.",
   alternates: {
     canonical: `${site.url}/account/setup`,
   },
@@ -31,6 +32,7 @@ type AccountSetupPageProps = {
     customDomain?: string;
     customDomainPending?: string;
     customDomainVerified?: string;
+    freeBuild?: string;
     error?: string;
   }>;
 };
@@ -63,6 +65,11 @@ function randomCustomDomainIdempotencyKey() {
   return `publisher-custom-domain-${random}`;
 }
 
+function randomFreeBuildIdempotencyKey() {
+  const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return `publisher-free-build-workspace-${random}`;
+}
+
 export default async function AccountSetupPage({ searchParams }: AccountSetupPageProps) {
   const params = await searchParams;
   const user = await getSessionUser();
@@ -76,18 +83,18 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
       <section className="account-setup-hero">
         <div>
           <p className="eyebrow">Publisher account</p>
-          <h1>Choose the Bumpgrade subdomain for your launch workspace.</h1>
+          <h1>Create the private workspace for your publisher launch.</h1>
           <p className="lede">
-            Every paid publisher account starts with a default {publisherDefaultDomain} subdomain. Use it for launch
-            examples, customer paths, and early buyer access before adding your own domain.
+            Free Build lets you start private setup before payment. Public domains, live checkout, subscriber sends,
+            and fulfillment stay behind the paid go-live step.
           </p>
           <div className="hero-actions">
-            <Link href="/pricing" className="primary-action">
-              Review paid plans
+            <Link href="#free-build" className="primary-action">
+              Start Free Build
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="#custom-domain" className="secondary-action">
-              Domain setup
+            <Link href="#go-live-domains" className="secondary-action">
+              Go-live domains
               <Globe2 aria-hidden="true" />
             </Link>
           </div>
@@ -95,20 +102,28 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
         <aside className="account-status-panel">
           <Globe2 aria-hidden="true" />
           <p>Current setup state</p>
-          <strong>{reservation ? reservation.fullHostname : state.kind === "ready" ? "Ready to reserve" : "Action needed"}</strong>
+          <strong>
+            {reservation
+              ? reservation.fullHostname
+              : state.kind === "ready"
+                ? "Ready to reserve"
+                : state.kind === "free_build"
+                  ? "Free Build active"
+                  : "Action needed"}
+          </strong>
           <span>{state.message}</span>
         </aside>
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band alternate" id="free-build">
         <div className="split-heading">
           <div>
-            <p className="eyebrow">Default domain</p>
-            <h2>Reserve a unique Bumpgrade hostname.</h2>
+            <p className="eyebrow">Free Build</p>
+            <h2>Start private setup before paying.</h2>
           </div>
           <p>
-            Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan
-            on the account. System names like api, www, login, pricing, and features stay unavailable.
+            A private workspace gives Bumpgrade something durable to attach drafts, launch context, and future imports
+            to. It does not publish routes, collect buyer payments, send subscribers, reserve domains, or fulfill access.
           </p>
         </div>
 
@@ -133,13 +148,26 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </article>
 
           <article className="account-setup-card">
+            <Sparkles aria-hidden="true" />
+            <p className="eyebrow">Private workspace</p>
+            <h3>{state.tenant ? (state.entitlement ? "Paid workspace active" : "Free Build active") : "Not created yet"}</h3>
+            <p>
+              {state.tenant
+                ? state.entitlement
+                  ? "This account has a workspace attached to an active go-live plan."
+                  : "This account has a private workspace for draft launch setup before go-live."
+                : "Create the private workspace now, then add a paid go-live plan when you are ready for public buyer paths."}
+            </p>
+          </article>
+
+          <article className="account-setup-card">
             <BadgeCheck aria-hidden="true" />
-            <p className="eyebrow">Paid plan</p>
+            <p className="eyebrow">Go-live plan</p>
             <h3>{state.entitlement ? state.entitlement.planSlug : "Paid plan required"}</h3>
             <p>
               {state.entitlement
-                ? "This account has an active paid plan for subdomain reservation."
-                : "Choose a paid plan before selecting a Bumpgrade subdomain."}
+                ? "This account has an active paid plan for public domains and go-live setup."
+                : "Pay when you are ready to reserve domains, publish public buyer paths, collect live payments, send subscribers, or fulfill access."}
             </p>
             {!state.entitlement ? (
               <Link href="/pricing" className="secondary-action">
@@ -156,7 +184,7 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
             <p>
               {reservation
                 ? "This Bumpgrade subdomain is attached to the publisher tenant."
-                : "Pick the public name you want customers to see under bumpgrade.com."}
+                : "Pick the public name customers will see under bumpgrade.com after a paid go-live plan is active."}
             </p>
             {reservation ? (
               <a href={`https://${reservation.fullHostname}`} className="secondary-action">
@@ -167,8 +195,38 @@ export default async function AccountSetupPage({ searchParams }: AccountSetupPag
           </article>
         </div>
 
+        {params?.freeBuild === "created" ? <p className="account-success">Private Free Build workspace is ready.</p> : null}
         {params?.reserved ? <p className="account-success">Reserved {params.reserved} for this publisher account.</p> : null}
         {params?.error ? <p className="auth-error">{params.error}</p> : null}
+
+        {!state.tenant ? (
+          <form action="/api/account/publisher/free-build-workspace" method="post" className="subdomain-reservation-form">
+            <input type="hidden" name="idempotencyKey" value={randomFreeBuildIdempotencyKey()} />
+            <input type="hidden" name="confirmationText" value={publisherFreeBuildWorkspaceConfirmationText} />
+            <label htmlFor="free-build-workspace">Private Free Build workspace</label>
+            <p id="free-build-workspace">
+              Create a private launch workspace for drafts, offer context, and future agent-readable setup state. This
+              is not public publishing, live checkout, subscriber sending, custom domains, or fulfillment.
+            </p>
+            <button type="submit" className="primary-action" disabled={!state.canCreateFreeBuildWorkspace}>
+              Create Free Build workspace
+              <Sparkles aria-hidden="true" />
+            </button>
+          </form>
+        ) : null}
+      </section>
+
+      <section className="content-band" id="go-live-domains">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Go-live domain</p>
+            <h2>Reserve a unique Bumpgrade hostname when paid.</h2>
+          </div>
+          <p>
+            Subdomain reservations require a signed-in, email-confirmed publisher account with an active paid plan
+            on the account. System names like api, www, login, pricing, and features stay unavailable.
+          </p>
+        </div>
 
         <form action="/api/account/publisher/subdomain" method="post" className="subdomain-reservation-form">
           <input type="hidden" name="idempotencyKey" value={randomIdempotencyKey()} />
