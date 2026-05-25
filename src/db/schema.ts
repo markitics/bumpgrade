@@ -2678,6 +2678,43 @@ export const audienceBroadcastDispatchPreflights = sqliteTable(
   }),
 );
 
+export const audienceBroadcastTestSends = sqliteTable(
+  "audience_broadcast_test_sends",
+  {
+    id: text("id").primaryKey(),
+    draftId: text("draft_id").notNull(),
+    status: text("status").notNull().default("owner_test_send_recorded"),
+    recipientScope: text("recipient_scope").notNull().default("verified-owner-session-email-only"),
+    recipientEmailHash: text("recipient_email_hash").notNull(),
+    subjectLine: text("subject_line").notNull(),
+    previewText: text("preview_text").notNull(),
+    expectedDraftUpdatedAt: text("expected_draft_updated_at").notNull(),
+    expectedReadyRecipientCount: integer("expected_ready_recipient_count").notNull().default(0),
+    provider: text("provider").notNull(),
+    providerOk: integer("provider_ok", { mode: "boolean" }).notNull().default(false),
+    providerError: text("provider_error"),
+    ownerTestEmailAttempted: integer("owner_test_email_attempted", { mode: "boolean" }).notNull().default(true),
+    subscriberPayloadsCreated: integer("subscriber_payloads_created", { mode: "boolean" }).notNull().default(false),
+    publicAgentSendCreated: integer("public_agent_send_created", { mode: "boolean" }).notNull().default(false),
+    providerMessageIdsCreated: integer("provider_message_ids_created", { mode: "boolean" }).notNull().default(false),
+    rawRecipientEmailStored: integer("raw_recipient_email_stored", { mode: "boolean" }).notNull().default(false),
+    rawEmailBodyStored: integer("raw_email_body_stored", { mode: "boolean" }).notNull().default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    auditCorrelationId: text("audit_correlation_id").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("audience_broadcast_test_sends_idempotency_unique").on(table.idempotencyKey),
+    draftStatusIdx: index("audience_broadcast_test_sends_draft_status_idx").on(table.draftId, table.status),
+    createdIdx: index("audience_broadcast_test_sends_created_idx").on(table.createdAt),
+  }),
+);
+
 export const analyticsEvents = sqliteTable(
   "analytics_events",
   {

@@ -17,6 +17,7 @@ import {
   getAudienceBroadcastScheduleIntentSummary,
   getAudienceBroadcastSendPayloadReadinessSummary,
   getAudienceBroadcastSenderDomainReadinessSummary,
+  getAudienceBroadcastTestSendSummary,
 } from "@/lib/audience-broadcasts";
 import { getAudienceExportReadinessSummary } from "@/lib/audience-exports";
 import { getAudienceImportIntentSummary, getAudienceImportPreflightSummary } from "@/lib/audience-imports";
@@ -57,6 +58,7 @@ export async function GET() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    broadcastTestSends,
     audienceSequenceDeliveryReadiness,
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,
@@ -91,6 +93,7 @@ export async function GET() {
     getAudienceBroadcastSendPayloadReadinessSummary(),
     getAudienceBroadcastQueueProducerReadinessSummary(),
     getAudienceBroadcastQueueConsumerReadinessSummary(),
+    getAudienceBroadcastTestSendSummary(),
     getAudienceSequenceDeliveryReadinessSummary(),
     getAudienceSequenceScheduleIntentSummary(),
     getAudienceSequenceDeliveryBatchSummary(),
@@ -121,6 +124,7 @@ export async function GET() {
         broadcastDeliveryQueueMessages.apiRoute,
         broadcastDispatchPreflights.apiRoute,
         broadcastDispatchAttempts.apiRoute,
+        broadcastTestSends.apiRoute,
         audienceSequenceScheduleIntents.apiRoute,
         audienceSequenceDeliveryBatches.apiRoute,
         audienceSequenceDeliveryQueueMessages.apiRoute,
@@ -154,6 +158,7 @@ export async function GET() {
     broadcastSendPayloadReadiness,
     broadcastQueueProducerReadiness,
     broadcastQueueConsumerReadiness,
+    broadcastTestSends,
     audienceSequenceDeliveryReadiness,
     audienceSequenceScheduleIntents,
     audienceSequenceDeliveryBatches,

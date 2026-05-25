@@ -1,6 +1,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
+import { sha256Hex } from "@/lib/analytics-events";
+import { sendTransactionalEmail, simpleEmailHtml, type TransactionalEmailSendResult } from "@/lib/email";
 
 export const audienceBroadcastReadinessIssue = 171;
 export const audienceBroadcastReadinessStatus = "broadcast-readiness-ready";
@@ -63,6 +65,11 @@ export const audienceBroadcastQueueProducerReadinessUpdatedAt = "2026-05-20";
 export const audienceBroadcastQueueConsumerReadinessIssue = 211;
 export const audienceBroadcastQueueConsumerReadinessStatus = "broadcast-queue-consumer-readiness-ready";
 export const audienceBroadcastQueueConsumerReadinessUpdatedAt = "2026-05-20";
+export const audienceBroadcastTestSendIssue = 420;
+export const audienceBroadcastTestSendStatus = "broadcast-owner-test-send-ready";
+export const audienceBroadcastTestSendUpdatedAt = "2026-05-25";
+export const audienceBroadcastTestSendApiRoute = "/api/admin/audience/broadcasts/test-sends";
+export const audienceBroadcastTestSendConfirmationText = "SEND BUMPGRADE BROADCAST TEST EMAIL TO OWNER";
 
 type AudienceRuntime = {
   db: D1Database;
@@ -311,6 +318,35 @@ type QueueConsumerReadinessRow = {
   provider_responses_created: number | string;
   provider_message_ids_created: number | string;
   raw_payload_bodies_stored: number | string;
+  updated_at: number | string;
+};
+
+type TestSendRow = {
+  id: string;
+  draft_id: string;
+  status: string;
+  recipient_scope: string;
+  recipient_email_hash: string;
+  subject_line: string;
+  preview_text: string;
+  expected_draft_updated_at: string;
+  expected_ready_recipient_count: number | string;
+  provider: TransactionalEmailSendResult["provider"];
+  provider_ok: number | string;
+  provider_error: string | null;
+  owner_test_email_attempted: number | string;
+  subscriber_payloads_created: number | string;
+  public_agent_send_created: number | string;
+  provider_message_ids_created: number | string;
+  raw_recipient_email_stored: number | string;
+  raw_email_body_stored: number | string;
+  idempotency_key: string;
+  audit_correlation_id: string;
+  actor_user_id: string | null;
+  actor_email_hash: string;
+  confirmation_text_sha256: string;
+  metadata_json: string | null;
+  created_at: number | string;
   updated_at: number | string;
 };
 
@@ -1353,6 +1389,84 @@ export type AudienceBroadcastDispatchAttemptSummary = {
   writeBoundary: string;
 };
 
+export type AudienceBroadcastTestSend = {
+  id: string;
+  draftId: string;
+  status: string;
+  recipientScope: string;
+  subjectLine: string;
+  previewText: string;
+  expectedDraftUpdatedAt: string;
+  expectedReadyRecipientCount: number;
+  provider: TransactionalEmailSendResult["provider"];
+  providerOk: boolean;
+  providerErrorCode: "email_send_failed" | null;
+  ownerTestEmailAttempted: true;
+  ownerTestEmailSent: boolean;
+  ownerTestEmailCaptured: boolean;
+  developmentNoop: boolean;
+  subscriberPayloadsCreated: false;
+  publicAgentSendCreated: false;
+  providerMessageIdsIncluded: false;
+  rawRecipientEmailIncluded: false;
+  rawEmailBodyIncluded: false;
+  auditCorrelationId: string;
+  duplicate: boolean;
+  createdAt: string | null;
+};
+
+export type AudienceBroadcastTestSendSummary = {
+  id: string;
+  status: typeof audienceBroadcastTestSendStatus;
+  issue: typeof audienceBroadcastTestSendIssue;
+  parentIssue: 420;
+  apiRoute: typeof audienceBroadcastTestSendApiRoute;
+  ownerRoute: "/admin/audience";
+  source: "d1" | "unavailable";
+  loadError: string | null;
+  confirmation: {
+    required: true;
+    text: typeof audienceBroadcastTestSendConfirmationText;
+  };
+  auth: {
+    required: true;
+    boundary: "owner-session";
+    acceptedRoles: ["owner"];
+  };
+  allowedRecipientScope: "verified-owner-session-email-only";
+  counts: {
+    testSends: number;
+    providerOkRows: number;
+    providerFailedRows: number;
+    cloudflareBindingSends: number;
+    testCaptures: number;
+    developmentNoops: number;
+    subscriberPayloadsCreatedRecords: number;
+    publicAgentSendCreatedRecords: number;
+    providerMessageIdsCreatedRecords: number;
+    rawRecipientEmailStoredRecords: number;
+    rawEmailBodyStoredRecords: number;
+  };
+  latestTestSends: AudienceBroadcastTestSend[];
+  redaction: {
+    privateContactDataIncluded: false;
+    rawRecipientEmailsIncluded: false;
+    rawRecipientEmailHashesIncluded: false;
+    actorEmailIncluded: false;
+    actorEmailHashIncluded: false;
+    actorUserIdIncluded: false;
+    idempotencyKeysIncluded: false;
+    confirmationTextHashesIncluded: false;
+    providerErrorIncluded: false;
+    providerMessageIdsIncluded: false;
+    rawEmailBodyIncluded: false;
+    subscriberPayloadsIncluded: false;
+    publicAgentSendCreated: false;
+  };
+  privateFieldsExcluded: string[];
+  writeBoundary: string;
+};
+
 type CreateScheduleIntentInput = {
   draftId?: unknown;
   expectedDraftUpdatedAt?: unknown;
@@ -1400,6 +1514,16 @@ type CreateDispatchAttemptInput = {
   expectedReadyRecipientCount?: unknown;
   confirmationText?: unknown;
   idempotencyKey?: string | null;
+  actor: AdminIdentity;
+};
+
+type CreateTestSendInput = {
+  draftId?: unknown;
+  expectedDraftUpdatedAt?: unknown;
+  expectedReadyRecipientCount?: unknown;
+  confirmationText?: unknown;
+  idempotencyKey?: string | null;
+  auditCorrelationId?: unknown;
   actor: AdminIdentity;
 };
 
@@ -1537,6 +1661,35 @@ type CreateDispatchAttemptResult =
       currentReadyRecipientCount?: number;
     };
 
+type CreateTestSendResult =
+  | {
+      ok: true;
+      status: "broadcast_owner_test_send_recorded" | "broadcast_owner_test_send_replayed";
+      duplicate: boolean;
+      testSend: AudienceBroadcastTestSend;
+      redaction: AudienceBroadcastTestSendSummary["redaction"];
+    }
+  | {
+      ok: false;
+      status:
+        | "invalid_request"
+        | "owner_email_required"
+        | "confirmation_required"
+        | "broadcast_draft_not_found"
+        | "preview_safety_unavailable"
+        | "preview_safety_not_ready"
+        | "readiness_unavailable"
+        | "stale_draft_revision"
+        | "stale_readiness_count"
+        | "test_send_not_created"
+        | "email_send_failed";
+      message: string;
+      redaction: AudienceBroadcastTestSendSummary["redaction"];
+      currentDraftUpdatedAt?: string | null;
+      currentReadyRecipientCount?: number;
+      testSend?: AudienceBroadcastTestSend;
+    };
+
 async function getRuntime(): Promise<AudienceRuntime> {
   const { env } = await getCloudflareContext({ async: true });
   const cloudflareEnv = env as Cloudflare.Env;
@@ -1557,10 +1710,10 @@ function timestampValue(value: number | string | null | undefined) {
   return new Date(seconds * 1000).toISOString();
 }
 
-function parseString(value: unknown) {
+function parseString(value: unknown, maxLength = 220) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  return trimmed || null;
+  return trimmed ? trimmed.slice(0, maxLength) : null;
 }
 
 function parseInteger(value: unknown) {
@@ -2390,6 +2543,77 @@ function emptyDispatchAttemptSummary(
   };
 }
 
+function emptyTestSendSummary(
+  source: AudienceBroadcastTestSendSummary["source"],
+  loadError: string | null,
+): AudienceBroadcastTestSendSummary {
+  return {
+    id: "audience-broadcast-owner-test-send-contract",
+    status: audienceBroadcastTestSendStatus,
+    issue: audienceBroadcastTestSendIssue,
+    parentIssue: 420,
+    apiRoute: audienceBroadcastTestSendApiRoute,
+    ownerRoute: "/admin/audience",
+    source,
+    loadError,
+    confirmation: {
+      required: true,
+      text: audienceBroadcastTestSendConfirmationText,
+    },
+    auth: {
+      required: true,
+      boundary: "owner-session",
+      acceptedRoles: ["owner"],
+    },
+    allowedRecipientScope: "verified-owner-session-email-only",
+    counts: {
+      testSends: 0,
+      providerOkRows: 0,
+      providerFailedRows: 0,
+      cloudflareBindingSends: 0,
+      testCaptures: 0,
+      developmentNoops: 0,
+      subscriberPayloadsCreatedRecords: 0,
+      publicAgentSendCreatedRecords: 0,
+      providerMessageIdsCreatedRecords: 0,
+      rawRecipientEmailStoredRecords: 0,
+      rawEmailBodyStoredRecords: 0,
+    },
+    latestTestSends: [],
+    redaction: {
+      privateContactDataIncluded: false,
+      rawRecipientEmailsIncluded: false,
+      rawRecipientEmailHashesIncluded: false,
+      actorEmailIncluded: false,
+      actorEmailHashIncluded: false,
+      actorUserIdIncluded: false,
+      idempotencyKeysIncluded: false,
+      confirmationTextHashesIncluded: false,
+      providerErrorIncluded: false,
+      providerMessageIdsIncluded: false,
+      rawEmailBodyIncluded: false,
+      subscriberPayloadsIncluded: false,
+      publicAgentSendCreated: false,
+    },
+    privateFieldsExcluded: [
+      "recipientEmail",
+      "recipientEmailHash",
+      "actorEmail",
+      "actorEmailHash",
+      "actorUserId",
+      "idempotencyKey",
+      "confirmationTextSha256",
+      "providerError",
+      "providerMessageId",
+      "rawEmailBody",
+      "subscriberPayload",
+      "metadataJson",
+    ],
+    writeBoundary:
+      "Issue #420 lets verified owners send one controlled broadcast test email only to the verified owner-session email after exact confirmation, idempotency, audit correlation, draft stale-state checks, preview/footer checks, and D1 evidence. It does not send to subscribers, create recipient payloads, dispatch Cloudflare Queue messages, expose raw recipient email, expose email bodies in source-data, create provider message IDs, or authorize public agent broadcast sends.",
+  };
+}
+
 function mapDraft(row: BroadcastDraftRow, counts: ReadinessCountRow | null): AudienceBroadcastDraftReadiness {
   return {
     id: row.id,
@@ -2802,6 +3026,35 @@ function publicDispatchAttempt(row: DispatchAttemptRow, duplicate: boolean): Aud
   };
 }
 
+function publicTestSend(row: TestSendRow, duplicate: boolean): AudienceBroadcastTestSend {
+  const providerOk = numberValue(row.provider_ok) > 0;
+  return {
+    id: row.id,
+    draftId: row.draft_id,
+    status: row.status,
+    recipientScope: row.recipient_scope,
+    subjectLine: row.subject_line,
+    previewText: row.preview_text,
+    expectedDraftUpdatedAt: row.expected_draft_updated_at,
+    expectedReadyRecipientCount: numberValue(row.expected_ready_recipient_count),
+    provider: row.provider,
+    providerOk,
+    providerErrorCode: providerOk ? null : "email_send_failed",
+    ownerTestEmailAttempted: true,
+    ownerTestEmailSent: providerOk && row.provider === "cloudflare-binding",
+    ownerTestEmailCaptured: providerOk && row.provider === "test",
+    developmentNoop: providerOk && row.provider === "development",
+    subscriberPayloadsCreated: false,
+    publicAgentSendCreated: false,
+    providerMessageIdsIncluded: false,
+    rawRecipientEmailIncluded: false,
+    rawEmailBodyIncluded: false,
+    auditCorrelationId: row.audit_correlation_id,
+    duplicate,
+    createdAt: timestampValue(row.created_at),
+  };
+}
+
 async function findScheduleIntentByIdempotency(db: D1Database, idempotencyKey: string) {
   return db
     .prepare(
@@ -2943,6 +3196,23 @@ async function findDispatchAttemptByIdempotency(db: D1Database, idempotencyKey: 
     )
     .bind(idempotencyKey)
     .first<DispatchAttemptRow>();
+}
+
+async function findTestSendByIdempotency(db: D1Database, idempotencyKey: string) {
+  return db
+    .prepare(
+      `SELECT
+        id, draft_id, status, recipient_scope, recipient_email_hash, subject_line, preview_text,
+        expected_draft_updated_at, expected_ready_recipient_count, provider, provider_ok, provider_error,
+        owner_test_email_attempted, subscriber_payloads_created, public_agent_send_created,
+        provider_message_ids_created, raw_recipient_email_stored, raw_email_body_stored, idempotency_key,
+        audit_correlation_id, actor_user_id, actor_email_hash, confirmation_text_sha256, metadata_json,
+        created_at, updated_at
+      FROM audience_broadcast_test_sends
+      WHERE idempotency_key = ?`,
+    )
+    .bind(idempotencyKey)
+    .first<TestSendRow>();
 }
 
 export async function getAudienceBroadcastReadinessSummary(): Promise<AudienceBroadcastReadinessSummary> {
@@ -3739,6 +4009,78 @@ export async function getAudienceBroadcastDispatchAttemptSummary(): Promise<Audi
     return emptyDispatchAttemptSummary(
       "unavailable",
       error instanceof Error ? error.message : "Unable to load audience broadcast dispatch attempts.",
+    );
+  }
+}
+
+export async function getAudienceBroadcastTestSendSummary(): Promise<AudienceBroadcastTestSendSummary> {
+  try {
+    const { db } = await getRuntime();
+    const counts = await db
+      .prepare(
+        `SELECT
+          COUNT(*) AS test_send_count,
+          SUM(CASE WHEN provider_ok > 0 THEN 1 ELSE 0 END) AS provider_ok_count,
+          SUM(CASE WHEN provider_ok = 0 THEN 1 ELSE 0 END) AS provider_failed_count,
+          SUM(CASE WHEN provider = 'cloudflare-binding' AND provider_ok > 0 THEN 1 ELSE 0 END) AS cloudflare_binding_send_count,
+          SUM(CASE WHEN provider = 'test' AND provider_ok > 0 THEN 1 ELSE 0 END) AS test_capture_count,
+          SUM(CASE WHEN provider = 'development' AND provider_ok > 0 THEN 1 ELSE 0 END) AS development_noop_count,
+          SUM(CASE WHEN subscriber_payloads_created > 0 THEN 1 ELSE 0 END) AS subscriber_payloads_created_count,
+          SUM(CASE WHEN public_agent_send_created > 0 THEN 1 ELSE 0 END) AS public_agent_send_created_count,
+          SUM(CASE WHEN provider_message_ids_created > 0 THEN 1 ELSE 0 END) AS provider_message_ids_created_count,
+          SUM(CASE WHEN raw_recipient_email_stored > 0 THEN 1 ELSE 0 END) AS raw_recipient_email_stored_count,
+          SUM(CASE WHEN raw_email_body_stored > 0 THEN 1 ELSE 0 END) AS raw_email_body_stored_count
+        FROM audience_broadcast_test_sends`,
+      )
+      .first<{
+        test_send_count: number | string | null;
+        provider_ok_count: number | string | null;
+        provider_failed_count: number | string | null;
+        cloudflare_binding_send_count: number | string | null;
+        test_capture_count: number | string | null;
+        development_noop_count: number | string | null;
+        subscriber_payloads_created_count: number | string | null;
+        public_agent_send_created_count: number | string | null;
+        provider_message_ids_created_count: number | string | null;
+        raw_recipient_email_stored_count: number | string | null;
+        raw_email_body_stored_count: number | string | null;
+      }>();
+    const latest = await db
+      .prepare(
+        `SELECT
+          id, draft_id, status, recipient_scope, recipient_email_hash, subject_line, preview_text,
+          expected_draft_updated_at, expected_ready_recipient_count, provider, provider_ok, provider_error,
+          owner_test_email_attempted, subscriber_payloads_created, public_agent_send_created,
+          provider_message_ids_created, raw_recipient_email_stored, raw_email_body_stored, idempotency_key,
+          audit_correlation_id, actor_user_id, actor_email_hash, confirmation_text_sha256, metadata_json,
+          created_at, updated_at
+        FROM audience_broadcast_test_sends
+        ORDER BY created_at DESC
+        LIMIT 10`,
+      )
+      .all<TestSendRow>();
+
+    return {
+      ...emptyTestSendSummary("d1", null),
+      counts: {
+        testSends: numberValue(counts?.test_send_count),
+        providerOkRows: numberValue(counts?.provider_ok_count),
+        providerFailedRows: numberValue(counts?.provider_failed_count),
+        cloudflareBindingSends: numberValue(counts?.cloudflare_binding_send_count),
+        testCaptures: numberValue(counts?.test_capture_count),
+        developmentNoops: numberValue(counts?.development_noop_count),
+        subscriberPayloadsCreatedRecords: numberValue(counts?.subscriber_payloads_created_count),
+        publicAgentSendCreatedRecords: numberValue(counts?.public_agent_send_created_count),
+        providerMessageIdsCreatedRecords: numberValue(counts?.provider_message_ids_created_count),
+        rawRecipientEmailStoredRecords: numberValue(counts?.raw_recipient_email_stored_count),
+        rawEmailBodyStoredRecords: numberValue(counts?.raw_email_body_stored_count),
+      },
+      latestTestSends: (latest.results ?? []).map((row) => publicTestSend(row, false)),
+    };
+  } catch (error) {
+    return emptyTestSendSummary(
+      "unavailable",
+      error instanceof Error ? error.message : "Unable to load audience broadcast owner test sends.",
     );
   }
 }
@@ -4664,6 +5006,254 @@ export async function createAudienceBroadcastDispatchAttempt(
     status: "broadcast_dispatch_attempt_recorded",
     duplicate: false,
     attempt: publicDispatchAttempt(attempt, false),
+    redaction,
+  };
+}
+
+function normalizeOwnerEmail(value: string | null | undefined) {
+  const normalized = value?.trim().toLowerCase() ?? "";
+  return normalized.includes("@") ? normalized : null;
+}
+
+function providerStatus(result: TransactionalEmailSendResult) {
+  if (!result.ok) return "owner_test_send_failed";
+  if (result.provider === "cloudflare-binding") return "owner_test_send_sent";
+  if (result.provider === "test") return "owner_test_send_captured";
+  return "owner_test_send_development_noop";
+}
+
+function providerErrorCode(result: TransactionalEmailSendResult) {
+  if (result.ok) return null;
+  return result.provider === "not-configured" ? "email_binding_not_configured" : "email_provider_send_failed";
+}
+
+function buildOwnerTestSendEmail(input: {
+  to: string;
+  draft: AudienceBroadcastDraftReadiness;
+  preview: AudienceBroadcastPreviewSafety;
+  auditCorrelationId: string;
+}) {
+  const subject = `[Bumpgrade test] ${input.preview.subjectLine || input.draft.subjectIntent}`;
+  const text = [
+    `Bumpgrade owner test send for ${input.draft.title}.`,
+    "",
+    `Subject intent: ${input.draft.subjectIntent}`,
+    `Preview: ${input.preview.previewText || input.draft.previewText}`,
+    `Audience scope checked: ${input.draft.audienceScope}`,
+    `Ready recipients checked: ${input.draft.readyRecipientCount}`,
+    `Audit correlation: ${input.auditCorrelationId}`,
+    "",
+    "This test was sent only to the verified owner session email.",
+    "It did not create subscriber payloads, dispatch Cloudflare Queue messages, or create provider message IDs.",
+  ].join("\n");
+
+  return {
+    to: input.to,
+    subject,
+    text,
+    html: simpleEmailHtml(
+      subject,
+      text,
+      "Open admin audience",
+      "https://bumpgrade.com/admin/audience",
+    ),
+    headers: {
+      "X-Bumpgrade-Audit-Correlation-Id": input.auditCorrelationId,
+      "X-Bumpgrade-Broadcast-Draft-Id": input.draft.id,
+      "X-Bumpgrade-Test-Send": "owner-only",
+    },
+  };
+}
+
+export async function createAudienceBroadcastTestSend(input: CreateTestSendInput): Promise<CreateTestSendResult> {
+  const redaction = emptyTestSendSummary("d1", null).redaction;
+  const draftId = parseString(input.draftId);
+  const expectedDraftUpdatedAt = parseString(input.expectedDraftUpdatedAt);
+  const expectedReadyRecipientCount = parseInteger(input.expectedReadyRecipientCount);
+  const idempotencyKey = input.idempotencyKey?.trim() || null;
+  const auditCorrelationId = parseString(input.auditCorrelationId, 160);
+  const ownerEmail = normalizeOwnerEmail(input.actor.email);
+
+  if (!draftId || !expectedDraftUpdatedAt || expectedReadyRecipientCount === null || !idempotencyKey || !auditCorrelationId) {
+    return {
+      ok: false,
+      status: "invalid_request",
+      message:
+        "A draft ID, expected draft updated time, expected readiness count, idempotency key, and audit correlation ID are required.",
+      redaction,
+    };
+  }
+
+  if (!ownerEmail) {
+    return {
+      ok: false,
+      status: "owner_email_required",
+      message: "A verified owner session email is required before sending an owner-only broadcast test.",
+      redaction,
+    };
+  }
+
+  if (input.confirmationText !== audienceBroadcastTestSendConfirmationText) {
+    return {
+      ok: false,
+      status: "confirmation_required",
+      message: "Exact confirmation text is required before sending an owner-only broadcast test.",
+      redaction,
+    };
+  }
+
+  const { db } = await getRuntime();
+  const existing = await findTestSendByIdempotency(db, idempotencyKey);
+  if (existing) {
+    return {
+      ok: true,
+      status: "broadcast_owner_test_send_replayed",
+      duplicate: true,
+      testSend: publicTestSend(existing, true),
+      redaction,
+    };
+  }
+
+  const readiness = await getAudienceBroadcastReadinessSummary();
+  if (readiness.source !== "d1") {
+    return {
+      ok: false,
+      status: "readiness_unavailable",
+      message: readiness.loadError ?? "Broadcast readiness is unavailable.",
+      redaction,
+    };
+  }
+
+  const draft = readiness.drafts.find((candidate) => candidate.id === draftId);
+  if (!draft) {
+    return {
+      ok: false,
+      status: "broadcast_draft_not_found",
+      message: "The broadcast draft could not be found.",
+      redaction,
+    };
+  }
+
+  if (draft.updatedAt !== expectedDraftUpdatedAt) {
+    return {
+      ok: false,
+      status: "stale_draft_revision",
+      message: "The broadcast draft changed before the owner test send was recorded.",
+      redaction,
+      currentDraftUpdatedAt: draft.updatedAt,
+    };
+  }
+
+  if (draft.readyRecipientCount !== expectedReadyRecipientCount) {
+    return {
+      ok: false,
+      status: "stale_readiness_count",
+      message: "Broadcast readiness changed before the owner test send was recorded.",
+      redaction,
+      currentReadyRecipientCount: draft.readyRecipientCount,
+    };
+  }
+
+  const previewSafety = await getAudienceBroadcastPreviewSafetySummary();
+  if (previewSafety.source !== "d1") {
+    return {
+      ok: false,
+      status: "preview_safety_unavailable",
+      message: previewSafety.loadError ?? "Broadcast preview safety is unavailable.",
+      redaction,
+    };
+  }
+  const previewRecord = previewSafety.records.find((record) => record.draftId === draftId);
+  if (!previewRecord || !previewRecord.unsubscribeFooterRequired) {
+    return {
+      ok: false,
+      status: "preview_safety_not_ready",
+      message: "Preview safety and unsubscribe footer checks must exist before an owner test send.",
+      redaction,
+    };
+  }
+
+  const sendResult = await sendTransactionalEmail(
+    buildOwnerTestSendEmail({
+      to: ownerEmail,
+      draft,
+      preview: previewRecord,
+      auditCorrelationId,
+    }),
+  );
+  const recipientEmailHash = await sha256Hex(ownerEmail);
+  const actorEmailHash = await sha256Hex(ownerEmail);
+  const confirmationTextSha256 = await sha256Hex(audienceBroadcastTestSendConfirmationText);
+  const testSendId = `broadcast-owner-test-send-${crypto.randomUUID()}`;
+  const providerOk = sendResult.ok ? 1 : 0;
+
+  await db
+    .prepare(
+      `INSERT INTO audience_broadcast_test_sends (
+        id, draft_id, status, recipient_scope, recipient_email_hash, subject_line, preview_text,
+        expected_draft_updated_at, expected_ready_recipient_count, provider, provider_ok, provider_error,
+        owner_test_email_attempted, subscriber_payloads_created, public_agent_send_created,
+        provider_message_ids_created, raw_recipient_email_stored, raw_email_body_stored, idempotency_key,
+        audit_correlation_id, actor_user_id, actor_email_hash, confirmation_text_sha256,
+        metadata_json, created_at, updated_at
+      ) VALUES (?, ?, ?, 'verified-owner-session-email-only', ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 0, 0, 0, 0, ?, ?, ?, ?, ?, ?, unixepoch(), unixepoch())`,
+    )
+    .bind(
+      testSendId,
+      draft.id,
+      providerStatus(sendResult),
+      recipientEmailHash,
+      previewRecord.subjectLine,
+      previewRecord.previewText || draft.previewText,
+      expectedDraftUpdatedAt,
+      draft.readyRecipientCount,
+      sendResult.provider,
+      providerOk,
+      providerErrorCode(sendResult),
+      idempotencyKey,
+      auditCorrelationId,
+      input.actor.userId,
+      actorEmailHash,
+      confirmationTextSha256,
+      JSON.stringify({
+        issue: audienceBroadcastTestSendIssue,
+        previewSafetyId: previewRecord.id,
+        ownerRecipientOnly: true,
+        subscriberPayloadsCreated: false,
+        publicAgentSendCreated: false,
+        providerMessageIdsIncluded: false,
+        rawRecipientEmailStored: false,
+        rawEmailBodyStored: false,
+      }),
+    )
+    .run();
+
+  const row = await findTestSendByIdempotency(db, idempotencyKey);
+  if (!row) {
+    return {
+      ok: false,
+      status: "test_send_not_created",
+      message: "The owner-only broadcast test send could not be saved.",
+      redaction,
+    };
+  }
+
+  const testSend = publicTestSend(row, false);
+  if (!sendResult.ok) {
+    return {
+      ok: false,
+      status: "email_send_failed",
+      message: "The owner-only broadcast test send was recorded, but the email provider did not accept it.",
+      redaction,
+      testSend,
+    };
+  }
+
+  return {
+    ok: true,
+    status: "broadcast_owner_test_send_recorded",
+    duplicate: false,
+    testSend,
     redaction,
   };
 }

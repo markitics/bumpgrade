@@ -79,6 +79,10 @@ import {
   audienceBroadcastSendPayloadReadinessStatus,
   audienceBroadcastSenderDomainReadinessIssue,
   audienceBroadcastSenderDomainReadinessStatus,
+  audienceBroadcastTestSendApiRoute,
+  audienceBroadcastTestSendConfirmationText,
+  audienceBroadcastTestSendIssue,
+  audienceBroadcastTestSendStatus,
 } from "../src/lib/audience-broadcasts";
 import { audienceCrmTimelineConfirmationText } from "../src/lib/audience-crm";
 import { audienceAutomationSourceData, audienceAutomationWorkspace } from "../src/lib/audience-automation";
@@ -4412,6 +4416,7 @@ test.describe("Bumpgrade scaffold", () => {
         audienceBroadcastDeliveryQueueMessageApiRoute,
         audienceBroadcastDispatchPreflightApiRoute,
         audienceBroadcastDispatchAttemptApiRoute,
+        audienceBroadcastTestSendApiRoute,
         audienceImportIntentApiRoute,
         audienceImportPreflightApiRoute,
         "/audience/indie-launch-waitlist",
@@ -5617,6 +5622,40 @@ test.describe("Bumpgrade scaffold", () => {
           providerResponsesIncluded: false,
           cloudflareQueueMessagesCreated: false,
           providerSendEnabled: false,
+        }),
+      }),
+    );
+    expect(payload.broadcastTestSends).toEqual(
+      expect.objectContaining({
+        id: "audience-broadcast-owner-test-send-contract",
+        status: audienceBroadcastTestSendStatus,
+        issue: audienceBroadcastTestSendIssue,
+        parentIssue: 420,
+        apiRoute: audienceBroadcastTestSendApiRoute,
+        ownerRoute: "/admin/audience",
+        allowedRecipientScope: "verified-owner-session-email-only",
+        confirmation: expect.objectContaining({
+          required: true,
+          text: audienceBroadcastTestSendConfirmationText,
+        }),
+        counts: expect.objectContaining({
+          testSends: expect.any(Number),
+          subscriberPayloadsCreatedRecords: 0,
+          publicAgentSendCreatedRecords: 0,
+          providerMessageIdsCreatedRecords: 0,
+          rawRecipientEmailStoredRecords: 0,
+          rawEmailBodyStoredRecords: 0,
+        }),
+        redaction: expect.objectContaining({
+          rawRecipientEmailsIncluded: false,
+          rawRecipientEmailHashesIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          confirmationTextHashesIncluded: false,
+          providerMessageIdsIncluded: false,
+          rawEmailBodyIncluded: false,
+          publicAgentSendCreated: false,
         }),
       }),
     );
@@ -7061,6 +7100,21 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(unauthorizedDispatchAttemptResponse.status()).toBe(401);
     await expect(unauthorizedDispatchAttemptResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    const unauthorizedTestSendResponse = await request.post(audienceBroadcastTestSendApiRoute, {
+      data: {
+        draftId: "broadcast-draft-launch-window",
+        expectedDraftUpdatedAt: "2026-05-19T00:00:00.000Z",
+        expectedReadyRecipientCount: 0,
+        confirmationText: audienceBroadcastTestSendConfirmationText,
+        idempotencyKey: `${idempotencyKey}-unauthorized-test-send`,
+        auditCorrelationId: `${idempotencyKey}-unauthorized-test-send-audit`,
+      },
+    });
+    expect(unauthorizedTestSendResponse.status()).toBe(401);
+    await expect(unauthorizedTestSendResponse.json()).resolves.toEqual(
       expect.objectContaining({ ok: false, code: "owner_session_required" }),
     );
   });
@@ -19455,6 +19509,7 @@ test.describe("Bumpgrade scaffold", () => {
             "broadcastDeliveryQueueMessageId",
             "broadcastDispatchPreflightId",
             "broadcastDispatchAttemptId",
+            "broadcastTestSendId",
             "broadcastSenderDomainReadinessId",
             "broadcastProviderEventReadinessId",
             "broadcastProviderRateLimitReadinessId",
@@ -19502,6 +19557,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Inspect delivery queue message dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
             "Inspect dispatch preflight dry runs without Cloudflare Queue dispatch, recipient payloads, or provider sends",
             "Inspect dispatch attempt receipts without Cloudflare Queue producers, queue payload bodies, provider responses, or provider sends",
+            "Inspect owner-only broadcast test-send evidence without raw recipient email, subscriber payloads, public agent sends, or provider message IDs",
             "Inspect sender-domain readiness without private DNS credentials, raw DNS records, provider secrets, or provider sends",
             "Inspect provider-event readiness without provider secrets, raw provider payloads, provider responses, or provider message IDs",
             "Inspect provider rate-limit readiness without provider secrets, provider limit secrets, raw provider payloads, provider responses, or provider message IDs",
@@ -19686,6 +19742,12 @@ test.describe("Bumpgrade scaffold", () => {
           route: audienceBroadcastDispatchAttemptApiRoute,
           auth: "owner-session",
           stableIds: expect.arrayContaining(["broadcastDispatchAttemptId", "broadcastDispatchPreflightId"]),
+        }),
+        expect.objectContaining({
+          id: "create-owner-broadcast-test-send",
+          route: audienceBroadcastTestSendApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining(["broadcastTestSendId", "broadcastDraftId", "auditCorrelationId"]),
         }),
         expect.objectContaining({
           id: "read-admin-audience-subscribers",
@@ -24691,6 +24753,101 @@ test.describe("Bumpgrade scaffold", () => {
         currentReadyRecipientCount: broadcastDraft.readyRecipientCount,
       }),
     );
+    const testSendIdempotencyKey = `playwright-broadcast-owner-test-send-${Date.now()}`;
+    const testSendAuditCorrelationId = `playwright-broadcast-owner-test-send-audit-${Date.now()}`;
+    const missingTestSendConfirmationResponse = await page.request.post(audienceBroadcastTestSendApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        confirmationText: "wrong confirmation",
+        idempotencyKey: `${testSendIdempotencyKey}-missing-confirmation`,
+        auditCorrelationId: `${testSendAuditCorrelationId}-missing-confirmation`,
+      },
+    });
+    expect(missingTestSendConfirmationResponse.status()).toBe(400);
+    await expect(missingTestSendConfirmationResponse.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+    const staleTestSendResponse = await page.request.post(audienceBroadcastTestSendApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount + 1,
+        confirmationText: audienceBroadcastTestSendConfirmationText,
+        idempotencyKey: `${testSendIdempotencyKey}-stale`,
+        auditCorrelationId: `${testSendAuditCorrelationId}-stale`,
+      },
+    });
+    expect(staleTestSendResponse.status()).toBe(409);
+    await expect(staleTestSendResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_readiness_count",
+        currentReadyRecipientCount: broadcastDraft.readyRecipientCount,
+      }),
+    );
+    const testSendResponse = await page.request.post(audienceBroadcastTestSendApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        confirmationText: audienceBroadcastTestSendConfirmationText,
+        idempotencyKey: testSendIdempotencyKey,
+        auditCorrelationId: testSendAuditCorrelationId,
+      },
+    });
+    expect(testSendResponse.ok(), await testSendResponse.text()).toBeTruthy();
+    const testSendPayload = await testSendResponse.json();
+    expect(testSendPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "broadcast_owner_test_send_recorded",
+        duplicate: false,
+        testSend: expect.objectContaining({
+          draftId: broadcastDraft.id,
+          recipientScope: "verified-owner-session-email-only",
+          expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+          provider: "test",
+          providerOk: true,
+          ownerTestEmailCaptured: true,
+          subscriberPayloadsCreated: false,
+          publicAgentSendCreated: false,
+          providerMessageIdsIncluded: false,
+          rawRecipientEmailIncluded: false,
+          rawEmailBodyIncluded: false,
+          auditCorrelationId: testSendAuditCorrelationId,
+        }),
+        redaction: expect.objectContaining({
+          rawRecipientEmailsIncluded: false,
+          rawRecipientEmailHashesIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          idempotencyKeysIncluded: false,
+          providerMessageIdsIncluded: false,
+          rawEmailBodyIncluded: false,
+          publicAgentSendCreated: false,
+        }),
+      }),
+    );
+    const replayTestSendResponse = await page.request.post(audienceBroadcastTestSendApiRoute, {
+      data: {
+        draftId: broadcastDraft.id,
+        expectedDraftUpdatedAt: broadcastDraft.updatedAt,
+        expectedReadyRecipientCount: broadcastDraft.readyRecipientCount,
+        confirmationText: audienceBroadcastTestSendConfirmationText,
+        idempotencyKey: testSendIdempotencyKey,
+        auditCorrelationId: testSendAuditCorrelationId,
+      },
+    });
+    expect(replayTestSendResponse.ok(), await replayTestSendResponse.text()).toBeTruthy();
+    await expect(replayTestSendResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        testSend: expect.objectContaining({ id: testSendPayload.testSend.id }),
+      }),
+    );
     const audienceSourceAfterSchedule = await page.request.get("/audience/source-data");
     expect(audienceSourceAfterSchedule.ok(), await audienceSourceAfterSchedule.text()).toBeTruthy();
     const audienceSourceAfterSchedulePayload = await audienceSourceAfterSchedule.json();
@@ -25229,6 +25386,15 @@ test.describe("Bumpgrade scaffold", () => {
     expect(audienceSourceAfterSchedulePayload.broadcastDispatchAttempts.counts.cloudflareQueueMessagesCreatedRecords).toBe(0);
     expect(audienceSourceAfterSchedulePayload.broadcastDispatchAttempts.counts.providerResponsesCreatedRecords).toBe(0);
     expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastDispatchAttempts)).not.toContain(audienceEmail);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.testSends).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.testCaptures).toBeGreaterThanOrEqual(1);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.subscriberPayloadsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.publicAgentSendCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.providerMessageIdsCreatedRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.rawRecipientEmailStoredRecords).toBe(0);
+    expect(audienceSourceAfterSchedulePayload.broadcastTestSends.counts.rawEmailBodyStoredRecords).toBe(0);
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastTestSends)).not.toContain("m@rkmoriarty.com");
+    expect(JSON.stringify(audienceSourceAfterSchedulePayload.broadcastTestSends)).not.toContain(audienceEmail);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.senderDomainReadinessRecords).toBeGreaterThanOrEqual(1);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.providerSendEnabledRecords).toBe(0);
     expect(audienceSourceAfterSchedulePayload.broadcastSenderDomainReadiness.counts.cloudflareQueueProducerEnabledRecords).toBe(0);
