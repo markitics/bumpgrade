@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileSearch, ShieldCheck } from "lucide-react";
 
 import { comparisonRetrievedAt, competitors, getCompetitorBySlug, getSourcesByIds } from "@/lib/comparison-data";
+import { getImporterForCompetitor } from "@/lib/importers";
 import { site } from "@/lib/site";
 
 type CompareAlternativePageProps = {
@@ -52,6 +53,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
   }
 
   const sources = getSourcesByIds(competitor.sourceIds ?? [competitor.sourceId]);
+  const importer = getImporterForCompetitor(competitor.id);
   const pageUrl = `${site.url}/compare/${competitor.slug}`;
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -122,6 +124,28 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
           <span>{competitor.bestFor}</span>
         </aside>
       </section>
+
+      {importer ? (
+        <section className="content-band">
+          <div className="compare-section-heading">
+            <div>
+              <p className="eyebrow">Moving from {competitor.name}</p>
+              <h2>Bring the useful launch context with you.</h2>
+            </div>
+            <Link href={importer.route} className="text-link compact-link">
+              Open importer
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="seo-intent-panel">
+            <p>{importer.summary}</p>
+            <Link href={importer.route} className="primary-action">
+              Import from {competitor.name}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       {competitor.seoKeywords?.length || competitor.searchIntent ? (
         <section className="content-band">

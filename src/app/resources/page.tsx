@@ -22,10 +22,16 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
     cta: "Compare platforms",
   },
   "resource-clickfunnels-migration": {
-    title: "ClickFunnels migration worksheet",
-    summary: "A practical checklist for moving a sales funnel, checkout path, email follow-up, and offer stack into Bumpgrade.",
-    label: "Migration worksheet",
-    cta: "Open worksheet",
+    title: "ClickFunnels importer",
+    summary: "A review-first path for moving funnel pages, checkout notes, product context, and follow-up ideas into Bumpgrade.",
+    label: "Available now",
+    cta: "Open importer",
+  },
+  "resource-import-center": {
+    title: "Importer center",
+    summary: "Choose a dedicated import path for ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
+    label: "Available now",
+    cta: "See import paths",
   },
   "resource-launch-playbook": {
     title: "Offer launch playbook",

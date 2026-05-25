@@ -433,6 +433,7 @@ import {
   productProtectedContentStatus,
 } from "../src/lib/product-protected-content";
 import { postPurchaseDecisionConfirmationText } from "../src/lib/post-purchase-decisions";
+import { importerPlatforms, importerSourceData, importerSourceDataRoute } from "../src/lib/importers";
 import {
   freeBuildModeContract,
   pricingSourceData,
@@ -456,6 +457,8 @@ const routes = [
   { path: "/users", heading: "Use cases for indiepreneurs" },
   { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
+  { path: "/imports", heading: "Bring your current launch stack" },
+  { path: "/imports/clickfunnels", heading: "Import from ClickFunnels" },
   { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
   { path: "/pricing", heading: "Start building your publisher launch system today" },
   { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
@@ -721,6 +724,8 @@ test.describe("Bumpgrade scaffold", () => {
       ...competitors.map((competitor) => `/compare/${competitor.slug}`),
       "/users",
       "/resources",
+      "/imports",
+      "/imports/clickfunnels",
       "/brand",
       "/pricing",
       "/pricing-v2",
@@ -789,6 +794,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/roadmap/source-data",
       "/content/source-data",
       "/pricing/source-data",
+      importerSourceDataRoute,
       "/agent-docs/source-data",
       "/agent-docs/bumpgrade-admin-surfaces",
       "/admin/source-data",
@@ -876,6 +882,16 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    expect(payload.importers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "importer-clickfunnels",
+          competitorId: "competitor-clickfunnels",
+          route: "/imports/clickfunnels",
+          sourceIds: expect.arrayContaining(["source-clickfunnels-home", "source-clickfunnels-pricing"]),
+        }),
+      ]),
+    );
   });
 
   test("sitemap and robots keep comparison routes crawlable", async ({ request }) => {
@@ -883,6 +899,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemap.ok()).toBeTruthy();
     const sitemapXml = await sitemap.text();
     expect(sitemapXml).toContain("https://bumpgrade.com/compare");
+    expect(sitemapXml).toContain("https://bumpgrade.com/imports");
+    expect(sitemapXml).toContain("https://bumpgrade.com/imports/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/imports/clickfunnels");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/email-campaigns");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/order-bump");
     expect(sitemapXml).toContain("https://bumpgrade.com/features/ai-business-coach");
@@ -937,6 +956,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.features.filter((feature: { status: string }) => feature.status === "pending")).toHaveLength(0);
     expect(payload.features).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ id: "feature-competitor-importers", status: "launch-preview" }),
         expect.objectContaining({ id: "feature-funnel-builder", status: "live" }),
         expect.objectContaining({ id: "feature-checkout-offers", status: "launch-preview" }),
         expect.objectContaining({ id: "feature-products-access", status: "live" }),
@@ -951,6 +971,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ slug: "email-campaigns", status: "live", nextStep: expect.objectContaining({ href: "/audience/indie-launch-waitlist" }) }),
         expect.objectContaining({ slug: "order-bump", status: "live", nextStep: expect.objectContaining({ href: "/offers/indie-launch-stack" }) }),
         expect.objectContaining({ slug: "ai-business-coach", status: "launch-preview", proofRoutes: expect.arrayContaining(["/agent-docs/source-data"]) }),
+        expect.objectContaining({ slug: "competitor-importers", status: "launch-preview", proofRoutes: expect.arrayContaining([importerSourceDataRoute]) }),
       ]),
     );
 
@@ -973,6 +994,55 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("importer source data exposes competitor migration contract", async ({ request }) => {
+    const response = await request.get(importerSourceDataRoute);
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload).toEqual(
+      expect.objectContaining({
+        id: importerSourceData.id,
+        issue: 467,
+        routes: expect.arrayContaining(["/imports", importerSourceDataRoute, "/imports/clickfunnels"]),
+      }),
+    );
+    expect(payload.platforms).toHaveLength(importerPlatforms.length);
+    expect(payload.platforms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "importer-clickfunnels",
+          platformName: "ClickFunnels",
+          status: "launch-preview",
+          compareRoute: "/compare/clickfunnels-alternative",
+          inputs: expect.arrayContaining([expect.objectContaining({ kind: "public_url" })]),
+          importableAreas: expect.arrayContaining([
+            expect.objectContaining({
+              id: "clickfunnels-funnel-pages",
+              draftEntities: expect.arrayContaining(["draft_funnel", "draft_page_blocks"]),
+            }),
+          ]),
+          unsupportedNow: expect.arrayContaining(["Public publishing without go-live approval"]),
+        }),
+        expect.objectContaining({
+          id: "importer-kit",
+          importableAreas: expect.arrayContaining([
+            expect.objectContaining({
+              id: "kit-audience",
+              draftEntities: expect.arrayContaining(["draft_audience_import"]),
+            }),
+          ]),
+        }),
+      ]),
+    );
+    expect(payload.commonContract.safetyGates).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("private workspace"),
+        expect.stringContaining("paid go-live"),
+        expect.stringContaining("idempotency"),
+      ]),
+    );
+    expect(payload.commonContract.redaction).toContain("Raw exports");
+  });
+
   test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {
     const response = await request.get("/content/source-data");
     expect(response.ok()).toBeTruthy();
@@ -982,7 +1052,17 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.resourceHubItems).toHaveLength(resourceHubItems.length);
     expect(payload.plannedPricingTracks).toHaveLength(plannedPricingTracks.length);
     expect(payload.routes).toEqual(
-      expect.arrayContaining(["/users", "/resources", "/brand", "/pricing", pricingSourceDataRoute, "/pricing-v2", "/content/source-data"]),
+      expect.arrayContaining([
+        "/users",
+        "/resources",
+        "/imports",
+        "/brand",
+        "/pricing",
+        pricingSourceDataRoute,
+        "/pricing-v2",
+        importerSourceDataRoute,
+        "/content/source-data",
+      ]),
     );
     expect(payload.audienceSegments).toEqual(
       expect.arrayContaining([
@@ -1004,6 +1084,12 @@ test.describe("Bumpgrade scaffold", () => {
           status: "live",
           route: "/brand",
           evidenceRoutes: expect.arrayContaining(["/brand/source-data"]),
+        }),
+        expect.objectContaining({
+          id: "resource-import-center",
+          status: "live",
+          route: "/imports",
+          evidenceRoutes: expect.arrayContaining([importerSourceDataRoute]),
         }),
       ]),
     );

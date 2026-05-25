@@ -8,6 +8,7 @@ import {
   competitorSources,
   competitors,
 } from "@/lib/comparison-data";
+import { importerPlatforms } from "@/lib/importers";
 
 export const dynamic = "force-static";
 
@@ -24,5 +25,14 @@ export function GET() {
     hubRows: comparisonHubRows,
     principles: comparisonPrinciples,
     competitors,
+    importers: importerPlatforms.map((platform) => ({
+      id: platform.id,
+      competitorId: platform.competitorId,
+      platformName: platform.platformName,
+      status: platform.status,
+      route: platform.route,
+      sourceIds: platform.sourceIds,
+      priority: platform.priority,
+    })),
   });
 }

@@ -378,6 +378,42 @@ export const marketingFeatures: MarketingFeature[] = [
     replaces: ["Standalone webinar pages", "Resource portals disconnected from checkout", "One-off event copy"],
     nextStep: { label: "Open webinar funnel", href: "/funnels/indie-launch-sandbox" },
   },
+  {
+    slug: "competitor-importers",
+    title: "Competitor importers",
+    shortTitle: "Importers",
+    category: "Migration",
+    status: "launch-preview",
+    availability:
+      "ClickFunnels import planning and dedicated competitor import paths are ready for review-first migrations into private workspaces.",
+    eyebrow: "Move what matters",
+    hero: "Bring your existing launch stack into Bumpgrade before going live.",
+    summary:
+      "Bumpgrade helps publishers map current funnels, checkout paths, audience notes, product context, and page copy from familiar platforms into one private launch workspace.",
+    audience: "Publishers moving from ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
+    problem: "Switching platforms gets risky when pages, checkout, products, emails, and customer-facing links all move at once.",
+    outcome:
+      "Review what comes over, keep it private while you organize the launch, and go live only when the page, checkout, email, product, and domain pieces are ready.",
+    imageUrl: "/marketing/launch-funnel-card.png",
+    imageAlt: "Bumpgrade importer workspace with current platform material mapped into a private launch path.",
+    featureIds: ["feature-competitor-importers", "feature-compare-source-data"],
+    issueIds: [467, 5, 14, 15, 17],
+    proofRoutes: ["/imports", "/imports/clickfunnels", "/imports/source-data", "/compare/source-data"],
+    benefits: [
+      "Start from public URLs, exported files, CSVs, or pasted copy when a platform does not have a clean transfer path.",
+      "Review detected pages, offers, products, audience notes, assets, and follow-up ideas before Bumpgrade creates private workspace records.",
+      "Keep publishing, checkout, subscriber sends, domains, and fulfillment off until the launch is approved.",
+    ],
+    useCases: [
+      "ClickFunnels migration",
+      "SamCart checkout move",
+      "Kit audience import",
+      "Kajabi product move",
+      "Shopify offer launch",
+    ],
+    replaces: ["Manual migration spreadsheets", "Copy-paste launch rebuilds", "Unreviewed platform switches"],
+    nextStep: { label: "Open import center", href: "/imports" },
+  },
 ];
 
 export const marketingFeatureCategories = Array.from(new Set(marketingFeatures.map((feature) => feature.category)));
@@ -385,6 +421,7 @@ export const marketingFeatureCategories = Array.from(new Set(marketingFeatures.m
 export const featuredMarketingFeatureSlugs = [
   "simple-landing-page",
   "email-campaigns",
+  "competitor-importers",
   "order-bump",
   "ai-business-coach",
 ];

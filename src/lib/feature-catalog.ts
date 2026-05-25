@@ -105,6 +105,29 @@ export const featureCatalog: FeatureRecord[] = [
       "Agents may cite public roadmap status from `/roadmap/source-data`, but must not expose private admin notes or treat planned items as live functionality.",
   },
   {
+    id: "feature-competitor-importers",
+    title: "Competitor importers",
+    group: "Migration",
+    status: "launch-preview",
+    issue: 467,
+    summary:
+      "Public import center, dedicated platform import paths, and `/imports/source-data` for moving ClickFunnels and adjacent competitor context into private Bumpgrade launch workspaces.",
+    audience: "Prospects and agents planning a move from ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
+    expectedCapabilities: [
+      "Dedicated ClickFunnels import path with reusable importer contract.",
+      "Dedicated importer pages for first-wave competitor platforms.",
+      "Agent-readable importer metadata at `/imports/source-data`.",
+      "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",
+      "Clear go-live boundary: imported material stays private until publishing, checkout, sends, domains, and fulfillment are approved.",
+    ],
+    evidence: [
+      "Tracked by issue #467.",
+      "`/imports` and `/imports/source-data` define the first importer contract slice.",
+    ],
+    agentContract:
+      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, and routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, or public publishing without later confirmed-write evidence.",
+  },
+  {
     id: "feature-funnel-builder",
     title: "Funnel and page builder",
     group: "Funnels and pages",
