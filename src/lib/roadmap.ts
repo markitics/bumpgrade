@@ -654,7 +654,7 @@ export const roadmapItems: RoadmapItem[] = [
     publicEvidence: [
       "Issue #466 tracks the Free Build pricing model and optional anonymous playground.",
       "`/playground` lets logged-out visitors save structured offer, audience, product, opt-in, checkout, delivery, follow-up, and migration-starting-point progress in this browser.",
-      "`/playground/source-data` exposes browser recovery, structured builder fields, cookie, claim, cleanup, retention, redaction, and go-live gate contracts.",
+      "`/playground/source-data` exposes browser recovery, structured builder fields, cookie, save-limit, claim, cleanup, retention, redaction, and go-live gate contracts.",
       "`/api/playground/cleanup` is an owner-gated cleanup route for expiring old anonymous recovery without exposing private draft content.",
       "`/pricing` explains the build-first message in plain public copy.",
       "`/pricing/source-data` exposes the Free Build design, live anonymous playground state, and paid go-live gates.",
@@ -663,7 +663,7 @@ export const roadmapItems: RoadmapItem[] = [
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
     nextMilestone:
-      "Add anonymous playground abuse limits and deeper claim/merge semantics for users with existing workspaces.",
+      "Deepen anonymous playground claim/merge semantics for users with existing workspaces and optionally add scheduled cleanup on top of the owner-gated contract.",
   },
 ];
 

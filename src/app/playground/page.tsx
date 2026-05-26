@@ -175,6 +175,10 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
             <Save aria-hidden="true" />
           </button>
         </form>
+        <p className="playground-save-note">
+          Normal editing is welcome. If this browser saves too many times in a few minutes, Bumpgrade may ask it to
+          wait before saving again.
+        </p>
       </section>
 
       <section className="content-band">

@@ -201,7 +201,9 @@ public-safe contract for logged-out launch drafts that persist in one browser.
 `POST /api/playground/anonymous-workspace` saves structured offer, audience,
 product, opt-in, checkout, delivery, follow-up, source URL, and
 starting-platform context behind a recovery cookie; D1 stores a token hash, not
-the raw cookie value. `POST /api/playground/claim` requires an email-verified
+the raw cookie value. Rapid repeated saves are limited against the same browser
+recovery workspace using D1 audit counts; the guard does not store raw IP or
+raw user-agent values. `POST /api/playground/claim` requires an email-verified
 publisher session, attaches the saved playground to a private Free Build
 workspace, creates a private D1 funnel draft whose blocks preserve the saved
 structured context, and creates private offer, product, audience, and

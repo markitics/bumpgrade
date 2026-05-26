@@ -19,7 +19,8 @@ before paid go-live.
   and go-live gate boundaries.
 - `POST /api/playground/anonymous-workspace`: saves or updates a browser-scoped
   anonymous playground. The cookie stores a recovery token only; D1 stores the
-  token hash and draft fields.
+  token hash and draft fields. Rapid repeated saves are limited per browser
+  recovery workspace without storing raw IP or raw user-agent values.
 - `POST /api/playground/claim`: attaches the saved playground to a verified
   signed-in account, creates or reuses a private Free Build workspace, and saves
   a private launch draft plus private offer, product, audience, and
@@ -97,8 +98,8 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Anonymous playground abuse limits and deeper claim/merge semantics for users
-  with existing workspaces.
+- Deeper anonymous playground claim/merge semantics for users with existing
+  workspaces.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy
