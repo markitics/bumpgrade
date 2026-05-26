@@ -1682,6 +1682,7 @@ test.describe("Bumpgrade scaffold", () => {
           currentAvailability: expect.objectContaining({
             signedInFreeWorkspaceLive: true,
             anonymousPlaygroundLive: true,
+            anonymousSaveRateLimitLive: true,
             paidGoLiveRequired: true,
           }),
           signedInWorkspace: expect.objectContaining({
@@ -1694,6 +1695,13 @@ test.describe("Bumpgrade scaffold", () => {
             status: "live",
             route: "/playground",
             sourceDataRoute: anonymousPlaygroundSourceDataRoute,
+            saveRateLimit: expect.objectContaining({
+              windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+              maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+              responseCode: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+              rawIpStored: false,
+              rawUserAgentStored: false,
+            }),
           }),
         }),
         paidGoLiveGates: expect.arrayContaining([
@@ -2128,6 +2136,7 @@ test.describe("Bumpgrade scaffold", () => {
         parentIssue: 466,
         signedInWorkspaceLive: true,
         anonymousPlaygroundLive: true,
+        anonymousSaveRateLimitLive: true,
         route: "/api/account/publisher/free-build-workspace",
         anonymousPlayground: expect.objectContaining({
           status: "live",
@@ -2135,6 +2144,13 @@ test.describe("Bumpgrade scaffold", () => {
           sourceDataRoute: anonymousPlaygroundSourceDataRoute,
           saveApiRoute: anonymousPlaygroundApiRoute,
           claimApiRoute: anonymousPlaygroundClaimApiRoute,
+          saveRateLimit: expect.objectContaining({
+            windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+            maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+            responseCode: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+            rawIpStored: false,
+            rawUserAgentStored: false,
+          }),
           claimCreatesPrivateDraftFunnel: true,
           draftSourceDataRoute: "/funnels/source-data",
         }),

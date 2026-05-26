@@ -3,6 +3,7 @@ import {
   anonymousPlaygroundClaimApiRoute,
   anonymousPlaygroundCleanupApiRoute,
   anonymousPlaygroundRoute,
+  anonymousPlaygroundSourceData,
   anonymousPlaygroundSourceDataRoute,
 } from "@/lib/anonymous-playground";
 
@@ -282,6 +283,7 @@ export const freeBuildModeContract = {
   currentAvailability: {
     signedInFreeWorkspaceLive: true,
     anonymousPlaygroundLive: true,
+    anonymousSaveRateLimitLive: true,
     paidGoLiveRequired: true,
   },
   signedInWorkspace: {
@@ -305,6 +307,7 @@ export const freeBuildModeContract = {
     privacyBoundary:
       "Anonymous work does not expose private customer data, cleanup actors, expired draft content, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
     structuredBuilderFieldsLive: true,
+    saveRateLimit: anonymousPlaygroundSourceData.saveRateLimit,
     claimMapsStructuredFieldsToPrivateDraftBlocks: true,
     cleanupControlsLive: true,
   },
