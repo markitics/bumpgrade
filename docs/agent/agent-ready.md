@@ -205,11 +205,14 @@ the raw cookie value. `POST /api/playground/claim` requires an email-verified
 publisher session, attaches the saved playground to a private Free Build
 workspace, creates a private D1 funnel draft whose blocks preserve the saved
 structured context, and creates private offer, product, audience, and
-importer-review claim records for later signed-in work. The playground cannot
-publish routes, collect live payments, send subscribers, reserve domains,
-fulfill protected access, expose private customer data, expose raw draft or
-claim-record content in public source-data, expose recovery cookie values, or
-expose token hashes.
+importer-review claim records for later signed-in work. `POST
+/api/playground/cleanup` requires an owner session and exact confirmation before
+marking expired anonymous recovery as expired, clearing anonymous draft fields,
+replacing the recovery token hash, and preserving claimed private records. The
+playground cannot publish routes, collect live payments, send subscribers,
+reserve domains, fulfill protected access, expose private customer data, expose
+raw draft, expired draft, cleanup actor, or claim-record content in public
+source-data, expose recovery cookie values, or expose token hashes.
 
 Current importer boundary: `/imports/source-data` is the public-safe contract for
 ClickFunnels and first-wave competitor import paths. It exposes supported

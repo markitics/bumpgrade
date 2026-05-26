@@ -449,6 +449,8 @@ import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
   anonymousPlaygroundClaimConfirmationText,
+  anonymousPlaygroundCleanupApiRoute,
+  anonymousPlaygroundCleanupConfirmationText,
   anonymousPlaygroundCookieName,
   anonymousPlaygroundSourceData,
   anonymousPlaygroundSourceDataRoute,
@@ -1458,6 +1460,7 @@ test.describe("Bumpgrade scaffold", () => {
           sourceData: anonymousPlaygroundSourceDataRoute,
           saveApi: anonymousPlaygroundApiRoute,
           claimApi: anonymousPlaygroundClaimApiRoute,
+          cleanupApi: anonymousPlaygroundCleanupApiRoute,
         }),
         currentAvailability: expect.objectContaining({
           loggedOutSaveLive: true,
@@ -1467,7 +1470,21 @@ test.describe("Bumpgrade scaffold", () => {
           claimCreatesPrivateDraftFunnelLive: true,
           claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
           claimCreatesPrivateLaunchRecordsLive: true,
+          cleanupControlsLive: true,
+          expiredWorkspaceCleanupLive: true,
+          ownerGatedCleanupApiLive: true,
           paidGoLiveRequired: true,
+        }),
+        retentionPolicy: expect.objectContaining({
+          activeRecoveryMaxAgeDays: 30,
+          extendsOnEverySave: true,
+          cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
+          cleanupConfirmationText: anonymousPlaygroundCleanupConfirmationText,
+          cleanupBatchLimit: 100,
+          cleanupClearsAnonymousDraftFields: true,
+          cleanupReplacesRecoveryTokenHash: true,
+          cleanupPreservesClaimedPrivateRecords: true,
+          unclaimedExpiredDraftsRecoverable: false,
         }),
         draftFields: expect.arrayContaining([
           expect.objectContaining({ id: "productFormat" }),
@@ -1508,6 +1525,16 @@ test.describe("Bumpgrade scaffold", () => {
           publicPublishingEnabled: false,
           liveCheckoutEnabled: false,
         }),
+        cleanupResult: expect.objectContaining({
+          route: anonymousPlaygroundCleanupApiRoute,
+          auth: "owner session",
+          requiresExactConfirmation: true,
+          marksExpiredRows: true,
+          clearsAnonymousDraftFields: true,
+          replacesRecoveryTokenHash: true,
+          preservesClaimedPrivateRecords: true,
+          exposesPrivateDraftContent: false,
+        }),
         redaction: expect.objectContaining({
           recoveryCookieValueIncluded: false,
           recoveryTokenHashIncluded: false,
@@ -1515,6 +1542,8 @@ test.describe("Bumpgrade scaffold", () => {
           publicPublishingEnabled: false,
           privateLaunchRecordContentIncluded: false,
           rawDraftContentIncluded: false,
+          expiredWorkspaceContentIncluded: false,
+          cleanupActorIncluded: false,
         }),
       }),
     );
@@ -1612,6 +1641,27 @@ test.describe("Bumpgrade scaffold", () => {
         redaction: expect.objectContaining({
           recoveryCookieValueIncluded: false,
           recoveryTokenHashIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthenticatedCleanup = await request.post(anonymousPlaygroundCleanupApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        confirmationText: anonymousPlaygroundCleanupConfirmationText,
+        idempotencyKey: `playwright-anonymous-playground-cleanup-${suffix}`,
+      },
+    });
+    expect(unauthenticatedCleanup.status()).toBe(401);
+    expect(await unauthenticatedCleanup.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "OWNER_SESSION_REQUIRED",
+        issue: 466,
+        route: anonymousPlaygroundCleanupApiRoute,
+        redaction: expect.objectContaining({
+          expiredWorkspaceContentIncluded: false,
+          cleanupActorIncluded: false,
         }),
       }),
     );
