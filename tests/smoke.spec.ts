@@ -870,6 +870,11 @@ test.describe("Bumpgrade scaffold", () => {
       const payloadText = payload ? JSON.stringify(payload) : body;
       const copyText = payload ? publicCopyTextValues(payload).join("\n") : body;
       expect(payloadText, `${path} still exposes promptFromMark`).not.toContain("promptFromMark");
+      if (path === "/agent-docs/source-data") {
+        expect(payloadText, `${path} leaked project-starter implementation labels`).not.toMatch(
+          /\b[Ss]caffold(?:ed|s|ing)?\b|\b[Bb]oilerplate\b/,
+        );
+      }
       const match = copyText.match(internalSourceDataTerms);
       expect(match, `${path} leaked "${match?.[0] ?? ""}"`).toBeNull();
       const trustDetailMatch = payloadText.match(publicTrustDetailTerms);

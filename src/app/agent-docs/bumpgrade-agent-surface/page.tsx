@@ -6,7 +6,7 @@ import {
   agentReadContracts,
   agentSourceEvidenceRoutes,
   agentWriteSafetyRules,
-  boilerplateBaselineEvidence,
+  starterBaselineEvidence,
 } from "@/lib/agent-manifest";
 import { site } from "@/lib/site";
 
@@ -119,7 +119,7 @@ export default function AgentSurfacePage() {
           </div>
         </div>
         <div className="check-grid">
-          {boilerplateBaselineEvidence.adoptedShape.map((item) => (
+          {starterBaselineEvidence.adoptedShape.map((item) => (
             <div key={item} className="check-row">
               <span aria-hidden="true">+</span>
               <p>{item}</p>
