@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, UserPlus, Users } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReviewWithSubscriberRecords, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
@@ -13,6 +13,7 @@ import {
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
   importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
+  importerPrivateRecordSubscriberPrivateExportConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
@@ -127,6 +128,15 @@ function subscriberAudiencePromotionStatusLabel(record: CompetitorImportPrivateR
   return "Not added to audience review yet";
 }
 
+function subscriberPrivateExportStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.subscriberPrivateExport?.status === "private_export_prepared") {
+    const count = record.subscriberPrivateExport.exportedPrivateSubscriberRecordCount;
+    return `${count} private ${count === 1 ? "contact" : "contacts"} prepared for CSV`;
+  }
+
+  return "Not exported yet";
+}
+
 function safeSignalText(values: string[]) {
   return values.length ? values.join(", ") : "No safe signal yet.";
 }
@@ -173,6 +183,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
   const subscriberPreflight = firstSearchValue(search.subscriberPreflight);
   const subscriberImport = firstSearchValue(search.subscriberImport);
   const subscriberAudiencePromotion = firstSearchValue(search.subscriberAudiencePromotion);
+  const subscriberExport = firstSearchValue(search.subscriberExport);
   const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
@@ -231,6 +242,9 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         ) : null}
         {subscriberAudiencePromotion === "global_audience_rows_created" ? (
           <p className="account-success">Imported subscribers added to the audience review list.</p>
+        ) : null}
+        {subscriberExport === "private_export_prepared" ? (
+          <p className="account-success">Private subscriber CSV prepared for owner download.</p>
         ) : null}
         {review ? (
           <div className="feature-section-heading">
@@ -453,6 +467,31 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                           <p>Public source-data and unauthenticated responses still expose counts only, not these contact values.</p>
                         </div>
                       ) : null}
+                      <div className="feature-detail">
+                        <strong>Private CSV export</strong>
+                        <span>{subscriberPrivateExportStatusLabel(record)}</span>
+                      </div>
+                      {record.subscriberPrivateExport ? <p>{record.subscriberPrivateExport.summary}</p> : null}
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="export_private_subscriber_records" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`subscriber-private-export-${record.id}-${record.subscriberPrivateExport?.recordedAt ?? record.updatedAt ?? "new"}`}
+                        />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordSubscriberPrivateExportConfirmationText(platform.platformName)}
+                          disabled={privateSubscriberRecords.length === 0}
+                        >
+                          <Download aria-hidden="true" />
+                          Download private CSV
+                        </button>
+                      </form>
                       <div className="feature-detail">
                         <strong>Audience review list</strong>
                         <span>{subscriberAudiencePromotionStatusLabel(record)}</span>

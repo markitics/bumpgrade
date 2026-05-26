@@ -451,6 +451,7 @@ import {
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
   importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
+  importerPrivateRecordSubscriberPrivateExportConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
@@ -1190,6 +1191,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.privateSubscriberImportDepth).toContain("subscriberImportDepth");
     expect(payload.commonContract.privateSubscriberRecordInspection).toContain("saved private importer subscriber records");
     expect(payload.commonContract.privateSubscriberAudiencePromotion).toContain("imported_pending_review");
+    expect(payload.commonContract.privateSubscriberExport).toContain("owner-only CSV");
     expect(payload.commonContract.privateStructuredRecords).toEqual(
       expect.objectContaining({
         responseField: "importRecords",
@@ -1237,6 +1239,16 @@ test.describe("Bumpgrade scaffold", () => {
         subscriberAudiencePromotionSourceStatus: "imported_pending_review",
         subscriberAudiencePromotionConsentEventsCreated: false,
         subscriberAudiencePromotionRequiresConsentReviewBeforeSending: true,
+        subscriberPrivateExportResponseField: "subscriberPrivateExport",
+        subscriberPrivateExportActionLive: true,
+        subscriberPrivateExportActionRouteField: "privateRecordReviewActionApiRoute",
+        subscriberPrivateExportAppliesTo: expect.arrayContaining(["draft_audience_import"]),
+        subscriberPrivateExportStatusValues: expect.arrayContaining(["not_exported", "private_export_prepared"]),
+        subscriberPrivateExportFormat: "text/csv",
+        subscriberPrivateExportOwnerOnly: true,
+        subscriberPrivateExportIncludesPrivateEmailsInDownload: true,
+        subscriberPrivateExportIncludesPrivateEmailsInJsonResponse: false,
+        subscriberPrivateExportPublicSourceDataIncludesContactValues: false,
         storesSafeSubscriberImportDepth: true,
         storesSubscriberImportPreflightMetadata: true,
         storesPrivateSubscriberImportRecords: true,
@@ -1246,7 +1258,8 @@ test.describe("Bumpgrade scaffold", () => {
         createsConsentEvents: false,
         createsSequenceEnrollments: false,
         emailDeliveryEnabled: false,
-        exportEnabled: false,
+        privateExportEnabled: true,
+        publicExportEnabled: false,
         publicSourceDataExposesContent: false,
         storesSafeExtractedFieldPlan: true,
         storesOwnerEditedExtractedFieldPlan: true,
@@ -1277,6 +1290,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.privateSubscriberImportCreationLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberImportRecordInspectionLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberAudiencePromotionLive).toBe(true);
+    expect(payload.currentAvailability.privateSubscriberExportLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1371,6 +1385,11 @@ test.describe("Bumpgrade scaffold", () => {
             subscriberAudiencePromotionActionRouteField: "privateRecordReviewActionApiRoute",
             subscriberAudiencePromotionSourceStatus: "imported_pending_review",
             subscriberAudiencePromotionConsentEventsCreated: false,
+            subscriberPrivateExportResponseField: "subscriberPrivateExport",
+            subscriberPrivateExportActionLive: true,
+            subscriberPrivateExportActionRouteField: "privateRecordReviewActionApiRoute",
+            subscriberPrivateExportFormat: "text/csv",
+            subscriberPrivateExportOwnerOnly: true,
             privateSubscriberEmailsIncludedInOwnerReview: true,
             privateSubscriberEmailsIncludedInPublicResponses: false,
             storesSafeSubscriberImportDepth: true,
@@ -1382,7 +1401,8 @@ test.describe("Bumpgrade scaffold", () => {
             createsConsentEvents: false,
             createsSequenceEnrollments: false,
             emailDeliveryEnabled: false,
-            exportEnabled: false,
+            privateExportEnabled: true,
+            publicExportEnabled: false,
             storesSafeExtractedFieldPlan: true,
             storesOwnerEditedExtractedFieldPlan: true,
             storesRawExtractedValues: false,
@@ -1402,6 +1422,7 @@ test.describe("Bumpgrade scaffold", () => {
               "subscriberImportPreflight",
               "subscriberImportCreation",
               "subscriberAudiencePromotion",
+              "subscriberPrivateExport",
               "privateSubscriberRecords",
             ]),
             privateSubscriberRecordInspectionLive: true,
@@ -1439,6 +1460,13 @@ test.describe("Bumpgrade scaffold", () => {
                 confirmationText: importerPrivateRecordSubscriberAudiencePromotionConfirmationText("ClickFunnels"),
                 subscriberStatus: "imported_pending_review",
               }),
+              expect.objectContaining({
+                action: "export_private_subscriber_records",
+                responseField: "subscriberPrivateExport",
+                confirmationText: importerPrivateRecordSubscriberPrivateExportConfirmationText("ClickFunnels"),
+                format: "text/csv",
+                ownerOnly: true,
+              }),
             ]),
             writes: expect.arrayContaining([
               "record_review_decision_metadata",
@@ -1447,6 +1475,7 @@ test.describe("Bumpgrade scaffold", () => {
               "private_subscriber_import_records",
               "global_audience_subscriber_review_rows",
               "audience_import_tag_assignments",
+              "private_subscriber_export_metadata",
             ]),
             idempotencyRequired: true,
             rawRowsEchoed: false,
@@ -1457,7 +1486,8 @@ test.describe("Bumpgrade scaffold", () => {
             consentEventsCreated: false,
             sequenceEnrollmentsCreated: false,
             subscriberSendsEnabled: false,
-            privateExportsEnabled: false,
+            privateExportsEnabled: true,
+            publicExportsEnabled: false,
             idempotencyKeysIncluded: false,
             goLiveEffectsEnabled: false,
           }),
@@ -21618,6 +21648,7 @@ test.describe("Bumpgrade scaffold", () => {
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-clickfunnels-importer.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-importer-preflight-review.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-import-record-field-extraction.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-467-private-subscriber-export.png" }),
             ]),
             validationLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/imports/source-data" }),
@@ -21629,6 +21660,7 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("parse safe structure"),
             expect.stringContaining("recognized platform export shape"),
             expect.stringContaining("safe extracted field targets"),
+            expect.stringContaining("owner-only private subscriber CSV"),
             expect.stringContaining("Review the redacted import map"),
           ]),
           edgeCases: expect.arrayContaining([
@@ -21636,14 +21668,16 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("Export-file parsing returns structural labels"),
             expect.stringContaining("Platform export matches use safe header"),
             expect.stringContaining("Extracted field plans contain Bumpgrade target labels"),
+            expect.stringContaining("Private subscriber CSV export"),
             expect.stringContaining("Rollback APIs require"),
           ]),
-          agentAccess: expect.stringContaining("extracted field plans"),
+          agentAccess: expect.stringContaining("owner-only private subscriber export actions"),
           validation: expect.arrayContaining([
             expect.stringContaining("dedicated importer source guides"),
             expect.stringContaining("exportFileAnalysis parsing"),
             expect.stringContaining("platformExportMatches"),
             expect.stringContaining("extracted field plans"),
+            expect.stringContaining("owner-only private subscriber CSV export"),
             expect.stringContaining("Private importer rollback APIs"),
           ]),
         }),
@@ -31535,6 +31569,99 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("subscribed").first()).toBeVisible();
     await expect(page.getByText("PRIVATE_TAG").first()).toBeVisible();
     await expect(page.getByText("Public source-data and unauthenticated responses still expose counts only").first()).toBeVisible();
+    await expect(page.getByText("Private CSV export").first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Download private CSV/i }).first()).toBeEnabled();
+
+    const subscriberExportResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "export_private_subscriber_records",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberPrivateExportConfirmationText("Kit"),
+        idempotencyKey: `subscriber-private-export-${suffix}`,
+      },
+    });
+    expect(subscriberExportResponse.ok(), await subscriberExportResponse.text()).toBeTruthy();
+    const subscriberExportPayload = await subscriberExportResponse.json();
+    expect(subscriberExportPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "export_private_subscriber_records",
+        idempotent: false,
+        draft: expect.objectContaining({ id: kitPayload.draft.id }),
+        record: expect.objectContaining({
+          id: kitAudienceRecord.id,
+          kind: "draft_audience_import",
+          subscriberPrivateExport: expect.objectContaining({
+            responseField: "subscriberPrivateExport",
+            status: "private_export_prepared",
+            source: "verified_publisher_private_subscriber_export",
+            privateSubscriberRecordCount: 1,
+            exportedPrivateSubscriberRecordCount: 1,
+            privateExportEnabled: true,
+            publicExportEnabled: false,
+            createsSubscriberRows: false,
+            createsConsentEvents: false,
+            createsSequenceEnrollments: false,
+            emailDeliveryEnabled: false,
+            goLiveEffectsEnabled: false,
+          }),
+        }),
+        subscriberExport: expect.objectContaining({
+          responseField: "subscriberPrivateExport",
+          status: "private_export_prepared",
+          exportFileName: expect.stringContaining("kit-private-subscriber-export"),
+          redaction: expect.objectContaining({
+            ownerOnly: true,
+            publicSourceDataIncluded: false,
+            unauthenticatedResponsesIncluded: false,
+            privateSubscriberEmailsIncludedInJsonResponse: false,
+            confirmationTextStored: false,
+            idempotencyKeysIncluded: false,
+            actorEmailIncluded: false,
+            consentEventsCreated: false,
+            sequenceEnrollmentsCreated: false,
+            emailDeliveryEnabled: false,
+            publicExportEnabled: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          confirmationTextStored: false,
+          idempotencyKeysIncluded: false,
+          actorEmailIncluded: false,
+          privateSubscriberEmailsIncludedInJsonResponse: false,
+          publicExportEnabled: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(subscriberExportPayload)).not.toContain("subscriber-private-export-");
+    expect(JSON.stringify(subscriberExportPayload)).not.toContain(`private-subscriber-${suffix}@example.com`);
+    expect(JSON.stringify(subscriberExportPayload)).not.toContain("PRIVATE_TAG");
+
+    const subscriberExportCsvResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "text/csv" },
+      multipart: {
+        action: "export_private_subscriber_records",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberPrivateExportConfirmationText("Kit"),
+        idempotencyKey: `subscriber-private-export-${suffix}`,
+      },
+    });
+    expect(subscriberExportCsvResponse.ok(), await subscriberExportCsvResponse.text()).toBeTruthy();
+    expect(subscriberExportCsvResponse.headers()["content-type"]).toContain("text/csv");
+    const subscriberExportCsv = await subscriberExportCsvResponse.text();
+    expect(subscriberExportCsv).toContain('"email","first_name","source_status","source_tags","status"');
+    expect(subscriberExportCsv).toContain(`private-subscriber-${suffix}@example.com`);
+    expect(subscriberExportCsv).toContain("PRIVATE_TAG");
+
+    await page.goto(kitReviewRoute);
+    await expect(page.getByText("1 private contact prepared for CSV").first()).toBeVisible();
+    await expect(page.getByText("Prepared a private owner-only subscriber export with 1 contact.").first()).toBeVisible();
 
     const audienceBeforePromotionResponse = await page.request.get("/audience/source-data");
     expect(audienceBeforePromotionResponse.ok(), await audienceBeforePromotionResponse.text()).toBeTruthy();

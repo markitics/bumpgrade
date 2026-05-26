@@ -4,6 +4,7 @@ import { createAuth } from "@/lib/auth";
 import { normalizeOptionalName, normalizeOptInEmail } from "@/lib/audience-opt-in";
 import {
   createCompetitorImportPrivateRecordSubscribers,
+  prepareCompetitorImportPrivateRecordSubscriberExport,
   promoteCompetitorImportPrivateRecordSubscribersToAudience,
   recordCompetitorImportPrivateRecordSubscriberPreflight,
   reviewCompetitorImportPrivateRecord,
@@ -24,6 +25,7 @@ import {
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
   importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
+  importerPrivateRecordSubscriberPrivateExportConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   type ImporterPlatform,
@@ -399,6 +401,46 @@ function normalizedSubscriberAudiencePromotionInput(payload: RequestPayload, pla
   };
 }
 
+function normalizedSubscriberPrivateExportInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordSubscriberPrivateExportConfirmationText(platform.platformName)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} private subscriber export before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
+  }
+
+  return {
+    ...shared,
+    confirmationText,
+  };
+}
+
+function csvCell(value: string | null | undefined) {
+  const raw = value ?? "";
+  const text = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return `"${text.replaceAll("\"", "\"\"")}"`;
+}
+
+function subscriberExportCsv(records: Awaited<ReturnType<typeof prepareCompetitorImportPrivateRecordSubscriberExport>>["privateSubscriberRecords"]) {
+  const rows = records.map((record) => [
+    record.email,
+    record.firstName,
+    record.sourceStatus,
+    record.sourceTagLabels.join("; "),
+    record.status,
+  ]);
+
+  return [
+    ["email", "first_name", "source_status", "source_tags", "status"],
+    ...rows,
+  ]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\n");
+}
+
 function publicPlatform(platform: ImporterPlatform) {
   return {
     id: platform.id,
@@ -455,6 +497,7 @@ function publicRecord(record: CompetitorImportPrivateRecord) {
     subscriberImportPreflight: record.subscriberImportPreflight,
     subscriberImportCreation: record.subscriberImportCreation,
     subscriberAudiencePromotion: record.subscriberAudiencePromotion,
+    subscriberPrivateExport: record.subscriberPrivateExport,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,
@@ -476,6 +519,7 @@ function redaction() {
     customerRowsIncluded: false,
     privateEmailsIncluded: false,
     privateSubscriberEmailsIncludedInResponse: false,
+    privateSubscriberEmailsIncludedInJsonResponse: false,
     subscriberIdsIncludedInResponse: false,
     paymentCredentialsIncluded: false,
     sessionCookiesIncluded: false,
@@ -489,6 +533,7 @@ function redaction() {
     subscriberSendsEnabled: false,
     customDomainsEnabled: false,
     fulfillmentEnabled: false,
+    publicExportEnabled: false,
   };
 }
 
@@ -701,6 +746,48 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
       redirect.searchParams.set("subscriberAudiencePromotion", result.promotion.status);
       redirect.searchParams.set("recordId", result.record.id);
       return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    if (action === "export_private_subscriber_records") {
+      const input = normalizedSubscriberPrivateExportInput(payload, platform);
+      const result = await prepareCompetitorImportPrivateRecordSubscriberExport(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        idempotencyKey: `competitor-import-private-subscriber-export:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          subscriberExport: result.subscriberExport,
+          previousSubscriberExport: result.previousSubscriberExport,
+          idempotent: result.idempotent,
+          action: "export_private_subscriber_records",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...result.subscriberExport.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const csv = subscriberExportCsv(result.privateSubscriberRecords);
+      return new NextResponse(`${csv}\n`, {
+        status: 200,
+        headers: {
+          "content-type": "text/csv; charset=utf-8",
+          "content-disposition": `attachment; filename="${result.subscriberExport.exportFileName ?? "private-subscriber-export.csv"}"`,
+          "cache-control": "private, no-store",
+        },
+      });
     }
 
     if (action !== "review_private_import_record") {
