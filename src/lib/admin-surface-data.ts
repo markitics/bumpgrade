@@ -1449,7 +1449,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Owner asked for Director-level outcomes, less email noise, and useful admin summary layers above detailed technical ships.",
     githubIssues: [{ number: 414, url: "https://github.com/markitics/bumpgrade/issues/414" }],
-    closedPrs: [],
+    closedPrs: [{ number: 528, url: "https://github.com/markitics/bumpgrade/pull/528" }],
     featuresUpdated: [
       "https://bumpgrade.com/admin/roadmap/source-data",
       "https://bumpgrade.com/admin/director/source-data",
@@ -1469,6 +1469,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     completedAt: "2026-05-26T22:23:00.000Z",
     relevantUrls: [
       "https://github.com/markitics/bumpgrade/issues/414",
+      "https://github.com/markitics/bumpgrade/pull/528",
       "https://bumpgrade.com/admin/roadmap/source-data",
       "https://bumpgrade.com/admin/director/source-data",
       "https://bumpgrade.com/admin/user-journeys/source-data",
@@ -1476,7 +1477,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "https://bumpgrade.com/mobile-admin/source-data",
       "https://bumpgrade.com/mobile-admin/dashboard/source-data",
     ],
-    prCommentUrl: null,
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/528",
   },
   {
     id: "work-log-2026-05-26-agent-manifest-starter-copy-closeout",

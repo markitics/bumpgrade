@@ -112,7 +112,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-build-heartbeat',
   'Owner asked for Director-level outcomes, less email noise, and useful admin summary layers above detailed technical ships.',
   json_array(json_object('number', 414, 'url', 'https://github.com/markitics/bumpgrade/issues/414')),
-  json_array(),
+  json_array(json_object('number', 528, 'url', 'https://github.com/markitics/bumpgrade/pull/528')),
   json_array('https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data'),
   json_array('roadmap-mobile-admin'),
   json_array('journey-publisher-checks-mobile-admin'),
@@ -121,8 +121,8 @@ INSERT INTO admin_work_log_entries (
   'No Mark action required. This refreshes owner-visible summary evidence only; it does not ship physical-device proof, live push sends, store distribution, or high-risk mobile writes.',
   unixepoch('2026-05-26T22:23:00Z'),
   unixepoch('2026-05-26T22:23:00Z'),
-  json_array('https://github.com/markitics/bumpgrade/issues/414', 'https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data', 'https://bumpgrade.com/mobile-admin/source-data', 'https://bumpgrade.com/mobile-admin/dashboard/source-data'),
-  NULL,
+  json_array('https://github.com/markitics/bumpgrade/issues/414', 'https://github.com/markitics/bumpgrade/pull/528', 'https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data', 'https://bumpgrade.com/mobile-admin/source-data', 'https://bumpgrade.com/mobile-admin/dashboard/source-data'),
+  'https://github.com/markitics/bumpgrade/pull/528',
   unixepoch()
 )
 ON CONFLICT(id) DO UPDATE SET
