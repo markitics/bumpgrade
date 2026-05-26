@@ -31,6 +31,9 @@ before paid go-live.
   recovery. It marks old playgrounds expired, clears anonymous draft fields,
   replaces the recovery token hash, records audit evidence, and preserves
   claimed private records.
+- Cloudflare Cron: runs the same expired-recovery cleanup boundary daily at
+  09:17 UTC. It clears only expired anonymous recovery fields, replaces the
+  token hash, records audit evidence, and preserves claimed private records.
 - `POST /api/account/publisher/free-build-workspace`: creates or confirms a
   private `plan_status=free_build` workspace for an email-confirmed signed-in
   publisher before payment, with exact confirmation, idempotency, audit
@@ -45,8 +48,8 @@ before paid go-live.
 The anonymous playground write path records browser-scoped structured launch
 context in D1 without a public hostname, billing state, email send, fulfillment
 state, or raw cookie value. Anonymous recovery expires after 30 days unless a
-later save extends it, and owner cleanup can clear expired anonymous draft
-fields without exposing private content. The Free Build write path records a
+later save extends it, and owner or scheduled cleanup can clear expired
+anonymous draft fields without exposing private content. The Free Build write path records a
 tenant row and audit event in D1 without a public hostname. The paid go-live
 write path records a tenant row, subdomain reservation row, and audit event.
 Domain requests reject
@@ -100,8 +103,6 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Deeper anonymous playground claim/merge semantics for users with existing
-  workspaces.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

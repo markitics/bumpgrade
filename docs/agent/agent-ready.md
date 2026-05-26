@@ -213,6 +213,8 @@ existing workspace drafts. `POST
 /api/playground/cleanup` requires an owner session and exact confirmation before
 marking expired anonymous recovery as expired, clearing anonymous draft fields,
 replacing the recovery token hash, and preserving claimed private records. The
+Cloudflare Cron cleanup runs the same expired-recovery boundary daily without an
+owner session, public request, or buyer-facing effect. The
 playground cannot publish routes, collect live payments, send subscribers,
 reserve domains, fulfill protected access, expose private customer data, expose
 raw draft, expired draft, cleanup actor, or claim-record content in public
@@ -330,7 +332,12 @@ render entitlement-safe product access references without private R2 keys,
 signed URLs, buyer records, arbitrary uploaded asset delivery, or live
 fulfillment automation, and can request short-lived Bumpgrade download routes
 through `/api/funnels/resource-delivery` only after checkout intent and
-entitlement scope match the linked product and file asset. Published
+entitlement scope match the linked product and file asset. Verified
+owner-session agents can create the same scoped token through
+`/api/agent/funnels/resource-delivery-tokens` only after exact confirmation,
+idempotency, current published revision checks, checkout intent, entitlement,
+and audit correlation; idempotent replays return redacted audit metadata because
+raw bearer tokens are not stored. Published
 webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
@@ -344,8 +351,8 @@ idempotency, fresh revision
 checks, and audit correlation; responses are redacted draft or purge tombstone
 summaries and do not expose owner identity or raw rows. Direct agent block
 removal refuses checkout-linked blocks and keeps at least one block per step. It
-is not direct agent template creation, direct agent-created delivery
-tokens, live billing mutation, full absolute-position canvas editing,
+is not direct agent template creation, unauthenticated public agent-created
+delivery tokens, live billing mutation, full absolute-position canvas editing,
 non-archived purge, bulk purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
@@ -354,11 +361,11 @@ issue #417 now includes owner-confirmed checkout unlinking, resource delivery
 links, funnel-scoped private download-token delivery, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
 owner-session visual block styles, owner-session archived-draft purge UI, and
-expanded owner-session direct agent-safe draft writes
+owner-session agent-created resource delivery tokens, and expanded owner-session direct agent-safe draft writes
 including visual styles, reusable block add/remove, public publishing, and archived-draft purge, and remains
 the pending advanced funnel parity bucket for full absolute-position canvas editing,
 arbitrary uploaded private asset delivery, live fulfillment automation, full
-webinar integrations, bulk purge policy, direct agent-created delivery tokens,
+webinar integrations, bulk purge policy, unauthenticated public agent-created delivery tokens,
 and unauthenticated public agent publishing. Live
 publisher-offer billing remains separate in issue #219.
 

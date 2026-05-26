@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 import type { AdminIdentity } from "@/lib/admin-roles";
 import { sha256Hex } from "@/lib/analytics-events";
+import { ownerSafeRequestText } from "@/lib/admin-surface-data";
 import { mobileAdminContract, mobileAdminUpdatedAt, type MobileConfirmedAction } from "@/lib/mobile-admin";
 
 export const mobileAdminActionIntentIssue = 414;
@@ -246,9 +247,9 @@ function allowedActions(includeStaleStateTokens: boolean): MobileAdminAllowedAct
   return mobileAdminContract.confirmedActions.map((action) => ({
     id: action.id,
     issue: action.issue,
-    title: action.title,
+    title: ownerSafeRequestText(action.title),
     status: action.status,
-    surface: action.surface,
+    surface: ownerSafeRequestText(action.surface),
     confirmationText: action.confirmationText,
     sourceRoutes: sourceRoutesByActionId[action.id] ?? [],
     requiredInputs: [
@@ -323,8 +324,8 @@ function publicIntent(row: ActionIntentRow, duplicate = false): MobileAdminActio
   return {
     id: row.id,
     actionId: row.action_id,
-    actionTitle: row.action_title,
-    actionSurface: row.action_surface,
+    actionTitle: ownerSafeRequestText(row.action_title),
+    actionSurface: ownerSafeRequestText(row.action_surface),
     sourceRoute: row.source_route,
     targetId: row.target_id,
     expectedContractUpdatedAt: row.expected_contract_updated_at,

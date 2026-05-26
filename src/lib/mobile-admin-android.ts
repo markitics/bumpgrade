@@ -34,7 +34,7 @@ export const androidMobileAdminSourceData = {
     route: "/admin/director/source-data",
     dashboardField: "directorDigest",
     redactionBoundary:
-      "The Android scaffold reads only public-safe Director workstream IDs, titles, statuses, compact signals, and 1-day/7-day counts from the live dashboard payload.",
+      "The Android app foundation reads only public-safe Director workstream IDs, titles, statuses, compact signals, and 1-day/7-day counts from the live dashboard payload.",
   },
   privateAuth: {
     issue: mobileAdminContract.privateAuth.issue,
@@ -121,7 +121,7 @@ export const androidMobileAdminSourceData = {
       route: "/admin/director/source-data",
       fixturePath: null,
       purpose:
-        "The live dashboard payload carries a redacted Director workstream digest so the Android scaffold can show CEO-style nesting without scraping the private admin page.",
+        "The live dashboard payload carries a redacted Director workstream digest so the Android app foundation can show CEO-style nesting without scraping the private admin page.",
     },
     {
       id: "android-read-mobile-private-rows",
@@ -163,14 +163,14 @@ export const androidMobileAdminSourceData = {
       route: "/mobile-admin/source-data",
       fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Android scaffold renders the FCM push-notification readiness boundary while sends, device tokens, provider credentials, payload bodies, and delivery receipts remain disabled and redacted.",
+        "The Android app foundation renders the FCM push-notification readiness boundary while sends, device tokens, provider credentials, payload bodies, and delivery receipts remain disabled and redacted.",
     },
     {
       id: "android-read-mobile-distribution-boundary",
       route: "/mobile-admin/source-data",
       fixturePath: androidSlice.fixturePath ?? "apps/mobile-admin/fixtures/mobile-admin-contract.json",
       purpose:
-        "The Android scaffold renders the distribution boundary that separates emulator proof from physical-device, internal testing, and Play Store claims.",
+        "The Android app foundation renders the distribution boundary that separates emulator proof from physical-device, internal testing, and Play Store claims.",
     },
     {
       id: "android-read-admin-source-next",
@@ -183,5 +183,5 @@ export const androidMobileAdminSourceData = {
   writeBoundary:
     "Read-only private rows can be inspected through /api/mobile-admin/private-rows, low-risk private-row workflow actions can be recorded through /api/mobile-admin/private-rows/actions, Director workstream acknowledgements can be recorded through /api/mobile-admin/director-reviews, commerce-health acknowledgements can be recorded through /api/mobile-admin/commerce-reviews, and audit-only action intents can be recorded through /api/mobile-admin/actions. Android now renders the shared Director workstream brief, owner-session, private-row API, private-row action API, Director review API, commerce review API, action-intent API, push-notification boundary, distribution-readiness boundary, and confirmed-action contract, but public, billing-impacting, fulfillment, publishing, source-editing, moderation, creator-speech, push sends, distribution, and high-risk production mutations stay disabled until additional domain-specific confirmed-write APIs and platform evidence exist.",
   caveat:
-    "This source-data route proves the Android scaffold, emulator smoke path, live dashboard hydration, redacted Director workstream digest, owner-session/private-row/private-row-action/Director-review/commerce-review/confirmed-action UI contract, audit-only action-intent route, FCM readiness boundary, and distribution boundary. It does not mean Play Store/internal-testing distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
+    "This source-data route proves the Android app foundation, emulator smoke path, live dashboard hydration, redacted Director workstream digest, owner-session/private-row/private-row-action/Director-review/commerce-review/confirmed-action UI contract, audit-only action-intent route, FCM readiness boundary, and distribution boundary. It does not mean Play Store/internal-testing distribution, push notifications, physical-device private row proof, or high-risk production write actions are live.",
 };

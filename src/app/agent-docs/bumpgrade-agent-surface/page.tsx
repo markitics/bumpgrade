@@ -41,7 +41,7 @@ export default function AgentSurfacePage() {
           <Bot aria-hidden="true" />
           <p>Status</p>
           <strong>{publicContracts.length} public reads</strong>
-          <span>Issue #12 turns the scaffold route into a manifest-backed agent surface with source evidence.</span>
+          <span>Issue #12 backs this agent surface with manifest data and source evidence.</span>
         </div>
       </section>
 
@@ -115,7 +115,7 @@ export default function AgentSurfacePage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Baseline</p>
-            <h2>The shared agent workflow is adapted from the project boilerplate.</h2>
+            <h2>The shared agent workflow follows Bumpgrade project standards.</h2>
           </div>
         </div>
         <div className="check-grid">

@@ -313,6 +313,10 @@ import {
   agentFunnelDraftWriteApiRoute,
   agentFunnelDraftWriteCapability,
   agentFunnelDraftWriteConfirmationText,
+  agentFunnelResourceDeliveryTokenApiRoute,
+  agentFunnelResourceDeliveryTokenCapability,
+  agentFunnelResourceDeliveryTokenConfirmationText,
+  agentFunnelResourceDeliveryTokenStatus,
   checkoutLinkingCapability,
   draftFunnelCheckoutUnlinkCapability,
   draftFunnelArchiveCapability,
@@ -823,7 +827,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public and agent-readable source-data avoids placeholder and private-note phrasing", async ({ request }) => {
     const internalSourceDataTerms =
-      /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working/;
+      /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working|\b[Ss]caffold\b|\b[Ss]caffolds\b|\b[Bb]oilerplate\b/;
     const publicTrustDetailTerms =
       /m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com|codex_outbound_messages|codex_inbound_messages|raw inbound MIME|raw MIME|bumpgrade-mail|sender-authentication|smtp\.mailfrom|header\.from|allowlisted-and-authenticated|allowlisted and authenticated|trusted reply addresses|trusted sender identities/i;
     const publicSourceDataRoutes = [
@@ -840,6 +844,12 @@ test.describe("Bumpgrade scaffold", () => {
       anonymousPlaygroundSourceDataRoute,
       "/agent-docs/source-data",
       "/agent-docs/bumpgrade-admin-surfaces",
+      "/agent-docs/bumpgrade-agent-surface",
+      "/agent-docs/bumpgrade-mobile-admin",
+      "/mobile-admin/source-data",
+      "/mobile-admin/ios/source-data",
+      "/mobile-admin/android/source-data",
+      "/mobile-admin/dashboard/source-data",
       "/admin/source-data",
       "/admin/director/source-data",
       "/admin/work-log/source-data",
@@ -1760,6 +1770,7 @@ test.describe("Bumpgrade scaffold", () => {
             signedInFreeWorkspaceLive: true,
             anonymousPlaygroundLive: true,
             anonymousSaveRateLimitLive: true,
+            anonymousScheduledCleanupLive: true,
             paidGoLiveRequired: true,
           }),
           signedInWorkspace: expect.objectContaining({
@@ -1785,6 +1796,13 @@ test.describe("Bumpgrade scaffold", () => {
               createsAdditionalPrivateDraftFunnel: true,
               overwritesExistingDrafts: false,
               paidGoLiveRequired: true,
+            }),
+            scheduledCleanup: expect.objectContaining({
+              live: true,
+              cron: "17 9 * * *",
+              actor: "cloudflare_cron",
+              clearsAnonymousDraftFields: true,
+              preservesClaimedPrivateRecords: true,
             }),
           }),
         }),
@@ -1833,6 +1851,7 @@ test.describe("Bumpgrade scaffold", () => {
           cleanupControlsLive: true,
           expiredWorkspaceCleanupLive: true,
           ownerGatedCleanupApiLive: true,
+          scheduledCleanupLive: true,
           paidGoLiveRequired: true,
         }),
         retentionPolicy: expect.objectContaining({
@@ -1841,6 +1860,9 @@ test.describe("Bumpgrade scaffold", () => {
           cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
           cleanupConfirmationText: anonymousPlaygroundCleanupConfirmationText,
           cleanupBatchLimit: 100,
+          scheduledCleanupLive: true,
+          scheduledCleanupCron: "17 9 * * *",
+          scheduledCleanupActor: "cloudflare_cron",
           cleanupClearsAnonymousDraftFields: true,
           cleanupReplacesRecoveryTokenHash: true,
           cleanupPreservesClaimedPrivateRecords: true,
@@ -1912,7 +1934,10 @@ test.describe("Bumpgrade scaffold", () => {
         cleanupResult: expect.objectContaining({
           route: anonymousPlaygroundCleanupApiRoute,
           auth: "owner session",
+          scheduledAuth: "Cloudflare Cron trigger",
+          scheduledCron: "17 9 * * *",
           requiresExactConfirmation: true,
+          scheduledRequiresExactConfirmation: false,
           marksExpiredRows: true,
           clearsAnonymousDraftFields: true,
           replacesRecoveryTokenHash: true,
@@ -2233,6 +2258,7 @@ test.describe("Bumpgrade scaffold", () => {
         signedInWorkspaceLive: true,
         anonymousPlaygroundLive: true,
         anonymousSaveRateLimitLive: true,
+        anonymousScheduledCleanupLive: true,
         route: "/api/account/publisher/free-build-workspace",
         anonymousPlayground: expect.objectContaining({
           status: "live",
@@ -2255,6 +2281,9 @@ test.describe("Bumpgrade scaffold", () => {
             overwritesExistingDrafts: false,
           }),
           claimCreatesPrivateDraftFunnel: true,
+          scheduledCleanupLive: true,
+          scheduledCleanupCron: "17 9 * * *",
+          scheduledCleanupActor: "cloudflare_cron",
           draftSourceDataRoute: "/funnels/source-data",
         }),
         privateBuildPlanStatus: "free_build",
@@ -2733,6 +2762,35 @@ test.describe("Bumpgrade scaffold", () => {
         liveFulfillmentAutomationEnabled: false,
       }),
     );
+    expect(payload.agentFunnelResourceDeliveryTokenCapability).toEqual(
+      expect.objectContaining({
+        id: agentFunnelResourceDeliveryTokenCapability.id,
+        status: agentFunnelResourceDeliveryTokenStatus,
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+        apiRoute: agentFunnelResourceDeliveryTokenApiRoute,
+        publicTokenApiRoute: funnelResourceDeliveryApiRoute,
+        auth: "owner-session",
+        confirmationRequired: true,
+        confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+        idempotencyRequired: true,
+        staleRevisionRequired: true,
+        auditCorrelationRequired: true,
+        requiresPublishedFunnel: true,
+        requiresResourceDeliveryLink: true,
+        requiresCheckoutIntentAndEntitlement: true,
+        verifiesBlockProductAndAsset: true,
+        rawTokenStored: false,
+        rawTokenAvailableOnReplay: false,
+        rawOwnerDataIncluded: false,
+        rawRowsIncluded: false,
+        buyerDataIncluded: false,
+        rawR2KeysIncluded: false,
+        signedUrlsIncluded: false,
+        billingMutationCreated: false,
+        publicRouteMutationCreated: false,
+        unauthenticatedAgentWriteCreated: false,
+      }),
+    );
     expect(payload.agentFunnelDraftWriteCapability).toEqual(
       expect.objectContaining({
         id: agentFunnelDraftWriteCapability.id,
@@ -2868,6 +2926,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelPurgeEventId",
         "agentFunnelDraftWriteId",
         "agentFunnelDraftWriteOperationId",
+        "agentFunnelResourceDeliveryTokenId",
         "auditCorrelationId",
         "checkoutIntentId",
         "checkoutOfferStackId",
@@ -4731,6 +4790,179 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
 
+    const agentUnauthenticated = await request.post(agentFunnelResourceDeliveryTokenApiRoute, {
+      data: {
+        funnelSlug: publishedDraft.slug,
+        blockId: deliveryBlock.id,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: downloadEntitlement.id,
+        expectedFunnelRevisionId: publishedDraft.revisionId,
+        confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+        idempotencyKey: `agent-funnel-resource-unauth-${suffix}`,
+        auditCorrelationId: `agent-funnel-resource-unauth-audit-${suffix}`,
+      },
+    });
+    expect(agentUnauthenticated.status(), await agentUnauthenticated.text()).toBe(401);
+    await expect(agentUnauthenticated.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+      }),
+    );
+
+    const agentContract = await page.request.get(agentFunnelResourceDeliveryTokenApiRoute);
+    expect(agentContract.ok(), await agentContract.text()).toBeTruthy();
+    await expect(agentContract.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        id: agentFunnelResourceDeliveryTokenCapability.id,
+        status: agentFunnelResourceDeliveryTokenStatus,
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+        route: agentFunnelResourceDeliveryTokenApiRoute,
+        confirmation: expect.objectContaining({
+          required: true,
+          exactText: agentFunnelResourceDeliveryTokenConfirmationText,
+        }),
+        redaction: expect.objectContaining({
+          rawTokenStored: false,
+          rawTokenAvailableOnReplay: false,
+          buyerEmailIncluded: false,
+          rawRowsIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          unauthenticatedAgentWriteCreated: false,
+        }),
+      }),
+    );
+
+    const staleAgentToken = await page.request.post(agentFunnelResourceDeliveryTokenApiRoute, {
+      data: {
+        funnelSlug: publishedDraft.slug,
+        blockId: deliveryBlock.id,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: downloadEntitlement.id,
+        expectedFunnelRevisionId: "stale-published-revision",
+        confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+        idempotencyKey: `agent-funnel-resource-stale-${suffix}`,
+        auditCorrelationId: `agent-funnel-resource-stale-audit-${suffix}`,
+      },
+    });
+    expect(staleAgentToken.status(), await staleAgentToken.text()).toBe(409);
+    await expect(staleAgentToken.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        status: "stale_funnel_revision",
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+      }),
+    );
+
+    const mismatchedAgentToken = await page.request.post(agentFunnelResourceDeliveryTokenApiRoute, {
+      data: {
+        funnelSlug: publishedDraft.slug,
+        blockId: deliveryBlock.id,
+        checkoutIntentId: grant.checkoutIntentId,
+        entitlementId: bundleEntitlement.id,
+        expectedFunnelRevisionId: publishedDraft.revisionId,
+        confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+        idempotencyKey: `agent-funnel-resource-mismatch-${suffix}`,
+        auditCorrelationId: `agent-funnel-resource-mismatch-audit-${suffix}`,
+      },
+    });
+    expect(mismatchedAgentToken.status(), await mismatchedAgentToken.text()).toBe(409);
+    await expect(mismatchedAgentToken.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        status: "not_eligible",
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+      }),
+    );
+
+    const agentTokenIdempotencyKey = `agent-funnel-resource-token-${suffix}`;
+    const agentTokenAuditCorrelationId = `agent-funnel-resource-token-audit-${suffix}`;
+    const agentTokenRequest = {
+      funnelSlug: publishedDraft.slug,
+      blockId: deliveryBlock.id,
+      checkoutIntentId: grant.checkoutIntentId,
+      entitlementId: downloadEntitlement.id,
+      expectedFunnelRevisionId: publishedDraft.revisionId,
+      confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+      idempotencyKey: agentTokenIdempotencyKey,
+      auditCorrelationId: agentTokenAuditCorrelationId,
+    };
+    const agentToken = await page.request.post(agentFunnelResourceDeliveryTokenApiRoute, {
+      data: agentTokenRequest,
+    });
+    expect(agentToken.status(), await agentToken.text()).toBe(201);
+    const agentTokenPayload = await agentToken.json();
+    expect(agentTokenPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: agentFunnelResourceDeliveryTokenStatus,
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+        route: agentFunnelResourceDeliveryTokenApiRoute,
+        replayed: false,
+        token: expect.stringMatching(/^download-token-/),
+        downloadUrl: expect.stringContaining("/api/products/downloads?token=download-token-"),
+        audit: expect.objectContaining({
+          auditCorrelationId: agentTokenAuditCorrelationId,
+          replayCount: 0,
+          deliveryTokenCreated: true,
+          idempotencyKeyIncluded: false,
+          rawTokenStored: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          rawTokenStored: false,
+          rawTokenAvailableOnReplay: false,
+          buyerEmailIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawFunnelRowsIncluded: false,
+          rawEntitlementRowsIncluded: false,
+          publicRouteMutationCreated: false,
+          unauthenticatedAgentWriteCreated: false,
+        }),
+      }),
+    );
+    const agentTokenText = JSON.stringify(agentTokenPayload);
+    expect(agentTokenText).not.toContain(buyerEmail);
+    expect(agentTokenText).not.toContain(grant.eventId);
+    expect(agentTokenText).not.toContain("products/fixtures/");
+    expect(agentTokenText).not.toContain(agentTokenIdempotencyKey);
+
+    const agentReplay = await page.request.post(agentFunnelResourceDeliveryTokenApiRoute, {
+      data: agentTokenRequest,
+    });
+    expect(agentReplay.status(), await agentReplay.text()).toBe(200);
+    await expect(agentReplay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: agentFunnelResourceDeliveryTokenStatus,
+        issue: agentFunnelResourceDeliveryTokenCapability.issue,
+        route: agentFunnelResourceDeliveryTokenApiRoute,
+        replayed: true,
+        token: null,
+        downloadUrl: null,
+        audit: expect.objectContaining({
+          auditCorrelationId: agentTokenAuditCorrelationId,
+          replayCount: 1,
+          deliveryTokenCreated: true,
+          idempotencyKeyIncluded: false,
+          rawTokenStored: false,
+          rawRowsIncluded: false,
+        }),
+        redaction: expect.objectContaining({
+          rawTokenStored: false,
+          rawTokenAvailableOnReplay: false,
+        }),
+      }),
+    );
+
+    const agentDownload = await request.get(agentTokenPayload.downloadUrl);
+    const agentDownloadText = await agentDownload.text();
+    expect(agentDownload.ok(), agentDownloadText).toBeTruthy();
+    expect(agentDownloadText).toContain("Bumpgrade Launch Checklist");
+
     const token = await request.post(funnelResourceDeliveryApiRoute, {
       data: {
         funnelSlug: publishedDraft.slug,
@@ -4796,6 +5028,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(source.ok(), sourceText).toBeTruthy();
     expect(sourceText).toContain(funnelResourceDeliveryStatus);
     expect(sourceText).toContain(funnelResourceDeliveryApiRoute);
+    expect(sourceText).toContain(agentFunnelResourceDeliveryTokenStatus);
+    expect(sourceText).toContain(agentFunnelResourceDeliveryTokenApiRoute);
     expect(sourceText).not.toContain(buyerEmail);
     expect(sourceText).not.toContain(downloadEntitlement.id);
   });
@@ -21707,6 +21941,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelResourceDeliveryTokenId",
             "agentFunnelDraftWriteId",
             "agentFunnelDraftWriteOperationId",
+            "agentFunnelResourceDeliveryTokenId",
             "auditCorrelationId",
             "productDeliveryGateLinkId",
           ]),
@@ -21717,6 +21952,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session checkout unlinking from issue #417",
             "Discover owner-session resource delivery linking from issue #417",
             "Discover public funnel-scoped resource delivery tokens from issue #417",
+            "Discover owner-session agent-created resource delivery tokens from issue #417",
             "Discover owner-session visual style controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
@@ -21757,6 +21993,23 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("direct agent-safe funnel draft write"),
           ]),
           writeBoundary: expect.stringContaining("Publishing creates a public route mutation"),
+        }),
+        expect.objectContaining({
+          id: "create-owner-agent-funnel-resource-delivery-token",
+          route: agentFunnelResourceDeliveryTokenApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "agentFunnelResourceDeliveryTokenId",
+            "funnelRevisionId",
+            "checkoutIntentId",
+            "productEntitlementId",
+            "auditCorrelationId",
+            "idempotencyKey",
+          ]),
+          safeForAgents: expect.arrayContaining([
+            expect.stringContaining("owner-session agent resource delivery token contract"),
+          ]),
+          writeBoundary: expect.stringContaining("raw bearer tokens are not stored"),
         }),
         expect.objectContaining({ id: "read-checkout-offer-stack", route: "/offers/source-data", auth: "public" }),
         expect.objectContaining({
