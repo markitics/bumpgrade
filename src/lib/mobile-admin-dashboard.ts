@@ -1,4 +1,4 @@
-import { adminRoadmapCounts, getAdminSurfaceData } from "@/lib/admin-surface-data";
+import { adminRoadmapCounts, getAdminSurfaceData, ownerSafeRequestText } from "@/lib/admin-surface-data";
 import { agentManifest } from "@/lib/agent-manifest";
 import { commerceTables } from "@/lib/commerce";
 import { buildDirectorStatusData, shouldOpenDirectorWorkstreamByDefault } from "@/lib/director-status";
@@ -18,7 +18,7 @@ export const mobileAdminDashboardRoute = "/mobile-admin/dashboard/source-data";
 export const mobileAdminDashboardStatus = "live-public-mobile-dashboard-ready";
 
 function publicSafeText(value: string) {
-  return value.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email-redacted]");
+  return ownerSafeRequestText(value.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email-redacted]"));
 }
 
 function countByFeatureStatus(status: FeatureStatus) {
@@ -440,7 +440,7 @@ export async function getMobileAdminDashboardSourceData() {
     },
     nextMobileMilestones: [
       "Add higher-risk domain-specific confirmed-write APIs before mobile can approve billing-impacting, fulfillment, publishing, moderation, or creator-speech actions.",
-      "Add physical-device proof for private mobile row inspection beyond simulator/emulator scaffolds.",
+      "Add physical-device proof for private mobile row inspection beyond simulator/emulator foundations.",
       "Choose and configure private APNs/FCM provider credentials, device-token registration, send preflight, queue, delivery-result, and receipt contracts before any push sends.",
       "Record physical-device and App Store/TestFlight or Play Store/internal-testing evidence separately from simulator/emulator proof before claiming installable app readiness.",
     ],

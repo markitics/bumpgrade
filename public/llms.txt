@@ -565,7 +565,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   boundaries, and distribution readiness. The #414 contract now renders the
   shared owner-session, private-row API, private-row action API, Director review
   API, commerce review API, push-readiness boundary, distribution-readiness boundary, and confirmed-action requirements
-  in the Expo, iOS, and Android scaffolds.
+  in the Expo, iOS, and Android foundations.
   `/api/mobile-admin/private-rows` lets a
   verified owner inspect read-only private mobile rows through the shared Better
   Auth owner session, while public source-data exposes only route, status,
@@ -592,8 +592,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   provider requirements, disabled push-send status, physical-device blockers,
   and store-distribution requirements without exposing provider credentials,
   device tokens, signing credentials, provisioning profiles, keystore material,
-  store account identifiers, private tester lists, or push payloads. The iOS scaffold is documented in
-  `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
+  store account identifiers, private tester lists, or push payloads. The iOS foundation is documented in
+  `/mobile-admin/ios/source-data`, and the Android foundation is documented in
   `/mobile-admin/android/source-data`, but App Store/TestFlight or Play
   Store/internal-testing distribution, physical-device private row proof, live
   push notifications, and high-risk production mobile writes are not live yet.

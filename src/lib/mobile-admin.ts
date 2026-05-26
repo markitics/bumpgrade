@@ -214,7 +214,7 @@ export const mobileAdminContract: MobileAdminContract = {
   stackDecision:
     "Start the publisher admin apps as an Expo React Native TypeScript workspace shared by iOS and Android, unless the child issue smoke tests expose a platform-specific reason to split native code. The repo has no existing native app tree, and the current web/admin state is already modeled as public-safe TypeScript/JSON contracts.",
   scaffoldBoundary:
-    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app scaffolds, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, owner-confirmed Director workstream review API, owner-confirmed commerce health review API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo scaffolds. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk billing/publishing mobile mutations, App Store distribution, or Play Store distribution.",
+    "Issue #13 ships the shared mobile-admin contract, API dependency map, jobs-to-be-done, and platform issue split. Issues #67 and #68 prove the first iOS and Android smoke surfaces, issue #153 adds the live public-safe dashboard source-data contract, issue #155 renders that dashboard in the app foundations, and issue #157 hydrates the dashboard from the live public route with fixture fallback. Issue #414 now adds the shared mobile owner-session contract, owner-gated private-row inspection API, confirmed-action UI contract, owner-gated audit-only action-intent API, owner-confirmed Director workstream review API, owner-confirmed commerce health review API, Director workstream digest bridge, push-notification boundary, and store-distribution readiness boundary to the iOS, Android, and Expo app foundations. Issue #428 adds low-risk owner-confirmed private-row workflow actions. This still does not ship installable private app distribution, push notifications, high-risk billing/publishing mobile mutations, App Store distribution, or Play Store distribution.",
   liveDashboard: {
     id: "mobile-live-dashboard-source-data",
     issue: 153,
@@ -503,7 +503,7 @@ export const mobileAdminContract: MobileAdminContract = {
       {
         platform: "ios",
         currentEvidence:
-          "The iOS scaffold has a simulator smoke target and screenshots, but physical-device proof is parked while the detected iPhone target is unavailable.",
+          "The iOS app foundation has a simulator smoke target and screenshots, but physical-device proof is parked while the detected iPhone target is unavailable.",
         requiredBeforeClaim: [
           "Available physical iPhone target or explicit simulator-only acceptance decision",
           "Bundle identifier and signing profile decision",
@@ -515,7 +515,7 @@ export const mobileAdminContract: MobileAdminContract = {
       {
         platform: "android",
         currentEvidence:
-          "The Android scaffold has an emulator smoke target and screenshots, but physical-device proof is parked because no Android device is attached.",
+          "The Android app foundation has an emulator smoke target and screenshots, but physical-device proof is parked because no Android device is attached.",
         requiredBeforeClaim: [
           "Attached Android physical device or explicit emulator-only acceptance decision",
           "Release signing and package identity decision",
@@ -616,7 +616,7 @@ export const mobileAdminContract: MobileAdminContract = {
       issue: 67,
       title: "Build first iOS publisher admin app slice",
       firstMilestone:
-        "Render the mobile admin digest, fetch the live dashboard route, and preserve fixture fallback in the Expo app scaffold and iOS simulator smoke target.",
+        "Render the mobile admin digest, fetch the live dashboard route, and preserve fixture fallback in the Expo app foundation and iOS simulator smoke target.",
       validation: [
         "Run npm run mobile:ios:validate to prove the fixture matches the shared contract and Xcode is available.",
         "Run npm run mobile:ios:smoke to build, install, launch, live-read/fallback hydrate, and screenshot the iOS simulator target.",
