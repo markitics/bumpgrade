@@ -1,0 +1,142 @@
+UPDATE admin_roadmap_items
+SET
+  issue_number = 414,
+  summary = 'Current follow-up for installable private mobile admin parity after the completed read-only dashboard, Director workstream digest, iOS foundation, Android foundation, live-hydration, owner-session/confirmed-action contract, owner-gated private-row inspection, low-risk private-row workflow actions, owner-confirmed Director workstream reviews, owner-confirmed commerce-health reviews, owner-gated audit-only action-intent API, and push/distribution readiness-boundary slices.',
+  public_evidence_json = json_array(
+    'Current active follow-up tracked by issue #414.',
+    'Original foundation contract tracked by issue #13.',
+    'iOS app slice tracked by issue #67.',
+    'Android app slice tracked by issue #68.',
+    'Live dashboard source-data slice tracked by issue #153.',
+    'Mobile dashboard foundation rendering tracked by issue #155.',
+    'Mobile dashboard live network hydration tracked by issue #157.',
+    'Issue #414 renders the owner-session and confirmed-action contract in the Expo, iOS, and Android app foundations while keeping production mobile mutations disabled.',
+    'Issue #414 adds owner-gated GET /api/mobile-admin/private-rows for read-only private mobile row inspection through the shared Better Auth owner session.',
+    'Issue #428 adds owner-gated POST /api/mobile-admin/private-rows/actions for low-risk private-row workflow actions with exact confirmation, idempotency, stale row revision, stale-state token, audit-correlation, and redaction checks.',
+    'Issue #414 adds owner-gated POST /api/mobile-admin/director-reviews for low-risk Director workstream acknowledgements with exact confirmation, idempotency, current Director generated-at checks, stale-state token, audit-correlation, and redaction checks.',
+    'Issue #414 adds owner-gated POST /api/mobile-admin/commerce-reviews for low-risk commerce-health acknowledgements with exact confirmation, idempotency, current commerce generated-at checks, stale-state token, audit-correlation, and redaction checks.',
+    'Issue #414 adds owner-gated POST /api/mobile-admin/actions for audit-only action intents with exact confirmation, idempotency, stale-state, contract revision, source-route, audit-correlation, and redaction checks.',
+    'Issue #414 exposes the public-safe Director workstream digest inside /mobile-admin/dashboard/source-data for mobile CEO-style nesting.',
+    'Issue #414 exposes a public-safe push-notification boundary for APNs/FCM requirements, disabled send status, blockers, and redaction flags.',
+    'Issue #414 exposes a public-safe distribution boundary that separates simulator/emulator proof from physical-device, App Store/TestFlight, and Play Store/internal-testing claims.',
+    '`/mobile-admin/source-data` exposes the shared mobile contract, private-auth boundary, private-row API summary, private-row action API summary, Director review API summary, commerce review API summary, action-intent API summary, push boundary, distribution boundary, confirmed-action requirements, and no-installable-app caveat.',
+    '`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest plus the redacted Director workstream brief and redacted private-row, private-row action, Director review, commerce review, and action-intent summaries for mobile clients.',
+    '`/mobile-admin/ios/source-data` exposes the iOS foundation, fixture, simulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.',
+    '`/mobile-admin/android/source-data` exposes the Android foundation, fixture asset, emulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.'
+  ),
+  next_milestone = 'Add higher-risk billing, fulfillment, publishing, and other production confirmed-write APIs, physical-device proof, private APNs/FCM credential/device-token plumbing, and actual App Store/TestFlight or Play Store/internal-testing evidence without claiming parity early.',
+  updated_at = unixepoch()
+WHERE id = 'roadmap-mobile-admin';
+
+UPDATE admin_user_journeys
+SET
+  issue_numbers_json = json_array(414, 428, 13, 67, 68, 153, 155, 157),
+  user_goal = 'Open the future Bumpgrade mobile app to check Director workstreams, roadmap, work-log, owner attention, commerce health, owner-session boundaries, confirmed-action requirements, push readiness, and distribution readiness without separate mobile-only semantics.',
+  source_evidence_json = json_array(
+    'https://bumpgrade.com/mobile-admin/source-data',
+    'https://bumpgrade.com/mobile-admin/dashboard/source-data',
+    'https://bumpgrade.com/admin/director/source-data',
+    'https://bumpgrade.com/mobile-admin/ios/source-data',
+    'https://bumpgrade.com/mobile-admin/android/source-data',
+    'https://bumpgrade.com/api/mobile-admin/private-rows',
+    'https://bumpgrade.com/api/mobile-admin/private-rows/actions',
+    'https://bumpgrade.com/api/mobile-admin/director-reviews',
+    'https://bumpgrade.com/api/mobile-admin/commerce-reviews',
+    'https://bumpgrade.com/api/mobile-admin/actions',
+    'https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin',
+    'https://github.com/markitics/bumpgrade/issues/414',
+    'https://github.com/markitics/bumpgrade/issues/428',
+    'https://github.com/markitics/bumpgrade/pull/443',
+    'https://github.com/markitics/bumpgrade/pull/451',
+    'https://github.com/markitics/bumpgrade/pull/453',
+    'https://github.com/markitics/bumpgrade/issues/13',
+    'https://github.com/markitics/bumpgrade/issues/67',
+    'https://github.com/markitics/bumpgrade/issues/68',
+    'https://github.com/markitics/bumpgrade/issues/153',
+    'https://github.com/markitics/bumpgrade/issues/155',
+    'https://github.com/markitics/bumpgrade/issues/157'
+  ),
+  happy_path_json = json_array(
+    'Open the future mobile admin app.',
+    'Fetch /mobile-admin/dashboard/source-data for the public-safe mobile dashboard digest.',
+    'For iOS, open the first simulator foundation and read the live dashboard payload, falling back to the generated fixture if the network is unavailable.',
+    'For Android, open the first emulator foundation and read the live dashboard payload, falling back to the same generated fixture if the network is unavailable.',
+    'Confirm the Expo, iOS, and Android surfaces distinguish live network hydration from fixture fallback while keeping the dashboard public-safe.',
+    'Review the compact Director workstream brief for categories such as Marketing, Mobile Admin, Agent Readiness, Security / Trust, and Operations before drilling into detail.',
+    'Use /api/mobile-admin/private-rows to inspect private rows only after owner session auth.',
+    'Use /api/mobile-admin/private-rows/actions to mark a private row read or deferred only after owner session auth, exact confirmation, stale-state checks, idempotency, and audit correlation.',
+    'Use /api/mobile-admin/director-reviews to acknowledge a reviewed Director workstream only after owner session auth, exact confirmation, stale-state checks, idempotency, and audit correlation.',
+    'Use /api/mobile-admin/commerce-reviews to acknowledge reviewed commerce-health source-data only after owner session auth, exact confirmation, stale-state checks, idempotency, and audit correlation.',
+    'Use /api/mobile-admin/actions to record audit-only action intents without production mutation.',
+    'Review the shared owner-session panel, confirmed-action cards, push boundary, and distribution boundary before any live push sends, store distribution, or high-risk mobile mutations exist.',
+    'Use issue #414 for physical-device proof, private APNs/FCM device-token plumbing, live push execution, high-risk confirmed-write APIs, and eventual App Store/TestFlight or Play Store/internal-testing distribution readiness.',
+    'Follow closed foundation issues #13, #67, #68, #153, #155, and #157 for completed read-only evidence.'
+  ),
+  edge_cases_json = json_array(
+    'The iOS simulator target is not App Store/TestFlight distribution, live push notifications, physical-device private row proof, or high-risk live confirmed-write support.',
+    'The Android emulator target is not Play Store/internal-testing distribution, live push notifications, physical-device private row proof, or high-risk live confirmed-write support.',
+    'Private admin state requires Better Auth owner or publisher sessions.',
+    'Mobile writes are limited to low-risk private-row workflow actions, Director workstream acknowledgements, commerce-health acknowledgements, and audit-only action intents until additional confirmed-write APIs exist.',
+    '/mobile-admin/dashboard/source-data is public-safe and excludes private buyer rows, owner email values, raw inbox bodies, raw attention bodies, raw work-log bodies, R2 object keys, signed URLs, secret values, upload bodies, session IDs, and write tokens.',
+    '/api/mobile-admin/director-reviews records owner review state only and must not be described as billing, publishing, push, distribution, private-row, or public-agent write support.',
+    '/api/mobile-admin/commerce-reviews records owner review state only and must not be described as checkout, refund, subscription, price, fulfillment, entitlement, push, distribution, private-row, or public-agent write support.'
+  ),
+  agent_access = 'Agents can read /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /admin/director/source-data, /mobile-admin/ios/source-data, and /mobile-admin/android/source-data to understand app scope, live public-safe mobile digest state, Director workstream nesting, owner-session requirements, private-row requirements, Director review requirements, commerce review requirements, confirmed-action requirements, push/distribution readiness boundaries, and smoke evidence; they must not claim mobile app parity until live push execution, physical-device proof, installable distribution, and high-risk live confirmed writes ship.',
+  validation_json = json_array(
+    'Issue #414 now renders the owner-session, private-row, private-row action, Director review, commerce review, confirmed-action, APNs/FCM push-readiness, and distribution-readiness contract in the app foundations while tracking high-risk billing/publishing/fulfillment confirmed-write APIs, physical-device proof, live push execution, and eventual installable distribution after foundation closeout.',
+    'Issue #428 tracks low-risk private-row confirmed actions for Mobile Admin.',
+    'Issue #13 defines the shared contract and splits iOS and Android child issues.',
+    'Issue #67 adds an Expo app foundation, generated fixture, iOS simulator target, validation command, smoke command, and screenshot path.',
+    'Issue #68 adds a native Android activity, generated fixture asset, emulator target, validation command, smoke command, and screenshot path.',
+    'Issue #153 adds /mobile-admin/dashboard/source-data as the live public-safe dashboard contract.',
+    'Issue #155 renders the live dashboard route and redaction boundary in the Expo, iOS, and Android foundation surfaces.',
+    'Issue #157 fetches the live dashboard route in Expo, iOS, and Android while preserving fixture fallback for deterministic smoke tests.',
+    'PR #443 records Mobile Admin Director digest evidence.',
+    'PR #451 records owner-confirmed Director workstream review API evidence.',
+    'PR #453 records owner-confirmed commerce-health review API evidence.',
+    'Playwright covers /agent-docs/bumpgrade-mobile-admin, /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /mobile-admin/ios/source-data, /mobile-admin/android/source-data, Director digest redaction, Director review redaction, commerce review redaction, push-readiness redaction, and distribution-readiness blockers. Mobile validations assert the foundation apps render and live-hydrate the dashboard and Director brief panels.'
+  ),
+  updated_at = unixepoch()
+WHERE id = 'journey-publisher-checks-mobile-admin';
+
+INSERT INTO admin_work_log_entries (
+  id, title, agent_name, agent_kind, session_name, prompt_from_mark, github_issues_json,
+  closed_prs_json, features_updated_json, roadmap_updated_json, user_journeys_updated_json,
+  documentation_updated_json, validation_json, flags_attention, first_prompt_at, completed_at,
+  relevant_urls_json, pr_comment_url, updated_at
+) VALUES (
+  'work-log-2026-05-26-mobile-admin-roadmap-refresh',
+  'Refreshed Mobile Admin roadmap evidence',
+  'Codex',
+  'codex',
+  'bumpgrade-build-heartbeat',
+  'Owner asked for Director-level outcomes, less email noise, and useful admin summary layers above detailed technical ships.',
+  json_array(json_object('number', 414, 'url', 'https://github.com/markitics/bumpgrade/issues/414')),
+  json_array(),
+  json_array('https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data'),
+  json_array('roadmap-mobile-admin'),
+  json_array('journey-publisher-checks-mobile-admin'),
+  json_array('drizzle/0207_mobile_admin_roadmap_refresh.sql'),
+  json_array('Updated Mobile Admin roadmap evidence to include Director digest, Director review API, commerce review API, push boundary, and distribution boundary.', 'Kept #414 active for physical-device proof, live APNs/FCM execution, store distribution, and higher-risk confirmed-write APIs.'),
+  'No Mark action required. This refreshes owner-visible summary evidence only; it does not ship physical-device proof, live push sends, store distribution, or high-risk mobile writes.',
+  unixepoch('2026-05-26T22:23:00Z'),
+  unixepoch('2026-05-26T22:23:00Z'),
+  json_array('https://github.com/markitics/bumpgrade/issues/414', 'https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data', 'https://bumpgrade.com/mobile-admin/source-data', 'https://bumpgrade.com/mobile-admin/dashboard/source-data'),
+  NULL,
+  unixepoch()
+)
+ON CONFLICT(id) DO UPDATE SET
+  title=excluded.title,
+  prompt_from_mark=excluded.prompt_from_mark,
+  github_issues_json=excluded.github_issues_json,
+  closed_prs_json=excluded.closed_prs_json,
+  features_updated_json=excluded.features_updated_json,
+  roadmap_updated_json=excluded.roadmap_updated_json,
+  user_journeys_updated_json=excluded.user_journeys_updated_json,
+  documentation_updated_json=excluded.documentation_updated_json,
+  validation_json=excluded.validation_json,
+  flags_attention=excluded.flags_attention,
+  completed_at=excluded.completed_at,
+  relevant_urls_json=excluded.relevant_urls_json,
+  pr_comment_url=COALESCE(admin_work_log_entries.pr_comment_url, excluded.pr_comment_url),
+  updated_at=unixepoch();

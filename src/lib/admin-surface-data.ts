@@ -347,6 +347,7 @@ const issue242PrUrl = "https://github.com/markitics/bumpgrade/pull/243";
 const issue242CiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26175118817";
 const issue244PrUrl = "https://github.com/markitics/bumpgrade/pull/244";
 const issue244MainCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26176981405";
+const issue414CommerceReviewCiRunUrl = "https://github.com/markitics/bumpgrade/actions/runs/26380078561";
 const issue466PrUrl = "https://github.com/markitics/bumpgrade/pull/472";
 const issue467PrUrl = "https://github.com/markitics/bumpgrade/pull/483";
 const issue467PreflightPrUrl = "https://github.com/markitics/bumpgrade/pull/494";
@@ -587,13 +588,16 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   },
   "journey-publisher-checks-mobile-admin": {
     status: "passed",
-    lastTestedAt: journeyProofRefreshAt,
-    environment: "Mobile source-data routes, first iOS/Android foundation evidence, and deployed mobile-admin screenshots.",
-    method: "Mobile admin source-data smoke, dashboard source-data smoke, iOS and Android fixture/live-hydration evidence, and agent-doc link checks.",
+    lastTestedAt: "2026-05-25T02:36:30.000Z",
+    environment:
+      "Mobile source-data routes, Director digest, Director review API, commerce review API, push/distribution boundaries, first iOS/Android foundation evidence, and deployed mobile-admin screenshots.",
+    method:
+      "Mobile admin source-data smoke, dashboard source-data smoke, iOS and Android fixture/live-hydration evidence, owner-gated API auth-boundary smoke, redaction checks, and agent-doc link checks.",
     summary:
-      "Mobile admin has launch proof for read-only dashboard contracts, iOS foundation hydration, Android foundation hydration, and shared source-data semantics.",
+      "Mobile admin has launch proof for public-safe dashboard contracts, iOS foundation hydration, Android foundation hydration, Director digest nesting, owner-confirmed review APIs, and explicit push/distribution blockers.",
     ciLinks: [
       { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
+      { label: "Main CI after PR #453", url: issue414CommerceReviewCiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
     screenshotLinks: [
@@ -602,17 +606,25 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Android emulator", url: "https://bumpgrade.com/pr-screenshots/issue-68-android-mobile-admin-emulator.png", kind: "screenshot" },
       { label: "iOS live dashboard hydration", url: "https://bumpgrade.com/pr-screenshots/issue-157-ios-live-dashboard-hydration.png", kind: "screenshot" },
       { label: "Android live dashboard hydration", url: "https://bumpgrade.com/pr-screenshots/issue-157-android-live-dashboard-hydration.png", kind: "screenshot" },
+      { label: "Director digest", url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-director-digest.png", kind: "screenshot" },
+      { label: "Director review API", url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-director-review-api.png", kind: "screenshot" },
+      { label: "Commerce review API", url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-commerce-review-api.png", kind: "screenshot" },
+      { label: "Push and distribution boundaries", url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-push-distribution-boundaries.png", kind: "screenshot" },
     ],
     validationLinks: [
       { label: "Mobile admin source data", url: "https://bumpgrade.com/mobile-admin/source-data", kind: "source-data" },
       { label: "Mobile dashboard source data", url: "https://bumpgrade.com/mobile-admin/dashboard/source-data", kind: "source-data" },
+      { label: "Director source data", url: "https://bumpgrade.com/admin/director/source-data", kind: "source-data" },
       { label: "iOS source data", url: "https://bumpgrade.com/mobile-admin/ios/source-data", kind: "source-data" },
       { label: "Android source data", url: "https://bumpgrade.com/mobile-admin/android/source-data", kind: "source-data" },
+      { label: "Director reviews API", url: "https://bumpgrade.com/api/mobile-admin/director-reviews", kind: "api" },
+      { label: "Commerce reviews API", url: "https://bumpgrade.com/api/mobile-admin/commerce-reviews", kind: "api" },
       { label: "Issue #157", url: "https://github.com/markitics/bumpgrade/issues/157", kind: "issue" },
+      { label: "Issue #414", url: "https://github.com/markitics/bumpgrade/issues/414", kind: "issue" },
     ],
     notes: [
-      "This is read-only launch proof for mobile admin foundations and dashboard hydration, not App Store or Play Store distribution.",
-      "Mobile writes, push notifications, and private mobile auth remain future confirmed-write/mobile distribution work.",
+      "Mobile confirmed writes are limited to low-risk private-row workflow actions, Director workstream acknowledgements, commerce-health acknowledgements, and audit-only action intents.",
+      "This is not App Store or Play Store distribution, live APNs/FCM push execution, physical-device proof, or high-risk billing, fulfillment, publishing, moderation, or creator-speech mobile mutation support.",
     ],
   },
   "journey-publisher-plans-first-checkout": {
@@ -1425,6 +1437,44 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
       "https://bumpgrade.com/mobile-admin/source-data",
       "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
+  {
+    id: "work-log-2026-05-26-mobile-admin-roadmap-refresh",
+    title: "Refreshed Mobile Admin roadmap evidence",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Owner asked for Director-level outcomes, less email noise, and useful admin summary layers above detailed technical ships.",
+    githubIssues: [{ number: 414, url: "https://github.com/markitics/bumpgrade/issues/414" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/admin/roadmap/source-data",
+      "https://bumpgrade.com/admin/director/source-data",
+      "https://bumpgrade.com/admin/user-journeys/source-data",
+      "https://bumpgrade.com/admin/work-log/source-data",
+    ],
+    roadmapUpdated: ["roadmap-mobile-admin"],
+    userJourneysUpdated: ["journey-publisher-checks-mobile-admin"],
+    documentationUpdated: ["drizzle/0207_mobile_admin_roadmap_refresh.sql"],
+    validation: [
+      "Updated Mobile Admin roadmap evidence to include Director digest, Director review API, commerce review API, push boundary, and distribution boundary.",
+      "Kept #414 active for physical-device proof, live APNs/FCM execution, store distribution, and higher-risk confirmed-write APIs.",
+    ],
+    flagsAttention:
+      "No Mark action required. This refreshes owner-visible summary evidence only; it does not ship physical-device proof, live push sends, store distribution, or high-risk mobile writes.",
+    firstPromptAt: "2026-05-26T22:23:00.000Z",
+    completedAt: "2026-05-26T22:23:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/414",
+      "https://bumpgrade.com/admin/roadmap/source-data",
+      "https://bumpgrade.com/admin/director/source-data",
+      "https://bumpgrade.com/admin/user-journeys/source-data",
+      "https://bumpgrade.com/admin/work-log/source-data",
+      "https://bumpgrade.com/mobile-admin/source-data",
+      "https://bumpgrade.com/mobile-admin/dashboard/source-data",
     ],
     prCommentUrl: null,
   },
@@ -3274,7 +3324,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Publisher checks mobile admin status",
     featureId: "feature-mobile-admin",
     featureStatus: "launch-preview",
-    issueNumbers: [414, 13, 67, 68, 153, 155, 157],
+    issueNumbers: [414, 428, 13, 67, 68, 153, 155, 157],
     primaryUser: "Publisher away from desktop",
     userGoal: "Open the future Bumpgrade mobile app to check Director workstreams, roadmap, work-log, owner attention, commerce health, owner-session boundaries, confirmed-action requirements, push readiness, and distribution readiness without separate mobile-only semantics.",
     sourceEvidence: [
@@ -3283,8 +3333,17 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "https://bumpgrade.com/admin/director/source-data",
       "https://bumpgrade.com/mobile-admin/ios/source-data",
       "https://bumpgrade.com/mobile-admin/android/source-data",
+      "https://bumpgrade.com/api/mobile-admin/private-rows",
+      "https://bumpgrade.com/api/mobile-admin/private-rows/actions",
+      "https://bumpgrade.com/api/mobile-admin/director-reviews",
+      "https://bumpgrade.com/api/mobile-admin/commerce-reviews",
+      "https://bumpgrade.com/api/mobile-admin/actions",
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
       "https://github.com/markitics/bumpgrade/issues/414",
+      "https://github.com/markitics/bumpgrade/issues/428",
+      "https://github.com/markitics/bumpgrade/pull/443",
+      "https://github.com/markitics/bumpgrade/pull/451",
+      "https://github.com/markitics/bumpgrade/pull/453",
       "https://github.com/markitics/bumpgrade/issues/13",
       "https://github.com/markitics/bumpgrade/issues/67",
       "https://github.com/markitics/bumpgrade/issues/68",
