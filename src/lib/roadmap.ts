@@ -127,22 +127,22 @@ export const roadmapItems: RoadmapItem[] = [
   },
   {
     id: "roadmap-codex-email",
-    title: "Codex project email and reply monitor",
+    title: "Project operations notifications",
     status: "shipped",
     issue: 10,
     featureId: featureIdFor(10),
     group: "Operations",
-    summary: "Outbound shipped-feature notices and inbound project reply monitoring.",
+    summary: "Owner-visible project notifications and inbound project reply monitoring.",
     publicEvidence: [
-      "Issue #10 owns the Codex project email workflow.",
+      "Issue #10 owns the project operations notification workflow.",
       "Project email routing for bumpgrade.com is enabled and reported ready after required domain records were installed.",
       "Private operational contracts store outbound notice results and inbound reply metadata without exposing trusted identities.",
-      "A real delayed PR #40 notice was delivered and recorded in private operational evidence.",
+      "A delayed project notice was delivered and recorded in private operational evidence.",
       "Project mail routes to the Worker for inbound capture and forwarding.",
     ],
     nextMilestone: "Keep inbound project mail limited to private runtime allowlists and authenticated sender evidence.",
     markAttention:
-      "Owner policy requires private runtime allowlists and authenticated sender evidence before inbound email can influence Codex; From text alone is not trusted.",
+      "Owner policy requires private runtime allowlists and authenticated sender evidence before inbound email can influence project work; From text alone is not trusted.",
   },
   {
     id: "roadmap-admin-surfaces",
@@ -488,7 +488,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #380 adds owner-reviewed sequence receipt-payload readiness gates without making provider calls, sending messages, creating provider responses or message IDs, creating delivery attempts or results, processing status webhooks, reading webhook or polling payloads, polling providers, creating polling results, receipt payloads, or delivery receipts, consuming or acking Queue messages, reading queue payload bodies, creating recipient payloads, personalized bodies, or unsubscribe URLs.",
       "Issue #420 adds owner-only sequence and broadcast test sends with exact confirmation, idempotency, audit correlation, stale-state checks, recipient/actor hash storage, and redaction before subscriber delivery exists.",
       "Issue #420 tracks subscriber email delivery, automation execution, and direct agent-safe write parity as one pending post-MVP execution bucket.",
-      "Codex project email in issue #10 is separate from publisher/customer email workflows.",
+      "Internal project-notification email in issue #10 is separate from publisher/customer email workflows.",
     ],
     nextMilestone:
       "Keep live sender/provider configuration, Queue producer/consumer execution, recipient payloads, provider calls, delivery results, webhooks, imports, exports, and agent-safe write tools in issue #420 instead of reopening more isolated readiness-gate slices.",

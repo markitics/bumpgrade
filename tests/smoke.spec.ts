@@ -853,6 +853,16 @@ test.describe("Bumpgrade scaffold", () => {
       const trustDetailMatch = payloadText.match(publicTrustDetailTerms);
       expect(trustDetailMatch, `${path} leaked public trust detail "${trustDetailMatch?.[0] ?? ""}"`).toBeNull();
     }
+
+    for (const path of ["/llms.txt", "/pricing", "/pricing-v2", "/features/source-data", "/roadmap/source-data"]) {
+      const response = await request.get(path);
+      const body = await response.text();
+      expect(response.ok(), body).toBeTruthy();
+      expect(body, `${path} leaked the internal project mailbox`).not.toContain("codex@bumpgrade.com");
+      expect(body, `${path} leaked internal project-operations copy`).not.toMatch(
+        /Codex project email|shipped notices|trusted replies|future Codex|notes for Mark/i,
+      );
+    }
   });
 
   test("public analytics attribution labels hide internal campaign markers", () => {

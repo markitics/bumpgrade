@@ -376,7 +376,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #347 adds aggregate audience export readiness without creating export files, exposing raw emails, subscriber IDs, or export URLs.",
       "Issue #420 adds owner-only sequence and broadcast test-send paths with exact confirmation, idempotency, audit correlation, stale-state checks, recipient/actor hash storage, and source-data redaction before subscriber delivery exists.",
       "Issue #420 tracks subscriber email delivery, automation execution, and direct agent-safe write parity as the post-MVP execution bucket.",
-      "Codex project email tracked separately by issue #10.",
+      "Internal project-notification email tracked separately by issue #10.",
     ],
     agentContract:
       "Agents may read the public audience contract, aggregate subscriber, suppression, unsubscribe-paused sequence, sequence delivery-readiness, sequence schedule-intent, sequence delivery-batch, sequence queue-message, sequence dispatch-preflight, sequence dispatch-attempt, sequence Queue producer readiness, sequence Queue consumer readiness, sequence provider-call readiness, sequence delivery-attempt readiness, sequence delivery-result readiness, sequence delivery-status webhook readiness, sequence provider-polling readiness, sequence receipt-payload readiness, owner-only sequence test-send counts, timeline, export-readiness, broadcast readiness, dry-run broadcast schedule intent, preview safety, queue readiness, delivery-batch, queue-message, dispatch-preflight, dispatch-attempt, sender-domain readiness, provider-event readiness, provider rate-limit readiness, provider response readiness, send-payload readiness, Queue producer readiness, Queue consumer readiness, provider-call readiness, delivery-attempt readiness, delivery-result readiness, delivery-status webhook readiness, provider-polling readiness, receipt-payload readiness, and owner-only broadcast test-send counts, opt-in write boundary, unsubscribe/suppression write boundary, owner-note contract metadata, owner sequence/broadcast schedule-intent metadata, owner sequence delivery-batch metadata, owner sequence queue-message metadata, owner sequence dispatch-preflight metadata, owner sequence dispatch-attempt receipt metadata, owner sequence Queue producer readiness metadata, owner sequence Queue consumer readiness metadata, owner sequence provider-call readiness metadata, owner sequence delivery-attempt readiness metadata, owner sequence delivery-result readiness metadata, owner sequence delivery-status webhook readiness metadata, owner sequence provider-polling readiness metadata, owner sequence receipt-payload readiness metadata, owner-only sequence test-send metadata, owner delivery-batch metadata, owner queue-message metadata, owner dispatch-preflight metadata, owner dispatch-attempt receipt metadata, and owner-only broadcast test-send metadata; issue #420 owns direct public agent subscriber writes, imports, real sequence scheduling, subscriber sends, private exports, export file creation, CRM automation, private DNS/provider setup, provider webhook processing, webhook payload reads, provider polling, provider polling payload reads, polling result capture, receipt payload capture, delivery receipt capture, Cloudflare Queue dispatch, Queue producer execution, Queue consumer execution, Queue message consumption or acknowledgements, queue payload bodies, retry/dead-letter rows, provider calls, delivery attempts, delivery results, webhooks, receipts, recipient payloads, personalized bodies, body templates, unsubscribe URLs, provider responses, and provider delivery behind future authenticated confirmed-write APIs with confirmation, audience scope, suppression checks, unsubscribe-safe checks, sender-domain safety, provider-event safety, provider response safety, send-payload safety, Queue producer safety, Queue consumer safety, provider-call safety, delivery-attempt safety, delivery-result safety, delivery-status webhook safety, provider-polling safety, receipt-payload safety, queue safety, and provider limits.",
@@ -594,15 +594,15 @@ export const featureCatalog: FeatureRecord[] = [
   },
   {
     id: "feature-codex-email",
-    title: "Codex project email and reply monitor",
+    title: "Project operations notifications",
     group: "Operations",
     status: "live",
     issue: 10,
     summary:
-      "Project email sending/routing for shipped-feature notices, reply monitoring, and attachment-aware follow-up.",
-    audience: "The Bumpgrade owner and Codex sessions that need durable non-chat coordination.",
+      "Owner-visible project notifications, reply monitoring, and attachment-aware follow-up for Bumpgrade workstreams.",
+    audience: "The Bumpgrade owner and authorized project agents that need durable non-chat coordination.",
     expectedCapabilities: [
-      "Outbound shipped-feature and attention emails from a project-owned sender.",
+      "Outbound owner notifications from a project-owned sender.",
       "Inbound routing and reply detection.",
       "Attachment and inline-image visibility checks.",
       "Private runtime evidence for outbound notices and inbound replies.",
@@ -616,7 +616,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Per-session plus addressing is deferred until the mail provider supports it for bumpgrade.com.",
     ],
     agentContract:
-      "Agents should send shipped PR notices when the work merits it, poll trusted recent replies before unrelated large work, and keep trusted identities, private inbox bodies, and raw mail details out of public surfaces.",
+      "Authorized project agents should use owner notifications only when the work merits interruption, check recent private replies before unrelated large work, and keep trusted identities, private inbox bodies, and raw mail details out of public surfaces.",
   },
   {
     id: "feature-stripe-commerce",

@@ -24,6 +24,7 @@ export const site = {
   domain: "bumpgrade.com",
   url: "https://bumpgrade.com",
   repo: "https://github.com/markitics/bumpgrade",
+  contactEmail: "hello@bumpgrade.com",
   description:
     "A funnel, checkout, email, product delivery, analytics, and AI-assisted growth platform for publishers launching paid offers.",
 };

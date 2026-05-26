@@ -129,9 +129,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
 - Owner attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
 - Owner attention source data: https://bumpgrade.com/admin/for-mark/source-data
-- Codex project email workflow: tracked by issue #10. Public docs intentionally
-  omit the private sender list, private storage names, raw mail handling, and
-  low-level authentication details.
+- Project operations notifications: tracked by issue #10. Public docs
+  intentionally omit private sender lists, private storage names, raw mail
+  handling, and low-level authentication details.
 
 ## Agent Docs
 
@@ -520,10 +520,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Human admin pages are protected by Better Auth owner sessions. Public-safe
   `/admin/*/source-data` routes remain readable for agents and must not contain
   private notes, secrets, raw provider ids, or private user data.
-- Codex project email can send shipped notices and poll trusted replies through
-  a private runtime allowlist and authenticated sender evidence. Trusted
-  identities, private inbox bodies, raw mail content, and attachments must not be
-  pasted into GitHub or public source-data.
+- Internal project-notification email is an owner-operations workflow, not a
+  publisher/customer email feature. Public agent responses should treat it as
+  outside Bumpgrade product behavior and avoid private runtime, sender, inbox,
+  raw-mail, or attachment details.
 - Stripe commerce architecture is documented in `docs/features/payments.md`.
   Bumpgrade defaults to sandbox mode; `/api/commerce/checkout` can create sandbox
   Checkout Sessions from D1 prices and can attach eligible referral click
