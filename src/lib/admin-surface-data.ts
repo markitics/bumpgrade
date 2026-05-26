@@ -295,7 +295,7 @@ function normalizeRelevantUrls(value: string | null | undefined): string[] {
     .filter((item) => item.length > 0);
 }
 
-function ownerSafeRequestText(value: string): string {
+export function ownerSafeRequestText(value: string): string {
   return value
     .replace(/\bFor-Mark\b/g, "Owner-attention")
     .replace(/\bfor-Mark\b/g, "owner-attention")
@@ -306,6 +306,9 @@ function ownerSafeRequestText(value: string): string {
     .replace(/\bMark asked\b/g, "Owner requested")
     .replace(/\bMark-facing\b/g, "Owner-facing")
     .replace(/\bMark\b/g, "the owner")
+    .replace(/\b[Ss]caffolds\b/g, "foundations")
+    .replace(/\b[Ss]caffold\b/g, "foundation")
+    .replace(/\b[Bb]oilerplate\b/g, "project standards")
     .replace(/\b(?:m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com)\b/gi, "a private trusted sender")
     .replace(/\b(?:codex_outbound_messages|codex_inbound_messages)\b/g, "private operational records")
     .replace(/\bbumpgrade-mail\b/g, "private mail storage")
@@ -563,10 +566,10 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-publisher-checks-mobile-admin": {
     status: "passed",
     lastTestedAt: journeyProofRefreshAt,
-    environment: "Mobile source-data routes, first iOS/Android scaffold evidence, and deployed mobile-admin screenshots.",
+    environment: "Mobile source-data routes, first iOS/Android foundation evidence, and deployed mobile-admin screenshots.",
     method: "Mobile admin source-data smoke, dashboard source-data smoke, iOS and Android fixture/live-hydration evidence, and agent-doc link checks.",
     summary:
-      "Mobile admin has launch proof for read-only dashboard contracts, iOS scaffold hydration, Android scaffold hydration, and shared source-data semantics.",
+      "Mobile admin has launch proof for read-only dashboard contracts, iOS foundation hydration, Android foundation hydration, and shared source-data semantics.",
     ciLinks: [
       { label: "Main CI after PR #244", url: issue244MainCiRunUrl, kind: "ci" },
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
@@ -586,7 +589,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #157", url: "https://github.com/markitics/bumpgrade/issues/157", kind: "issue" },
     ],
     notes: [
-      "This is read-only launch proof for mobile admin scaffolds and dashboard hydration, not App Store or Play Store distribution.",
+      "This is read-only launch proof for mobile admin foundations and dashboard hydration, not App Store or Play Store distribution.",
       "Mobile writes, push notifications, and private mobile auth remain future confirmed-write/mobile distribution work.",
     ],
   },
@@ -1092,6 +1095,48 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-26-public-agent-mobile-copy-followup",
+    title: "Cleaned agent and mobile source-data foundation wording",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Owner asked for the Bumpgrade website to stay geared toward real humans and their agents, with no placeholder or internal-note phrasing on public product surfaces.",
+    githubIssues: [{ number: 468, url: "https://github.com/markitics/bumpgrade/issues/468" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
+      "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
+      "https://bumpgrade.com/mobile-admin/source-data",
+      "https://bumpgrade.com/mobile-admin/dashboard/source-data",
+      "https://bumpgrade.com/llms.txt",
+    ],
+    roadmapUpdated: ["roadmap-mobile-admin", "roadmap-funnel-builder"],
+    userJourneysUpdated: ["journey-publisher-checks-mobile-admin", "journey-publisher-builds-funnel"],
+    documentationUpdated: ["public/llms.txt"],
+    validation: [
+      "Expanded public and agent-readable source-data banned-copy guard",
+      "Public launch page internal-language guard",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+      "Whitespace checks",
+    ],
+    flagsAttention:
+      "No Mark action required. GitHub Actions is externally unavailable, so this branch should remain unmerged until checks attach and pass.",
+    firstPromptAt: "2026-05-26T11:35:00.000Z",
+    completedAt: "2026-05-26T11:48:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/468",
+      "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
+      "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
+      "https://bumpgrade.com/mobile-admin/source-data",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-25-importer-subscriber-import-depth",
     title: "Added safe subscriber import depth to importer review",
@@ -2767,7 +2812,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /funnels/source-data, reusable template and block-template records, webinar/resource page-shape records, draft duplication capability metadata, granular block-edit capability metadata, visual block style capability metadata, block add/remove capability metadata, block reorder capability metadata, cross-step block move capability metadata, checkout-link capability metadata, resource-delivery-link capability metadata, public and owner-session agent funnel resource-delivery-token capability metadata, webinar-event-link capability metadata, archived-draft purge capability metadata, public funnel checkout-start capability metadata, archive/unpublish lifecycle metadata, direct agent public publishing metadata, the seeded preview route, and published D1 funnel routes. Owner-session template-to-draft creation, private draft duplication, block copy editing, curated visual block styling, reusable block add/remove, within-step block reordering, cross-step block moves, checkout-offer linking, resource delivery linking, webinar event/replay linking, public publishing, archive/unpublish actions, archived-draft purge, and owner-session agent-created resource tokens require owner auth, idempotency, and stale-state checks; public funnel resource-token creation requires checkout intent, entitlement, product, and file asset scope to match a published resource block; direct agent writes including archived-draft purge require actor identity, confirmation, idempotency, stale-state checks, audit correlation, redaction, and rollback notes.",
     validation: [
       "Playwright covers /funnels/source-data, /funnels/indie-launch-sandbox template and block library rendering, sitemap discovery, and agent manifest read-contract discovery.",
-      "Issue #79 records the first funnel source-data contract and preview scaffold.",
+      "Issue #79 records the first funnel source-data contract and preview foundation.",
       "Issue #159 records the first reusable template and block-template library contract.",
       "Issue #161 records owner-confirmed template-to-draft creation.",
       "Issue #163 records owner-confirmed checkout-offer linking on private draft steps.",
@@ -2860,7 +2905,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read public /funnels/source-data, seeded funnel routes, reusable templates including webinar/resource page shapes, draft duplication capability metadata, block-edit capability metadata, block visual-style capability metadata, block add/remove capability metadata, block reorder capability metadata, cross-step block move capability metadata, checkout-link capability metadata, resource-delivery-link capability metadata, public funnel resource-delivery-token capability metadata, webinar-event-link capability metadata, archived-draft purge capability metadata, public funnel checkout-start capability metadata, archive/unpublish lifecycle metadata, direct agent public publishing metadata, and published D1 funnel routes. Owner-session UI may create from templates, duplicate, edit steps, edit existing block copy, apply curated visual style presets, add reusable blocks, remove safe unlinked blocks, reorder or drag/drop existing blocks within a step, move existing blocks across steps, link checkout offers, link resource delivery, link webinar event/replay references, preview, publish, archive, unpublish, and purge archived private draft steps with actor identity, confirmation where required, idempotency, audit correlation, stale-state checks, and redaction. Owner-session agents can use /api/agent/funnels/draft-writes for private block copy edits, curated visual style presets, reusable block add/remove, checkout linking/unlinking, block reordering, cross-step block moves, resource-delivery linking, webinar-event linking, private duplication, public publishing, archive/unpublish, and archived-draft purge with the same confirmation, stale-state, audit, and redaction boundary. Published funnel resource-token creation requires checkout intent, entitlement, product, and file asset scope to match a published linked resource block; direct agent non-archived purge and unauthenticated public agent publishing are still planned.",
     validation: [
       "Playwright covers the owner-gated /admin/funnels surface, webinar/resource template records, template-to-draft create path, draft duplicate path, granular block-edit path, block visual-style path, block add/remove path, block reorder path, drag/drop block placement UI, cross-step block move path, linked-checkout block removal refusal, checkout-link create path, resource delivery link path, funnel-scoped private delivery token path, webinar event link path, archived-draft purge path, idempotent replay, stale checkout-link/resource-link/webinar-link/purge, block-edit, block-style, block-add, block-move, and cross-step block-move rejection, seed/update/reorder/publish/archive POST paths, stale publish/archive rejection, archived draft read-only behavior, private draft preview, public D1 funnel route rendering, public linked-checkout start rendering, public visual-style rendering, public resource-link and webinar-link rendering, archive removal from /funnels/source-data, /funnels/source-data capability metadata, and agent manifest discovery.",
-      "Issue #91 records the first owner-gated draft funnel builder scaffold.",
+      "Issue #91 records the first owner-gated draft funnel builder foundation.",
       "Issue #93 records the first step edit and reorder controls.",
       "Issue #95 records the first owner-gated private draft preview route.",
       "Issue #135 records the first exact-confirmed D1 draft publishing path.",
@@ -2905,8 +2950,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     happyPath: [
       "Open the future mobile admin app.",
       "Fetch /mobile-admin/dashboard/source-data for the public-safe mobile dashboard digest.",
-      "For iOS, open the first simulator scaffold and read the live dashboard payload, falling back to the generated fixture if the network is unavailable.",
-      "For Android, open the first emulator scaffold and read the live dashboard payload, falling back to the same generated fixture if the network is unavailable.",
+      "For iOS, open the first simulator foundation and read the live dashboard payload, falling back to the generated fixture if the network is unavailable.",
+      "For Android, open the first emulator foundation and read the live dashboard payload, falling back to the same generated fixture if the network is unavailable.",
       "Confirm the Expo, iOS, and Android surfaces distinguish live network hydration from fixture fallback while keeping the dashboard read-only.",
       "Review the compact Director workstream brief for categories such as Marketing, Mobile Admin, Agent Readiness, Security / Trust, and Operations before drilling into detail.",
       "Use /api/mobile-admin/director-reviews to acknowledge a reviewed Director workstream only after owner session auth, exact confirmation, stale-state checks, idempotency, and audit correlation.",
@@ -2914,7 +2959,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Review the shared owner-session panel, confirmed-action cards, push boundary, and distribution boundary before any live push sends, store distribution, or high-risk mobile mutations exist.",
       "Use the dashboard digest to resolve live /admin/source-data, /features/source-data, /roadmap/source-data, /commerce/source-data, and /agent-docs/source-data without scraping private admin pages.",
       "Use issue #414 for private mobile rows, live confirmed-write APIs, physical-device proof, APNs/FCM push execution, and eventual App Store/TestFlight or Play Store/internal-testing distribution readiness.",
-      "Follow closed scaffold issues #13, #67, #68, #153, #155, and #157 for completed read-only evidence.",
+      "Follow closed foundation issues #13, #67, #68, #153, #155, and #157 for completed read-only evidence.",
     ],
     edgeCases: [
       "The iOS simulator target is not App Store/TestFlight distribution, live push notifications, physical-device private row proof, or high-risk live confirmed-write support.",
@@ -2926,14 +2971,14 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     agentAccess:
       "Agents can read /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /admin/director/source-data, /mobile-admin/ios/source-data, and /mobile-admin/android/source-data to understand app scope, live public-safe mobile digest state, Director workstream nesting, owner-session requirements, Director review requirements, commerce review requirements, confirmed-action requirements, push/distribution readiness boundaries, and smoke evidence; they must not claim mobile app parity until live push execution, physical-device proof, installable distribution, and high-risk live confirmed writes ship.",
     validation: [
-      "Issue #414 now renders the owner-session, Director review, commerce review, confirmed-action, APNs/FCM push-readiness, and distribution-readiness contract in the app scaffolds while tracking high-risk billing/publishing/fulfillment confirmed-write APIs, physical-device proof, live push execution, and eventual installable distribution after scaffold closeout.",
+      "Issue #414 now renders the owner-session, Director review, commerce review, confirmed-action, APNs/FCM push-readiness, and distribution-readiness contract in the app foundations while tracking high-risk billing/publishing/fulfillment confirmed-write APIs, physical-device proof, live push execution, and eventual installable distribution after foundation closeout.",
       "Issue #13 defines the shared contract and splits iOS and Android child issues.",
-      "Issue #67 adds an Expo app scaffold, generated fixture, iOS simulator target, validation command, smoke command, and screenshot path.",
+      "Issue #67 adds an Expo app foundation, generated fixture, iOS simulator target, validation command, smoke command, and screenshot path.",
       "Issue #68 adds a native Android activity, generated fixture asset, emulator target, validation command, smoke command, and screenshot path.",
       "Issue #153 adds /mobile-admin/dashboard/source-data as the live public-safe dashboard contract.",
-      "Issue #155 renders the live dashboard route and redaction boundary in the Expo, iOS, and Android scaffold surfaces.",
+      "Issue #155 renders the live dashboard route and redaction boundary in the Expo, iOS, and Android foundation surfaces.",
       "Issue #157 fetches the live dashboard route in Expo, iOS, and Android while preserving fixture fallback for deterministic smoke tests.",
-      "Playwright covers /agent-docs/bumpgrade-mobile-admin, /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /mobile-admin/ios/source-data, /mobile-admin/android/source-data, Director digest redaction, commerce review redaction, push-readiness redaction, and distribution-readiness blockers. Mobile validations assert the scaffold apps render and live-hydrate the dashboard and Director brief panels.",
+      "Playwright covers /agent-docs/bumpgrade-mobile-admin, /mobile-admin/source-data, /mobile-admin/dashboard/source-data, /mobile-admin/ios/source-data, /mobile-admin/android/source-data, Director digest redaction, commerce review redaction, push-readiness redaction, and distribution-readiness blockers. Mobile validations assert the foundation apps render and live-hydrate the dashboard and Director brief panels.",
     ],
     sortOrder: 42,
     updatedAt: null,
@@ -3106,7 +3151,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /products/source-data, /offers/source-data, /funnels/source-data, aggregate entitlement inspection counts, aggregate owner-created product/test checkout/delivery-gate/test grant counts, the preview route, the customer-safe checkout intent lookup contract, the short-lived private R2-backed download-token boundary with redemption revalidation, the owner-authenticated private asset upload intent boundary, owner-confirmed non-destructive revocation intent evidence, protected content readiness, protected fixture delivery checks, and subscription-backed membership access state. Owner sessions can create draft products, create buyer-facing test checkout links, link owner-created product test checkout links to seeded offer/funnel delivery gates, link owner-created products to test offer/funnel IDs, create synthetic paid test checkout/access grants, inspect private buyer entitlement rows, revocation intent records, and protected content readiness in /admin/products, create small private asset upload records, and record non-destructive revocation intents only through exact-confirmed, idempotent, stale-state-checked writes. Public test checkout links can create synthetic paid access evidence only after exact confirmation, idempotency, and a current link revision check. Trusted paid sandbox webhooks can grant seeded entitlement rows and trusted Stripe Billing webhooks can sync membership access; direct customer delivery of arbitrary uploads, destructive revocation, real protected media delivery, live offer/funnel publishing, Customer Portal actions, and subscription mutations require later APIs.",
     validation: [
       "Playwright covers /products/source-data, owner draft product creation, owner-created product test checkout link creation, owner product delivery-gate creation, public test checkout completion, owner-created product test grant creation, aggregate entitlement inspection redaction, /products/indie-launch-library, customer /products/entitlements lookup, private R2-backed token delivery, current checkout-state revalidation, replay rejection, protected fixture delivery, protected fixture stale-state rejection, subscription-backed membership access activation/inactivation, owner private asset upload intent creation, owner-confirmed non-destructive revocation intent creation, idempotent replay, stale-state rejection, unauthorized rejection, owner /admin/products inspection, revocation intent readiness, protected content readiness, sitemap discovery, and agent manifest read-contract discovery.",
-      "Issue #83 records the first product/access source-data contract and preview scaffold.",
+      "Issue #83 records the first product/access source-data contract and preview foundation.",
       "Issue #101 records the first sandbox webhook-backed entitlement grant path.",
       "Issue #139 records the owner product entitlement inspection path.",
       "Issue #141 records the customer-safe checkout intent entitlement lookup path.",
@@ -3529,7 +3574,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /analytics/source-data, /analytics/source-data?window=24h, /analytics/indie-launch-dashboard, event capture boundaries, page-view beacon boundaries, seeded sandbox routing and baseline holdout metadata, dashboard-visible fixed-window aggregate source attribution evidence, aggregate variant evidence, assignment boundaries, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox aggregate evidence, owner-confirmed dispatch preflight aggregate evidence, owner-reviewed provider/domain readiness aggregate evidence, owner-reviewed content/consent readiness aggregate evidence, owner-reviewed send-payload readiness aggregate evidence, owner-reviewed queue-producer readiness aggregate evidence, owner-reviewed queue-consumer readiness aggregate evidence, owner-reviewed provider-call readiness aggregate evidence, owner-reviewed delivery-attempt readiness aggregate evidence, owner-reviewed delivery-result readiness aggregate evidence, owner-reviewed delivery-status webhook readiness aggregate evidence, owner-reviewed provider-polling readiness aggregate evidence, owner-reviewed receipt-payload readiness aggregate evidence, owner-reviewed delivery-receipt readiness aggregate evidence, owner-reviewed provider-status reconciliation readiness aggregate evidence, and redacted experiment decision evidence. Owner sessions can record notification inbox records through /api/admin/analytics/notification-inbox-records, dispatch preflight records through /api/admin/analytics/notification-dispatch-preflights, provider/domain readiness records through /api/admin/analytics/notification-provider-domain-readiness, content/consent readiness records through /api/admin/analytics/notification-content-consent-readiness, send-payload readiness records through /api/admin/analytics/notification-send-payload-readiness, queue-producer readiness records through /api/admin/analytics/notification-queue-producer-readiness, queue-consumer readiness records through /api/admin/analytics/notification-queue-consumer-readiness, provider-call readiness records through /api/admin/analytics/notification-provider-call-readiness, delivery-attempt readiness records through /api/admin/analytics/notification-delivery-attempt-readiness, delivery-result readiness records through /api/admin/analytics/notification-delivery-result-readiness, delivery-status webhook readiness records through /api/admin/analytics/notification-delivery-status-webhook-readiness, provider-polling readiness records through /api/admin/analytics/notification-provider-polling-readiness, receipt-payload readiness records through /api/admin/analytics/notification-receipt-payload-readiness, delivery-receipt readiness records through /api/admin/analytics/notification-delivery-receipt-readiness, provider-status reconciliation readiness records through /api/admin/analytics/notification-provider-status-reconciliation-readiness, and decision evidence through /api/admin/analytics/experiment-decisions. Issue #422 owns direct public agent analytics writes, custom events beyond the current seeded boundary, raw campaign/referrer reporting, raw analytics exports, automated alert sends, owner email sends, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation execution, provider configuration, provider secrets, sender credentials, private DNS credentials, Queue producer execution, Queue consumer execution, queue dispatch, queue-message creation, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload body creation, recipient-payload creation, personalized body creation, raw payload body storage, body-template exposure, unsubscribe-URL exposure, customer alerts, custom routing rules, automated winners, and revenue claims behind future authenticated confirmed-write APIs with privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
     validation: [
       "Playwright covers /analytics/source-data, /analytics/source-data?window=24h, /analytics/indie-launch-dashboard fixed-window source attribution UI, /admin/analytics owner decision, notification inbox, dispatch preflight, provider/domain readiness, content/consent readiness, send-payload readiness, queue-producer readiness, queue-consumer readiness, provider-call readiness, delivery-attempt readiness evidence, delivery-result readiness evidence, delivery-status webhook readiness evidence, provider-polling readiness evidence, receipt-payload readiness evidence, delivery-receipt readiness evidence, and provider-status reconciliation readiness evidence, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox evidence, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent readiness evidence, owner-reviewed send-payload readiness evidence, owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer readiness evidence, owner-reviewed provider-call readiness evidence, owner-reviewed delivery-attempt readiness evidence, owner-reviewed delivery-result readiness evidence, owner-reviewed delivery-status webhook readiness evidence, owner-reviewed provider-polling readiness evidence, owner-reviewed receipt-payload readiness evidence, owner-reviewed delivery-receipt readiness evidence, owner-reviewed provider-status reconciliation readiness evidence, event ingestion, page-view beacon capture with variant and source attribution evidence, bot suppression, assignment ingestion, conversion reporting from captured events, duplicate idempotency, deterministic assignment, validation failures, opt-in event recording, sitemap discovery, and agent manifest discovery.",
-      "Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 record the analytics source-data scaffold, first privacy-safe event capture path, first deterministic assignment path, first aggregate conversion report, first browser-side funnel page-view beacon, first variant-linked page-view evidence, first aggregate source attribution evidence, first dashboard-visible source breakdown, first fixed-window aggregate filters, first owner-confirmed experiment decision evidence, first aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, owner-reviewed content/consent readiness, owner-reviewed send-payload readiness, owner-reviewed queue-producer readiness, owner-reviewed queue-consumer readiness, owner-reviewed provider-call readiness, owner-reviewed delivery-attempt readiness, owner-reviewed delivery-result readiness, owner-reviewed delivery-status webhook readiness, owner-reviewed provider-polling readiness, owner-reviewed receipt-payload readiness, owner-reviewed delivery-receipt readiness, and owner-reviewed provider-status reconciliation readiness. Issue #422 routes seeded sandbox funnel copy with baseline holdout and tracks the remaining custom analytics schemas, custom routing rules, winner selection, notification execution, and agent-safe write parity after the issue #18 MVP closeout.",
+      "Issues #87, #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, and #311 record the analytics source-data foundation, first privacy-safe event capture path, first deterministic assignment path, first aggregate conversion report, first browser-side funnel page-view beacon, first variant-linked page-view evidence, first aggregate source attribution evidence, first dashboard-visible source breakdown, first fixed-window aggregate filters, first owner-confirmed experiment decision evidence, first aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness, owner-reviewed content/consent readiness, owner-reviewed send-payload readiness, owner-reviewed queue-producer readiness, owner-reviewed queue-consumer readiness, owner-reviewed provider-call readiness, owner-reviewed delivery-attempt readiness, owner-reviewed delivery-result readiness, owner-reviewed delivery-status webhook readiness, owner-reviewed provider-polling readiness, owner-reviewed receipt-payload readiness, owner-reviewed delivery-receipt readiness, and owner-reviewed provider-status reconciliation readiness. Issue #422 routes seeded sandbox funnel copy with baseline holdout and tracks the remaining custom analytics schemas, custom routing rules, winner selection, notification execution, and agent-safe write parity after the issue #18 MVP closeout.",
     ],
     sortOrder: 51,
     updatedAt: null,
@@ -3720,7 +3765,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Agents can read /affiliates/source-data, /commerce/source-data, preview routes, click capture boundaries, checkout attribution boundaries, review-only commission ledger boundaries, owner review action boundaries, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records. Issue #424 owns payout execution, tax, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, private partner portal access, partner payout account storage, buyer attribution finalization, and direct agent affiliate writes behind future authenticated confirmed-write APIs with actor identity, explicit confirmation, idempotency, stale-state checks, audit correlation, redaction, refund-window checks, payout review, private fraud review, notification send preflight checks, provider readiness checks, provider/payment safety, rollback/dispute paths, and private payout data boundaries.",
     validation: [
       "Playwright covers /affiliates/source-data, /affiliates/indie-launch-partners, click ingestion, checkout attribution, review-only commission ledger creation, owner review/reversal actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, duplicate idempotency, stale-state validation, validation failures, aggregate-only source-data, sitemap discovery, and agent manifest discovery.",
-      "Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, #281, and #424 record the affiliate/referral source-data scaffold, privacy-safe click capture, checkout attribution evidence, first review-only ledger evidence path, owner review/reversal action boundary, public-safe partner report contract, read-only payout preparation contract, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records.",
+      "Issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279, #281, and #424 record the affiliate/referral source-data foundation, privacy-safe click capture, checkout attribution evidence, first review-only ledger evidence path, owner review/reversal action boundary, public-safe partner report contract, read-only payout preparation contract, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records.",
       "Issue #424 tracks live affiliate payout execution, partner notifications, private partner portals, and agent-safe write parity after the issue #19 MVP closeout.",
     ],
     sortOrder: 52,

@@ -2778,7 +2778,7 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin-ios.ts and apps/mobile-admin",
     stableIds: ["platformIssue", "fixturePath", "smokeCommand", "simulatorBundleId"],
-    safeForAgents: ["Read iOS scaffold status", "Find simulator smoke command", "Find screenshot evidence"],
+    safeForAgents: ["Read iOS app-foundation status", "Find simulator smoke command", "Find screenshot evidence"],
     writeBoundary: "The iOS slice is read-only until the shared confirmed-write API and mobile auth boundary exist.",
   },
   {
@@ -2789,7 +2789,7 @@ export const agentReadContracts: AgentReadContract[] = [
     auth: "public",
     sourceOfTruth: "src/lib/mobile-admin-android.ts and apps/mobile-admin",
     stableIds: ["platformIssue", "fixturePath", "smokeCommand", "nativePackage", "defaultAvd"],
-    safeForAgents: ["Read Android scaffold status", "Find emulator smoke command", "Find screenshot evidence"],
+    safeForAgents: ["Read Android app-foundation status", "Find emulator smoke command", "Find screenshot evidence"],
     writeBoundary: "The Android slice is read-only until the shared confirmed-write API and mobile auth boundary exist.",
   },
 ];
@@ -3120,7 +3120,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-ios-mobile-admin",
     route: "/mobile-admin/ios/source-data",
-    resolves: "iOS scaffold path, generated fixture, simulator target, validation command, smoke command, and screenshot evidence.",
+    resolves: "iOS app-foundation path, generated fixture, simulator target, validation command, smoke command, and screenshot evidence.",
     stableIds: ["platformIssue", "fixturePath", "simulatorBundleId"],
     volatileClaims:
       "The iOS simulator smoke target renders owner-session and confirmed-action requirements, but it is not App Store distribution, push notification support, private mobile rows, or live confirmed-write capability.",
@@ -3128,7 +3128,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   {
     id: "evidence-android-mobile-admin",
     route: "/mobile-admin/android/source-data",
-    resolves: "Android scaffold path, generated fixture asset, native package, emulator target, validation command, smoke command, and screenshot evidence.",
+    resolves: "Android app-foundation path, generated fixture asset, native package, emulator target, validation command, smoke command, and screenshot evidence.",
     stableIds: ["platformIssue", "fixturePath", "nativePackage", "defaultAvd"],
     volatileClaims:
       "The Android emulator smoke target renders owner-session and confirmed-action requirements, but it is not Play Store distribution, push notification support, private mobile rows, or live confirmed-write capability.",

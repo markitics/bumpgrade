@@ -155,7 +155,7 @@ export const roadmapItems: RoadmapItem[] = [
     issue: 8,
     featureId: featureIdFor(8),
     group: "Admin and operations",
-    summary: "Owner and agent coordination surfaces backed by D1 instead of static scaffold copy.",
+    summary: "Owner and agent coordination surfaces backed by D1 instead of static foundation copy.",
     publicEvidence: [
       "Issue #8 owns this D1 admin surface slice.",
       "Admin source-data routes, D1 migrations, and append scripts are included in the issue #8 implementation.",
@@ -282,16 +282,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(414),
     group: "Mobile",
     summary:
-      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, Director workstream digest, iOS scaffold, Android scaffold, live-hydration, owner-session/confirmed-action contract, owner-gated private-row inspection, low-risk private-row workflow actions, owner-confirmed Director workstream reviews, owner-confirmed commerce-health reviews, owner-gated audit-only action-intent API, and push/distribution readiness-boundary slices.",
+      "Current follow-up for installable private mobile admin parity after the completed read-only dashboard, Director workstream digest, iOS foundation, Android foundation, live-hydration, owner-session/confirmed-action contract, owner-gated private-row inspection, low-risk private-row workflow actions, owner-confirmed Director workstream reviews, owner-confirmed commerce-health reviews, owner-gated audit-only action-intent API, and push/distribution readiness-boundary slices.",
     publicEvidence: [
       "Current active follow-up tracked by issue #414.",
-      "Original scaffold contract tracked by issue #13.",
+      "Original foundation contract tracked by issue #13.",
       "iOS app slice tracked by issue #67.",
       "Android app slice tracked by issue #68.",
       "Live dashboard source-data slice tracked by issue #153.",
-      "Mobile dashboard scaffold rendering tracked by issue #155.",
+      "Mobile dashboard foundation rendering tracked by issue #155.",
       "Mobile dashboard live network hydration tracked by issue #157.",
-      "Issue #414 renders the owner-session and confirmed-action contract in the Expo, iOS, and Android app scaffolds while keeping production mobile mutations disabled.",
+      "Issue #414 renders the owner-session and confirmed-action contract in the Expo, iOS, and Android app foundations while keeping production mobile mutations disabled.",
       "Issue #414 now adds owner-gated GET /api/mobile-admin/private-rows for read-only private mobile row inspection through the shared Better Auth owner session.",
       "Issue #428 now adds owner-gated POST /api/mobile-admin/private-rows/actions for low-risk private-row workflow actions with exact confirmation, idempotency, stale row revision, stale-state token, audit-correlation, and redaction checks.",
       "Issue #414 now adds owner-gated POST /api/mobile-admin/director-reviews for low-risk Director workstream acknowledgements with exact confirmation, idempotency, current Director generated-at checks, stale-state token, audit-correlation, and redaction checks.",
@@ -302,8 +302,8 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #414 now exposes a public-safe distribution boundary that separates simulator/emulator proof from physical-device, App Store/TestFlight, and Play Store/internal-testing claims.",
       "`/mobile-admin/source-data` exposes the shared mobile contract, private-auth boundary, private-row API summary, private-row action API summary, Director review API summary, commerce review API summary, action-intent API summary, push boundary, distribution boundary, confirmed-action requirements, and no-installable-app caveat.",
       "`/mobile-admin/dashboard/source-data` exposes the public-safe dashboard digest plus the redacted Director workstream brief and redacted private-row, private-row action, Director review, commerce review, and action-intent summaries for mobile clients.",
-      "`/mobile-admin/ios/source-data` exposes the iOS scaffold, fixture, simulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
-      "`/mobile-admin/android/source-data` exposes the Android scaffold, fixture asset, emulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
+      "`/mobile-admin/ios/source-data` exposes the iOS foundation, fixture, simulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
+      "`/mobile-admin/android/source-data` exposes the Android foundation, fixture asset, emulator smoke command, owner-session contract, private-row API panel, private-row action API panel, Director review API panel, commerce review API panel, action-intent API panel, confirmed-action cards, and screenshot path.",
     ],
     nextMilestone:
       "Add higher-risk billing, fulfillment, publishing, and other production confirmed-write APIs, physical-device proof, private APNs/FCM credential/device-token plumbing, and actual App Store/TestFlight or Play Store/internal-testing evidence without claiming parity early.",
@@ -316,10 +316,10 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Multi-step funnel model, source-data contract, read-only seeded preview scaffold, owner-gated editable draft scaffold with step edit/reorder controls, granular block title/body editing, reusable block add/remove controls, owner-session visual style controls, owner-session within-step block reordering, owner-session cross-step block moves, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, owner-confirmed archived-draft purge with tombstone evidence, owner-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery from published linked resource blocks, owner-confirmed webinar event/replay links to public-safe external URLs, and safe draft proposals.",
+      "Multi-step funnel model, source-data contract, read-only seeded preview foundation, owner-gated editable draft foundation with step edit/reorder controls, granular block title/body editing, reusable block add/remove controls, owner-session visual style controls, owner-session within-step block reordering, owner-session cross-step block moves, owner-gated private preview, exact-confirmed public publishing, reusable template and block-template library records including webinar/resource page shapes, owner-confirmed template-to-draft creation, owner-confirmed private draft duplication, owner-confirmed checkout-offer linking on private draft steps, public sandbox checkout start rendering from published linked checkout blocks, owner-confirmed archive/unpublish lifecycle actions, owner-confirmed archived-draft purge with tombstone evidence, owner-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery from published linked resource blocks, owner-confirmed webinar event/replay links to public-safe external URLs, and safe draft proposals.",
     publicEvidence: [
       "Tracked by issue #14.",
-      "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview scaffold.",
+      "Issue #79 adds the first `/funnels/source-data` contract and `/funnels/indie-launch-sandbox` preview foundation.",
       "Issue #91 adds owner-gated `/admin/funnels`, `/api/admin/funnels/drafts`, and D1 draft/audit tables.",
       "Issue #93 adds owner-gated step title, goal, kind, and order editing on private D1 drafts.",
       "Issue #95 adds owner-gated private draft preview from current D1 draft state.",
@@ -380,7 +380,7 @@ export const roadmapItems: RoadmapItem[] = [
     publicEvidence: [
       "Tracked by issue #15.",
       "Depends on Stripe architecture in #11.",
-      "Issue #81 adds the first `/offers/source-data` contract and `/offers/indie-launch-stack` preview scaffold.",
+      "Issue #81 adds the first `/offers/source-data` contract and `/offers/indie-launch-stack` preview foundation.",
       "Issue #99 adds confirmed sandbox checkout start support for the seeded primary offer plus pre-payment order bump.",
       "Issue #111 adds public-safe referral-click attribution evidence to checkout intent creation.",
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution.",
@@ -420,7 +420,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Digital product records, seeded payment-plan read records, owner-created product test checkout links, owner product delivery-gate links, product/access source data, sandbox webhook-backed entitlement grants, owner entitlement inspection, customer entitlement lookup, private R2-backed fixture delivery with redemption revalidation, owner-confirmed private asset upload intents, owner-confirmed non-destructive revocation intents, protected content readiness, checkout-intent-scoped protected fixture delivery, subscription-backed membership access, fulfillment task evidence, access rules, and subscriptions.",
     publicEvidence: [
       "Tracked by issue #16.",
-      "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview scaffold.",
+      "Issue #83 adds the first `/products/source-data` contract and `/products/indie-launch-library` preview foundation.",
       "Issue #101 adds idempotent sandbox entitlement rows and fulfillment task evidence from trusted paid checkout webhook events.",
       "Issue #139 adds `/admin/products` owner entitlement inspection and aggregate public redaction flags.",
       "Issue #141 adds `/products/entitlements` and `/api/products/entitlements` for customer-safe checkout intent entitlement lookup.",
@@ -454,7 +454,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Subscriber segments, live consent-backed opt-in capture, unsubscribe/suppression evidence, owner CRM timeline notes, aggregate sequence delivery readiness, dry-run sequence schedule intents, dry-run sequence delivery batches, dry-run sequence queue-message evidence, dry-run sequence dispatch preflight evidence, dry-run sequence dispatch attempt receipts, owner-reviewed sequence Queue producer readiness gates, owner-reviewed sequence Queue consumer readiness gates, owner-reviewed sequence provider-call readiness gates, owner-reviewed sequence delivery-attempt readiness gates, owner-reviewed sequence delivery-result readiness gates, owner-reviewed sequence delivery-status webhook readiness gates, owner-reviewed sequence provider-polling readiness gates, owner-reviewed sequence receipt-payload readiness gates, owner-only sequence test sends, broadcast draft readiness, dry-run broadcast schedule intents, preview/footer safety records, queue readiness contracts, delivery-batch dry runs, dry-run queue-message evidence, dispatch preflight evidence, dispatch attempt receipts, owner-only broadcast test sends, sender-domain readiness gates, provider-event readiness gates, provider rate-limit readiness gates, provider response readiness gates, send-payload readiness gates, Queue producer readiness gates, Queue consumer readiness gates, provider-call readiness gates, delivery-attempt readiness gates, delivery-result readiness gates, delivery-status webhook readiness gates, provider-polling readiness gates, receipt-payload readiness gates, owner-confirmed import intents, owner-confirmed import preflights, lead magnets, tags, draft sequence enrollment evidence, broadcasts, sequences, consent, and CRM-lite state.",
     publicEvidence: [
       "Tracked by issue #17.",
-      "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview scaffold.",
+      "Issue #85 adds the first `/audience/source-data` contract and `/audience/indie-launch-waitlist` preview foundation.",
       "Issue #103 adds `POST /api/audience/opt-in` with normalized subscriber, consent, tag, and draft sequence enrollment rows.",
       "Issue #137 adds `/admin/audience` owner subscriber inspection and aggregate public redaction flags.",
       "Issue #167 adds `POST /api/audience/unsubscribe` with idempotent unsubscribe/suppression evidence and no list-membership leak.",
@@ -527,7 +527,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Privacy-safe analytics event capture, session-idempotent funnel page-view beacons with deterministic variant and normalized source attribution evidence, dashboard-visible fixed-window aggregate source breakdowns, deterministic seeded experiment assignment, aggregate funnel conversion reports, aggregate report exports, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflights, owner-reviewed provider/domain readiness records, owner-reviewed content/consent readiness records, owner-reviewed send-payload readiness records, owner-reviewed queue-producer readiness records, owner-reviewed queue-consumer readiness records, owner-reviewed provider-call readiness records, owner-reviewed delivery-attempt readiness records, owner-reviewed delivery-result readiness records, owner-reviewed delivery-status-webhook readiness records, owner-reviewed provider-polling readiness records, owner-reviewed receipt-payload readiness records, owner-reviewed delivery-receipt readiness records, owner-reviewed provider-status reconciliation readiness records, owner-confirmed experiment decision evidence, attribution boundaries, and source-linked reporting.",
     publicEvidence: [
       "Tracked by issue #18.",
-      "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview scaffold.",
+      "Issue #87 adds the first `/analytics/source-data` contract and `/analytics/indie-launch-dashboard` preview foundation.",
       "Issue #105 adds `POST /api/analytics/events` with seeded event validation, idempotency, hashed request evidence, and aggregate-only source-data reporting.",
       "Issue #107 adds `POST /api/analytics/assignments` with seeded experiment validation, deterministic weighted variant assignment, hashed visitor evidence, and aggregate-only assignment reporting.",
       "Issue #119 adds aggregate funnel conversion report rows from captured test events without exposing raw analytics rows.",
@@ -590,7 +590,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Affiliate/referral MVP contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, attribution boundaries, payout review, and fraud review proof.",
     publicEvidence: [
       "Tracked by issue #19.",
-      "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview scaffold.",
+      "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview foundation.",
       "Issue #109 adds `POST /api/affiliates/clicks` with seeded referral link validation, idempotency, hashed request evidence, and aggregate-only click reporting.",
       "Issue #111 attaches validated referral click evidence to sandbox checkout intents without creating commissions.",
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution without making commissions payable.",
