@@ -622,6 +622,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "funnelCheckoutUnlinkId",
       "funnelResourceDeliveryLinkId",
       "funnelWebinarEventLinkId",
+      "funnelDraftBlockCanvasLayoutId",
       "funnelDraftBlockReorderId",
       "funnelDraftBlockCrossStepMoveId",
       "funnelDraftBlockStructureEditId",
@@ -676,6 +677,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "agentFunnelDraftWriteOperationId",
       "funnelDraftId",
       "funnelDraftBlockId",
+      "funnelDraftBlockCanvasLayoutId",
       "funnelRevisionId",
       "funnelAuditEventId",
       "idempotencyKey",
@@ -683,12 +685,12 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     safeForAgents: [
       "Inspect the owner-session direct agent-safe funnel draft write contract",
-      "Update private draft block title/body copy, apply curated visual style presets, link checkout/resource-delivery/webinar-event metadata, move blocks, duplicate a private draft, publish a draft, archive/unpublish a draft, or purge an already archived draft only after exact owner confirmation",
+      "Update private draft block title/body copy, apply curated visual style presets, set bounded canvas layout values, link checkout/resource-delivery/webinar-event metadata, move blocks, duplicate a private draft, publish a draft, archive/unpublish a draft, or purge an already archived draft only after exact owner confirmation",
       "Use idempotency, the current draft revision, and an audit correlation ID before writing",
       "Confirm responses redact owner email, owner user ID, private session data, raw rows, private provider data, R2 keys, signed URLs, buyer data, billing mutation state, and public agent write state",
     ],
     writeBoundary:
-      `This owner-session API records direct agent-safe funnel draft writes after exact confirmation, idempotency, current draft revision, and audit correlation checks. It can update private draft block copy, apply curated visual style presets, link checkout/resource-delivery/webinar-event metadata, move blocks, duplicate a private draft, publish a draft, archive/unpublish a draft, and purge an already archived draft. Publishing creates a public route mutation with archive-draft rollback and no billing mutation. Style writes store only known style IDs and never accept arbitrary CSS. Archived-draft purge records a tombstone before deleting draft and step rows and returns a redacted tombstone summary. It does not purge non-archived drafts, bulk purge, create unauthenticated public agent writes, mutate billing, expose arbitrary private R2 delivery, create signed URLs, run live webinar or fulfillment automation, or expose owner identity in responses. Issue #${agentFunnelDraftWriteIssue} tracks this slice.`,
+      `This owner-session API records direct agent-safe funnel draft writes after exact confirmation, idempotency, current draft revision, and audit correlation checks. It can update private draft block copy, apply curated visual style presets, set bounded canvas layout values, link checkout/resource-delivery/webinar-event metadata, move blocks, duplicate a private draft, publish a draft, archive/unpublish a draft, and purge an already archived draft. Publishing creates a public route mutation with archive-draft rollback and no billing mutation. Style writes store only known style IDs, canvas layout writes store only bounded x, y, width, height, and zIndex numbers, and neither accepts arbitrary CSS or scripts. Archived-draft purge records a tombstone before deleting draft and step rows and returns a redacted tombstone summary. It does not purge non-archived drafts, bulk purge, create unauthenticated public agent writes, mutate billing, expose arbitrary private R2 delivery, create signed URLs, run live webinar or fulfillment automation, or expose owner identity in responses. Issue #${agentFunnelDraftWriteIssue} tracks this slice.`,
   },
   {
     id: "create-owner-agent-funnel-resource-delivery-token",
