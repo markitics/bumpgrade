@@ -58,7 +58,7 @@ dedicated importer pages:
   row counts and safe identity, tag/segment, consent/status, and sequence-context
   signals from headers and source signals only. It does not create subscriber
   rows, store raw contact rows, store raw emails or names, enroll sequences, send
-  email, enable private exports, or turn on buyer-facing effects.
+  email, prepare private CSV exports, or turn on buyer-facing effects.
 - Verified publishers can record `subscriberImportPreflight` on private audience
   import records after reviewing subscriber depth. The preflight decision stores
   readiness or cleanup metadata and acknowledged go-live blockers only; it does
@@ -69,7 +69,7 @@ dedicated importer pages:
   the private import plan and can store normalized private subscriber email/name
   data server-side for owner review; public responses expose counts only and do
   not create global audience send-list rows, enroll sequences, send email,
-  enable exports, or turn on buyer-facing effects.
+  prepare exports, or turn on buyer-facing effects.
 - After private subscriber creation, the same verified owner can inspect saved
   importer contacts from the private review page. Public source-data,
   unauthenticated responses, and public agent contracts still expose counts and
@@ -79,15 +79,21 @@ dedicated importer pages:
   `imported_pending_review` status and non-sending tag assignments; it does not
   create consent events, sequence enrollments, sends, exports, or go-live
   effects.
+- The owner can download a private subscriber CSV from saved importer contacts
+  after exact confirmation. The CSV response is same-owner only and can include
+  private email/name/tag values; public source-data, unauthenticated responses,
+  and JSON API responses expose counts and redaction rules only.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   and saved private importer subscriber records after creation. The paired review
   action route lets that publisher mark each private record ready or needing
-  cleanup with metadata-only review decisions, and edit safe extracted field
-  labels, review status, and prompts before cleanup.
+  cleanup with metadata-only review decisions, edit safe extracted field
+  labels, review status, and prompts before cleanup, and prepare the owner-only
+  private subscriber CSV.
   These routes and actions keep raw rows, raw file text, file names, customer
-  values, private subscriber emails, payment credentials, sessions, confirmation text,
-  idempotency keys, and buyer-facing go-live actions out of public responses.
+  values, private subscriber emails, payment credentials, sessions, confirmation
+  text, idempotency keys, and buyer-facing go-live actions out of public
+  responses.
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized
