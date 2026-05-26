@@ -1119,7 +1119,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Mark asked for easy importers from ClickFunnels and competitor platforms, including paths that preserve real work before a publisher is ready to go live.",
     githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
-    closedPrs: [],
+    closedPrs: [{ number: 524, url: "https://github.com/markitics/bumpgrade/pull/524" }],
     featuresUpdated: [
       "https://bumpgrade.com/imports",
       "https://bumpgrade.com/imports/source-data",
@@ -1156,7 +1156,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "The active goal calls for ClickFunnels-level web parity, owner-visible workflows, and agent-ready contracts while avoiding tiny internal-only ships.",
     githubIssues: [{ number: 417, url: "https://github.com/markitics/bumpgrade/issues/417" }],
-    closedPrs: [],
+    closedPrs: [{ number: 523, url: "https://github.com/markitics/bumpgrade/pull/523" }],
     featuresUpdated: [
       "https://bumpgrade.com/admin/funnels",
       "https://bumpgrade.com/funnels/source-data",
@@ -1309,7 +1309,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Owner asked for the Bumpgrade website to stay geared toward real humans and their agents, with no placeholder or internal-note phrasing on public product surfaces.",
     githubIssues: [{ number: 468, url: "https://github.com/markitics/bumpgrade/issues/468" }],
-    closedPrs: [],
+    closedPrs: [{ number: 517, url: "https://github.com/markitics/bumpgrade/pull/517" }],
     featuresUpdated: [
       "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
@@ -1328,19 +1328,59 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "Runtime secrets",
       "Cloudflare build",
       "Whitespace checks",
+      "PR #517 CI passed static checks and browser journeys.",
     ],
-    flagsAttention:
-      "No Mark action required. GitHub Actions is externally unavailable, so this branch should remain unmerged until checks attach and pass.",
+    flagsAttention: null,
     firstPromptAt: "2026-05-26T11:35:00.000Z",
-    completedAt: "2026-05-26T11:48:00.000Z",
+    completedAt: "2026-05-26T12:57:37.000Z",
     relevantUrls: [
       "https://github.com/markitics/bumpgrade/issues/468",
+      "https://github.com/markitics/bumpgrade/pull/517",
       "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
       "https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin",
       "https://bumpgrade.com/mobile-admin/source-data",
       "https://bumpgrade.com/admin/work-log",
     ],
     prCommentUrl: null,
+  },
+  {
+    id: "work-log-2026-05-26-agent-manifest-starter-copy-closeout",
+    title: "Removed starter-source implementation labels from the public agent manifest",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Owner asked for public Bumpgrade surfaces to be written for real humans and their agents, not as notes for Mark or future implementation commentary.",
+    githubIssues: [{ number: 468, url: "https://github.com/markitics/bumpgrade/issues/468" }],
+    closedPrs: [{ number: 525, url: "https://github.com/markitics/bumpgrade/pull/525" }],
+    featuresUpdated: [
+      "https://bumpgrade.com/agent-docs/source-data",
+      "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
+    ],
+    roadmapUpdated: [],
+    userJourneysUpdated: [],
+    documentationUpdated: [],
+    validation: [
+      "Live public-copy audit found the old upstream starter branch/path label in /agent-docs/source-data.",
+      "Removed the public agent-manifest field/value wording that exposed project-starter implementation labels.",
+      "Expanded the focused public source-data guard for /agent-docs/source-data.",
+      "Typecheck",
+      "Lint",
+      "Cloudflare build",
+      "Focused public copy Playwright guard",
+      "Whitespace checks",
+    ],
+    flagsAttention: null,
+    firstPromptAt: "2026-05-26T20:31:00.000Z",
+    completedAt: "2026-05-26T20:45:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/468",
+      "https://github.com/markitics/bumpgrade/pull/525",
+      "https://bumpgrade.com/agent-docs/source-data",
+      "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/525",
   },
   {
     id: "work-log-2026-05-25-importer-subscriber-import-depth",

@@ -229,10 +229,9 @@ export type AgentSourceEvidenceRoute = {
   volatileClaims: string;
 };
 
-export type BoilerplateBaselineEvidence = {
+export type StarterBaselineEvidence = {
   sourceRepo: string;
-  sourceBranch: string;
-  sourcePath: string;
+  sourceLabel: string;
   adoptedShape: string[];
 };
 
@@ -3844,10 +3843,9 @@ export const agentWriteSafetyRules = [
   "Distinguish planned architecture, sandbox behavior, and live production capability.",
 ];
 
-export const boilerplateBaselineEvidence: BoilerplateBaselineEvidence = {
+export const starterBaselineEvidence: StarterBaselineEvidence = {
   sourceRepo: "markitics/laurelharned",
-  sourceBranch: "new-project-codex-boilerplate",
-  sourcePath: "docs/new-project-codex-boilerplate",
+  sourceLabel: "agent-ready project starter documentation",
   adoptedShape: [
     "AGENTS.md is adapted with Bumpgrade project constants, project stack, required product surfaces, and Bumpgrade Codex email identity.",
     "docs/working-agreements.md carries the issue/branch/PR, screenshot, validation, work-log, and owner-attention workflow.",
@@ -3869,5 +3867,5 @@ export const agentManifest = {
   sourceEvidenceRoutes: agentSourceEvidenceRoutes,
   mcpPlan: agentMcpPlan,
   writeSafetyRules: agentWriteSafetyRules,
-  boilerplateBaselineEvidence,
+  starterBaselineEvidence,
 };
