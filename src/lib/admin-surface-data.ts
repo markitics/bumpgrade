@@ -1126,7 +1126,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Owner requested easy importers from ClickFunnels and competitor platforms, while preferring broad owner-visible workstream outcomes instead of many narrow readiness updates.",
     githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
-    closedPrs: [],
+    closedPrs: [{ number: 527, url: "https://github.com/markitics/bumpgrade/pull/527" }],
     featuresUpdated: [
       "https://bumpgrade.com/imports",
       "https://bumpgrade.com/imports/source-data",
@@ -1155,7 +1155,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "https://bumpgrade.com/admin/work-log/source-data",
       "https://bumpgrade.com/imports/source-data",
     ],
-    prCommentUrl: null,
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/527",
   },
   {
     id: "work-log-2026-05-26-importer-checkout-readiness",

@@ -44,7 +44,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-build-heartbeat',
   'Owner requested easy importers from ClickFunnels and competitor platforms, while preferring broad owner-visible workstream outcomes instead of many narrow readiness updates.',
   json_array(json_object('number', 467, 'url', 'https://github.com/markitics/bumpgrade/issues/467')),
-  json_array(),
+  json_array(json_object('number', 527, 'url', 'https://github.com/markitics/bumpgrade/pull/527')),
   json_array('https://bumpgrade.com/imports', 'https://bumpgrade.com/imports/source-data', 'https://bumpgrade.com/features/source-data'),
   json_array('roadmap-competitor-importers'),
   json_array('journey-prospect-imports-from-clickfunnels'),
@@ -68,7 +68,7 @@ INSERT INTO admin_work_log_entries (
     'https://bumpgrade.com/admin/work-log/source-data',
     'https://bumpgrade.com/imports/source-data'
   ),
-  NULL,
+  'https://github.com/markitics/bumpgrade/pull/527',
   unixepoch()
 )
 ON CONFLICT(id) DO UPDATE SET
