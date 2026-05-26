@@ -195,8 +195,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `importReview` export analysis and platform export matches on new private
   draft metadata, create owner-visible `importRecords` for matched private
   offer, product, audience, checkout, funnel/page, sequence, and asset review
-  areas, and reuse an existing private draft when platform, workspace, normalized
-  title, and source URL or export file name match. The rollback route archives
+  areas, include safe `extractedFields` target labels and review prompts without
+  raw row values or private source content, and reuse an existing private draft
+  when platform, workspace, normalized title, and source URL or export file name match. The rollback route archives
   the signed-in publisher's private importer plan while preserving saved content,
   structured import records, steps, and audit history so the same source can be
   restarted as a fresh private plan. It does not publish

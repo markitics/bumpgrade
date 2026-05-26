@@ -46,6 +46,13 @@ dedicated importer pages:
   store counts, match IDs, safe header labels, safe signal labels, and redaction
   flags only, not raw rows, raw file text, export file names, private emails,
   customer values, credentials, or go-live effects.
+- Private import records include `extractedFields`, a safe owner-review field
+  plan for Bumpgrade target fields such as offer name, price shape, checkout
+  source, product title, subscriber identifier, tag/segment, sequence timing,
+  page block outline, or asset source. These fields are derived from safe header
+  labels, signal labels, and record kind only; they do not store or expose raw
+  row values, raw file text, file names, private emails, customer values,
+  credentials, or buyer-facing effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   after creation. The paired review action route lets that publisher mark each

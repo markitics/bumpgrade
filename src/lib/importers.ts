@@ -218,8 +218,12 @@ export const importerPrivateStructuredRecords = {
   reviewSurfaceLive: true,
   reviewActionRouteField: "privateRecordReviewActionApiRoute",
   reviewActionsLive: true,
+  extractedFieldsResponseField: "extractedFields",
+  extractedFieldsStorage: "competitor_import_private_records.metadata_json",
+  extractedFieldsReviewSurfaceLive: true,
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
+  extractedFieldsDerivedFrom: ["safe header labels", "safe signal labels", "record kind"],
   recordKinds: [
     "draft_funnel",
     "draft_page_blocks",
@@ -230,6 +234,8 @@ export const importerPrivateStructuredRecords = {
     "asset_reference",
   ],
   storesSafeMatchMetadata: true,
+  storesSafeExtractedFieldPlan: true,
+  storesRawExtractedValues: false,
   storesRawExportRows: false,
   storesRawExportText: false,
   storesRawExportFileNames: false,
@@ -1153,7 +1159,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       auth: "verified publisher session",
       requires: ["draft query parameter", "same owner as private import plan"],
       reads: ["private_draft_funnel_summary", "competitor_import_private_records"],
-      responseFields: ["draft", "importRecords", "recordConfidence", "reviewDecision", "goLiveEffects", "redaction"],
+      responseFields: ["draft", "importRecords", "extractedFields", "recordConfidence", "reviewDecision", "goLiveEffects", "redaction"],
       actions: [
         {
           decision: "ready",
@@ -1248,6 +1254,7 @@ export const importerSourceData = {
     privateStructuredImportRecordsLive: true,
     privateStructuredImportRecordReviewLive: true,
     privateStructuredImportRecordReviewActionsLive: true,
+    privateStructuredImportRecordFieldExtractionLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1273,6 +1280,8 @@ export const importerSourceData = {
       "Verified private importer writes return importReview and store that redacted export analysis on new private draft metadata so the recognized export shape survives the handoff after sign-in. Idempotent replays and source-match reuse report importReview without rewriting the existing private draft metadata.",
     privateStructuredImportRecords:
       "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner and mark each record ready or needs cleanup with private metadata-only review decisions, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, idempotency keys, confirmation text, or go-live effects.",
+    privateStructuredImportRecordFieldExtraction:
+      "Private importRecords now include extractedFields: safe target field labels and review prompts derived from matched header labels, signal labels, and record kind. The owner review page can show which Bumpgrade fields are ready for review without storing or exposing raw row values, file names, pasted source text, customer values, private emails, credentials, or go-live effects.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

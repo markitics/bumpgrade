@@ -216,6 +216,7 @@ function publicImportRecords(records: CompetitorImportPrivateRecord[]) {
     exportFileCount: record.exportFileCount,
     parsedExportFileCount: record.parsedExportFileCount,
     recordConfidence: record.recordConfidence,
+    extractedFields: record.extractedFields,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,

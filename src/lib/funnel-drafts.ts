@@ -190,6 +190,24 @@ type D1CompetitorImportPrivateRecordRow = {
 
 export type CompetitorImportPrivateRecordReviewDecision = "pending_review" | "ready" | "needs_cleanup";
 
+export type CompetitorImportPrivateRecordExtractedField = {
+  id: string;
+  label: string;
+  targetArea: ImportDraftEntity;
+  source: "safe_header_group" | "safe_signal_label" | "source_guide";
+  status: "ready_for_review" | "needs_context";
+  reviewPrompt: string;
+  fromHeaderLabels: string[];
+  fromSignalLabels: string[];
+  rawValueIncluded: false;
+  rawRowsEchoed: false;
+  rawTextEchoed: false;
+  rawFileNamesEchoed: false;
+  customerValuesIncluded: false;
+  privateEmailsIncluded: false;
+  goLiveEffectsEnabled: false;
+};
+
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
@@ -885,6 +903,7 @@ export type CompetitorImportPrivateRecord = {
   exportFileCount: number;
   parsedExportFileCount: number;
   recordConfidence: "recognized_export_match" | "needs_more_context" | "source_guide";
+  extractedFields: CompetitorImportPrivateRecordExtractedField[];
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1286,6 +1305,224 @@ function competitorImportRecordReviewDecision(value: unknown): CompetitorImportP
   return value === "ready" || value === "needs_cleanup" ? value : "pending_review";
 }
 
+type CompetitorImportFieldDefinition = {
+  id: string;
+  label: string;
+  targetArea: ImportDraftEntity;
+  headerLabels?: string[];
+  signalLabels?: string[];
+  reviewPrompt: string;
+};
+
+const competitorImportFieldDefinitions: Record<ImportDraftEntity, CompetitorImportFieldDefinition[]> = {
+  draft_funnel: [
+    {
+      id: "funnel-step-path",
+      label: "Funnel step path",
+      targetArea: "draft_funnel",
+      headerLabels: ["Page or URL column"],
+      signalLabels: ["Source URL"],
+      reviewPrompt: "Confirm which detected page or path should become each Bumpgrade funnel step.",
+    },
+    {
+      id: "launch-goal",
+      label: "Launch goal",
+      targetArea: "draft_funnel",
+      signalLabels: ["Launch goal"],
+      reviewPrompt: "Confirm the first launch goal before arranging the private funnel draft.",
+    },
+  ],
+  draft_page_blocks: [
+    {
+      id: "page-section-outline",
+      label: "Page section outline",
+      targetArea: "draft_page_blocks",
+      signalLabels: ["Page or offer copy", "Parsed export structure"],
+      reviewPrompt: "Review which page sections should become private Bumpgrade blocks.",
+    },
+    {
+      id: "page-form-or-checkout-block",
+      label: "Form or checkout block",
+      targetArea: "draft_page_blocks",
+      headerLabels: ["Checkout or order column", "Page or URL column"],
+      signalLabels: ["Source URL"],
+      reviewPrompt: "Confirm whether a detected form, checkout, or URL belongs on this page.",
+    },
+  ],
+  draft_checkout_offer: [
+    {
+      id: "offer-name",
+      label: "Offer name",
+      targetArea: "draft_checkout_offer",
+      headerLabels: ["Product or offer column"],
+      signalLabels: ["Page or offer copy"],
+      reviewPrompt: "Confirm the offer name Bumpgrade should prepare before checkout setup.",
+    },
+    {
+      id: "price-or-payment-shape",
+      label: "Price or payment shape",
+      targetArea: "draft_checkout_offer",
+      headerLabels: ["Checkout or order column"],
+      signalLabels: ["Page or offer copy"],
+      reviewPrompt: "Review the price, payment shape, coupon, bump, or upsell context before any live checkout exists.",
+    },
+    {
+      id: "checkout-source",
+      label: "Checkout source",
+      targetArea: "draft_checkout_offer",
+      headerLabels: ["Page or URL column"],
+      signalLabels: ["Source URL"],
+      reviewPrompt: "Confirm which source path should inform the private checkout draft.",
+    },
+  ],
+  draft_product_catalog: [
+    {
+      id: "product-title",
+      label: "Product title",
+      targetArea: "draft_product_catalog",
+      headerLabels: ["Product or offer column"],
+      signalLabels: ["Page or offer copy"],
+      reviewPrompt: "Confirm the product title and promise before creating buyer-facing access.",
+    },
+    {
+      id: "delivery-or-access-promise",
+      label: "Delivery or access promise",
+      targetArea: "draft_product_catalog",
+      signalLabels: ["Follow-up notes", "Page or offer copy"],
+      reviewPrompt: "Review delivery and access expectations while fulfillment stays off.",
+    },
+  ],
+  draft_audience_import: [
+    {
+      id: "subscriber-identifier",
+      label: "Subscriber identifier field",
+      targetArea: "draft_audience_import",
+      headerLabels: ["Subscriber or customer column", "Name column"],
+      signalLabels: ["Audience context"],
+      reviewPrompt: "Review the subscriber identifier shape without importing or exposing private contacts.",
+    },
+    {
+      id: "tag-or-segment",
+      label: "Tag or segment field",
+      targetArea: "draft_audience_import",
+      headerLabels: ["Tag or segment column"],
+      signalLabels: ["Audience context"],
+      reviewPrompt: "Confirm tag or segment meaning before any subscriber import is enabled.",
+    },
+    {
+      id: "consent-or-status",
+      label: "Consent or status field",
+      targetArea: "draft_audience_import",
+      headerLabels: ["Status or date column"],
+      signalLabels: ["Follow-up notes"],
+      reviewPrompt: "Check consent, suppression, or timing context before any send or import action.",
+    },
+  ],
+  draft_sequence_outline: [
+    {
+      id: "sequence-name",
+      label: "Sequence or campaign name",
+      targetArea: "draft_sequence_outline",
+      headerLabels: ["Tag or segment column"],
+      signalLabels: ["Follow-up notes"],
+      reviewPrompt: "Confirm which sequence or campaign outline should be recreated privately.",
+    },
+    {
+      id: "message-timing",
+      label: "Message timing or status",
+      targetArea: "draft_sequence_outline",
+      headerLabels: ["Status or date column"],
+      signalLabels: ["Follow-up notes"],
+      reviewPrompt: "Review timing signals while subscriber sends stay disabled.",
+    },
+  ],
+  asset_reference: [
+    {
+      id: "asset-source",
+      label: "Asset source",
+      targetArea: "asset_reference",
+      headerLabels: ["Page or URL column"],
+      signalLabels: ["Source URL", "Parsed export structure"],
+      reviewPrompt: "Confirm which source paths or exported structure point to assets Bumpgrade should collect later.",
+    },
+    {
+      id: "product-asset-link",
+      label: "Product asset link",
+      targetArea: "asset_reference",
+      headerLabels: ["Product or offer column"],
+      signalLabels: ["Page or offer copy"],
+      reviewPrompt: "Review which product or offer references need matching assets before fulfillment.",
+    },
+  ],
+};
+
+function matchingSafeLabels(available: string[], wanted: string[] | undefined) {
+  if (!wanted?.length) return [];
+  const availableSet = new Set(available);
+  return wanted.filter((label) => availableSet.has(label));
+}
+
+function competitorImportRecordExtractedFields(
+  kind: ImportDraftEntity,
+  input: {
+    matchedHeaderLabels: string[];
+    matchedSignalLabels: string[];
+    recordConfidence: CompetitorImportPrivateRecord["recordConfidence"];
+  },
+): CompetitorImportPrivateRecordExtractedField[] {
+  return (competitorImportFieldDefinitions[kind] ?? []).map((field) => {
+    const fromHeaderLabels = matchingSafeLabels(input.matchedHeaderLabels, field.headerLabels);
+    const fromSignalLabels = matchingSafeLabels(input.matchedSignalLabels, field.signalLabels);
+    const source =
+      fromHeaderLabels.length > 0 ? "safe_header_group" : fromSignalLabels.length > 0 ? "safe_signal_label" : "source_guide";
+    const status =
+      input.recordConfidence === "recognized_export_match" && (fromHeaderLabels.length > 0 || fromSignalLabels.length > 0)
+        ? "ready_for_review"
+        : "needs_context";
+
+    return {
+      id: `${kind}:${field.id}`,
+      label: field.label,
+      targetArea: field.targetArea,
+      source,
+      status,
+      reviewPrompt: field.reviewPrompt,
+      fromHeaderLabels,
+      fromSignalLabels,
+      rawValueIncluded: false,
+      rawRowsEchoed: false,
+      rawTextEchoed: false,
+      rawFileNamesEchoed: false,
+      customerValuesIncluded: false,
+      privateEmailsIncluded: false,
+      goLiveEffectsEnabled: false,
+    };
+  });
+}
+
+function competitorImportExtractedFieldsFromMetadata(
+  kind: ImportDraftEntity,
+  metadata: Record<string, unknown>,
+  fallback: {
+    matchedHeaderLabels: string[];
+    matchedSignalLabels: string[];
+    recordConfidence: CompetitorImportPrivateRecord["recordConfidence"];
+  },
+) {
+  const records = Array.isArray(metadata.extractedFields)
+    ? metadata.extractedFields.filter(
+        (item): item is CompetitorImportPrivateRecordExtractedField =>
+          item &&
+          typeof item === "object" &&
+          !Array.isArray(item) &&
+          typeof (item as { id?: unknown }).id === "string" &&
+          typeof (item as { label?: unknown }).label === "string",
+      )
+    : [];
+
+  return records.length ? records : competitorImportRecordExtractedFields(kind, fallback);
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -1294,6 +1531,14 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     stringArray(value).filter((item): item is ImportDraftEntity =>
       (competitorImportPrivateRecordKindOrder as string[]).includes(item),
     );
+  const matchedHeaderLabels = stringArray(metadata.matchedHeaderLabels);
+  const matchedSignalLabels = stringArray(metadata.matchedSignalLabels);
+  const recordConfidence =
+    metadata.recordConfidence === "recognized_export_match" ||
+    metadata.recordConfidence === "needs_more_context" ||
+    metadata.recordConfidence === "source_guide"
+      ? metadata.recordConfidence
+      : "source_guide";
 
   return {
     id: row.id,
@@ -1312,18 +1557,18 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     draftEntities: entityArray(metadata.draftEntities).length ? entityArray(metadata.draftEntities) : [row.record_kind],
     sourceChecklistItemIds: stringArray(metadata.sourceChecklistItemIds),
     recognizedPlatformExportMatchIds: stringArray(metadata.recognizedPlatformExportMatchIds),
-    matchedHeaderLabels: stringArray(metadata.matchedHeaderLabels),
-    matchedSignalLabels: stringArray(metadata.matchedSignalLabels),
+    matchedHeaderLabels,
+    matchedSignalLabels,
     sourceUrlCount: typeof metadata.sourceUrlCount === "number" ? metadata.sourceUrlCount : 0,
     sourceFileNameCount: typeof metadata.sourceFileNameCount === "number" ? metadata.sourceFileNameCount : 0,
     exportFileCount: typeof metadata.exportFileCount === "number" ? metadata.exportFileCount : 0,
     parsedExportFileCount: typeof metadata.parsedExportFileCount === "number" ? metadata.parsedExportFileCount : 0,
-    recordConfidence:
-      metadata.recordConfidence === "recognized_export_match" ||
-      metadata.recordConfidence === "needs_more_context" ||
-      metadata.recordConfidence === "source_guide"
-        ? metadata.recordConfidence
-        : "source_guide",
+    recordConfidence,
+    extractedFields: competitorImportExtractedFieldsFromMetadata(row.record_kind, metadata, {
+      matchedHeaderLabels,
+      matchedSignalLabels,
+      recordConfidence,
+    }),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -1421,6 +1666,11 @@ function competitorImportPrivateRecordInputs(
         exportFileCount: exportFileAnalysis?.fileCount ?? 0,
         parsedExportFileCount: exportFileAnalysis?.parsedFileCount ?? 0,
         recordConfidence,
+        extractedFields: competitorImportRecordExtractedFields(kind, {
+          matchedHeaderLabels,
+          matchedSignalLabels,
+          recordConfidence,
+        }),
         responseField: "importRecords",
         privateDraftOnly: true,
         publicSourceDataExposesContent: false,

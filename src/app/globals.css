@@ -4272,6 +4272,51 @@ h3 {
   font: inherit;
 }
 
+.importer-extracted-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.importer-extracted-field {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(31, 83, 107, 0.18);
+  border-radius: 8px;
+  background: rgba(45, 118, 138, 0.08);
+}
+
+.importer-extracted-field svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--blue);
+}
+
+.importer-extracted-field strong,
+.importer-extracted-field span,
+.importer-extracted-field p {
+  display: block;
+}
+
+.importer-extracted-field strong {
+  color: var(--ink);
+}
+
+.importer-extracted-field span {
+  margin-top: 3px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.importer-extracted-field p {
+  margin-top: 7px;
+}
+
 .importer-preview-panel {
   display: grid;
   gap: 18px;
