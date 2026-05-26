@@ -4809,6 +4809,43 @@ export const anonymousPlaygroundClaimRecords = sqliteTable(
   }),
 );
 
+export const competitorImportPrivateRecords = sqliteTable(
+  "competitor_import_private_records",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => publisherTenants.id, { onDelete: "cascade" }),
+    draftFunnelId: text("draft_funnel_id")
+      .notNull()
+      .references(() => funnelDrafts.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    importerPlatformId: text("importer_platform_id").notNull(),
+    importerSlug: text("importer_slug").notNull(),
+    platformName: text("platform_name").notNull(),
+    recordKind: text("record_kind").notNull(),
+    status: text("status").notNull().default("private_draft"),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    draftKindUnique: uniqueIndex("competitor_import_private_records_draft_kind_unique").on(
+      table.draftFunnelId,
+      table.recordKind,
+    ),
+    tenantImporterKindIdx: index("competitor_import_private_records_tenant_importer_kind_idx").on(
+      table.tenantId,
+      table.importerPlatformId,
+      table.recordKind,
+      table.updatedAt,
+    ),
+    draftIdx: index("competitor_import_private_records_draft_idx").on(table.draftFunnelId),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {

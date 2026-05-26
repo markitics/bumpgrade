@@ -219,6 +219,9 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
         {firstSearchValue(search.importReview) === "saved" && firstSearchValue(search.importRollback) !== "archived" ? (
           <p className="account-success">Safe export review saved with the private import plan.</p>
         ) : null}
+        {firstSearchValue(search.importRecords) === "saved" && firstSearchValue(search.importRollback) !== "archived" ? (
+          <p className="account-success">Structured private import records are ready for review.</p>
+        ) : null}
         {firstSearchValue(search.importError) ? (
           <p className="account-error">{firstSearchValue(search.importError)}</p>
         ) : null}

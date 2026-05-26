@@ -233,16 +233,20 @@ a private import plan after exact confirmation and idempotency. Responses
 include `importReview`, which stores the redacted export analysis,
 platform-specific export matches, and recognized match IDs on new private draft
 metadata without raw rows, raw file text, customer rows, credentials, or go-live
-effects. Responses also include redacted `duplicateReview.status` values for
-created drafts, idempotency replay, and same-platform/source-file/workspace/title
-reuse, and do not echo pasted material or export file contents. The platform
-rollback route can archive the signed-in
+effects. Responses also include `importRecords`, owner-visible structured
+records for matched private offer, product, audience, checkout, funnel/page,
+sequence, or asset review areas. Those records store safe match IDs, safe header
+labels, safe signal labels, counts, and redaction flags only; public source-data
+does not expose private record content. Responses also include redacted
+`duplicateReview.status` values for created drafts, idempotency replay, and
+same-platform/source-file/workspace/title reuse, and do not echo pasted material
+or export file contents. The platform rollback route can archive the signed-in
 publisher's own private import plan while preserving saved content, steps, and
-audit history, which allows a fresh import from the same source to start cleanly.
-Imported material starts in a private Bumpgrade workspace; public publishing,
-live checkout, subscriber sends, domains, fulfillment, account-to-account
-transfer, payment migration, customer password migration, and raw export storage
-are not live from this contract.
+structured import records, which allows a fresh import from the same source to
+start cleanly. Imported material starts in a private Bumpgrade workspace; public
+publishing, live checkout, subscriber sends, domains, fulfillment,
+account-to-account transfer, payment migration, customer password migration, and
+raw export storage are not live from this contract.
 
 Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template

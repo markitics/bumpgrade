@@ -178,8 +178,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   content, billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
   platform-specific source checklists, preflight signal labels, export-file
-  parser fields, saved private plan parts, safety gates, limitations, public
-  preflight review routes, and private importer API routes. Posting to a platform
+  parser fields, private structured import-record contracts, saved private plan
+  parts, safety gates, limitations, public preflight review routes, and private
+  importer API routes. Posting to a platform
   preflight review route returns a redacted import map before sign-in or private
   draft creation, including `sourceChecklistReview` status for the platform guide
   items, `exportFileAnalysis` for small CSV, JSON, HTML, or text exports, and
@@ -190,11 +191,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   exact confirmation, idempotency, and redacted responses. It can create or
   reuse a Free Build workspace, save a private draft funnel, persist the safe
   `importReview` export analysis and platform export matches on new private
-  draft metadata, and reuse an existing private draft when platform, workspace,
-  normalized title, and source URL or export file name match. The rollback route
-  archives the signed-in publisher's
-  private importer plan while preserving saved content, steps, and audit history
-  so the same source can be restarted as a fresh private plan. It does not publish
+  draft metadata, create owner-visible `importRecords` for matched private
+  offer, product, audience, checkout, funnel/page, sequence, and asset review
+  areas, and reuse an existing private draft when platform, workspace, normalized
+  title, and source URL or export file name match. The rollback route archives
+  the signed-in publisher's private importer plan while preserving saved content,
+  structured import records, steps, and audit history so the same source can be
+  restarted as a fresh private plan. It does not publish
   pages, run live checkout, send subscribers, connect domains, enable
   fulfillment, transfer accounts, migrate payment credentials, import customer
   passwords, or expose pasted source material or export file contents in the

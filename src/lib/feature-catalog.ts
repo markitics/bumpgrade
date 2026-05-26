@@ -120,6 +120,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Small CSV, JSON, HTML, and text export files can be parsed for structure without saving or echoing raw rows, file names, or file text.",
       "Platform export matches show which recognized export shape Bumpgrade can prepare before a private draft is created.",
       "Private draft creation stores the safe importReview export analysis and platform export matches on private draft metadata so the recognized export shape survives after sign-in.",
+      "Private draft creation returns and stores structured private import records for matched offer, product, audience, checkout, funnel/page, sequence, and asset review areas.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
       "Rollback controls that archive private importer plans while preserving saved work and allow the same source to be restarted as a fresh private plan.",
@@ -130,10 +131,10 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes with redacted exportFileAnalysis and platformExportMatches, private platform create routes with importReview metadata persistence, and private platform rollback routes listed in source-data define the importer contract slice.",
+      "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes with redacted exportFileAnalysis and platformExportMatches, private platform create routes with importReview metadata persistence and structured importRecords, and private platform rollback routes listed in source-data define the importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, platform-specific source checklists, export-match templates, export-file analysis fields, private importReview metadata persistence, saved private plan parts, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, platform-specific source checklists, export-match templates, export-file analysis fields, private importReview metadata persistence, structured private import-record contracts, saved private plan parts, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",

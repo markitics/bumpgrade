@@ -4,6 +4,7 @@ import { createAuth } from "@/lib/auth";
 import {
   createCompetitorImportedDraftFunnel,
   type CompetitorImportReviewMetadata,
+  type CompetitorImportPrivateRecord,
   type DraftFunnelRecord,
   type ImporterDuplicateReview,
 } from "@/lib/funnel-drafts";
@@ -190,6 +191,37 @@ function publicDuplicateReview(review: ImporterDuplicateReview) {
   };
 }
 
+function publicImportRecords(records: CompetitorImportPrivateRecord[]) {
+  return records.map((record) => ({
+    id: record.id,
+    responseField: record.responseField,
+    privateRecordType: record.privateRecordType,
+    kind: record.kind,
+    status: record.status,
+    title: record.title,
+    summary: record.summary,
+    importerPlatformId: record.importerPlatformId,
+    importerSlug: record.importerSlug,
+    platformName: record.platformName,
+    draftFunnelId: record.draftFunnelId,
+    tenantId: record.tenantId,
+    draftEntities: record.draftEntities,
+    sourceChecklistItemIds: record.sourceChecklistItemIds,
+    recognizedPlatformExportMatchIds: record.recognizedPlatformExportMatchIds,
+    matchedHeaderLabels: record.matchedHeaderLabels,
+    matchedSignalLabels: record.matchedSignalLabels,
+    sourceUrlCount: record.sourceUrlCount,
+    sourceFileNameCount: record.sourceFileNameCount,
+    exportFileCount: record.exportFileCount,
+    parsedExportFileCount: record.parsedExportFileCount,
+    recordConfidence: record.recordConfidence,
+    goLiveEffects: record.goLiveEffects,
+    redaction: record.redaction,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  }));
+}
+
 function publicImportReview(exportFileAnalysis: ExportFileAnalysis, exportMatches: ImporterPlatformExportMatch[]): CompetitorImportReviewMetadata {
   return {
     responseField: "importReview",
@@ -330,6 +362,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
         draft: publicDraft(draftResult.draft),
         duplicateReview: publicDuplicateReview(draftResult.duplicateReview),
         importReview: draftResult.importReview,
+        importRecords: publicImportRecords(draftResult.importRecords),
         redaction: redaction(),
       });
     }
@@ -340,6 +373,9 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
     redirect.searchParams.set("duplicateReview", draftResult.duplicateReview.status);
     if (draftResult.importReview?.privateDraftMetadataStored) {
       redirect.searchParams.set("importReview", "saved");
+    }
+    if (draftResult.importRecords.length > 0) {
+      redirect.searchParams.set("importRecords", "saved");
     }
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {
