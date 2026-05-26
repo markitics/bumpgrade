@@ -441,6 +441,7 @@ import {
   importerDraftPreviewApiRoute,
   importerDraftRollbackApiRoute,
   importerDraftRollbackConfirmationText,
+  importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
@@ -1182,8 +1183,11 @@ test.describe("Bumpgrade scaffold", () => {
         reviewActionsLive: true,
         extractedFieldsResponseField: "extractedFields",
         extractedFieldsReviewSurfaceLive: true,
+        extractedFieldEditingLive: true,
+        extractedFieldEditActionRouteField: "privateRecordReviewActionApiRoute",
         publicSourceDataExposesContent: false,
         storesSafeExtractedFieldPlan: true,
+        storesOwnerEditedExtractedFieldPlan: true,
         storesRawExtractedValues: false,
         storesRawExportRows: false,
         storesRawExportText: false,
@@ -1205,6 +1209,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.privateStructuredImportRecordsLive).toBe(true);
     expect(payload.currentAvailability.privateStructuredImportRecordReviewLive).toBe(true);
     expect(payload.currentAvailability.privateStructuredImportRecordReviewActionsLive).toBe(true);
+    expect(payload.currentAvailability.privateStructuredImportRecordFieldEditingLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1281,7 +1286,11 @@ test.describe("Bumpgrade scaffold", () => {
             reviewRouteField: "privateRecordReviewRoute",
             reviewActionRouteField: "privateRecordReviewActionApiRoute",
             extractedFieldsResponseField: "extractedFields",
+            extractedFieldEditingLive: true,
+            extractedFieldEditableFields: expect.arrayContaining(["label", "status", "reviewPrompt"]),
+            extractedFieldStatusValues: expect.arrayContaining(["ready_for_review", "needs_context"]),
             storesSafeExtractedFieldPlan: true,
+            storesOwnerEditedExtractedFieldPlan: true,
             storesRawExtractedValues: false,
             publicSourceDataExposesContent: false,
             storesRawExportRows: false,
@@ -1302,11 +1311,18 @@ test.describe("Bumpgrade scaffold", () => {
                 decision: "needs_cleanup",
                 confirmationText: importerPrivateRecordReviewConfirmationText("ClickFunnels", "needs_cleanup"),
               }),
+              expect.objectContaining({
+                action: "edit_extracted_field",
+                confirmationText: importerPrivateRecordExtractedFieldEditConfirmationText("ClickFunnels"),
+                editableFields: expect.arrayContaining(["label", "status", "reviewPrompt"]),
+                statusValues: expect.arrayContaining(["ready_for_review", "needs_context"]),
+              }),
             ]),
-            writes: expect.arrayContaining(["record_review_decision_metadata"]),
+            writes: expect.arrayContaining(["record_review_decision_metadata", "extracted_field_plan_metadata"]),
             idempotencyRequired: true,
             rawRowsEchoed: false,
             rawTextEchoed: false,
+            rawExtractedValuesStored: false,
             idempotencyKeysIncluded: false,
             goLiveEffectsEnabled: false,
           }),
@@ -30327,6 +30343,8 @@ test.describe("Bumpgrade scaffold", () => {
                 source: "safe_header_group",
                 status: "ready_for_review",
                 fromHeaderLabels: expect.arrayContaining(["Product or offer column"]),
+                editedByOwner: false,
+                editSource: null,
                 rawValueIncluded: false,
                 rawRowsEchoed: false,
                 rawTextEchoed: false,
@@ -30443,6 +30461,7 @@ test.describe("Bumpgrade scaffold", () => {
             expect.objectContaining({
               id: "draft_checkout_offer:offer-name",
               label: "Offer name",
+              editedByOwner: false,
               rawValueIncluded: false,
               privateEmailsIncluded: false,
               goLiveEffectsEnabled: false,
@@ -30474,8 +30493,77 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(reviewActionPayload)).not.toContain("samcart-export-main.zip");
     expect(JSON.stringify(reviewActionPayload)).not.toContain("private-buyer@example.com");
 
+    const fieldEditResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("samcart"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "edit_extracted_field",
+        draftId: createPayload.draft.id,
+        recordId: checkoutRecord.id,
+        fieldId: "draft_checkout_offer:offer-name",
+        fieldLabel: "Offer headline",
+        fieldStatus: "ready_for_review",
+        fieldReviewPrompt: "Confirm the offer headline maps to the SamCart checkout offer before cleanup.",
+        confirmationText: importerPrivateRecordExtractedFieldEditConfirmationText("SamCart"),
+        idempotencyKey: `field-edit-${suffix}`,
+      },
+    });
+    expect(fieldEditResponse.ok(), await fieldEditResponse.text()).toBeTruthy();
+    const fieldEditPayload = await fieldEditResponse.json();
+    expect(fieldEditPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "edit_private_import_record_field",
+        idempotent: false,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        field: expect.objectContaining({
+          id: "draft_checkout_offer:offer-name",
+          label: "Offer headline",
+          status: "ready_for_review",
+          editedByOwner: true,
+          editSource: "verified_publisher_extracted_field_edit",
+          rawValueIncluded: false,
+          rawRowsEchoed: false,
+          rawTextEchoed: false,
+          privateEmailsIncluded: false,
+          goLiveEffectsEnabled: false,
+        }),
+        record: expect.objectContaining({
+          id: checkoutRecord.id,
+          extractedFields: expect.arrayContaining([
+            expect.objectContaining({
+              id: "draft_checkout_offer:offer-name",
+              label: "Offer headline",
+              editedByOwner: true,
+              rawValueIncluded: false,
+              privateEmailsIncluded: false,
+            }),
+          ]),
+          redaction: expect.objectContaining({
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+            privateEmailsIncluded: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          confirmationTextStored: false,
+          idempotencyKeysIncluded: false,
+          actorEmailIncluded: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(fieldEditPayload)).not.toContain("field-edit-");
+    expect(JSON.stringify(fieldEditPayload)).not.toContain(requestBody.pageCopy);
+    expect(JSON.stringify(fieldEditPayload)).not.toContain("samcart-export-main.zip");
+    expect(JSON.stringify(fieldEditPayload)).not.toContain("private-buyer@example.com");
+    expect(JSON.stringify(fieldEditPayload)).not.toContain("PRIVATE_PRODUCT_NAME");
+
     await page.goto(samcartReviewRoute);
     await expect(page.getByText("Ready for cleanup").first()).toBeVisible();
+    await expect(page.getByText("Offer headline").first()).toBeVisible();
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
@@ -30503,7 +30591,7 @@ test.describe("Bumpgrade scaffold", () => {
             kind: "draft_checkout_offer",
             draftFunnelId: createPayload.draft.id,
             recordConfidence: "recognized_export_match",
-            extractedFields: expect.arrayContaining([expect.objectContaining({ label: "Offer name" })]),
+            extractedFields: expect.arrayContaining([expect.objectContaining({ label: "Offer headline" })]),
           }),
         ]),
       }),
@@ -30541,7 +30629,7 @@ test.describe("Bumpgrade scaffold", () => {
             kind: "draft_checkout_offer",
             draftFunnelId: createPayload.draft.id,
             recordConfidence: "recognized_export_match",
-            extractedFields: expect.arrayContaining([expect.objectContaining({ label: "Offer name" })]),
+            extractedFields: expect.arrayContaining([expect.objectContaining({ label: "Offer headline" })]),
           }),
         ]),
       }),

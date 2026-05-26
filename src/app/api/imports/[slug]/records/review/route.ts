@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAuth } from "@/lib/auth";
 import {
   reviewCompetitorImportPrivateRecord,
+  updateCompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecord,
+  type CompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecordReviewDecision,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
 import {
   getImporterBySlug,
   importerIssue,
+  importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
@@ -103,7 +106,7 @@ function reviewDecision(value: string): Exclude<CompetitorImportPrivateRecordRev
   return null;
 }
 
-function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
+function normalizedSharedInput(payload: RequestPayload) {
   const draftId = payload.get("draftId").trim();
   if (!draftId) {
     throw new ImporterRecordReviewError("Choose the private import plan before reviewing a record.", 400, "DRAFT_ID_REQUIRED");
@@ -114,6 +117,20 @@ function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
     throw new ImporterRecordReviewError("Choose the private import record to review.", 400, "RECORD_ID_REQUIRED");
   }
 
+  const idempotencyKey = payload.get("idempotencyKey").trim();
+  if (!idempotencyKey) {
+    throw new ImporterRecordReviewError("Refresh this page before reviewing the private import record.", 400, "IDEMPOTENCY_REQUIRED");
+  }
+
+  return {
+    draftId,
+    recordId,
+    idempotencyKey,
+  };
+}
+
+function normalizedReviewInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
   const decision = reviewDecision(payload.get("decision").trim());
   if (!decision) {
     throw new ImporterRecordReviewError("Choose ready or needs cleanup for this private import record.", 400, "DECISION_REQUIRED");
@@ -128,17 +145,56 @@ function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
     );
   }
 
-  const idempotencyKey = payload.get("idempotencyKey").trim();
-  if (!idempotencyKey) {
-    throw new ImporterRecordReviewError("Refresh this page before reviewing the private import record.", 400, "IDEMPOTENCY_REQUIRED");
+  return {
+    ...shared,
+    decision,
+    confirmationText,
+  };
+}
+
+function extractedFieldStatus(value: string): CompetitorImportPrivateRecordExtractedField["status"] | null {
+  if (value === "ready_for_review" || value === "needs_context") return value;
+  return null;
+}
+
+function normalizedFieldEditInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const fieldId = payload.get("fieldId").trim();
+  if (!fieldId) {
+    throw new ImporterRecordReviewError("Choose the prepared field to edit.", 400, "FIELD_ID_REQUIRED");
+  }
+
+  const label = payload.get("fieldLabel").trim();
+  if (!label) {
+    throw new ImporterRecordReviewError("Name the Bumpgrade field before saving.", 400, "FIELD_LABEL_REQUIRED");
+  }
+
+  const status = extractedFieldStatus(payload.get("fieldStatus").trim());
+  if (!status) {
+    throw new ImporterRecordReviewError("Choose whether this prepared field is ready or needs context.", 400, "FIELD_STATUS_REQUIRED");
+  }
+
+  const reviewPrompt = payload.get("fieldReviewPrompt").trim();
+  if (!reviewPrompt) {
+    throw new ImporterRecordReviewError("Add a review prompt before saving this field.", 400, "FIELD_PROMPT_REQUIRED");
+  }
+
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordExtractedFieldEditConfirmationText(platform.platformName)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} private import field edit before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
   }
 
   return {
-    draftId,
-    recordId,
-    decision,
+    ...shared,
+    fieldId,
+    label,
+    status,
+    reviewPrompt,
     confirmationText,
-    idempotencyKey,
   };
 }
 
@@ -280,8 +336,55 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
       throw new ImporterRecordReviewError("Confirm your email before reviewing private importer records.", 403, "EMAIL_UNVERIFIED");
     }
 
-    const input = normalizedInput(payload, platform);
     const db = await getPublisherTenantD1OrThrow();
+    const action = payload.get("action").trim() || "review_private_import_record";
+
+    if (action === "edit_extracted_field") {
+      const input = normalizedFieldEditInput(payload, platform);
+      const result = await updateCompetitorImportPrivateRecordExtractedField(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        fieldId: input.fieldId,
+        label: input.label,
+        status: input.status,
+        reviewPrompt: input.reviewPrompt,
+        idempotencyKey: `competitor-import-extracted-field-edit:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          field: result.field,
+          previousField: result.previousField,
+          idempotent: result.idempotent,
+          action: "edit_private_import_record_field",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
+      redirect.searchParams.set("recordReview", "field_saved");
+      redirect.searchParams.set("recordId", result.record.id);
+      redirect.searchParams.set("fieldId", result.field.id);
+      return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    if (action !== "review_private_import_record") {
+      throw new ImporterRecordReviewError("Choose a supported private import record action.", 400, "ACTION_REQUIRED");
+    }
+
+    const input = normalizedReviewInput(payload, platform);
     const result = await reviewCompetitorImportPrivateRecord(db, { userId: user.id, email: user.email }, {
       importerSlug: platform.slug,
       platformName: platform.platformName,

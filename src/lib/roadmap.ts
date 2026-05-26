@@ -96,12 +96,12 @@ export const roadmapItems: RoadmapItem[] = [
       "Verified publishers can open a private importer record review route for their own importer-created plan after creation.",
       "Verified publishers can mark private import records ready or needing cleanup without triggering buyer-facing changes.",
       "Private importer records now include safe extracted field plans that show owner-review target fields without raw row values or private source content.",
-      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, extracted field plans, private record review routes, review-action routes, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "Verified publishers can edit safe extracted field labels, review status, and prompts without storing raw extracted values or triggering buyer-facing changes.",
+      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, extracted field plans, private record review routes, review-action routes, extracted-field edit actions, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, structured private import records, steps, or audit history so the same source can be restarted.",
     ],
-    nextMilestone:
-      "Use importer record review decisions and extracted field plans to add owner editing, then add subscriber import depth behind explicit confirmed-write gates.",
+    nextMilestone: "Use owner-edited importer record fields to add subscriber import depth behind explicit confirmed-write gates.",
   },
   {
     id: "roadmap-feature-catalog",

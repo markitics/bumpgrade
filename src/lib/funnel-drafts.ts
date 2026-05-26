@@ -199,6 +199,9 @@ export type CompetitorImportPrivateRecordExtractedField = {
   reviewPrompt: string;
   fromHeaderLabels: string[];
   fromSignalLabels: string[];
+  editedByOwner: boolean;
+  editedAt: string | null;
+  editSource: "verified_publisher_extracted_field_edit" | null;
   rawValueIncluded: false;
   rawRowsEchoed: false;
   rawTextEchoed: false;
@@ -983,6 +986,16 @@ export type CompetitorImportPrivateRecordReviewResult = {
   redaction: CompetitorImportPrivateRecord["redaction"];
 };
 
+export type CompetitorImportPrivateRecordExtractedFieldEditResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  field: CompetitorImportPrivateRecordExtractedField;
+  previousField: CompetitorImportPrivateRecordExtractedField;
+  idempotent: boolean;
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
 export type AnonymousPlaygroundClaimedDraftInput = {
   tenantId: string;
   workspaceId: string;
@@ -1489,6 +1502,9 @@ function competitorImportRecordExtractedFields(
       reviewPrompt: field.reviewPrompt,
       fromHeaderLabels,
       fromSignalLabels,
+      editedByOwner: false,
+      editedAt: null,
+      editSource: null,
       rawValueIncluded: false,
       rawRowsEchoed: false,
       rawTextEchoed: false,
@@ -1500,6 +1516,71 @@ function competitorImportRecordExtractedFields(
   });
 }
 
+function competitorImportExtractedFieldSource(value: unknown): CompetitorImportPrivateRecordExtractedField["source"] {
+  if (value === "safe_header_group" || value === "safe_signal_label" || value === "source_guide") return value;
+  return "source_guide";
+}
+
+function competitorImportExtractedFieldStatus(value: unknown): CompetitorImportPrivateRecordExtractedField["status"] {
+  if (value === "ready_for_review" || value === "needs_context") return value;
+  return "needs_context";
+}
+
+function competitorImportExtractedFieldEditSource(value: unknown): CompetitorImportPrivateRecordExtractedField["editSource"] {
+  return value === "verified_publisher_extracted_field_edit" ? value : null;
+}
+
+function competitorImportExtractedFieldStringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
+}
+
+function competitorImportNormalizeExtractedField(
+  kind: ImportDraftEntity,
+  value: unknown,
+  fallback?: CompetitorImportPrivateRecordExtractedField,
+): CompetitorImportPrivateRecordExtractedField | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return fallback ?? null;
+  const input = value as Partial<CompetitorImportPrivateRecordExtractedField>;
+  const id = typeof input.id === "string" && input.id.trim() ? compactImportText(input.id, 120) : fallback?.id;
+  if (!id) return null;
+  const label =
+    typeof input.label === "string" && input.label.trim()
+      ? compactImportText(input.label, 80)
+      : (fallback?.label ?? competitorImportPrivateRecordLabel(kind));
+  const reviewPrompt =
+    typeof input.reviewPrompt === "string" && input.reviewPrompt.trim()
+      ? compactImportText(input.reviewPrompt, 220)
+      : (fallback?.reviewPrompt ?? "Review this prepared field before cleanup.");
+  const targetArea = competitorImportPrivateRecordKindOrder.includes(input.targetArea as ImportDraftEntity)
+    ? (input.targetArea as ImportDraftEntity)
+    : (fallback?.targetArea ?? kind);
+
+  return {
+    id,
+    label,
+    targetArea,
+    source: competitorImportExtractedFieldSource(input.source ?? fallback?.source),
+    status: competitorImportExtractedFieldStatus(input.status ?? fallback?.status),
+    reviewPrompt,
+    fromHeaderLabels: competitorImportExtractedFieldStringArray(input.fromHeaderLabels).length
+      ? competitorImportExtractedFieldStringArray(input.fromHeaderLabels)
+      : (fallback?.fromHeaderLabels ?? []),
+    fromSignalLabels: competitorImportExtractedFieldStringArray(input.fromSignalLabels).length
+      ? competitorImportExtractedFieldStringArray(input.fromSignalLabels)
+      : (fallback?.fromSignalLabels ?? []),
+    editedByOwner: input.editedByOwner === true,
+    editedAt: typeof input.editedAt === "string" ? input.editedAt : null,
+    editSource: competitorImportExtractedFieldEditSource(input.editSource),
+    rawValueIncluded: false,
+    rawRowsEchoed: false,
+    rawTextEchoed: false,
+    rawFileNamesEchoed: false,
+    customerValuesIncluded: false,
+    privateEmailsIncluded: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
 function competitorImportExtractedFieldsFromMetadata(
   kind: ImportDraftEntity,
   metadata: Record<string, unknown>,
@@ -1509,18 +1590,21 @@ function competitorImportExtractedFieldsFromMetadata(
     recordConfidence: CompetitorImportPrivateRecord["recordConfidence"];
   },
 ) {
+  const fallbackRecords = competitorImportRecordExtractedFields(kind, fallback);
+  const fallbackById = new Map(fallbackRecords.map((field) => [field.id, field]));
   const records = Array.isArray(metadata.extractedFields)
-    ? metadata.extractedFields.filter(
-        (item): item is CompetitorImportPrivateRecordExtractedField =>
-          item &&
-          typeof item === "object" &&
-          !Array.isArray(item) &&
-          typeof (item as { id?: unknown }).id === "string" &&
-          typeof (item as { label?: unknown }).label === "string",
-      )
+    ? metadata.extractedFields
+        .map((item) => {
+          const id =
+            item && typeof item === "object" && !Array.isArray(item) && typeof (item as { id?: unknown }).id === "string"
+              ? (item as { id: string }).id
+              : "";
+          return competitorImportNormalizeExtractedField(kind, item, fallbackById.get(id));
+        })
+        .filter((item): item is CompetitorImportPrivateRecordExtractedField => Boolean(item))
     : [];
 
-  return records.length ? records : competitorImportRecordExtractedFields(kind, fallback);
+  return records.length ? records : fallbackRecords;
 }
 
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
@@ -1977,6 +2061,192 @@ export async function reviewCompetitorImportPrivateRecord(
     draft: review.draft,
     record: competitorImportPrivateRecordFromRow(updated),
     previousDecision,
+    idempotent,
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
+function extractedFieldTextLooksPrivate(value: string) {
+  return /https?:\/\/|www\.|@|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(value);
+}
+
+function extractedFieldEditSignature(input: {
+  fieldId: string;
+  label: string;
+  status: CompetitorImportPrivateRecordExtractedField["status"];
+  reviewPrompt: string;
+}) {
+  return JSON.stringify(input);
+}
+
+export async function updateCompetitorImportPrivateRecordExtractedField(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    fieldId: string;
+    label: string;
+    status: CompetitorImportPrivateRecordExtractedField["status"];
+    reviewPrompt: string;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordExtractedFieldEditResult> {
+  const label = compactImportText(input.label, 80);
+  const reviewPrompt = compactImportText(input.reviewPrompt, 220);
+
+  if (label.length < 2) {
+    throw new Error("Name the Bumpgrade field before saving.");
+  }
+
+  if (reviewPrompt.length < 12) {
+    throw new Error("Add a short review prompt before saving this field.");
+  }
+
+  if (extractedFieldTextLooksPrivate(label) || extractedFieldTextLooksPrivate(reviewPrompt)) {
+    throw new Error("Save field names and review prompts only, not source URLs, email addresses, or copied private values.");
+  }
+
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can edit this field plan.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot be edited.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const matchedHeaderLabels = competitorImportExtractedFieldStringArray(metadata.matchedHeaderLabels);
+  const matchedSignalLabels = competitorImportExtractedFieldStringArray(metadata.matchedSignalLabels);
+  const recordConfidence =
+    metadata.recordConfidence === "recognized_export_match" ||
+    metadata.recordConfidence === "needs_more_context" ||
+    metadata.recordConfidence === "source_guide"
+      ? metadata.recordConfidence
+      : "source_guide";
+  const fields = competitorImportExtractedFieldsFromMetadata(row.record_kind, metadata, {
+    matchedHeaderLabels,
+    matchedSignalLabels,
+    recordConfidence,
+  });
+  const fieldIndex = fields.findIndex((field) => field.id === input.fieldId);
+
+  if (fieldIndex < 0) {
+    throw new Error("Choose a prepared field from this private import record.");
+  }
+
+  const signature = extractedFieldEditSignature({
+    fieldId: input.fieldId,
+    label,
+    status: input.status,
+    reviewPrompt,
+  });
+  const previousIdempotencyKey =
+    typeof metadata.extractedFieldEditIdempotencyKey === "string" ? metadata.extractedFieldEditIdempotencyKey : "";
+  const previousSignature =
+    typeof metadata.extractedFieldEditSignature === "string" ? metadata.extractedFieldEditSignature : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousSignature !== signature) {
+    throw new Error("This idempotency key already saved different field edits.");
+  }
+
+  const previousField = fields[fieldIndex];
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousSignature === signature;
+
+  if (!idempotent) {
+    const editedAt = new Date().toISOString();
+    const nextFields = fields.map((field, index) =>
+      index === fieldIndex
+        ? {
+            ...field,
+            label,
+            status: input.status,
+            reviewPrompt,
+            editedByOwner: true,
+            editedAt,
+            editSource: "verified_publisher_extracted_field_edit" as const,
+            rawValueIncluded: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+            rawFileNamesEchoed: false,
+            customerValuesIncluded: false,
+            privateEmailsIncluded: false,
+            goLiveEffectsEnabled: false,
+          }
+        : field,
+    );
+
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          extractedFields: nextFields,
+          extractedFieldEditAt: editedAt,
+          extractedFieldEditSource: "verified_publisher_extracted_field_edit",
+          extractedFieldEditIdempotencyKey: input.idempotencyKey,
+          extractedFieldEditSignature: signature,
+          extractedFieldEditConfirmationMatched: true,
+          extractedFieldEditRawValuesStored: false,
+          extractedFieldEditGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The private import record field edit could not be loaded after update.");
+  }
+
+  const record = competitorImportPrivateRecordFromRow(updated);
+  const field = record.extractedFields.find((item) => item.id === input.fieldId);
+  if (!field) {
+    throw new Error("The edited private import field could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record,
+    field,
+    previousField,
     idempotent,
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),
