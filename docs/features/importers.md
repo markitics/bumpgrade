@@ -16,9 +16,13 @@ dedicated importer pages:
   is created.
 - The public `previewApiRoute` listed for each platform returns a redacted import
   review map before sign-in or private draft creation. It summarizes supplied
-  source types, likely review areas, draft steps, and safety gates without
-  storing records or echoing pasted copy, export file names, customer rows,
-  credentials, sessions, or payment data.
+  source types, platform-specific source-guide readiness, likely review areas,
+  draft steps, and safety gates without storing records or echoing pasted copy,
+  export file names, customer rows, credentials, sessions, or payment data.
+- Preview responses include `sourceChecklistReview` items for each platform
+  source guide. They expose ready/needs-context/needs-source status and matched
+  signal labels only, not the source URL, export file names, pasted copy, or
+  private notes.
 - The `apiRoute` listed for each platform lets a verified publisher create or
   reuse a Free Build workspace and save a private import draft after exact
   confirmation and idempotency.
@@ -42,6 +46,7 @@ account-to-account transfer claims.
 
 Agents can use `/imports/source-data`, `/compare/source-data`, and
 `/features/source-data` to answer importer questions, including platform-specific
-source checklist items. They must not claim live account transfer, payment
-migration, customer password migration, subscriber sends, or public publishing
-without later implementation evidence.
+source checklist items and the signal labels used by preview review maps. They
+must not claim live account transfer, payment migration, customer password
+migration, subscriber sends, or public publishing without later implementation
+evidence.

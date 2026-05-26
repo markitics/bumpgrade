@@ -220,11 +220,13 @@ platform IDs, competitor IDs, source IDs, input kinds, platform-specific source
 checklists, saved private plan parts, safety gates, unsupported fields, routes,
 a public redacted preview API route, and the verified-publisher private-draft API
 route listed for each dedicated importer. Posting to a platform preview route
-returns an import review map before sign-in or private draft creation; it does
-not persist records, create drafts, echo pasted source material, echo export file
-names, or enable any go-live effect. Posting to one of the private platform API
-routes can create or reuse a Free Build workspace and save a private import plan
-after exact confirmation and idempotency. Responses include redacted
+returns an import review map before sign-in or private draft creation. The map
+now includes platform-specific `sourceChecklistReview` status for the guide
+items on that importer, using matched signal labels only. It does not persist
+records, create drafts, echo pasted source material, echo export file names, or
+enable any go-live effect. Posting to one of the private platform API routes can
+create or reuse a Free Build workspace and save a private import plan after
+exact confirmation and idempotency. Responses include redacted
 `duplicateReview.status` values for created drafts, idempotency replay, and
 same-platform/source-file/workspace/title reuse, and do not echo pasted material
 or export file contents. The platform rollback route can archive the signed-in

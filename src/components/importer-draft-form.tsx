@@ -17,8 +17,20 @@ type ImporterPreview = {
     sourceFileNameCount: number;
     pageCopyProvided: boolean;
     followUpNotesProvided: boolean;
+    launchGoalProvided: boolean;
+    audienceProvided: boolean;
     rawSourceEchoed: false;
   };
+  sourceChecklistReview: Array<{
+    id: string;
+    label: string;
+    status: string;
+    matchedSignals: string[];
+    missingSignals: string[];
+    usesItFor: string;
+    reviewPrompt: string;
+    rawSourceEchoed: false;
+  }>;
   detectedAreas: Array<{
     id: string;
     label: string;
@@ -43,6 +55,10 @@ function areaStatusLabel(status: string) {
   if (status === "ready_to_review") return "Ready to review";
   if (status === "needs_more_context") return "Needs more context";
   return "Needs source material";
+}
+
+function signalSummary(signals: string[], emptyText: string) {
+  return signals.length > 0 ? signals.join(", ") : emptyText;
 }
 
 export function ImporterDraftForm({ action, confirmationText, platformName, previewAction }: ImporterDraftFormProps) {
@@ -155,8 +171,8 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
             <p className="eyebrow">Import review map</p>
             <h3>{preview.title}</h3>
             <p>
-              Bumpgrade can prepare {preview.detectedAreas.length} review areas and {preview.draftStepPreview.length} draft
-              steps before anything goes live.
+              Bumpgrade can prepare {preview.detectedAreas.length} review areas, {preview.sourceChecklistReview.length} source
+              guide items, and {preview.draftStepPreview.length} draft steps before anything goes live.
             </p>
           </div>
           <div className="importer-preview-summary">
@@ -164,6 +180,18 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
             <span>{preview.inputSummary.sourceFileNameCount} export file names</span>
             <span>Page copy {preview.inputSummary.pageCopyProvided ? "included" : "not included"}</span>
             <span>Follow-up notes {preview.inputSummary.followUpNotesProvided ? "included" : "not included"}</span>
+            <span>Launch goal {preview.inputSummary.launchGoalProvided ? "included" : "not included"}</span>
+            <span>Audience {preview.inputSummary.audienceProvided ? "included" : "not included"}</span>
+          </div>
+          <div className="importer-preview-grid">
+            {preview.sourceChecklistReview.map((item) => (
+              <article key={item.id}>
+                <span>{areaStatusLabel(item.status)}</span>
+                <h4>{item.label}</h4>
+                <p>{item.usesItFor}</p>
+                <p>Matched: {signalSummary(item.matchedSignals, "Add matching source material")}</p>
+              </article>
+            ))}
           </div>
           <div className="importer-preview-grid">
             {preview.detectedAreas.map((area) => (
