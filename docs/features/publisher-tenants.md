@@ -24,7 +24,9 @@ before paid go-live.
 - `POST /api/playground/claim`: attaches the saved playground to a verified
   signed-in account, creates or reuses a private Free Build workspace, and saves
   a private launch draft plus private offer, product, audience, and
-  importer-review claim records.
+  importer-review claim records. If a Free Build workspace already exists,
+  claiming is additive: it reuses that workspace and adds a private draft without
+  replacing existing work.
 - `POST /api/playground/cleanup`: owner-gated cleanup for expired anonymous
   recovery. It marks old playgrounds expired, clears anonymous draft fields,
   replaces the recovery token hash, records audit evidence, and preserves

@@ -147,6 +147,21 @@ export const anonymousPlaygroundCleanupBatchLimit = 100;
 export const anonymousPlaygroundSaveRateLimitWindowSeconds = 10 * 60;
 export const anonymousPlaygroundSaveRateLimitMaxSaves = 12;
 
+export const anonymousPlaygroundClaimMergePolicy = {
+  mode: "additive_private_draft",
+  emailVerifiedAccountRequired: true,
+  createsFreeBuildWorkspaceWhenMissing: true,
+  reusesExistingFreeBuildWorkspaceWhenPresent: true,
+  createsAdditionalPrivateDraftFunnel: true,
+  createsPrivateClaimRecords: true,
+  overwritesExistingFreeBuildWorkspace: false,
+  overwritesExistingDrafts: false,
+  overwritesAnonymousDraftFields: false,
+  publicSourceDataExposesPrivateDraftContent: false,
+  paidGoLiveRequired: true,
+  idempotencyScope: "anonymous_workspace_id_and_user_id",
+} as const;
+
 export type AnonymousPlaygroundSaveRateLimit = {
   scope: "browser_recovery_workspace";
   windowSeconds: number;
@@ -847,6 +862,10 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
       privateClaimRecordKinds: claimRecords.map((record) => record.kind),
       structuredBuilderFieldsClaimed: true,
       privateLaunchRecordsCreated: true,
+      reusedExistingFreeBuildWorkspace: freeBuild.reusedExistingWorkspace,
+      existingWorkspacePreserved: freeBuild.reusedExistingWorkspace,
+      createsAdditionalPrivateDraftFunnel: true,
+      overwritesExistingDrafts: false,
       tenantPlanStatus: freeBuild.tenant.planStatus,
       paidGoLiveRequired: freeBuild.paidGoLiveRequired,
       rawCookieStored: false,
@@ -861,6 +880,7 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
     claimRecords,
     idempotent: workspace.status === "claimed",
     paidGoLiveRequired: freeBuild.paidGoLiveRequired,
+    reusedExistingFreeBuildWorkspace: freeBuild.reusedExistingWorkspace,
   };
 }
 
@@ -1115,6 +1135,8 @@ export const anonymousPlaygroundSourceData = {
     claimCreatesPrivateDraftFunnelLive: true,
     claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
     claimCreatesPrivateLaunchRecordsLive: true,
+    claimReusesExistingFreeBuildWorkspaceLive: true,
+    claimPreservesExistingWorkspaceLive: true,
     cleanupControlsLive: true,
     expiredWorkspaceCleanupLive: true,
     ownerGatedCleanupApiLive: true,
@@ -1166,9 +1188,14 @@ export const anonymousPlaygroundSourceData = {
   },
   claimResult: {
     createsOrReusesFreeBuildWorkspace: true,
+    mergePolicy: anonymousPlaygroundClaimMergePolicy,
     createsPrivateDraftFunnel: true,
+    createsAdditionalPrivateDraftFunnel: true,
     mapsStructuredFieldsToDraftBlocks: true,
     createsPrivateLaunchRecords: true,
+    reusesExistingFreeBuildWorkspaceWhenPresent: true,
+    overwritesExistingFreeBuildWorkspace: false,
+    overwritesExistingDrafts: false,
     privateClaimRecordKinds: anonymousPlaygroundClaimRecordKinds.map((record) => record.id),
     draftSourceDataRoute: "/funnels/source-data",
     publicPublishingEnabled: false,
@@ -1196,5 +1223,5 @@ export const anonymousPlaygroundSourceData = {
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped and rapid repeat saves are limited per browser recovery workspace without storing raw IP or user-agent identifiers. Claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped and rapid repeat saves are limited per browser recovery workspace without storing raw IP or user-agent identifiers. Claiming the playground requires an email-verified publisher session, creates or reuses the private Free Build workspace, and adds a private funnel draft plus private offer/product/audience/importer-review claim records without overwriting existing workspace drafts. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
 };

@@ -1,6 +1,7 @@
 import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
+  anonymousPlaygroundClaimMergePolicy,
   anonymousPlaygroundCleanupApiRoute,
   anonymousPlaygroundRoute,
   anonymousPlaygroundSourceData,
@@ -308,6 +309,7 @@ export const freeBuildModeContract = {
       "Anonymous work does not expose private customer data, cleanup actors, expired draft content, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
     structuredBuilderFieldsLive: true,
     saveRateLimit: anonymousPlaygroundSourceData.saveRateLimit,
+    claimMergePolicy: anonymousPlaygroundClaimMergePolicy,
     claimMapsStructuredFieldsToPrivateDraftBlocks: true,
     cleanupControlsLive: true,
   },
@@ -351,7 +353,7 @@ export const pricingSourceData = {
     customerDataIncluded: false,
   },
   agentBoundary:
-    "Agents may cite the pricing policy, anonymous browser playground, signed-in Free Build workspace creation, private claim-record boundary, and paid go-live gates. Anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, or fulfill access.",
+    "Agents may cite the pricing policy, anonymous browser playground, signed-in Free Build workspace creation, additive claim merge policy, private claim-record boundary, and paid go-live gates. Anonymous playground state is browser-scoped and cannot publish, charge buyers, send subscribers, reserve domains, or fulfill access.",
 };
 
 const planOrder: Record<PricingPlanSlug, number> = {

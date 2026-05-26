@@ -171,9 +171,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   still require paid or explicitly approved go-live state.
 - `/playground/source-data` exposes the browser-scoped anonymous playground
   contract, structured builder fields, save route, claim route, owner-gated
-  cleanup route, retention policy, save-limit policy, recovery-cookie boundary,
-  redaction policy, private draft and private claim-record creation on claim,
-  and paid go-live gates. It does not expose recovery cookie values, token
+  cleanup route, retention policy, save-limit policy, claim merge policy,
+  recovery-cookie boundary, redaction policy, private draft and private
+  claim-record creation on claim, and paid go-live gates. Claiming reuses an
+  existing Free Build workspace when present and adds a private draft without
+  replacing existing workspace work. It does not expose recovery cookie values, token
   hashes, private customer data, raw draft, expired draft, cleanup actor, or
   claim-record content, billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,

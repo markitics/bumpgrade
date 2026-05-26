@@ -130,7 +130,9 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
 
         {params?.saved === "1" ? <p className="account-success">Playground progress saved for this browser.</p> : null}
         {params?.claimed === "1" ? (
-          <p className="account-success">Playground attached to your Free Build account, private launch draft, and setup records.</p>
+          <p className="account-success">
+            Playground attached as a private launch plan. Existing Free Build workspace work stays in place.
+          </p>
         ) : null}
         {params?.error ? <p className="auth-error">{params.error}</p> : null}
 
@@ -208,8 +210,8 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
             <h3>{user ? (user.emailVerified ? "Attach to Free Build" : "Confirm email first") : "Sign up to keep going"}</h3>
             <p>
               {user
-                ? "Attach this playground to your account and continue setup as a private Free Build launch draft."
-                : "Create an account when the progress is worth keeping; the same browser can attach the work after signup."}
+                ? "Attach this playground as an additional private Free Build launch plan. Existing workspace work stays in place, and nothing goes live."
+                : "Create an account when the progress is worth keeping; the same browser can attach the work as a private launch plan without launching or replacing existing work."}
             </p>
             {workspace && user?.emailVerified && workspace.status !== "claimed" ? (
               <form action={anonymousPlaygroundClaimApiRoute} method="post" className="inline-action-form">

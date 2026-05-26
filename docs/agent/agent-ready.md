@@ -204,10 +204,12 @@ starting-platform context behind a recovery cookie; D1 stores a token hash, not
 the raw cookie value. Rapid repeated saves are limited against the same browser
 recovery workspace using D1 audit counts; the guard does not store raw IP or
 raw user-agent values. `POST /api/playground/claim` requires an email-verified
-publisher session, attaches the saved playground to a private Free Build
-workspace, creates a private D1 funnel draft whose blocks preserve the saved
-structured context, and creates private offer, product, audience, and
-importer-review claim records for later signed-in work. `POST
+publisher session, creates a private Free Build workspace if one is missing,
+or reuses the user's existing private Free Build workspace when present. Claiming
+is additive: it creates a new private D1 funnel draft whose blocks preserve the
+saved structured context, plus private offer, product, audience, and
+importer-review claim records for later signed-in work, without replacing
+existing workspace drafts. `POST
 /api/playground/cleanup` requires an owner session and exact confirmation before
 marking expired anonymous recovery as expired, clearing anonymous draft fields,
 replacing the recovery token hash, and preserving claimed private records. The

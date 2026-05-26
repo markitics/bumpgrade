@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   anonymousPlaygroundClaimConfirmationText,
+  anonymousPlaygroundClaimMergePolicy,
   anonymousPlaygroundCookieName,
   anonymousPlaygroundIssue,
   anonymousPlaygroundRoute,
@@ -152,6 +153,11 @@ export async function POST(request: NextRequest) {
         },
         idempotent: result.idempotent,
         paidGoLiveRequired: result.paidGoLiveRequired,
+        claimMerge: {
+          ...anonymousPlaygroundClaimMergePolicy,
+          reusedExistingFreeBuildWorkspace: result.reusedExistingFreeBuildWorkspace,
+          existingWorkspacePreserved: result.reusedExistingFreeBuildWorkspace,
+        },
         claimRecords: publicAnonymousPlaygroundClaimRecords(result.claimRecords),
         redaction: anonymousPlaygroundRedaction({
           workspaceIncluded: true,
