@@ -244,7 +244,10 @@ labels, safe signal labels, counts, and redaction flags only; public source-data
 does not expose private record content. They also include `extractedFields`,
 which are safe Bumpgrade target field labels and review prompts derived from
 matched header/signal metadata, not raw row values, raw source text, file names,
-private emails, customer values, credentials, or go-live actions. Each platform also exposes a
+private emails, customer values, credentials, or go-live actions. A verified
+publisher can edit those field labels, review status, and prompts as private
+metadata with exact confirmation and idempotency, without saving raw extracted
+values or enabling buyer-facing effects. Each platform also exposes a
 verified-publisher `privateRecordReviewRoute` that lets the same owner inspect
 those structured records after creation without showing raw rows, raw file text,
 export file names, customer values, private emails, credentials, sessions, or

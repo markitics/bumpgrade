@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReview, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
 import {
   getImporterBySlug,
+  importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
@@ -94,6 +95,10 @@ function extractedFieldStatusLabel(status: CompetitorImportPrivateRecord["extrac
   return "Needs context";
 }
 
+function inputId(recordId: string, fieldId: string, key: string) {
+  return `${recordId}-${fieldId}-${key}`.replace(/[^a-zA-Z0-9_-]/g, "-");
+}
+
 export default async function ImporterReviewPage({ params, searchParams }: ImporterReviewPageProps) {
   const { slug } = await params;
   const search = searchParams ? await searchParams : {};
@@ -175,6 +180,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         {recordReviewError ? <p className="account-error">{recordReviewError}</p> : null}
         {recordReview === "ready" ? <p className="account-success">Private import record marked ready.</p> : null}
         {recordReview === "needs_cleanup" ? <p className="account-success">Private import record marked for cleanup.</p> : null}
+        {recordReview === "field_saved" ? <p className="account-success">Private field edit saved.</p> : null}
         {review ? (
           <div className="feature-section-heading">
             <div>
@@ -246,6 +252,43 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                           <strong>{field.label}</strong>
                           <span>{extractedFieldStatusLabel(field.status)}</span>
                           <p>{field.reviewPrompt}</p>
+                          <form className="importer-extracted-field-edit" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                            <input type="hidden" name="action" value="edit_extracted_field" />
+                            <input type="hidden" name="draftId" value={review.draft.id} />
+                            <input type="hidden" name="recordId" value={record.id} />
+                            <input type="hidden" name="fieldId" value={field.id} />
+                            <input type="hidden" name="idempotencyKey" value={`field-${record.id}-${field.id}-${field.editedAt ?? record.updatedAt ?? "new"}`} />
+                            <label htmlFor={inputId(record.id, field.id, "label")}>Field label</label>
+                            <input
+                              id={inputId(record.id, field.id, "label")}
+                              name="fieldLabel"
+                              type="text"
+                              defaultValue={field.label}
+                              maxLength={80}
+                            />
+                            <label htmlFor={inputId(record.id, field.id, "status")}>Review status</label>
+                            <select id={inputId(record.id, field.id, "status")} name="fieldStatus" defaultValue={field.status}>
+                              <option value="ready_for_review">Ready for review</option>
+                              <option value="needs_context">Needs context</option>
+                            </select>
+                            <label htmlFor={inputId(record.id, field.id, "prompt")}>Review prompt</label>
+                            <textarea
+                              id={inputId(record.id, field.id, "prompt")}
+                              name="fieldReviewPrompt"
+                              defaultValue={field.reviewPrompt}
+                              maxLength={220}
+                              rows={3}
+                            />
+                            <button
+                              type="submit"
+                              className="secondary-action compact-action"
+                              name="confirmationText"
+                              value={importerPrivateRecordExtractedFieldEditConfirmationText(platform.platformName)}
+                            >
+                              <Save aria-hidden="true" />
+                              Save field
+                            </button>
+                          </form>
                         </div>
                       </div>
                     ))}
@@ -312,8 +355,8 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
           </div>
           <div>
             <ShieldCheck aria-hidden="true" />
-            <h3>Read-only checkpoint</h3>
-            <p>This page reads private review records without creating buyer-facing state.</p>
+            <h3>Private checkpoint</h3>
+            <p>This page saves private review metadata without creating buyer-facing state.</p>
           </div>
         </div>
       </section>

@@ -396,12 +396,12 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   },
   "journey-prospect-imports-from-clickfunnels": {
     status: "passed",
-    lastTestedAt: "2026-05-26T06:30:00.000Z",
+    lastTestedAt: "2026-05-26T09:45:00.000Z",
     environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
     method:
-      "Importer hub route smoke, dedicated importer route smoke, platform-specific source-guide smoke, importer source-data inspection, public redacted preflight review coverage, export-file structure parsing and platform export match coverage, verified-publisher private import API coverage including safe importReview metadata persistence, structured private import records, extracted field plans, private record review, private record review actions, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
+      "Importer hub route smoke, dedicated importer route smoke, platform-specific source-guide smoke, importer source-data inspection, public redacted preflight review coverage, export-file structure parsing and platform export match coverage, verified-publisher private import API coverage including safe importReview metadata persistence, structured private import records, extracted field plans, extracted-field editing, private record review, private record review actions, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
     summary:
-      "The importer journey has route, source-data, screenshot, issue, and API evidence for reviewing platform-specific source material, parsing small export files for redacted structure, matching recognized platform export shapes, previewing an import map, saving the safe import review into private draft metadata, creating structured private import records with safe extracted field plans, reviewing and marking those records in an owner-only page, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
+      "The importer journey has route, source-data, screenshot, issue, and API evidence for reviewing platform-specific source material, parsing small export files for redacted structure, matching recognized platform export shapes, previewing an import map, saving the safe import review into private draft metadata, creating structured private import records with safe extracted field plans, editing those safe field plans in an owner-only page, marking records for cleanup, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
     ciLinks: [
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
@@ -421,6 +421,11 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       {
         label: "Importer extracted field review",
         url: "https://bumpgrade.com/pr-screenshots/issue-467-import-record-field-extraction.png",
+        kind: "screenshot",
+      },
+      {
+        label: "Importer extracted field editing",
+        url: "https://bumpgrade.com/pr-screenshots/issue-467-extracted-field-editing.png",
         kind: "screenshot",
       },
     ],
@@ -1082,6 +1087,42 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-25-importer-extracted-field-editing",
+    title: "Added owner editing for importer extracted fields",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Mark asked for easy importers from ClickFunnels and competitor platforms, with real-human public copy and agent-readable contracts.",
+    githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/imports/samcart/review",
+    ],
+    roadmapUpdated: ["roadmap-competitor-importers"],
+    userJourneysUpdated: ["journey-prospect-imports-from-clickfunnels"],
+    documentationUpdated: ["docs/features/importers.md", "docs/agent/agent-ready.md", "public/llms.txt"],
+    validation: [
+      "Focused private importer field-edit and redaction smoke coverage",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+    ],
+    flagsAttention: null,
+    firstPromptAt: "2026-05-26T09:12:00.000Z",
+    completedAt: "2026-05-26T09:45:00.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/imports/samcart/review",
+      "https://bumpgrade.com/pr-screenshots/issue-467-extracted-field-editing.png",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-25-importer-record-field-extraction",
     title: "Added safe importer extracted field plans",
@@ -2201,9 +2242,10 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Confirm the private importer action.",
       "Bumpgrade creates or reuses a Free Build workspace, saves a private import plan, keeps the safe importReview export analysis with the private draft, and creates structured private import records for matched review areas.",
       "Open the private record review route to inspect those structured records and safe extracted field targets before any go-live action.",
+      "Edit safe extracted field labels, review status, and prompts before cleanup without saving raw source values.",
       "Mark each private record ready or needing cleanup so the next importer cleanup pass has explicit owner-reviewed state.",
       "Archive a private importer draft when the source map was wrong, then start a fresh import from the same source.",
-      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, export match templates, preflight signal labels, export-file parser fields, importReview persistence fields, structured private import-record fields, extracted field plans, private record review routes, review action routes, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, export match templates, preflight signal labels, export-file parser fields, importReview persistence fields, structured private import-record fields, extracted field plans, private record review routes, review action routes, extracted-field edit actions, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
     ],
     edgeCases: [
       "Imported material starts in a private workspace and is not buyer-facing by default.",
@@ -2215,6 +2257,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Extracted field plans contain Bumpgrade target labels and review prompts only; they do not store raw values, private emails, customer values, payment credentials, or buyer-facing state.",
       "Private record review pages require the same verified publisher who created the import plan and show safe structure only.",
       "Private record review actions store ready or needs-cleanup decisions in private metadata only; they do not store confirmation text, expose idempotency keys, or trigger buyer-facing effects.",
+      "Private extracted-field edit actions store field labels, review status, and prompts only; they reject source URLs and email-shaped private values and do not store raw extracted values.",
       "Source-guide readiness exposes matched signal labels only, not the source URL, export file names, pasted copy, follow-up notes, launch goal, or private audience context.",
       "Platform-specific source guides explain useful material to bring, but they are not account-to-account transfer, credential use, or permission to scrape private platform data.",
       "Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.",
@@ -2224,9 +2267,9 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, structured private import-record contracts, extracted field plans, private record review routes, review action routes, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating, reviewing, or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, structured private import-record contracts, extracted field plans, private record review routes, review action routes, extracted-field edit actions, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating, reviewing, editing, or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
-      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
+      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, extracted-field editing, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
       "Private importer APIs create or reuse a Free Build workspace, save a private import plan, persist safe importReview export analysis, and create structured private import records with extracted field plans and no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
       "Private importer rollback APIs archive importer-created private plans, preserve saved plan content, structured import records, steps, and audit history, and let the same source restart as a fresh private plan.",
       "Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, export file names, and pasted source material out of public responses.",

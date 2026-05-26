@@ -124,6 +124,10 @@ export function importerPrivateRecordReviewConfirmationText(
     : `Mark ${platformName} import record needs cleanup`;
 }
 
+export function importerPrivateRecordExtractedFieldEditConfirmationText(platformName: string) {
+  return `Save ${platformName} import field edits`;
+}
+
 export function importerDraftImportCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-import`;
 }
@@ -221,9 +225,13 @@ export const importerPrivateStructuredRecords = {
   extractedFieldsResponseField: "extractedFields",
   extractedFieldsStorage: "competitor_import_private_records.metadata_json",
   extractedFieldsReviewSurfaceLive: true,
+  extractedFieldEditingLive: true,
+  extractedFieldEditActionRouteField: "privateRecordReviewActionApiRoute",
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
   extractedFieldsDerivedFrom: ["safe header labels", "safe signal labels", "record kind"],
+  extractedFieldEditableFields: ["label", "status", "reviewPrompt"],
+  extractedFieldStatusValues: ["ready_for_review", "needs_context"],
   recordKinds: [
     "draft_funnel",
     "draft_page_blocks",
@@ -235,6 +243,7 @@ export const importerPrivateStructuredRecords = {
   ],
   storesSafeMatchMetadata: true,
   storesSafeExtractedFieldPlan: true,
+  storesOwnerEditedExtractedFieldPlan: true,
   storesRawExtractedValues: false,
   storesRawExportRows: false,
   storesRawExportText: false,
@@ -1169,12 +1178,19 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
           decision: "needs_cleanup",
           confirmationText: importerPrivateRecordReviewConfirmationText(platform.platformName, "needs_cleanup"),
         },
+        {
+          action: "edit_extracted_field",
+          confirmationText: importerPrivateRecordExtractedFieldEditConfirmationText(platform.platformName),
+          editableFields: importerPrivateStructuredRecords.extractedFieldEditableFields,
+          statusValues: importerPrivateStructuredRecords.extractedFieldStatusValues,
+        },
       ],
-      writes: ["record_review_decision_metadata"],
+      writes: ["record_review_decision_metadata", "extracted_field_plan_metadata"],
       idempotencyRequired: true,
       rawRowsEchoed: false,
       rawTextEchoed: false,
       rawExportFileNamesEchoed: false,
+      rawExtractedValuesStored: false,
       customerRowsIncluded: false,
       privateEmailsIncluded: false,
       confirmationTextStored: false,
@@ -1255,6 +1271,7 @@ export const importerSourceData = {
     privateStructuredImportRecordReviewLive: true,
     privateStructuredImportRecordReviewActionsLive: true,
     privateStructuredImportRecordFieldExtractionLive: true,
+    privateStructuredImportRecordFieldEditingLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1281,7 +1298,7 @@ export const importerSourceData = {
     privateStructuredImportRecords:
       "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner and mark each record ready or needs cleanup with private metadata-only review decisions, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, idempotency keys, confirmation text, or go-live effects.",
     privateStructuredImportRecordFieldExtraction:
-      "Private importRecords now include extractedFields: safe target field labels and review prompts derived from matched header labels, signal labels, and record kind. The owner review page can show which Bumpgrade fields are ready for review without storing or exposing raw row values, file names, pasted source text, customer values, private emails, credentials, or go-live effects.",
+      "Private importRecords now include extractedFields: safe target field labels and review prompts derived from matched header labels, signal labels, and record kind. The owner review page can show and edit field labels, review status, and review prompts without storing or exposing raw row values, file names, pasted source text, customer values, private emails, credentials, or go-live effects.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

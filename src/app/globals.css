@@ -4282,10 +4282,8 @@ h3 {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
   gap: 10px;
-  padding: 12px;
-  border: 1px solid rgba(31, 83, 107, 0.18);
-  border-radius: 8px;
-  background: rgba(45, 118, 138, 0.08);
+  padding: 8px 0 12px 12px;
+  border-left: 3px solid rgba(45, 118, 138, 0.36);
 }
 
 .importer-extracted-field svg {
@@ -4315,6 +4313,38 @@ h3 {
 
 .importer-extracted-field p {
   margin-top: 7px;
+}
+
+.importer-extracted-field-edit {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.importer-extracted-field-edit label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.importer-extracted-field-edit input,
+.importer-extracted-field-edit select,
+.importer-extracted-field-edit textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+.importer-extracted-field-edit textarea {
+  min-height: 88px;
+  resize: vertical;
 }
 
 .importer-preview-panel {

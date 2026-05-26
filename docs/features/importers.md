@@ -56,7 +56,9 @@ dedicated importer pages:
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   after creation. The paired review action route lets that publisher mark each
-  private record ready or needing cleanup with metadata-only review decisions.
+  private record ready or needing cleanup with metadata-only review decisions,
+  and edit safe extracted field labels, review status, and prompts before
+  cleanup.
   These actions keep raw rows, raw file text, file names, private emails,
   customer values, payment credentials, sessions, confirmation text,
   idempotency keys, and buyer-facing go-live actions out of public responses.
