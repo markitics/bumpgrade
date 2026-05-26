@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createAuth } from "@/lib/auth";
-import { createCompetitorImportedDraftFunnel, type DraftFunnelRecord, type ImporterDuplicateReview } from "@/lib/funnel-drafts";
+import {
+  createCompetitorImportedDraftFunnel,
+  type CompetitorImportReviewMetadata,
+  type DraftFunnelRecord,
+  type ImporterDuplicateReview,
+} from "@/lib/funnel-drafts";
+import {
+  exportFileAnalysisFromPayload,
+  normalizeImporterSourceFileNames,
+  platformExportMatches,
+  readImporterPreflightPayload,
+  type ExportFileAnalysis,
+  type ImporterPlatformExportMatch,
+  type ImporterPreflightPayload,
+} from "@/lib/importer-preflight";
 import {
   getImporterBySlug,
   importerDraftImportApiRoute,
@@ -21,11 +35,6 @@ import {
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type RequestPayload = {
-  get: (key: string) => string;
-  getAll: (key: string) => string[];
-};
-
 type ImporterDraftRouteContext = {
   params: Promise<{ slug: string }>;
 };
@@ -42,53 +51,7 @@ class ImporterDraftError extends Error {
   }
 }
 
-function stringValue(value: unknown) {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  return "";
-}
-
-async function readPayload(request: NextRequest): Promise<RequestPayload> {
-  const contentType = request.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    const body = await request.json().catch(() => ({}));
-    const values = new Map<string, string[]>();
-
-    if (body && typeof body === "object" && !Array.isArray(body)) {
-      for (const [key, value] of Object.entries(body)) {
-        if (Array.isArray(value)) {
-          const stringified = value.map(stringValue).filter(Boolean);
-          if (stringified.length) values.set(key, stringified);
-          continue;
-        }
-
-        const stringified = stringValue(value);
-        if (stringified) values.set(key, [stringified]);
-      }
-    }
-
-    return {
-      get: (key) => values.get(key)?.[0] ?? "",
-      getAll: (key) => values.get(key) ?? [],
-    };
-  }
-
-  if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
-    const formData = await request.formData();
-    return {
-      get: (key) => {
-        const value = formData.get(key);
-        return typeof value === "string" ? value : "";
-      },
-      getAll: (key) => formData.getAll(key).filter((value): value is string => typeof value === "string"),
-    };
-  }
-
-  return { get: () => "", getAll: () => [] };
-}
-
-function wantsJson(request: NextRequest, payload: RequestPayload) {
+function wantsJson(request: NextRequest, payload: ImporterPreflightPayload) {
   return (
     payload.get("return") === "json" ||
     (request.headers.get("accept") ?? "").includes("application/json") ||
@@ -129,23 +92,7 @@ function normalizePublicUrl(value: string) {
   return parsed.toString().slice(0, 500);
 }
 
-function normalizeSourceFileNames(payload: RequestPayload) {
-  const rawValues = [
-    ...payload.getAll("sourceFileNames"),
-    ...payload.getAll("sourceFileName"),
-    ...payload.getAll("exportFileNames"),
-    ...payload.getAll("exportFileName"),
-  ];
-  const names = rawValues
-    .flatMap((value) => value.split(/[\n,]+/))
-    .map((value) => value.trim().replace(/\\/g, "/").split("/").filter(Boolean).at(-1) ?? "")
-    .map((value) => value.replace(/\s+/g, " ").slice(0, 240))
-    .filter(Boolean);
-
-  return Array.from(new Set(names)).slice(0, 20);
-}
-
-function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
+function normalizedInput(payload: ImporterPreflightPayload, platform: ImporterPlatform) {
   const confirmationText = payload.get("confirmationText").trim();
   if (confirmationText !== importerDraftImportConfirmationText(platform.platformName)) {
     throw new ImporterDraftError(
@@ -166,7 +113,7 @@ function normalizedInput(payload: RequestPayload, platform: ImporterPlatform) {
   }
 
   const sourceUrl = normalizePublicUrl(payload.get("sourceUrl"));
-  const sourceFileNames = normalizeSourceFileNames(payload);
+  const sourceFileNames = normalizeImporterSourceFileNames(payload);
   const pageCopy = payload.get("pageCopy").trim();
   const followUpNotes = payload.get("followUpNotes").trim();
   if (!sourceUrl && sourceFileNames.length === 0 && !pageCopy && !followUpNotes) {
@@ -243,9 +190,42 @@ function publicDuplicateReview(review: ImporterDuplicateReview) {
   };
 }
 
+function publicImportReview(exportFileAnalysis: ExportFileAnalysis, exportMatches: ImporterPlatformExportMatch[]): CompetitorImportReviewMetadata {
+  return {
+    responseField: "importReview",
+    privateDraftMetadataStored: false,
+    privateDraftMetadataReason: "pending_private_draft_create",
+    exportFileAnalysis,
+    platformExportMatches: exportMatches,
+    recognizedPlatformExportMatchIds: exportMatches.filter((match) => match.status === "recognized").map((match) => match.id),
+    goLiveEffects: {
+      publicPublishingEnabled: false,
+      liveCheckoutEnabled: false,
+      subscriberSendsEnabled: false,
+      customDomainsEnabled: false,
+      fulfillmentEnabled: false,
+    },
+    redaction: {
+      rawExportFilesIncluded: false,
+      rawFileNamesEchoed: false,
+      rawRowsEchoed: false,
+      rawTextEchoed: false,
+      rawSourceEchoed: false,
+      rawPastedMaterialIncludedInResponse: false,
+      customerRowsIncluded: false,
+      privateEmailsIncluded: false,
+      paymentCredentialsIncluded: false,
+      sessionCookiesIncluded: false,
+    },
+  };
+}
+
 function redaction() {
   return {
     rawExportFilesIncluded: false,
+    rawFileNamesEchoed: false,
+    rawRowsEchoed: false,
+    rawTextEchoed: false,
     customerRowsIncluded: false,
     privateEmailsIncluded: false,
     paymentCredentialsIncluded: false,
@@ -266,7 +246,7 @@ function redirectWithError(request: NextRequest, platform: ImporterPlatform | nu
 }
 
 export async function POST(request: NextRequest, { params }: ImporterDraftRouteContext) {
-  const payload = await readPayload(request);
+  const payload = await readImporterPreflightPayload(request);
   const json = wantsJson(request, payload);
   const { slug } = await params;
   const platform = getImporterBySlug(slug);
@@ -320,6 +300,9 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
     }
 
     const input = normalizedInput(payload, platform);
+    const exportFileAnalysis = await exportFileAnalysisFromPayload(payload);
+    const exportMatches = platformExportMatches(platform, exportFileAnalysis);
+    const importReview = publicImportReview(exportFileAnalysis, exportMatches);
     const db = await getPublisherTenantD1OrThrow();
     const workspace = await createFreeBuildWorkspace(db, user, {
       confirmationText: publisherFreeBuildWorkspaceConfirmationText,
@@ -329,6 +312,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
       ...input,
       importerSlug: platform.slug,
       platformName: platform.platformName,
+      importReview,
       idempotencyKey: `competitor-import-draft:${platform.slug}:${input.idempotencyKey}`,
       tenantId: workspace.tenant.id,
     });
@@ -345,6 +329,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
         tenant: publicTenant(workspace.tenant),
         draft: publicDraft(draftResult.draft),
         duplicateReview: publicDuplicateReview(draftResult.duplicateReview),
+        importReview: draftResult.importReview,
         redaction: redaction(),
       });
     }
@@ -353,6 +338,9 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
     redirect.searchParams.set("importDraft", draftResult.draft.id);
     redirect.searchParams.set("importRevision", draftResult.draft.revisionId);
     redirect.searchParams.set("duplicateReview", draftResult.duplicateReview.status);
+    if (draftResult.importReview?.privateDraftMetadataStored) {
+      redirect.searchParams.set("importReview", "saved");
+    }
     return NextResponse.redirect(redirect, { status: 303 });
   } catch (error) {
     const status =

@@ -91,6 +91,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Public preflight review now matches parsed export structure against platform-specific templates before private draft creation.",
       "Dedicated importer pages now list platform-specific source guides for the URLs, exports, files, and notes Bumpgrade can use.",
       "Dedicated importer pages support private Free Build import-plan creation.",
+      "Private importer writes now persist the safe importReview export analysis, platform export matches, and recognized match IDs on new private draft metadata.",
       "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, steps, or audit history so the same source can be restarted.",

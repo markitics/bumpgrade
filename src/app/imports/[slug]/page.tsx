@@ -216,6 +216,9 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
         {importDraftId && firstSearchValue(search.importRollback) !== "archived" ? (
           <p className="account-success">Private {platform.platformName} import plan created in your Free Build workspace.</p>
         ) : null}
+        {firstSearchValue(search.importReview) === "saved" && firstSearchValue(search.importRollback) !== "archived" ? (
+          <p className="account-success">Safe export review saved with the private import plan.</p>
+        ) : null}
         {firstSearchValue(search.importError) ? (
           <p className="account-error">{firstSearchValue(search.importError)}</p>
         ) : null}
