@@ -218,6 +218,7 @@ function publicImportRecords(records: CompetitorImportPrivateRecord[]) {
     recordConfidence: record.recordConfidence,
     extractedFields: record.extractedFields,
     subscriberImportDepth: record.subscriberImportDepth,
+    subscriberImportPreflight: record.subscriberImportPreflight,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,

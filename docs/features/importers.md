@@ -59,6 +59,11 @@ dedicated importer pages:
   signals from headers and source signals only. It does not create subscriber
   rows, store raw contact rows, store raw emails or names, enroll sequences, send
   email, enable private exports, or turn on buyer-facing effects.
+- Verified publishers can record `subscriberImportPreflight` on private audience
+  import records after reviewing subscriber depth. The preflight decision stores
+  readiness or cleanup metadata and acknowledged go-live blockers only; it does
+  not create subscriber rows, enroll sequences, send email, enable exports, or
+  turn on buyer-facing effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   after creation. The paired review action route lets that publisher mark each

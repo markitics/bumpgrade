@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createAuth } from "@/lib/auth";
 import {
+  recordCompetitorImportPrivateRecordSubscriberPreflight,
   reviewCompetitorImportPrivateRecord,
   updateCompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecord,
   type CompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecordReviewDecision,
+  type CompetitorImportPrivateRecordSubscriberPreflightStatus,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
 import {
@@ -16,6 +18,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberPreflightConfirmationText,
   type ImporterPlatform,
 } from "@/lib/importers";
 import { getPublisherTenantD1OrThrow, type PublisherSessionUser } from "@/lib/publisher-tenants";
@@ -198,6 +201,40 @@ function normalizedFieldEditInput(payload: RequestPayload, platform: ImporterPla
   };
 }
 
+function subscriberPreflightDecision(
+  value: string,
+): Exclude<CompetitorImportPrivateRecordSubscriberPreflightStatus, "not_recorded"> | null {
+  if (value === "ready_for_import_planning" || value === "needs_cleanup") return value;
+  return null;
+}
+
+function normalizedSubscriberPreflightInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const decision = subscriberPreflightDecision(payload.get("decision").trim());
+  if (!decision) {
+    throw new ImporterRecordReviewError(
+      "Choose ready for import planning or needs cleanup for this subscriber preflight.",
+      400,
+      "SUBSCRIBER_PREFLIGHT_DECISION_REQUIRED",
+    );
+  }
+
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordSubscriberPreflightConfirmationText(platform.platformName, decision)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} subscriber import preflight before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
+  }
+
+  return {
+    ...shared,
+    decision,
+    confirmationText,
+  };
+}
+
 function publicPlatform(platform: ImporterPlatform) {
   return {
     id: platform.id,
@@ -251,6 +288,7 @@ function publicRecord(record: CompetitorImportPrivateRecord) {
     recordConfidence: record.recordConfidence,
     extractedFields: record.extractedFields,
     subscriberImportDepth: record.subscriberImportDepth,
+    subscriberImportPreflight: record.subscriberImportPreflight,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,
@@ -378,6 +416,44 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
       redirect.searchParams.set("recordReview", "field_saved");
       redirect.searchParams.set("recordId", result.record.id);
       redirect.searchParams.set("fieldId", result.field.id);
+      return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    if (action === "record_subscriber_import_preflight") {
+      const input = normalizedSubscriberPreflightInput(payload, platform);
+      const result = await recordCompetitorImportPrivateRecordSubscriberPreflight(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        decision: input.decision,
+        idempotencyKey: `competitor-import-subscriber-preflight:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          preflight: result.preflight,
+          previousPreflight: result.previousPreflight,
+          idempotent: result.idempotent,
+          action: "record_subscriber_import_preflight",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...result.preflight.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
+      redirect.searchParams.set("subscriberPreflight", result.preflight.status);
+      redirect.searchParams.set("recordId", result.record.id);
       return NextResponse.redirect(redirect, { status: 303 });
     }
 

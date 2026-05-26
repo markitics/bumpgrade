@@ -12,6 +12,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
 } from "@/lib/importers";
 import { getPublisherTenantD1OrThrow, type PublisherSessionUser } from "@/lib/publisher-tenants";
@@ -100,6 +101,12 @@ function subscriberDepthStatusLabel(record: CompetitorImportPrivateRecord) {
   return "Needs context";
 }
 
+function subscriberPreflightStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.subscriberImportPreflight?.status === "ready_for_import_planning") return "Ready for import planning";
+  if (record.subscriberImportPreflight?.status === "needs_cleanup") return "Needs cleanup";
+  return "Not recorded yet";
+}
+
 function safeSignalText(values: string[]) {
   return values.length ? values.join(", ") : "No safe signal yet.";
 }
@@ -143,6 +150,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
 
   const recognizedMatchIds = review?.importReview?.recognizedPlatformExportMatchIds ?? [];
   const recordReview = firstSearchValue(search.recordReview);
+  const subscriberPreflight = firstSearchValue(search.subscriberPreflight);
   const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
@@ -190,6 +198,12 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         {recordReview === "ready" ? <p className="account-success">Private import record marked ready.</p> : null}
         {recordReview === "needs_cleanup" ? <p className="account-success">Private import record marked for cleanup.</p> : null}
         {recordReview === "field_saved" ? <p className="account-success">Private field edit saved.</p> : null}
+        {subscriberPreflight === "ready_for_import_planning" ? (
+          <p className="account-success">Subscriber import preflight marked ready for import planning.</p>
+        ) : null}
+        {subscriberPreflight === "needs_cleanup" ? (
+          <p className="account-success">Subscriber import preflight marked for cleanup.</p>
+        ) : null}
         {review ? (
           <div className="feature-section-heading">
             <div>
@@ -338,6 +352,52 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                           <li key={blocker}>{blocker}</li>
                         ))}
                       </ul>
+                      <div className="feature-detail">
+                        <strong>Subscriber preflight</strong>
+                        <span>{subscriberPreflightStatusLabel(record)}</span>
+                      </div>
+                      {record.subscriberImportPreflight ? <p>{record.subscriberImportPreflight.summary}</p> : null}
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="record_subscriber_import_preflight" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`subscriber-preflight-ready-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <input type="hidden" name="decision" value="ready_for_import_planning" />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordSubscriberPreflightConfirmationText(
+                            platform.platformName,
+                            "ready_for_import_planning",
+                          )}
+                        >
+                          Ready for subscriber planning
+                        </button>
+                      </form>
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="record_subscriber_import_preflight" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`subscriber-preflight-cleanup-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <input type="hidden" name="decision" value="needs_cleanup" />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordSubscriberPreflightConfirmationText(platform.platformName, "needs_cleanup")}
+                        >
+                          Needs subscriber cleanup
+                        </button>
+                      </form>
                     </div>
                   </div>
                 ) : null}
