@@ -26,6 +26,14 @@ export type ImportableArea = {
   description: string;
 };
 
+export type ImportSourceChecklistItem = {
+  id: string;
+  label: string;
+  bring: string;
+  bumpgradeUsesItFor: string;
+  reviewBeforePrivatePlan: string;
+};
+
 export type ImporterPlatform = {
   id: string;
   competitorId: string;
@@ -41,6 +49,7 @@ export type ImporterPlatform = {
   bestFor: string;
   inputs: ImportInput[];
   importableAreas: ImportableArea[];
+  sourceChecklist: ImportSourceChecklistItem[];
   unsupportedNow: string[];
   firstReviewSteps: string[];
   agentContract: string;
@@ -215,6 +224,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         description: "Carry the launch follow-up intent into Bumpgrade without sending email during import.",
       },
     ],
+    sourceChecklist: [
+      {
+        id: "clickfunnels-page-order",
+        label: "Funnel URL or export",
+        bring: "Public opt-in, sales, order, upsell, thank-you, webinar, or resource URLs, plus any exported funnel archive you already have.",
+        bumpgradeUsesItFor: "Building the private page order, page-block review, and asset checklist.",
+        reviewBeforePrivatePlan: "Confirm the page sequence, missing assets, and which pages should become part of the first Bumpgrade launch path.",
+      },
+      {
+        id: "clickfunnels-offer-stack",
+        label: "Offer stack notes",
+        bring: "Main price, bump, upsell, downsell, product access, and buyer handoff notes.",
+        bumpgradeUsesItFor: "Preparing checkout-offer and product-catalog private plan sections.",
+        reviewBeforePrivatePlan: "Check that every buyer-facing promise is captured before any checkout route is created.",
+      },
+      {
+        id: "clickfunnels-follow-up-notes",
+        label: "Follow-up outline",
+        bring: "Automation names, email sequence intent, tags, and post-purchase messages you want to preserve.",
+        bumpgradeUsesItFor: "Creating a private sequence outline and audience-review notes without sending email.",
+        reviewBeforePrivatePlan: "Review message intent and tag meaning before importing audience or automation context.",
+      },
+    ],
     unsupportedNow: [...universalUnsupported, "One-click transfer of ClickFunnels account settings"],
     firstReviewSteps: [
       "Sign in or create a Free Build workspace without paying first.",
@@ -256,6 +288,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         description: "Attach the checkout path to the pages and follow-up that should surround it.",
       },
     ],
+    sourceChecklist: [
+      {
+        id: "samcart-checkout-page",
+        label: "Checkout page or export",
+        bring: "Checkout page URLs, product export files, or screenshots of the active buying path.",
+        bumpgradeUsesItFor: "Preparing the private checkout-offer review and matching the offer to Bumpgrade product records.",
+        reviewBeforePrivatePlan: "Confirm the primary offer, currency, payment shape, and buyer promise before any private plan is saved.",
+      },
+      {
+        id: "samcart-bump-upsell-path",
+        label: "Bump and upsell path",
+        bring: "Order bump, upsell, downsell, subscription, coupon, and guarantee notes.",
+        bumpgradeUsesItFor: "Mapping the offer stack around the checkout path.",
+        reviewBeforePrivatePlan: "Review which offers belong in the first launch and which should stay parked.",
+      },
+      {
+        id: "samcart-delivery-context",
+        label: "Product delivery notes",
+        bring: "Product access instructions, fulfillment notes, and post-purchase handoff copy.",
+        bumpgradeUsesItFor: "Drafting product access and follow-up context while fulfillment stays off.",
+        reviewBeforePrivatePlan: "Check delivery promises before any buyer-facing route or fulfillment rule is enabled.",
+      },
+    ],
     unsupportedNow: [...universalUnsupported, "Payment token transfer", "Historical payout migration"],
     firstReviewSteps: [
       "Start with the checkout or product path.",
@@ -292,6 +347,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         label: "Sequence outlines",
         draftEntities: ["draft_sequence_outline"],
         description: "Carry sequence structure and campaign intent into Bumpgrade without scheduling live sends.",
+      },
+    ],
+    sourceChecklist: [
+      {
+        id: "kit-subscriber-tags",
+        label: "Subscriber and tag CSV",
+        bring: "Subscriber, tag, segment, consent, suppression, and custom-field exports.",
+        bumpgradeUsesItFor: "Preparing private audience-import review counts and malformed-row checks.",
+        reviewBeforePrivatePlan: "Confirm consent, duplicates, suppression rules, and fields that should not be imported.",
+      },
+      {
+        id: "kit-forms-landing-pages",
+        label: "Forms and landing pages",
+        bring: "Form URLs, landing page URLs, incentive copy, and opt-in promises.",
+        bumpgradeUsesItFor: "Drafting opt-in page and audience source context.",
+        reviewBeforePrivatePlan: "Review the opt-in promise before Bumpgrade stores private audience notes.",
+      },
+      {
+        id: "kit-sequence-outline",
+        label: "Sequence outline",
+        bring: "Sequence names, subject lines, send timing, and campaign intent notes.",
+        bumpgradeUsesItFor: "Creating a private sequence outline without enrolling subscribers or sending messages.",
+        reviewBeforePrivatePlan: "Check message order and exclusions before any future send workflow is considered.",
       },
     ],
     unsupportedNow: [...universalUnsupported, "Provider reputation history", "Automatic live sequence enrollment"],
@@ -332,6 +410,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         description: "Connect landing pages, sales pages, checkout notes, and delivery gates.",
       },
     ],
+    sourceChecklist: [
+      {
+        id: "kajabi-product-outline",
+        label: "Product or course outline",
+        bring: "Course, coaching, membership, module, lesson, download, and access-rule notes.",
+        bumpgradeUsesItFor: "Preparing private product-catalog and access-review sections.",
+        reviewBeforePrivatePlan: "Confirm what should be sellable, protected, or left as reference-only.",
+      },
+      {
+        id: "kajabi-page-offer-path",
+        label: "Page and offer URLs",
+        bring: "Landing pages, sales pages, checkout pages, offer descriptions, and pricing notes.",
+        bumpgradeUsesItFor: "Building a private funnel path and checkout-offer review.",
+        reviewBeforePrivatePlan: "Review the public promise and offer shape before creating the private plan.",
+      },
+      {
+        id: "kajabi-email-access-context",
+        label: "Email and access notes",
+        bring: "Email sequence outlines, community boundaries, member-access notes, and support handoff copy.",
+        bumpgradeUsesItFor: "Drafting follow-up and product access context without touching private communities.",
+        reviewBeforePrivatePlan: "Check which membership or community details should stay outside the import.",
+      },
+    ],
     unsupportedNow: [...universalUnsupported, "Member password transfer", "Private community migration"],
     firstReviewSteps: [
       "Choose the product or launch path to move first.",
@@ -368,6 +469,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         label: "Launch offer",
         draftEntities: ["draft_checkout_offer", "draft_funnel"],
         description: "Turn selected products into a Bumpgrade offer path with review before publishing.",
+      },
+    ],
+    sourceChecklist: [
+      {
+        id: "shopify-product-collection",
+        label: "Product or collection export",
+        bring: "Focused product, collection, variant, image, price, and description exports for the launch offer.",
+        bumpgradeUsesItFor: "Preparing a private product catalog and offer review for the selected launch.",
+        reviewBeforePrivatePlan: "Choose the products that belong in Bumpgrade instead of trying to recreate the full store.",
+      },
+      {
+        id: "shopify-product-pages",
+        label: "Product and page URLs",
+        bring: "Public product pages, landing pages, policy links, and sales-copy references.",
+        bumpgradeUsesItFor: "Drafting page blocks and product promise context.",
+        reviewBeforePrivatePlan: "Check which public claims, images, and policies should appear in the first launch.",
+      },
+      {
+        id: "shopify-launch-offer-notes",
+        label: "Launch offer notes",
+        bring: "Bundle, discount, preorder, fulfillment, or delivery notes for the selected launch.",
+        bumpgradeUsesItFor: "Shaping the Bumpgrade checkout-offer path around the product context.",
+        reviewBeforePrivatePlan: "Review fulfillment boundaries before any buyer-facing checkout is enabled.",
       },
     ],
     unsupportedNow: [...universalUnsupported, "Full store theme migration", "Inventory or fulfillment system replacement"],
@@ -408,6 +532,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         description: "Bring landing pages, checkout notes, and email context into one private review.",
       },
     ],
+    sourceChecklist: [
+      {
+        id: "podia-product-context",
+        label: "Digital product details",
+        bring: "Product names, descriptions, prices, modules, downloads, memberships, and access notes.",
+        bumpgradeUsesItFor: "Preparing private product-catalog and access-review sections.",
+        reviewBeforePrivatePlan: "Confirm what customers should receive and which private files stay outside the import.",
+      },
+      {
+        id: "podia-page-checkout-context",
+        label: "Sales and checkout pages",
+        bring: "Public sales page URLs, checkout notes, coupons, testimonials, and product promise copy.",
+        bumpgradeUsesItFor: "Drafting the private funnel and checkout-offer review.",
+        reviewBeforePrivatePlan: "Check that the product promise and price path match what you want to launch.",
+      },
+      {
+        id: "podia-audience-email-context",
+        label: "Audience and email notes",
+        bring: "Email list segments, opt-in copy, launch sequence notes, and follow-up messages.",
+        bumpgradeUsesItFor: "Creating audience and sequence outlines while sends remain off.",
+        reviewBeforePrivatePlan: "Review consent and message intent before any future automation work.",
+      },
+    ],
     unsupportedNow: [...universalUnsupported, "Private member comments", "Live email campaign transfer"],
     firstReviewSteps: [
       "Choose the product or list segment to move first.",
@@ -444,6 +591,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         label: "Commerce and partner notes",
         draftEntities: ["draft_checkout_offer", "draft_product_catalog"],
         description: "Attach offer, product, and partner-program notes without creating payable obligations.",
+      },
+    ],
+    sourceChecklist: [
+      {
+        id: "systeme-funnel-path",
+        label: "Funnel path",
+        bring: "Funnel URLs, page exports, opt-in pages, sales pages, order pages, and thank-you pages.",
+        bumpgradeUsesItFor: "Building a private funnel map and page-block review.",
+        reviewBeforePrivatePlan: "Confirm the page order and which branch should become the first Bumpgrade launch path.",
+      },
+      {
+        id: "systeme-email-tags",
+        label: "Email and tag notes",
+        bring: "Campaign outlines, tag meanings, sequence timing, and audience export summaries.",
+        bumpgradeUsesItFor: "Drafting audience and sequence context without sending or enrolling anyone.",
+        reviewBeforePrivatePlan: "Review consent and send boundaries before importing audience context.",
+      },
+      {
+        id: "systeme-products-partners",
+        label: "Product and partner notes",
+        bring: "Product, pricing, affiliate, coupon, and payout-rule notes for the launch.",
+        bumpgradeUsesItFor: "Preparing offer, product, and partner-context review without payable obligations.",
+        reviewBeforePrivatePlan: "Check which partner rules are just notes and which need later owner approval.",
       },
     ],
     unsupportedNow: [...universalUnsupported, "Automatic affiliate payout migration", "Live SMS or email sending"],
@@ -484,6 +654,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         description: "Capture product access, checkout, affiliate, and follow-up structure.",
       },
     ],
+    sourceChecklist: [
+      {
+        id: "kartra-campaign-pages",
+        label: "Campaign pages",
+        bring: "Campaign page URLs, page exports, video references, webinar references, and offer handoff notes.",
+        bumpgradeUsesItFor: "Drafting the private campaign page order and asset checklist.",
+        reviewBeforePrivatePlan: "Confirm which campaign pieces matter before creating the private plan.",
+      },
+      {
+        id: "kartra-membership-access",
+        label: "Membership and product access",
+        bring: "Membership levels, product descriptions, checkout notes, and access promises.",
+        bumpgradeUsesItFor: "Preparing product-catalog, access, and checkout-offer review sections.",
+        reviewBeforePrivatePlan: "Review what should become protected access and what stays reference-only.",
+      },
+      {
+        id: "kartra-affiliate-follow-up",
+        label: "Affiliate and follow-up notes",
+        bring: "Affiliate terms, campaign follow-up notes, webinar reminders, and post-purchase messages.",
+        bumpgradeUsesItFor: "Capturing partner and sequence context without sending or creating payable obligations.",
+        reviewBeforePrivatePlan: "Check partner and webinar boundaries before any future live workflow is connected.",
+      },
+    ],
     unsupportedNow: [...universalUnsupported, "Hosted video transfer", "Live webinar provider migration"],
     firstReviewSteps: [
       "Choose one campaign or membership path.",
@@ -520,6 +713,29 @@ export const importerPlatforms: ImporterPlatform[] = [
         label: "Partner context",
         draftEntities: ["draft_checkout_offer"],
         description: "Carry affiliate-program notes into Bumpgrade without creating payable commission changes.",
+      },
+    ],
+    sourceChecklist: [
+      {
+        id: "thrivecart-checkout-path",
+        label: "Checkout path",
+        bring: "Checkout URLs, checkout export files, payment option notes, coupon details, and guarantee copy.",
+        bumpgradeUsesItFor: "Preparing the private checkout-offer review around the main buying path.",
+        reviewBeforePrivatePlan: "Confirm the checkout promise and payment shape before any Bumpgrade checkout is created.",
+      },
+      {
+        id: "thrivecart-bump-upsell-downsell",
+        label: "Bump, upsell, and downsell path",
+        bring: "Order bump, upsell, downsell, cart-abandonment, and post-purchase offer notes.",
+        bumpgradeUsesItFor: "Mapping the offer stack and buyer handoff sequence.",
+        reviewBeforePrivatePlan: "Review the exact order and which offers should ship in the first launch.",
+      },
+      {
+        id: "thrivecart-product-partner-rules",
+        label: "Product and partner rules",
+        bring: "Product fulfillment notes, affiliate terms, tax or invoice notes, and partner payout rules.",
+        bumpgradeUsesItFor: "Capturing product and partner context while payable ledgers stay off.",
+        reviewBeforePrivatePlan: "Check which partner rules are evidence only and which require later owner approval.",
       },
     ],
     unsupportedNow: [...universalUnsupported, "Payment processor credential transfer", "Payable affiliate ledger migration"],
@@ -625,6 +841,7 @@ export const importerSourceData = {
     sourceMatchDuplicateReviewLive: true,
     sourceFileNameDuplicateReviewLive: true,
     privateDraftRollbackLive: true,
+    platformSpecificExtractionGuidanceLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -643,6 +860,8 @@ export const importerSourceData = {
       "Public preflight review routes return a redacted import map before private draft creation. They do not persist records, require payment, publish pages, run checkout, send subscribers, connect domains, enable fulfillment, or echo pasted source material or export file names.",
     rollback:
       "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
+    platformSpecificExtractionGuidance:
+      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created.",
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",

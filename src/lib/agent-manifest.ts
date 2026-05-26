@@ -340,17 +340,25 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/importers.ts",
-    stableIds: ["importerPlatformId", "competitorId", "sourceId", "importInputKind", "importDraftEntity", "importReviewAreaStatus"],
+    stableIds: [
+      "importerPlatformId",
+      "competitorId",
+      "sourceId",
+      "importInputKind",
+      "importSourceChecklistItemId",
+      "importDraftEntity",
+      "importReviewAreaStatus",
+    ],
     safeForAgents: [
       "Read supported importer platforms",
       "Resolve importer routes from competitor IDs",
-      "Inspect input kinds, redacted preflight review routes, duplicate-review fields, rollback routes, and saved private plan parts",
+      "Inspect input kinds, platform-specific source checklists, redacted preflight review routes, duplicate-review fields, rollback routes, and saved private plan parts",
       "Identify verified-publisher private-draft and rollback API routes for supported importer platforms",
       "Cite safety gates and unsupported fields before describing migration capability",
       `Cite issue #${importerIssue} for the active importer feature request`,
     ],
     writeBoundary:
-      "Importer source-data is read-only. Public preflight review routes return redacted import maps without persisting records or echoing pasted source material, export file names, customer rows, credentials, sessions, or payment data. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; source URL and export file name duplicate review can reuse a matching private import plan. Private rollback routes archive importer-created plans and preserve saved plan content, steps, and audit history, while public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
+      "Importer source-data is read-only. Platform-specific source checklists describe what a prospect can bring before private plan creation. Public preflight review routes return redacted import maps without persisting records or echoing pasted source material, export file names, customer rows, credentials, sessions, or payment data. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; source URL and export file name duplicate review can reuse a matching private import plan. Private rollback routes archive importer-created plans and preserve saved plan content, steps, and audit history, while public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
   },
   {
     id: "read-commerce-contract",
@@ -3109,7 +3117,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://importers",
     status: "ready-contract",
     backedBy: importerSourceDataRoute,
-    purpose: "Expose importer platform IDs, competitor mappings, input kinds, saved private plan parts, duplicate-review statuses, rollback routes, limitations, and safety gates.",
+    purpose: "Expose importer platform IDs, competitor mappings, input kinds, platform-specific source checklists, saved private plan parts, duplicate-review statuses, rollback routes, limitations, and safety gates.",
     safetyBoundary:
       "Read-only; no export parsing, private record creation, public publishing, checkout migration, subscriber send, domain, fulfillment, or account-to-account transfer may be performed by this resource.",
   },

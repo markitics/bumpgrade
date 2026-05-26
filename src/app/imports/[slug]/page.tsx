@@ -138,6 +138,35 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
       <section className="content-band">
         <div className="split-heading">
           <div>
+            <p className="eyebrow">{platform.platformName} source guide</p>
+            <h2>Bring the pieces Bumpgrade can actually use.</h2>
+          </div>
+          <p>Each item stays private until you approve a go-live step.</p>
+        </div>
+        <div className="feature-grid">
+          {platform.sourceChecklist.map((item) => (
+            <article key={item.id} className="feature-card content-surface-card">
+              <div className="feature-card-top">
+                <span className="status-badge active">Source item</span>
+              </div>
+              <h3>{item.label}</h3>
+              <p>{item.bring}</p>
+              <div className="feature-detail">
+                <strong>Bumpgrade uses it for</strong>
+                <span>{item.bumpgradeUsesItFor}</span>
+              </div>
+              <div className="feature-detail">
+                <strong>Review before saving</strong>
+                <span>{item.reviewBeforePrivatePlan}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
             <p className="eyebrow">Starting material</p>
             <h2>Use whichever path your old platform gives you.</h2>
           </div>

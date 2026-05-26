@@ -9,8 +9,11 @@ dedicated importer pages:
 - `/imports` lists supported platform paths.
 - Dedicated importer pages explain the platform-specific move.
 - `/imports/source-data` exposes platform IDs, competitor IDs, source IDs, input
-  kinds, saved private plan parts, API routes, safety gates, and known
-  limitations.
+  kinds, platform-specific source checklists, saved private plan parts, API
+  routes, safety gates, and known limitations.
+- Each dedicated importer page includes a source guide that lists which platform
+  URLs, exports, files, and notes Bumpgrade can use before a private import plan
+  is created.
 - The public `previewApiRoute` listed for each platform returns a redacted import
   review map before sign-in or private draft creation. It summarizes supplied
   source types, likely review areas, draft steps, and safety gates without
@@ -38,6 +41,7 @@ private files, pasted source material, export file names, and
 account-to-account transfer claims.
 
 Agents can use `/imports/source-data`, `/compare/source-data`, and
-`/features/source-data` to answer importer questions. They must not claim live
-account transfer, payment migration, customer password migration, subscriber
-sends, or public publishing without later implementation evidence.
+`/features/source-data` to answer importer questions, including platform-specific
+source checklist items. They must not claim live account transfer, payment
+migration, customer password migration, subscriber sends, or public publishing
+without later implementation evidence.
