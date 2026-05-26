@@ -292,12 +292,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   visual style presets, set bounded canvas layout, add reusable blocks, remove eligible unlinked blocks,
   link and unlink checkout metadata, link resource-delivery metadata,
   link webinar-event metadata, reorder blocks, move blocks across steps,
-  duplicate a private draft, publish a draft, archive/unpublish a draft, or
-  purge an already archived draft after exact confirmation, idempotency, a fresh
+  duplicate a private draft, publish a draft, archive/unpublish a draft, purge
+  an already archived draft, or bulk-purge selected archived drafts after exact confirmation, idempotency, a fresh
   revision check, and audit correlation; responses are redacted draft or purge
   tombstone summaries.
   It is not direct agent template creation, unauthenticated public agent-created delivery tokens,
-  unauthenticated public agent publishing, non-archived purge, bulk purge, live billing mutation,
+  unauthenticated public agent publishing, non-archived purge, live billing mutation,
   one-click upsell charging, unbounded arbitrary CSS or script layout editing, arbitrary
   uploaded private asset delivery, signed URL creation, live fulfillment automation, live
   webinar scheduling, attendance tracking, replay hosting, or an unconfirmed
@@ -306,12 +306,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-confirmed checkout unlinking, resource delivery links, webinar
   event/replay links, funnel-scoped private download-token delivery,
   owner-session visual block styles, bounded canvas layouts, within-step block reordering, cross-step
-  block moves, archived-draft purge, owner-session agent-created resource delivery tokens,
+  block moves, archived-draft purge, bulk archived-draft purge, owner-session agent-created resource delivery tokens,
   and expanded owner-session direct
   agent-safe draft writes including visual styles, bounded canvas layouts, reusable block add/remove, public
-  publishing, and archived-draft purge, and remains the pending advanced funnel parity bucket
+  publishing, archived-draft purge, and bulk archived-draft purge, and remains the pending advanced funnel parity bucket
   for arbitrary uploaded private asset delivery,
-  live fulfillment automation, full webinar integrations, bulk purge policy,
+  live fulfillment automation, full webinar integrations,
   unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox

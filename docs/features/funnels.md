@@ -31,7 +31,7 @@ links owner-created product test checkout links to the seeded offer/funnel
 delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
 for arbitrary uploaded private asset delivery,
-live fulfillment automation, full webinar integrations, bulk retention policy,
+live fulfillment automation, full webinar integrations,
 unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing.
 
 Live in this slice:
@@ -45,6 +45,7 @@ Live in this slice:
   block style capability metadata, owner-session bounded canvas layout capability metadata,
   owner-session block reorder capability metadata, owner-session cross-step
   block move capability metadata, owner-session archived-draft purge capability
+  metadata, owner-session bulk archived-draft purge capability
   metadata, owner-session
   archive/unpublish lifecycle metadata, published D1 funnel
   summaries, aggregate owner product delivery-gate counts, and write boundary.
@@ -78,15 +79,15 @@ Live in this slice:
   template-to-draft create, private draft duplicate, step update, step reorder,
   block update, block visual style update, bounded block canvas layout update, block add, block remove, block-reorder, block-cross-step-move, checkout-link,
   checkout-unlink, resource-delivery-link, webinar-event-link, exact-confirmed publish, and
-  exact-confirmed archive/unpublish actions, plus exact-confirmed archived-draft purge with
-  idempotency, revision checks, audit rows, and purge tombstone evidence.
+  exact-confirmed archive/unpublish actions, exact-confirmed archived-draft purge, and exact-confirmed bulk archived-draft purge with
+  idempotency, revision checks, audit rows, and one purge tombstone per archived draft.
   Reusable webinar/resource templates use the same exact-confirmed
   template-to-draft path.
 - `/api/agent/funnels/draft-writes`: owner-session JSON endpoint for direct
   agent-safe draft writes. It allows block copy edits, visual style presets,
   bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery linking,
   webinar-event linking, block movement, private draft duplication, public publishing,
-  archive/unpublish, and archived-draft purge only after exact confirmation, idempotency, current draft
+  archive/unpublish, archived-draft purge, and bulk archived-draft purge only after exact confirmation, idempotency, current draft
   revision, and audit correlation checks. Responses are redacted
   and exclude owner email, owner user ID, private session data, raw rows, buyer
   data, R2 keys, signed URLs, billing mutations, and public agent write state.
@@ -100,8 +101,7 @@ Not live in this slice:
 - Unbounded arbitrary CSS or script injection from funnel editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
-- Non-archived purge, checkout-linked direct deletion, or
-  bulk purge policy.
+- Non-archived purge or checkout-linked direct deletion.
 - Live webinar scheduling, attendance tracking, reminder sending, replay
   hosting, or provider integrations.
 - Arbitrary private resource file delivery, R2 object selection, signed URLs,
@@ -112,7 +112,7 @@ Not live in this slice:
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
 - Unauthenticated public agent publishing, direct checkout linking without owner-session confirmation,
-  unauthenticated public agent-created delivery tokens, non-archived purge, bulk purge, or unauthenticated public writes.
+  unauthenticated public agent-created delivery tokens, non-archived purge, or unauthenticated public writes.
 
 The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
 work moves a coherent funnel workflow instead of adding more isolated readiness
@@ -211,6 +211,6 @@ private R2 keys, signed URLs, buyer data, or owner identity.
 Future unauthenticated public agent publishing, unauthenticated public agent-created delivery tokens, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment
-automation, non-archived purge, and bulk purge
+automation, and non-archived purge
 must add stronger rollback and provider safety notes before acting on draft
 state.
