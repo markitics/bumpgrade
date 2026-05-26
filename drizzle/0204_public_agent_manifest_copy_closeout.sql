@@ -44,7 +44,7 @@ INSERT INTO admin_work_log_entries (
   'bumpgrade-build-heartbeat',
   'Owner asked for public Bumpgrade surfaces to be written for real humans and their agents, not as notes for Mark or future implementation commentary.',
   json_array(json_object('number', 468, 'url', 'https://github.com/markitics/bumpgrade/issues/468')),
-  json_array(),
+  json_array(json_object('number', 525, 'url', 'https://github.com/markitics/bumpgrade/pull/525')),
   json_array('https://bumpgrade.com/agent-docs/source-data', 'https://bumpgrade.com/agent-docs/bumpgrade-agent-surface'),
   json_array(),
   json_array(),
@@ -64,11 +64,12 @@ INSERT INTO admin_work_log_entries (
   unixepoch('2026-05-26T20:45:00Z'),
   json_array(
     'https://github.com/markitics/bumpgrade/issues/468',
+    'https://github.com/markitics/bumpgrade/pull/525',
     'https://bumpgrade.com/agent-docs/source-data',
     'https://bumpgrade.com/agent-docs/bumpgrade-agent-surface',
     'https://bumpgrade.com/admin/work-log'
   ),
-  NULL,
+  'https://github.com/markitics/bumpgrade/pull/525',
   unixepoch()
 )
 ON CONFLICT(id) DO UPDATE SET

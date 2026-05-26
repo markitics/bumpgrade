@@ -1352,7 +1352,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Owner asked for public Bumpgrade surfaces to be written for real humans and their agents, not as notes for Mark or future implementation commentary.",
     githubIssues: [{ number: 468, url: "https://github.com/markitics/bumpgrade/issues/468" }],
-    closedPrs: [],
+    closedPrs: [{ number: 525, url: "https://github.com/markitics/bumpgrade/pull/525" }],
     featuresUpdated: [
       "https://bumpgrade.com/agent-docs/source-data",
       "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
@@ -1375,11 +1375,12 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     completedAt: "2026-05-26T20:45:00.000Z",
     relevantUrls: [
       "https://github.com/markitics/bumpgrade/issues/468",
+      "https://github.com/markitics/bumpgrade/pull/525",
       "https://bumpgrade.com/agent-docs/source-data",
       "https://bumpgrade.com/agent-docs/bumpgrade-agent-surface",
       "https://bumpgrade.com/admin/work-log",
     ],
-    prCommentUrl: null,
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/525",
   },
   {
     id: "work-log-2026-05-25-importer-subscriber-import-depth",
