@@ -97,6 +97,12 @@ export function importerDraftRollbackApiRoute(slug: string) {
   return `/api/imports/${slug}/draft/rollback`;
 }
 
+export function importerPrivateRecordReviewRoute(slug: string, draftId?: string) {
+  const route = `/imports/${slug}/review`;
+  if (!draftId) return route;
+  return `${route}?draft=${encodeURIComponent(draftId)}`;
+}
+
 export function importerDraftImportConfirmationText(platformName: string) {
   return `Create private ${platformName} import plan`;
 }
@@ -111,6 +117,10 @@ export function importerDraftImportCapabilityId(platformId: string) {
 
 export function importerDraftRollbackCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-rollback`;
+}
+
+export function importerPrivateRecordReviewCapabilityId(platformId: string) {
+  return `${platformId.replace(/^importer-/, "")}-private-record-review`;
 }
 
 export const importerPreflightSignalLabels: Record<ImporterPreflightSignal, string> = {
@@ -190,6 +200,9 @@ export const importerPrivateStructuredRecords = {
   responseField: "importRecords",
   storage: "D1 competitor_import_private_records",
   createdOnPrivateDraftCreate: true,
+  reviewRouteField: "privateRecordReviewRoute",
+  reviewSurface: "verified-publisher private importer review page",
+  reviewSurfaceLive: true,
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
   recordKinds: [
@@ -1053,6 +1066,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
     platformId: platform.id,
     platformName: platform.platformName,
     route: platform.route,
+    privateRecordReviewRoute: importerPrivateRecordReviewRoute(platform.slug),
     previewApiRoute: importerDraftPreviewApiRoute(platform.slug),
     apiRoute: importerDraftImportApiRoute(platform.slug),
     confirmationText: importerDraftImportConfirmationText(platform.platformName),
@@ -1114,6 +1128,21 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
     privateStructuredImportRecords: {
       ...importerPrivateStructuredRecords,
       recordKinds: Array.from(new Set(platform.importableAreas.flatMap((area) => area.draftEntities))),
+    },
+    privateRecordReview: {
+      id: importerPrivateRecordReviewCapabilityId(platform.id),
+      status: "live",
+      route: importerPrivateRecordReviewRoute(platform.slug),
+      auth: "verified publisher session",
+      requires: ["draft query parameter", "same owner as private import plan"],
+      reads: ["private_draft_funnel_summary", "competitor_import_private_records"],
+      responseFields: ["draft", "importRecords", "recordConfidence", "goLiveEffects", "redaction"],
+      rawRowsEchoed: false,
+      rawTextEchoed: false,
+      rawExportFileNamesEchoed: false,
+      customerRowsIncluded: false,
+      privateEmailsIncluded: false,
+      goLiveEffectsEnabled: false,
     },
     rollback: {
       route: importerDraftRollbackApiRoute(platform.slug),
@@ -1186,6 +1215,7 @@ export const importerSourceData = {
     platformExportMatchTemplatesLive: true,
     privateDraftExportReviewMetadataLive: true,
     privateStructuredImportRecordsLive: true,
+    privateStructuredImportRecordReviewLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1210,7 +1240,7 @@ export const importerSourceData = {
     privateDraftExportReview:
       "Verified private importer writes return importReview and store that redacted export analysis on new private draft metadata so the recognized export shape survives the handoff after sign-in. Idempotent replays and source-match reuse report importReview without rewriting the existing private draft metadata.",
     privateStructuredImportRecords:
-      "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, or go-live effects.",
+      "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, or go-live effects.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

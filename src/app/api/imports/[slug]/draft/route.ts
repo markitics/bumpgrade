@@ -21,6 +21,7 @@ import {
   getImporterBySlug,
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
+  importerPrivateRecordReviewRoute,
   importerIssue,
   type ImporterPlatform,
 } from "@/lib/importers";
@@ -360,6 +361,7 @@ export async function POST(request: NextRequest, { params }: ImporterDraftRouteC
         paidGoLiveRequired: true,
         tenant: publicTenant(workspace.tenant),
         draft: publicDraft(draftResult.draft),
+        privateRecordReviewRoute: importerPrivateRecordReviewRoute(platform.slug, draftResult.draft.id),
         duplicateReview: publicDuplicateReview(draftResult.duplicateReview),
         importReview: draftResult.importReview,
         importRecords: publicImportRecords(draftResult.importRecords),
