@@ -1047,6 +1047,7 @@ test.describe("Bumpgrade scaffold", () => {
           preflightReviewLive: true,
           sourceMatchDuplicateReviewLive: true,
           privateDraftRollbackLive: true,
+          platformSpecificExtractionGuidanceLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1062,6 +1063,13 @@ test.describe("Bumpgrade scaffold", () => {
           status: "private-draft-live",
           compareRoute: "/compare/clickfunnels-alternative",
           inputs: expect.arrayContaining([expect.objectContaining({ kind: "public_url" })]),
+          sourceChecklist: expect.arrayContaining([
+            expect.objectContaining({
+              id: "clickfunnels-page-order",
+              label: "Funnel URL or export",
+              bumpgradeUsesItFor: expect.stringContaining("private page order"),
+            }),
+          ]),
           importableAreas: expect.arrayContaining([
             expect.objectContaining({
               id: "clickfunnels-funnel-pages",
@@ -1075,9 +1083,21 @@ test.describe("Bumpgrade scaffold", () => {
           platformName: "SamCart",
           status: "private-draft-live",
           route: "/imports/samcart",
+          sourceChecklist: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-page",
+              label: "Checkout page or export",
+            }),
+          ]),
         }),
         expect.objectContaining({
           id: "importer-kit",
+          sourceChecklist: expect.arrayContaining([
+            expect.objectContaining({
+              id: "kit-subscriber-tags",
+              label: "Subscriber and tag CSV",
+            }),
+          ]),
           importableAreas: expect.arrayContaining([
             expect.objectContaining({
               id: "kit-audience",
@@ -1087,6 +1107,18 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    for (const platform of payload.platforms as Array<{
+      sourceChecklist?: Array<{ id?: string; label?: string; bring?: string; bumpgradeUsesItFor?: string; reviewBeforePrivatePlan?: string }>;
+    }>) {
+      expect(platform.sourceChecklist?.length).toBeGreaterThanOrEqual(3);
+      for (const item of platform.sourceChecklist ?? []) {
+        expect(item.id).toBeTruthy();
+        expect(item.label).toBeTruthy();
+        expect(item.bring).toBeTruthy();
+        expect(item.bumpgradeUsesItFor).toBeTruthy();
+        expect(item.reviewBeforePrivatePlan).toBeTruthy();
+      }
+    }
     expect(payload.commonContract.safetyGates).toEqual(
       expect.arrayContaining([
         expect.stringContaining("private workspace"),
@@ -1098,6 +1130,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
     expect(payload.commonContract.preflightReview).toContain("redacted import map");
     expect(payload.commonContract.rollback).toContain("archive private importer-created launch plans");
+    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklist");
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
@@ -1175,6 +1208,20 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+  });
+
+  test("dedicated importer pages show platform-specific source guides", async ({ page }) => {
+    await page.goto("/imports/samcart");
+    await expect(page.getByRole("heading", { name: "Bring the pieces Bumpgrade can actually use." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Checkout page or export" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Bump and upsell path" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Product delivery notes" })).toBeVisible();
+    await expect(page.getByText("Each item stays private until you approve a go-live step.")).toBeVisible();
+
+    await page.goto("/imports/kit");
+    await expect(page.getByRole("heading", { name: "Subscriber and tag CSV" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Forms and landing pages" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sequence outline", exact: true })).toBeVisible();
   });
 
   test("public importer preflight review returns a redacted map before private draft creation", async ({ request }) => {
@@ -20688,10 +20735,19 @@ test.describe("Bumpgrade scaffold", () => {
               expect.objectContaining({ url: "https://github.com/markitics/bumpgrade/pull/494" }),
             ]),
           }),
-          happyPath: expect.arrayContaining([expect.stringContaining("Review the redacted import map")]),
-          edgeCases: expect.arrayContaining([expect.stringContaining("Rollback APIs require")]),
-          agentAccess: expect.stringContaining("rollback routes"),
-          validation: expect.arrayContaining([expect.stringContaining("Private importer rollback APIs")]),
+          happyPath: expect.arrayContaining([
+            expect.stringContaining("platform-specific source guide"),
+            expect.stringContaining("Review the redacted import map"),
+          ]),
+          edgeCases: expect.arrayContaining([
+            expect.stringContaining("source guides"),
+            expect.stringContaining("Rollback APIs require"),
+          ]),
+          agentAccess: expect.stringContaining("platform-specific source checklists"),
+          validation: expect.arrayContaining([
+            expect.stringContaining("dedicated importer source guides"),
+            expect.stringContaining("Private importer rollback APIs"),
+          ]),
         }),
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",

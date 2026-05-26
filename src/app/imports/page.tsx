@@ -100,6 +100,10 @@ export default function ImportsPage() {
                 <strong>Starts with</strong>
                 <span>{platform.inputs.map((input) => input.label).join(", ")}</span>
               </div>
+              <div className="feature-detail">
+                <strong>Bumpgrade reads</strong>
+                <span>{platform.sourceChecklist.map((item) => item.label).join(", ")}</span>
+              </div>
             </article>
           ))}
         </div>

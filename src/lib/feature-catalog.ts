@@ -111,25 +111,26 @@ export const featureCatalog: FeatureRecord[] = [
     status: "launch-preview",
     issue: 467,
     summary:
-      "Public import center, dedicated platform import paths, redacted preflight review maps, `/imports/source-data`, and verified-publisher private draft creation for moving competitor context into Bumpgrade launch workspaces.",
+      "Public import center, dedicated platform import paths, platform-specific source guides, redacted preflight review maps, `/imports/source-data`, and verified-publisher private draft creation for moving competitor context into Bumpgrade launch workspaces.",
     audience: "Prospects and agents planning a move from ClickFunnels, SamCart, Kit, Kajabi, Shopify, Podia, Systeme.io, Kartra, or ThriveCart.",
     expectedCapabilities: [
       "Dedicated importer paths with a reusable platform-aware importer contract.",
+      "Platform-specific source guides that tell prospects which URLs, exports, files, and notes Bumpgrade can use.",
       "Public preflight review maps that summarize likely draft areas before sign-in or private draft creation.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
-      "Rollback controls that archive private importer drafts without deleting rows and allow the same source to be restarted as a fresh private plan.",
+      "Rollback controls that archive private importer plans while preserving saved work and allow the same source to be restarted as a fresh private plan.",
       "Dedicated importer pages for first-wave competitor platforms.",
       "Agent-readable importer metadata at `/imports/source-data`.",
-      "Input kinds, generated draft entity types, safety gates, unsupported fields, and source evidence IDs.",
+      "Input kinds, platform-specific source checklists, saved private plan parts, safety gates, unsupported fields, and source evidence IDs.",
       "Clear go-live boundary: imported material stays private until publishing, checkout, sends, domains, and fulfillment are approved.",
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, dedicated importer pages, `/imports/source-data`, public preview API routes, private platform create routes, and private platform rollback routes listed in source-data define the importer contract slice.",
+      "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes, private platform create routes, and private platform rollback routes listed in source-data define the importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, generated draft entity types, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, platform-specific source checklists, saved private plan parts, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",
