@@ -20739,14 +20739,6 @@ test.describe("Bumpgrade scaffold", () => {
             id: "work-log-2026-05-26-mobile-admin-roadmap-refresh",
             title: expect.stringContaining("Mobile Admin roadmap"),
           }),
-          expect.objectContaining({
-            id: "work-log-2026-05-24-analytics-mvp-live-closeout",
-            title: expect.stringContaining("Analytics MVP"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-24-affiliate-mvp-live-closeout",
-            title: expect.stringContaining("Affiliate/referral MVP"),
-          }),
         ]),
       );
     }

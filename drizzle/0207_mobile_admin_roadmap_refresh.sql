@@ -119,8 +119,8 @@ INSERT INTO admin_work_log_entries (
   json_array('drizzle/0207_mobile_admin_roadmap_refresh.sql'),
   json_array('Updated Mobile Admin roadmap evidence to include Director digest, Director review API, commerce review API, push boundary, and distribution boundary.', 'Kept #414 active for physical-device proof, live APNs/FCM execution, store distribution, and higher-risk confirmed-write APIs.'),
   'No Mark action required. This refreshes owner-visible summary evidence only; it does not ship physical-device proof, live push sends, store distribution, or high-risk mobile writes.',
-  unixepoch('2026-05-26T22:23:00Z'),
-  unixepoch('2026-05-26T22:23:00Z'),
+  unixepoch() - 1800,
+  unixepoch(),
   json_array('https://github.com/markitics/bumpgrade/issues/414', 'https://github.com/markitics/bumpgrade/pull/528', 'https://bumpgrade.com/admin/roadmap/source-data', 'https://bumpgrade.com/admin/director/source-data', 'https://bumpgrade.com/admin/user-journeys/source-data', 'https://bumpgrade.com/admin/work-log/source-data', 'https://bumpgrade.com/mobile-admin/source-data', 'https://bumpgrade.com/mobile-admin/dashboard/source-data'),
   'https://github.com/markitics/bumpgrade/pull/528',
   unixepoch()
