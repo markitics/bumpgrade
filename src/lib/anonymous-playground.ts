@@ -144,6 +144,8 @@ export const anonymousPlaygroundCookieMaxAgeDays = 30;
 export const anonymousPlaygroundClaimConfirmationText = "Attach this playground to my Bumpgrade account";
 export const anonymousPlaygroundCleanupConfirmationText = "Expire anonymous playgrounds";
 export const anonymousPlaygroundCleanupBatchLimit = 100;
+export const anonymousPlaygroundCleanupCron = "17 9 * * *";
+export const anonymousPlaygroundCleanupCronLabel = "Daily anonymous playground cleanup at 09:17 UTC";
 export const anonymousPlaygroundSaveRateLimitWindowSeconds = 10 * 60;
 export const anonymousPlaygroundSaveRateLimitMaxSaves = 12;
 
@@ -1140,6 +1142,7 @@ export const anonymousPlaygroundSourceData = {
     cleanupControlsLive: true,
     expiredWorkspaceCleanupLive: true,
     ownerGatedCleanupApiLive: true,
+    scheduledCleanupLive: true,
     paidGoLiveRequired: true,
   },
   retentionPolicy: {
@@ -1148,6 +1151,10 @@ export const anonymousPlaygroundSourceData = {
     cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
     cleanupConfirmationText: anonymousPlaygroundCleanupConfirmationText,
     cleanupBatchLimit: anonymousPlaygroundCleanupBatchLimit,
+    scheduledCleanupLive: true,
+    scheduledCleanupCron: anonymousPlaygroundCleanupCron,
+    scheduledCleanupLabel: anonymousPlaygroundCleanupCronLabel,
+    scheduledCleanupActor: "cloudflare_cron",
     expiredStatus: "expired",
     expiresWhen: "expires_at is older than the current server time",
     cleanupClearsAnonymousDraftFields: true,
@@ -1207,7 +1214,10 @@ export const anonymousPlaygroundSourceData = {
   cleanupResult: {
     route: anonymousPlaygroundCleanupApiRoute,
     auth: "owner session",
+    scheduledAuth: "Cloudflare Cron trigger",
+    scheduledCron: anonymousPlaygroundCleanupCron,
     requiresExactConfirmation: true,
+    scheduledRequiresExactConfirmation: false,
     marksExpiredRows: true,
     clearsAnonymousDraftFields: true,
     replacesRecoveryTokenHash: true,
@@ -1223,5 +1233,5 @@ export const anonymousPlaygroundSourceData = {
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped and rapid repeat saves are limited per browser recovery workspace without storing raw IP or user-agent identifiers. Claiming the playground requires an email-verified publisher session, creates or reuses the private Free Build workspace, and adds a private funnel draft plus private offer/product/audience/importer-review claim records without overwriting existing workspace drafts. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped and rapid repeat saves are limited per browser recovery workspace without storing raw IP or user-agent identifiers. Claiming the playground requires an email-verified publisher session, creates or reuses the private Free Build workspace, and adds a private funnel draft plus private offer/product/audience/importer-review claim records without overwriting existing workspace drafts. Owner cleanup and the Cloudflare Cron cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
 };

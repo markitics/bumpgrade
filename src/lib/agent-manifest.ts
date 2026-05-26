@@ -408,11 +408,11 @@ export const agentReadContracts: AgentReadContract[] = [
     safeForAgents: [
       "Read the free build-before-go-live policy from issue #466",
       "Distinguish live signed-in private Free Build workspace creation from paid go-live actions",
-      "Confirm logged-out anonymous structured playground recovery, browser-recovery save limits, owner-gated cleanup, additive claim-to-private-draft and private claim-record creation, and signed-in Free Build workspace creation are live",
+      "Confirm logged-out anonymous structured playground recovery, browser-recovery save limits, owner-gated and scheduled cleanup, additive claim-to-private-draft and private claim-record creation, and signed-in Free Build workspace creation are live",
       "Cite paid go-live gates for publishing, checkout, subscriber sends, domains, and fulfillment",
     ],
     writeBoundary:
-      "Agents may read the pricing policy only. Saving anonymous structured playground state is browser-scoped, rate-limited per browser recovery workspace, and redacted; owner cleanup expires recovery without exposing private content; claim creates or reuses the verified account's Free Build workspace and adds a private launch draft plus private offer/product/audience/importer-review records without replacing existing work; creating signed-in Free Build workspaces uses authenticated account setup APIs; publishing, charging buyers, sending email, connecting domains, and fulfillment changes require paid-plan flows.",
+      "Agents may read the pricing policy only. Saving anonymous structured playground state is browser-scoped, rate-limited per browser recovery workspace, and redacted; owner cleanup and scheduled Cloudflare cleanup expire recovery without exposing private content; claim creates or reuses the verified account's Free Build workspace and adds a private launch draft plus private offer/product/audience/importer-review records without replacing existing work; creating signed-in Free Build workspaces uses authenticated account setup APIs; publishing, charging buyers, sending email, connecting domains, and fulfillment changes require paid-plan flows.",
   },
   {
     id: "read-anonymous-playground",
@@ -424,10 +424,10 @@ export const agentReadContracts: AgentReadContract[] = [
     stableIds: ["anonymousPlaygroundId", "anonymousPlaygroundRoute", "anonymousPlaygroundGateId"],
     safeForAgents: [
       "Read the browser-scoped playground contract",
-      "Distinguish anonymous save, signed-in claim, and owner cleanup routes",
+      "Distinguish anonymous save, signed-in claim, owner cleanup routes, and scheduled cleanup triggers",
       "Confirm rapid save limits are scoped to the browser recovery workspace without raw IP or user-agent storage",
       "Confirm claim creates private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review records",
-      "Confirm cleanup expires old anonymous recovery and clears anonymous draft fields without exposing cleanup actors",
+      "Confirm owner-gated and scheduled cleanup expire old anonymous recovery and clear anonymous draft fields without exposing cleanup actors",
       "Confirm recovery cookie values and token hashes are not public source-data",
       "Cite paid go-live gates before discussing publishing, checkout, sends, domains, or fulfillment",
     ],
@@ -2811,16 +2811,16 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "Bumpgrade account-plan pricing, logged-out anonymous playground status, signed-in Free Build workspace status, paid go-live gates, setup add-on, and redaction policy.",
     stableIds: [freeBuildModeContract.id, "freeBuildCapabilityId", "paidGoLiveGateId", "pricingPlanSlug"],
     volatileClaims:
-      "Anonymous playground persistence, browser-recovery save limits, owner-gated cleanup controls, additive claim-to-private-draft and private claim-record creation, and signed-in Free Build workspace creation are live; paid go-live actions still require entitlement and confirmation.",
+      "Anonymous playground persistence, browser-recovery save limits, owner-gated and scheduled cleanup controls, additive claim-to-private-draft and private claim-record creation, and signed-in Free Build workspace creation are live; paid go-live actions still require entitlement and confirmation.",
   },
   {
     id: "evidence-anonymous-playground",
     route: anonymousPlaygroundSourceDataRoute,
     resolves:
-      "Browser-scoped logged-out structured playground recovery, save route, save-limit policy, claim route, additive claim merge policy, owner-gated cleanup route, private draft creation, private claim-record creation, cookie and retention boundaries, redaction policy, and paid go-live gates.",
+      "Browser-scoped logged-out structured playground recovery, save route, save-limit policy, claim route, additive claim merge policy, owner-gated cleanup route, scheduled cleanup trigger, private draft creation, private claim-record creation, cookie and retention boundaries, redaction policy, and paid go-live gates.",
     stableIds: ["anonymousPlaygroundId", "anonymousPlaygroundRoute", "anonymousPlaygroundGateId"],
     volatileClaims:
-      "The playground saves structured launch context before signup, limits rapid repeat saves per browser recovery workspace without raw IP or user-agent storage, can expire old anonymous recovery through owner cleanup, and can create a private launch draft plus private offer/product/audience/importer-review records after verified-account claim; it is not public publishing, live checkout, subscriber sends, domain reservation, fulfillment, or product access.",
+      "The playground saves structured launch context before signup, limits rapid repeat saves per browser recovery workspace without raw IP or user-agent storage, can expire old anonymous recovery through owner or scheduled cleanup, and can create a private launch draft plus private offer/product/audience/importer-review records after verified-account claim; it is not public publishing, live checkout, subscriber sends, domain reservation, fulfillment, or product access.",
   },
   {
     id: "evidence-agent-manifest",
@@ -3143,16 +3143,16 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://pricing-policy",
     status: "ready-contract",
     backedBy: pricingSourceDataRoute,
-    purpose: "Expose pricing plans, logged-out anonymous structured playground state, browser-recovery save limits, anonymous cleanup controls, signed-in Free Build workspace state, and paid go-live gates.",
+    purpose: "Expose pricing plans, logged-out anonymous structured playground state, browser-recovery save limits, anonymous cleanup controls including the scheduled trigger, signed-in Free Build workspace state, and paid go-live gates.",
     safetyBoundary:
-      "Read-only pricing resource; anonymous structured playground saves are browser-scoped and rate-limited per browser recovery workspace, cleanup is owner-gated and redacted, claim creates or reuses the verified account's Free Build workspace and adds private draft work plus private claim records, signed-in Free Build workspace creation uses authenticated account setup APIs, and public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement.",
+      "Read-only pricing resource; anonymous structured playground saves are browser-scoped and rate-limited per browser recovery workspace, cleanup is owner-gated or scheduled and redacted, claim creates or reuses the verified account's Free Build workspace and adds private draft work plus private claim records, signed-in Free Build workspace creation uses authenticated account setup APIs, and public publishing, live checkout, subscriber sends, domains, and fulfillment remain behind paid entitlement.",
   },
   {
     id: "mcp-resource-anonymous-playground",
     resourceOrTool: "resource bumpgrade://anonymous-playground",
     status: "ready-contract",
     backedBy: anonymousPlaygroundSourceDataRoute,
-    purpose: "Expose the logged-out structured playground recovery, save-limit, claim, cleanup, private claim-record, redaction, retention, and go-live gate contract.",
+    purpose: "Expose the logged-out structured playground recovery, save-limit, claim, owner-gated cleanup, scheduled cleanup, private claim-record, redaction, retention, and go-live gate contract.",
     safetyBoundary:
       "No public publishing, billing mutation, subscriber send, domain reservation, fulfillment, private claim-record disclosure, expired draft disclosure, cleanup actor disclosure, cookie disclosure, or token-hash disclosure may be performed from this resource.",
   },

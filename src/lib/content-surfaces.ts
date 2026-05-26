@@ -326,7 +326,7 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   domainPurchase:
     "Bumpgrade does not sell, register, renew, transfer, price, or check availability for domains today.",
   payments: [
-    "Free Build supports signed-in private workspace creation before payment; the anonymous playground saves structured browser-scoped launch setup before signup, has owner-gated cleanup for expired recovery, and can become a private launch draft plus private claim records after verified-account claim.",
+    "Free Build supports signed-in private workspace creation before payment; the anonymous playground saves structured browser-scoped launch setup before signup, has owner-gated and scheduled cleanup for expired recovery, and can become a private launch draft plus private claim records after verified-account claim.",
     "Experiment is $97/month.",
     "Grow is $197/month.",
     "White glove setup is an optional one-time $1,000 add-on.",

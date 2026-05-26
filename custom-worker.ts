@@ -14,6 +14,8 @@ const defaultForwardTo = "";
 const maxInboundTextLength = 20_000;
 const codexSenderEmail = "codex@bumpgrade.com";
 const codexSenderName = "Bumpgrade Codex";
+const anonymousPlaygroundCleanupCron = "17 9 * * *";
+const anonymousPlaygroundCleanupBatchLimit = 100;
 
 function headerValue(headers: Headers, name: string) {
   return headers.get(name) ?? headers.get(name.toLowerCase()) ?? null;
@@ -45,6 +47,22 @@ function rawSnippet(raw: string) {
 
 function sqlTimestamp(date: Date) {
   return Math.floor(date.getTime() / 1000);
+}
+
+async function sha256Hex(value: string) {
+  const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function runtimeId(prefix: string) {
+  return `${prefix}-${crypto.randomUUID()}`;
+}
+
+function isoFromSeconds(value: number | null | undefined) {
+  if (!value) return null;
+  return new Date(value * 1000).toISOString();
 }
 
 function replySubject(subject: string | null) {
@@ -181,9 +199,124 @@ async function captureInboundCodexEmail(message: ForwardableEmailMessage, env: C
   }
 }
 
+async function runScheduledAnonymousPlaygroundCleanup(controller: ScheduledController, env: Cloudflare.Env) {
+  const scheduledTime = new Date(controller.scheduledTime);
+  const idempotencyKey = `scheduled-anonymous-playground-cleanup:${controller.cron}:${scheduledTime.toISOString()}`;
+  const rows = await env.DB.prepare(
+    `SELECT id, status, claimed_by_user_id, claimed_tenant_id, expires_at
+     FROM anonymous_playground_workspaces
+     WHERE status IN ('active', 'claimed')
+       AND expires_at <= unixepoch()
+     ORDER BY expires_at ASC, updated_at ASC
+     LIMIT ?`,
+  )
+    .bind(anonymousPlaygroundCleanupBatchLimit)
+    .all<{
+      id: string;
+      status: "active" | "claimed";
+      claimed_by_user_id: string | null;
+      claimed_tenant_id: string | null;
+      expires_at: number | null;
+    }>();
+
+  let expiredCount = 0;
+  let activeExpiredCount = 0;
+  let claimedRecoveryExpiredCount = 0;
+
+  for (const row of rows.results ?? []) {
+    const replacementTokenHash = await sha256Hex(`bumpgrade-anonymous-playground-expired:${row.id}:${idempotencyKey}`);
+    const update = await env.DB.prepare(
+      `UPDATE anonymous_playground_workspaces
+       SET status = 'expired',
+           recovery_token_sha256 = ?,
+           offer_name = NULL,
+           audience = NULL,
+           launch_goal = NULL,
+           product_format = NULL,
+           price_point = NULL,
+           lead_magnet = NULL,
+           checkout_plan = NULL,
+           delivery_plan = NULL,
+           follow_up_plan = NULL,
+           source_url = NULL,
+           selected_importer_slug = NULL,
+           metadata_json = ?,
+           updated_at = unixepoch(),
+           last_seen_at = unixepoch()
+       WHERE id = ?
+         AND status IN ('active', 'claimed')
+         AND expires_at <= unixepoch()`,
+    )
+      .bind(
+        replacementTokenHash,
+        JSON.stringify({
+          sourceIssueNumber: 466,
+          cleanupStatus: "expired",
+          cleanupReason: "retention_window_elapsed",
+          cleanupActorRole: "cloudflare_cron",
+          scheduledCron: controller.cron,
+          scheduledAt: scheduledTime.toISOString(),
+          rawDraftContentCleared: true,
+          recoveryTokenHashReplaced: true,
+          privateClaimRecordsPreserved: true,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          emailSendsEnabled: false,
+          fulfillmentEnabled: false,
+        }),
+        row.id,
+      )
+      .run();
+    if (!update.meta.changes) continue;
+
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO anonymous_playground_audit_events (
+        id, workspace_id, event_kind, idempotency_key, metadata_json, created_at
+      ) VALUES (?, ?, ?, ?, ?, unixepoch())`,
+    )
+      .bind(
+        runtimeId("anonymous-playground-audit"),
+        row.id,
+        "anonymous_playground_scheduled_expired",
+        `${idempotencyKey}-${row.id}`,
+        JSON.stringify({
+          sourceIssueNumber: 466,
+          cleanupActorRole: "cloudflare_cron",
+          scheduledCron: controller.cron,
+          scheduledAt: scheduledTime.toISOString(),
+          previousStatus: row.status,
+          previousExpiresAt: isoFromSeconds(row.expires_at),
+          claimedBeforeCleanup: Boolean(row.claimed_by_user_id || row.claimed_tenant_id),
+          rawDraftContentCleared: true,
+          recoveryTokenHashReplaced: true,
+          privateClaimRecordsPreserved: true,
+          paidGoLiveRequired: true,
+        }),
+      )
+      .run();
+
+    expiredCount += 1;
+    if (row.status === "claimed") claimedRecoveryExpiredCount += 1;
+    else activeExpiredCount += 1;
+  }
+
+  console.log("Anonymous playground scheduled cleanup completed", {
+    cron: anonymousPlaygroundCleanupCron,
+    scheduledAt: scheduledTime.toISOString(),
+    expiredCount,
+    activeExpiredCount,
+    claimedRecoveryExpiredCount,
+    batchLimit: anonymousPlaygroundCleanupBatchLimit,
+  });
+}
+
 const worker: ExportedHandler<Cloudflare.Env> = {
   fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext) {
     return nextWorker.fetch(request, env, ctx);
+  },
+
+  scheduled(controller, env, ctx) {
+    ctx.waitUntil(runScheduledAnonymousPlaygroundCleanup(controller, env));
   },
 
   async email(message, env) {
