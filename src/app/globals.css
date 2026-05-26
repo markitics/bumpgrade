@@ -4210,6 +4210,7 @@ h3 {
 
 .importer-draft-form input[type="text"],
 .importer-draft-form input[type="url"],
+.importer-draft-form input[type="file"],
 .importer-draft-form textarea,
 .importer-rollback-form input[type="text"] {
   width: 100%;
@@ -4290,6 +4291,15 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.importer-preview-exports {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(55, 95, 76, 0.18);
+  border-radius: 8px;
+  background: #fbf8ef;
 }
 
 .importer-preview-summary span,

@@ -217,14 +217,17 @@ source-data, expose recovery cookie values, or expose token hashes.
 Current importer boundary: `/imports/source-data` is the public-safe contract for
 ClickFunnels and first-wave competitor import paths. It exposes supported
 platform IDs, competitor IDs, source IDs, input kinds, platform-specific source
-checklists, saved private plan parts, safety gates, unsupported fields, routes,
-a public redacted preview API route, and the verified-publisher private-draft API
-route listed for each dedicated importer. Posting to a platform preview route
-returns an import review map before sign-in or private draft creation. The map
-now includes platform-specific `sourceChecklistReview` status for the guide
-items on that importer, using matched signal labels only. It does not persist
-records, create drafts, echo pasted source material, echo export file names, or
-enable any go-live effect. Posting to one of the private platform API routes can
+checklists, export-file parser fields, saved private plan parts, safety gates,
+unsupported fields, routes, a public redacted preview API route, and the
+verified-publisher private-draft API route listed for each dedicated importer.
+Posting to a platform preview route returns an import review map before sign-in
+or private draft creation. The map now includes platform-specific
+`sourceChecklistReview` status for the guide items on that importer and
+`exportFileAnalysis` for small CSV, JSON, HTML, or text exports, using matched
+signal labels and safe structure only. It does not persist records, create
+drafts, echo pasted source material, echo raw rows, echo raw file text, echo
+export file names, or enable any go-live effect. Posting to one of the private
+platform API routes can
 create or reuse a Free Build workspace and save a private import plan after
 exact confirmation and idempotency. Responses include redacted
 `duplicateReview.status` values for created drafts, idempotency replay, and

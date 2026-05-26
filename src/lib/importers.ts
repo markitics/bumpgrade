@@ -37,6 +37,7 @@ export type ImportSourceChecklistItem = {
 export type ImporterPreflightSignal =
   | "source_url"
   | "export_file_name"
+  | "parsed_export_structure"
   | "page_or_offer_copy"
   | "follow_up_notes"
   | "launch_goal"
@@ -102,6 +103,7 @@ export function importerDraftRollbackCapabilityId(platformId: string) {
 export const importerPreflightSignalLabels: Record<ImporterPreflightSignal, string> = {
   source_url: "Source URL",
   export_file_name: "Export file name",
+  parsed_export_structure: "Parsed export structure",
   page_or_offer_copy: "Page or offer copy",
   follow_up_notes: "Follow-up notes",
   launch_goal: "Launch goal",
@@ -118,6 +120,7 @@ export function sourceChecklistPreflightSignals(item: ImportSourceChecklistItem)
 
   addSignal(signals, /url|page|landing|checkout|funnel|form|webinar|campaign|path/.test(text), "source_url");
   addSignal(signals, /export|csv|file|archive|spreadsheet/.test(text), "export_file_name");
+  addSignal(signals, /export|csv|file|archive|spreadsheet|row|header|catalog|customer/.test(text), "parsed_export_structure");
   addSignal(
     signals,
     /copy|offer|price|pricing|coupon|guarantee|product|description|promise|checkout|delivery|fulfillment|access|affiliate|partner|payout|rule|membership|module|lesson|download/.test(
@@ -153,6 +156,21 @@ export const commonImporterSafetyGates = [
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
   "Public source-data excludes raw export files, customer rows, private emails, payment credentials, API keys, and session cookies.",
 ];
+
+export const importerExportPreflightParser = {
+  status: "live",
+  routeField: "previewApiRoute",
+  responseField: "exportFileAnalysis",
+  acceptedFormFields: ["exportFiles", "exportFile", "sourceFiles", "exportManifest", "exportFileContent"],
+  parsedKinds: ["CSV", "JSON", "HTML", "plain text"],
+  maxFilesPerReview: 5,
+  maxParsedBytesPerFile: 64_000,
+  writesRecords: false,
+  rawExportFilesIncluded: false,
+  rawFileNamesEchoed: false,
+  rawRowsEchoed: false,
+  rawTextEchoed: false,
+};
 
 export const clickFunnelsDraftImportCapability = {
   id: importerDraftImportCapabilityId("importer-clickfunnels"),
@@ -842,20 +860,22 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       writesRecords: false,
       createsDraft: false,
       rawSourceEchoed: false,
-    goLiveEffectsEnabled: false,
-  },
-  rollback: {
-    route: importerDraftRollbackApiRoute(platform.slug),
-    confirmationText: importerDraftRollbackConfirmationText(platform.platformName),
-    auth: "verified publisher session",
-    archives: ["private_draft_funnel"],
-    deletesRecords: false,
-    restartsAvailable: true,
-    rawSourceEchoed: false,
-    goLiveEffectsEnabled: false,
-  },
-  duplicateProtection:
-    "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
+      goLiveEffectsEnabled: false,
+      responseFields: ["inputSummary", "sourceChecklistReview", "exportFileAnalysis", "detectedAreas", "safetyGates"],
+      exportFileAnalysis: importerExportPreflightParser,
+    },
+    rollback: {
+      route: importerDraftRollbackApiRoute(platform.slug),
+      confirmationText: importerDraftRollbackConfirmationText(platform.platformName),
+      auth: "verified publisher session",
+      archives: ["private_draft_funnel"],
+      deletesRecords: false,
+      restartsAvailable: true,
+      rawSourceEchoed: false,
+      goLiveEffectsEnabled: false,
+    },
+    duplicateProtection:
+      "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
     duplicateReview: {
       responseField: "duplicateReview",
       statuses: ["created", "idempotent_replay", "source_match_reused"],
@@ -908,6 +928,7 @@ export const importerSourceData = {
     privateDraftRollbackLive: true,
     platformSpecificExtractionGuidanceLive: true,
     platformSpecificPreflightExtractionLive: true,
+    exportFilePreflightParsingLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -923,15 +944,16 @@ export const importerSourceData = {
     duplicateReview:
       "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs or normalized export file names inside the same platform, target workspace, and normalized title.",
     preflightReview:
-      "Public preflight review routes return a redacted import map before private draft creation. They now review each platform sourceChecklist item against supplied source signals, then report ready, needs-more-context, or needs-source status without persisting records, requiring payment, publishing pages, running checkout, sending subscribers, connecting domains, enabling fulfillment, or echoing pasted source material or export file names.",
+      "Public preflight review routes return a redacted import map before private draft creation. They review each platform sourceChecklist item against supplied source signals and parsed export-file structure, then report ready, needs-more-context, or needs-source status without persisting records, requiring payment, publishing pages, running checkout, sending subscribers, connecting domains, enabling fulfillment, or echoing pasted source material, export file names, raw rows, or raw file text.",
     rollback:
       "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     platformSpecificExtractionGuidance:
-      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items with matched signal labels only, not the raw source values.",
+      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items and exportFileAnalysis summaries with matched signal labels only, not the raw source values.",
+    exportFilePreflightParser: importerExportPreflightParser,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,
     redaction:
-      "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
+      "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, parser fields, and limitations only. Raw exports, raw rows, raw file text, export file names, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data and preview responses.",
     liveWriteActions: importerDraftImportCapabilities,
   },
   platforms: importerPlatforms.map(importerPlatformSourceData),

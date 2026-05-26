@@ -1051,6 +1051,7 @@ test.describe("Bumpgrade scaffold", () => {
           privateDraftRollbackLive: true,
           platformSpecificExtractionGuidanceLive: true,
           platformSpecificPreflightExtractionLive: true,
+          exportFilePreflightParsingLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1136,11 +1137,23 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.preflightReview).toContain("sourceChecklist");
     expect(payload.commonContract.rollback).toContain("archive private importer-created launch plans");
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklistReview");
+    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("exportFileAnalysis");
+    expect(payload.commonContract.exportFilePreflightParser).toEqual(
+      expect.objectContaining({
+        status: "live",
+        responseField: "exportFileAnalysis",
+        parsedKinds: expect.arrayContaining(["CSV", "JSON", "HTML", "plain text"]),
+        writesRecords: false,
+        rawFileNamesEchoed: false,
+        rawRowsEchoed: false,
+      }),
+    );
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
         export_file_name: "Export file name",
+        parsed_export_structure: "Parsed export structure",
         page_or_offer_copy: "Page or offer copy",
       }),
     );
@@ -1183,6 +1196,12 @@ test.describe("Bumpgrade scaffold", () => {
             createsDraft: false,
             rawSourceEchoed: false,
             goLiveEffectsEnabled: false,
+            responseFields: expect.arrayContaining(["sourceChecklistReview", "exportFileAnalysis"]),
+            exportFileAnalysis: expect.objectContaining({
+              responseField: "exportFileAnalysis",
+              rawFileNamesEchoed: false,
+              rawRowsEchoed: false,
+            }),
           }),
           rollback: expect.objectContaining({
             route: importerDraftRollbackApiRoute("clickfunnels"),
@@ -1269,6 +1288,9 @@ test.describe("Bumpgrade scaffold", () => {
           inputSummary: expect.objectContaining({
             sourceUrlProvided: true,
             sourceFileNameCount: 2,
+            uploadedExportFileCount: 0,
+            parsedExportFileCount: 0,
+            exportHeaderMatchCount: 0,
             pageCopyProvided: true,
             followUpNotesProvided: true,
             launchGoalProvided: false,
@@ -1288,6 +1310,14 @@ test.describe("Bumpgrade scaffold", () => {
               matchedSignals: expect.arrayContaining(["Page or offer copy"]),
             }),
           ]),
+          exportFileAnalysis: expect.objectContaining({
+            fileCount: 0,
+            parsedFileCount: 0,
+            rawExportFilesIncluded: false,
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+          }),
           detectedAreas: expect.arrayContaining([
             expect.objectContaining({
               id: "samcart-checkout-offers",
@@ -1318,6 +1348,96 @@ test.describe("Bumpgrade scaffold", () => {
     expect(serialized).not.toContain("customers-private.csv");
     expect(serialized).not.toContain("PRIVATE_IMPORT_COPY_SHOULD_NOT_ECHO");
     expect(serialized).not.toContain("PRIVATE_FOLLOW_UP_SHOULD_NOT_ECHO");
+  });
+
+  test("public importer preflight review parses export files without echoing raw rows", async ({ request }) => {
+    const previewRoute = importerDraftPreviewApiRoute("samcart");
+    const response = await request.post(previewRoute, {
+      headers: { accept: "application/json" },
+      multipart: {
+        offerTitle: "Uploaded SamCart export review",
+        exportFiles: {
+          name: "private-samcart-customers.csv",
+          mimeType: "text/csv",
+          buffer: Buffer.from(
+            "email,product_title,checkout_url,order_total\nprivate-buyer@example.com,PRIVATE_PRODUCT_NAME,https://private.example/checkout,97\n",
+          ),
+        },
+        exportManifest:
+          "tag,sequence_name,last_sent_at\nPRIVATE_SEGMENT,PRIVATE_SEQUENCE,2026-05-25\n",
+      },
+    });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.preview).toEqual(
+      expect.objectContaining({
+        inputSummary: expect.objectContaining({
+          sourceFileNameCount: 1,
+          uploadedExportFileCount: 1,
+          parsedExportFileCount: 2,
+          exportHeaderMatchCount: expect.any(Number),
+          exportManifestProvided: true,
+          rawSourceEchoed: false,
+        }),
+        exportFileAnalysis: expect.objectContaining({
+          fileCount: 2,
+          uploadedFileCount: 1,
+          pastedManifestCount: 1,
+          parsedFileCount: 2,
+          detectedSignalLabels: expect.arrayContaining([
+            "Parsed export structure",
+            "Source URL",
+            "Page or offer copy",
+            "Audience context",
+          ]),
+          detectedHeaderLabels: expect.arrayContaining([
+            "Subscriber or customer column",
+            "Product or offer column",
+            "Page or URL column",
+          ]),
+          files: expect.arrayContaining([
+            expect.objectContaining({
+              label: "Uploaded file 1",
+              kind: "CSV",
+              parseStatus: "parsed",
+              rowCount: 1,
+              rawFileNameEchoed: false,
+              rawRowsEchoed: false,
+              rawTextEchoed: false,
+            }),
+          ]),
+          rawExportFilesIncluded: false,
+          rawFileNamesEchoed: false,
+          rawRowsEchoed: false,
+          rawTextEchoed: false,
+        }),
+        sourceChecklistReview: expect.arrayContaining([
+          expect.objectContaining({
+            id: "samcart-checkout-page",
+            status: "ready_to_review",
+            matchedSignals: expect.arrayContaining(["Export file name", "Parsed export structure"]),
+          }),
+        ]),
+      }),
+    );
+    expect(payload.redaction).toEqual(
+      expect.objectContaining({
+        rawExportFilesIncluded: false,
+        exportFileNamesEchoed: false,
+        rawExportFileNamesEchoed: false,
+        rawExportRowsEchoed: false,
+        rawExportTextEchoed: false,
+        persistsRecords: false,
+      }),
+    );
+
+    const serialized = JSON.stringify(payload);
+    expect(serialized).not.toContain("private-samcart-customers.csv");
+    expect(serialized).not.toContain("private-buyer@example.com");
+    expect(serialized).not.toContain("PRIVATE_PRODUCT_NAME");
+    expect(serialized).not.toContain("https://private.example/checkout");
+    expect(serialized).not.toContain("PRIVATE_SEGMENT");
+    expect(serialized).not.toContain("PRIVATE_SEQUENCE");
   });
 
   test("content source data exposes use cases, resources, and self-serve pricing policy", async ({ request }) => {
@@ -20812,15 +20932,18 @@ test.describe("Bumpgrade scaffold", () => {
           }),
           happyPath: expect.arrayContaining([
             expect.stringContaining("platform-specific source guide"),
+            expect.stringContaining("parse safe structure"),
             expect.stringContaining("Review the redacted import map"),
           ]),
           edgeCases: expect.arrayContaining([
             expect.stringContaining("source guides"),
+            expect.stringContaining("Export-file parsing returns structural labels"),
             expect.stringContaining("Rollback APIs require"),
           ]),
-          agentAccess: expect.stringContaining("platform-specific source checklists"),
+          agentAccess: expect.stringContaining("exportFileAnalysis fields"),
           validation: expect.arrayContaining([
             expect.stringContaining("dedicated importer source guides"),
+            expect.stringContaining("exportFileAnalysis parsing"),
             expect.stringContaining("Private importer rollback APIs"),
           ]),
         }),

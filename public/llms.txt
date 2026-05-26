@@ -177,13 +177,15 @@ GitHub repo: https://github.com/markitics/bumpgrade
   customer data, raw draft, expired draft, cleanup actor, or claim-record
   content, billing state, or buyer-facing launch state.
 - `/imports/source-data` exposes importer platform IDs, source IDs, input kinds,
-  platform-specific source checklists, preflight signal labels, saved private
-  plan parts, safety gates, limitations, public preflight review routes, and
-  private importer API routes. Posting to a platform preflight review route
-  returns a redacted import map before sign-in or private draft creation,
-  including `sourceChecklistReview` status for the platform guide items. It does
-  not persist records or echo pasted source material, export file names,
-  customer rows, credentials, sessions, or payment data. Posting to a private
+  platform-specific source checklists, preflight signal labels, export-file
+  parser fields, saved private plan parts, safety gates, limitations, public
+  preflight review routes, and private importer API routes. Posting to a platform
+  preflight review route returns a redacted import map before sign-in or private
+  draft creation, including `sourceChecklistReview` status for the platform guide
+  items and `exportFileAnalysis` for small CSV, JSON, HTML, or text exports. It
+  does not persist records or echo pasted source material, raw rows, raw file
+  text, export file names, customer rows, credentials, sessions, or payment data.
+  Posting to a private
   platform API route requires a verified publisher session, exact confirmation,
   idempotency, and redacted responses. It can create or reuse a Free Build
   workspace, save a private draft funnel, and reuse an existing private draft
