@@ -4310,6 +4310,51 @@ h3 {
   justify-content: center;
 }
 
+.importer-private-subscriber-records {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(40, 134, 96, 0.22);
+  border-radius: 8px;
+  background: #f7fbf8;
+}
+
+.importer-private-subscriber-records > strong {
+  color: var(--ink);
+}
+
+.importer-private-subscriber-records ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.importer-private-subscriber-records li {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.importer-private-subscriber-records span {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-weight: 800;
+  text-transform: none;
+}
+
+.importer-private-subscriber-records em,
+.importer-private-subscriber-records small {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-style: normal;
+}
+
 .importer-extracted-fields {
   display: grid;
   gap: 10px;

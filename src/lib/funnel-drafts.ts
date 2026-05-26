@@ -318,6 +318,33 @@ export type CompetitorImportPrivateRecordSubscriberImportCreation = {
   };
 };
 
+export type CompetitorImportPrivateSubscriberRecord = {
+  id: string;
+  importRecordId: string;
+  draftFunnelId: string;
+  importerPlatformId: string;
+  importerSlug: string;
+  platformName: string;
+  email: string;
+  emailHash: string;
+  firstName: string | null;
+  sourceStatus: string | null;
+  status: "private_imported_pending_review" | "archived";
+  sourceTagLabels: string[];
+  createdAt: string | null;
+  updatedAt: string | null;
+  redaction: {
+    ownerOnly: true;
+    publicSourceDataIncluded: false;
+    unauthenticatedResponsesIncluded: false;
+    globalAudienceSubscriberRow: false;
+    sequenceEnrollmentCreated: false;
+    emailDeliveryEnabled: false;
+    exportEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 export type CompetitorImportSubscriberCandidate = {
   email: string;
   firstName: string | null;
@@ -1805,11 +1832,11 @@ function competitorImportSubscriberDepth(
     sourceChecklistItemIds: input.sourceChecklistItemIds,
     reviewSteps: [
       "Confirm which safe identity columns should map to subscriber matching.",
-      "Review tag, segment, consent, suppression, and timing context before any subscriber write exists.",
+      "Review tag, segment, consent, suppression, and timing context before any global send-list write exists.",
       "Keep sequence entry and broadcast sends disabled until a later confirmed-write gate exists.",
     ],
     goLiveBlockers: [
-      "No private subscriber records are created until the owner confirms a fresh subscriber import upload.",
+      "Private subscriber records are created only after the owner confirms a fresh subscriber import upload or paste.",
       "No raw contact rows, private emails, names, or export file text are stored in public source-data.",
       "No sequence enrollments, broadcasts, exports, or provider sends run from this private review.",
     ],
@@ -2884,6 +2911,97 @@ type D1CompetitorImportSubscriberRecordRow = {
   id: string;
   status: string;
 };
+
+type D1CompetitorImportPrivateSubscriberRecordRow = {
+  id: string;
+  draft_funnel_id: string;
+  import_record_id: string;
+  importer_platform_id: string;
+  importer_slug: string;
+  platform_name: string;
+  email: string;
+  email_hash: string;
+  first_name: string | null;
+  source_status: string | null;
+  status: string;
+  source_tags_json: string | null;
+  created_at: number | null;
+  updated_at: number | null;
+};
+
+function competitorImportPrivateSubscriberRecordFromRow(
+  row: D1CompetitorImportPrivateSubscriberRecordRow,
+): CompetitorImportPrivateSubscriberRecord {
+  return {
+    id: row.id,
+    importRecordId: row.import_record_id,
+    draftFunnelId: row.draft_funnel_id,
+    importerPlatformId: row.importer_platform_id,
+    importerSlug: row.importer_slug,
+    platformName: row.platform_name,
+    email: row.email,
+    emailHash: row.email_hash,
+    firstName: row.first_name,
+    sourceStatus: row.source_status,
+    status: row.status === "archived" ? "archived" : "private_imported_pending_review",
+    sourceTagLabels: stringArrayMetadata(parseJson<unknown>(row.source_tags_json ?? "[]", [])),
+    createdAt: isoFromSeconds(row.created_at),
+    updatedAt: isoFromSeconds(row.updated_at),
+    redaction: {
+      ownerOnly: true,
+      publicSourceDataIncluded: false,
+      unauthenticatedResponsesIncluded: false,
+      globalAudienceSubscriberRow: false,
+      sequenceEnrollmentCreated: false,
+      emailDeliveryEnabled: false,
+      exportEnabled: false,
+      goLiveEffectsEnabled: false,
+    },
+  };
+}
+
+async function loadCompetitorImportPrivateSubscriberRecords(
+  db: D1Database,
+  input: { tenantId: string; draftFunnelId: string; ownerUserId: string },
+) {
+  const rows = await db
+    .prepare(
+      `SELECT id, draft_funnel_id, import_record_id, importer_platform_id, importer_slug, platform_name,
+              email, email_hash, first_name, source_status, status, source_tags_json, created_at, updated_at
+       FROM competitor_import_subscriber_records
+       WHERE tenant_id = ? AND draft_funnel_id = ? AND owner_user_id = ?
+       ORDER BY updated_at DESC, created_at DESC
+       LIMIT 100`,
+    )
+    .bind(input.tenantId, input.draftFunnelId, input.ownerUserId)
+    .all<D1CompetitorImportPrivateSubscriberRecordRow>();
+
+  const records = (rows.results ?? []).map(competitorImportPrivateSubscriberRecordFromRow);
+  return records.reduce<Record<string, CompetitorImportPrivateSubscriberRecord[]>>((byRecordId, record) => {
+    byRecordId[record.importRecordId] = [...(byRecordId[record.importRecordId] ?? []), record];
+    return byRecordId;
+  }, {});
+}
+
+export async function loadCompetitorImportedDraftReviewWithSubscriberRecords(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+  },
+) {
+  const review = await loadCompetitorImportedDraftReview(db, owner, input);
+  return {
+    ...review,
+    privateSubscriberRecordsByImportRecordId: await loadCompetitorImportPrivateSubscriberRecords(db, {
+      tenantId: review.tenantId,
+      draftFunnelId: review.draft.id,
+      ownerUserId: owner.userId,
+    }),
+  };
+}
 
 function subscriberImportCreationSignature(input: {
   contacts: CompetitorImportSubscriberCandidate[];
