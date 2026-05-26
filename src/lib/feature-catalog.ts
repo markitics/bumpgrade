@@ -569,7 +569,7 @@ export const featureCatalog: FeatureRecord[] = [
       "auth storage tables.",
       "Protected admin and publisher routes.",
       "Owner email verification with resend cooldown, Gmail handoff, and last-sent status.",
-      "Browser-scoped anonymous playground claim into a verified Free Build account, private launch draft, and private offer/product/audience/importer-review records.",
+      "Browser-scoped anonymous playground claim into a verified Free Build account, additive private launch draft, and private offer/product/audience/importer-review records.",
       "Browser-recovery workspace save limits for rapid anonymous playground writes without raw IP or user-agent storage.",
       "Owner-gated anonymous playground cleanup for expiring old recovery while preserving claimed private records.",
       "Signed-in Free Build workspace creation before payment.",
@@ -740,7 +740,7 @@ export const featureCatalog: FeatureRecord[] = [
       "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
-      "Agents may read content surface records, pricing policy records, anonymous playground records, save-limit boundaries, cleanup boundaries, claimed private draft boundaries, private claim-record boundaries, and draft resource copy, but they must distinguish browser-scoped anonymous structured saves, owner-gated cleanup, signed-in Free Build workspace creation, private draft creation, private claim-record creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records, pricing policy records, anonymous playground records, save-limit boundaries, cleanup boundaries, additive claim merge boundaries, claimed private draft boundaries, private claim-record boundaries, and draft resource copy, but they must distinguish browser-scoped anonymous structured saves, owner-gated cleanup, signed-in Free Build workspace creation, private draft creation without replacing existing workspace work, private claim-record creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 

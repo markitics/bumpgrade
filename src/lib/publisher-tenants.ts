@@ -933,6 +933,7 @@ export async function createFreeBuildWorkspace(
       planStatus: tenant.planStatus,
       idempotent: true,
       paidGoLiveRequired: !entitlement,
+      reusedExistingWorkspace: Boolean(existingTenant),
     };
   }
 
@@ -961,6 +962,7 @@ export async function createFreeBuildWorkspace(
     planStatus: tenant.planStatus,
     idempotent: false,
     paidGoLiveRequired: !entitlement,
+    reusedExistingWorkspace: Boolean(existingTenant),
   };
 }
 
@@ -1438,6 +1440,20 @@ export const publisherTenantSourceData = {
         rawUserAgentStored: false,
         recoveryTokenHashExposed: false,
       },
+      claimMergePolicy: {
+        mode: "additive_private_draft",
+        emailVerifiedAccountRequired: true,
+        createsFreeBuildWorkspaceWhenMissing: true,
+        reusesExistingFreeBuildWorkspaceWhenPresent: true,
+        createsAdditionalPrivateDraftFunnel: true,
+        createsPrivateClaimRecords: true,
+        overwritesExistingFreeBuildWorkspace: false,
+        overwritesExistingDrafts: false,
+        overwritesAnonymousDraftFields: false,
+        publicSourceDataExposesPrivateDraftContent: false,
+        paidGoLiveRequired: true,
+        idempotencyScope: "anonymous_workspace_id_and_user_id",
+      },
       cleanupControlsLive: true,
       retentionDays: 30,
       draftSourceDataRoute: "/funnels/source-data",
@@ -1447,6 +1463,7 @@ export const publisherTenantSourceData = {
       "Logged-out visitors can save structured launch context in a browser-scoped playground before signup.",
       "Returning from the same browser reloads saved playground progress while the recovery cookie is present.",
       "Verified signed-in users can attach the saved playground to a private Free Build workspace, private launch draft, and private offer/product/audience/importer-review records.",
+      "If the signed-in user already has a Free Build workspace, claiming the playground reuses that workspace and adds a private draft without replacing existing workspace work.",
       "Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, replace the recovery token hash, and preserve private claimed records.",
       "Verified signed-in users can create a private Free Build workspace before payment.",
       "The workspace is persisted in publisher_tenants with plan_status=free_build.",

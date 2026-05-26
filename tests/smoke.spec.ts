@@ -452,6 +452,7 @@ import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
   anonymousPlaygroundClaimConfirmationText,
+  anonymousPlaygroundClaimMergePolicy,
   anonymousPlaygroundCleanupApiRoute,
   anonymousPlaygroundCleanupConfirmationText,
   anonymousPlaygroundCookieName,
@@ -1702,6 +1703,13 @@ test.describe("Bumpgrade scaffold", () => {
               rawIpStored: false,
               rawUserAgentStored: false,
             }),
+            claimMergePolicy: expect.objectContaining({
+              mode: anonymousPlaygroundClaimMergePolicy.mode,
+              reusesExistingFreeBuildWorkspaceWhenPresent: true,
+              createsAdditionalPrivateDraftFunnel: true,
+              overwritesExistingDrafts: false,
+              paidGoLiveRequired: true,
+            }),
           }),
         }),
         paidGoLiveGates: expect.arrayContaining([
@@ -1744,6 +1752,8 @@ test.describe("Bumpgrade scaffold", () => {
           claimCreatesPrivateDraftFunnelLive: true,
           claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
           claimCreatesPrivateLaunchRecordsLive: true,
+          claimReusesExistingFreeBuildWorkspaceLive: true,
+          claimPreservesExistingWorkspaceLive: true,
           cleanupControlsLive: true,
           expiredWorkspaceCleanupLive: true,
           ownerGatedCleanupApiLive: true,
@@ -1805,9 +1815,19 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         claimResult: expect.objectContaining({
           createsOrReusesFreeBuildWorkspace: true,
+          mergePolicy: expect.objectContaining({
+            mode: anonymousPlaygroundClaimMergePolicy.mode,
+            reusesExistingFreeBuildWorkspaceWhenPresent: true,
+            createsAdditionalPrivateDraftFunnel: true,
+            overwritesExistingDrafts: false,
+            paidGoLiveRequired: true,
+          }),
           createsPrivateDraftFunnel: true,
+          createsAdditionalPrivateDraftFunnel: true,
           mapsStructuredFieldsToDraftBlocks: true,
           createsPrivateLaunchRecords: true,
+          reusesExistingFreeBuildWorkspaceWhenPresent: true,
+          overwritesExistingDrafts: false,
           privateClaimRecordKinds: ["offer", "product", "audience", "importer_review"],
           draftSourceDataRoute: "/funnels/source-data",
           publicPublishingEnabled: false,
@@ -2150,6 +2170,13 @@ test.describe("Bumpgrade scaffold", () => {
             responseCode: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
             rawIpStored: false,
             rawUserAgentStored: false,
+          }),
+          claimMergePolicy: expect.objectContaining({
+            mode: anonymousPlaygroundClaimMergePolicy.mode,
+            reusesExistingFreeBuildWorkspaceWhenPresent: true,
+            createsAdditionalPrivateDraftFunnel: true,
+            overwritesExistingFreeBuildWorkspace: false,
+            overwritesExistingDrafts: false,
           }),
           claimCreatesPrivateDraftFunnel: true,
           draftSourceDataRoute: "/funnels/source-data",
@@ -21236,6 +21263,7 @@ test.describe("Bumpgrade scaffold", () => {
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-anonymous-playground.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-playground-save-limits.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-playground-claim-merge.png" }),
             ]),
             validationLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/playground/source-data" }),
@@ -30707,6 +30735,13 @@ test.describe("Bumpgrade scaffold", () => {
           previewRoute: null,
           sourceDataRoute: "/funnels/source-data",
         }),
+        claimMerge: expect.objectContaining({
+          mode: anonymousPlaygroundClaimMergePolicy.mode,
+          reusedExistingFreeBuildWorkspace: false,
+          existingWorkspacePreserved: false,
+          createsAdditionalPrivateDraftFunnel: true,
+          overwritesExistingDrafts: false,
+        }),
         claimRecords: expect.arrayContaining([
           expect.objectContaining({
             kind: "offer",
@@ -30773,6 +30808,123 @@ test.describe("Bumpgrade scaffold", () => {
         return: "json",
         subdomain: `anonymous-playground-${suffix}`.slice(0, 50),
         idempotencyKey: `playwright-claim-playground-subdomain-${suffix}`,
+      },
+    });
+    expect(subdomainResponse.status()).toBe(402);
+    expect(await subdomainResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "PAID_PLAN_REQUIRED",
+        issue: 222,
+      }),
+    );
+  });
+
+  test("verified publisher can claim anonymous playground into an existing Free Build workspace additively", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Auth flow is covered once on the desktop project.");
+    const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const saveResponse = await page.request.post(anonymousPlaygroundApiRoute, {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        offerName: `Existing workspace claim ${suffix}`,
+        audience: "Publishers who already started a Free Build workspace",
+        launchGoal: "Add saved playground work without replacing the existing workspace",
+        productFormat: "Templates and a launch workshop",
+        pricePoint: "$147",
+        leadMagnet: "Free launch scorecard",
+        checkoutPlan: "Draft checkout handoff only",
+        deliveryPlan: "Private draft delivery notes",
+        followUpPlan: "Draft welcome and offer sequence",
+        sourceUrl: "https://example.com/existing-workspace-claim",
+        selectedImporterSlug: "clickfunnels",
+        idempotencyKey: `playwright-existing-workspace-claim-save-${suffix}`,
+      },
+    });
+    expect(saveResponse.ok(), await saveResponse.text()).toBeTruthy();
+    const savePayload = await saveResponse.json();
+
+    const email = `existing-workspace-claim-${suffix}@example.com`;
+    await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Existing Workspace Publisher");
+    await verifyEmail(page, email);
+
+    const existingWorkspaceResponse = await page.request.post("/api/account/publisher/free-build-workspace", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: publisherFreeBuildWorkspaceConfirmationText,
+        idempotencyKey: `playwright-existing-workspace-claim-free-build-${suffix}`,
+      },
+    });
+    expect(existingWorkspaceResponse.ok(), await existingWorkspaceResponse.text()).toBeTruthy();
+    const existingWorkspacePayload = await existingWorkspaceResponse.json();
+    expect(existingWorkspacePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        planStatus: "free_build",
+        paidGoLiveRequired: true,
+        tenant: expect.objectContaining({
+          planStatus: "free_build",
+          defaultSubdomain: null,
+          primaryHostname: null,
+        }),
+      }),
+    );
+
+    const claimResponse = await page.request.post(anonymousPlaygroundClaimApiRoute, {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        confirmationText: anonymousPlaygroundClaimConfirmationText,
+      },
+    });
+    expect(claimResponse.ok(), await claimResponse.text()).toBeTruthy();
+    const claimPayload = await claimResponse.json();
+    expect(claimPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        issue: 466,
+        paidGoLiveRequired: true,
+        workspace: expect.objectContaining({
+          id: savePayload.workspace.id,
+          status: "claimed",
+          claimed: true,
+        }),
+        tenant: expect.objectContaining({
+          id: existingWorkspacePayload.tenant.id,
+          planStatus: "free_build",
+          defaultSubdomain: null,
+          primaryHostname: null,
+        }),
+        draft: expect.objectContaining({
+          title: `Existing workspace claim ${suffix}`,
+          status: "draft",
+          sourceIssueNumber: 466,
+          parentIssueNumber: 466,
+          sourceDataRoute: "/funnels/source-data",
+        }),
+        claimMerge: expect.objectContaining({
+          mode: anonymousPlaygroundClaimMergePolicy.mode,
+          reusedExistingFreeBuildWorkspace: true,
+          existingWorkspacePreserved: true,
+          createsAdditionalPrivateDraftFunnel: true,
+          overwritesExistingFreeBuildWorkspace: false,
+          overwritesExistingDrafts: false,
+          paidGoLiveRequired: true,
+        }),
+      }),
+    );
+    expect(claimPayload.draft.id).toEqual(expect.stringMatching(/^funnel-draft-/));
+    expect(claimPayload.claimRecords).toHaveLength(4);
+
+    const subdomainResponse = await page.request.post("/api/account/publisher/subdomain", {
+      headers: { accept: "application/json" },
+      form: {
+        return: "json",
+        subdomain: `existing-workspace-${suffix}`.slice(0, 50),
+        idempotencyKey: `playwright-existing-workspace-claim-subdomain-${suffix}`,
       },
     });
     expect(subdomainResponse.status()).toBe(402);
