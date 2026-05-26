@@ -271,6 +271,12 @@ enrollments, sends, private exports, or go-live effects. The same owner can
 download a private subscriber CSV from saved importer
 contacts after exact confirmation; public source-data, unauthenticated
 responses, and JSON API responses expose counts and redaction rules only. Each
+same-owner review can also record `checkoutMigrationReadiness` on private
+checkout-offer or product-catalog records, so an imported offer can be marked
+ready for Bumpgrade checkout rebuild, needing payment-copy cleanup, or parked
+for later without creating checkout intents, Stripe sessions, live payment
+credentials, public checkout routes, account transfer, domains, fulfillment,
+subscriber sends, or go-live effects. Each
 platform also exposes a verified-publisher `privateRecordReviewRoute` that lets the same
 owner inspect those structured records after creation without showing raw rows,
 raw file text, export file names, customer values, credentials, sessions, or
@@ -278,7 +284,8 @@ go-live effects. The owner can also mark each private record ready or needing
 cleanup through a metadata-only review action route with exact confirmation and
 idempotency, edit safe extracted-field metadata, and record subscriber preflight
 metadata for audience records, create importer subscriber records, promote saved
-contacts to audience review, and prepare the owner-only CSV; public responses do
+contacts to audience review, record checkout rebuild readiness, and prepare the
+owner-only CSV; public responses do
 not expose private subscriber emails, idempotency keys, confirmation text, actor
 email, raw notes, raw contact rows, or buyer-facing effects. Responses also
 include redacted

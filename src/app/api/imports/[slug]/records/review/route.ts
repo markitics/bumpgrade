@@ -6,9 +6,11 @@ import {
   createCompetitorImportPrivateRecordSubscribers,
   prepareCompetitorImportPrivateRecordSubscriberExport,
   promoteCompetitorImportPrivateRecordSubscribersToAudience,
+  recordCompetitorImportPrivateRecordCheckoutMigrationReadiness,
   recordCompetitorImportPrivateRecordSubscriberPreflight,
   reviewCompetitorImportPrivateRecord,
   updateCompetitorImportPrivateRecordExtractedField,
+  type CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus,
   type CompetitorImportPrivateRecord,
   type CompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecordReviewDecision,
@@ -20,6 +22,7 @@ import { readImporterPreflightPayload } from "@/lib/importer-preflight";
 import {
   getImporterBySlug,
   importerIssue,
+  importerPrivateRecordCheckoutReadinessConfirmationText,
   importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
@@ -418,6 +421,47 @@ function normalizedSubscriberPrivateExportInput(payload: RequestPayload, platfor
   };
 }
 
+function checkoutMigrationReadinessDecision(
+  value: string,
+): Exclude<CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus, "not_recorded"> | null {
+  if (
+    value === "ready_for_checkout_rebuild" ||
+    value === "needs_payment_copy_cleanup" ||
+    value === "parked_for_later"
+  ) {
+    return value;
+  }
+
+  return null;
+}
+
+function normalizedCheckoutMigrationReadinessInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const decision = checkoutMigrationReadinessDecision(payload.get("decision").trim());
+  if (!decision) {
+    throw new ImporterRecordReviewError(
+      "Choose whether this imported checkout is ready to rebuild, needs cleanup, or should stay parked.",
+      400,
+      "CHECKOUT_READINESS_DECISION_REQUIRED",
+    );
+  }
+
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordCheckoutReadinessConfirmationText(platform.platformName, decision)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} checkout migration readiness before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
+  }
+
+  return {
+    ...shared,
+    decision,
+    confirmationText,
+  };
+}
+
 function csvCell(value: string | null | undefined) {
   const raw = value ?? "";
   const text = /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
@@ -498,6 +542,7 @@ function publicRecord(record: CompetitorImportPrivateRecord) {
     subscriberImportCreation: record.subscriberImportCreation,
     subscriberAudiencePromotion: record.subscriberAudiencePromotion,
     subscriberPrivateExport: record.subscriberPrivateExport,
+    checkoutMigrationReadiness: record.checkoutMigrationReadiness,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,
@@ -528,6 +573,8 @@ function redaction() {
     actorEmailIncluded: false,
     consentEventsCreated: false,
     sequenceEnrollmentsCreated: false,
+    checkoutIntentsCreated: false,
+    stripeCheckoutSessionsCreated: false,
     publicPublishingEnabled: false,
     liveCheckoutEnabled: false,
     subscriberSendsEnabled: false,
@@ -788,6 +835,44 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
           "cache-control": "private, no-store",
         },
       });
+    }
+
+    if (action === "record_checkout_migration_readiness") {
+      const input = normalizedCheckoutMigrationReadinessInput(payload, platform);
+      const result = await recordCompetitorImportPrivateRecordCheckoutMigrationReadiness(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        decision: input.decision,
+        idempotencyKey: `competitor-import-checkout-readiness:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          checkoutMigrationReadiness: result.checkoutMigrationReadiness,
+          previousCheckoutMigrationReadiness: result.previousCheckoutMigrationReadiness,
+          idempotent: result.idempotent,
+          action: "record_checkout_migration_readiness",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...result.checkoutMigrationReadiness.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
+      redirect.searchParams.set("checkoutReadiness", result.checkoutMigrationReadiness.status);
+      redirect.searchParams.set("recordId", result.record.id);
+      return NextResponse.redirect(redirect, { status: 303 });
     }
 
     if (action !== "review_private_import_record") {

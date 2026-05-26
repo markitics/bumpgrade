@@ -149,6 +149,15 @@ export function importerPrivateRecordSubscriberPrivateExportConfirmationText(pla
   return `Export ${platformName} private subscriber records`;
 }
 
+export function importerPrivateRecordCheckoutReadinessConfirmationText(
+  platformName: string,
+  decision: "ready_for_checkout_rebuild" | "needs_payment_copy_cleanup" | "parked_for_later",
+) {
+  if (decision === "ready_for_checkout_rebuild") return `Record ${platformName} checkout rebuild readiness`;
+  if (decision === "needs_payment_copy_cleanup") return `Record ${platformName} checkout copy cleanup`;
+  return `Park ${platformName} checkout rebuild`;
+}
+
 export function importerDraftImportCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-import`;
 }
@@ -298,6 +307,21 @@ export const importerPrivateStructuredRecords = {
   subscriberPrivateExportIncludesPrivateEmailsInDownload: true,
   subscriberPrivateExportIncludesPrivateEmailsInJsonResponse: false,
   subscriberPrivateExportPublicSourceDataIncludesContactValues: false,
+  checkoutMigrationReadinessResponseField: "checkoutMigrationReadiness",
+  checkoutMigrationReadinessActionLive: true,
+  checkoutMigrationReadinessActionRouteField: "privateRecordReviewActionApiRoute",
+  checkoutMigrationReadinessAppliesTo: ["draft_checkout_offer", "draft_product_catalog"],
+  checkoutMigrationReadinessStatusValues: [
+    "not_recorded",
+    "ready_for_checkout_rebuild",
+    "needs_payment_copy_cleanup",
+    "parked_for_later",
+  ],
+  checkoutMigrationReadinessCreatesCheckoutIntents: false,
+  checkoutMigrationReadinessCreatesStripeSessions: false,
+  checkoutMigrationReadinessImportsPaymentCredentials: false,
+  checkoutMigrationReadinessLiveCheckoutEnabled: false,
+  checkoutMigrationReadinessPublicRoutesEnabled: false,
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
   extractedFieldsDerivedFrom: ["safe header labels", "safe signal labels", "record kind"],
@@ -323,6 +347,9 @@ export const importerPrivateStructuredRecords = {
   createsGlobalAudienceSubscriberRows: true,
   createsConsentEvents: false,
   createsSequenceEnrollments: false,
+  createsCheckoutIntents: false,
+  createsStripeCheckoutSessions: false,
+  importsPaymentCredentials: false,
   emailDeliveryEnabled: false,
   privateExportEnabled: true,
   publicExportEnabled: false,
@@ -1264,6 +1291,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
         "subscriberImportCreation",
         "subscriberAudiencePromotion",
         "subscriberPrivateExport",
+        "checkoutMigrationReadiness",
         "privateSubscriberRecords",
         "recordConfidence",
         "reviewDecision",
@@ -1345,10 +1373,40 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
           format: importerPrivateStructuredRecords.subscriberPrivateExportFormat,
           ownerOnly: true,
         },
+        {
+          action: "record_checkout_migration_readiness",
+          responseField: "checkoutMigrationReadiness",
+          appliesTo: importerPrivateStructuredRecords.checkoutMigrationReadinessAppliesTo,
+          decisions: [
+            {
+              status: "ready_for_checkout_rebuild",
+              confirmationText: importerPrivateRecordCheckoutReadinessConfirmationText(
+                platform.platformName,
+                "ready_for_checkout_rebuild",
+              ),
+            },
+            {
+              status: "needs_payment_copy_cleanup",
+              confirmationText: importerPrivateRecordCheckoutReadinessConfirmationText(
+                platform.platformName,
+                "needs_payment_copy_cleanup",
+              ),
+            },
+            {
+              status: "parked_for_later",
+              confirmationText: importerPrivateRecordCheckoutReadinessConfirmationText(platform.platformName, "parked_for_later"),
+            },
+          ],
+          createsCheckoutIntents: false,
+          createsStripeCheckoutSessions: false,
+          importsPaymentCredentials: false,
+          liveCheckoutEnabled: false,
+        },
       ],
       writes: [
         "record_review_decision_metadata",
         "extracted_field_plan_metadata",
+        "checkout_migration_readiness_metadata",
         "subscriber_import_preflight_metadata",
         "private_subscriber_import_records",
         "global_audience_subscriber_review_rows",
@@ -1364,6 +1422,9 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       globalAudienceSubscriberRowsCreated: true,
       consentEventsCreated: false,
       sequenceEnrollmentsCreated: false,
+      checkoutIntentsCreated: false,
+      stripeCheckoutSessionsCreated: false,
+      paymentCredentialsImported: false,
       subscriberSendsEnabled: false,
       privateExportsEnabled: true,
       publicExportsEnabled: false,
@@ -1455,6 +1516,7 @@ export const importerSourceData = {
     privateSubscriberImportRecordInspectionLive: true,
     privateSubscriberAudiencePromotionLive: true,
     privateSubscriberExportLive: true,
+    privateCheckoutMigrationReadinessLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1494,6 +1556,8 @@ export const importerSourceData = {
       "Verified publishers can add saved private importer subscriber records to Bumpgrade's audience review list after exact confirmation and idempotency. The action writes audience_subscribers rows with imported_pending_review status and non-sending tag assignments, but creates no consent events, sequence enrollments, provider sends, public exports, checkout, domains, fulfillment, or go-live effects. Public and unauthenticated responses stay redacted and expose counts only.",
     privateSubscriberExport:
       "Verified publishers can download a private owner-only CSV from saved importer subscriber records after exact confirmation and idempotency. The CSV response can include private contact emails because it requires the same verified owner session; public source-data, unauthenticated responses, and JSON API responses expose counts and redaction rules only. The export creates no consent events, sequence enrollments, sends, checkout, domains, fulfillment, or go-live effects.",
+    privateCheckoutMigrationReadiness:
+      "Verified publishers can record checkoutMigrationReadiness on private checkout-offer or product-catalog import records after exact confirmation and idempotency. The action stores owner-reviewed readiness for rebuilding the imported offer in Bumpgrade, needing payment-copy cleanup, or parking the checkout work; it creates no checkout intents, Stripe sessions, live payment credentials, public checkout routes, account transfer, fulfillment, domains, subscriber sends, or go-live effects.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

@@ -403,6 +403,42 @@ export type CompetitorImportPrivateRecordSubscriberPrivateExport = {
   };
 };
 
+export type CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus =
+  | "not_recorded"
+  | "ready_for_checkout_rebuild"
+  | "needs_payment_copy_cleanup"
+  | "parked_for_later";
+
+export type CompetitorImportPrivateRecordCheckoutMigrationReadiness = {
+  responseField: "checkoutMigrationReadiness";
+  status: CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus;
+  source: "verified_publisher_checkout_migration_readiness" | null;
+  recordedAt: string | null;
+  summary: string;
+  nextStep: string;
+  acknowledgedBlockers: string[];
+  createsCheckoutIntents: false;
+  createsStripeCheckoutSessions: false;
+  importsPaymentCredentials: false;
+  publicCheckoutRoutesEnabled: false;
+  liveCheckoutEnabled: false;
+  publicPublishingEnabled: false;
+  goLiveEffectsEnabled: false;
+  redaction: {
+    paymentCredentialsIncluded: false;
+    checkoutSessionIdsIncluded: false;
+    customerRowsIncluded: false;
+    confirmationTextStored: false;
+    idempotencyKeysIncluded: false;
+    actorEmailIncluded: false;
+    checkoutIntentsCreated: false;
+    stripeCheckoutSessionsCreated: false;
+    publicCheckoutRoutesEnabled: false;
+    liveCheckoutEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 export type CompetitorImportPrivateSubscriberRecord = {
   id: string;
   importRecordId: string;
@@ -1139,6 +1175,7 @@ export type CompetitorImportPrivateRecord = {
   subscriberImportCreation: CompetitorImportPrivateRecordSubscriberImportCreation | null;
   subscriberAudiencePromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion | null;
   subscriberPrivateExport: CompetitorImportPrivateRecordSubscriberPrivateExport | null;
+  checkoutMigrationReadiness: CompetitorImportPrivateRecordCheckoutMigrationReadiness | null;
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1264,6 +1301,16 @@ export type CompetitorImportPrivateRecordSubscriberPrivateExportResult = {
   privateSubscriberRecords: CompetitorImportPrivateSubscriberRecord[];
   subscriberExport: CompetitorImportPrivateRecordSubscriberPrivateExport;
   previousSubscriberExport: CompetitorImportPrivateRecordSubscriberPrivateExport | null;
+  idempotent: boolean;
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
+export type CompetitorImportPrivateRecordCheckoutMigrationReadinessResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  checkoutMigrationReadiness: CompetitorImportPrivateRecordCheckoutMigrationReadiness;
+  previousCheckoutMigrationReadiness: CompetitorImportPrivateRecordCheckoutMigrationReadiness | null;
   idempotent: boolean;
   goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
   redaction: CompetitorImportPrivateRecord["redaction"];
@@ -2380,6 +2427,110 @@ function competitorImportSubscriberPrivateExportFromMetadata(
   };
 }
 
+const checkoutMigrationReadinessKinds: ImportDraftEntity[] = ["draft_checkout_offer", "draft_product_catalog"];
+
+function competitorImportCheckoutMigrationReadinessRedaction(): CompetitorImportPrivateRecordCheckoutMigrationReadiness["redaction"] {
+  return {
+    paymentCredentialsIncluded: false,
+    checkoutSessionIdsIncluded: false,
+    customerRowsIncluded: false,
+    confirmationTextStored: false,
+    idempotencyKeysIncluded: false,
+    actorEmailIncluded: false,
+    checkoutIntentsCreated: false,
+    stripeCheckoutSessionsCreated: false,
+    publicCheckoutRoutesEnabled: false,
+    liveCheckoutEnabled: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
+function competitorImportCheckoutMigrationReadinessSummary(
+  status: CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus,
+) {
+  if (status === "ready_for_checkout_rebuild") {
+    return "Owner confirmed this private checkout or product record is ready to rebuild as a Bumpgrade checkout plan.";
+  }
+
+  if (status === "needs_payment_copy_cleanup") {
+    return "Owner marked this private checkout or product record as needing payment-copy cleanup before rebuilding checkout.";
+  }
+
+  if (status === "parked_for_later") {
+    return "Owner parked this checkout rebuild so the import can keep moving without live payment work.";
+  }
+
+  return "Checkout migration readiness has not been recorded yet.";
+}
+
+function competitorImportCheckoutMigrationReadinessNextStep(
+  status: CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus,
+) {
+  if (status === "ready_for_checkout_rebuild") {
+    return "Use this private review as input for a later Bumpgrade checkout setup; live payment credentials and Stripe sessions remain disabled.";
+  }
+
+  if (status === "needs_payment_copy_cleanup") {
+    return "Clean up offer copy, price language, bump or upsell notes, and delivery promises before checkout setup.";
+  }
+
+  if (status === "parked_for_later") {
+    return "Leave this checkout work parked until payment setup, copy, or offer decisions are ready.";
+  }
+
+  return "Review the imported offer fields, then record whether checkout is ready to rebuild, needs cleanup, or should stay parked.";
+}
+
+function competitorImportCheckoutMigrationReadinessFromMetadata(
+  kind: ImportDraftEntity,
+  metadata: Record<string, unknown>,
+): CompetitorImportPrivateRecordCheckoutMigrationReadiness | null {
+  if (!checkoutMigrationReadinessKinds.includes(kind)) return null;
+
+  const input =
+    metadata.checkoutMigrationReadiness &&
+    typeof metadata.checkoutMigrationReadiness === "object" &&
+    !Array.isArray(metadata.checkoutMigrationReadiness)
+      ? (metadata.checkoutMigrationReadiness as Partial<CompetitorImportPrivateRecordCheckoutMigrationReadiness>)
+      : {};
+  const status =
+    input.status === "ready_for_checkout_rebuild" ||
+    input.status === "needs_payment_copy_cleanup" ||
+    input.status === "parked_for_later"
+      ? input.status
+      : "not_recorded";
+  const source = input.source === "verified_publisher_checkout_migration_readiness" ? input.source : null;
+  const acknowledgedBlockers = [
+    "No live payment credentials are imported.",
+    "No Stripe checkout sessions or checkout intents are created.",
+    "No public checkout route, account transfer, domain, fulfillment, or go-live effect is enabled.",
+  ];
+
+  return {
+    responseField: "checkoutMigrationReadiness",
+    status,
+    source,
+    recordedAt: typeof input.recordedAt === "string" ? input.recordedAt : null,
+    summary:
+      typeof input.summary === "string" && input.summary.length > 0
+        ? input.summary
+        : competitorImportCheckoutMigrationReadinessSummary(status),
+    nextStep:
+      typeof input.nextStep === "string" && input.nextStep.length > 0
+        ? input.nextStep
+        : competitorImportCheckoutMigrationReadinessNextStep(status),
+    acknowledgedBlockers,
+    createsCheckoutIntents: false,
+    createsStripeCheckoutSessions: false,
+    importsPaymentCredentials: false,
+    publicCheckoutRoutesEnabled: false,
+    liveCheckoutEnabled: false,
+    publicPublishingEnabled: false,
+    goLiveEffectsEnabled: false,
+    redaction: competitorImportCheckoutMigrationReadinessRedaction(),
+  };
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -2443,6 +2594,7 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     subscriberImportCreation: competitorImportSubscriberCreationFromMetadata(row.record_kind, metadata),
     subscriberAudiencePromotion: competitorImportSubscriberAudiencePromotionFromMetadata(row.record_kind, metadata),
     subscriberPrivateExport: competitorImportSubscriberPrivateExportFromMetadata(row.record_kind, metadata),
+    checkoutMigrationReadiness: competitorImportCheckoutMigrationReadinessFromMetadata(row.record_kind, metadata),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -3203,6 +3355,162 @@ export async function recordCompetitorImportPrivateRecordSubscriberPreflight(
     record: updatedRecord,
     preflight: updatedRecord.subscriberImportPreflight,
     previousPreflight,
+    idempotent,
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
+function checkoutMigrationReadinessSignature(input: {
+  decision: Exclude<CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus, "not_recorded">;
+  recordKind: ImportDraftEntity;
+  matchedHeaderLabels: string[];
+  matchedSignalLabels: string[];
+}) {
+  return JSON.stringify(input);
+}
+
+export async function recordCompetitorImportPrivateRecordCheckoutMigrationReadiness(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    decision: Exclude<CompetitorImportPrivateRecordCheckoutMigrationReadinessStatus, "not_recorded">;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordCheckoutMigrationReadinessResult> {
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can record checkout readiness.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot record checkout readiness.");
+  }
+
+  if (!checkoutMigrationReadinessKinds.includes(row.record_kind)) {
+    throw new Error("Checkout readiness is available only on private checkout offer or product catalog records.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const record = competitorImportPrivateRecordFromRow(row);
+  const previousCheckoutMigrationReadiness = record.checkoutMigrationReadiness;
+  const signature = checkoutMigrationReadinessSignature({
+    decision: input.decision,
+    recordKind: row.record_kind,
+    matchedHeaderLabels: record.matchedHeaderLabels,
+    matchedSignalLabels: record.matchedSignalLabels,
+  });
+  const previousIdempotencyKey =
+    typeof metadata.checkoutMigrationReadinessIdempotencyKey === "string"
+      ? metadata.checkoutMigrationReadinessIdempotencyKey
+      : "";
+  const previousSignature =
+    typeof metadata.checkoutMigrationReadinessSignature === "string" ? metadata.checkoutMigrationReadinessSignature : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousSignature !== signature) {
+    throw new Error("This idempotency key already recorded different checkout readiness.");
+  }
+
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousSignature === signature;
+
+  if (!idempotent) {
+    const recordedAt = new Date().toISOString();
+    const checkoutMigrationReadiness: CompetitorImportPrivateRecordCheckoutMigrationReadiness = {
+      responseField: "checkoutMigrationReadiness",
+      status: input.decision,
+      source: "verified_publisher_checkout_migration_readiness",
+      recordedAt,
+      summary: competitorImportCheckoutMigrationReadinessSummary(input.decision),
+      nextStep: competitorImportCheckoutMigrationReadinessNextStep(input.decision),
+      acknowledgedBlockers: [
+        "No live payment credentials are imported.",
+        "No Stripe checkout sessions or checkout intents are created.",
+        "No public checkout route, account transfer, domain, fulfillment, or go-live effect is enabled.",
+      ],
+      createsCheckoutIntents: false,
+      createsStripeCheckoutSessions: false,
+      importsPaymentCredentials: false,
+      publicCheckoutRoutesEnabled: false,
+      liveCheckoutEnabled: false,
+      publicPublishingEnabled: false,
+      goLiveEffectsEnabled: false,
+      redaction: competitorImportCheckoutMigrationReadinessRedaction(),
+    };
+
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          checkoutMigrationReadiness,
+          checkoutMigrationReadinessAt: recordedAt,
+          checkoutMigrationReadinessSource: "verified_publisher_checkout_migration_readiness",
+          checkoutMigrationReadinessIdempotencyKey: input.idempotencyKey,
+          checkoutMigrationReadinessSignature: signature,
+          checkoutMigrationReadinessConfirmationMatched: true,
+          checkoutMigrationReadinessCreatesCheckoutIntents: false,
+          checkoutMigrationReadinessCreatesStripeCheckoutSessions: false,
+          checkoutMigrationReadinessImportsPaymentCredentials: false,
+          checkoutMigrationReadinessPublicCheckoutRoutesEnabled: false,
+          checkoutMigrationReadinessLiveCheckoutEnabled: false,
+          checkoutMigrationReadinessGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The checkout migration readiness could not be loaded after update.");
+  }
+
+  const updatedRecord = competitorImportPrivateRecordFromRow(updated);
+  if (!updatedRecord.checkoutMigrationReadiness) {
+    throw new Error("The checkout migration readiness could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record: updatedRecord,
+    checkoutMigrationReadiness: updatedRecord.checkoutMigrationReadiness,
+    previousCheckoutMigrationReadiness,
     idempotent,
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),

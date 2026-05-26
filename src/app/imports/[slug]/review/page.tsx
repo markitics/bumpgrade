@@ -8,6 +8,7 @@ import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReviewWithSubscriberRecords, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
 import {
   getImporterBySlug,
+  importerPrivateRecordCheckoutReadinessConfirmationText,
   importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
@@ -137,6 +138,17 @@ function subscriberPrivateExportStatusLabel(record: CompetitorImportPrivateRecor
   return "Not exported yet";
 }
 
+function checkoutMigrationReadinessStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.checkoutMigrationReadiness?.status === "ready_for_checkout_rebuild") return "Ready for checkout rebuild";
+  if (record.checkoutMigrationReadiness?.status === "needs_payment_copy_cleanup") return "Needs payment copy cleanup";
+  if (record.checkoutMigrationReadiness?.status === "parked_for_later") return "Parked for later";
+  return "Not recorded yet";
+}
+
+function canRecordCheckoutMigrationReadiness(record: CompetitorImportPrivateRecord) {
+  return record.kind === "draft_checkout_offer" || record.kind === "draft_product_catalog";
+}
+
 function safeSignalText(values: string[]) {
   return values.length ? values.join(", ") : "No safe signal yet.";
 }
@@ -184,6 +196,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
   const subscriberImport = firstSearchValue(search.subscriberImport);
   const subscriberAudiencePromotion = firstSearchValue(search.subscriberAudiencePromotion);
   const subscriberExport = firstSearchValue(search.subscriberExport);
+  const checkoutReadiness = firstSearchValue(search.checkoutReadiness);
   const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
@@ -245,6 +258,15 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         ) : null}
         {subscriberExport === "private_export_prepared" ? (
           <p className="account-success">Private subscriber CSV prepared for owner download.</p>
+        ) : null}
+        {checkoutReadiness === "ready_for_checkout_rebuild" ? (
+          <p className="account-success">Checkout rebuild readiness recorded.</p>
+        ) : null}
+        {checkoutReadiness === "needs_payment_copy_cleanup" ? (
+          <p className="account-success">Checkout copy cleanup recorded.</p>
+        ) : null}
+        {checkoutReadiness === "parked_for_later" ? (
+          <p className="account-success">Checkout rebuild parked for later.</p>
         ) : null}
         {review ? (
           <div className="feature-section-heading">
@@ -360,6 +382,88 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : null}
+                {canRecordCheckoutMigrationReadiness(record) ? (
+                  <div className="importer-subscriber-depth">
+                    <ShieldCheck aria-hidden="true" />
+                    <div>
+                      <strong>Bumpgrade checkout rebuild</strong>
+                      <span>{checkoutMigrationReadinessStatusLabel(record)}</span>
+                      {record.checkoutMigrationReadiness ? <p>{record.checkoutMigrationReadiness.summary}</p> : null}
+                      <ul>
+                        {(record.checkoutMigrationReadiness?.acknowledgedBlockers ?? [
+                          "No live payment credentials are imported.",
+                          "No Stripe checkout sessions or checkout intents are created.",
+                          "No public checkout route, account transfer, domain, fulfillment, or go-live effect is enabled.",
+                        ]).map((blocker) => (
+                          <li key={blocker}>{blocker}</li>
+                        ))}
+                      </ul>
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="record_checkout_migration_readiness" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`checkout-readiness-ready-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <input type="hidden" name="decision" value="ready_for_checkout_rebuild" />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordCheckoutReadinessConfirmationText(
+                            platform.platformName,
+                            "ready_for_checkout_rebuild",
+                          )}
+                        >
+                          Ready for checkout rebuild
+                        </button>
+                      </form>
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="record_checkout_migration_readiness" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`checkout-readiness-cleanup-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <input type="hidden" name="decision" value="needs_payment_copy_cleanup" />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordCheckoutReadinessConfirmationText(
+                            platform.platformName,
+                            "needs_payment_copy_cleanup",
+                          )}
+                        >
+                          Needs payment copy cleanup
+                        </button>
+                      </form>
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="record_checkout_migration_readiness" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`checkout-readiness-parked-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <input type="hidden" name="decision" value="parked_for_later" />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordCheckoutReadinessConfirmationText(platform.platformName, "parked_for_later")}
+                        >
+                          Park checkout rebuild
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 ) : null}
                 {record.subscriberImportDepth ? (
@@ -612,6 +716,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
           <span>Raw file text and file names are not shown.</span>
           <span>Saved importer contacts are shown only to the same verified owner.</span>
           <span>Audience review list rows are imported pending review, not send-ready.</span>
+          <span>Checkout rebuild readiness creates no checkout sessions or payment credentials.</span>
           <span>Payment credentials and sessions are not imported.</span>
           <span>Publishing and checkout stay off until go-live approval.</span>
           <span>Subscriber sends, domains, and fulfillment stay gated.</span>
