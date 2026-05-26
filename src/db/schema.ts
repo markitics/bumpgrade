@@ -4574,6 +4574,52 @@ export const funnelAuditEvents = sqliteTable(
   }),
 );
 
+export const agentFunnelResourceDeliveryTokenRequests = sqliteTable(
+  "agent_funnel_resource_delivery_token_requests",
+  {
+    id: text("id").primaryKey(),
+    ownerScope: text("owner_scope").notNull(),
+    actorUserId: text("actor_user_id").references(() => user.id, { onDelete: "set null" }),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    idempotencyKeySha256: text("idempotency_key_sha256").notNull(),
+    requestSignatureSha256: text("request_signature_sha256").notNull(),
+    auditCorrelationId: text("audit_correlation_id").notNull(),
+    funnelSlug: text("funnel_slug").notNull(),
+    funnelRevisionId: text("funnel_revision_id").notNull(),
+    blockId: text("block_id").notNull(),
+    checkoutIntentId: text("checkout_intent_id").notNull(),
+    entitlementId: text("entitlement_id").notNull(),
+    status: text("status").notNull().default("creating"),
+    deliveryTokenCreated: integer("delivery_token_created", { mode: "boolean" }).notNull().default(false),
+    downloadTokenExpiresAt: integer("download_token_expires_at", { mode: "timestamp" }),
+    productId: text("product_id"),
+    assetId: text("asset_id"),
+    resultStatus: text("result_status"),
+    errorStatus: text("error_status"),
+    errorMessage: text("error_message"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    metadataJson: text("metadata_json"),
+    replayCount: integer("replay_count").notNull().default(0),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    ownerIdempotencyUnique: uniqueIndex("agent_funnel_resource_delivery_token_requests_owner_idempotency_idx").on(
+      table.ownerScope,
+      table.idempotencyKeySha256,
+    ),
+    funnelCreatedIdx: index("agent_funnel_resource_delivery_token_requests_funnel_idx").on(
+      table.funnelSlug,
+      table.funnelRevisionId,
+      table.createdAt,
+    ),
+    auditCreatedIdx: index("agent_funnel_resource_delivery_token_requests_audit_idx").on(
+      table.auditCorrelationId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const publisherPlanEntitlements = sqliteTable(
   "publisher_plan_entitlements",
   {

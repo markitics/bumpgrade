@@ -31,7 +31,7 @@ delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
 for full absolute-position canvas editing, arbitrary uploaded private asset delivery,
 live fulfillment automation, full webinar integrations, bulk retention policy,
-direct agent-created delivery tokens, and unauthenticated public agent publishing.
+unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing.
 
 Live in this slice:
 
@@ -104,13 +104,13 @@ Not live in this slice:
   hosting, or provider integrations.
 - Arbitrary private resource file delivery, R2 object selection, signed URLs,
   live fulfillment automation, arbitrary uploaded private asset delivery, or
-  direct agent-created delivery tokens from funnel editing.
+  unauthenticated public agent-created delivery tokens from funnel editing.
 - Checkout-link deletion, arbitrary offer mutation, order-bump mutation,
   live billing, one-click upsell charging, or fulfillment.
 - Live owner-created product selection, signed URLs, private R2 delivery, or
   arbitrary customer fulfillment from delivery-gate links.
 - Unauthenticated public agent publishing, direct checkout linking without owner-session confirmation,
-  direct agent-created delivery tokens, non-archived purge, bulk purge, or unauthenticated public writes.
+  unauthenticated public agent-created delivery tokens, non-archived purge, bulk purge, or unauthenticated public writes.
 
 The remaining post-MVP gaps are intentionally tracked together in issue #417 so future
 work moves a coherent funnel workflow instead of adding more isolated readiness
@@ -174,7 +174,11 @@ entitlement, product, and file asset match the link stored on that published
 block. The response returns a Bumpgrade download route backed by the existing
 product download-token stream and does not expose private R2 keys, signed URLs,
 buyer records, raw entitlement rows, arbitrary uploaded assets, or live
-fulfillment automation. Published webinar-linked blocks can render external
+fulfillment automation. Verified owner-session agents can create the same
+scoped delivery token through `/api/agent/funnels/resource-delivery-tokens`
+after exact confirmation, idempotency, current published revision checks,
+checkout intent, entitlement, and audit correlation; idempotent replays return
+redacted audit metadata because raw bearer tokens are not stored. Published webinar-linked blocks can render external
 registration and replay references while keeping provider secrets and attendee
 records hidden. Owner product delivery-gate links can
 connect an owner-created product test checkout link to the seeded offer/funnel
@@ -199,7 +203,10 @@ metadata, apply curated visual style presets, add reusable blocks, remove eligib
 resource-delivery metadata, link webinar-event metadata, move blocks, duplicate
 a private draft, publish a draft, archive/unpublish a draft, or purge an already
 archived draft while returning only redacted draft or purge tombstone summaries.
-Future unauthenticated public agent publishing, direct agent-created delivery tokens, live
+The owner-session resource-token endpoint can create a scoped download token for
+published linked resource blocks; it does not expose raw tokens on replay,
+private R2 keys, signed URLs, buyer data, or owner identity.
+Future unauthenticated public agent publishing, unauthenticated public agent-created delivery tokens, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment
 automation, non-archived purge, and bulk purge

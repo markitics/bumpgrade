@@ -265,7 +265,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   resource-linked blocks can render entitlement-safe product access references
   while private files stay hidden, and can mint short-lived Bumpgrade download
   routes through `/api/funnels/resource-delivery` after checkout and
-  entitlement scope match. Published webinar-linked blocks can render external
+  entitlement scope match. Verified owner-session agents can create the same
+  scoped token through `/api/agent/funnels/resource-delivery-tokens` after exact
+  confirmation, idempotency, current published revision, checkout intent,
+  entitlement, and audit correlation; idempotent replays return redacted audit
+  metadata because raw bearer tokens are not stored. Published webinar-linked blocks can render external
   registration/replay references. `/api/agent/funnels/draft-writes` lets
   verified owner-session agents update private draft block copy, apply curated
   visual style presets, add reusable blocks, remove eligible unlinked blocks,
@@ -275,7 +279,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   purge an already archived draft after exact confirmation, idempotency, a fresh
   revision check, and audit correlation; responses are redacted draft or purge
   tombstone summaries.
-  It is not direct agent template creation, direct agent-created delivery tokens,
+  It is not direct agent template creation, unauthenticated public agent-created delivery tokens,
   unauthenticated public agent publishing, non-archived purge, bulk purge, live billing mutation,
   one-click upsell charging, full absolute-position canvas editing, arbitrary
   uploaded private asset delivery, signed URL creation, live fulfillment automation, live
@@ -285,12 +289,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-confirmed checkout unlinking, resource delivery links, webinar
   event/replay links, funnel-scoped private download-token delivery,
   owner-session visual block styles, within-step block reordering, cross-step
-  block moves, archived-draft purge, and expanded owner-session direct
+  block moves, archived-draft purge, owner-session agent-created resource delivery tokens,
+  and expanded owner-session direct
   agent-safe draft writes including visual styles, reusable block add/remove, public
   publishing, and archived-draft purge, and remains the pending advanced funnel parity bucket
   for full absolute-position canvas editing, arbitrary uploaded private asset delivery,
   live fulfillment automation, full webinar integrations, bulk purge policy,
-  direct agent-created delivery tokens, and unauthenticated public agent publishing;
+  unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing;
   live publisher-offer billing remains separate in issue #219.
 - `/offers/source-data` exposes the checkout offer stack with a primary sandbox
   offer, constrained order bump, upsell, and downsell. `/offers/indie-launch-stack`
@@ -566,7 +571,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   boundaries, and distribution readiness. The #414 contract now renders the
   shared owner-session, private-row API, private-row action API, Director review
   API, commerce review API, push-readiness boundary, distribution-readiness boundary, and confirmed-action requirements
-  in the Expo, iOS, and Android scaffolds.
+  in the Expo, iOS, and Android foundations.
   `/api/mobile-admin/private-rows` lets a
   verified owner inspect read-only private mobile rows through the shared Better
   Auth owner session, while public source-data exposes only route, status,
@@ -593,8 +598,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   provider requirements, disabled push-send status, physical-device blockers,
   and store-distribution requirements without exposing provider credentials,
   device tokens, signing credentials, provisioning profiles, keystore material,
-  store account identifiers, private tester lists, or push payloads. The iOS scaffold is documented in
-  `/mobile-admin/ios/source-data`, and the Android scaffold is documented in
+  store account identifiers, private tester lists, or push payloads. The iOS foundation is documented in
+  `/mobile-admin/ios/source-data`, and the Android foundation is documented in
   `/mobile-admin/android/source-data`, but App Store/TestFlight or Play
   Store/internal-testing distribution, physical-device private row proof, live
   push notifications, and high-risk production mobile writes are not live yet.

@@ -20,21 +20,21 @@ export function RouteShell({ eyebrow, title, body, issue, icon: Icon, bullets }:
           <h1>{title}</h1>
           <p className="lede">{body}</p>
           <Link href={`https://github.com/markitics/bumpgrade/issues/${issue.replace("#", "")}`} className="text-link">
-            Track {issue}
+            View roadmap item
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
         <div className="route-status-panel">
           <Icon aria-hidden="true" />
           <p>Status</p>
-          <strong>Planned</strong>
-          <span>Scaffolded in the Cloudflare app foundation. Implementation lands in its issue slice.</span>
+          <strong>Reserved</strong>
+          <span>This surface is reserved in the product map so users and agents can find the workflow as it opens.</span>
         </div>
       </section>
       <section className="content-band">
         <div className="section-heading">
-          <p className="eyebrow">Expected shape</p>
-          <h2>What this route will become</h2>
+          <p className="eyebrow">Product shape</p>
+          <h2>What this surface will support</h2>
         </div>
         <div className="check-grid">
           {bullets.map((bullet) => (
