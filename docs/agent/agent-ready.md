@@ -241,12 +241,16 @@ does not expose private record content. Each platform also exposes a
 verified-publisher `privateRecordReviewRoute` that lets the same owner inspect
 those structured records after creation without showing raw rows, raw file text,
 export file names, customer values, private emails, credentials, sessions, or
-go-live effects. Responses also include redacted `duplicateReview.status`
-values for created drafts, idempotency replay, and same-platform/source-file/
-workspace/title reuse, and do not echo pasted material or export file contents.
-The platform rollback route can archive the signed-in publisher's own private
-import plan while preserving saved content, steps, and structured import
-records, which allows a fresh import from the same source to start cleanly.
+go-live effects. The owner can also mark each private record ready or needing
+cleanup through a metadata-only review action route with exact confirmation and
+idempotency; responses do not expose idempotency keys, confirmation text, actor
+email, raw notes, or buyer-facing effects. Responses also include redacted
+`duplicateReview.status` values for created drafts, idempotency replay, and
+same-platform/source-file/workspace/title reuse, and do not echo pasted material
+or export file contents. The platform rollback route can archive the signed-in
+publisher's own private import plan while preserving saved content, steps, and
+structured import records, which allows a fresh import from the same source to
+start cleanly.
 Imported material starts in a private Bumpgrade workspace; public
 publishing, live checkout, subscriber sends, domains, fulfillment,
 account-to-account transfer, payment migration, customer password migration, and

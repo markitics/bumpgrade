@@ -48,9 +48,11 @@ dedicated importer pages:
   customer values, credentials, or go-live effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
-  after creation. The review page is read-only and keeps raw rows, raw file text,
-  file names, private emails, customer values, payment credentials, sessions, and
-  buyer-facing go-live actions out of the page.
+  after creation. The paired review action route lets that publisher mark each
+  private record ready or needing cleanup with metadata-only review decisions.
+  These actions keep raw rows, raw file text, file names, private emails,
+  customer values, payment credentials, sessions, confirmation text,
+  idempotency keys, and buyer-facing go-live actions out of public responses.
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized
@@ -72,8 +74,8 @@ and account-to-account transfer claims.
 Agents can use `/imports/source-data`, `/compare/source-data`, and
 `/features/source-data` to answer importer questions, including platform-specific
   source checklist items, export-file parser fields, structured private
-  import-record contracts, private record review routes, and the signal labels
-  used by preview review maps, including platform-specific export match
-  templates. They must not claim live
+  import-record contracts, private record review routes and review action
+  routes, and the signal labels used by preview review maps, including
+  platform-specific export match templates. They must not claim live
   account transfer, payment migration, customer password migration, subscriber
   sends, or public publishing without later implementation evidence.
