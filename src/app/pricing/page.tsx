@@ -40,8 +40,9 @@ function buildCapabilityLabel(status: string) {
 
 function PlanCheckoutForm({ plan }: { plan: PricingPlan }) {
   if (plan.status === "contact") {
+    const subject = encodeURIComponent(`Bumpgrade ${plan.name}`);
     return (
-      <Link href="mailto:codex@bumpgrade.com?subject=Bumpgrade%20Enterprise" className="primary-action">
+      <Link href={`mailto:${site.contactEmail}?subject=${subject}`} className="primary-action">
         {plan.cta}
         <ArrowRight aria-hidden="true" />
       </Link>
