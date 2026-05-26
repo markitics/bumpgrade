@@ -26,6 +26,7 @@ SET
     'Add the strongest public URL, page copy, offer notes, export file names, follow-up notes, launch goal, and audience context.',
     'Upload or paste a small CSV, JSON, HTML, or text export so Bumpgrade can parse safe structure before any private record is created.',
     'Review the recognized platform export shape and matched safe header groups before private draft creation.',
+    'Review the redacted import map before sign-in or private draft creation, including source-guide items that are ready, need more context, or need source material.',
     'Sign in or create a verified publisher account.',
     'Confirm the private importer action.',
     'Bumpgrade creates or reuses a Free Build workspace, saves a private import plan, keeps the safe importReview export analysis with the private draft, and creates structured private import records for matched review areas.',
@@ -40,11 +41,19 @@ SET
   edge_cases_json = json_array(
     'Imported material starts in a private workspace and is not buyer-facing by default.',
     'The public review map does not create records or echo pasted source material, export file names, customer rows, private emails, payment credentials, API keys, session cookies, or payment data.',
+    'Export-file parsing returns structural labels, counts, and header groups only; raw file names, raw rows, raw file text, private emails, customer values, credentials, and payment data stay out of responses.',
+    'Platform export matches use safe header and signal labels only; they do not prove account transfer, subscriber sends, checkout migration, or fulfillment.',
+    'Private importReview metadata stores safe export structure, platform export matches, and recognized match IDs only; it does not store raw rows, raw file text, customer rows, credentials, or go-live effects.',
     'Structured private import records store review-area summaries, safe match IDs, header labels, signal labels, counts, extracted field plans, subscriber import depth, subscriber preflight metadata, and redaction flags; they do not store raw rows, raw file text, raw export file names, customer rows, credentials, or go-live effects.',
     'Subscriber import depth stores aggregate row counts and safe label groups only; it does not create subscriber rows, store raw emails or names, enroll sequences, send email, enable exports, or expose contact values.',
     'Subscriber import preflight actions store readiness or cleanup metadata only; they do not create subscriber rows, enroll sequences, send email, enable exports, or expose contact values.',
+    'Extracted field plans contain Bumpgrade target labels and review prompts only; they do not store raw values, private emails, customer values, payment credentials, or buyer-facing state.',
     'Private record review pages require the same verified publisher who created the import plan and show safe structure only.',
     'Private record review actions store ready or needs-cleanup decisions, safe extracted-field edits, and subscriber preflight decisions in private metadata only; they do not store confirmation text, expose idempotency keys, or trigger buyer-facing effects.',
+    'Source-guide readiness exposes matched signal labels only, not the source URL, export file names, pasted copy, follow-up notes, launch goal, or private audience context.',
+    'Platform-specific source guides explain useful material to bring, but they are not account-to-account transfer, credential use, or permission to scrape private platform data.',
+    'Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.',
+    'Rollback APIs require the same verified publisher, the current draft revision, exact confirmation, and idempotency; they archive only private importer plans and preserve saved plan content, structured private import records, steps, and audit history.',
     'Live subscriber imports, account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.',
     'Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.'
   ),
@@ -52,6 +61,7 @@ SET
   validation_json = json_array(
     'Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, subscriber import depth, subscriber import preflight actions, extracted-field editing, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.',
     'Private importer APIs create or reuse a Free Build workspace, save a private import plan, persist safe importReview export analysis, and create structured private import records with extracted field plans, subscriber import depth, subscriber preflight metadata, and no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.',
+    'Private importer rollback APIs archive importer-created private plans, preserve saved plan content, structured import records, steps, and audit history, and let the same source restart as a fresh private plan.',
     'Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, export file names, raw values, and pasted source material out of public responses.'
   ),
   updated_at = unixepoch()
