@@ -399,14 +399,15 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   },
   "journey-prospect-imports-from-clickfunnels": {
     status: "passed",
-    lastTestedAt: "2026-05-26T11:35:00.000Z",
-    environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
+    lastTestedAt: "2026-05-26T22:00:00.000Z",
+    environment: "Local Cloudflare preview, production source-data smoke coverage, PR screenshot artifacts, and PR #526/main CI evidence.",
     method:
       "Importer hub route smoke, dedicated importer route smoke, platform-specific source-guide smoke, importer source-data inspection, public redacted preflight review coverage, export-file structure parsing and platform export match coverage, verified-publisher private import API coverage including safe importReview metadata persistence, structured private import records, extracted field plans, checkout migration readiness, subscriber import depth, subscriber import preflight actions, private subscriber import creation, owner-only private subscriber CSV export, extracted-field editing, private record review, private record review actions, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
     summary:
-      "The importer journey has route, source-data, screenshot, issue, and API evidence for reviewing platform-specific source material, parsing small export files for redacted structure, matching recognized platform export shapes, previewing an import map, saving the safe import review into private draft metadata, creating structured private import records with safe extracted field plans, recording checkout migration readiness, recording subscriber import preflight metadata, creating private subscriber import records from a confirmed fresh upload, preparing an owner-only private subscriber CSV, editing safe field plans in an owner-only page, marking records for cleanup, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
+      "The importer journey has route, source-data, screenshot, issue, CI, deploy, and API evidence for reviewing platform-specific source material, parsing small export files for redacted structure, matching recognized platform export shapes, previewing an import map, saving the safe import review into private draft metadata, creating structured private import records with safe extracted field plans, recording checkout migration readiness, recording subscriber import preflight metadata, creating private subscriber records from a confirmed fresh upload, promoting saved contacts to audience review, preparing an owner-only private subscriber CSV, editing safe field plans in an owner-only page, marking records for cleanup, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
     ciLinks: [
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
+      { label: "Main CI after PR #526", url: "https://github.com/markitics/bumpgrade/actions/runs/26476974731", kind: "ci" },
     ],
     screenshotLinks: [
       { label: "Importer center", url: "https://bumpgrade.com/pr-screenshots/issue-467-imports.png", kind: "screenshot" },
@@ -451,6 +452,11 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
         url: "https://bumpgrade.com/pr-screenshots/issue-467-private-subscriber-export.png",
         kind: "screenshot",
       },
+      {
+        label: "Importer checkout readiness",
+        url: "https://bumpgrade.com/pr-screenshots/issue-467-checkout-readiness.png",
+        kind: "screenshot",
+      },
     ],
     validationLinks: [
       { label: "Import center", url: "https://bumpgrade.com/imports", kind: "route" },
@@ -460,6 +466,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Comparison source data", url: "https://bumpgrade.com/compare/source-data", kind: "source-data" },
       { label: "PR #483", url: issue467PrUrl, kind: "pr" },
       { label: "PR #494", url: issue467PreflightPrUrl, kind: "pr" },
+      { label: "PR #526", url: "https://github.com/markitics/bumpgrade/pull/526", kind: "pr" },
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
@@ -1110,6 +1117,46 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-26-importer-roadmap-closeout",
+    title: "Closed the importer roadmap parent as shipped",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Owner requested easy importers from ClickFunnels and competitor platforms, while preferring broad owner-visible workstream outcomes instead of many narrow readiness updates.",
+    githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
+    closedPrs: [{ number: 527, url: "https://github.com/markitics/bumpgrade/pull/527" }],
+    featuresUpdated: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/features/source-data",
+    ],
+    roadmapUpdated: ["roadmap-competitor-importers"],
+    userJourneysUpdated: ["journey-prospect-imports-from-clickfunnels"],
+    documentationUpdated: ["docs/features/importers.md"],
+    validation: [
+      "Roadmap fallback data marks the importer parent shipped while preserving separate go-live workstream boundaries.",
+      "D1 migration updates /admin/roadmap and /admin/director source-data from active to live for roadmap-competitor-importers.",
+      "Focused roadmap/importer source-data smoke coverage.",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+    ],
+    flagsAttention:
+      "No new importer write is enabled in this closeout. Sequence sends, live checkout creation, payment credential migration, account transfer, domains, and fulfillment remain parked in their dedicated confirmed-write workstreams.",
+    firstPromptAt: "2026-05-26T22:00:00.000Z",
+    completedAt: "2026-05-26T22:00:00.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/467",
+      "https://bumpgrade.com/admin/roadmap/source-data",
+      "https://bumpgrade.com/admin/director/source-data",
+      "https://bumpgrade.com/admin/work-log/source-data",
+      "https://bumpgrade.com/imports/source-data",
+    ],
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/527",
+  },
   {
     id: "work-log-2026-05-26-importer-checkout-readiness",
     title: "Added checkout migration readiness to importer review",
