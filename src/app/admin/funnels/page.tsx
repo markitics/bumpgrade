@@ -28,6 +28,7 @@ import {
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelArchiveConfirmationText,
+  draftFunnelBulkPurgeConfirmationText,
   draftFunnelDuplicationConfirmationText,
   draftFunnelPreviewPath,
   draftFunnelPublishConfirmationText,
@@ -39,6 +40,7 @@ import {
 } from "@/lib/funnel-drafts";
 import {
   draftFunnelAdvancedParityIssue,
+  draftFunnelBulkPurgeCapability,
   funnelBlockLibrary,
   funnelBlockVisualStyleForId,
   funnelBlockVisualStyles,
@@ -85,6 +87,14 @@ export default async function AdminFunnelsPage() {
   const state = await getDraftFunnelAdminState();
   const seedIdempotencyKey = "funnel-draft-seed-indie-launch-working-copy-v1";
   const templateIdempotencySeed = state.drafts.length;
+  const archivedDrafts = state.drafts.filter((draft) => draft.status === "archived");
+  const bulkPurgeTargets = archivedDrafts.map((draft) => ({
+    draftId: draft.id,
+    expectedRevisionId: draft.revisionId,
+  }));
+  const bulkPurgeIdempotencyKey = `bulk-purge-${archivedDrafts.length}-${archivedDrafts
+    .map((draft) => draft.revisionId)
+    .join("-")}`.slice(0, 180);
 
   return (
     <main className="roadmap-page admin-roadmap-page admin-funnels-page">
@@ -109,7 +119,8 @@ export default async function AdminFunnelsPage() {
             archived-draft purge with tombstone evidence, and owner-session agents can create funnel-scoped resource
             delivery tokens for published linked resource blocks after exact confirmation, idempotency, published revision
             checks, entitlement checks, and audit correlation. Owner-session visual style and bounded canvas layout
-            controls now render in private previews and public published routes. Non-archived purge,
+            controls now render in private previews and public published routes. Archived-draft bulk retention cleanup is
+            available for selected archived drafts with one tombstone per draft. Non-archived purge,
             unbounded arbitrary CSS or script layout editing,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
             unauthenticated public agent publishing, and unauthenticated public agent-created delivery tokens still need confirmed-write slices.
@@ -238,6 +249,45 @@ export default async function AdminFunnelsPage() {
             <Database aria-hidden="true" />
           </Link>
         </div>
+        <div className="admin-checkout-link-summary admin-bulk-purge-summary">
+          <Trash2 aria-hidden="true" />
+          <div>
+            <strong>Archived-draft retention</strong>
+            <p>
+              {archivedDrafts.length > 0
+                ? `${archivedDrafts.length} archived draft${archivedDrafts.length === 1 ? "" : "s"} can be purged after exact confirmation.`
+                : "No archived drafts are ready for retention cleanup."}
+            </p>
+          </div>
+        </div>
+        {archivedDrafts.length > 0 ? (
+          <form action="/api/admin/funnels/drafts" method="post" className="admin-step-edit-form admin-bulk-purge-form">
+            <input type="hidden" name="mode" value="bulk-purge-archived-drafts" />
+            <input type="hidden" name="bulkTargetsJson" value={JSON.stringify(bulkPurgeTargets)} />
+            <input type="hidden" name="idempotencyKey" value={bulkPurgeIdempotencyKey} />
+            <label className="admin-step-goal-field">
+              Bulk purge confirmation
+              <input
+                name="confirmationText"
+                type="text"
+                placeholder={draftFunnelBulkPurgeConfirmationText}
+                disabled={!state.canWrite}
+              />
+            </label>
+            <p className="field-hint">
+              Type: <code>{draftFunnelBulkPurgeConfirmationText}</code>
+            </p>
+            <p>
+              Purges selected archived drafts only after all selected revisions still match. Each purged draft keeps a
+              tombstone in {draftFunnelBulkPurgeCapability.tombstoneTable}; audit rows, product assets, R2 objects,
+              buyer records, and billing state are not deleted.
+            </p>
+            <button type="submit" className="secondary-action danger-action" disabled={!state.canWrite}>
+              Bulk purge archived drafts
+              <Trash2 aria-hidden="true" />
+            </button>
+          </form>
+        ) : null}
         <div className="roadmap-grid admin-record-grid admin-funnel-draft-grid">
           {state.drafts.map((draft) => {
             const isArchived = draft.status === "archived";

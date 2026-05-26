@@ -125,6 +125,23 @@ export type DraftFunnelPurgeResult = {
   createdAt: string | null;
 };
 
+export type DraftFunnelBulkPurgeTarget = {
+  draftId: string;
+  expectedRevisionId: string;
+};
+
+export type DraftFunnelBulkPurgeResult = {
+  id: string;
+  requestedDraftCount: number;
+  purgedDraftCount: number;
+  idempotentReplayCount: number;
+  purges: DraftFunnelPurgeResult[];
+  idempotencyKey: string;
+  actorEmail: string;
+  metadata: Record<string, unknown>;
+  createdAt: string | null;
+};
+
 export type AgentFunnelWriteAudit = {
   operationId: string;
   auditCorrelationId: string;
@@ -484,6 +501,7 @@ export const draftFunnelWebinarEventLinkConfirmationText = "Link this draft webi
 export const draftFunnelDuplicationConfirmationText = "Duplicate this draft funnel privately";
 export const draftFunnelArchiveConfirmationText = "Archive this draft funnel and unpublish any public route";
 export const draftFunnelPurgeConfirmationText = "Purge this archived draft funnel and keep tombstone evidence";
+export const draftFunnelBulkPurgeConfirmationText = "Purge selected archived draft funnels and keep tombstone evidence";
 
 function isoFromSeconds(value: number | null | undefined) {
   if (!value) return null;
@@ -6456,6 +6474,120 @@ export async function purgeArchivedDraftFunnel(
   }
 
   return persisted;
+}
+
+function normalizeBulkPurgeTargets(targets: DraftFunnelBulkPurgeTarget[]) {
+  const seen = new Set<string>();
+  const normalized: DraftFunnelBulkPurgeTarget[] = [];
+
+  for (const target of targets) {
+    const draftId = target.draftId.trim();
+    const expectedRevisionId = target.expectedRevisionId.trim();
+    if (!draftId || !expectedRevisionId || seen.has(draftId)) continue;
+    seen.add(draftId);
+    normalized.push({ draftId, expectedRevisionId });
+  }
+
+  return normalized.slice(0, 12);
+}
+
+async function bulkPurgeEventIdempotencyKey(baseIdempotencyKey: string, draftId: string) {
+  const suffix = (await sha256Hex(draftId)).slice(0, 16);
+  return `${baseIdempotencyKey}:draft:${suffix}`.slice(0, 220);
+}
+
+export async function bulkPurgeArchivedDraftFunnels(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    targets: DraftFunnelBulkPurgeTarget[];
+    confirmationText: string;
+    idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
+  },
+): Promise<DraftFunnelBulkPurgeResult> {
+  if (input.confirmationText !== draftFunnelBulkPurgeConfirmationText) {
+    throw new Error("Exact bulk archived draft purge confirmation text is required.");
+  }
+
+  const targets = normalizeBulkPurgeTargets(input.targets);
+  if (targets.length === 0) {
+    throw new Error("Choose at least one archived draft funnel to bulk purge.");
+  }
+
+  const planned: Array<{ target: DraftFunnelBulkPurgeTarget; idempotencyKey: string }> = [];
+  const replayByDraftId = new Map<string, DraftFunnelPurgeResult>();
+
+  for (const target of targets) {
+    const idempotencyKey = await bulkPurgeEventIdempotencyKey(input.idempotencyKey, target.draftId);
+    const replay = await purgeEventForIdempotencyKey(db, idempotencyKey);
+    if (replay) {
+      replayByDraftId.set(target.draftId, replay);
+      continue;
+    }
+
+    const draft = await loadDraftFromD1(db, target.draftId);
+    if (!draft) throw new Error(`Draft funnel ${target.draftId} not found.`);
+    if (draft.status !== "archived") {
+      throw new Error(`Only archived draft funnels can be bulk purged. Archive ${draft.title} before purging it.`);
+    }
+    if (target.expectedRevisionId !== draft.revisionId) {
+      throw new Error(`Draft funnel revision changed for ${draft.title}. Refresh before bulk purging.`);
+    }
+
+    planned.push({ target, idempotencyKey });
+  }
+
+  const purgeByDraftId = new Map(replayByDraftId);
+  for (const item of planned) {
+    const purge = await purgeArchivedDraftFunnel(db, identity, {
+      draftId: item.target.draftId,
+      expectedRevisionId: item.target.expectedRevisionId,
+      confirmationText: draftFunnelPurgeConfirmationText,
+      idempotencyKey: item.idempotencyKey,
+      agentWriteAudit: input.agentWriteAudit,
+    });
+    purgeByDraftId.set(item.target.draftId, purge);
+  }
+
+  const purges = targets.map((target) => purgeByDraftId.get(target.draftId)).filter(Boolean) as DraftFunnelPurgeResult[];
+  const latestCreatedAt =
+    purges
+      .map((purge) => purge.createdAt)
+      .filter((value): value is string => Boolean(value))
+      .sort()
+      .at(-1) ?? null;
+
+  return {
+    id: `funnel-bulk-purge-${(await sha256Hex(input.idempotencyKey)).slice(0, 20)}`,
+    requestedDraftCount: targets.length,
+    purgedDraftCount: purges.length,
+    idempotentReplayCount: replayByDraftId.size,
+    purges,
+    idempotencyKey: input.idempotencyKey,
+    actorEmail: identityEmail(identity),
+    metadata: {
+      issue: draftFunnelAdvancedParityIssue,
+      parentIssue: draftFunnelBuilderParentIssue,
+      action: "archived_draft_bulk_purge",
+      requestedDraftIds: targets.map((target) => target.draftId),
+      purgedDraftIds: purges.map((purge) => purge.draftId),
+      requestedDraftCount: targets.length,
+      purgedDraftCount: purges.length,
+      idempotentReplayCount: replayByDraftId.size,
+      deletedDraftRows: true,
+      deletedStepRows: true,
+      deletedAuditRows: false,
+      deletedProductAssets: false,
+      deletedR2Objects: false,
+      deletedBuyerRecords: false,
+      nonArchivedDraftsPurged: false,
+      directAgentWrite: Boolean(input.agentWriteAudit),
+      privateAuthDataIncluded: false,
+      ...agentFunnelWriteMetadata(input.agentWriteAudit),
+    },
+    createdAt: latestCreatedAt,
+  };
 }
 
 export function publicFunnelFromDraft(draft: DraftFunnelRecord): FunnelRecord {

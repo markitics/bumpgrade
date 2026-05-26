@@ -370,14 +370,14 @@ direct agent-safe draft writes for block title/body edits, curated visual style
 presets, bounded canvas layouts, reusable block add/remove, checkout-offer linking, checkout unlinking,
 resource-delivery linking, webinar-event linking, within-step block reordering,
 cross-step block moves, private draft duplication, public publishing,
-archive/unpublish, and archived-draft purge only after exact confirmation,
+archive/unpublish, archived-draft purge, and bulk archived-draft purge only after exact confirmation,
 idempotency, fresh revision
 checks, and audit correlation; responses are redacted draft or purge tombstone
 summaries and do not expose owner identity or raw rows. Direct agent block
 removal refuses checkout-linked blocks and keeps at least one block per step. It
 is not direct agent template creation, unauthenticated public agent-created
 delivery tokens, live billing mutation, unbounded arbitrary CSS or script layout editing,
-non-archived purge, bulk purge, one-click upsell
+non-archived purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
 hosting, unauthenticated public agent publishing, or public unauthenticated agent writes. Issue #14 is the shipped MVP boundary;
@@ -386,10 +386,10 @@ links, funnel-scoped private download-token delivery, webinar event/replay links
 within-step block reordering, drag/drop block placement, cross-step block moves,
 owner-session visual block styles, owner-session bounded canvas layouts, owner-session archived-draft purge UI, and
 owner-session agent-created resource delivery tokens, and expanded owner-session direct agent-safe draft writes
-including visual styles, bounded canvas layouts, reusable block add/remove, public publishing, and archived-draft purge, and remains
+including visual styles, bounded canvas layouts, reusable block add/remove, public publishing, archived-draft purge, and bulk archived-draft purge, and remains
 the pending advanced funnel parity bucket for
 arbitrary uploaded private asset delivery, live fulfillment automation, full
-webinar integrations, bulk purge policy, unauthenticated public agent-created delivery tokens,
+webinar integrations, unauthenticated public agent-created delivery tokens,
 and unauthenticated public agent publishing. Live
 publisher-offer billing remains separate in issue #219.
 

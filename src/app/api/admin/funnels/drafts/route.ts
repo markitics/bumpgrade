@@ -4,6 +4,7 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   addDraftFunnelBlock,
   archiveDraftFunnel,
+  bulkPurgeArchivedDraftFunnels,
   createDraftFunnelFromTemplate,
   createDraftFunnelFromLibraryTemplate,
   duplicateDraftFunnel,
@@ -108,6 +109,23 @@ function resourceDeliverySelection(fields: RequestFields) {
   };
 }
 
+function bulkPurgeTargets(fields: RequestFields) {
+  try {
+    const parsed = JSON.parse(fields.value("bulkTargetsJson"));
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.flatMap((target) => {
+      if (!target || typeof target !== "object" || Array.isArray(target)) return [];
+      const record = target as Record<string, unknown>;
+      const draftId = typeof record.draftId === "string" ? record.draftId : "";
+      const expectedRevisionId = typeof record.expectedRevisionId === "string" ? record.expectedRevisionId : "";
+      return draftId && expectedRevisionId ? [{ draftId, expectedRevisionId }] : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function POST(request: NextRequest) {
   const fields = await readRequestFields(request);
   const json = fields.wantsJson;
@@ -167,6 +185,20 @@ export async function POST(request: NextRequest) {
 
       const redirect = new URL("/admin/funnels", request.url);
       redirect.searchParams.set("purged", purge.draftId);
+      return NextResponse.redirect(redirect, { status: 303 });
+    } else if (mode === "bulk-purge-archived-drafts") {
+      const bulkPurge = await bulkPurgeArchivedDraftFunnels(db, adminState.identity, {
+        targets: bulkPurgeTargets(fields),
+        confirmationText: fields.value("confirmationText"),
+        idempotencyKey,
+      });
+
+      if (json) {
+        return NextResponse.json({ ok: true, mode, bulkPurge });
+      }
+
+      const redirect = new URL("/admin/funnels", request.url);
+      redirect.searchParams.set("bulkPurged", String(bulkPurge.purgedDraftCount));
       return NextResponse.redirect(redirect, { status: 303 });
     } else if (mode === "update-step") {
       draft = await updateDraftFunnelStep(db, adminState.identity, {
