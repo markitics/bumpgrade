@@ -1,0 +1,98 @@
+UPDATE admin_roadmap_items
+SET
+  public_evidence_json = json_array(
+    'Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.',
+    '/imports lists supported importer paths.',
+    'Dedicated importer pages support private Free Build import-plan creation with redacted source and export review.',
+    'Private importer writes create structured private import records for matched offer, product, audience, checkout, funnel/page, sequence, and asset review areas.',
+    'Private importer records include safe extracted field plans that show owner-review target fields without raw row values or private source content.',
+    'Verified publishers can edit safe extracted field labels, review status, and prompts without storing raw extracted values or triggering buyer-facing changes.',
+    'Private audience import records include safe subscriber import depth with aggregate row counts and identity, tag, consent, and sequence signals before any subscriber write exists.',
+    'Verified publishers can record subscriber import preflight readiness or cleanup on private audience records without creating subscriber rows, sequence enrollments, sends, private exports, or go-live effects.',
+    '/imports/source-data exposes platform IDs, input kinds, platform-specific source checklists, export match templates, private structured import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, private record review routes, review-action routes, extracted-field edit actions, saved private plan parts, preflight review routes, private-draft API routes, rollback routes, safety gates, limitations, and source evidence IDs for agents.',
+    'Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.',
+    'Private importer rollback routes archive private import plans without deleting saved plan content, structured private import records, steps, or audit history so the same source can be restarted.'
+  ),
+  next_milestone = 'Add confirmed subscriber import action records behind the same safe audience review without enabling live subscribers or sends.',
+  updated_at = unixepoch()
+WHERE id = 'roadmap-competitor-importers';
+
+UPDATE admin_user_journeys
+SET
+  happy_path_json = json_array(
+    'Open /imports.',
+    'Choose the current platform.',
+    'Review the platform-specific source guide for the URLs, exports, files, and notes Bumpgrade can use.',
+    'Add the strongest public URL, page copy, offer notes, export file names, follow-up notes, launch goal, and audience context.',
+    'Upload or paste a small CSV, JSON, HTML, or text export so Bumpgrade can parse safe structure before any private record is created.',
+    'Review the recognized platform export shape and matched safe header groups before private draft creation.',
+    'Sign in or create a verified publisher account.',
+    'Confirm the private importer action.',
+    'Bumpgrade creates or reuses a Free Build workspace, saves a private import plan, keeps the safe importReview export analysis with the private draft, and creates structured private import records for matched review areas.',
+    'Open the private record review route to inspect those structured records and safe extracted field targets before any go-live action.',
+    'For audience imports, review subscriber import depth with aggregate contact-row counts and safe identity, tag, consent, and sequence signals before any subscriber write exists.',
+    'Record subscriber import preflight readiness or cleanup on private audience records before any later subscriber import action exists.',
+    'Edit safe extracted field labels, review status, and prompts before cleanup without saving raw source values.',
+    'Mark each private record ready or needing cleanup so the next importer cleanup pass has explicit owner-reviewed state.',
+    'Archive a private importer draft when the source map was wrong, then start a fresh import from the same source.',
+    'Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, export match templates, preflight signal labels, export-file parser fields, importReview persistence fields, structured private import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, private record review routes, review action routes, extracted-field edit actions, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.'
+  ),
+  edge_cases_json = json_array(
+    'Imported material starts in a private workspace and is not buyer-facing by default.',
+    'The public review map does not create records or echo pasted source material, export file names, customer rows, private emails, payment credentials, API keys, session cookies, or payment data.',
+    'Structured private import records store review-area summaries, safe match IDs, header labels, signal labels, counts, extracted field plans, subscriber import depth, subscriber preflight metadata, and redaction flags; they do not store raw rows, raw file text, raw export file names, customer rows, credentials, or go-live effects.',
+    'Subscriber import depth stores aggregate row counts and safe label groups only; it does not create subscriber rows, store raw emails or names, enroll sequences, send email, enable exports, or expose contact values.',
+    'Subscriber import preflight actions store readiness or cleanup metadata only; they do not create subscriber rows, enroll sequences, send email, enable exports, or expose contact values.',
+    'Private record review pages require the same verified publisher who created the import plan and show safe structure only.',
+    'Private record review actions store ready or needs-cleanup decisions, safe extracted-field edits, and subscriber preflight decisions in private metadata only; they do not store confirmation text, expose idempotency keys, or trigger buyer-facing effects.',
+    'Live subscriber imports, account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.',
+    'Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.'
+  ),
+  agent_access = 'Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, structured private import-record contracts, extracted field plans, subscriber import depth, subscriber import preflight actions, private record review routes, review action routes, extracted-field edit actions, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating, reviewing, editing, or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.',
+  validation_json = json_array(
+    'Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, subscriber import depth, subscriber import preflight actions, extracted-field editing, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.',
+    'Private importer APIs create or reuse a Free Build workspace, save a private import plan, persist safe importReview export analysis, and create structured private import records with extracted field plans, subscriber import depth, subscriber preflight metadata, and no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.',
+    'Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, export file names, raw values, and pasted source material out of public responses.'
+  ),
+  updated_at = unixepoch()
+WHERE id = 'journey-prospect-imports-from-clickfunnels';
+
+INSERT INTO admin_work_log_entries (
+  id, title, agent_name, agent_kind, session_name, prompt_from_mark, github_issues_json,
+  closed_prs_json, features_updated_json, roadmap_updated_json, user_journeys_updated_json,
+  documentation_updated_json, validation_json, flags_attention, first_prompt_at, completed_at,
+  relevant_urls_json, pr_comment_url, updated_at
+) VALUES (
+  'work-log-2026-05-25-importer-subscriber-preflight-actions',
+  'Added subscriber import preflight actions to importer review',
+  'Codex',
+  'codex',
+  'bumpgrade-build-heartbeat',
+  'Mark asked for easy importers from ClickFunnels and competitor platforms, with real-human public copy and agent-readable contracts.',
+  json_array(json_object('number', 467, 'url', 'https://github.com/markitics/bumpgrade/issues/467')),
+  json_array(),
+  json_array('https://bumpgrade.com/imports', 'https://bumpgrade.com/imports/source-data', 'https://bumpgrade.com/imports/kit/review'),
+  json_array('roadmap-competitor-importers'),
+  json_array('journey-prospect-imports-from-clickfunnels'),
+  json_array('docs/features/importers.md', 'docs/agent/agent-ready.md', 'public/llms.txt'),
+  json_array('Focused private Kit audience importer subscriber-preflight and redaction smoke coverage', 'typecheck', 'lint', 'runtime secrets', 'Cloudflare build'),
+  'No Mark action required. Subscriber preflight actions store metadata only; live subscriber imports, sequence enrollment, sends, and private exports remain parked behind later confirmed-write gates.',
+  unixepoch() - 1800,
+  unixepoch(),
+  json_array('https://bumpgrade.com/imports/source-data', 'https://bumpgrade.com/imports/kit/review', 'https://bumpgrade.com/admin/work-log'),
+  NULL,
+  unixepoch()
+)
+ON CONFLICT(id) DO UPDATE SET
+  title=excluded.title,
+  prompt_from_mark=excluded.prompt_from_mark,
+  github_issues_json=excluded.github_issues_json,
+  features_updated_json=excluded.features_updated_json,
+  roadmap_updated_json=excluded.roadmap_updated_json,
+  user_journeys_updated_json=excluded.user_journeys_updated_json,
+  documentation_updated_json=excluded.documentation_updated_json,
+  validation_json=excluded.validation_json,
+  flags_attention=excluded.flags_attention,
+  completed_at=excluded.completed_at,
+  relevant_urls_json=excluded.relevant_urls_json,
+  updated_at=unixepoch();

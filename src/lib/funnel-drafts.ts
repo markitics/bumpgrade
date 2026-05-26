@@ -238,6 +238,44 @@ export type CompetitorImportPrivateRecordSubscriberImportDepth = {
   };
 };
 
+export type CompetitorImportPrivateRecordSubscriberPreflightStatus =
+  | "not_recorded"
+  | "ready_for_import_planning"
+  | "needs_cleanup";
+
+export type CompetitorImportPrivateRecordSubscriberPreflight = {
+  responseField: "subscriberImportPreflight";
+  status: CompetitorImportPrivateRecordSubscriberPreflightStatus;
+  source: "verified_publisher_subscriber_preflight" | null;
+  recordedAt: string | null;
+  depthStatus: CompetitorImportPrivateRecordSubscriberImportDepth["status"] | null;
+  aggregateContactRowCount: number;
+  parsedExportFileCount: number;
+  summary: string;
+  nextStep: string;
+  acknowledgedBlockers: string[];
+  createsSubscriberRows: false;
+  createsSequenceEnrollments: false;
+  emailDeliveryEnabled: false;
+  exportEnabled: false;
+  goLiveEffectsEnabled: false;
+  redaction: {
+    rawContactRowsIncluded: false;
+    rawEmailsIncluded: false;
+    rawNamesIncluded: false;
+    rawExportTextIncluded: false;
+    rawFileNamesEchoed: false;
+    confirmationTextStored: false;
+    idempotencyKeysIncluded: false;
+    actorEmailIncluded: false;
+    subscriberRowsCreated: false;
+    sequenceEnrollmentsCreated: false;
+    emailDeliveryEnabled: false;
+    exportEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
@@ -935,6 +973,7 @@ export type CompetitorImportPrivateRecord = {
   recordConfidence: "recognized_export_match" | "needs_more_context" | "source_guide";
   extractedFields: CompetitorImportPrivateRecordExtractedField[];
   subscriberImportDepth: CompetitorImportPrivateRecordSubscriberImportDepth | null;
+  subscriberImportPreflight: CompetitorImportPrivateRecordSubscriberPreflight | null;
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1019,6 +1058,16 @@ export type CompetitorImportPrivateRecordExtractedFieldEditResult = {
   record: CompetitorImportPrivateRecord;
   field: CompetitorImportPrivateRecordExtractedField;
   previousField: CompetitorImportPrivateRecordExtractedField;
+  idempotent: boolean;
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
+export type CompetitorImportPrivateRecordSubscriberPreflightResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  preflight: CompetitorImportPrivateRecordSubscriberPreflight;
+  previousPreflight: CompetitorImportPrivateRecordSubscriberPreflight | null;
   idempotent: boolean;
   goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
   redaction: CompetitorImportPrivateRecord["redaction"];
@@ -1757,6 +1806,99 @@ function competitorImportNormalizeSubscriberDepth(
   };
 }
 
+function competitorImportSubscriberPreflightRedaction(): CompetitorImportPrivateRecordSubscriberPreflight["redaction"] {
+  return {
+    rawContactRowsIncluded: false,
+    rawEmailsIncluded: false,
+    rawNamesIncluded: false,
+    rawExportTextIncluded: false,
+    rawFileNamesEchoed: false,
+    confirmationTextStored: false,
+    idempotencyKeysIncluded: false,
+    actorEmailIncluded: false,
+    subscriberRowsCreated: false,
+    sequenceEnrollmentsCreated: false,
+    emailDeliveryEnabled: false,
+    exportEnabled: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
+function competitorImportSubscriberPreflightSummary(
+  status: CompetitorImportPrivateRecordSubscriberPreflightStatus,
+  depth: CompetitorImportPrivateRecordSubscriberImportDepth | null,
+) {
+  if (status === "ready_for_import_planning") {
+    return "Owner confirmed this private audience record is ready for subscriber import planning.";
+  }
+
+  if (status === "needs_cleanup") {
+    return "Owner marked this private audience record as needing subscriber cleanup before import planning.";
+  }
+
+  if (depth?.status === "ready_for_private_review") {
+    return "Safe subscriber import depth is ready for owner preflight.";
+  }
+
+  return "Subscriber import preflight has not been recorded yet.";
+}
+
+function competitorImportSubscriberPreflightNextStep(status: CompetitorImportPrivateRecordSubscriberPreflightStatus) {
+  if (status === "ready_for_import_planning") {
+    return "Use the private audience record as input for a later confirmed subscriber import plan.";
+  }
+
+  if (status === "needs_cleanup") {
+    return "Clean up field labels, consent context, segments, and sequence notes before any subscriber import plan.";
+  }
+
+  return "Review the safe subscriber import depth, then record a private preflight decision.";
+}
+
+function competitorImportSubscriberPreflightFromMetadata(
+  kind: ImportDraftEntity,
+  metadata: Record<string, unknown>,
+  depth: CompetitorImportPrivateRecordSubscriberImportDepth | null,
+): CompetitorImportPrivateRecordSubscriberPreflight | null {
+  if (kind !== "draft_audience_import") return null;
+
+  const input =
+    metadata.subscriberImportPreflight &&
+    typeof metadata.subscriberImportPreflight === "object" &&
+    !Array.isArray(metadata.subscriberImportPreflight)
+      ? (metadata.subscriberImportPreflight as Partial<CompetitorImportPrivateRecordSubscriberPreflight>)
+      : {};
+  const status =
+    input.status === "ready_for_import_planning" || input.status === "needs_cleanup" ? input.status : "not_recorded";
+  const source = input.source === "verified_publisher_subscriber_preflight" ? input.source : null;
+  const recordedAt = typeof input.recordedAt === "string" ? input.recordedAt : null;
+
+  return {
+    responseField: "subscriberImportPreflight",
+    status,
+    source,
+    recordedAt,
+    depthStatus: depth?.status ?? null,
+    aggregateContactRowCount: depth?.aggregateContactRowCount ?? 0,
+    parsedExportFileCount: depth?.parsedExportFileCount ?? 0,
+    summary:
+      typeof input.summary === "string" && input.summary.length > 0
+        ? input.summary
+        : competitorImportSubscriberPreflightSummary(status, depth),
+    nextStep:
+      typeof input.nextStep === "string" && input.nextStep.length > 0
+        ? input.nextStep
+        : competitorImportSubscriberPreflightNextStep(status),
+    acknowledgedBlockers: depth?.goLiveBlockers ?? [],
+    createsSubscriberRows: false,
+    createsSequenceEnrollments: false,
+    emailDeliveryEnabled: false,
+    exportEnabled: false,
+    goLiveEffectsEnabled: false,
+    redaction: competitorImportSubscriberPreflightRedaction(),
+  };
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -1780,6 +1922,11 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     sourceChecklistItemIds,
     recordConfidence,
   });
+  const subscriberImportDepth = competitorImportNormalizeSubscriberDepth(
+    row.record_kind,
+    metadata.subscriberImportDepth,
+    fallbackSubscriberImportDepth,
+  );
 
   return {
     id: row.id,
@@ -1810,11 +1957,8 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
       matchedSignalLabels,
       recordConfidence,
     }),
-    subscriberImportDepth: competitorImportNormalizeSubscriberDepth(
-      row.record_kind,
-      metadata.subscriberImportDepth,
-      fallbackSubscriberImportDepth,
-    ),
+    subscriberImportDepth,
+    subscriberImportPreflight: competitorImportSubscriberPreflightFromMetadata(row.record_kind, metadata, subscriberImportDepth),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -2416,6 +2560,165 @@ export async function updateCompetitorImportPrivateRecordExtractedField(
     record,
     field,
     previousField,
+    idempotent,
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
+function subscriberPreflightSignature(input: {
+  decision: Exclude<CompetitorImportPrivateRecordSubscriberPreflightStatus, "not_recorded">;
+  depthStatus: CompetitorImportPrivateRecordSubscriberImportDepth["status"];
+  aggregateContactRowCount: number;
+  parsedExportFileCount: number;
+}) {
+  return JSON.stringify(input);
+}
+
+export async function recordCompetitorImportPrivateRecordSubscriberPreflight(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    decision: Exclude<CompetitorImportPrivateRecordSubscriberPreflightStatus, "not_recorded">;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordSubscriberPreflightResult> {
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can record this subscriber preflight.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot record subscriber preflight.");
+  }
+
+  if (row.record_kind !== "draft_audience_import") {
+    throw new Error("Subscriber import preflight is available only on private audience import records.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const record = competitorImportPrivateRecordFromRow(row);
+  const depth = record.subscriberImportDepth;
+
+  if (!depth) {
+    throw new Error("Review subscriber import depth before recording subscriber preflight.");
+  }
+
+  const previousPreflight = record.subscriberImportPreflight;
+  const signature = subscriberPreflightSignature({
+    decision: input.decision,
+    depthStatus: depth.status,
+    aggregateContactRowCount: depth.aggregateContactRowCount,
+    parsedExportFileCount: depth.parsedExportFileCount,
+  });
+  const previousIdempotencyKey =
+    typeof metadata.subscriberImportPreflightIdempotencyKey === "string"
+      ? metadata.subscriberImportPreflightIdempotencyKey
+      : "";
+  const previousSignature =
+    typeof metadata.subscriberImportPreflightSignature === "string" ? metadata.subscriberImportPreflightSignature : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousSignature !== signature) {
+    throw new Error("This idempotency key already recorded a different subscriber preflight decision.");
+  }
+
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousSignature === signature;
+
+  if (!idempotent) {
+    const recordedAt = new Date().toISOString();
+    const subscriberImportPreflight: CompetitorImportPrivateRecordSubscriberPreflight = {
+      responseField: "subscriberImportPreflight",
+      status: input.decision,
+      source: "verified_publisher_subscriber_preflight",
+      recordedAt,
+      depthStatus: depth.status,
+      aggregateContactRowCount: depth.aggregateContactRowCount,
+      parsedExportFileCount: depth.parsedExportFileCount,
+      summary: competitorImportSubscriberPreflightSummary(input.decision, depth),
+      nextStep: competitorImportSubscriberPreflightNextStep(input.decision),
+      acknowledgedBlockers: depth.goLiveBlockers,
+      createsSubscriberRows: false,
+      createsSequenceEnrollments: false,
+      emailDeliveryEnabled: false,
+      exportEnabled: false,
+      goLiveEffectsEnabled: false,
+      redaction: competitorImportSubscriberPreflightRedaction(),
+    };
+
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          subscriberImportPreflight,
+          subscriberImportPreflightAt: recordedAt,
+          subscriberImportPreflightSource: "verified_publisher_subscriber_preflight",
+          subscriberImportPreflightIdempotencyKey: input.idempotencyKey,
+          subscriberImportPreflightSignature: signature,
+          subscriberImportPreflightConfirmationMatched: true,
+          subscriberImportPreflightRawRowsStored: false,
+          subscriberImportPreflightCreatesSubscriberRows: false,
+          subscriberImportPreflightCreatesSequenceEnrollments: false,
+          subscriberImportPreflightEmailDeliveryEnabled: false,
+          subscriberImportPreflightExportEnabled: false,
+          subscriberImportPreflightGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The private import record subscriber preflight could not be loaded after update.");
+  }
+
+  const updatedRecord = competitorImportPrivateRecordFromRow(updated);
+  if (!updatedRecord.subscriberImportPreflight) {
+    throw new Error("The private import record subscriber preflight could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record: updatedRecord,
+    preflight: updatedRecord.subscriberImportPreflight,
+    previousPreflight,
     idempotent,
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),
