@@ -75,6 +75,7 @@ function jsonError(status: number, code: string, error: string) {
       code,
       error,
       issue: anonymousPlaygroundIssue,
+      route: anonymousPlaygroundApiRoute,
       sourceDataRoute: anonymousPlaygroundSourceDataRoute,
       redaction: anonymousPlaygroundRedaction(),
     },
@@ -136,6 +137,7 @@ export async function POST(request: NextRequest) {
         updatedAt: anonymousPlaygroundUpdatedAt,
         idempotent: result.idempotent,
         workspace: publicAnonymousPlaygroundWorkspace(result.workspace),
+        rateLimit: result.rateLimit,
         paidGoLiveRequired: true,
         redaction: anonymousPlaygroundRedaction({ workspaceIncluded: true }),
       });

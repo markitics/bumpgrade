@@ -455,6 +455,8 @@ import {
   anonymousPlaygroundCleanupApiRoute,
   anonymousPlaygroundCleanupConfirmationText,
   anonymousPlaygroundCookieName,
+  anonymousPlaygroundSaveRateLimitMaxSaves,
+  anonymousPlaygroundSaveRateLimitWindowSeconds,
   anonymousPlaygroundSourceData,
   anonymousPlaygroundSourceDataRoute,
 } from "../src/lib/anonymous-playground";
@@ -1729,6 +1731,7 @@ test.describe("Bumpgrade scaffold", () => {
           loggedOutSaveLive: true,
           browserRecoveryLive: true,
           structuredBuilderFieldsLive: true,
+          anonymousSaveRateLimitLive: true,
           claimToSignedInFreeBuildLive: true,
           claimCreatesPrivateDraftFunnelLive: true,
           claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
@@ -1748,6 +1751,20 @@ test.describe("Bumpgrade scaffold", () => {
           cleanupReplacesRecoveryTokenHash: true,
           cleanupPreservesClaimedPrivateRecords: true,
           unclaimedExpiredDraftsRecoverable: false,
+        }),
+        saveRateLimit: expect.objectContaining({
+          scope: "browser_recovery_workspace",
+          windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+          maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+          appliesAfterFirstSave: true,
+          firstSaveCreatesRecovery: true,
+          responseCodeWhenLimited: 429,
+          responseCode: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+          rawIpStored: false,
+          rawUserAgentStored: false,
+          recoveryTokenHashExposed: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
         }),
         draftFields: expect.arrayContaining([
           expect.objectContaining({ id: "productFormat" }),
@@ -1812,21 +1829,24 @@ test.describe("Bumpgrade scaffold", () => {
     );
 
     const suffix = `${Date.now()}-${Math.round(Math.random() * 1_000_000)}`;
+    const playgroundDraft = {
+      return: "json",
+      offerName: `Anonymous offer ${suffix}`,
+      audience: "Publishers trying Bumpgrade before signup",
+      launchGoal: "Save a private launch draft and return tomorrow",
+      productFormat: "Cohort course and templates",
+      pricePoint: "$97 launch offer",
+      leadMagnet: "A launch checklist that starts the opt-in path",
+      checkoutPlan: "Single checkout with a later order-bump review",
+      deliveryPlan: "Private lesson library and launch worksheet",
+      followUpPlan: "Three-email warmup before the first offer",
+      sourceUrl: "https://example.com/anonymous-launch",
+      selectedImporterSlug: "clickfunnels",
+    };
     const saveResponse = await request.post(anonymousPlaygroundApiRoute, {
       headers: { accept: "application/json" },
       data: {
-        return: "json",
-        offerName: `Anonymous offer ${suffix}`,
-        audience: "Publishers trying Bumpgrade before signup",
-        launchGoal: "Save a private launch draft and return tomorrow",
-        productFormat: "Cohort course and templates",
-        pricePoint: "$97 launch offer",
-        leadMagnet: "A launch checklist that starts the opt-in path",
-        checkoutPlan: "Single checkout with a later order-bump review",
-        deliveryPlan: "Private lesson library and launch worksheet",
-        followUpPlan: "Three-email warmup before the first offer",
-        sourceUrl: "https://example.com/anonymous-launch",
-        selectedImporterSlug: "clickfunnels",
+        ...playgroundDraft,
         idempotencyKey: `playwright-anonymous-playground-${suffix}`,
       },
     });
@@ -1838,6 +1858,15 @@ test.describe("Bumpgrade scaffold", () => {
         ok: true,
         issue: 466,
         paidGoLiveRequired: true,
+        rateLimit: expect.objectContaining({
+          scope: "browser_recovery_workspace",
+          windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+          maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+          recentSavesInWindow: 1,
+          remainingSavesInWindow: anonymousPlaygroundSaveRateLimitMaxSaves - 1,
+          rawIpStored: false,
+          rawUserAgentStored: false,
+        }),
         workspace: expect.objectContaining({
           status: "active",
           draft: expect.objectContaining({
@@ -1864,18 +1893,7 @@ test.describe("Bumpgrade scaffold", () => {
     const replayResponse = await request.post(anonymousPlaygroundApiRoute, {
       headers: { accept: "application/json" },
       data: {
-        return: "json",
-        offerName: `Anonymous offer ${suffix}`,
-        audience: "Publishers trying Bumpgrade before signup",
-        launchGoal: "Save a private launch draft and return tomorrow",
-        productFormat: "Cohort course and templates",
-        pricePoint: "$97 launch offer",
-        leadMagnet: "A launch checklist that starts the opt-in path",
-        checkoutPlan: "Single checkout with a later order-bump review",
-        deliveryPlan: "Private lesson library and launch worksheet",
-        followUpPlan: "Three-email warmup before the first offer",
-        sourceUrl: "https://example.com/anonymous-launch",
-        selectedImporterSlug: "clickfunnels",
+        ...playgroundDraft,
         idempotencyKey: `playwright-anonymous-playground-${suffix}`,
       },
     });
@@ -1884,7 +1902,60 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         ok: true,
         idempotent: true,
+        rateLimit: expect.objectContaining({
+          recentSavesInWindow: 1,
+          remainingSavesInWindow: anonymousPlaygroundSaveRateLimitMaxSaves - 1,
+        }),
         workspace: expect.objectContaining({ id: savePayload.workspace.id }),
+      }),
+    );
+
+    for (let saveIndex = 2; saveIndex <= anonymousPlaygroundSaveRateLimitMaxSaves; saveIndex += 1) {
+      const allowedSaveResponse = await request.post(anonymousPlaygroundApiRoute, {
+        headers: { accept: "application/json" },
+        data: {
+          ...playgroundDraft,
+          offerName: `Anonymous offer ${suffix} save ${saveIndex}`,
+          idempotencyKey: `playwright-anonymous-playground-${suffix}-${saveIndex}`,
+        },
+      });
+      expect(allowedSaveResponse.ok(), await allowedSaveResponse.text()).toBeTruthy();
+      const allowedSavePayload = await allowedSaveResponse.json();
+      expect(allowedSavePayload).toEqual(
+        expect.objectContaining({
+          ok: true,
+          idempotent: false,
+          rateLimit: expect.objectContaining({
+            recentSavesInWindow: saveIndex,
+            remainingSavesInWindow: anonymousPlaygroundSaveRateLimitMaxSaves - saveIndex,
+            rawIpStored: false,
+            rawUserAgentStored: false,
+          }),
+          workspace: expect.objectContaining({ id: savePayload.workspace.id }),
+        }),
+      );
+    }
+
+    const limitedSaveResponse = await request.post(anonymousPlaygroundApiRoute, {
+      headers: { accept: "application/json" },
+      data: {
+        ...playgroundDraft,
+        offerName: `Anonymous offer ${suffix} limited`,
+        idempotencyKey: `playwright-anonymous-playground-${suffix}-limited`,
+      },
+    });
+    expect(limitedSaveResponse.status()).toBe(429);
+    expect(await limitedSaveResponse.json()).toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+        issue: 466,
+        route: anonymousPlaygroundApiRoute,
+        redaction: expect.objectContaining({
+          recoveryCookieValueIncluded: false,
+          recoveryTokenHashIncluded: false,
+          publicPublishingEnabled: false,
+        }),
       }),
     );
 
@@ -21148,6 +21219,7 @@ test.describe("Bumpgrade scaffold", () => {
             status: "passed",
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-anonymous-playground.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-466-playground-save-limits.png" }),
             ]),
             validationLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/playground/source-data" }),
@@ -30560,6 +30632,15 @@ test.describe("Bumpgrade scaffold", () => {
     });
     expect(saveResponse.ok(), await saveResponse.text()).toBeTruthy();
     const savePayload = await saveResponse.json();
+    expect(savePayload).toEqual(
+      expect.objectContaining({
+        rateLimit: expect.objectContaining({
+          scope: "browser_recovery_workspace",
+          recentSavesInWindow: 1,
+          remainingSavesInWindow: anonymousPlaygroundSaveRateLimitMaxSaves - 1,
+        }),
+      }),
+    );
 
     const email = `anonymous-playground-${suffix}@example.com`;
     await signInOrCreateAccount(page, email, "BumpgradeLocal123!", "Anonymous Playground Publisher");

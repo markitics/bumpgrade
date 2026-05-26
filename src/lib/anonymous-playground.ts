@@ -144,6 +144,18 @@ export const anonymousPlaygroundCookieMaxAgeDays = 30;
 export const anonymousPlaygroundClaimConfirmationText = "Attach this playground to my Bumpgrade account";
 export const anonymousPlaygroundCleanupConfirmationText = "Expire anonymous playgrounds";
 export const anonymousPlaygroundCleanupBatchLimit = 100;
+export const anonymousPlaygroundSaveRateLimitWindowSeconds = 10 * 60;
+export const anonymousPlaygroundSaveRateLimitMaxSaves = 12;
+
+export type AnonymousPlaygroundSaveRateLimit = {
+  scope: "browser_recovery_workspace";
+  windowSeconds: number;
+  maxSavesPerWindow: number;
+  recentSavesInWindow: number;
+  remainingSavesInWindow: number;
+  rawIpStored: false;
+  rawUserAgentStored: false;
+};
 
 export const anonymousPlaygroundGoLiveGates = [
   "Public publishing",
@@ -358,6 +370,50 @@ async function loadAuditEventByIdempotencyKey(db: D1Database, idempotencyKey: st
     .first<AnonymousPlaygroundAuditRow>();
 }
 
+async function countRecentSaveEvents(db: D1Database, workspaceId: string) {
+  const row = await db
+    .prepare(
+      `SELECT COUNT(*) AS count
+       FROM anonymous_playground_audit_events
+       WHERE workspace_id = ?
+         AND event_kind IN ('anonymous_playground_created', 'anonymous_playground_saved')
+         AND created_at >= unixepoch() - ?`,
+    )
+    .bind(workspaceId, anonymousPlaygroundSaveRateLimitWindowSeconds)
+    .first<{ count: number | null }>();
+
+  return Number(row?.count ?? 0);
+}
+
+function saveRateLimit(recentSavesInWindow: number, remainingSavesInWindow: number): AnonymousPlaygroundSaveRateLimit {
+  return {
+    scope: "browser_recovery_workspace",
+    windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+    maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+    recentSavesInWindow,
+    remainingSavesInWindow,
+    rawIpStored: false,
+    rawUserAgentStored: false,
+  };
+}
+
+async function assertAnonymousPlaygroundSaveRateLimit(db: D1Database, workspaceId: string) {
+  const recentSavesInWindow = await countRecentSaveEvents(db, workspaceId);
+
+  if (recentSavesInWindow >= anonymousPlaygroundSaveRateLimitMaxSaves) {
+    throw new AnonymousPlaygroundError(
+      "This browser has saved often enough for now. Wait a few minutes before saving again.",
+      429,
+      "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+    );
+  }
+
+  return saveRateLimit(
+    recentSavesInWindow + 1,
+    Math.max(0, anonymousPlaygroundSaveRateLimitMaxSaves - recentSavesInWindow - 1),
+  );
+}
+
 async function writeAuditEvent(
   db: D1Database,
   input: {
@@ -413,10 +469,22 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
     }
 
     const idempotentWorkspace = await loadWorkspaceById(db, existingAudit.workspace_id);
-    if (idempotentWorkspace) return { workspace: idempotentWorkspace, idempotent: true };
+    if (idempotentWorkspace) {
+      const recentSavesInWindow = await countRecentSaveEvents(db, idempotentWorkspace.id);
+      return {
+        workspace: idempotentWorkspace,
+        idempotent: true,
+        rateLimit: saveRateLimit(
+          recentSavesInWindow,
+          Math.max(0, anonymousPlaygroundSaveRateLimitMaxSaves - recentSavesInWindow),
+        ),
+      };
+    }
   }
 
   if (existing) {
+    const rateLimit = await assertAnonymousPlaygroundSaveRateLimit(db, existing.id);
+
     await db
       .prepare(
         `UPDATE anonymous_playground_workspaces
@@ -469,7 +537,7 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
       },
     });
 
-    return { workspace: (await loadWorkspaceById(db, existing.id)) ?? existing, idempotent: false };
+    return { workspace: (await loadWorkspaceById(db, existing.id)) ?? existing, idempotent: false, rateLimit };
   }
 
   const workspaceId = runtimeId("anonymous-playground");
@@ -522,7 +590,11 @@ export async function saveAnonymousPlaygroundWorkspace(db: D1Database, token: st
     },
   });
 
-  return { workspace: (await loadWorkspaceById(db, workspaceId))!, idempotent: false };
+  return {
+    workspace: (await loadWorkspaceById(db, workspaceId))!,
+    idempotent: false,
+    rateLimit: saveRateLimit(1, anonymousPlaygroundSaveRateLimitMaxSaves - 1),
+  };
 }
 
 function privateClaimRecordSummary(parts: string[]) {
@@ -1038,6 +1110,7 @@ export const anonymousPlaygroundSourceData = {
     loggedOutSaveLive: true,
     browserRecoveryLive: true,
     structuredBuilderFieldsLive: true,
+    anonymousSaveRateLimitLive: true,
     claimToSignedInFreeBuildLive: true,
     claimCreatesPrivateDraftFunnelLive: true,
     claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
@@ -1060,6 +1133,23 @@ export const anonymousPlaygroundSourceData = {
     cleanupPreservesAuditEvents: true,
     cleanupPreservesClaimedPrivateRecords: true,
     unclaimedExpiredDraftsRecoverable: false,
+  },
+  saveRateLimit: {
+    scope: "browser_recovery_workspace",
+    windowSeconds: anonymousPlaygroundSaveRateLimitWindowSeconds,
+    maxSavesPerWindow: anonymousPlaygroundSaveRateLimitMaxSaves,
+    appliesAfterFirstSave: true,
+    firstSaveCreatesRecovery: true,
+    responseCodeWhenLimited: 429,
+    responseCode: "ANONYMOUS_PLAYGROUND_SAVE_RATE_LIMITED",
+    rawIpStored: false,
+    rawUserAgentStored: false,
+    recoveryTokenHashExposed: false,
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
   },
   generatedPrivateRecordTypes: [
     "publisher_tenant",
@@ -1106,5 +1196,5 @@ export const anonymousPlaygroundSourceData = {
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped and rapid repeat saves are limited per browser recovery workspace without storing raw IP or user-agent identifiers. Claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
 };
