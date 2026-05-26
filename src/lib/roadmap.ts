@@ -93,12 +93,13 @@ export const roadmapItems: RoadmapItem[] = [
       "Dedicated importer pages support private Free Build import-plan creation.",
       "Private importer writes now persist the safe importReview export analysis, platform export matches, and recognized match IDs on new private draft metadata.",
       "Private importer writes now create structured private import records for matched offer, product, audience, checkout, funnel/page, sequence, and asset review areas.",
-      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "Verified publishers can open a private importer record review route for their own importer-created plan after creation.",
+      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, private record review routes, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, structured private import records, steps, or audit history so the same source can be restarted.",
     ],
     nextMilestone:
-      "Use structured private import records to deepen field extraction, then add subscriber import depth behind explicit confirmed-write gates.",
+      "Use the private record review surface to deepen field extraction and editing, then add subscriber import depth behind explicit confirmed-write gates.",
   },
   {
     id: "roadmap-feature-catalog",

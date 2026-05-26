@@ -931,6 +931,18 @@ export type CompetitorImportedDraftRollbackResult = {
   rawSourceEchoed: false;
 };
 
+export type CompetitorImportedDraftReview = {
+  draft: DraftFunnelRecord;
+  importerPlatformId: string;
+  importerSlug: string;
+  platformName: string;
+  tenantId: string;
+  importReview: CompetitorImportReviewMetadata | null;
+  importRecords: CompetitorImportPrivateRecord[];
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
 export type AnonymousPlaygroundClaimedDraftInput = {
   tenantId: string;
   workspaceId: string;
@@ -1534,6 +1546,58 @@ async function loadDraftRowWithMetadataFromD1(db: D1Database, draftId: string) {
     row,
     draft: draftFromRow(row, await loadDraftStepsFromD1(db, row.id)),
     metadata: parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {}),
+  };
+}
+
+function competitorImportReviewMetadata(value: unknown): CompetitorImportReviewMetadata | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const metadata = value as Partial<CompetitorImportReviewMetadata>;
+  if (metadata.responseField !== "importReview") return null;
+  return metadata as CompetitorImportReviewMetadata;
+}
+
+export async function loadCompetitorImportedDraftReview(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+  },
+): Promise<CompetitorImportedDraftReview> {
+  const importer = getImporterBySlug(input.importerSlug);
+  const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
+  const importerPlatformId = importer?.id ?? `importer-${input.importerSlug}`;
+  const loaded = await loadDraftRowWithMetadataFromD1(db, input.draftId.trim());
+  if (!loaded) throw new Error("Private import draft not found.");
+
+  const { draft, metadata } = loaded;
+  const tenantId = typeof metadata.tenantId === "string" ? metadata.tenantId : "";
+  const metadataImporterPlatformId = typeof metadata.importerPlatformId === "string" ? metadata.importerPlatformId : "";
+
+  if (draft.ownerUserId !== owner.userId) {
+    throw new Error("Only the publisher who created this private import plan can review these records.");
+  }
+
+  if (
+    draft.sourceIssueNumber !== importerIssue ||
+    metadataImporterPlatformId !== importerPlatformId ||
+    metadata.privateDraftOnly !== true ||
+    !tenantId
+  ) {
+    throw new Error("Only private importer-created draft plans can be reviewed from this importer path.");
+  }
+
+  return {
+    draft,
+    importerPlatformId,
+    importerSlug: input.importerSlug,
+    platformName,
+    tenantId,
+    importReview: competitorImportReviewMetadata(metadata.importReview),
+    importRecords: await loadCompetitorImportPrivateRecords(db, draft.id),
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
   };
 }
 

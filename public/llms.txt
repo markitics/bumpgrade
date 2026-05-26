@@ -108,7 +108,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Import center: https://bumpgrade.com/imports
 - Importer source data: https://bumpgrade.com/imports/source-data
 - Dedicated importers: https://bumpgrade.com/imports/clickfunnels, https://bumpgrade.com/imports/samcart, https://bumpgrade.com/imports/kit, https://bumpgrade.com/imports/kajabi, https://bumpgrade.com/imports/shopify, https://bumpgrade.com/imports/podia, https://bumpgrade.com/imports/systeme-io, https://bumpgrade.com/imports/kartra, https://bumpgrade.com/imports/thrivecart
-- Private importer APIs: each platform record in https://bumpgrade.com/imports/source-data includes its create and rollback API routes plus exact confirmation text
+- Private importer APIs: each platform record in https://bumpgrade.com/imports/source-data includes its create, record-review, and rollback routes plus exact confirmation text where a write is required
 - ClickFunnels alternative: https://bumpgrade.com/compare/clickfunnels-alternative
 - Kit alternative: https://bumpgrade.com/compare/kit-alternative
 - Shopify alternative: https://bumpgrade.com/compare/shopify-alternative

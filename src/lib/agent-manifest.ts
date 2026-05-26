@@ -350,17 +350,18 @@ export const agentReadContracts: AgentReadContract[] = [
       "importReviewAreaStatus",
       "importReview",
       "importRecords",
+      "privateRecordReviewRoute",
     ],
     safeForAgents: [
       "Read supported importer platforms",
       "Resolve importer routes from competitor IDs",
-      "Inspect input kinds, platform-specific source checklists, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, private structured import-record contracts, duplicate-review fields, rollback routes, and saved private plan parts",
-      "Identify verified-publisher private-draft and rollback API routes for supported importer platforms",
+      "Inspect input kinds, platform-specific source checklists, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, private structured import-record contracts, private record review routes, duplicate-review fields, rollback routes, and saved private plan parts",
+      "Identify verified-publisher private-draft, private record review, and rollback routes for supported importer platforms",
       "Cite safety gates and unsupported fields before describing migration capability",
       `Cite issue #${importerIssue} for the active importer feature request`,
     ],
     writeBoundary:
-      "Importer source-data is read-only. Platform-specific source checklists and export match templates describe what a prospect can bring before private plan creation. Public preflight review routes return redacted import maps, sourceChecklistReview status, exportFileAnalysis structure, and platformExportMatches without persisting records or echoing pasted source material, raw rows, raw file text, export file names, customer rows, credentials, sessions, or payment data. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; new private drafts persist safe importReview metadata with export analysis, platform export matches, and recognized match IDs only, then create private importRecords for matched review areas without public source-data exposing private record content; source URL and export file name duplicate review can reuse a matching private import plan. Private rollback routes archive importer-created plans and preserve saved plan content, structured import records, steps, and audit history, while public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
+      "Importer source-data is read-only. Platform-specific source checklists and export match templates describe what a prospect can bring before private plan creation. Public preflight review routes return redacted import maps, sourceChecklistReview status, exportFileAnalysis structure, and platformExportMatches without persisting records or echoing pasted source material, raw rows, raw file text, export file names, customer rows, credentials, sessions, or payment data. Private-draft importer APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses; new private drafts persist safe importReview metadata with export analysis, platform export matches, and recognized match IDs only, then create private importRecords for matched review areas without public source-data exposing private record content. Private record review routes require the same verified publisher owner and show safe structure only; source URL and export file name duplicate review can reuse a matching private import plan. Private rollback routes archive importer-created plans and preserve saved plan content, structured import records, steps, and audit history, while public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, and customer passwords remain outside this contract.",
   },
   {
     id: "read-commerce-contract",
@@ -3120,7 +3121,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     resourceOrTool: "resource bumpgrade://importers",
     status: "ready-contract",
     backedBy: importerSourceDataRoute,
-    purpose: "Expose importer platform IDs, competitor mappings, input kinds, platform-specific source checklists, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private structured import-record contracts, saved private plan parts, duplicate-review statuses, rollback routes, limitations, and safety gates.",
+    purpose: "Expose importer platform IDs, competitor mappings, input kinds, platform-specific source checklists, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private structured import-record contracts, private record review routes, saved private plan parts, duplicate-review statuses, rollback routes, limitations, and safety gates.",
     safetyBoundary:
       "Read-only; public export parsing returns redacted structure only. Public source-data exposes the importRecords contract but not private record content. No raw export storage, public publishing, checkout migration, subscriber send, domain, fulfillment, or account-to-account transfer may be performed by this resource.",
   },

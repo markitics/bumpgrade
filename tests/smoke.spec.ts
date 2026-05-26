@@ -441,6 +441,7 @@ import {
   importerDraftPreviewApiRoute,
   importerDraftRollbackApiRoute,
   importerDraftRollbackConfirmationText,
+  importerPrivateRecordReviewRoute,
   importerPlatforms,
   importerSourceData,
   importerSourceDataRoute,
@@ -1168,6 +1169,8 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         responseField: "importRecords",
         storage: "D1 competitor_import_private_records",
+        reviewRouteField: "privateRecordReviewRoute",
+        reviewSurfaceLive: true,
         publicSourceDataExposesContent: false,
         storesRawExportRows: false,
         storesRawExportText: false,
@@ -1187,6 +1190,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.currentAvailability.privateStructuredImportRecordsLive).toBe(true);
+    expect(payload.currentAvailability.privateStructuredImportRecordReviewLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1260,8 +1264,17 @@ test.describe("Bumpgrade scaffold", () => {
           privateStructuredImportRecords: expect.objectContaining({
             responseField: "importRecords",
             storage: "D1 competitor_import_private_records",
+            reviewRouteField: "privateRecordReviewRoute",
             publicSourceDataExposesContent: false,
             storesRawExportRows: false,
+            goLiveEffectsEnabled: false,
+          }),
+          privateRecordReview: expect.objectContaining({
+            id: "clickfunnels-private-record-review",
+            route: importerPrivateRecordReviewRoute("clickfunnels"),
+            auth: "verified publisher session",
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
             goLiveEffectsEnabled: false,
           }),
           rollback: expect.objectContaining({
@@ -30077,6 +30090,7 @@ test.describe("Bumpgrade scaffold", () => {
           previewRoute: null,
           sourceDataRoute: "/funnels/source-data",
         }),
+        privateRecordReviewRoute: expect.stringContaining("/imports/samcart/review?draft="),
         duplicateReview: expect.objectContaining({
           status: "created",
           checkedFields: expect.arrayContaining([
@@ -30199,6 +30213,21 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(createPayload.importRecords)).not.toContain("customers-private.csv");
     expect(JSON.stringify(createPayload.importRecords)).not.toContain("private-buyer@example.com");
     expect(JSON.stringify(createPayload.importRecords)).not.toContain("PRIVATE_PRODUCT_NAME");
+
+    const samcartReviewRoute = importerPrivateRecordReviewRoute("samcart", createPayload.draft.id);
+    expect(createPayload.privateRecordReviewRoute).toBe(samcartReviewRoute);
+    await page.goto(samcartReviewRoute);
+    await expect(page.getByRole("heading", { name: /Review the private records from your SamCart import/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: `Imported SamCart launch ${suffix}` })).toBeVisible();
+    await expect(page.getByText("SamCart Offer and checkout record")).toBeVisible();
+    await expect(page.getByText("Recognized export match").first()).toBeVisible();
+    await expect(page.getByText("Private review only; buyer-facing actions are still gated.").first()).toBeVisible();
+    const reviewBody = await page.locator("body").innerText();
+    expect(reviewBody).not.toContain(requestBody.pageCopy);
+    expect(reviewBody).not.toContain("samcart-export-main.zip");
+    expect(reviewBody).not.toContain("private-samcart-orders.csv");
+    expect(reviewBody).not.toContain("private-buyer@example.com");
+    expect(reviewBody).not.toContain("PRIVATE_PRODUCT_NAME");
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
