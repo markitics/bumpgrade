@@ -103,7 +103,8 @@ export const roadmapItems: RoadmapItem[] = [
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, structured private import records, steps, or audit history so the same source can be restarted.",
     ],
-    nextMilestone: "Add confirmed subscriber import action records behind the same safe audience review without enabling live subscribers or sends.",
+    nextMilestone:
+      "Keep live subscriber import creation, checkout/payment credential migration, account transfer, domains, and fulfillment parked behind dedicated confirmed-write work; use the importer surface for private migration planning and cleanup until those gates ship.",
   },
   {
     id: "roadmap-feature-catalog",
@@ -649,7 +650,7 @@ export const roadmapItems: RoadmapItem[] = [
   {
     id: "roadmap-free-build-before-go-live",
     title: "Free build-before-go-live pricing model",
-    status: "active",
+    status: "shipped",
     issue: 466,
     featureId: featureIdFor(20),
     group: "Marketing surfaces",
@@ -668,7 +669,8 @@ export const roadmapItems: RoadmapItem[] = [
       "`/account/source-data` exposes the signed-in Free Build workspace contract and paid go-live gates.",
       "`/content/source-data` ties the pricing policy into audience and resource discovery records.",
     ],
-    nextMilestone: "Continue broad Free Build/paid go-live hardening after the anonymous recovery cleanup loop is scheduled.",
+    nextMilestone:
+      "Parent scope is shipped; future expansion belongs in the relevant paid go-live workstream for publishing, checkout, subscriber sends, domains, fulfillment, or billing changes.",
   },
 ];
 
