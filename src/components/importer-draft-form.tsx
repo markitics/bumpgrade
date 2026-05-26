@@ -15,11 +15,42 @@ type ImporterPreview = {
   inputSummary: {
     sourceUrlProvided: boolean;
     sourceFileNameCount: number;
+    uploadedExportFileCount: number;
+    parsedExportFileCount: number;
+    exportHeaderMatchCount: number;
+    exportManifestProvided: boolean;
     pageCopyProvided: boolean;
     followUpNotesProvided: boolean;
     launchGoalProvided: boolean;
     audienceProvided: boolean;
     rawSourceEchoed: false;
+  };
+  exportFileAnalysis: {
+    fileCount: number;
+    uploadedFileCount: number;
+    pastedManifestCount: number;
+    parsedFileCount: number;
+    skippedFileCount: number;
+    detectedSignalLabels: string[];
+    detectedHeaderLabels: string[];
+    files: Array<{
+      id: string;
+      label: string;
+      kind: string;
+      parseStatus: string;
+      sizeBucket: string;
+      rowCount: number | null;
+      objectCount: number | null;
+      detectedHeaderLabels: string[];
+      detectedSignalLabels: string[];
+      rawFileNameEchoed: false;
+      rawRowsEchoed: false;
+      rawTextEchoed: false;
+    }>;
+    rawExportFilesIncluded: false;
+    rawFileNamesEchoed: false;
+    rawRowsEchoed: false;
+    rawTextEchoed: false;
   };
   sourceChecklistReview: Array<{
     id: string;
@@ -55,6 +86,14 @@ function areaStatusLabel(status: string) {
   if (status === "ready_to_review") return "Ready to review";
   if (status === "needs_more_context") return "Needs more context";
   return "Needs source material";
+}
+
+function parseStatusLabel(status: string) {
+  if (status === "parsed") return "Parsed";
+  if (status === "parsed_truncated") return "Parsed preview";
+  if (status === "name_only") return "Name only";
+  if (status === "empty") return "Empty";
+  return "Needs another export";
 }
 
 function signalSummary(signals: string[], emptyText: string) {
@@ -109,7 +148,14 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
 
   return (
     <>
-      <form ref={formRef} action={action} method="post" className="importer-draft-form" onSubmit={ensureIdempotencyKey}>
+      <form
+        ref={formRef}
+        action={action}
+        method="post"
+        encType="multipart/form-data"
+        className="importer-draft-form"
+        onSubmit={ensureIdempotencyKey}
+      >
         <input ref={idempotencyRef} type="hidden" name="idempotencyKey" />
 
         <div className="importer-form-grid">
@@ -131,6 +177,16 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
         <label>
           Export file names
           <textarea name="sourceFileNames" maxLength={1000} rows={3} />
+        </label>
+
+        <label>
+          Export files for review map
+          <input name="exportFiles" type="file" multiple accept=".csv,.json,.html,.htm,.txt,.xml" />
+        </label>
+
+        <label>
+          Export manifest or CSV sample
+          <textarea name="exportManifest" maxLength={6000} rows={5} />
         </label>
 
         <label>
@@ -178,11 +234,43 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
           <div className="importer-preview-summary">
             <span>Source URL {preview.inputSummary.sourceUrlProvided ? "included" : "not included"}</span>
             <span>{preview.inputSummary.sourceFileNameCount} export file names</span>
+            <span>{preview.inputSummary.uploadedExportFileCount} uploaded export files</span>
+            <span>{preview.inputSummary.parsedExportFileCount} parsed export files</span>
+            <span>{preview.inputSummary.exportHeaderMatchCount} detected header groups</span>
             <span>Page copy {preview.inputSummary.pageCopyProvided ? "included" : "not included"}</span>
             <span>Follow-up notes {preview.inputSummary.followUpNotesProvided ? "included" : "not included"}</span>
             <span>Launch goal {preview.inputSummary.launchGoalProvided ? "included" : "not included"}</span>
             <span>Audience {preview.inputSummary.audienceProvided ? "included" : "not included"}</span>
           </div>
+          {preview.exportFileAnalysis.fileCount > 0 ? (
+            <div className="importer-preview-exports">
+              <div>
+                <h4>Parsed export files</h4>
+                <p>
+                  {preview.exportFileAnalysis.parsedFileCount} parsed, {preview.exportFileAnalysis.skippedFileCount} reviewed by
+                  type, with raw rows and file names kept out of the response.
+                </p>
+              </div>
+              <div className="importer-preview-summary">
+                <span>{signalSummary(preview.exportFileAnalysis.detectedSignalLabels, "No structural matches yet")}</span>
+                <span>{signalSummary(preview.exportFileAnalysis.detectedHeaderLabels, "No header groups yet")}</span>
+              </div>
+              <div className="importer-preview-grid">
+                {preview.exportFileAnalysis.files.map((file) => (
+                  <article key={file.id}>
+                    <span>{parseStatusLabel(file.parseStatus)}</span>
+                    <h4>{file.label}</h4>
+                    <p>
+                      {file.kind}; {file.sizeBucket}
+                      {file.rowCount !== null ? `; ${file.rowCount} rows` : ""}
+                      {file.objectCount !== null ? `; ${file.objectCount} objects` : ""}
+                    </p>
+                    <p>{signalSummary(file.detectedHeaderLabels, "No safe header groups detected")}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="importer-preview-grid">
             {preview.sourceChecklistReview.map((item) => (
               <article key={item.id}>

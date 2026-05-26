@@ -399,9 +399,9 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: "2026-05-25T22:58:24.000Z",
     environment: "Local Cloudflare preview, PR screenshot artifacts, and importer source-data smoke coverage.",
     method:
-      "Importer hub route smoke, dedicated importer route smoke, platform-specific source-guide smoke, importer source-data inspection, public redacted preflight review coverage, verified-publisher private import API coverage, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
+      "Importer hub route smoke, dedicated importer route smoke, platform-specific source-guide smoke, importer source-data inspection, public redacted preflight review coverage, export-file structure parsing coverage, verified-publisher private import API coverage, private rollback/restart coverage, public discovery checks, and admin user-journey proof summary checks.",
     summary:
-      "The importer journey has route, source-data, screenshot, issue, and API evidence for reviewing platform-specific source material, previewing an import map, saving imported material into a private Free Build draft, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
+      "The importer journey has route, source-data, screenshot, issue, and API evidence for reviewing platform-specific source material, parsing small export files for redacted structure, previewing an import map, saving imported material into a private Free Build draft, and archiving that draft before restarting without claiming live account transfer or buyer-facing changes.",
     ciLinks: [
       { label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" },
     ],
@@ -425,7 +425,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "Platform-specific source guides and public redacted preflight review maps are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Private rollback controls archive importer-created plans while preserving saved work so the same source can restart as a fresh private plan. Subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
+      "Platform-specific source guides, public redacted preflight review maps, and export-file structure parsing are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Private rollback controls archive importer-created plans while preserving saved work so the same source can restart as a fresh private plan. Subscriber import, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1061,6 +1061,41 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-25-importer-export-preflight-parser",
+    title: "Added redacted importer export-file preflight parsing",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Mark asked for easy importers from ClickFunnels and competitor platforms, with public copy for real prospects and their agents.",
+    githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/imports/samcart",
+    ],
+    roadmapUpdated: ["roadmap-competitor-importers"],
+    userJourneysUpdated: ["journey-prospect-imports-from-clickfunnels"],
+    documentationUpdated: ["docs/features/importers.md", "docs/agent/agent-ready.md", "public/llms.txt"],
+    validation: [
+      "Focused importer export-file preflight parser and redaction smoke coverage",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+    ],
+    flagsAttention: null,
+    firstPromptAt: "2026-05-26T01:46:00.000Z",
+    completedAt: "2026-05-26T02:15:00.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/imports/samcart",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-25-importer-platform-preflight-extraction",
     title: "Added platform-specific importer preflight extraction",
@@ -1848,16 +1883,18 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Choose the current platform.",
       "Review the platform-specific source guide for the URLs, exports, files, and notes Bumpgrade can use.",
       "Add the strongest public URL, page copy, offer notes, export file names, follow-up notes, launch goal, and audience context.",
+      "Upload or paste a small CSV, JSON, HTML, or text export so Bumpgrade can parse safe structure before any private record is created.",
       "Review the redacted import map before sign-in or private draft creation, including source-guide items that are ready, need more context, or need source material.",
       "Sign in or create a verified publisher account.",
       "Confirm the private importer action.",
       "Bumpgrade creates or reuses a Free Build workspace and saves a private import plan.",
       "Archive a private importer draft when the source map was wrong, then start a fresh import from the same source.",
-      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, preflight signal labels, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, preflight signal labels, export-file parser fields, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
     ],
     edgeCases: [
       "Imported material starts in a private workspace and is not buyer-facing by default.",
       "The public review map does not create records or echo pasted source material, export file names, customer rows, private emails, payment credentials, API keys, session cookies, or payment data.",
+      "Export-file parsing returns structural labels, counts, and header groups only; raw file names, raw rows, raw file text, private emails, customer values, credentials, and payment data stay out of responses.",
       "Source-guide readiness exposes matched signal labels only, not the source URL, export file names, pasted copy, follow-up notes, launch goal, or private audience context.",
       "Platform-specific source guides explain useful material to bring, but they are not account-to-account transfer, credential use, or permission to scrape private platform data.",
       "Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.",
@@ -1867,9 +1904,9 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, preflight signal labels, redacted sourceChecklistReview maps, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
-      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
+      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
       "Private importer APIs create or reuse a Free Build workspace and save a private import plan with no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
       "Private importer rollback APIs archive importer-created private plans, preserve saved plan content, steps, and audit history, and let the same source restart as a fresh private plan.",
       "Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, export file names, and pasted source material out of public responses.",

@@ -9,8 +9,8 @@ dedicated importer pages:
 - `/imports` lists supported platform paths.
 - Dedicated importer pages explain the platform-specific move.
 - `/imports/source-data` exposes platform IDs, competitor IDs, source IDs, input
-  kinds, platform-specific source checklists, saved private plan parts, API
-  routes, safety gates, and known limitations.
+  kinds, platform-specific source checklists, export-file parser fields, saved
+  private plan parts, API routes, safety gates, and known limitations.
 - Each dedicated importer page includes a source guide that lists which platform
   URLs, exports, files, and notes Bumpgrade can use before a private import plan
   is created.
@@ -23,6 +23,11 @@ dedicated importer pages:
   source guide. They expose ready/needs-context/needs-source status and matched
   signal labels only, not the source URL, export file names, pasted copy, or
   private notes.
+- Preview responses include `exportFileAnalysis` when a visitor uploads or
+  pastes a small CSV, JSON, HTML, or text export. The parser reports structure,
+  safe header groups, counts, and signal labels only; it does not store files or
+  echo raw rows, raw file text, file names, private emails, customer values,
+  credentials, sessions, or payment data.
 - The `apiRoute` listed for each platform lets a verified publisher create or
   reuse a Free Build workspace and save a private import draft after exact
   confirmation and idempotency.
@@ -40,13 +45,13 @@ live checkout, subscriber sends, domains, and fulfillment remain behind go-live
 approval or later confirmed-write APIs.
 
 Current public source-data and API responses intentionally exclude raw exports,
-customer rows, private emails, payment credentials, API keys, session cookies,
-private files, pasted source material, export file names, and
-account-to-account transfer claims.
+raw file text, raw rows, customer rows, private emails, payment credentials, API
+keys, session cookies, private files, pasted source material, export file names,
+and account-to-account transfer claims.
 
 Agents can use `/imports/source-data`, `/compare/source-data`, and
 `/features/source-data` to answer importer questions, including platform-specific
-source checklist items and the signal labels used by preview review maps. They
-must not claim live account transfer, payment migration, customer password
-migration, subscriber sends, or public publishing without later implementation
-evidence.
+source checklist items, export-file parser fields, and the signal labels used by
+preview review maps. They must not claim live account transfer, payment
+migration, customer password migration, subscriber sends, or public publishing
+without later implementation evidence.
