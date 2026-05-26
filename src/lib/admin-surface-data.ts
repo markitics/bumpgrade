@@ -441,6 +441,11 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
         url: "https://bumpgrade.com/pr-screenshots/issue-467-subscriber-import-creation.png",
         kind: "screenshot",
       },
+      {
+        label: "Subscriber audience promotion",
+        url: "https://bumpgrade.com/pr-screenshots/issue-467-subscriber-audience-promotion.png",
+        kind: "screenshot",
+      },
     ],
     validationLinks: [
       { label: "Import center", url: "https://bumpgrade.com/imports", kind: "route" },
@@ -453,7 +458,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
       { label: "Issue #467", url: "https://github.com/markitics/bumpgrade/issues/467", kind: "issue" },
     ],
     notes: [
-      "Platform-specific source guides, public redacted preflight review maps, export-file structure parsing, platform export matching, private importReview metadata persistence, structured private import records, safe extracted field plans, subscriber import depth, subscriber import preflight actions, private subscriber import creation, owner-only private record review, and metadata-only record review decisions are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Private rollback controls archive importer-created plans while preserving saved work so the same source can restart as a fresh private plan. Global audience send-list imports, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
+      "Platform-specific source guides, public redacted preflight review maps, export-file structure parsing, platform export matching, private importReview metadata persistence, structured private import records, safe extracted field plans, subscriber import depth, subscriber import preflight actions, private subscriber import creation, owner-only private record review, subscriber audience review-list promotion, and metadata-only record review decisions are live on dedicated importer paths. Private draft creation is live for verified publishers; source-match duplicate review reuses matching private drafts by platform, workspace, normalized title, and source URL or export file name. Private rollback controls archive importer-created plans while preserving saved work so the same source can restart as a fresh private plan. Sequence sends, live checkout migration, payment credential migration, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor facts remain volatile; agents should refresh external competitor pages before making time-sensitive claims.",
     ],
   },
@@ -1100,6 +1105,45 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-26-importer-subscriber-audience-promotion",
+    title: "Added importer subscriber audience review-list promotion",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Mark asked for easy importers from ClickFunnels and competitor platforms, including import paths that help prospects move real work into Bumpgrade before go-live.",
+    githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/imports",
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/imports/kit/review",
+      "https://bumpgrade.com/audience/source-data",
+    ],
+    roadmapUpdated: ["roadmap-competitor-importers"],
+    userJourneysUpdated: ["journey-prospect-imports-from-clickfunnels"],
+    documentationUpdated: ["docs/features/importers.md", "docs/agent/agent-ready.md", "public/llms.txt"],
+    validation: [
+      "Focused private Kit importer subscriber audience-promotion and redaction smoke coverage",
+      "Typecheck",
+      "Lint",
+      "Runtime secrets",
+      "Cloudflare build",
+    ],
+    flagsAttention:
+      "Promotion creates imported-pending audience review rows and non-sending tag assignments only; consent events, sequence enrollments, sends, private exports, and go-live effects remain parked behind later gates.",
+    firstPromptAt: "2026-05-26T16:28:00.000Z",
+    completedAt: "2026-05-26T16:55:00.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/imports/source-data",
+      "https://bumpgrade.com/audience/source-data",
+      "https://bumpgrade.com/imports/kit/review",
+      "https://bumpgrade.com/pr-screenshots/issue-467-subscriber-audience-promotion.png",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-26-importer-subscriber-record-creation",
     title: "Added private subscriber record creation to importer review",
@@ -2409,10 +2453,11 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Record subscriber import preflight readiness or cleanup on private audience records before saving private importer subscriber records.",
       "Create private importer subscriber records from a confirmed fresh upload or paste when the subscriber preflight is ready.",
       "Inspect the saved private importer contacts from the same-owner private review page after subscriber import creation.",
+      "Add saved importer contacts to the audience review list as imported-pending subscribers after exact confirmation.",
       "Edit safe extracted field labels, review status, and prompts before cleanup without saving raw source values.",
       "Mark each private record ready or needing cleanup so the next importer cleanup pass has explicit owner-reviewed state.",
       "Archive a private importer draft when the source map was wrong, then start a fresh import from the same source.",
-      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, export match templates, preflight signal labels, export-file parser fields, importReview persistence fields, structured private import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, subscriber import creation actions, private record review routes, review action routes, extracted-field edit actions, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
+      "Use /imports/source-data when an agent needs stable importer IDs, input kinds, source checklist items, export match templates, preflight signal labels, export-file parser fields, importReview persistence fields, structured private import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, subscriber import creation actions, subscriber audience promotion actions, private record review routes, review action routes, extracted-field edit actions, saved private plan parts, safety gates, limitations, source IDs, private import API routes, and rollback routes.",
     ],
     edgeCases: [
       "Imported material starts in a private workspace and is not buyer-facing by default.",
@@ -2423,7 +2468,8 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Structured private import records store review-area summaries, safe match IDs, header labels, signal labels, counts, extracted field plans, and redaction flags; they do not store raw rows, raw file text, raw export file names, customer rows, credentials, or go-live effects.",
       "Subscriber import depth stores aggregate row counts and safe label groups only; it does not create private subscriber records, store raw emails or names, enroll sequences, send email, enable exports, or expose contact values.",
       "Subscriber import preflight actions store readiness or cleanup metadata only; they do not create private subscriber records, enroll sequences, send email, enable exports, or expose contact values.",
-      "Subscriber import creation stores normalized private subscriber records scoped to the private import plan after a confirmed fresh upload or paste; public responses expose counts only and do not create global audience send-list rows, enroll sequences, send email, enable exports, or expose contact values.",
+      "Subscriber import creation stores normalized private subscriber records scoped to the private import plan after a confirmed fresh upload or paste; public responses expose counts only and do not enroll sequences, send email, enable exports, or expose contact values.",
+      "Subscriber audience promotion adds saved importer contacts to audience_subscribers with imported_pending_review status and non-sending tag assignments only; it creates no consent events, sequence enrollments, sends, private exports, or go-live effects.",
       "Private subscriber record inspection is available only to the same verified owner on the private review page; public source-data, public preview routes, unauthenticated API responses, and public agent contracts expose counts and redaction rules only.",
       "Extracted field plans contain Bumpgrade target labels and review prompts only; they do not store raw values, private emails, customer values, payment credentials, or buyer-facing state.",
       "Private record review pages require the same verified publisher who created the import plan and show safe structure plus owner-only saved private importer contacts.",
@@ -2434,14 +2480,14 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Private import APIs require a verified publisher session, exact confirmation, idempotency, and redacted responses.",
       "Rollback APIs require the same verified publisher, the current draft revision, exact confirmation, and idempotency; they archive only private importer plans and preserve saved plan content, structured private import records, steps, and audit history.",
       "The response does not echo pasted source material, raw exports, customer rows, private emails, payment credentials, API keys, or session cookies.",
-      "Global audience send-list import, account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.",
+      "Sequence enrollment, account-to-account transfer, customer password transfer, payment credential migration, subscriber sends, live checkout, public publishing, domains, and fulfillment remain follow-up work.",
       "Competitor source facts should still be refreshed before making volatile pricing, packaging, or feature claims.",
     ],
     agentAccess:
-      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, structured private import-record contracts, extracted field plans, subscriber import depth, subscriber import preflight actions, subscriber import creation actions, owner-only private subscriber record inspection rules, private record review routes, review action routes, extracted-field edit actions, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating, reviewing, editing, importing private subscriber records, inspecting private subscriber contact values, or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
+      "Agents can read /imports/source-data, /compare/source-data, and /features/source-data to answer importer questions with platform IDs, input kinds, platform-specific source checklists, source checklist items, export match templates, preflight signal labels, redacted sourceChecklistReview maps, exportFileAnalysis fields, platformExportMatches, private importReview metadata persistence, structured private import-record contracts, extracted field plans, subscriber import depth, subscriber import preflight actions, subscriber import creation actions, subscriber audience promotion actions, owner-only private subscriber record inspection rules, private record review routes, review action routes, extracted-field edit actions, duplicate-review fields, saved private plan parts, rollback routes, safety gates, source IDs, limitations, and private import API routes. Creating, reviewing, editing, importing private subscriber records, promoting saved contacts to audience review, inspecting private subscriber contact values, or archiving a private import plan requires verified publisher auth, exact confirmation, idempotency, audit evidence, and redacted responses; public or billing-impacting import writes remain unavailable.",
     validation: [
-      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, subscriber import depth, subscriber import preflight actions, private subscriber import creation, owner-only private subscriber record inspection, extracted-field editing, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
-      "Private importer APIs create or reuse a Free Build workspace, save a private import plan, persist safe importReview export analysis, and create structured private import records with extracted field plans, subscriber import depth, subscriber preflight metadata, private subscriber import records, owner-only subscriber contact inspection, and no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
+      "Issue #467 adds /imports, dedicated importer source guides, /imports/clickfunnels, /imports/source-data, public redacted preflight review, sourceChecklistReview maps, exportFileAnalysis parsing, platformExportMatches, structured private import records, extracted field plans, subscriber import depth, subscriber import preflight actions, private subscriber import creation, subscriber audience promotion, owner-only private subscriber record inspection, extracted-field editing, private record review, private record review actions, sitemap and llms discovery, feature and comparison source-data references, and importer smoke coverage.",
+      "Private importer APIs create or reuse a Free Build workspace, save a private import plan, persist safe importReview export analysis, and create structured private import records with extracted field plans, subscriber import depth, subscriber preflight metadata, private subscriber import records, owner-only subscriber contact inspection, imported-pending audience review-list promotion, and no public publishing, live checkout, subscriber sends, domains, fulfillment, account transfer, payment credential migration, or customer password migration.",
       "Private importer rollback APIs archive importer-created private plans, preserve saved plan content, structured import records, steps, and audit history, and let the same source restart as a fresh private plan.",
       "Importer source-data and API responses keep raw exports, customer rows, private emails, payment credentials, API keys, session cookies, export file names, and pasted source material out of public responses.",
     ],

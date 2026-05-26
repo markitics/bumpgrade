@@ -74,6 +74,11 @@ dedicated importer pages:
   importer contacts from the private review page. Public source-data,
   unauthenticated responses, and public agent contracts still expose counts and
   redaction rules only, not contact values.
+- The owner can add saved importer contacts to the audience review list after
+  exact confirmation. Bumpgrade creates `audience_subscribers` rows with
+  `imported_pending_review` status and non-sending tag assignments; it does not
+  create consent events, sequence enrollments, sends, exports, or go-live
+  effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   and saved private importer subscriber records after creation. The paired review

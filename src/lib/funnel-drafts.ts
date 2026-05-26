@@ -318,6 +318,50 @@ export type CompetitorImportPrivateRecordSubscriberImportCreation = {
   };
 };
 
+export type CompetitorImportPrivateRecordSubscriberAudiencePromotionStatus =
+  | "not_promoted"
+  | "global_audience_rows_created";
+
+export type CompetitorImportPrivateRecordSubscriberAudiencePromotion = {
+  responseField: "subscriberAudiencePromotion";
+  status: CompetitorImportPrivateRecordSubscriberAudiencePromotionStatus;
+  source: "verified_publisher_subscriber_audience_promotion" | null;
+  recordedAt: string | null;
+  sourceFormId: string | null;
+  sourceSegmentId: string | null;
+  globalAudienceSubscriberStatus: "imported_pending_review";
+  privateSubscriberRecordCount: number;
+  promotedPrivateSubscriberRecordCount: number;
+  createdGlobalAudienceSubscriberCount: number;
+  updatedGlobalAudienceSubscriberCount: number;
+  tagAssignmentCount: number;
+  suppressedContactCount: number;
+  summary: string;
+  nextStep: string;
+  createsGlobalAudienceSubscriberRows: boolean;
+  createsConsentEvents: false;
+  createsSequenceEnrollments: false;
+  emailDeliveryEnabled: false;
+  exportEnabled: false;
+  goLiveEffectsEnabled: false;
+  requiresConsentReviewBeforeSending: true;
+  redaction: {
+    rawContactRowsIncluded: false;
+    rawEmailsIncluded: false;
+    rawNamesIncluded: false;
+    confirmationTextStored: false;
+    idempotencyKeysIncluded: false;
+    actorEmailIncluded: false;
+    privateSubscriberEmailsIncludedInResponse: false;
+    subscriberIdsIncludedInResponse: false;
+    consentEventsCreated: false;
+    sequenceEnrollmentsCreated: false;
+    emailDeliveryEnabled: false;
+    exportEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 export type CompetitorImportPrivateSubscriberRecord = {
   id: string;
   importRecordId: string;
@@ -329,7 +373,7 @@ export type CompetitorImportPrivateSubscriberRecord = {
   emailHash: string;
   firstName: string | null;
   sourceStatus: string | null;
-  status: "private_imported_pending_review" | "archived";
+  status: "private_imported_pending_review" | "promoted_to_global_audience_pending_review" | "archived";
   sourceTagLabels: string[];
   createdAt: string | null;
   updatedAt: string | null;
@@ -337,7 +381,7 @@ export type CompetitorImportPrivateSubscriberRecord = {
     ownerOnly: true;
     publicSourceDataIncluded: false;
     unauthenticatedResponsesIncluded: false;
-    globalAudienceSubscriberRow: false;
+    globalAudienceSubscriberRow: boolean;
     sequenceEnrollmentCreated: false;
     emailDeliveryEnabled: false;
     exportEnabled: false;
@@ -1051,6 +1095,7 @@ export type CompetitorImportPrivateRecord = {
   subscriberImportDepth: CompetitorImportPrivateRecordSubscriberImportDepth | null;
   subscriberImportPreflight: CompetitorImportPrivateRecordSubscriberPreflight | null;
   subscriberImportCreation: CompetitorImportPrivateRecordSubscriberImportCreation | null;
+  subscriberAudiencePromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion | null;
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1155,6 +1200,16 @@ export type CompetitorImportPrivateRecordSubscriberImportCreationResult = {
   record: CompetitorImportPrivateRecord;
   creation: CompetitorImportPrivateRecordSubscriberImportCreation;
   previousCreation: CompetitorImportPrivateRecordSubscriberImportCreation | null;
+  idempotent: boolean;
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
+export type CompetitorImportPrivateRecordSubscriberAudiencePromotionResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  promotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion;
+  previousPromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion | null;
   idempotent: boolean;
   goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
   redaction: CompetitorImportPrivateRecord["redaction"];
@@ -1832,7 +1887,7 @@ function competitorImportSubscriberDepth(
     sourceChecklistItemIds: input.sourceChecklistItemIds,
     reviewSteps: [
       "Confirm which safe identity columns should map to subscriber matching.",
-      "Review tag, segment, consent, suppression, and timing context before any global send-list write exists.",
+      "Review tag, segment, consent, suppression, and timing context before any audience review-list promotion.",
       "Keep sequence entry and broadcast sends disabled until a later confirmed-write gate exists.",
     ],
     goLiveBlockers: [
@@ -2076,7 +2131,106 @@ function competitorImportSubscriberCreationFromMetadata(
     nextStep:
       typeof input.nextStep === "string" && input.nextStep.length > 0
         ? input.nextStep
-        : competitorImportSubscriberCreationNextStep(status),
+      : competitorImportSubscriberCreationNextStep(status),
+  };
+}
+
+function competitorImportSubscriberAudiencePromotionRedaction(): CompetitorImportPrivateRecordSubscriberAudiencePromotion["redaction"] {
+  return {
+    rawContactRowsIncluded: false,
+    rawEmailsIncluded: false,
+    rawNamesIncluded: false,
+    confirmationTextStored: false,
+    idempotencyKeysIncluded: false,
+    actorEmailIncluded: false,
+    privateSubscriberEmailsIncludedInResponse: false,
+    subscriberIdsIncludedInResponse: false,
+    consentEventsCreated: false,
+    sequenceEnrollmentsCreated: false,
+    emailDeliveryEnabled: false,
+    exportEnabled: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
+function competitorImportSubscriberAudiencePromotionSummary(
+  promotion: Pick<
+    CompetitorImportPrivateRecordSubscriberAudiencePromotion,
+    "status" | "promotedPrivateSubscriberRecordCount" | "suppressedContactCount"
+  >,
+) {
+  if (promotion.status === "global_audience_rows_created") {
+    const contactLabel = promotion.promotedPrivateSubscriberRecordCount === 1 ? "contact" : "contacts";
+    return `Added ${promotion.promotedPrivateSubscriberRecordCount} imported ${contactLabel} to the audience review list.`;
+  }
+
+  if (promotion.suppressedContactCount) {
+    return "No saved importer contacts have been added to the audience review list yet.";
+  }
+
+  return "Audience list promotion has not been recorded yet.";
+}
+
+function competitorImportSubscriberAudiencePromotionNextStep(
+  status: CompetitorImportPrivateRecordSubscriberAudiencePromotionStatus,
+) {
+  if (status === "global_audience_rows_created") {
+    return "Review imported-pending contacts in audience tools before any consent, sequence, send, export, or go-live workflow is enabled.";
+  }
+
+  return "Inspect the saved private importer contacts, then add them to the audience review list when they are ready.";
+}
+
+function competitorImportSubscriberAudiencePromotionFromMetadata(
+  kind: ImportDraftEntity,
+  metadata: Record<string, unknown>,
+): CompetitorImportPrivateRecordSubscriberAudiencePromotion | null {
+  if (kind !== "draft_audience_import") return null;
+
+  const input =
+    metadata.subscriberAudiencePromotion &&
+    typeof metadata.subscriberAudiencePromotion === "object" &&
+    !Array.isArray(metadata.subscriberAudiencePromotion)
+      ? (metadata.subscriberAudiencePromotion as Partial<CompetitorImportPrivateRecordSubscriberAudiencePromotion>)
+      : {};
+  const status = input.status === "global_audience_rows_created" ? input.status : "not_promoted";
+  const source = input.source === "verified_publisher_subscriber_audience_promotion" ? input.source : null;
+  const promotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion = {
+    responseField: "subscriberAudiencePromotion",
+    status,
+    source,
+    recordedAt: typeof input.recordedAt === "string" ? input.recordedAt : null,
+    sourceFormId: typeof input.sourceFormId === "string" ? input.sourceFormId : null,
+    sourceSegmentId: typeof input.sourceSegmentId === "string" ? input.sourceSegmentId : null,
+    globalAudienceSubscriberStatus: "imported_pending_review",
+    privateSubscriberRecordCount: safeSubscriberDepthNumber(input.privateSubscriberRecordCount),
+    promotedPrivateSubscriberRecordCount: safeSubscriberDepthNumber(input.promotedPrivateSubscriberRecordCount),
+    createdGlobalAudienceSubscriberCount: safeSubscriberDepthNumber(input.createdGlobalAudienceSubscriberCount),
+    updatedGlobalAudienceSubscriberCount: safeSubscriberDepthNumber(input.updatedGlobalAudienceSubscriberCount),
+    tagAssignmentCount: safeSubscriberDepthNumber(input.tagAssignmentCount),
+    suppressedContactCount: safeSubscriberDepthNumber(input.suppressedContactCount),
+    summary: "",
+    nextStep: "",
+    createsGlobalAudienceSubscriberRows: input.createsGlobalAudienceSubscriberRows === true,
+    createsConsentEvents: false,
+    createsSequenceEnrollments: false,
+    emailDeliveryEnabled: false,
+    exportEnabled: false,
+    goLiveEffectsEnabled: false,
+    requiresConsentReviewBeforeSending: true,
+    redaction: competitorImportSubscriberAudiencePromotionRedaction(),
+  };
+
+  return {
+    ...promotion,
+    summary:
+      typeof input.summary === "string" && input.summary.length > 0
+        ? input.summary
+        : competitorImportSubscriberAudiencePromotionSummary(promotion),
+    nextStep:
+      typeof input.nextStep === "string" && input.nextStep.length > 0
+        ? input.nextStep
+        : competitorImportSubscriberAudiencePromotionNextStep(status),
   };
 }
 
@@ -2141,6 +2295,7 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     subscriberImportDepth,
     subscriberImportPreflight: competitorImportSubscriberPreflightFromMetadata(row.record_kind, metadata, subscriberImportDepth),
     subscriberImportCreation: competitorImportSubscriberCreationFromMetadata(row.record_kind, metadata),
+    subscriberAudiencePromotion: competitorImportSubscriberAudiencePromotionFromMetadata(row.record_kind, metadata),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -2914,8 +3069,10 @@ type D1CompetitorImportSubscriberRecordRow = {
 
 type D1CompetitorImportPrivateSubscriberRecordRow = {
   id: string;
+  tenant_id: string;
   draft_funnel_id: string;
   import_record_id: string;
+  owner_user_id: string | null;
   importer_platform_id: string;
   importer_slug: string;
   platform_name: string;
@@ -2925,6 +3082,7 @@ type D1CompetitorImportPrivateSubscriberRecordRow = {
   source_status: string | null;
   status: string;
   source_tags_json: string | null;
+  metadata_json: string | null;
   created_at: number | null;
   updated_at: number | null;
 };
@@ -2943,7 +3101,12 @@ function competitorImportPrivateSubscriberRecordFromRow(
     emailHash: row.email_hash,
     firstName: row.first_name,
     sourceStatus: row.source_status,
-    status: row.status === "archived" ? "archived" : "private_imported_pending_review",
+    status:
+      row.status === "archived"
+        ? "archived"
+        : row.status === "promoted_to_global_audience_pending_review"
+          ? "promoted_to_global_audience_pending_review"
+          : "private_imported_pending_review",
     sourceTagLabels: stringArrayMetadata(parseJson<unknown>(row.source_tags_json ?? "[]", [])),
     createdAt: isoFromSeconds(row.created_at),
     updatedAt: isoFromSeconds(row.updated_at),
@@ -2951,7 +3114,7 @@ function competitorImportPrivateSubscriberRecordFromRow(
       ownerOnly: true,
       publicSourceDataIncluded: false,
       unauthenticatedResponsesIncluded: false,
-      globalAudienceSubscriberRow: false,
+      globalAudienceSubscriberRow: row.status === "promoted_to_global_audience_pending_review",
       sequenceEnrollmentCreated: false,
       emailDeliveryEnabled: false,
       exportEnabled: false,
@@ -2966,8 +3129,8 @@ async function loadCompetitorImportPrivateSubscriberRecords(
 ) {
   const rows = await db
     .prepare(
-      `SELECT id, draft_funnel_id, import_record_id, importer_platform_id, importer_slug, platform_name,
-              email, email_hash, first_name, source_status, status, source_tags_json, created_at, updated_at
+      `SELECT id, tenant_id, draft_funnel_id, import_record_id, owner_user_id, importer_platform_id, importer_slug, platform_name,
+              email, email_hash, first_name, source_status, status, source_tags_json, metadata_json, created_at, updated_at
        FROM competitor_import_subscriber_records
        WHERE tenant_id = ? AND draft_funnel_id = ? AND owner_user_id = ?
        ORDER BY updated_at DESC, created_at DESC
@@ -3015,6 +3178,17 @@ function subscriberImportCreationSignature(input: {
 
 function sourceStatusIsSuppressed(value: string | null) {
   return Boolean(value && /unsubscribed|unsubscribe|suppressed|spam|complaint|bounced|invalid/i.test(value));
+}
+
+function subscriberAudiencePromotionSignature(records: D1CompetitorImportPrivateSubscriberRecordRow[]) {
+  return JSON.stringify({
+    records: records.map((record) => `${record.id}:${record.email_hash}`).sort(),
+  });
+}
+
+function importerAudienceTagId(importerSlug: string, label: string) {
+  const tagSlug = slugifyDraftFunnelTitle(label).slice(0, 64);
+  return tagSlug ? `importer-${importerSlug}-${tagSlug}` : null;
 }
 
 export async function createCompetitorImportPrivateRecordSubscribers(
@@ -3253,6 +3427,323 @@ export async function createCompetitorImportPrivateRecordSubscribers(
     record: updatedRecord,
     creation: updatedRecord.subscriberImportCreation,
     previousCreation,
+    idempotent,
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
+export async function promoteCompetitorImportPrivateRecordSubscribersToAudience(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordSubscriberAudiencePromotionResult> {
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can add importer subscribers to the audience list.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot add importer subscribers to the audience list.");
+  }
+
+  if (row.record_kind !== "draft_audience_import") {
+    throw new Error("Audience list promotion is available only on private audience import records.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const record = competitorImportPrivateRecordFromRow(row);
+  const previousPromotion = record.subscriberAudiencePromotion;
+
+  if (record.subscriberImportCreation?.status !== "subscriber_records_created") {
+    throw new Error("Save private subscriber records before adding them to the audience list.");
+  }
+
+  const savedSubscriberRows = await db
+    .prepare(
+      `SELECT id, tenant_id, draft_funnel_id, import_record_id, owner_user_id, importer_platform_id, importer_slug, platform_name,
+              email, email_hash, first_name, source_status, status, source_tags_json, metadata_json, created_at, updated_at
+       FROM competitor_import_subscriber_records
+       WHERE tenant_id = ?
+         AND draft_funnel_id = ?
+         AND import_record_id = ?
+         AND owner_user_id = ?
+         AND status != 'archived'
+       ORDER BY updated_at DESC, created_at DESC
+       LIMIT 100`,
+    )
+    .bind(review.tenantId, review.draft.id, row.id, owner.userId)
+    .all<D1CompetitorImportPrivateSubscriberRecordRow>();
+  const privateSubscriberRecords = savedSubscriberRows.results ?? [];
+
+  if (!privateSubscriberRecords.length) {
+    throw new Error("Save private subscriber records before adding them to the audience list.");
+  }
+
+  const signature = await sha256Hex(subscriberAudiencePromotionSignature(privateSubscriberRecords));
+  const previousIdempotencyKey =
+    typeof metadata.subscriberAudiencePromotionIdempotencyKey === "string"
+      ? metadata.subscriberAudiencePromotionIdempotencyKey
+      : "";
+  const previousSignature =
+    typeof metadata.subscriberAudiencePromotionSignature === "string" ? metadata.subscriberAudiencePromotionSignature : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousSignature !== signature) {
+    throw new Error("This idempotency key already added a different importer subscriber set to the audience list.");
+  }
+
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousSignature === signature;
+
+  if (!idempotent) {
+    const recordedAt = new Date().toISOString();
+    const sourceFormId = `importer-${input.importerSlug}-audience-review-list`;
+    const sourceSegmentId = `imported-${input.importerSlug}-audience-review`;
+    let createdGlobalAudienceSubscriberCount = 0;
+    let updatedGlobalAudienceSubscriberCount = 0;
+    let promotedPrivateSubscriberRecordCount = 0;
+    let tagAssignmentCount = 0;
+    let suppressedContactCount = 0;
+
+    for (const privateRecord of privateSubscriberRecords) {
+      const suppressed = await db
+        .prepare("SELECT id FROM audience_suppression_entries WHERE email_hash = ? AND status = 'active' LIMIT 1")
+        .bind(privateRecord.email_hash)
+        .first<{ id: string }>();
+      const existingSubscriber = await db
+        .prepare("SELECT id, status FROM audience_subscribers WHERE email = ? LIMIT 1")
+        .bind(privateRecord.email)
+        .first<{ id: string; status: string }>();
+
+      if (suppressed || sourceStatusIsSuppressed(privateRecord.source_status) || existingSubscriber?.status === "unsubscribed") {
+        suppressedContactCount += 1;
+        continue;
+      }
+
+      const subscriberId = existingSubscriber?.id ?? runtimeId("subscriber");
+      await db
+        .prepare(
+          `INSERT INTO audience_subscribers (
+            id, email, email_hash, first_name, status, source_form_id, source_segment_id, metadata_json, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, 'imported_pending_review', ?, ?, ?, unixepoch(), unixepoch())
+          ON CONFLICT(email) DO UPDATE SET
+            first_name=COALESCE(audience_subscribers.first_name, excluded.first_name),
+            updated_at=unixepoch()`,
+        )
+        .bind(
+          subscriberId,
+          privateRecord.email,
+          privateRecord.email_hash,
+          privateRecord.first_name,
+          sourceFormId,
+          sourceSegmentId,
+          JSON.stringify({
+            issue: importerIssue,
+            source: "verified_publisher_subscriber_audience_promotion",
+            importerSlug: row.importer_slug,
+            platformName: row.platform_name,
+            draftFunnelId: review.draft.id,
+            importRecordId: row.id,
+            sourcePrivateSubscriberRecordId: privateRecord.id,
+            ownerUserId: owner.userId,
+            rawImportRowsStored: false,
+            rawContactRowsIncluded: false,
+            sequenceEnrollmentsCreated: false,
+            consentEventsCreated: false,
+            emailDeliveryEnabled: false,
+            goLiveEffectsEnabled: false,
+          }),
+        )
+        .run();
+
+      const subscriber = await db
+        .prepare("SELECT id, status FROM audience_subscribers WHERE email = ? LIMIT 1")
+        .bind(privateRecord.email)
+        .first<{ id: string; status: string }>();
+
+      if (!subscriber) {
+        throw new Error("The audience subscriber row could not be loaded after promotion.");
+      }
+
+      if (existingSubscriber) {
+        updatedGlobalAudienceSubscriberCount += 1;
+      } else {
+        createdGlobalAudienceSubscriberCount += 1;
+      }
+
+      const tagLabels = stringArrayMetadata(parseJson<unknown>(privateRecord.source_tags_json ?? "[]", []));
+      for (const tagLabel of tagLabels) {
+        const tagId = importerAudienceTagId(input.importerSlug, tagLabel);
+        if (!tagId) continue;
+        const existingAssignment = await db
+          .prepare("SELECT id FROM audience_tag_assignments WHERE subscriber_id = ? AND tag_id = ? LIMIT 1")
+          .bind(subscriber.id, tagId)
+          .first<{ id: string }>();
+        await db
+          .prepare(
+            `INSERT OR IGNORE INTO audience_tag_assignments (
+              id, subscriber_id, tag_id, source_form_id, status, idempotency_key, metadata_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, 'active', ?, ?, unixepoch(), unixepoch())`,
+          )
+          .bind(
+            runtimeId("tag-assignment"),
+            subscriber.id,
+            tagId,
+            sourceFormId,
+            `${input.idempotencyKey}:${subscriber.id}:${tagId}`,
+            JSON.stringify({
+              issue: importerIssue,
+              source: "verified_publisher_subscriber_audience_promotion",
+              importerSlug: row.importer_slug,
+              sourceTagLabelStoredPrivately: true,
+              rawContactRowsIncluded: false,
+              emailDeliveryEnabled: false,
+            }),
+          )
+          .run();
+        if (!existingAssignment) tagAssignmentCount += 1;
+      }
+
+      const privateRecordMetadata = parseJson<Record<string, unknown>>(privateRecord.metadata_json ?? "{}", {});
+      await db
+        .prepare(
+          `UPDATE competitor_import_subscriber_records
+           SET status = 'promoted_to_global_audience_pending_review',
+               metadata_json = ?,
+               updated_at = unixepoch()
+           WHERE id = ?
+             AND import_record_id = ?
+             AND tenant_id = ?
+             AND owner_user_id = ?`,
+        )
+        .bind(
+          JSON.stringify({
+            ...privateRecordMetadata,
+            subscriberAudiencePromotionSource: "verified_publisher_subscriber_audience_promotion",
+            subscriberAudiencePromotionAt: recordedAt,
+            audienceSubscriberStatus: subscriber.status,
+            globalAudienceSubscriberRowCreated: !existingSubscriber,
+            sequenceEnrollmentsCreated: false,
+            consentEventsCreated: false,
+            emailDeliveryEnabled: false,
+            goLiveEffectsEnabled: false,
+          }),
+          privateRecord.id,
+          row.id,
+          review.tenantId,
+          owner.userId,
+        )
+        .run();
+      promotedPrivateSubscriberRecordCount += 1;
+    }
+
+    const promotionStatus: CompetitorImportPrivateRecordSubscriberAudiencePromotionStatus =
+      promotedPrivateSubscriberRecordCount > 0 ? "global_audience_rows_created" : "not_promoted";
+    const subscriberAudiencePromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion = {
+      responseField: "subscriberAudiencePromotion",
+      status: promotionStatus,
+      source: "verified_publisher_subscriber_audience_promotion",
+      recordedAt,
+      sourceFormId,
+      sourceSegmentId,
+      globalAudienceSubscriberStatus: "imported_pending_review",
+      privateSubscriberRecordCount: privateSubscriberRecords.length,
+      promotedPrivateSubscriberRecordCount,
+      createdGlobalAudienceSubscriberCount,
+      updatedGlobalAudienceSubscriberCount,
+      tagAssignmentCount,
+      suppressedContactCount,
+      summary: competitorImportSubscriberAudiencePromotionSummary({
+        status: promotionStatus,
+        promotedPrivateSubscriberRecordCount,
+        suppressedContactCount,
+      }),
+      nextStep: competitorImportSubscriberAudiencePromotionNextStep(promotionStatus),
+      createsGlobalAudienceSubscriberRows: promotedPrivateSubscriberRecordCount > 0,
+      createsConsentEvents: false,
+      createsSequenceEnrollments: false,
+      emailDeliveryEnabled: false,
+      exportEnabled: false,
+      goLiveEffectsEnabled: false,
+      requiresConsentReviewBeforeSending: true,
+      redaction: competitorImportSubscriberAudiencePromotionRedaction(),
+    };
+
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          subscriberAudiencePromotion,
+          subscriberAudiencePromotionAt: recordedAt,
+          subscriberAudiencePromotionSource: "verified_publisher_subscriber_audience_promotion",
+          subscriberAudiencePromotionIdempotencyKey: input.idempotencyKey,
+          subscriberAudiencePromotionSignature: signature,
+          subscriberAudiencePromotionConfirmationMatched: true,
+          subscriberAudiencePromotionCreatesGlobalAudienceSubscriberRows: promotedPrivateSubscriberRecordCount > 0,
+          subscriberAudiencePromotionCreatesConsentEvents: false,
+          subscriberAudiencePromotionCreatesSequenceEnrollments: false,
+          subscriberAudiencePromotionEmailDeliveryEnabled: false,
+          subscriberAudiencePromotionExportEnabled: false,
+          subscriberAudiencePromotionGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The audience list promotion could not be loaded after update.");
+  }
+
+  const updatedRecord = competitorImportPrivateRecordFromRow(updated);
+  if (!updatedRecord.subscriberAudiencePromotion) {
+    throw new Error("The audience list promotion could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record: updatedRecord,
+    promotion: updatedRecord.subscriberAudiencePromotion,
+    previousPromotion,
     idempotent,
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),

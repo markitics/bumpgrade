@@ -263,8 +263,10 @@ effects. After preflight, the same owner can create private importer subscriber
 records from a confirmed fresh upload or paste, then inspect saved private
 contact records from the same-owner private review page. Public source-data,
 unauthenticated responses, and public agent contracts expose counts and
-redaction rules only, and the action creates no global audience send-list rows,
-sequence enrollments, sends, private exports, or go-live effects. Each platform
+redaction rules only. The same owner can then add saved importer contacts to the
+audience review list as `imported_pending_review` subscriber rows with
+non-sending tag assignments; that promotion creates no consent events, sequence
+enrollments, sends, private exports, or go-live effects. Each platform
 also exposes a verified-publisher `privateRecordReviewRoute` that lets the same
 owner inspect those structured records after creation without showing raw rows,
 raw file text, export file names, customer values, credentials, sessions, or

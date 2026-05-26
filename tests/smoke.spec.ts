@@ -449,6 +449,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
@@ -1187,6 +1188,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.privateStructuredImportRecordFieldExtraction).toContain("extractedFields");
     expect(payload.commonContract.privateSubscriberImportDepth).toContain("subscriberImportDepth");
     expect(payload.commonContract.privateSubscriberRecordInspection).toContain("saved private importer subscriber records");
+    expect(payload.commonContract.privateSubscriberAudiencePromotion).toContain("imported_pending_review");
     expect(payload.commonContract.privateStructuredRecords).toEqual(
       expect.objectContaining({
         responseField: "importRecords",
@@ -1222,12 +1224,25 @@ test.describe("Bumpgrade scaffold", () => {
         privateSubscriberEmailsIncludedInOwnerReview: true,
         privateSubscriberEmailsIncludedInPublicResponses: false,
         privateSubscriberEmailsIncludedInUnauthenticatedResponses: false,
+        subscriberAudiencePromotionResponseField: "subscriberAudiencePromotion",
+        subscriberAudiencePromotionActionLive: true,
+        subscriberAudiencePromotionActionRouteField: "privateRecordReviewActionApiRoute",
+        subscriberAudiencePromotionAppliesTo: expect.arrayContaining(["draft_audience_import"]),
+        subscriberAudiencePromotionStatusValues: expect.arrayContaining([
+          "not_promoted",
+          "global_audience_rows_created",
+        ]),
+        subscriberAudiencePromotionStorage: expect.arrayContaining(["D1 audience_subscribers", "D1 audience_tag_assignments"]),
+        subscriberAudiencePromotionSourceStatus: "imported_pending_review",
+        subscriberAudiencePromotionConsentEventsCreated: false,
+        subscriberAudiencePromotionRequiresConsentReviewBeforeSending: true,
         storesSafeSubscriberImportDepth: true,
         storesSubscriberImportPreflightMetadata: true,
         storesPrivateSubscriberImportRecords: true,
         storesPrivateEmails: true,
         createsSubscriberRows: true,
-        createsGlobalAudienceSubscriberRows: false,
+        createsGlobalAudienceSubscriberRows: true,
+        createsConsentEvents: false,
         createsSequenceEnrollments: false,
         emailDeliveryEnabled: false,
         exportEnabled: false,
@@ -1260,6 +1275,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.privateSubscriberImportPreflightActionsLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberImportCreationLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberImportRecordInspectionLive).toBe(true);
+    expect(payload.currentAvailability.privateSubscriberAudiencePromotionLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1349,6 +1365,11 @@ test.describe("Bumpgrade scaffold", () => {
             subscriberImportCreationActionRouteField: "privateRecordReviewActionApiRoute",
             subscriberImportRecordInspectionLive: true,
             subscriberImportRecordInspectionReviewField: "privateSubscriberRecordsByImportRecordId",
+            subscriberAudiencePromotionResponseField: "subscriberAudiencePromotion",
+            subscriberAudiencePromotionActionLive: true,
+            subscriberAudiencePromotionActionRouteField: "privateRecordReviewActionApiRoute",
+            subscriberAudiencePromotionSourceStatus: "imported_pending_review",
+            subscriberAudiencePromotionConsentEventsCreated: false,
             privateSubscriberEmailsIncludedInOwnerReview: true,
             privateSubscriberEmailsIncludedInPublicResponses: false,
             storesSafeSubscriberImportDepth: true,
@@ -1356,7 +1377,8 @@ test.describe("Bumpgrade scaffold", () => {
             storesPrivateSubscriberImportRecords: true,
             storesPrivateEmails: true,
             createsSubscriberRows: true,
-            createsGlobalAudienceSubscriberRows: false,
+            createsGlobalAudienceSubscriberRows: true,
+            createsConsentEvents: false,
             createsSequenceEnrollments: false,
             emailDeliveryEnabled: false,
             exportEnabled: false,
@@ -1378,6 +1400,7 @@ test.describe("Bumpgrade scaffold", () => {
               "subscriberImportDepth",
               "subscriberImportPreflight",
               "subscriberImportCreation",
+              "subscriberAudiencePromotion",
               "privateSubscriberRecords",
             ]),
             privateSubscriberRecordInspectionLive: true,
@@ -1409,19 +1432,28 @@ test.describe("Bumpgrade scaffold", () => {
                 responseField: "subscriberImportCreation",
                 confirmationText: importerPrivateRecordSubscriberImportConfirmationText("ClickFunnels"),
               }),
+              expect.objectContaining({
+                action: "promote_subscriber_import_records_to_audience",
+                responseField: "subscriberAudiencePromotion",
+                confirmationText: importerPrivateRecordSubscriberAudiencePromotionConfirmationText("ClickFunnels"),
+                subscriberStatus: "imported_pending_review",
+              }),
             ]),
             writes: expect.arrayContaining([
               "record_review_decision_metadata",
               "extracted_field_plan_metadata",
               "subscriber_import_preflight_metadata",
               "private_subscriber_import_records",
+              "global_audience_subscriber_review_rows",
+              "audience_import_tag_assignments",
             ]),
             idempotencyRequired: true,
             rawRowsEchoed: false,
             rawTextEchoed: false,
             rawExtractedValuesStored: false,
             subscriberRowsCreated: true,
-            globalAudienceSubscriberRowsCreated: false,
+            globalAudienceSubscriberRowsCreated: true,
+            consentEventsCreated: false,
             sequenceEnrollmentsCreated: false,
             subscriberSendsEnabled: false,
             privateExportsEnabled: false,
@@ -31307,6 +31339,133 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("subscribed").first()).toBeVisible();
     await expect(page.getByText("PRIVATE_TAG").first()).toBeVisible();
     await expect(page.getByText("Public source-data and unauthenticated responses still expose counts only").first()).toBeVisible();
+
+    const audienceBeforePromotionResponse = await page.request.get("/audience/source-data");
+    expect(audienceBeforePromotionResponse.ok(), await audienceBeforePromotionResponse.text()).toBeTruthy();
+    const audienceBeforePromotionPayload = await audienceBeforePromotionResponse.json();
+    const beforePromotionSubscriberCount = audienceBeforePromotionPayload.subscriberInspection.counts.subscribers;
+    const beforePromotionTagAssignmentCount = audienceBeforePromotionPayload.subscriberInspection.counts.tagAssignments;
+    const beforePromotionConsentCount = audienceBeforePromotionPayload.subscriberInspection.counts.consentEvents;
+    const beforePromotionSequenceCount = audienceBeforePromotionPayload.subscriberInspection.counts.sequenceEnrollments;
+
+    const subscriberAudiencePromotionResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "promote_subscriber_import_records_to_audience",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberAudiencePromotionConfirmationText("Kit"),
+        idempotencyKey: `subscriber-audience-promotion-${suffix}`,
+      },
+    });
+    expect(subscriberAudiencePromotionResponse.ok(), await subscriberAudiencePromotionResponse.text()).toBeTruthy();
+    const subscriberAudiencePromotionPayload = await subscriberAudiencePromotionResponse.json();
+    expect(subscriberAudiencePromotionPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "promote_subscriber_import_records_to_audience",
+        idempotent: false,
+        draft: expect.objectContaining({ id: kitPayload.draft.id }),
+        record: expect.objectContaining({
+          id: kitAudienceRecord.id,
+          kind: "draft_audience_import",
+          subscriberAudiencePromotion: expect.objectContaining({
+            responseField: "subscriberAudiencePromotion",
+            status: "global_audience_rows_created",
+            source: "verified_publisher_subscriber_audience_promotion",
+            globalAudienceSubscriberStatus: "imported_pending_review",
+            privateSubscriberRecordCount: 1,
+            promotedPrivateSubscriberRecordCount: 1,
+            createdGlobalAudienceSubscriberCount: 1,
+            createsGlobalAudienceSubscriberRows: true,
+            createsConsentEvents: false,
+            createsSequenceEnrollments: false,
+            emailDeliveryEnabled: false,
+            exportEnabled: false,
+            goLiveEffectsEnabled: false,
+            requiresConsentReviewBeforeSending: true,
+          }),
+        }),
+        promotion: expect.objectContaining({
+          responseField: "subscriberAudiencePromotion",
+          status: "global_audience_rows_created",
+          tagAssignmentCount: 1,
+          redaction: expect.objectContaining({
+            rawContactRowsIncluded: false,
+            rawEmailsIncluded: false,
+            rawNamesIncluded: false,
+            confirmationTextStored: false,
+            idempotencyKeysIncluded: false,
+            actorEmailIncluded: false,
+            privateSubscriberEmailsIncludedInResponse: false,
+            subscriberIdsIncludedInResponse: false,
+            consentEventsCreated: false,
+            sequenceEnrollmentsCreated: false,
+            emailDeliveryEnabled: false,
+            exportEnabled: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          confirmationTextStored: false,
+          idempotencyKeysIncluded: false,
+          actorEmailIncluded: false,
+          privateSubscriberEmailsIncludedInResponse: false,
+          subscriberIdsIncludedInResponse: false,
+          consentEventsCreated: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+          exportEnabled: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(subscriberAudiencePromotionPayload)).not.toContain("subscriber-audience-promotion-");
+    expect(JSON.stringify(subscriberAudiencePromotionPayload)).not.toContain(`private-subscriber-${suffix}@example.com`);
+    expect(JSON.stringify(subscriberAudiencePromotionPayload)).not.toContain("PRIVATE_TAG");
+
+    const audienceAfterPromotionResponse = await page.request.get("/audience/source-data");
+    expect(audienceAfterPromotionResponse.ok(), await audienceAfterPromotionResponse.text()).toBeTruthy();
+    const audienceAfterPromotionPayload = await audienceAfterPromotionResponse.json();
+    expect(audienceAfterPromotionPayload.subscriberInspection.counts.subscribers).toBeGreaterThanOrEqual(
+      beforePromotionSubscriberCount + 1,
+    );
+    expect(audienceAfterPromotionPayload.subscriberInspection.counts.tagAssignments).toBeGreaterThanOrEqual(
+      beforePromotionTagAssignmentCount + 1,
+    );
+    expect(audienceAfterPromotionPayload.subscriberInspection.counts.consentEvents).toBe(beforePromotionConsentCount);
+    expect(audienceAfterPromotionPayload.subscriberInspection.counts.sequenceEnrollments).toBe(beforePromotionSequenceCount);
+
+    const subscriberAudiencePromotionReplayResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "promote_subscriber_import_records_to_audience",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberAudiencePromotionConfirmationText("Kit"),
+        idempotencyKey: `subscriber-audience-promotion-${suffix}`,
+      },
+    });
+    expect(subscriberAudiencePromotionReplayResponse.ok(), await subscriberAudiencePromotionReplayResponse.text()).toBeTruthy();
+    const subscriberAudiencePromotionReplayPayload = await subscriberAudiencePromotionReplayResponse.json();
+    expect(subscriberAudiencePromotionReplayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "promote_subscriber_import_records_to_audience",
+        idempotent: true,
+        promotion: expect.objectContaining({
+          status: "global_audience_rows_created",
+          promotedPrivateSubscriberRecordCount: 1,
+        }),
+      }),
+    );
+
+    await page.goto(kitReviewRoute);
+    await expect(page.getByText("1 imported contact in audience review").first()).toBeVisible();
+    await expect(page.getByText("Added 1 imported contact to the audience review list.").first()).toBeVisible();
+    await expect(page.getByText("Audience review list rows are imported pending review, not send-ready.").first()).toBeVisible();
 
     const samcartRollbackApiRoute = importerDraftRollbackApiRoute("samcart");
     const rollbackBody = {

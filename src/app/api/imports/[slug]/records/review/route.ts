@@ -4,6 +4,7 @@ import { createAuth } from "@/lib/auth";
 import { normalizeOptionalName, normalizeOptInEmail } from "@/lib/audience-opt-in";
 import {
   createCompetitorImportPrivateRecordSubscribers,
+  promoteCompetitorImportPrivateRecordSubscribersToAudience,
   recordCompetitorImportPrivateRecordSubscriberPreflight,
   reviewCompetitorImportPrivateRecord,
   updateCompetitorImportPrivateRecordExtractedField,
@@ -22,6 +23,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   type ImporterPlatform,
@@ -380,6 +382,23 @@ async function normalizedSubscriberImportCreationInput(payload: RequestPayload, 
   };
 }
 
+function normalizedSubscriberAudiencePromotionInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordSubscriberAudiencePromotionConfirmationText(platform.platformName)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} audience list promotion before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
+  }
+
+  return {
+    ...shared,
+    confirmationText,
+  };
+}
+
 function publicPlatform(platform: ImporterPlatform) {
   return {
     id: platform.id,
@@ -435,6 +454,7 @@ function publicRecord(record: CompetitorImportPrivateRecord) {
     subscriberImportDepth: record.subscriberImportDepth,
     subscriberImportPreflight: record.subscriberImportPreflight,
     subscriberImportCreation: record.subscriberImportCreation,
+    subscriberAudiencePromotion: record.subscriberAudiencePromotion,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,
@@ -455,11 +475,15 @@ function redaction() {
     rawSourceEchoed: false,
     customerRowsIncluded: false,
     privateEmailsIncluded: false,
+    privateSubscriberEmailsIncludedInResponse: false,
+    subscriberIdsIncludedInResponse: false,
     paymentCredentialsIncluded: false,
     sessionCookiesIncluded: false,
     confirmationTextStored: false,
     idempotencyKeysIncluded: false,
     actorEmailIncluded: false,
+    consentEventsCreated: false,
+    sequenceEnrollmentsCreated: false,
     publicPublishingEnabled: false,
     liveCheckoutEnabled: false,
     subscriberSendsEnabled: false,
@@ -638,6 +662,43 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
 
       const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
       redirect.searchParams.set("subscriberImport", result.creation.status);
+      redirect.searchParams.set("recordId", result.record.id);
+      return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    if (action === "promote_subscriber_import_records_to_audience") {
+      const input = normalizedSubscriberAudiencePromotionInput(payload, platform);
+      const result = await promoteCompetitorImportPrivateRecordSubscribersToAudience(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        idempotencyKey: `competitor-import-subscriber-audience-promotion:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          promotion: result.promotion,
+          previousPromotion: result.previousPromotion,
+          idempotent: result.idempotent,
+          action: "promote_subscriber_import_records_to_audience",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...result.promotion.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
+      redirect.searchParams.set("subscriberAudiencePromotion", result.promotion.status);
       redirect.searchParams.set("recordId", result.record.id);
       return NextResponse.redirect(redirect, { status: 303 });
     }
