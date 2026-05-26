@@ -822,7 +822,7 @@ test.describe("Bumpgrade scaffold", () => {
 
   test("public and agent-readable source-data avoids placeholder and private-note phrasing", async ({ request }) => {
     const internalSourceDataTerms =
-      /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working/;
+      /\bFor Mark\b|For-Mark|Mark attention|Mark-attention|admin placeholders|For Mark placeholders|Commerce implementation notes|notes for Mark|Mark asked|Future agent|promptFromMark|Codex is working|\b[Ss]caffold\b|\b[Ss]caffolds\b|\b[Bb]oilerplate\b/;
     const publicTrustDetailTerms =
       /m@rkmoriarty\.com|mark@awesound\.com|markmoriarty@stripe\.com|codex_outbound_messages|codex_inbound_messages|raw inbound MIME|raw MIME|bumpgrade-mail|sender-authentication|smtp\.mailfrom|header\.from|allowlisted-and-authenticated|allowlisted and authenticated|trusted reply addresses|trusted sender identities/i;
     const publicSourceDataRoutes = [
@@ -839,6 +839,12 @@ test.describe("Bumpgrade scaffold", () => {
       anonymousPlaygroundSourceDataRoute,
       "/agent-docs/source-data",
       "/agent-docs/bumpgrade-admin-surfaces",
+      "/agent-docs/bumpgrade-agent-surface",
+      "/agent-docs/bumpgrade-mobile-admin",
+      "/mobile-admin/source-data",
+      "/mobile-admin/ios/source-data",
+      "/mobile-admin/android/source-data",
+      "/mobile-admin/dashboard/source-data",
       "/admin/source-data",
       "/admin/director/source-data",
       "/admin/work-log/source-data",

@@ -1178,7 +1178,7 @@ export const webinarResourceTemplateCapability = {
   safeForPublicAgents: [
     "Read webinar and resource funnel templates with stable template IDs and issue evidence.",
     "Read that owner sessions can turn those templates into private D1 draft funnels after exact confirmation.",
-    "Distinguish webinar/resource page scaffolds from live webinar scheduling, replay hosting, private downloads, or entitlement delivery.",
+    "Distinguish webinar/resource page foundations from live webinar scheduling, replay hosting, private downloads, or entitlement delivery.",
   ],
   notYetLive: [
     "Live webinar scheduling",

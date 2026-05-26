@@ -284,7 +284,7 @@ export default function MobileAdminAgentDocPage() {
         <div className="feature-proof-grid">
           <div>
             <Smartphone aria-hidden="true" />
-            <h3>Scaffold</h3>
+            <h3>App foundation</h3>
             <p>{iosMobileAdminSourceData.appPath} contains the Expo entrypoint and iOS smoke target.</p>
           </div>
           <div>
@@ -314,7 +314,7 @@ export default function MobileAdminAgentDocPage() {
         <div className="feature-proof-grid">
           <div>
             <Smartphone aria-hidden="true" />
-            <h3>Scaffold</h3>
+            <h3>App foundation</h3>
             <p>{androidMobileAdminSourceData.nativeProjectPath} contains the native Android smoke target.</p>
           </div>
           <div>
