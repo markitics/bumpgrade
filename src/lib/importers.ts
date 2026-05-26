@@ -34,6 +34,18 @@ export type ImportSourceChecklistItem = {
   reviewBeforePrivatePlan: string;
 };
 
+export type ImporterPreflightSignal =
+  | "source_url"
+  | "export_file_name"
+  | "page_or_offer_copy"
+  | "follow_up_notes"
+  | "launch_goal"
+  | "audience_context";
+
+export type ImportSourceChecklistSourceDataItem = ImportSourceChecklistItem & {
+  preflightSignals: ImporterPreflightSignal[];
+};
+
 export type ImporterPlatform = {
   id: string;
   competitorId: string;
@@ -85,6 +97,47 @@ export function importerDraftImportCapabilityId(platformId: string) {
 
 export function importerDraftRollbackCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-rollback`;
+}
+
+export const importerPreflightSignalLabels: Record<ImporterPreflightSignal, string> = {
+  source_url: "Source URL",
+  export_file_name: "Export file name",
+  page_or_offer_copy: "Page or offer copy",
+  follow_up_notes: "Follow-up notes",
+  launch_goal: "Launch goal",
+  audience_context: "Audience context",
+};
+
+function addSignal(signals: Set<ImporterPreflightSignal>, condition: boolean, signal: ImporterPreflightSignal) {
+  if (condition) signals.add(signal);
+}
+
+export function sourceChecklistPreflightSignals(item: ImportSourceChecklistItem): ImporterPreflightSignal[] {
+  const text = `${item.id} ${item.label} ${item.bring} ${item.bumpgradeUsesItFor}`.toLowerCase();
+  const signals = new Set<ImporterPreflightSignal>();
+
+  addSignal(signals, /url|page|landing|checkout|funnel|form|webinar|campaign|path/.test(text), "source_url");
+  addSignal(signals, /export|csv|file|archive|spreadsheet/.test(text), "export_file_name");
+  addSignal(
+    signals,
+    /copy|offer|price|pricing|coupon|guarantee|product|description|promise|checkout|delivery|fulfillment|access|affiliate|partner|payout|rule|membership|module|lesson|download/.test(
+      text,
+    ),
+    "page_or_offer_copy",
+  );
+  addSignal(
+    signals,
+    /email|follow-up|follow up|sequence|automation|tag|subscriber|segment|opt-in|message|reminder|post-purchase|send/.test(
+      text,
+    ),
+    "follow_up_notes",
+  );
+  addSignal(signals, /goal|launch|bundle|preorder|cohort|campaign|move|first/.test(text), "launch_goal");
+  addSignal(signals, /audience|subscriber|segment|customer|tag|consent|suppression|list|member/.test(text), "audience_context");
+
+  if (signals.size === 0) signals.add("page_or_offer_copy");
+
+  return Array.from(signals);
 }
 
 export const clickFunnelsDraftImportApiRoute = importerDraftImportApiRoute("clickfunnels");
@@ -816,6 +869,18 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
 
 export const importerDraftImportCapabilities = importerPlatforms.map(privateDraftImportCapabilityForPlatform);
 
+export function importerPlatformSourceData(platform: ImporterPlatform): Omit<ImporterPlatform, "sourceChecklist"> & {
+  sourceChecklist: ImportSourceChecklistSourceDataItem[];
+} {
+  return {
+    ...platform,
+    sourceChecklist: platform.sourceChecklist.map((item) => ({
+      ...item,
+      preflightSignals: sourceChecklistPreflightSignals(item),
+    })),
+  };
+}
+
 export function getImporterBySlug(slug: string) {
   return importerPlatforms.find((platform) => platform.slug === slug);
 }
@@ -842,6 +907,7 @@ export const importerSourceData = {
     sourceFileNameDuplicateReviewLive: true,
     privateDraftRollbackLive: true,
     platformSpecificExtractionGuidanceLive: true,
+    platformSpecificPreflightExtractionLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -857,15 +923,16 @@ export const importerSourceData = {
     duplicateReview:
       "Private draft writes return duplicateReview.status as created, idempotent_replay, or source_match_reused. Source-match reuse is live for normalized source URLs or normalized export file names inside the same platform, target workspace, and normalized title.",
     preflightReview:
-      "Public preflight review routes return a redacted import map before private draft creation. They do not persist records, require payment, publish pages, run checkout, send subscribers, connect domains, enable fulfillment, or echo pasted source material or export file names.",
+      "Public preflight review routes return a redacted import map before private draft creation. They now review each platform sourceChecklist item against supplied source signals, then report ready, needs-more-context, or needs-source status without persisting records, requiring payment, publishing pages, running checkout, sending subscribers, connecting domains, enabling fulfillment, or echoing pasted source material or export file names.",
     rollback:
       "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     platformSpecificExtractionGuidance:
-      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created.",
+      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items with matched signal labels only, not the raw source values.",
+    preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,
     redaction:
       "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, and limitations only. Raw exports, customer rows, private emails, payment credentials, API keys, and session cookies stay out of public source-data.",
     liveWriteActions: importerDraftImportCapabilities,
   },
-  platforms: importerPlatforms,
+  platforms: importerPlatforms.map(importerPlatformSourceData),
 };

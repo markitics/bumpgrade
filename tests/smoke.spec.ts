@@ -1050,6 +1050,7 @@ test.describe("Bumpgrade scaffold", () => {
           sourceMatchDuplicateReviewLive: true,
           privateDraftRollbackLive: true,
           platformSpecificExtractionGuidanceLive: true,
+          platformSpecificPreflightExtractionLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1119,6 +1120,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect(item.bring).toBeTruthy();
         expect(item.bumpgradeUsesItFor).toBeTruthy();
         expect(item.reviewBeforePrivatePlan).toBeTruthy();
+        expect((item as { preflightSignals?: string[] }).preflightSignals?.length).toBeGreaterThanOrEqual(1);
       }
     }
     expect(payload.commonContract.safetyGates).toEqual(
@@ -1131,9 +1133,17 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.redaction).toContain("Raw exports");
     expect(payload.commonContract.duplicateReview).toContain("source_match_reused");
     expect(payload.commonContract.preflightReview).toContain("redacted import map");
+    expect(payload.commonContract.preflightReview).toContain("sourceChecklist");
     expect(payload.commonContract.rollback).toContain("archive private importer-created launch plans");
-    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklist");
+    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklistReview");
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
+    expect(payload.commonContract.preflightSignalLabels).toEqual(
+      expect.objectContaining({
+        source_url: "Source URL",
+        export_file_name: "Export file name",
+        page_or_offer_copy: "Page or offer copy",
+      }),
+    );
     expect(payload.commonContract.liveWriteActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -1261,8 +1271,23 @@ test.describe("Bumpgrade scaffold", () => {
             sourceFileNameCount: 2,
             pageCopyProvided: true,
             followUpNotesProvided: true,
+            launchGoalProvided: false,
+            audienceProvided: false,
             rawSourceEchoed: false,
           }),
+          sourceChecklistReview: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-page",
+              status: "ready_to_review",
+              matchedSignals: expect.arrayContaining(["Source URL", "Export file name"]),
+              rawSourceEchoed: false,
+            }),
+            expect.objectContaining({
+              id: "samcart-delivery-context",
+              status: "ready_to_review",
+              matchedSignals: expect.arrayContaining(["Page or offer copy"]),
+            }),
+          ]),
           detectedAreas: expect.arrayContaining([
             expect.objectContaining({
               id: "samcart-checkout-offers",

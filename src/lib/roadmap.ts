@@ -86,15 +86,15 @@ export const roadmapItems: RoadmapItem[] = [
     publicEvidence: [
       "Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.",
       "`/imports` lists supported importer paths.",
-      "Dedicated importer pages can show a redacted preflight review map before sign-in or private draft creation.",
+      "Dedicated importer pages can show a redacted preflight review map before sign-in or private draft creation, including platform-specific source-guide readiness.",
       "Dedicated importer pages now list platform-specific source guides for the URLs, exports, files, and notes Bumpgrade can use.",
       "Dedicated importer pages support private Free Build import-plan creation.",
-      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, preflight signal labels, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, steps, or audit history so the same source can be restarted.",
     ],
     nextMilestone:
-      "Add deeper platform-specific extraction after shared review, private draft, duplicate review, and rollback/restart paths are stable.",
+      "Add real export parsing after platform-specific preflight extraction, shared private drafts, duplicate review, and rollback/restart paths are stable.",
   },
   {
     id: "roadmap-feature-catalog",

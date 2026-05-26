@@ -4,6 +4,9 @@ import {
   getImporterBySlug,
   importerDraftPreviewApiRoute,
   importerIssue,
+  importerPreflightSignalLabels,
+  sourceChecklistPreflightSignals,
+  type ImporterPreflightSignal,
   type ImporterPlatform,
 } from "@/lib/importers";
 
@@ -125,36 +128,112 @@ function signalList(input: {
   sourceFileNameCount: number;
   pageCopyProvided: boolean;
   followUpNotesProvided: boolean;
+  launchGoalProvided: boolean;
+  audienceProvided: boolean;
 }) {
   const signals: string[] = [];
   if (input.sourceUrlProvided) signals.push("public source URL");
   if (input.sourceFileNameCount > 0) signals.push("export file names");
   if (input.pageCopyProvided) signals.push("pasted page or offer copy");
   if (input.followUpNotesProvided) signals.push("follow-up notes");
+  if (input.launchGoalProvided) signals.push("launch goal");
+  if (input.audienceProvided) signals.push("audience context");
   return signals;
 }
 
-function areaStatus(areaEntities: string[], signals: string[]) {
-  if (signals.length === 0) return "needs_source";
+function areaStatus(areaEntities: string[], inputSummary: ReturnType<typeof inputSummaryFromPayload>) {
+  const hasAnySignal = Object.entries(inputSummary).some(([key, value]) => key !== "rawSourceEchoed" && Boolean(value));
+  if (!hasAnySignal) return "needs_source";
   if (areaEntities.includes("draft_audience_import") || areaEntities.includes("draft_sequence_outline")) {
-    return signals.includes("follow-up notes") || signals.includes("pasted page or offer copy") ? "ready_to_review" : "needs_more_context";
+    return inputSummary.followUpNotesProvided ||
+      inputSummary.pageCopyProvided ||
+      inputSummary.sourceFileNameCount > 0 ||
+      inputSummary.audienceProvided
+      ? "ready_to_review"
+      : "needs_more_context";
   }
   if (areaEntities.includes("draft_checkout_offer") || areaEntities.includes("draft_product_catalog")) {
-    return signals.includes("pasted page or offer copy") || signals.includes("export file names") ? "ready_to_review" : "needs_more_context";
+    return inputSummary.pageCopyProvided ||
+      inputSummary.sourceFileNameCount > 0 ||
+      inputSummary.sourceUrlProvided ||
+      inputSummary.launchGoalProvided
+      ? "ready_to_review"
+      : "needs_more_context";
   }
-  return "ready_to_review";
+  return inputSummary.sourceUrlProvided || inputSummary.pageCopyProvided || inputSummary.sourceFileNameCount > 0
+    ? "ready_to_review"
+    : "needs_more_context";
 }
 
-function reviewMap(platform: ImporterPlatform, payload: RequestPayload) {
-  const offerTitle = payload.get("offerTitle").trim().slice(0, 120);
+function inputSummaryFromPayload(payload: RequestPayload) {
   const sourceFileNames = normalizeSourceFileNames(payload);
-  const inputSummary = {
+
+  return {
     sourceUrlProvided: hasUrl(payload.get("sourceUrl")),
     sourceFileNameCount: sourceFileNames.length,
     pageCopyProvided: payload.get("pageCopy").trim().length > 0,
     followUpNotesProvided: payload.get("followUpNotes").trim().length > 0,
+    launchGoalProvided: payload.get("launchGoal").trim().length > 0,
+    audienceProvided: payload.get("audience").trim().length > 0,
     rawSourceEchoed: false,
   };
+}
+
+function providedSignalMap(inputSummary: ReturnType<typeof inputSummaryFromPayload>): Record<ImporterPreflightSignal, boolean> {
+  return {
+    source_url: inputSummary.sourceUrlProvided,
+    export_file_name: inputSummary.sourceFileNameCount > 0,
+    page_or_offer_copy: inputSummary.pageCopyProvided,
+    follow_up_notes: inputSummary.followUpNotesProvided,
+    launch_goal: inputSummary.launchGoalProvided,
+    audience_context: inputSummary.audienceProvided,
+  };
+}
+
+function checklistStatus(signals: ImporterPreflightSignal[], providedSignals: Record<ImporterPreflightSignal, boolean>) {
+  const matchedSignals = signals.filter((signal) => providedSignals[signal]);
+  const anySourceProvided = Object.values(providedSignals).some(Boolean);
+
+  if (matchedSignals.length > 0) return "ready_to_review";
+  if (anySourceProvided) return "needs_more_context";
+  return "needs_source";
+}
+
+function sourceChecklistReview(platform: ImporterPlatform, inputSummary: ReturnType<typeof inputSummaryFromPayload>) {
+  const providedSignals = providedSignalMap(inputSummary);
+
+  return platform.sourceChecklist.map((item) => {
+    const signals = sourceChecklistPreflightSignals(item);
+    const matchedSignals = signals.filter((signal) => providedSignals[signal]);
+    const missingSignals = signals.filter((signal) => !providedSignals[signal]);
+
+    return {
+      id: item.id,
+      label: item.label,
+      status: checklistStatus(signals, providedSignals),
+      matchedSignals: matchedSignals.map((signal) => importerPreflightSignalLabels[signal]),
+      missingSignals: missingSignals.map((signal) => importerPreflightSignalLabels[signal]),
+      usesItFor: item.bumpgradeUsesItFor,
+      reviewPrompt: item.reviewBeforePrivatePlan,
+      rawSourceEchoed: false,
+    };
+  });
+}
+
+function draftStepPreview(platform: ImporterPlatform) {
+  return platform.importableAreas.slice(0, 3).map((area) => ({
+    id: `${area.id}-review-step`,
+    label: `${area.label} review`,
+    prepares: [
+      area.description,
+      ...area.draftEntities.map((entity) => entity.replace(/^draft_/, "").replaceAll("_", " ")),
+    ].slice(0, 4),
+  }));
+}
+
+function reviewMap(platform: ImporterPlatform, payload: RequestPayload) {
+  const offerTitle = payload.get("offerTitle").trim().slice(0, 120);
+  const inputSummary = inputSummaryFromPayload(payload);
   const signals = signalList(inputSummary);
 
   return {
@@ -163,34 +242,20 @@ function reviewMap(platform: ImporterPlatform, payload: RequestPayload) {
     writesRecords: false,
     paidGoLiveRequired: true,
     inputSummary,
+    sourceChecklistReview: sourceChecklistReview(platform, inputSummary),
     detectedAreas: platform.importableAreas.map((area) => ({
       id: area.id,
       label: area.label,
-      status: areaStatus(area.draftEntities, signals),
+      status: areaStatus(area.draftEntities, inputSummary),
       draftEntities: area.draftEntities,
     })),
-    draftStepPreview: [
-      {
-        id: "imported-opt-in",
-        label: "Imported opt-in step",
-        prepares: ["opening promise", "audience reason to continue", "private opt-in next step"],
-      },
-      {
-        id: "imported-sales-page",
-        label: "Imported sales or offer step",
-        prepares: ["sales promise", "source material to verify", "checkout handoff notes"],
-      },
-      {
-        id: "imported-follow-up",
-        label: "Imported follow-up step",
-        prepares: ["post-action confirmation", "delivery expectation", "follow-up plan"],
-      },
-    ],
+    draftStepPreview: draftStepPreview(platform),
     safetyGates: [
       "Review map does not create records.",
       "Private draft creation requires a verified publisher session.",
       "Go-live actions stay off until paid or explicitly approved.",
       "Responses do not echo pasted source material or export file names.",
+      "Source-guide readiness uses signal labels only, not raw source values.",
     ],
   };
 }
