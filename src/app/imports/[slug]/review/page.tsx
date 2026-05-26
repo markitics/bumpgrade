@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, FileText, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, ShieldCheck } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReview, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
@@ -87,6 +87,11 @@ function countSummary(record: CompetitorImportPrivateRecord) {
     `${record.sourceFileNameCount} source ${record.sourceFileNameCount === 1 ? "file" : "files"}`,
     `${record.parsedExportFileCount} parsed ${record.parsedExportFileCount === 1 ? "export" : "exports"}`,
   ].join(" / ");
+}
+
+function extractedFieldStatusLabel(status: CompetitorImportPrivateRecord["extractedFields"][number]["status"]) {
+  if (status === "ready_for_review") return "Ready for review";
+  return "Needs context";
 }
 
 export default async function ImporterReviewPage({ params, searchParams }: ImporterReviewPageProps) {
@@ -224,6 +229,28 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                   <strong>Matched signals</strong>
                   <span>{record.matchedSignalLabels.length ? record.matchedSignalLabels.join(", ") : "No matched signals required."}</span>
                 </div>
+                <div className="feature-detail">
+                  <strong>Prepared fields</strong>
+                  <span>
+                    {record.extractedFields.length
+                      ? `${record.extractedFields.length} safe field ${record.extractedFields.length === 1 ? "target" : "targets"}`
+                      : "No field targets prepared yet."}
+                  </span>
+                </div>
+                {record.extractedFields.length ? (
+                  <div className="importer-extracted-fields">
+                    {record.extractedFields.map((field) => (
+                      <div key={field.id} className="importer-extracted-field">
+                        <ListChecks aria-hidden="true" />
+                        <div>
+                          <strong>{field.label}</strong>
+                          <span>{extractedFieldStatusLabel(field.status)}</span>
+                          <p>{field.reviewPrompt}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="feature-detail">
                   <strong>Go-live state</strong>
                   <span>Private review only; buyer-facing actions are still gated.</span>

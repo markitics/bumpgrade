@@ -241,7 +241,10 @@ effects. Responses also include `importRecords`, owner-visible structured
 records for matched private offer, product, audience, checkout, funnel/page,
 sequence, or asset review areas. Those records store safe match IDs, safe header
 labels, safe signal labels, counts, and redaction flags only; public source-data
-does not expose private record content. Each platform also exposes a
+does not expose private record content. They also include `extractedFields`,
+which are safe Bumpgrade target field labels and review prompts derived from
+matched header/signal metadata, not raw row values, raw source text, file names,
+private emails, customer values, credentials, or go-live actions. Each platform also exposes a
 verified-publisher `privateRecordReviewRoute` that lets the same owner inspect
 those structured records after creation without showing raw rows, raw file text,
 export file names, customer values, private emails, credentials, sessions, or
