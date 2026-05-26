@@ -40,6 +40,12 @@ dedicated importer pages:
   private draft metadata so the export shape survives the sign-in handoff
   without storing raw rows, raw file text, customer rows, credentials, or go-live
   effects.
+- Private draft responses include `importRecords`, owner-visible structured
+  records for matched offer, product, audience, checkout, funnel/page, sequence,
+  or asset review areas. They are derived from safe `importReview` metadata and
+  store counts, match IDs, safe header labels, safe signal labels, and redaction
+  flags only, not raw rows, raw file text, export file names, private emails,
+  customer values, credentials, or go-live effects.
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized
@@ -60,8 +66,8 @@ and account-to-account transfer claims.
 
 Agents can use `/imports/source-data`, `/compare/source-data`, and
 `/features/source-data` to answer importer questions, including platform-specific
-source checklist items, export-file parser fields, and the signal labels used by
-preview review maps, including platform-specific export match templates. They
-must not claim live account transfer, payment
-migration, customer password migration, subscriber sends, or public publishing
-without later implementation evidence.
+  source checklist items, export-file parser fields, structured private
+  import-record contracts, and the signal labels used by preview review maps,
+  including platform-specific export match templates. They must not claim live
+  account transfer, payment migration, customer password migration, subscriber
+  sends, or public publishing without later implementation evidence.

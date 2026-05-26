@@ -164,6 +164,7 @@ export const commonImporterSafetyGates = [
   "Imported material starts in a private workspace and does not publish public pages.",
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
+  "Private importer writes create structured private import records for matched review areas without making them buyer-facing.",
   "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
   "Rollback archives private import plans without deleting saved work or audit history, so the same source can be restarted cleanly.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
@@ -183,6 +184,30 @@ export const importerExportPreflightParser = {
   rawFileNamesEchoed: false,
   rawRowsEchoed: false,
   rawTextEchoed: false,
+};
+
+export const importerPrivateStructuredRecords = {
+  responseField: "importRecords",
+  storage: "D1 competitor_import_private_records",
+  createdOnPrivateDraftCreate: true,
+  publicSourceDataExposesContent: false,
+  derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
+  recordKinds: [
+    "draft_funnel",
+    "draft_page_blocks",
+    "draft_checkout_offer",
+    "draft_product_catalog",
+    "draft_audience_import",
+    "draft_sequence_outline",
+    "asset_reference",
+  ],
+  storesSafeMatchMetadata: true,
+  storesRawExportRows: false,
+  storesRawExportText: false,
+  storesRawExportFileNames: false,
+  storesCustomerRows: false,
+  storesPrivateEmails: false,
+  goLiveEffectsEnabled: false,
 };
 
 const headerLabels = {
@@ -219,7 +244,13 @@ export const clickFunnelsDraftImportCapability = {
   apiRoute: clickFunnelsDraftImportApiRoute,
   confirmationText: clickFunnelsDraftImportConfirmationText,
   auth: "verified publisher session",
-  creates: ["free_build_workspace_if_needed", "private_draft_funnel", "private_import_export_review_metadata", "funnel_audit_event"],
+  creates: [
+    "free_build_workspace_if_needed",
+    "private_draft_funnel",
+    "private_import_export_review_metadata",
+    "private_structured_import_records",
+    "funnel_audit_event",
+  ],
   accepts: ["public_url", "export_file", "csv_upload", "manual_paste"],
   redaction: {
     rawExportFilesIncluded: false,
@@ -249,6 +280,7 @@ export const clickFunnelsDraftImportCapability = {
     rawSourceEchoed: false,
     goLiveEffectsEnabled: false,
   },
+  privateStructuredImportRecords: importerPrivateStructuredRecords,
   duplicateProtection:
     "Idempotency replays the same private draft. Source-match duplicate review reuses an existing private draft when platform, workspace, normalized title, and normalized source URL or export file name match.",
 };
@@ -1025,7 +1057,13 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
     apiRoute: importerDraftImportApiRoute(platform.slug),
     confirmationText: importerDraftImportConfirmationText(platform.platformName),
     auth: "verified publisher session",
-    creates: ["free_build_workspace_if_needed", "private_draft_funnel", "private_import_export_review_metadata", "funnel_audit_event"],
+    creates: [
+      "free_build_workspace_if_needed",
+      "private_draft_funnel",
+      "private_import_export_review_metadata",
+      "private_structured_import_records",
+      "funnel_audit_event",
+    ],
     accepts: platform.inputs.map((input) => input.kind),
     draftEntities: Array.from(new Set(platform.importableAreas.flatMap((area) => area.draftEntities))),
     redaction: {
@@ -1073,12 +1111,17 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       rawSourceEchoed: false,
       goLiveEffectsEnabled: false,
     },
+    privateStructuredImportRecords: {
+      ...importerPrivateStructuredRecords,
+      recordKinds: Array.from(new Set(platform.importableAreas.flatMap((area) => area.draftEntities))),
+    },
     rollback: {
       route: importerDraftRollbackApiRoute(platform.slug),
       confirmationText: importerDraftRollbackConfirmationText(platform.platformName),
       auth: "verified publisher session",
       archives: ["private_draft_funnel"],
       deletesRecords: false,
+      preservesPrivateStructuredImportRecords: true,
       restartsAvailable: true,
       rawSourceEchoed: false,
       goLiveEffectsEnabled: false,
@@ -1142,10 +1185,11 @@ export const importerSourceData = {
     exportFilePreflightParsingLive: true,
     platformExportMatchTemplatesLive: true,
     privateDraftExportReviewMetadataLive: true,
+    privateStructuredImportRecordsLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
-    importedContentLandsAs: "private Bumpgrade import plans",
+    importedContentLandsAs: "private Bumpgrade import plans and structured private import records",
     goLiveRequires: [
       "paid publisher plan where required",
       "explicit owner approval",
@@ -1161,10 +1205,13 @@ export const importerSourceData = {
     rollback:
       "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     platformSpecificExtractionGuidance:
-      "Each dedicated importer includes a sourceChecklist and exportMatchTemplates that explain which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items, exportFileAnalysis summaries, and platformExportMatches with matched signal/header labels only, not the raw source values. Verified private draft creation stores the same safe export analysis, platform export matches, and recognized match IDs in private draft metadata as importReview, still without raw rows, raw file text, export file-name echo, customer rows, payment credentials, or go-live side effects.",
+      "Each dedicated importer includes a sourceChecklist and exportMatchTemplates that explain which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items, exportFileAnalysis summaries, and platformExportMatches with matched signal/header labels only, not the raw source values. Verified private draft creation stores the same safe export analysis, platform export matches, and recognized match IDs in private draft metadata as importReview, then creates private structured import records for matched review areas, still without raw rows, raw file text, export file-name echo, customer rows, payment credentials, or go-live side effects.",
     exportFilePreflightParser: importerExportPreflightParser,
     privateDraftExportReview:
       "Verified private importer writes return importReview and store that redacted export analysis on new private draft metadata so the recognized export shape survives the handoff after sign-in. Idempotent replays and source-match reuse report importReview without rewriting the existing private draft metadata.",
+    privateStructuredImportRecords:
+      "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, or go-live effects.",
+    privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,
     redaction:

@@ -21,6 +21,7 @@ import {
   importerDraftRollbackConfirmationText,
   getImporterBySlug,
   importerIssue,
+  type ImportDraftEntity,
 } from "@/lib/importers";
 import {
   checkoutLinkingCapability,
@@ -168,6 +169,23 @@ type D1FunnelPurgeEventRow = {
   idempotency_key: string;
   metadata_json: string | null;
   created_at: number;
+};
+
+type D1CompetitorImportPrivateRecordRow = {
+  id: string;
+  tenant_id: string;
+  draft_funnel_id: string;
+  owner_user_id: string | null;
+  importer_platform_id: string;
+  importer_slug: string;
+  platform_name: string;
+  record_kind: ImportDraftEntity;
+  status: "private_draft" | "archived";
+  title: string;
+  summary: string;
+  metadata_json: string | null;
+  created_at: number;
+  updated_at: number;
 };
 
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
@@ -814,7 +832,7 @@ export type CompetitorImportReviewMetadata = {
     matchedHelpfulHeaders: string[];
     matchedSignalLabels: string[];
     sourceChecklistItemIds: string[];
-    draftEntities: string[];
+    draftEntities: ImportDraftEntity[];
     usesItFor: string;
     reviewPrompt: string;
     rawSourceEchoed: false;
@@ -841,10 +859,58 @@ export type CompetitorImportReviewMetadata = {
   };
 };
 
+export type CompetitorImportPrivateRecord = {
+  id: string;
+  responseField: "importRecords";
+  privateRecordType: "competitor_import_private_record";
+  kind: ImportDraftEntity;
+  status: "private_draft" | "archived";
+  title: string;
+  summary: string;
+  importerPlatformId: string;
+  importerSlug: string;
+  platformName: string;
+  draftFunnelId: string;
+  tenantId: string;
+  ownerUserId: string | null;
+  draftEntities: ImportDraftEntity[];
+  sourceChecklistItemIds: string[];
+  recognizedPlatformExportMatchIds: string[];
+  matchedHeaderLabels: string[];
+  matchedSignalLabels: string[];
+  sourceUrlCount: number;
+  sourceFileNameCount: number;
+  exportFileCount: number;
+  parsedExportFileCount: number;
+  recordConfidence: "recognized_export_match" | "needs_more_context" | "source_guide";
+  goLiveEffects: {
+    publicPublishingEnabled: false;
+    liveCheckoutEnabled: false;
+    subscriberSendsEnabled: false;
+    customDomainsEnabled: false;
+    fulfillmentEnabled: false;
+  };
+  redaction: {
+    rawExportFilesIncluded: false;
+    rawFileNamesEchoed: false;
+    rawRowsEchoed: false;
+    rawTextEchoed: false;
+    rawSourceEchoed: false;
+    rawPastedMaterialIncludedInResponse: false;
+    customerRowsIncluded: false;
+    privateEmailsIncluded: false;
+    paymentCredentialsIncluded: false;
+    sessionCookiesIncluded: false;
+  };
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
 export type CompetitorImportedDraftResult = {
   draft: DraftFunnelRecord;
   duplicateReview: ImporterDuplicateReview;
   importReview: CompetitorImportReviewMetadata | null;
+  importRecords: CompetitorImportPrivateRecord[];
 };
 
 export type CompetitorImportedDraftRollbackResult = {
@@ -1102,6 +1168,282 @@ function importReviewForResult(
     privateDraftMetadataStored: reason === "created",
     privateDraftMetadataReason: reason,
   };
+}
+
+const competitorImportPrivateRecordKindOrder: ImportDraftEntity[] = [
+  "draft_funnel",
+  "draft_page_blocks",
+  "draft_checkout_offer",
+  "draft_product_catalog",
+  "draft_audience_import",
+  "draft_sequence_outline",
+  "asset_reference",
+];
+
+function competitorImportPrivateRecordLabel(kind: ImportDraftEntity) {
+  switch (kind) {
+    case "draft_funnel":
+      return "Funnel path record";
+    case "draft_page_blocks":
+      return "Page-block record";
+    case "draft_checkout_offer":
+      return "Offer and checkout record";
+    case "draft_product_catalog":
+      return "Product record";
+    case "draft_audience_import":
+      return "Audience record";
+    case "draft_sequence_outline":
+      return "Sequence record";
+    case "asset_reference":
+      return "Asset checklist record";
+  }
+}
+
+function competitorImportPrivateRecordSummary(kind: ImportDraftEntity, input: CompetitorImportedDraftInput, matchLabels: string[]) {
+  const platformName = compactImportText(input.platformName, 80) || "the previous platform";
+  const offerTitle = compactImportText(input.offerTitle, 120) || `${platformName} import plan`;
+  const matchedText = matchLabels.length
+    ? `Safe export match: ${matchLabels.slice(0, 3).join(", ")}.`
+    : "No recognized export shape was required for this private review area.";
+
+  switch (kind) {
+    case "draft_funnel":
+      return `Private funnel path record for ${offerTitle}. ${matchedText} Review the launch path before publishing.`;
+    case "draft_page_blocks":
+      return `Private page-block record for ${offerTitle}. ${matchedText} Rewrite and approve page copy before public use.`;
+    case "draft_checkout_offer":
+      return `Private offer and checkout record for ${offerTitle}. ${matchedText} Review price, bump, upsell, guarantee, and buyer promise before live checkout.`;
+    case "draft_product_catalog":
+      return `Private product record for ${offerTitle}. ${matchedText} Review delivery, access, files, and fulfillment boundaries before go-live.`;
+    case "draft_audience_import":
+      return `Private audience record for ${offerTitle}. ${matchedText} Review consent, segments, duplicates, and suppressions before any subscriber write or send.`;
+    case "draft_sequence_outline":
+      return `Private sequence record for ${offerTitle}. ${matchedText} Review message order and exclusions before any automation or broadcast runs.`;
+    case "asset_reference":
+      return `Private asset checklist record for ${offerTitle}. ${matchedText} Attach only owned files and references before public publishing or fulfillment.`;
+  }
+}
+
+function competitorImportRecordRedaction(): CompetitorImportPrivateRecord["redaction"] {
+  return {
+    rawExportFilesIncluded: false,
+    rawFileNamesEchoed: false,
+    rawRowsEchoed: false,
+    rawTextEchoed: false,
+    rawSourceEchoed: false,
+    rawPastedMaterialIncludedInResponse: false,
+    customerRowsIncluded: false,
+    privateEmailsIncluded: false,
+    paymentCredentialsIncluded: false,
+    sessionCookiesIncluded: false,
+  };
+}
+
+function competitorImportRecordGoLiveEffects(): CompetitorImportPrivateRecord["goLiveEffects"] {
+  return {
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
+  };
+}
+
+function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const stringArray = (value: unknown) =>
+    Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
+  const entityArray = (value: unknown) =>
+    stringArray(value).filter((item): item is ImportDraftEntity =>
+      (competitorImportPrivateRecordKindOrder as string[]).includes(item),
+    );
+
+  return {
+    id: row.id,
+    responseField: "importRecords",
+    privateRecordType: "competitor_import_private_record",
+    kind: row.record_kind,
+    status: row.status,
+    title: row.title,
+    summary: row.summary,
+    importerPlatformId: row.importer_platform_id,
+    importerSlug: row.importer_slug,
+    platformName: row.platform_name,
+    draftFunnelId: row.draft_funnel_id,
+    tenantId: row.tenant_id,
+    ownerUserId: row.owner_user_id,
+    draftEntities: entityArray(metadata.draftEntities).length ? entityArray(metadata.draftEntities) : [row.record_kind],
+    sourceChecklistItemIds: stringArray(metadata.sourceChecklistItemIds),
+    recognizedPlatformExportMatchIds: stringArray(metadata.recognizedPlatformExportMatchIds),
+    matchedHeaderLabels: stringArray(metadata.matchedHeaderLabels),
+    matchedSignalLabels: stringArray(metadata.matchedSignalLabels),
+    sourceUrlCount: typeof metadata.sourceUrlCount === "number" ? metadata.sourceUrlCount : 0,
+    sourceFileNameCount: typeof metadata.sourceFileNameCount === "number" ? metadata.sourceFileNameCount : 0,
+    exportFileCount: typeof metadata.exportFileCount === "number" ? metadata.exportFileCount : 0,
+    parsedExportFileCount: typeof metadata.parsedExportFileCount === "number" ? metadata.parsedExportFileCount : 0,
+    recordConfidence:
+      metadata.recordConfidence === "recognized_export_match" ||
+      metadata.recordConfidence === "needs_more_context" ||
+      metadata.recordConfidence === "source_guide"
+        ? metadata.recordConfidence
+        : "source_guide",
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+    createdAt: isoFromSeconds(row.created_at),
+    updatedAt: isoFromSeconds(row.updated_at),
+  };
+}
+
+async function loadCompetitorImportPrivateRecords(db: D1Database, draftFunnelId: string) {
+  const rows = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE draft_funnel_id = ?
+       ORDER BY updated_at DESC`,
+    )
+    .bind(draftFunnelId)
+    .all<D1CompetitorImportPrivateRecordRow>();
+
+  const order = new Map<ImportDraftEntity, number>(
+    competitorImportPrivateRecordKindOrder.map((recordKind, index) => [recordKind, index]),
+  );
+  return (rows.results ?? [])
+    .map(competitorImportPrivateRecordFromRow)
+    .sort((left, right) => (order.get(left.kind) ?? 99) - (order.get(right.kind) ?? 99));
+}
+
+function uniqueImportDraftEntities(values: ImportDraftEntity[]) {
+  return Array.from(new Set(values)).filter((value) => competitorImportPrivateRecordKindOrder.includes(value));
+}
+
+function competitorImportPrivateRecordInputs(
+  draft: DraftFunnelRecord,
+  input: CompetitorImportedDraftInput,
+  importReview: CompetitorImportReviewMetadata | null,
+) {
+  const importer = getImporterBySlug(input.importerSlug);
+  const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
+  const recognizedMatches = importReview?.platformExportMatches.filter((match) => match.status === "recognized") ?? [];
+  const contextualMatches = recognizedMatches.length
+    ? recognizedMatches
+    : (importReview?.platformExportMatches.filter((match) => match.status === "needs_more_context") ?? []);
+  const platformEntities = uniqueImportDraftEntities(importer?.importableAreas.flatMap((area) => area.draftEntities) ?? []);
+  const matchedEntities = uniqueImportDraftEntities(contextualMatches.flatMap((match) => match.draftEntities));
+  const recordKinds = matchedEntities.length ? matchedEntities : platformEntities;
+  const recognizedMatchIds = recognizedMatches.map((match) => match.id);
+  const exportFileAnalysis = importReview?.exportFileAnalysis;
+
+  return recordKinds.map((kind) => {
+    const relatedMatches = contextualMatches.filter((match) => match.draftEntities.includes(kind));
+    const matchLabels = relatedMatches.map((match) => match.label);
+    const matchedHeaderLabels = Array.from(
+      new Set(relatedMatches.flatMap((match) => [...match.matchedRequiredHeaders, ...match.matchedHelpfulHeaders])),
+    );
+    const matchedSignalLabels = Array.from(new Set(relatedMatches.flatMap((match) => match.matchedSignalLabels)));
+    const sourceChecklistItemIds = Array.from(new Set(relatedMatches.flatMap((match) => match.sourceChecklistItemIds)));
+    const recordConfidence =
+      relatedMatches.some((match) => match.status === "recognized")
+        ? "recognized_export_match"
+        : relatedMatches.length
+          ? "needs_more_context"
+          : "source_guide";
+
+    return {
+      kind,
+      title: `${platformName} ${competitorImportPrivateRecordLabel(kind)}`,
+      summary: competitorImportPrivateRecordSummary(kind, input, matchLabels),
+      metadata: {
+        sourceIssueNumber: importerIssue,
+        privateRecordType: "competitor_import_private_record",
+        importerPlatformId: importer?.id ?? `importer-${input.importerSlug}`,
+        importerSlug: input.importerSlug,
+        platformName,
+        tenantId: input.tenantId,
+        draftFunnelId: draft.id,
+        ownerUserId: draft.ownerUserId,
+        draftEntities: [kind],
+        sourceChecklistItemIds,
+        recognizedPlatformExportMatchIds: recognizedMatchIds,
+        relatedPlatformExportMatchIds: relatedMatches.map((match) => match.id),
+        matchedHeaderLabels,
+        matchedSignalLabels,
+        sourceUrlCount: input.sourceUrls.length,
+        sourceFileNameCount: input.sourceFileNames.length,
+        exportFileCount: exportFileAnalysis?.fileCount ?? 0,
+        parsedExportFileCount: exportFileAnalysis?.parsedFileCount ?? 0,
+        recordConfidence,
+        responseField: "importRecords",
+        privateDraftOnly: true,
+        publicSourceDataExposesContent: false,
+        publicPublishingEnabled: false,
+        liveCheckoutEnabled: false,
+        subscriberSendsEnabled: false,
+        customDomainsEnabled: false,
+        fulfillmentEnabled: false,
+        rawExportStored: false,
+        rawExportRowsStored: false,
+        rawExportTextStored: false,
+        rawExportFileNamesStored: false,
+        rawSourceEchoed: false,
+        rawPastedMaterialIncludedInResponse: false,
+        customerRowsStored: false,
+        privateEmailsStored: false,
+        paymentCredentialsStored: false,
+        sessionCookiesStored: false,
+      },
+    };
+  });
+}
+
+async function upsertCompetitorImportPrivateRecords(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  draft: DraftFunnelRecord,
+  input: CompetitorImportedDraftInput,
+  importReview: CompetitorImportReviewMetadata | null,
+) {
+  const importer = getImporterBySlug(input.importerSlug);
+  const importerPlatformId = importer?.id ?? `importer-${input.importerSlug}`;
+  const platformName = compactImportText(input.platformName, 80) || importer?.platformName || "current platform";
+  const records = competitorImportPrivateRecordInputs(draft, input, importReview);
+
+  for (const record of records) {
+    await db
+      .prepare(
+        `INSERT INTO competitor_import_private_records (
+          id, tenant_id, draft_funnel_id, owner_user_id, importer_platform_id, importer_slug,
+          platform_name, record_kind, status, title, summary, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'private_draft', ?, ?, ?, unixepoch(), unixepoch())
+        ON CONFLICT(draft_funnel_id, record_kind) DO UPDATE SET
+          tenant_id = excluded.tenant_id,
+          owner_user_id = excluded.owner_user_id,
+          importer_platform_id = excluded.importer_platform_id,
+          importer_slug = excluded.importer_slug,
+          platform_name = excluded.platform_name,
+          status = excluded.status,
+          title = excluded.title,
+          summary = excluded.summary,
+          metadata_json = excluded.metadata_json,
+          updated_at = excluded.updated_at`,
+      )
+      .bind(
+        runtimeId("competitor-import-private-record"),
+        input.tenantId,
+        draft.id,
+        owner.userId,
+        importerPlatformId,
+        input.importerSlug,
+        platformName,
+        record.kind,
+        record.title,
+        record.summary,
+        JSON.stringify(record.metadata),
+      )
+      .run();
+  }
+
+  return loadCompetitorImportPrivateRecords(db, draft.id);
 }
 
 async function findImporterSourceMatchDraft(
@@ -1495,6 +1837,7 @@ export async function createCompetitorImportedDraftFunnel(
         sourceFileNameCompared: input.sourceFileNames.length > 0,
       }),
       importReview: importReviewForResult(input.importReview, "idempotent_replay"),
+      importRecords: await loadCompetitorImportPrivateRecords(db, replay.id),
     };
   }
 
@@ -1550,6 +1893,7 @@ export async function createCompetitorImportedDraftFunnel(
         sourceFileNameCompared: normalizedSourceFileNames.length > 0,
       }),
       importReview: importReviewForResult(input.importReview, "source_match_reused"),
+      importRecords: await loadCompetitorImportPrivateRecords(db, sourceMatch.draft.id),
     };
   }
 
@@ -1574,6 +1918,7 @@ export async function createCompetitorImportedDraftFunnel(
   };
 
   const storedImportReview = importReviewForResult(input.importReview, "created");
+  const plannedImportRecordKinds = competitorImportPrivateRecordInputs(draft, input, storedImportReview).map((record) => record.kind);
   const persisted = await persistDraft(
     db,
     draft,
@@ -1594,6 +1939,8 @@ export async function createCompetitorImportedDraftFunnel(
       importReview: storedImportReview,
       privateDraftImportReviewStored: Boolean(storedImportReview),
       recognizedPlatformExportMatchIds: storedImportReview?.recognizedPlatformExportMatchIds ?? [],
+      privateStructuredImportRecordsPlanned: plannedImportRecordKinds.length,
+      privateStructuredImportRecordKinds: plannedImportRecordKinds,
       sourceUrlCount: input.sourceUrls.length,
       sourceFileNameCount: input.sourceFileNames.length,
       sourceUrls: input.sourceUrls,
@@ -1616,6 +1963,7 @@ export async function createCompetitorImportedDraftFunnel(
       sessionCookiesStored: false,
     },
   );
+  const importRecords = await upsertCompetitorImportPrivateRecords(db, owner, persisted, input, storedImportReview);
 
   return {
     draft: persisted,
@@ -1624,6 +1972,7 @@ export async function createCompetitorImportedDraftFunnel(
       sourceFileNameCompared: normalizedSourceFileNames.length > 0,
     }),
     importReview: storedImportReview,
+    importRecords,
   };
 }
 
