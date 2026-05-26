@@ -300,6 +300,7 @@ import { featureCatalog } from "../src/lib/feature-catalog";
 import { marketingFeatures } from "../src/lib/marketing-features";
 import {
   draftFunnelArchiveConfirmationText,
+  draftFunnelBulkPurgeConfirmationText,
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
@@ -326,6 +327,7 @@ import {
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
   draftFunnelBlockVisualStyleCapability,
+  draftFunnelBulkPurgeCapability,
   draftFunnelDuplicationCapability,
   draftFunnelPurgeCapability,
   draftFunnelResourceDeliveryLinkCapability,
@@ -2821,6 +2823,29 @@ test.describe("Bumpgrade scaffold", () => {
         rawOwnerDataIncluded: false,
       }),
     );
+    expect(payload.draftFunnelBulkPurgeCapability).toEqual(
+      expect.objectContaining({
+        id: draftFunnelBulkPurgeCapability.id,
+        status: "owner-session-archived-bulk-purge-ready",
+        issue: 417,
+        parentIssue: 14,
+        adminRoute: "/admin/funnels",
+        editEndpoint: "/api/admin/funnels/drafts",
+        agentEndpoint: agentFunnelDraftWriteApiRoute,
+        auth: "owner-session",
+        confirmationRequired: true,
+        idempotencyRequired: true,
+        staleRevisionRequiredPerDraft: true,
+        allowedPreviousStatuses: expect.arrayContaining(["archived"]),
+        maxDraftsPerRequest: 12,
+        validatesAllTargetsBeforeDelete: true,
+        tombstonePerDraft: true,
+        deletesDraftRows: true,
+        deletesStepRows: true,
+        deletesAuditRows: false,
+        rawOwnerDataIncluded: false,
+      }),
+    );
     expect(payload.templateDraftCreationCapability).toEqual(
       expect.objectContaining({
         id: templateDraftCreationCapability.id,
@@ -3103,6 +3128,22 @@ test.describe("Bumpgrade scaffold", () => {
           deletesBuyerRecords: false,
           deletesAuditRows: false,
         }),
+        expect.objectContaining({
+          id: "bulk-purge-archived-drafts",
+          requiresTargets: true,
+          targetShape: expect.arrayContaining(["draftId", "expectedRevisionId"]),
+          requiresArchivedStatus: true,
+          recordsTombstonePerDraft: true,
+          validatesAllTargetsBeforeDelete: true,
+          maxDraftsPerRequest: 12,
+          publicRouteMutation: false,
+          liveBillingMutation: false,
+          deletesProductAssets: false,
+          deletesR2Objects: false,
+          deletesBuyerRecords: false,
+          deletesAuditRows: false,
+          purgesNonArchivedDrafts: false,
+        }),
       ]),
     );
     expect(payload.templateLibraryIssue).toBe(159);
@@ -3122,6 +3163,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelDraftDuplicateId",
         "funnelDraftArchiveId",
         "funnelDraftPurgeId",
+        "funnelDraftBulkPurgeId",
         "funnelPurgeEventId",
         "agentFunnelDraftWriteId",
         "agentFunnelDraftWriteOperationId",
@@ -3148,6 +3190,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.caveat).toContain("owner-session visual style controls");
     expect(payload.caveat).toContain("owner-session block reordering");
     expect(payload.caveat).toContain("bounded owner-session canvas layout controls");
+    expect(payload.caveat).toContain("owner-confirmed bulk archived-draft purge");
     expect(payload.caveat).toContain("owner-confirmed direct agent public publishing");
     expect(payload.templates).toEqual(
       expect.arrayContaining([
@@ -3961,6 +4004,98 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(purgePayload)).not.toContain("m@rkmoriarty.com");
+
+    const duplicateForAgentBulkPurge = async (label: string) => {
+      const response = await page.request.post(agentFunnelDraftWriteApiRoute, {
+        data: {
+          operationId: "duplicate-draft",
+          draftId: draft.id,
+          title: `Agent bulk purge ${label} ${suffix}`,
+          expectedRevisionId: resourceLinkPayload.draft.revisionId,
+          confirmationText: agentFunnelDraftWriteConfirmationText,
+          idempotencyKey: `playwright-agent-funnel-bulk-duplicate-${label}-${suffix}`,
+          auditCorrelationId: `playwright-agent-funnel-bulk-duplicate-audit-${label}-${suffix}`,
+        },
+      });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      const payload = await response.json();
+      return payload.draft as { id: string; slug: string; title: string; revisionId: string; status: string };
+    };
+
+    const archiveForAgentBulkPurge = async (targetDraft: { id: string; revisionId: string }, label: string) => {
+      const response = await page.request.post(agentFunnelDraftWriteApiRoute, {
+        data: {
+          operationId: "archive-draft",
+          draftId: targetDraft.id,
+          expectedRevisionId: targetDraft.revisionId,
+          confirmationText: agentFunnelDraftWriteConfirmationText,
+          idempotencyKey: `playwright-agent-funnel-bulk-archive-${label}-${suffix}`,
+          auditCorrelationId: `playwright-agent-funnel-bulk-archive-audit-${label}-${suffix}`,
+        },
+      });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      const payload = await response.json();
+      return payload.draft as { id: string; slug: string; title: string; revisionId: string; status: string };
+    };
+
+    const agentBulkDraftA = await archiveForAgentBulkPurge(await duplicateForAgentBulkPurge("a"), "a");
+    const agentBulkDraftB = await archiveForAgentBulkPurge(await duplicateForAgentBulkPurge("b"), "b");
+    const bulkAuditCorrelationId = `playwright-agent-funnel-bulk-purge-audit-${suffix}`;
+    const bulkPurge = await page.request.post(agentFunnelDraftWriteApiRoute, {
+      data: {
+        operationId: "bulk-purge-archived-drafts",
+        targets: [
+          { draftId: agentBulkDraftA.id, expectedRevisionId: agentBulkDraftA.revisionId },
+          { draftId: agentBulkDraftB.id, expectedRevisionId: agentBulkDraftB.revisionId },
+        ],
+        confirmationText: agentFunnelDraftWriteConfirmationText,
+        idempotencyKey: `playwright-agent-funnel-bulk-purge-${suffix}`,
+        auditCorrelationId: bulkAuditCorrelationId,
+      },
+    });
+    expect(bulkPurge.ok(), await bulkPurge.text()).toBeTruthy();
+    const bulkPurgePayload = await bulkPurge.json();
+    expect(bulkPurgePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "agent_funnel_draft_write_recorded",
+        operationId: "bulk-purge-archived-drafts",
+        auditCorrelationId: bulkAuditCorrelationId,
+        bulkPurge: expect.objectContaining({
+          requestedDraftCount: 2,
+          purgedDraftCount: 2,
+          idempotentReplayCount: 0,
+          actorEmailIncluded: false,
+          idempotencyKeyIncluded: false,
+          rawRowsIncluded: false,
+          metadata: expect.objectContaining({
+            action: "archived_draft_bulk_purge",
+            directAgentWrite: true,
+            directAgentSafeWrite: true,
+            publicAgentWrite: false,
+            deletedDraftRows: true,
+            deletedStepRows: true,
+            deletedAuditRows: false,
+            deletedProductAssets: false,
+            deletedR2Objects: false,
+            deletedBuyerRecords: false,
+            nonArchivedDraftsPurged: false,
+          }),
+          purges: expect.arrayContaining([
+            expect.objectContaining({ draftId: agentBulkDraftA.id, actorEmailIncluded: false }),
+            expect.objectContaining({ draftId: agentBulkDraftB.id, actorEmailIncluded: false }),
+          ]),
+        }),
+        redaction: expect.objectContaining({
+          ownerEmailIncluded: false,
+          idempotencyKeyIncluded: false,
+          rawRowsIncluded: false,
+          billingMutationCreated: false,
+          publicAgentWriteCreated: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(bulkPurgePayload)).not.toContain("m@rkmoriarty.com");
   });
 
   test("funnel draft purge endpoint rejects unauthenticated writes", async ({ request }) => {
@@ -22126,6 +22261,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-duplicate-funnel-draft", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-archive-funnel-draft", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-bulk-purge-funnel-drafts", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-propose-update", status: "planned" }),
       ]),
     );
@@ -22181,6 +22317,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "funnelResourceDeliveryTokenId",
+            "funnelDraftBulkPurgeId",
             "agentFunnelDraftWriteId",
             "agentFunnelDraftWriteOperationId",
             "agentFunnelResourceDeliveryTokenId",
@@ -22199,7 +22336,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session bounded canvas layout controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
             "Discover owner-session drag/drop block placement through existing move endpoints from issue #417",
-            "Discover owner-session direct agent-safe draft writes for block copy edits, visual style presets, bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, archive/unpublish, and archived-draft purge from issue #417",
+            "Discover owner-session direct agent-safe draft writes for block copy edits, visual style presets, bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, private duplication, public publishing, archive/unpublish, archived-draft purge, and bulk archived-draft purge from issue #417",
             "Discover owner-session granular draft block editing from issue #430",
             "Discover owner-session draft block add/remove controls from issue #432",
             "Discover aggregate owner-created product delivery-gate links from issue #409",
@@ -22212,6 +22349,7 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining([
             "funnelDraftDuplicateId",
             "funnelDraftArchiveId",
+            "funnelDraftBulkPurgeId",
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "funnelDraftBlockVisualStyleId",
@@ -29976,8 +30114,144 @@ test.describe("Bumpgrade scaffold", () => {
     const purgeReplayPayload = await purgeReplay.json();
     expect(purgeReplayPayload.purge).toEqual(purgePayload.purge);
 
+    const duplicateForBulkPurge = async (label: string) => {
+      const response = await page.request.post("/api/admin/funnels/drafts", {
+        headers: { accept: "application/json" },
+        form: {
+          mode: "duplicate",
+          draftId: "funnel-draft-indie-launch-working-copy",
+          title: `Bulk purge ${label} ${Date.now()}`,
+          expectedRevisionId: resourceDeliveryLinkPayload.draft.revisionId,
+          confirmationText: draftFunnelDuplicationConfirmationText,
+          idempotencyKey: `playwright-bulk-purge-duplicate-${label}-${Date.now()}`,
+          return: "json",
+        },
+      });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      const payload = await response.json();
+      return payload.draft as { id: string; slug: string; title: string; revisionId: string; status: string };
+    };
+
+    const archiveForBulkPurge = async (draft: { id: string; revisionId: string }, label: string) => {
+      const response = await page.request.post("/api/admin/funnels/drafts", {
+        headers: { accept: "application/json" },
+        form: {
+          mode: "archive",
+          draftId: draft.id,
+          expectedRevisionId: draft.revisionId,
+          confirmationText: draftFunnelArchiveConfirmationText,
+          idempotencyKey: `playwright-bulk-purge-archive-${label}-${Date.now()}`,
+          return: "json",
+        },
+      });
+      expect(response.ok(), await response.text()).toBeTruthy();
+      const payload = await response.json();
+      return payload.draft as { id: string; slug: string; title: string; revisionId: string; status: string };
+    };
+
+    const bulkDraftOne = await duplicateForBulkPurge("one");
+    const archivedBulkDraftOne = await archiveForBulkPurge(bulkDraftOne, "one");
+    const bulkDraftTwo = await duplicateForBulkPurge("two");
+    const invalidBulkPurgeResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "bulk-purge-archived-drafts",
+        bulkTargetsJson: JSON.stringify([
+          { draftId: archivedBulkDraftOne.id, expectedRevisionId: archivedBulkDraftOne.revisionId },
+          { draftId: bulkDraftTwo.id, expectedRevisionId: bulkDraftTwo.revisionId },
+        ]),
+        confirmationText: draftFunnelBulkPurgeConfirmationText,
+        idempotencyKey: `playwright-bulk-purge-invalid-${Date.now()}`,
+        return: "json",
+      },
+    });
+    expect(invalidBulkPurgeResponse.status()).toBe(503);
+    await expect(invalidBulkPurgeResponse.json()).resolves.toEqual(
+      expect.objectContaining({ error: expect.stringContaining("Only archived") }),
+    );
+
+    const archivedBulkDraftTwo = await archiveForBulkPurge(bulkDraftTwo, "two");
+    const bulkPurgeIdempotencyKey = `playwright-bulk-purge-archived-drafts-${Date.now()}`;
+    const bulkPurgeTargets = [
+      { draftId: archivedBulkDraftOne.id, expectedRevisionId: archivedBulkDraftOne.revisionId },
+      { draftId: archivedBulkDraftTwo.id, expectedRevisionId: archivedBulkDraftTwo.revisionId },
+    ];
+    const bulkPurgeResponse = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "bulk-purge-archived-drafts",
+        bulkTargetsJson: JSON.stringify(bulkPurgeTargets),
+        confirmationText: draftFunnelBulkPurgeConfirmationText,
+        idempotencyKey: bulkPurgeIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(bulkPurgeResponse.ok(), await bulkPurgeResponse.text()).toBeTruthy();
+    const bulkPurgePayload = await bulkPurgeResponse.json();
+    expect(bulkPurgePayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        mode: "bulk-purge-archived-drafts",
+        bulkPurge: expect.objectContaining({
+          requestedDraftCount: 2,
+          purgedDraftCount: 2,
+          idempotentReplayCount: 0,
+          idempotencyKey: bulkPurgeIdempotencyKey,
+          metadata: expect.objectContaining({
+            issue: 417,
+            parentIssue: 14,
+            action: "archived_draft_bulk_purge",
+            requestedDraftCount: 2,
+            purgedDraftCount: 2,
+            deletedDraftRows: true,
+            deletedStepRows: true,
+            deletedAuditRows: false,
+            deletedProductAssets: false,
+            deletedR2Objects: false,
+            deletedBuyerRecords: false,
+            nonArchivedDraftsPurged: false,
+            directAgentWrite: false,
+          }),
+          purges: expect.arrayContaining([
+            expect.objectContaining({
+              draftId: archivedBulkDraftOne.id,
+              previousRevisionId: archivedBulkDraftOne.revisionId,
+              metadata: expect.objectContaining({ action: "archived_draft_purge" }),
+            }),
+            expect.objectContaining({
+              draftId: archivedBulkDraftTwo.id,
+              previousRevisionId: archivedBulkDraftTwo.revisionId,
+              metadata: expect.objectContaining({ action: "archived_draft_purge" }),
+            }),
+          ]),
+        }),
+      }),
+    );
+
+    const bulkPurgeReplay = await page.request.post("/api/admin/funnels/drafts", {
+      headers: { accept: "application/json" },
+      form: {
+        mode: "bulk-purge-archived-drafts",
+        bulkTargetsJson: JSON.stringify(bulkPurgeTargets),
+        confirmationText: draftFunnelBulkPurgeConfirmationText,
+        idempotencyKey: bulkPurgeIdempotencyKey,
+        return: "json",
+      },
+    });
+    expect(bulkPurgeReplay.ok(), await bulkPurgeReplay.text()).toBeTruthy();
+    const bulkPurgeReplayPayload = await bulkPurgeReplay.json();
+    expect(bulkPurgeReplayPayload.bulkPurge).toEqual(
+      expect.objectContaining({
+        requestedDraftCount: 2,
+        purgedDraftCount: 2,
+        idempotentReplayCount: 2,
+      }),
+    );
+
     await page.goto("/admin/funnels");
     await expect(page.getByRole("article").filter({ hasText: duplicatePayload.draft.id })).toHaveCount(0);
+    await expect(page.getByRole("article").filter({ hasText: archivedBulkDraftOne.id })).toHaveCount(0);
+    await expect(page.getByRole("article").filter({ hasText: archivedBulkDraftTwo.id })).toHaveCount(0);
 
     const staleCheckoutLinkResponse = await page.request.post("/api/admin/funnels/drafts", {
       headers: { accept: "application/json" },

@@ -4,7 +4,9 @@ import { getSessionAdminState } from "@/lib/admin-auth";
 import {
   addDraftFunnelBlock,
   archiveDraftFunnel,
+  bulkPurgeArchivedDraftFunnels,
   draftFunnelArchiveConfirmationText,
+  draftFunnelBulkPurgeConfirmationText,
   draftFunnelCheckoutLinkConfirmationText,
   draftFunnelCheckoutUnlinkConfirmationText,
   draftFunnelDuplicationConfirmationText,
@@ -26,6 +28,7 @@ import {
   updateDraftFunnelBlock,
   updateDraftFunnelBlockCanvasLayout,
   updateDraftFunnelBlockVisualStyle,
+  type DraftFunnelBulkPurgeResult,
   type DraftFunnelPurgeResult,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
@@ -64,6 +67,7 @@ type AgentFunnelDraftWriteRequestBody = {
   title?: unknown;
   body?: unknown;
   expectedRevisionId?: unknown;
+  targets?: unknown;
   confirmationText?: unknown;
   idempotencyKey?: unknown;
   auditCorrelationId?: unknown;
@@ -135,6 +139,33 @@ function redactedPurgeSummary(purge: DraftFunnelPurgeResult) {
   };
 }
 
+function redactedBulkPurgeSummary(bulkPurge: DraftFunnelBulkPurgeResult) {
+  return {
+    id: bulkPurge.id,
+    requestedDraftCount: bulkPurge.requestedDraftCount,
+    purgedDraftCount: bulkPurge.purgedDraftCount,
+    idempotentReplayCount: bulkPurge.idempotentReplayCount,
+    purges: bulkPurge.purges.map(redactedPurgeSummary),
+    metadata: bulkPurge.metadata,
+    createdAt: bulkPurge.createdAt,
+    actorEmailIncluded: false,
+    idempotencyKeyIncluded: false,
+    rawRowsIncluded: false,
+  };
+}
+
+function bulkPurgeTargets(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((target) => {
+    if (!target || typeof target !== "object" || Array.isArray(target)) return [];
+    const record = target as Record<string, unknown>;
+    const draftId = stringValue(record.draftId, 220);
+    const expectedRevisionId = stringValue(record.expectedRevisionId, 260);
+    return draftId && expectedRevisionId ? [{ draftId, expectedRevisionId }] : [];
+  });
+}
+
 function jsonError(status: number, code: string, message: string, extra?: Record<string, unknown>) {
   return NextResponse.json({ ok: false, code, message, redaction: redaction(), ...(extra ?? {}) }, { status });
 }
@@ -194,6 +225,7 @@ export async function POST(request: NextRequest) {
   const auditCorrelationId = stringValue(body.auditCorrelationId, 220);
   const expectedRevisionId = stringValue(body.expectedRevisionId, 260);
   const draftId = stringValue(body.draftId, 220);
+  const isBulkPurge = operationId === "bulk-purge-archived-drafts";
 
   if (!agentFunnelDraftWriteOperationIds.includes(operationId as (typeof agentFunnelDraftWriteOperationIds)[number])) {
     return jsonError(400, "unsupported_operation", "Choose a supported agent funnel draft write operation.", {
@@ -201,11 +233,13 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (!draftId || !expectedRevisionId || !idempotencyKey || !auditCorrelationId) {
+  if (!idempotencyKey || !auditCorrelationId || (!isBulkPurge && (!draftId || !expectedRevisionId))) {
     return jsonError(
       400,
       "invalid_request",
-      "draftId, expectedRevisionId, idempotencyKey, and auditCorrelationId are required.",
+      isBulkPurge
+        ? "idempotencyKey and auditCorrelationId are required."
+        : "draftId, expectedRevisionId, idempotencyKey, and auditCorrelationId are required.",
     );
   }
 
@@ -222,9 +256,17 @@ export async function POST(request: NextRequest) {
     const db = await getFunnelDraftD1OrThrow();
     let draft: DraftFunnelRecord | null = null;
     let purge: DraftFunnelPurgeResult | null = null;
+    let bulkPurge: DraftFunnelBulkPurgeResult | null = null;
     let publicRouteMutationCreated = false;
 
-    if (operationId === "update-block") {
+    if (operationId === "bulk-purge-archived-drafts") {
+      bulkPurge = await bulkPurgeArchivedDraftFunnels(db, adminState.identity, {
+        targets: bulkPurgeTargets(body.targets),
+        confirmationText: draftFunnelBulkPurgeConfirmationText,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+    } else if (operationId === "update-block") {
       const stepId = stringValue(body.stepId, 220);
       const blockId = stringValue(body.blockId, 220);
       const title = stringValue(body.title, 140);
@@ -532,6 +574,22 @@ export async function POST(request: NextRequest) {
           route: agentFunnelDraftWriteApiRoute,
           auditCorrelationId,
           purge: redactedPurgeSummary(purge),
+          redaction: redaction(),
+        },
+        { status: 201 },
+      );
+    }
+
+    if (bulkPurge) {
+      return NextResponse.json(
+        {
+          ok: true,
+          status: "agent_funnel_draft_write_recorded",
+          operationId,
+          issue: agentFunnelDraftWriteIssue,
+          route: agentFunnelDraftWriteApiRoute,
+          auditCorrelationId,
+          bulkPurge: redactedBulkPurgeSummary(bulkPurge),
           redaction: redaction(),
         },
         { status: 201 },
