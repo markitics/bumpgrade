@@ -4892,6 +4892,51 @@ export const competitorImportPrivateRecords = sqliteTable(
   }),
 );
 
+export const competitorImportSubscriberRecords = sqliteTable(
+  "competitor_import_subscriber_records",
+  {
+    id: text("id").primaryKey(),
+    tenantId: text("tenant_id")
+      .notNull()
+      .references(() => publisherTenants.id, { onDelete: "cascade" }),
+    draftFunnelId: text("draft_funnel_id")
+      .notNull()
+      .references(() => funnelDrafts.id, { onDelete: "cascade" }),
+    importRecordId: text("import_record_id")
+      .notNull()
+      .references(() => competitorImportPrivateRecords.id, { onDelete: "cascade" }),
+    ownerUserId: text("owner_user_id").references(() => user.id, { onDelete: "set null" }),
+    importerPlatformId: text("importer_platform_id").notNull(),
+    importerSlug: text("importer_slug").notNull(),
+    platformName: text("platform_name").notNull(),
+    email: text("email").notNull(),
+    emailHash: text("email_hash").notNull(),
+    firstName: text("first_name"),
+    sourceStatus: text("source_status"),
+    status: text("status").notNull().default("private_imported_pending_review"),
+    sourceTagsJson: text("source_tags_json"),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    recordEmailUnique: uniqueIndex("competitor_import_subscriber_records_record_email_unique").on(
+      table.importRecordId,
+      table.emailHash,
+    ),
+    tenantImporterStatusIdx: index("competitor_import_subscriber_records_tenant_importer_status_idx").on(
+      table.tenantId,
+      table.importerPlatformId,
+      table.status,
+      table.updatedAt,
+    ),
+    draftRecordIdx: index("competitor_import_subscriber_records_draft_record_idx").on(
+      table.draftFunnelId,
+      table.importRecordId,
+    ),
+  }),
+);
+
 export const codexOutboundMessages = sqliteTable(
   "codex_outbound_messages",
   {

@@ -449,6 +449,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
   importerSourceData,
@@ -1209,9 +1210,16 @@ test.describe("Bumpgrade scaffold", () => {
           "ready_for_import_planning",
           "needs_cleanup",
         ]),
+        subscriberImportCreationResponseField: "subscriberImportCreation",
+        subscriberImportCreationActionLive: true,
+        subscriberImportCreationActionRouteField: "privateRecordReviewActionApiRoute",
+        subscriberImportCreationAppliesTo: expect.arrayContaining(["draft_audience_import"]),
+        subscriberImportCreationStatusValues: expect.arrayContaining(["not_created", "subscriber_records_created"]),
         storesSafeSubscriberImportDepth: true,
         storesSubscriberImportPreflightMetadata: true,
-        createsSubscriberRows: false,
+        storesPrivateSubscriberImportRecords: true,
+        createsSubscriberRows: true,
+        createsGlobalAudienceSubscriberRows: false,
         createsSequenceEnrollments: false,
         emailDeliveryEnabled: false,
         exportEnabled: false,
@@ -1242,6 +1250,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.privateStructuredImportRecordFieldEditingLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberImportDepthLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberImportPreflightActionsLive).toBe(true);
+    expect(payload.currentAvailability.privateSubscriberImportCreationLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1326,9 +1335,14 @@ test.describe("Bumpgrade scaffold", () => {
             subscriberImportPreflightResponseField: "subscriberImportPreflight",
             subscriberImportPreflightActionLive: true,
             subscriberImportPreflightActionRouteField: "privateRecordReviewActionApiRoute",
+            subscriberImportCreationResponseField: "subscriberImportCreation",
+            subscriberImportCreationActionLive: true,
+            subscriberImportCreationActionRouteField: "privateRecordReviewActionApiRoute",
             storesSafeSubscriberImportDepth: true,
             storesSubscriberImportPreflightMetadata: true,
-            createsSubscriberRows: false,
+            storesPrivateSubscriberImportRecords: true,
+            createsSubscriberRows: true,
+            createsGlobalAudienceSubscriberRows: false,
             createsSequenceEnrollments: false,
             emailDeliveryEnabled: false,
             exportEnabled: false,
@@ -1349,6 +1363,7 @@ test.describe("Bumpgrade scaffold", () => {
               "extractedFields",
               "subscriberImportDepth",
               "subscriberImportPreflight",
+              "subscriberImportCreation",
             ]),
             actions: expect.arrayContaining([
               expect.objectContaining({
@@ -1369,17 +1384,24 @@ test.describe("Bumpgrade scaffold", () => {
                 action: "record_subscriber_import_preflight",
                 responseField: "subscriberImportPreflight",
               }),
+              expect.objectContaining({
+                action: "create_subscriber_import_records",
+                responseField: "subscriberImportCreation",
+                confirmationText: importerPrivateRecordSubscriberImportConfirmationText("ClickFunnels"),
+              }),
             ]),
             writes: expect.arrayContaining([
               "record_review_decision_metadata",
               "extracted_field_plan_metadata",
               "subscriber_import_preflight_metadata",
+              "private_subscriber_import_records",
             ]),
             idempotencyRequired: true,
             rawRowsEchoed: false,
             rawTextEchoed: false,
             rawExtractedValuesStored: false,
-            subscriberRowsCreated: false,
+            subscriberRowsCreated: true,
+            globalAudienceSubscriberRowsCreated: false,
             sequenceEnrollmentsCreated: false,
             subscriberSendsEnabled: false,
             privateExportsEnabled: false,
@@ -30972,7 +30994,7 @@ test.describe("Bumpgrade scaffold", () => {
 
     const kitDraftImportApiRoute = importerDraftImportApiRoute("kit");
     const kitPrivateExportCsv = Buffer.from(
-      "email,tags,status,created_at\nprivate-subscriber@example.com,PRIVATE_TAG,subscribed,2026-05-25\n",
+      `email,tags,status,created_at\nprivate-subscriber-${suffix}@example.com,PRIVATE_TAG,subscribed,2026-05-25\n`,
     );
     const kitPrivateManifest = "sequence_name,last_sent_at\nPRIVATE_SEQUENCE,2026-05-25\n";
     const kitResponse = await page.request.post(kitDraftImportApiRoute, {
@@ -31068,7 +31090,7 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(kitAudienceRecord?.id).toBeTruthy();
-    expect(JSON.stringify(kitPayload)).not.toContain("private-subscriber@example.com");
+    expect(JSON.stringify(kitPayload)).not.toContain(`private-subscriber-${suffix}@example.com`);
     expect(JSON.stringify(kitPayload)).not.toContain("PRIVATE_TAG");
     expect(JSON.stringify(kitPayload)).not.toContain("PRIVATE_SEQUENCE");
     expect(JSON.stringify(kitPayload)).not.toContain("private-kit-subscribers.csv");
@@ -31083,7 +31105,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("Subscriber or customer column").first()).toBeVisible();
     await expect(page.getByText("Tag or segment column").first()).toBeVisible();
     const kitReviewBody = await page.locator("body").innerText();
-    expect(kitReviewBody).not.toContain("private-subscriber@example.com");
+    expect(kitReviewBody).not.toContain(`private-subscriber-${suffix}@example.com`);
     expect(kitReviewBody).not.toContain("PRIVATE_TAG");
     expect(kitReviewBody).not.toContain("private-kit-subscribers.csv");
 
@@ -31154,13 +31176,112 @@ test.describe("Bumpgrade scaffold", () => {
       }),
     );
     expect(JSON.stringify(subscriberPreflightPayload)).not.toContain("subscriber-preflight-");
-    expect(JSON.stringify(subscriberPreflightPayload)).not.toContain("private-subscriber@example.com");
+    expect(JSON.stringify(subscriberPreflightPayload)).not.toContain(`private-subscriber-${suffix}@example.com`);
     expect(JSON.stringify(subscriberPreflightPayload)).not.toContain("PRIVATE_TAG");
     expect(JSON.stringify(subscriberPreflightPayload)).not.toContain("PRIVATE_SEQUENCE");
     expect(JSON.stringify(subscriberPreflightPayload)).not.toContain("private-kit-subscribers.csv");
 
     await page.goto(kitReviewRoute);
     await expect(page.getByText("Ready for import planning").first()).toBeVisible();
+
+    const subscriberImportResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "create_subscriber_import_records",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberImportConfirmationText("Kit"),
+        idempotencyKey: `subscriber-import-records-${suffix}`,
+        subscriberImportRows: `email,first_name,tags,status\nprivate-subscriber-${suffix}@example.com,Private,PRIVATE_TAG,subscribed\n`,
+      },
+    });
+    expect(subscriberImportResponse.ok(), await subscriberImportResponse.text()).toBeTruthy();
+    const subscriberImportPayload = await subscriberImportResponse.json();
+    expect(subscriberImportPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "create_subscriber_import_records",
+        idempotent: false,
+        draft: expect.objectContaining({ id: kitPayload.draft.id }),
+        record: expect.objectContaining({
+          id: kitAudienceRecord.id,
+          kind: "draft_audience_import",
+          subscriberImportCreation: expect.objectContaining({
+            responseField: "subscriberImportCreation",
+            status: "subscriber_records_created",
+            source: "verified_publisher_subscriber_import_creation",
+            normalizedEmailCount: 1,
+            privateSubscriberRecordCount: 1,
+            createsSubscriberRows: true,
+            createsSequenceEnrollments: false,
+            emailDeliveryEnabled: false,
+            exportEnabled: false,
+            goLiveEffectsEnabled: false,
+          }),
+        }),
+        creation: expect.objectContaining({
+          responseField: "subscriberImportCreation",
+          status: "subscriber_records_created",
+          privateSubscriberRecordCount: 1,
+          redaction: expect.objectContaining({
+            rawContactRowsIncluded: false,
+            rawEmailsIncluded: false,
+            rawNamesIncluded: false,
+            confirmationTextStored: false,
+            idempotencyKeysIncluded: false,
+            actorEmailIncluded: false,
+            privateSubscriberEmailsIncludedInResponse: false,
+            sequenceEnrollmentsCreated: false,
+            emailDeliveryEnabled: false,
+            exportEnabled: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          confirmationTextStored: false,
+          idempotencyKeysIncluded: false,
+          actorEmailIncluded: false,
+          privateSubscriberEmailsIncludedInResponse: false,
+          sequenceEnrollmentsCreated: false,
+          emailDeliveryEnabled: false,
+          exportEnabled: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(subscriberImportPayload)).not.toContain("subscriber-import-records-");
+    expect(JSON.stringify(subscriberImportPayload)).not.toContain(`private-subscriber-${suffix}@example.com`);
+    expect(JSON.stringify(subscriberImportPayload)).not.toContain("PRIVATE_TAG");
+
+    const subscriberImportReplayResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("kit"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "create_subscriber_import_records",
+        draftId: kitPayload.draft.id,
+        recordId: kitAudienceRecord.id,
+        confirmationText: importerPrivateRecordSubscriberImportConfirmationText("Kit"),
+        idempotencyKey: `subscriber-import-records-${suffix}`,
+        subscriberImportRows: `email,first_name,tags,status\nprivate-subscriber-${suffix}@example.com,Private,PRIVATE_TAG,subscribed\n`,
+      },
+    });
+    expect(subscriberImportReplayResponse.ok(), await subscriberImportReplayResponse.text()).toBeTruthy();
+    const subscriberImportReplayPayload = await subscriberImportReplayResponse.json();
+    expect(subscriberImportReplayPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "create_subscriber_import_records",
+        idempotent: true,
+        creation: expect.objectContaining({
+          status: "subscriber_records_created",
+          privateSubscriberRecordCount: 1,
+        }),
+      }),
+    );
+
+    await page.goto(kitReviewRoute);
+    await expect(page.getByText("1 private subscriber record saved").first()).toBeVisible();
 
     const samcartRollbackApiRoute = importerDraftRollbackApiRoute("samcart");
     const rollbackBody = {

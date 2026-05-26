@@ -1,16 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createAuth } from "@/lib/auth";
+import { normalizeOptionalName, normalizeOptInEmail } from "@/lib/audience-opt-in";
 import {
+  createCompetitorImportPrivateRecordSubscribers,
   recordCompetitorImportPrivateRecordSubscriberPreflight,
   reviewCompetitorImportPrivateRecord,
   updateCompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecord,
   type CompetitorImportPrivateRecordExtractedField,
   type CompetitorImportPrivateRecordReviewDecision,
+  type CompetitorImportSubscriberCandidate,
   type CompetitorImportPrivateRecordSubscriberPreflightStatus,
   type DraftFunnelRecord,
 } from "@/lib/funnel-drafts";
+import { readImporterPreflightPayload } from "@/lib/importer-preflight";
 import {
   getImporterBySlug,
   importerIssue,
@@ -18,6 +22,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   type ImporterPlatform,
 } from "@/lib/importers";
@@ -28,6 +33,8 @@ export const revalidate = 0;
 
 type RequestPayload = {
   get: (key: string) => string;
+  getAll: (key: string) => string[];
+  files: File[];
 };
 
 type ImporterRecordReviewRouteContext = {
@@ -46,40 +53,8 @@ class ImporterRecordReviewError extends Error {
   }
 }
 
-function stringValue(value: unknown) {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
-  return "";
-}
-
 async function readPayload(request: NextRequest): Promise<RequestPayload> {
-  const contentType = request.headers.get("content-type") ?? "";
-
-  if (contentType.includes("application/json")) {
-    const body = await request.json().catch(() => ({}));
-    const values = new Map<string, string>();
-
-    if (body && typeof body === "object" && !Array.isArray(body)) {
-      for (const [key, value] of Object.entries(body)) {
-        const stringified = stringValue(value);
-        if (stringified) values.set(key, stringified);
-      }
-    }
-
-    return { get: (key) => values.get(key) ?? "" };
-  }
-
-  if (contentType.includes("multipart/form-data") || contentType.includes("application/x-www-form-urlencoded")) {
-    const formData = await request.formData();
-    return {
-      get: (key) => {
-        const value = formData.get(key);
-        return typeof value === "string" ? value : "";
-      },
-    };
-  }
-
-  return { get: () => "" };
+  return readImporterPreflightPayload(request);
 }
 
 function wantsJson(request: NextRequest, payload: RequestPayload) {
@@ -235,6 +210,176 @@ function normalizedSubscriberPreflightInput(payload: RequestPayload, platform: I
   };
 }
 
+function splitDelimitedLine(line: string) {
+  const delimiters = [",", "\t", ";"];
+  const delimiter =
+    delimiters
+      .map((candidate) => ({ candidate, count: line.split(candidate).length }))
+      .sort((left, right) => right.count - left.count)[0]?.candidate ?? ",";
+
+  return line.split(delimiter).map((value) => value.trim().replace(/^"|"$/g, "").replace(/\s+/g, " "));
+}
+
+function firstMatchingValue(record: Record<string, string>, patterns: RegExp[]) {
+  for (const [key, value] of Object.entries(record)) {
+    if (patterns.some((pattern) => pattern.test(key))) return value;
+  }
+
+  return "";
+}
+
+function compactTagLabels(value: string) {
+  return value
+    .split(/[|,;]+/)
+    .map((item) => item.trim().replace(/\s+/g, " ").slice(0, 80))
+    .filter(Boolean)
+    .slice(0, 20);
+}
+
+function candidateFromRecord(record: Record<string, string>) {
+  const email = normalizeOptInEmail(
+    firstMatchingValue(record, [/email/i, /subscriber/i, /contact/i, /customer/i]),
+  );
+  if (!email) return null;
+
+  const firstName =
+    normalizeOptionalName(firstMatchingValue(record, [/first.?name/i, /^name$/i, /full.?name/i])) ??
+    normalizeOptionalName(firstMatchingValue(record, [/customer.?name/i, /subscriber.?name/i]));
+  const sourceStatus = firstMatchingValue(record, [/status/i, /consent/i, /subscribed/i, /suppression/i]).slice(0, 80) || null;
+  const tagValue = firstMatchingValue(record, [/tag/i, /segment/i, /list/i, /group/i]);
+
+  return {
+    email,
+    firstName,
+    sourceStatus,
+    tagLabels: compactTagLabels(tagValue),
+  } satisfies CompetitorImportSubscriberCandidate;
+}
+
+function candidatesFromDelimitedText(text: string) {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (!lines.length) return { contacts: [] as CompetitorImportSubscriberCandidate[], malformedContactCount: 0 };
+
+  const headers = splitDelimitedLine(lines[0] ?? "").map((header) => header.toLowerCase());
+  const hasHeader = headers.some((header) => /email|subscriber|contact|customer/.test(header));
+  const contacts: CompetitorImportSubscriberCandidate[] = [];
+  let malformedContactCount = 0;
+
+  if (hasHeader) {
+    for (const line of lines.slice(1)) {
+      const values = splitDelimitedLine(line);
+      const record = Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
+      const candidate = candidateFromRecord(record);
+      if (candidate) contacts.push(candidate);
+      else malformedContactCount += 1;
+    }
+  } else {
+    const emailMatches = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [];
+    contacts.push(
+      ...emailMatches
+        .map((email) => normalizeOptInEmail(email))
+        .filter((email): email is string => Boolean(email))
+        .map((email) => ({ email, firstName: null, sourceStatus: null, tagLabels: [] })),
+    );
+    malformedContactCount += emailMatches.length ? 0 : lines.length;
+  }
+
+  return { contacts, malformedContactCount };
+}
+
+function candidatesFromJsonText(text: string) {
+  const parsed = JSON.parse(text) as unknown;
+  const rows = Array.isArray(parsed) ? parsed : parsed && typeof parsed === "object" ? [parsed] : [];
+  const contacts: CompetitorImportSubscriberCandidate[] = [];
+  let malformedContactCount = 0;
+
+  for (const row of rows) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) {
+      malformedContactCount += 1;
+      continue;
+    }
+
+    const record = Object.fromEntries(
+      Object.entries(row).map(([key, value]) => [key, typeof value === "string" ? value : value == null ? "" : String(value)]),
+    );
+    const candidate = candidateFromRecord(record);
+    if (candidate) contacts.push(candidate);
+    else malformedContactCount += 1;
+  }
+
+  return { contacts, malformedContactCount };
+}
+
+async function subscriberImportCandidatesFromPayload(payload: RequestPayload) {
+  const contacts: CompetitorImportSubscriberCandidate[] = [];
+  let malformedContactCount = 0;
+  const textInputs = [
+    ...payload.getAll("subscriberImportRows"),
+    ...payload.getAll("subscriberRows"),
+    ...payload.getAll("exportManifest"),
+    ...payload.getAll("exportFileContent"),
+    ...payload.getAll("exportFileContents"),
+  ].filter((value) => value.trim());
+
+  for (const file of payload.files.slice(0, 5)) {
+    const bytes = Math.min(file.size, 64_000);
+    textInputs.push(await file.slice(0, bytes).text());
+  }
+
+  for (const text of textInputs) {
+    const trimmed = text.trim();
+    if (!trimmed) continue;
+
+    try {
+      const parsed = trimmed.startsWith("{") || trimmed.startsWith("[") ? candidatesFromJsonText(trimmed) : candidatesFromDelimitedText(trimmed);
+      contacts.push(...parsed.contacts);
+      malformedContactCount += parsed.malformedContactCount;
+    } catch {
+      const parsed = candidatesFromDelimitedText(trimmed);
+      contacts.push(...parsed.contacts);
+      malformedContactCount += parsed.malformedContactCount;
+    }
+  }
+
+  const unique = new Map<string, CompetitorImportSubscriberCandidate>();
+  for (const contact of contacts) {
+    if (!unique.has(contact.email)) unique.set(contact.email, contact);
+  }
+
+  return {
+    contacts: Array.from(unique.values()).slice(0, 100),
+    malformedContactCount,
+  };
+}
+
+async function normalizedSubscriberImportCreationInput(payload: RequestPayload, platform: ImporterPlatform) {
+  const shared = normalizedSharedInput(payload);
+  const confirmationText = payload.get("confirmationText").trim();
+  if (confirmationText !== importerPrivateRecordSubscriberImportConfirmationText(platform.platformName)) {
+    throw new ImporterRecordReviewError(
+      `Confirm the ${platform.platformName} private subscriber import before continuing.`,
+      400,
+      "CONFIRMATION_REQUIRED",
+    );
+  }
+
+  const parsed = await subscriberImportCandidatesFromPayload(payload);
+  if (!parsed.contacts.length) {
+    throw new ImporterRecordReviewError(
+      "Upload or paste a subscriber export with at least one valid email address.",
+      400,
+      "SUBSCRIBER_IMPORT_ROWS_REQUIRED",
+    );
+  }
+
+  return {
+    ...shared,
+    confirmationText,
+    contacts: parsed.contacts,
+    malformedContactCount: parsed.malformedContactCount,
+  };
+}
+
 function publicPlatform(platform: ImporterPlatform) {
   return {
     id: platform.id,
@@ -289,6 +434,7 @@ function publicRecord(record: CompetitorImportPrivateRecord) {
     extractedFields: record.extractedFields,
     subscriberImportDepth: record.subscriberImportDepth,
     subscriberImportPreflight: record.subscriberImportPreflight,
+    subscriberImportCreation: record.subscriberImportCreation,
     reviewDecision: record.reviewDecision,
     reviewDecisionAt: record.reviewDecisionAt,
     reviewDecisionSource: record.reviewDecisionSource,
@@ -453,6 +599,45 @@ export async function POST(request: NextRequest, { params }: ImporterRecordRevie
 
       const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
       redirect.searchParams.set("subscriberPreflight", result.preflight.status);
+      redirect.searchParams.set("recordId", result.record.id);
+      return NextResponse.redirect(redirect, { status: 303 });
+    }
+
+    if (action === "create_subscriber_import_records") {
+      const input = await normalizedSubscriberImportCreationInput(payload, platform);
+      const result = await createCompetitorImportPrivateRecordSubscribers(db, { userId: user.id, email: user.email }, {
+        importerSlug: platform.slug,
+        platformName: platform.platformName,
+        draftId: input.draftId,
+        recordId: input.recordId,
+        contacts: input.contacts,
+        malformedContactCount: input.malformedContactCount,
+        idempotencyKey: `competitor-import-subscriber-records:${platform.slug}:${user.id}:${input.idempotencyKey}`,
+      });
+
+      if (json) {
+        return NextResponse.json({
+          ok: true,
+          issue: importerIssue,
+          route,
+          platform: publicPlatform(platform),
+          draft: publicDraft(result.draft),
+          record: publicRecord(result.record),
+          creation: result.creation,
+          previousCreation: result.previousCreation,
+          idempotent: result.idempotent,
+          action: "create_subscriber_import_records",
+          goLiveEffects: result.goLiveEffects,
+          redaction: {
+            ...result.redaction,
+            ...result.creation.redaction,
+            ...redaction(),
+          },
+        });
+      }
+
+      const redirect = new URL(importerPrivateRecordReviewRoute(platform.slug, result.draft.id), request.url);
+      redirect.searchParams.set("subscriberImport", result.creation.status);
       redirect.searchParams.set("recordId", result.record.id);
       return NextResponse.redirect(redirect, { status: 303 });
     }

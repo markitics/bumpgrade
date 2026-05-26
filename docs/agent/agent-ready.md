@@ -259,7 +259,10 @@ or turn on go-live effects. A verified publisher can record
 audience records after exact confirmation and idempotency; that action stores
 aggregate depth references and acknowledged go-live blockers only, with no
 subscriber rows, sequence enrollments, private exports, sends, or go-live
-effects. Each platform also exposes a
+effects. After preflight, the same owner can create private importer subscriber
+records from a confirmed fresh upload or paste; public responses expose counts
+only, and the action creates no global audience send-list rows, sequence
+enrollments, sends, private exports, or go-live effects. Each platform also exposes a
 verified-publisher `privateRecordReviewRoute` that lets the same owner inspect
 those structured records after creation without showing raw rows, raw file text,
 export file names, customer values, private emails, credentials, sessions, or
