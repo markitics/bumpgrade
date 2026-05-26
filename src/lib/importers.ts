@@ -47,6 +47,19 @@ export type ImportSourceChecklistSourceDataItem = ImportSourceChecklistItem & {
   preflightSignals: ImporterPreflightSignal[];
 };
 
+export type ImporterExportMatchTemplate = {
+  id: string;
+  label: string;
+  fileKinds: Array<"CSV" | "JSON" | "HTML" | "plain text">;
+  requiredHeaderLabels: string[];
+  helpfulHeaderLabels: string[];
+  signalLabels: string[];
+  sourceChecklistItemIds: string[];
+  draftEntities: ImportDraftEntity[];
+  usesItFor: string;
+  reviewPrompt: string;
+};
+
 export type ImporterPlatform = {
   id: string;
   competitorId: string;
@@ -171,6 +184,30 @@ export const importerExportPreflightParser = {
   rawRowsEchoed: false,
   rawTextEchoed: false,
 };
+
+const headerLabels = {
+  subscriberOrCustomer: "Subscriber or customer column",
+  name: "Name column",
+  tagOrSegment: "Tag or segment column",
+  productOrOffer: "Product or offer column",
+  checkoutOrOrder: "Checkout or order column",
+  pageOrUrl: "Page or URL column",
+  statusOrDate: "Status or date column",
+} as const;
+
+function signalLabel(signal: ImporterPreflightSignal) {
+  return importerPreflightSignalLabels[signal];
+}
+
+function template(
+  platform: ImporterPlatform,
+  input: Omit<ImporterExportMatchTemplate, "id"> & { id: string },
+): ImporterExportMatchTemplate {
+  return {
+    ...input,
+    id: `${platform.slug}-${input.id}`,
+  };
+}
 
 export const clickFunnelsDraftImportCapability = {
   id: importerDraftImportCapabilityId("importer-clickfunnels"),
@@ -824,6 +861,145 @@ export const importerRoutes = importerPlatforms.map((platform) => platform.route
 
 export const featuredImporter = importerPlatforms.find((platform) => platform.id === "importer-clickfunnels") ?? importerPlatforms[0];
 
+export function importerExportMatchTemplates(platform: ImporterPlatform): ImporterExportMatchTemplate[] {
+  if (platform.slug === "samcart" || platform.slug === "thrivecart") {
+    const sourceChecklistItemIds =
+      platform.slug === "samcart"
+        ? ["samcart-checkout-page", "samcart-bump-upsell-path"]
+        : ["thrivecart-checkout-path", "thrivecart-bump-upsell-downsell"];
+
+    return [
+      template(platform, {
+        id: "checkout-order-export",
+        label: `${platform.platformName} checkout or order export`,
+        fileKinds: ["CSV", "JSON"],
+        requiredHeaderLabels: [headerLabels.productOrOffer, headerLabels.checkoutOrOrder],
+        helpfulHeaderLabels: [headerLabels.pageOrUrl, headerLabels.subscriberOrCustomer, headerLabels.statusOrDate],
+        signalLabels: [
+          signalLabel("parsed_export_structure"),
+          signalLabel("page_or_offer_copy"),
+          signalLabel("source_url"),
+        ],
+        sourceChecklistItemIds,
+        draftEntities: ["draft_checkout_offer", "draft_product_catalog"],
+        usesItFor: "Recognizing checkout offers, order context, bumps, upsells, and product records before private draft creation.",
+        reviewPrompt: "Confirm product names, prices, order shape, and which offer path should become the first Bumpgrade launch.",
+      }),
+    ];
+  }
+
+  if (platform.slug === "kit") {
+    return [
+      template(platform, {
+        id: "subscriber-tag-export",
+        label: "Kit subscriber and tag export",
+        fileKinds: ["CSV", "JSON"],
+        requiredHeaderLabels: [headerLabels.subscriberOrCustomer, headerLabels.tagOrSegment],
+        helpfulHeaderLabels: [headerLabels.name, headerLabels.statusOrDate],
+        signalLabels: [
+          signalLabel("parsed_export_structure"),
+          signalLabel("audience_context"),
+          signalLabel("follow_up_notes"),
+        ],
+        sourceChecklistItemIds: ["kit-subscriber-tags", "kit-sequence-outline"],
+        draftEntities: ["draft_audience_import", "draft_sequence_outline"],
+        usesItFor: "Recognizing audience segments, tags, and sequence context while subscriber sends stay disabled.",
+        reviewPrompt: "Review consent, tags, and suppression context before any private audience import plan is saved.",
+      }),
+    ];
+  }
+
+  if (platform.slug === "clickfunnels" || platform.slug === "systeme" || platform.slug === "kartra") {
+    const sourceChecklistItemIds =
+      platform.slug === "clickfunnels"
+        ? ["clickfunnels-page-order", "clickfunnels-offer-stack"]
+        : platform.slug === "systeme"
+          ? ["systeme-funnel-path", "systeme-products-partners"]
+          : ["kartra-campaign-pages", "kartra-membership-access"];
+
+    return [
+      template(platform, {
+        id: "funnel-page-export",
+        label: `${platform.platformName} funnel page export`,
+        fileKinds: ["CSV", "JSON", "HTML"],
+        requiredHeaderLabels: [headerLabels.pageOrUrl, headerLabels.productOrOffer],
+        helpfulHeaderLabels: [headerLabels.checkoutOrOrder, headerLabels.statusOrDate],
+        signalLabels: [
+          signalLabel("parsed_export_structure"),
+          signalLabel("source_url"),
+          signalLabel("page_or_offer_copy"),
+        ],
+        sourceChecklistItemIds,
+        draftEntities: ["draft_funnel", "draft_page_blocks", "draft_checkout_offer"],
+        usesItFor: "Recognizing page order, offer context, and launch path before a private funnel draft is created.",
+        reviewPrompt: "Confirm which pages belong in the first launch path and which pages should stay parked.",
+      }),
+    ];
+  }
+
+  if (platform.slug === "kajabi" || platform.slug === "podia") {
+    const sourceChecklistItemIds =
+      platform.slug === "kajabi"
+        ? ["kajabi-product-outline", "kajabi-email-access-context"]
+        : ["podia-product-context", "podia-audience-email-context"];
+
+    return [
+      template(platform, {
+        id: "product-member-export",
+        label: `${platform.platformName} product or member export`,
+        fileKinds: ["CSV", "JSON"],
+        requiredHeaderLabels: [headerLabels.productOrOffer, headerLabels.subscriberOrCustomer],
+        helpfulHeaderLabels: [headerLabels.name, headerLabels.statusOrDate],
+        signalLabels: [
+          signalLabel("parsed_export_structure"),
+          signalLabel("page_or_offer_copy"),
+          signalLabel("audience_context"),
+        ],
+        sourceChecklistItemIds,
+        draftEntities: ["draft_product_catalog", "draft_audience_import"],
+        usesItFor: "Recognizing product catalog and member context while protected access and fulfillment stay off.",
+        reviewPrompt: "Check product access promises, membership state, and what should remain private before go-live.",
+      }),
+    ];
+  }
+
+  if (platform.slug === "shopify") {
+    return [
+      template(platform, {
+        id: "product-order-export",
+        label: "Shopify product or order export",
+        fileKinds: ["CSV", "JSON"],
+        requiredHeaderLabels: [headerLabels.productOrOffer, headerLabels.checkoutOrOrder],
+        helpfulHeaderLabels: [headerLabels.subscriberOrCustomer, headerLabels.statusOrDate],
+        signalLabels: [
+          signalLabel("parsed_export_structure"),
+          signalLabel("page_or_offer_copy"),
+          signalLabel("audience_context"),
+        ],
+        sourceChecklistItemIds: ["shopify-product-collection", "shopify-launch-offer-notes"],
+        draftEntities: ["draft_product_catalog", "draft_checkout_offer"],
+        usesItFor: "Recognizing products, prices, and order context for a private Bumpgrade offer plan.",
+        reviewPrompt: "Confirm which products belong in the first launch bundle and which order history is reference-only.",
+      }),
+    ];
+  }
+
+  return [
+    template(platform, {
+      id: "general-export",
+      label: `${platform.platformName} export structure`,
+      fileKinds: ["CSV", "JSON", "HTML", "plain text"],
+      requiredHeaderLabels: [headerLabels.productOrOffer],
+      helpfulHeaderLabels: [headerLabels.pageOrUrl, headerLabels.subscriberOrCustomer, headerLabels.statusOrDate],
+      signalLabels: [signalLabel("parsed_export_structure"), signalLabel("page_or_offer_copy")],
+      sourceChecklistItemIds: platform.sourceChecklist.slice(0, 2).map((item) => item.id),
+      draftEntities: Array.from(new Set(platform.importableAreas.flatMap((area) => area.draftEntities))).slice(0, 3),
+      usesItFor: "Recognizing the strongest importable shape before private draft creation.",
+      reviewPrompt: "Confirm the source context before saving a private import plan.",
+    }),
+  ];
+}
+
 export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatform) {
   return {
     id: importerDraftImportCapabilityId(platform.id),
@@ -861,7 +1037,14 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       createsDraft: false,
       rawSourceEchoed: false,
       goLiveEffectsEnabled: false,
-      responseFields: ["inputSummary", "sourceChecklistReview", "exportFileAnalysis", "detectedAreas", "safetyGates"],
+      responseFields: [
+        "inputSummary",
+        "sourceChecklistReview",
+        "exportFileAnalysis",
+        "platformExportMatches",
+        "detectedAreas",
+        "safetyGates",
+      ],
       exportFileAnalysis: importerExportPreflightParser,
     },
     rollback: {
@@ -891,6 +1074,7 @@ export const importerDraftImportCapabilities = importerPlatforms.map(privateDraf
 
 export function importerPlatformSourceData(platform: ImporterPlatform): Omit<ImporterPlatform, "sourceChecklist"> & {
   sourceChecklist: ImportSourceChecklistSourceDataItem[];
+  exportMatchTemplates: ImporterExportMatchTemplate[];
 } {
   return {
     ...platform,
@@ -898,6 +1082,7 @@ export function importerPlatformSourceData(platform: ImporterPlatform): Omit<Imp
       ...item,
       preflightSignals: sourceChecklistPreflightSignals(item),
     })),
+    exportMatchTemplates: importerExportMatchTemplates(platform),
   };
 }
 
@@ -929,6 +1114,7 @@ export const importerSourceData = {
     platformSpecificExtractionGuidanceLive: true,
     platformSpecificPreflightExtractionLive: true,
     exportFilePreflightParsingLive: true,
+    platformExportMatchTemplatesLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -948,7 +1134,7 @@ export const importerSourceData = {
     rollback:
       "Verified publisher rollback routes archive private importer-created launch plans without deleting saved plan content, steps, or audit history. Archived importer plans are no longer reused by source-match duplicate review, so the same source can be restarted as a fresh private plan.",
     platformSpecificExtractionGuidance:
-      "Each dedicated importer includes a sourceChecklist that explains which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items and exportFileAnalysis summaries with matched signal labels only, not the raw source values.",
+      "Each dedicated importer includes a sourceChecklist and exportMatchTemplates that explain which platform-specific URLs, exports, files, and notes Bumpgrade can use before a private import plan is created. Public preview routes return redacted sourceChecklistReview items, exportFileAnalysis summaries, and platformExportMatches with matched signal/header labels only, not the raw source values.",
     exportFilePreflightParser: importerExportPreflightParser,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

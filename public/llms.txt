@@ -182,9 +182,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   preflight review routes, and private importer API routes. Posting to a platform
   preflight review route returns a redacted import map before sign-in or private
   draft creation, including `sourceChecklistReview` status for the platform guide
-  items and `exportFileAnalysis` for small CSV, JSON, HTML, or text exports. It
-  does not persist records or echo pasted source material, raw rows, raw file
-  text, export file names, customer rows, credentials, sessions, or payment data.
+  items, `exportFileAnalysis` for small CSV, JSON, HTML, or text exports, and
+  `platformExportMatches` for recognized platform-specific export shapes. It does
+  not persist records or echo pasted source material, raw rows, raw file text,
+  export file names, customer rows, credentials, sessions, or payment data.
   Posting to a private
   platform API route requires a verified publisher session, exact confirmation,
   idempotency, and redacted responses. It can create or reuse a Free Build
