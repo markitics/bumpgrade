@@ -122,6 +122,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Private draft creation stores the safe importReview export analysis and platform export matches on private draft metadata so the recognized export shape survives after sign-in.",
       "Private draft creation returns and stores structured private import records for matched offer, product, audience, checkout, funnel/page, sequence, and asset review areas.",
       "Verified publishers can open a private record review route for their own importer-created plan after creation.",
+      "Verified publishers can mark private import records ready or needing cleanup with metadata-only review decisions.",
       "Verified-publisher import actions that create or reuse a Free Build workspace and save a private draft funnel.",
       "Source-match duplicate review that reuses an existing private draft when platform, workspace, normalized title, and source URL or export file name match.",
       "Rollback controls that archive private importer plans while preserving saved work and allow the same source to be restarted as a fresh private plan.",
@@ -132,10 +133,10 @@ export const featureCatalog: FeatureRecord[] = [
     ],
     evidence: [
       "Tracked by issue #467.",
-      "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes with redacted exportFileAnalysis and platformExportMatches, private platform create routes with importReview metadata persistence and structured importRecords, private record review routes, and private platform rollback routes listed in source-data define the importer contract slice.",
+      "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes with redacted exportFileAnalysis and platformExportMatches, private platform create routes with importReview metadata persistence and structured importRecords, private record review and review-action routes, and private platform rollback routes listed in source-data define the importer contract slice.",
     ],
     agentContract:
-      "Agents may read importer platform IDs, competitor IDs, input kinds, platform-specific source checklists, export-match templates, export-file analysis fields, private importReview metadata persistence, structured private import-record contracts, private record review routes, saved private plan parts, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
+      "Agents may read importer platform IDs, competitor IDs, input kinds, platform-specific source checklists, export-match templates, export-file analysis fields, private importReview metadata persistence, structured private import-record contracts, private record review routes, review-action routes, saved private plan parts, safety gates, limitations, source IDs, routes, redacted preflight review APIs, duplicate-review statuses, verified-publisher private-draft APIs, and private rollback routes from `/imports/source-data`; agents must not claim account-to-account transfer, live payment migration, subscriber sends, customer password transfer, public publishing, or billing-impacting migration without later confirmed-write evidence.",
   },
   {
     id: "feature-funnel-builder",

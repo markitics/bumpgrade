@@ -188,6 +188,8 @@ type D1CompetitorImportPrivateRecordRow = {
   updated_at: number;
 };
 
+export type CompetitorImportPrivateRecordReviewDecision = "pending_review" | "ready" | "needs_cleanup";
+
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
@@ -883,6 +885,16 @@ export type CompetitorImportPrivateRecord = {
   exportFileCount: number;
   parsedExportFileCount: number;
   recordConfidence: "recognized_export_match" | "needs_more_context" | "source_guide";
+  reviewDecision: CompetitorImportPrivateRecordReviewDecision;
+  reviewDecisionAt: string | null;
+  reviewDecisionSource: "verified_publisher_record_review" | null;
+  reviewAudit: {
+    confirmationTextStored: false;
+    idempotencyKeysIncluded: false;
+    actorEmailIncluded: false;
+    rawNotesIncluded: false;
+    goLiveEffectsEnabled: false;
+  };
   goLiveEffects: {
     publicPublishingEnabled: false;
     liveCheckoutEnabled: false;
@@ -939,6 +951,15 @@ export type CompetitorImportedDraftReview = {
   tenantId: string;
   importReview: CompetitorImportReviewMetadata | null;
   importRecords: CompetitorImportPrivateRecord[];
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
+export type CompetitorImportPrivateRecordReviewResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  previousDecision: CompetitorImportPrivateRecordReviewDecision;
+  idempotent: boolean;
   goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
   redaction: CompetitorImportPrivateRecord["redaction"];
 };
@@ -1261,6 +1282,10 @@ function competitorImportRecordGoLiveEffects(): CompetitorImportPrivateRecord["g
   };
 }
 
+function competitorImportRecordReviewDecision(value: unknown): CompetitorImportPrivateRecordReviewDecision {
+  return value === "ready" || value === "needs_cleanup" ? value : "pending_review";
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -1299,6 +1324,17 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
       metadata.recordConfidence === "source_guide"
         ? metadata.recordConfidence
         : "source_guide",
+    reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
+    reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
+    reviewDecisionSource:
+      metadata.reviewDecisionSource === "verified_publisher_record_review" ? metadata.reviewDecisionSource : null,
+    reviewAudit: {
+      confirmationTextStored: false,
+      idempotencyKeysIncluded: false,
+      actorEmailIncluded: false,
+      rawNotesIncluded: false,
+      goLiveEffectsEnabled: false,
+    },
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),
     createdAt: isoFromSeconds(row.created_at),
@@ -1596,6 +1632,102 @@ export async function loadCompetitorImportedDraftReview(
     tenantId,
     importReview: competitorImportReviewMetadata(metadata.importReview),
     importRecords: await loadCompetitorImportPrivateRecords(db, draft.id),
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
+export async function reviewCompetitorImportPrivateRecord(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    decision: Exclude<CompetitorImportPrivateRecordReviewDecision, "pending_review">;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordReviewResult> {
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can review this record.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot be reviewed.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const previousDecision = competitorImportRecordReviewDecision(metadata.reviewDecision);
+  const previousIdempotencyKey = typeof metadata.reviewDecisionIdempotencyKey === "string" ? metadata.reviewDecisionIdempotencyKey : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousDecision !== input.decision) {
+    throw new Error("This idempotency key already reviewed the import record with a different decision.");
+  }
+
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousDecision === input.decision;
+
+  if (!idempotent) {
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          reviewDecision: input.decision,
+          reviewDecisionAt: new Date().toISOString(),
+          reviewDecisionSource: "verified_publisher_record_review",
+          reviewDecisionIdempotencyKey: input.idempotencyKey,
+          reviewDecisionConfirmationMatched: true,
+          reviewDecisionGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The private import record review could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record: competitorImportPrivateRecordFromRow(updated),
+    previousDecision,
+    idempotent,
     goLiveEffects: competitorImportRecordGoLiveEffects(),
     redaction: competitorImportRecordRedaction(),
   };

@@ -441,6 +441,8 @@ import {
   importerDraftPreviewApiRoute,
   importerDraftRollbackApiRoute,
   importerDraftRollbackConfirmationText,
+  importerPrivateRecordReviewActionApiRoute,
+  importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
   importerPlatforms,
   importerSourceData,
@@ -1171,6 +1173,8 @@ test.describe("Bumpgrade scaffold", () => {
         storage: "D1 competitor_import_private_records",
         reviewRouteField: "privateRecordReviewRoute",
         reviewSurfaceLive: true,
+        reviewActionRouteField: "privateRecordReviewActionApiRoute",
+        reviewActionsLive: true,
         publicSourceDataExposesContent: false,
         storesRawExportRows: false,
         storesRawExportText: false,
@@ -1191,6 +1195,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.sourceFileNameDuplicateReviewLive).toBe(true);
     expect(payload.currentAvailability.privateStructuredImportRecordsLive).toBe(true);
     expect(payload.currentAvailability.privateStructuredImportRecordReviewLive).toBe(true);
+    expect(payload.currentAvailability.privateStructuredImportRecordReviewActionsLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1265,6 +1270,7 @@ test.describe("Bumpgrade scaffold", () => {
             responseField: "importRecords",
             storage: "D1 competitor_import_private_records",
             reviewRouteField: "privateRecordReviewRoute",
+            reviewActionRouteField: "privateRecordReviewActionApiRoute",
             publicSourceDataExposesContent: false,
             storesRawExportRows: false,
             goLiveEffectsEnabled: false,
@@ -1272,9 +1278,23 @@ test.describe("Bumpgrade scaffold", () => {
           privateRecordReview: expect.objectContaining({
             id: "clickfunnels-private-record-review",
             route: importerPrivateRecordReviewRoute("clickfunnels"),
+            actionApiRoute: importerPrivateRecordReviewActionApiRoute("clickfunnels"),
             auth: "verified publisher session",
+            actions: expect.arrayContaining([
+              expect.objectContaining({
+                decision: "ready",
+                confirmationText: importerPrivateRecordReviewConfirmationText("ClickFunnels", "ready"),
+              }),
+              expect.objectContaining({
+                decision: "needs_cleanup",
+                confirmationText: importerPrivateRecordReviewConfirmationText("ClickFunnels", "needs_cleanup"),
+              }),
+            ]),
+            writes: expect.arrayContaining(["record_review_decision_metadata"]),
+            idempotencyRequired: true,
             rawRowsEchoed: false,
             rawTextEchoed: false,
+            idempotencyKeysIncluded: false,
             goLiveEffectsEnabled: false,
           }),
           rollback: expect.objectContaining({
@@ -30170,6 +30190,12 @@ test.describe("Bumpgrade scaffold", () => {
             exportFileCount: 2,
             parsedExportFileCount: 2,
             recordConfidence: "recognized_export_match",
+            reviewDecision: "pending_review",
+            reviewAudit: expect.objectContaining({
+              confirmationTextStored: false,
+              idempotencyKeysIncluded: false,
+              goLiveEffectsEnabled: false,
+            }),
             goLiveEffects: expect.objectContaining({
               publicPublishingEnabled: false,
               liveCheckoutEnabled: false,
@@ -30221,6 +30247,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: `Imported SamCart launch ${suffix}` })).toBeVisible();
     await expect(page.getByText("SamCart Offer and checkout record")).toBeVisible();
     await expect(page.getByText("Recognized export match").first()).toBeVisible();
+    await expect(page.getByText("Not reviewed yet").first()).toBeVisible();
     await expect(page.getByText("Private review only; buyer-facing actions are still gated.").first()).toBeVisible();
     const reviewBody = await page.locator("body").innerText();
     expect(reviewBody).not.toContain(requestBody.pageCopy);
@@ -30228,6 +30255,63 @@ test.describe("Bumpgrade scaffold", () => {
     expect(reviewBody).not.toContain("private-samcart-orders.csv");
     expect(reviewBody).not.toContain("private-buyer@example.com");
     expect(reviewBody).not.toContain("PRIVATE_PRODUCT_NAME");
+
+    const checkoutRecord = createPayload.importRecords.find(
+      (record: { kind?: string }) => record.kind === "draft_checkout_offer",
+    );
+    expect(checkoutRecord?.id).toBeTruthy();
+    const reviewActionResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("samcart"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        draftId: createPayload.draft.id,
+        recordId: checkoutRecord.id,
+        decision: "ready",
+        confirmationText: importerPrivateRecordReviewConfirmationText("SamCart", "ready"),
+        idempotencyKey: `record-ready-${suffix}`,
+      },
+    });
+    expect(reviewActionResponse.ok(), await reviewActionResponse.text()).toBeTruthy();
+    const reviewActionPayload = await reviewActionResponse.json();
+    expect(reviewActionPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "review_private_import_record",
+        idempotent: false,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        record: expect.objectContaining({
+          id: checkoutRecord.id,
+          kind: "draft_checkout_offer",
+          reviewDecision: "ready",
+          reviewDecisionSource: "verified_publisher_record_review",
+          reviewAudit: expect.objectContaining({
+            confirmationTextStored: false,
+            idempotencyKeysIncluded: false,
+            actorEmailIncluded: false,
+            rawNotesIncluded: false,
+            goLiveEffectsEnabled: false,
+          }),
+          goLiveEffects: expect.objectContaining({
+            publicPublishingEnabled: false,
+            liveCheckoutEnabled: false,
+            subscriberSendsEnabled: false,
+          }),
+          redaction: expect.objectContaining({
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+            privateEmailsIncluded: false,
+          }),
+        }),
+      }),
+    );
+    expect(JSON.stringify(reviewActionPayload)).not.toContain("record-ready-");
+    expect(JSON.stringify(reviewActionPayload)).not.toContain(requestBody.pageCopy);
+    expect(JSON.stringify(reviewActionPayload)).not.toContain("samcart-export-main.zip");
+    expect(JSON.stringify(reviewActionPayload)).not.toContain("private-buyer@example.com");
+
+    await page.goto(samcartReviewRoute);
+    await expect(page.getByText("Ready for cleanup").first()).toBeVisible();
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },

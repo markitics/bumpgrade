@@ -4261,6 +4261,17 @@ h3 {
   opacity: 0.6;
 }
 
+.importer-record-actions {
+  display: inline-flex;
+  margin: 4px 8px 0 0;
+}
+
+.importer-record-actions .secondary-action {
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font: inherit;
+}
+
 .importer-preview-panel {
   display: grid;
   gap: 18px;

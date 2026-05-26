@@ -103,12 +103,25 @@ export function importerPrivateRecordReviewRoute(slug: string, draftId?: string)
   return `${route}?draft=${encodeURIComponent(draftId)}`;
 }
 
+export function importerPrivateRecordReviewActionApiRoute(slug: string) {
+  return `/api/imports/${slug}/records/review`;
+}
+
 export function importerDraftImportConfirmationText(platformName: string) {
   return `Create private ${platformName} import plan`;
 }
 
 export function importerDraftRollbackConfirmationText(platformName: string) {
   return `Archive private ${platformName} import plan`;
+}
+
+export function importerPrivateRecordReviewConfirmationText(
+  platformName: string,
+  decision: "ready" | "needs_cleanup",
+) {
+  return decision === "ready"
+    ? `Mark ${platformName} import record ready`
+    : `Mark ${platformName} import record needs cleanup`;
 }
 
 export function importerDraftImportCapabilityId(platformId: string) {
@@ -203,6 +216,8 @@ export const importerPrivateStructuredRecords = {
   reviewRouteField: "privateRecordReviewRoute",
   reviewSurface: "verified-publisher private importer review page",
   reviewSurfaceLive: true,
+  reviewActionRouteField: "privateRecordReviewActionApiRoute",
+  reviewActionsLive: true,
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
   recordKinds: [
@@ -1067,6 +1082,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
     platformName: platform.platformName,
     route: platform.route,
     privateRecordReviewRoute: importerPrivateRecordReviewRoute(platform.slug),
+    privateRecordReviewActionApiRoute: importerPrivateRecordReviewActionApiRoute(platform.slug),
     previewApiRoute: importerDraftPreviewApiRoute(platform.slug),
     apiRoute: importerDraftImportApiRoute(platform.slug),
     confirmationText: importerDraftImportConfirmationText(platform.platformName),
@@ -1133,15 +1149,30 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
       id: importerPrivateRecordReviewCapabilityId(platform.id),
       status: "live",
       route: importerPrivateRecordReviewRoute(platform.slug),
+      actionApiRoute: importerPrivateRecordReviewActionApiRoute(platform.slug),
       auth: "verified publisher session",
       requires: ["draft query parameter", "same owner as private import plan"],
       reads: ["private_draft_funnel_summary", "competitor_import_private_records"],
-      responseFields: ["draft", "importRecords", "recordConfidence", "goLiveEffects", "redaction"],
+      responseFields: ["draft", "importRecords", "recordConfidence", "reviewDecision", "goLiveEffects", "redaction"],
+      actions: [
+        {
+          decision: "ready",
+          confirmationText: importerPrivateRecordReviewConfirmationText(platform.platformName, "ready"),
+        },
+        {
+          decision: "needs_cleanup",
+          confirmationText: importerPrivateRecordReviewConfirmationText(platform.platformName, "needs_cleanup"),
+        },
+      ],
+      writes: ["record_review_decision_metadata"],
+      idempotencyRequired: true,
       rawRowsEchoed: false,
       rawTextEchoed: false,
       rawExportFileNamesEchoed: false,
       customerRowsIncluded: false,
       privateEmailsIncluded: false,
+      confirmationTextStored: false,
+      idempotencyKeysIncluded: false,
       goLiveEffectsEnabled: false,
     },
     rollback: {
@@ -1216,6 +1247,7 @@ export const importerSourceData = {
     privateDraftExportReviewMetadataLive: true,
     privateStructuredImportRecordsLive: true,
     privateStructuredImportRecordReviewLive: true,
+    privateStructuredImportRecordReviewActionsLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1240,7 +1272,7 @@ export const importerSourceData = {
     privateDraftExportReview:
       "Verified private importer writes return importReview and store that redacted export analysis on new private draft metadata so the recognized export shape survives the handoff after sign-in. Idempotent replays and source-match reuse report importReview without rewriting the existing private draft metadata.",
     privateStructuredImportRecords:
-      "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, or go-live effects.",
+      "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner and mark each record ready or needs cleanup with private metadata-only review decisions, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, idempotency keys, confirmation text, or go-live effects.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

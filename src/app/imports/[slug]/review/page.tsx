@@ -6,7 +6,13 @@ import { ArrowLeft, ArrowRight, FileText, LockKeyhole, ShieldCheck } from "lucid
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReview, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
-import { getImporterBySlug, importerPrivateRecordReviewRoute, importerPlatforms } from "@/lib/importers";
+import {
+  getImporterBySlug,
+  importerPrivateRecordReviewActionApiRoute,
+  importerPrivateRecordReviewConfirmationText,
+  importerPrivateRecordReviewRoute,
+  importerPlatforms,
+} from "@/lib/importers";
 import { getPublisherTenantD1OrThrow, type PublisherSessionUser } from "@/lib/publisher-tenants";
 import { site } from "@/lib/site";
 
@@ -69,6 +75,12 @@ function confidenceLabel(record: CompetitorImportPrivateRecord) {
   return "Source guide";
 }
 
+function decisionLabel(record: CompetitorImportPrivateRecord) {
+  if (record.reviewDecision === "ready") return "Ready for cleanup";
+  if (record.reviewDecision === "needs_cleanup") return "Needs cleanup";
+  return "Not reviewed yet";
+}
+
 function countSummary(record: CompetitorImportPrivateRecord) {
   return [
     `${record.sourceUrlCount} source ${record.sourceUrlCount === 1 ? "URL" : "URLs"}`,
@@ -111,6 +123,8 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
   }
 
   const recognizedMatchIds = review?.importReview?.recognizedPlatformExportMatchIds ?? [];
+  const recordReview = firstSearchValue(search.recordReview);
+  const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
     <main className="route-page importer-detail-page">
@@ -153,6 +167,9 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
           <p className="account-error">Confirm your email before reviewing private importer records.</p>
         ) : null}
         {reviewError ? <p className="account-error">{reviewError}</p> : null}
+        {recordReviewError ? <p className="account-error">{recordReviewError}</p> : null}
+        {recordReview === "ready" ? <p className="account-success">Private import record marked ready.</p> : null}
+        {recordReview === "needs_cleanup" ? <p className="account-success">Private import record marked for cleanup.</p> : null}
         {review ? (
           <div className="feature-section-heading">
             <div>
@@ -196,6 +213,10 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                   <span>{confidenceLabel(record)}</span>
                 </div>
                 <div className="feature-detail">
+                  <strong>Owner decision</strong>
+                  <span>{decisionLabel(record)}</span>
+                </div>
+                <div className="feature-detail">
                   <strong>Safe source counts</strong>
                   <span>{countSummary(record)}</span>
                 </div>
@@ -207,6 +228,34 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                   <strong>Go-live state</strong>
                   <span>Private review only; buyer-facing actions are still gated.</span>
                 </div>
+                <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                  <input type="hidden" name="draftId" value={review.draft.id} />
+                  <input type="hidden" name="recordId" value={record.id} />
+                  <input type="hidden" name="idempotencyKey" value={`ready-${record.id}-${record.updatedAt ?? "new"}`} />
+                  <input type="hidden" name="decision" value="ready" />
+                  <button
+                    type="submit"
+                    className="secondary-action compact-action"
+                    name="confirmationText"
+                    value={importerPrivateRecordReviewConfirmationText(platform.platformName, "ready")}
+                  >
+                    Mark ready
+                  </button>
+                </form>
+                <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                  <input type="hidden" name="draftId" value={review.draft.id} />
+                  <input type="hidden" name="recordId" value={record.id} />
+                  <input type="hidden" name="idempotencyKey" value={`needs-cleanup-${record.id}-${record.updatedAt ?? "new"}`} />
+                  <input type="hidden" name="decision" value="needs_cleanup" />
+                  <button
+                    type="submit"
+                    className="secondary-action compact-action"
+                    name="confirmationText"
+                    value={importerPrivateRecordReviewConfirmationText(platform.platformName, "needs_cleanup")}
+                  >
+                    Needs cleanup
+                  </button>
+                </form>
               </article>
             ))}
           </div>
