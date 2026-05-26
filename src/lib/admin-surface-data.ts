@@ -1119,7 +1119,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     promptFromMark:
       "Mark asked for easy importers from ClickFunnels and competitor platforms, including paths that preserve real work before a publisher is ready to go live.",
     githubIssues: [{ number: 467, url: "https://github.com/markitics/bumpgrade/issues/467" }],
-    closedPrs: [],
+    closedPrs: [{ number: 526, url: "https://github.com/markitics/bumpgrade/pull/526" }],
     featuresUpdated: [
       "https://bumpgrade.com/imports",
       "https://bumpgrade.com/imports/source-data",
@@ -1134,6 +1134,7 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
       "Lint",
       "Runtime secrets",
       "Cloudflare build",
+      "PR #526 CI passed static checks and browser journeys.",
     ],
     flagsAttention:
       "Checkout migration readiness is owner-confirmed metadata only; it creates no checkout intents, Stripe sessions, live payment credentials, public checkout routes, account transfer, domains, fulfillment, subscriber sends, or go-live effects.",
@@ -1142,9 +1143,10 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     relevantUrls: [
       "https://bumpgrade.com/imports/source-data",
       "https://bumpgrade.com/imports/samcart/review",
+      "https://bumpgrade.com/pr-screenshots/issue-467-checkout-readiness.png",
       "https://bumpgrade.com/admin/work-log",
     ],
-    prCommentUrl: null,
+    prCommentUrl: "https://github.com/markitics/bumpgrade/pull/526",
   },
   {
     id: "work-log-2026-05-26-importer-private-subscriber-export",
