@@ -34,6 +34,7 @@ import {
   draftFunnelBlockEditingIssue,
   draftFunnelBlockReorderCapability,
   draftFunnelBlockStructureCapability,
+  draftFunnelBlockCanvasLayoutCapability,
   draftFunnelBlockVisualStyleCapability,
   draftFunnelBlockStructureIssue,
   draftFunnelCheckoutUnlinkCapability,
@@ -56,6 +57,7 @@ import {
   funnelBlockLibrary,
   funnelTemplateLibrary,
   isFunnelBlockVisualStyleId,
+  normalizeFunnelBlockCanvasLayout,
   seededFunnel,
   templateDraftCreationCapability,
 } from "@/lib/funnels";
@@ -4401,6 +4403,7 @@ function compactBlockForAudit(block: FunnelBlock) {
     visualStyleId: funnelBlockVisualStyleForId(block.visualStyle).id,
     checkoutLinkId: block.checkoutLink?.id ?? null,
     checkoutOfferId: block.checkoutLink?.offerId ?? null,
+    canvasLayout: block.canvasLayout ?? null,
     resourceDeliveryLinkId: block.resourceDeliveryLink?.id ?? null,
     resourceDeliveryProductId: block.resourceDeliveryLink?.productId ?? null,
     resourceDeliveryAssetId: block.resourceDeliveryLink?.assetId ?? null,
@@ -4778,6 +4781,110 @@ export async function updateDraftFunnelBlockVisualStyle(
         arbitraryCssIncluded: false,
         scriptIncluded: false,
         fullAbsoluteCanvasEditingEnabled: false,
+        privateAuthDataIncluded: false,
+      },
+    ),
+  ]);
+
+  return (await loadDraftFromD1(db, draft.id)) ?? draft;
+}
+
+export async function updateDraftFunnelBlockCanvasLayout(
+  db: D1Database,
+  identity: AdminIdentity,
+  input: {
+    draftId: string;
+    stepId: string;
+    blockId: string;
+    x: unknown;
+    y: unknown;
+    width: unknown;
+    height: unknown;
+    zIndex: unknown;
+    expectedRevisionId: string;
+    idempotencyKey: string;
+    agentWriteAudit?: AgentFunnelWriteAudit;
+  },
+) {
+  const replay = await draftForIdempotencyKey(db, input.idempotencyKey);
+  if (replay) return replay;
+
+  const draft = await loadDraftFromD1(db, input.draftId);
+  if (!draft) throw new Error("Draft funnel not found.");
+  assertDraftIsMutable(draft, "laid out");
+
+  if (!input.expectedRevisionId || input.expectedRevisionId !== draft.revisionId) {
+    throw new Error("Draft funnel revision changed. Refresh before laying out this block.");
+  }
+
+  const step = draft.steps.find((item) => item.id === input.stepId);
+  if (!step) throw new Error("Draft funnel step not found.");
+
+  const blockIndex = step.blocks.findIndex((item) => item.id === input.blockId);
+  if (blockIndex === -1) throw new Error("Draft funnel block not found.");
+
+  const block = step.blocks[blockIndex];
+  const previousLayout = block.canvasLayout ? normalizeFunnelBlockCanvasLayout(block.canvasLayout, blockIndex) : null;
+  const nextLayout = normalizeFunnelBlockCanvasLayout(
+    {
+      x: input.x,
+      y: input.y,
+      width: input.width,
+      height: input.height,
+      zIndex: input.zIndex,
+    },
+    blockIndex,
+  );
+  const nextBlocks = step.blocks.map((item) => {
+    if (item.id !== block.id) return item;
+    return {
+      ...item,
+      canvasLayout: nextLayout,
+    };
+  });
+  const nextRevisionId = `${draft.revisionId}-block-canvas-layout-${Date.now()}`;
+
+  await db.batch([
+    db
+      .prepare("UPDATE funnel_draft_steps SET blocks_json = ?, updated_at = unixepoch() WHERE id = ? AND funnel_draft_id = ?")
+      .bind(JSON.stringify(nextBlocks), step.id, draft.id),
+    db
+      .prepare("UPDATE funnel_drafts SET revision_id = ?, updated_at = unixepoch() WHERE id = ?")
+      .bind(nextRevisionId, draft.id),
+    insertAuditStatement(
+      db,
+      draft,
+      identity,
+      "draft_updated",
+      input.idempotencyKey,
+      `${identityEmail(identity)} updated canvas layout for block ${block.id} in ${draft.title}.`,
+      {
+        issue: draftFunnelAdvancedParityIssue,
+        action: "block_canvas_layout_update",
+        draftFunnelBlockCanvasLayoutCapability: draftFunnelBlockCanvasLayoutCapability.id,
+        ...agentFunnelWriteMetadata(input.agentWriteAudit, { publicRouteMutation: draft.status === "published" }),
+        expectedRevisionId: input.expectedRevisionId,
+        stepId: step.id,
+        blockId: block.id,
+        previousLayout,
+        nextLayout,
+        before: compactBlockForAudit(block),
+        after: compactBlockForAudit({
+          ...block,
+          canvasLayout: nextLayout,
+        }),
+        blockIdPreserved: true,
+        blockKindPreserved: true,
+        blockTitlePreserved: true,
+        blockBodyPreserved: true,
+        checkoutLinkPreserved: Boolean(block.checkoutLink),
+        resourceDeliveryLinkPreserved: Boolean(block.resourceDeliveryLink),
+        webinarEventLinkPreserved: Boolean(block.webinarEventLink),
+        privatePreviewRendersLayout: true,
+        publicPublishedRouteRendersLayout: true,
+        publicRouteMutation: draft.status === "published",
+        arbitraryCssIncluded: false,
+        scriptIncluded: false,
         privateAuthDataIncluded: false,
       },
     ),

@@ -19,9 +19,10 @@ from published linked resource blocks, owner-confirmed webinar event/replay
 links to public-safe external URLs, owner-session within-step block reordering,
 drag/drop block placement through existing move endpoints, cross-step block
 moves, owner-session direct agent-safe draft writes for block copy edits,
-visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery
+visual style presets, bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery
 linking, webinar-event linking, block movement, duplication, public publishing,
 archive/unpublish, and archived-draft purge, owner-session visual block style controls,
+owner-session bounded canvas layout controls,
 and owner-confirmed archived-draft purge with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
@@ -29,7 +30,7 @@ reusable block library while refusing checkout-linked block removal. Issue #409
 links owner-created product test checkout links to the seeded offer/funnel
 delivery gates without live billing, signed URLs, private R2 delivery, or
 arbitrary customer fulfillment. Issue #417 remains the single post-MVP bucket
-for full absolute-position canvas editing, arbitrary uploaded private asset delivery,
+for arbitrary uploaded private asset delivery,
 live fulfillment automation, full webinar integrations, bulk retention policy,
 unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing.
 
@@ -41,7 +42,7 @@ Live in this slice:
   editable draft capability metadata, owner-session checkout-link capability
   metadata, owner-session resource delivery link capability metadata,
   owner-session webinar event link capability metadata, owner-session visual
-  block style capability metadata,
+  block style capability metadata, owner-session bounded canvas layout capability metadata,
   owner-session block reorder capability metadata, owner-session cross-step
   block move capability metadata, owner-session archived-draft purge capability
   metadata, owner-session
@@ -62,7 +63,7 @@ Live in this slice:
 - `/admin/funnels`: Better Auth owner-gated page that can seed, create, edit,
   reorder, create private drafts from reusable templates, duplicate private
   drafts, edit existing block title/body copy, apply curated visual style
-  presets to existing blocks, add reusable block-library blocks,
+  presets to existing blocks, set bounded canvas layout for existing blocks, add reusable block-library blocks,
   reorder existing blocks within the same step, drag/drop existing blocks
   through the same owner-session move endpoints, move existing blocks between
   steps, remove safe unlinked blocks, attach the seeded sandbox checkout offer to
@@ -71,10 +72,11 @@ Live in this slice:
   public-safe event/replay URLs, publish, archive, unpublish, and purge already
   archived private D1 draft funnels with tombstone evidence.
 - `/admin/funnels/:draftId/preview`: Better Auth owner-gated preview of the
-  current private D1 draft sequence, including saved visual style presets.
+  current private D1 draft sequence, including saved visual style presets and
+  bounded canvas layouts.
 - `/api/admin/funnels/drafts`: owner-session POST endpoint for seed/create,
   template-to-draft create, private draft duplicate, step update, step reorder,
-  block update, block visual style update, block add, block remove, block-reorder, block-cross-step-move, checkout-link,
+  block update, block visual style update, bounded block canvas layout update, block add, block remove, block-reorder, block-cross-step-move, checkout-link,
   checkout-unlink, resource-delivery-link, webinar-event-link, exact-confirmed publish, and
   exact-confirmed archive/unpublish actions, plus exact-confirmed archived-draft purge with
   idempotency, revision checks, audit rows, and purge tombstone evidence.
@@ -82,7 +84,7 @@ Live in this slice:
   template-to-draft path.
 - `/api/agent/funnels/draft-writes`: owner-session JSON endpoint for direct
   agent-safe draft writes. It allows block copy edits, visual style presets,
-  reusable block add/remove, checkout linking/unlinking, resource-delivery linking,
+  bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery linking,
   webinar-event linking, block movement, private draft duplication, public publishing,
   archive/unpublish, and archived-draft purge only after exact confirmation, idempotency, current draft
   revision, and audit correlation checks. Responses are redacted
@@ -95,7 +97,7 @@ Live in this slice:
 
 Not live in this slice:
 
-- Full absolute-position canvas editing, arbitrary CSS, or script injection from funnel editing.
+- Unbounded arbitrary CSS or script injection from funnel editing.
 - Direct removal of checkout-linked blocks without first unlinking checkout
   metadata.
 - Non-archived purge, checkout-linked direct deletion, or

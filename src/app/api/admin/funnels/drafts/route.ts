@@ -20,6 +20,7 @@ import {
   seedEditableFunnelDraft,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
+  updateDraftFunnelBlockCanvasLayout,
   updateDraftFunnelBlockVisualStyle,
   updateDraftFunnelStep,
 } from "@/lib/funnel-drafts";
@@ -192,6 +193,19 @@ export async function POST(request: NextRequest) {
         stepId: fields.value("stepId"),
         blockId: fields.value("blockId"),
         visualStyleId: fields.value("visualStyleId"),
+        expectedRevisionId: fields.value("expectedRevisionId"),
+        idempotencyKey,
+      });
+    } else if (mode === "update-block-canvas-layout") {
+      draft = await updateDraftFunnelBlockCanvasLayout(db, adminState.identity, {
+        draftId: fields.value("draftId"),
+        stepId: fields.value("stepId"),
+        blockId: fields.value("blockId"),
+        x: fields.value("x"),
+        y: fields.value("y"),
+        width: fields.value("width"),
+        height: fields.value("height"),
+        zIndex: fields.value("zIndex"),
         expectedRevisionId: fields.value("expectedRevisionId"),
         idempotencyKey,
       });

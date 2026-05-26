@@ -169,13 +169,14 @@ a fresh revision check, move existing blocks up or down within the same draft
 step after idempotency and a fresh revision check, drag/drop existing blocks
 through the same owner-session move endpoint modes, move existing blocks across
 steps after idempotency and a fresh revision check, link resource/delivery blocks to product access assets
-after exact confirmation and a fresh revision check, publish a draft after exact
+after exact confirmation and a fresh revision check, set bounded canvas layout
+values for existing blocks after idempotency and a fresh revision check, publish a draft after exact
 confirmation, archive private drafts, unpublish public draft routes by archiving
 them, and link to an owner-gated private preview route. This is private/admin state. Public agents should read
 `/funnels/source-data` for the capability boundary, not scrape private draft
 copy. Publishing, checkout-linking, checkout-unlinking, resource delivery
-linking, within-step block reordering, drag/drop block placement, cross-step block moves, and archive/unpublish lifecycle actions are owner-confirmed; physical
-deletion, full absolute-position canvas editing, arbitrary uploaded private asset delivery, signed URL
+linking, bounded canvas layout, within-step block reordering, drag/drop block placement, cross-step block moves, and archive/unpublish lifecycle actions are owner-confirmed; physical
+deletion, arbitrary uploaded private asset delivery, signed URL
 creation, live fulfillment automation, webinar integrations, direct agent-created
 delivery tokens, and direct agent edits still need future confirmed-write APIs.
 Published resource-linked blocks can mint short-lived Bumpgrade download routes

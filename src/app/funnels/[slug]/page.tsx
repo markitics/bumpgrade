@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, PanelsTopLeft, ShieldCheck } from "lucide-react";
@@ -11,6 +12,8 @@ import { analyticsDashboard } from "@/lib/analytics-experiments";
 import { checkoutOfferStack } from "@/lib/checkout-offers";
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
 import {
+  defaultFunnelBlockCanvasLayoutForIndex,
+  funnelBlockCanvasLayoutStyle,
   funnelBlockVisualStyleForId,
   funnelBlockLibrary,
   funnelTemplateLibrary,
@@ -94,6 +97,8 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
     step.blocks.some((block) => block.kind === "checkout" && block.checkoutLink?.offerStackId === checkoutOfferStack.id),
   );
   const canStartLinkedCheckout = published && hasLinkedCheckoutBlock;
+  const pageBlocks = funnel.steps.flatMap((step) => step.blocks.map((block) => ({ step, block })));
+  const hasCanvasLayout = pageBlocks.some(({ block }) => Boolean(block.canvasLayout));
 
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -186,16 +191,18 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
             <h2>Reusable page sections for launch funnels</h2>
           </div>
         </div>
-        <div className="feature-grid">
-          {funnel.steps.flatMap((step) =>
-            step.blocks.map((block) => {
+        <div className={`feature-grid${hasCanvasLayout ? " funnel-canvas-grid" : ""}`}>
+          {pageBlocks.map(({ step, block }, blockIndex) => {
               const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+              const canvasLayout = block.canvasLayout ?? (hasCanvasLayout ? defaultFunnelBlockCanvasLayoutForIndex(blockIndex) : null);
 
               return (
                 <article
                   key={block.id}
                   className={`feature-card compact-content-card funnel-block-card ${visualStyle.className}`}
                   data-funnel-block-style={visualStyle.id}
+                  data-funnel-canvas-layout={canvasLayout ? "true" : undefined}
+                  style={canvasLayout ? (funnelBlockCanvasLayoutStyle(canvasLayout) as CSSProperties) : undefined}
                 >
                   <div className="feature-card-top">
                     <span className={`status-badge ${block.agentEditable ? "active" : "blocked"}`}>
@@ -269,8 +276,7 @@ export default async function FunnelPreviewPage({ params }: FunnelPreviewPagePro
                   ) : null}
                 </article>
               );
-            }),
-          )}
+            })}
         </div>
       </section>
 
