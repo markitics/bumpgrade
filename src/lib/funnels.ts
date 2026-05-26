@@ -179,6 +179,10 @@ export const draftFunnelBuilderParentIssue = 14;
 export const agentFunnelDraftWriteIssue = draftFunnelAdvancedParityIssue;
 export const agentFunnelDraftWriteApiRoute = "/api/agent/funnels/draft-writes";
 export const agentFunnelDraftWriteConfirmationText = "CONFIRM AGENT FUNNEL DRAFT WRITE";
+export const agentFunnelResourceDeliveryTokenIssue = draftFunnelAdvancedParityIssue;
+export const agentFunnelResourceDeliveryTokenStatus = "owner-session-agent-resource-delivery-token-ready";
+export const agentFunnelResourceDeliveryTokenApiRoute = "/api/agent/funnels/resource-delivery-tokens";
+export const agentFunnelResourceDeliveryTokenConfirmationText = "CONFIRM AGENT FUNNEL RESOURCE DELIVERY TOKEN";
 export const defaultFunnelBlockVisualStyleId: FunnelBlockVisualStyleId = "standard";
 export const funnelBlockVisualStyles: FunnelBlockVisualStyle[] = [
   {
@@ -240,7 +244,7 @@ export function funnelBlockVisualStyleForId(value: string | null | undefined) {
 }
 
 export const draftFunnelBuilderWriteBoundary =
-  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, owner-session visual style controls for existing blocks, block reordering within a step while preserving checkout/resource/webinar metadata, drag/drop block placement through the existing block reorder and cross-step move endpoints, cross-step block moves that preserve block metadata, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, exact-confirmed archived-draft purge with tombstone evidence, exact-confirmed checkout-offer linking on private draft steps, exact-confirmed checkout unlinking on private draft blocks, exact-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery on published resource blocks, exact-confirmed webinar event/replay links on private webinar blocks, and owner-session direct agent-safe draft writes for block copy edits, block visual styles, block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, public publishing, archive/unpublish, and archived-draft purge through /api/agent/funnels/draft-writes. Full absolute-position canvas editing, direct agent-created delivery tokens, direct webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, non-archived or bulk direct agent purge, and unauthenticated public agent writes still require future confirmed-write APIs with stronger rollback and provider safety notes.";
+  "Owner-session draft writes are live for creating, seeding, webinar/resource template-to-draft creation, private draft duplication, step editing, step reordering, granular block title/body editing with preserved block metadata, block add/remove from the reusable block library with checkout-linked block protection, owner-session visual style controls for existing blocks, block reordering within a step while preserving checkout/resource/webinar metadata, drag/drop block placement through the existing block reorder and cross-step move endpoints, cross-step block moves that preserve block metadata, private preview, exact-confirmed public publishing of D1 draft funnels, exact-confirmed archive/unpublish, exact-confirmed archived-draft purge with tombstone evidence, exact-confirmed checkout-offer linking on private draft steps, exact-confirmed checkout unlinking on private draft blocks, exact-confirmed resource delivery links to product/access catalog assets, funnel-scoped private download-token delivery on published resource blocks, owner-session agent-created resource delivery tokens for published linked resource blocks, exact-confirmed webinar event/replay links on private webinar blocks, and owner-session direct agent-safe draft writes for block copy edits, block visual styles, block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, public publishing, archive/unpublish, and archived-draft purge through /api/agent/funnels/draft-writes. Full absolute-position canvas editing, unauthenticated public agent-created delivery tokens, direct webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, non-archived or bulk direct agent purge, and unauthenticated public agent writes still require future confirmed-write APIs with stronger rollback and provider safety notes.";
 
 export const editableDraftCapability = {
   id: "editable-funnel-drafts-admin",
@@ -341,7 +345,7 @@ export const draftFunnelBlockVisualStyleCapability = {
     "Live billing or fulfillment mutation from visual style changes",
   ],
   writeBoundary:
-    "Issue #417 lets verified owners apply curated visual style presets to existing draft funnel blocks after idempotency and a fresh revision check. The write stores a small style ID in funnel_draft_steps.blocks_json, preserves block content and linked checkout/resource/webinar metadata, and renders the same style in owner private preview and public published routes. It does not provide arbitrary CSS, script injection, absolute-position canvas editing, live billing, live fulfillment automation, webinar provider automation, direct agent-created delivery tokens, non-archived or bulk direct agent purge, or unauthenticated public agent writes.",
+    "Issue #417 lets verified owners apply curated visual style presets to existing draft funnel blocks after idempotency and a fresh revision check. The write stores a small style ID in funnel_draft_steps.blocks_json, preserves block content and linked checkout/resource/webinar metadata, and renders the same style in owner private preview and public published routes. It does not provide arbitrary CSS, script injection, absolute-position canvas editing, live billing, live fulfillment automation, webinar provider automation, unauthenticated public agent-created delivery tokens, non-archived or bulk direct agent purge, or unauthenticated public agent writes.",
 };
 
 export const agentFunnelDraftWriteCapability = {
@@ -1131,7 +1135,7 @@ export const funnelBlockLibrary: FunnelBlockLibraryItem[] = [
     agentEditable: true,
     safeInputs: ["resource titles", "format labels", "approved public summaries", "delivery route"],
     writeBoundary:
-      "Published linked resource blocks can request Bumpgrade download tokens after checkout entitlement scope matches; arbitrary R2 object selection, signed URLs, and direct agent-created delivery tokens still require future confirmed-write contracts.",
+      "Published linked resource blocks can request Bumpgrade download tokens after checkout entitlement scope matches; arbitrary R2 object selection, signed URLs, and unauthenticated public agent-created delivery tokens still require future confirmed-write contracts.",
   },
   {
     id: "block-template-cta",
@@ -1308,17 +1312,66 @@ export const publicFunnelResourceDeliveryTokenCapability = {
   liveFulfillmentAutomationEnabled: false,
   safeForPublicAgents: [
     "Read that published D1 funnel resource/delivery blocks can request a private download token only when the checkout entitlement matches the linked block product and asset.",
+    "Read that verified owner-session agents can create the same funnel-scoped token through /api/agent/funnels/resource-delivery-tokens after exact confirmation, idempotency, audit correlation, and published-revision checks.",
     "Read that the customer-facing funnel route delegates to the existing short-lived product download-token stream instead of exposing signed URLs or R2 object keys.",
-    "Distinguish funnel-scoped private file delivery from arbitrary uploaded asset delivery, live fulfillment automation, live billing, direct agent writes, or provider-hosted media.",
+    "Distinguish funnel-scoped private file delivery from arbitrary uploaded asset delivery, live fulfillment automation, live billing, unauthenticated agent writes, or provider-hosted media.",
   ],
   notYetLive: [
     "Customer delivery of arbitrary uploaded private assets",
     "Signed object URL creation",
     "Live fulfillment automation or fulfillment task mutation from funnel pages",
-    "Direct agent-created delivery tokens",
+    "Unauthenticated public agent-created delivery tokens",
   ],
   writeBoundary:
-    "Issue #417 lets a published D1 funnel resource/delivery block request the existing short-lived private download token after the submitted checkout intent and entitlement match the block's linked product and file asset. The response returns a Bumpgrade download route only; it does not expose private R2 keys, signed URLs, buyer data, arbitrary uploaded assets, live billing, fulfillment task mutation, provider media, or direct public agent writes.",
+    "Issue #417 lets a published D1 funnel resource/delivery block request the existing short-lived private download token after the submitted checkout intent and entitlement match the block's linked product and file asset. Verified owner-session agents can create the same scoped token through /api/agent/funnels/resource-delivery-tokens after exact confirmation, idempotency, audit correlation, and current published-revision checks. The response returns a Bumpgrade download route only; it does not expose private R2 keys, signed URLs, buyer data, arbitrary uploaded assets, live billing, fulfillment task mutation, provider media, or unauthenticated public agent writes.",
+};
+
+export const agentFunnelResourceDeliveryTokenCapability = {
+  id: "agent-funnel-resource-delivery-token-owner-confirmed",
+  status: agentFunnelResourceDeliveryTokenStatus,
+  issue: agentFunnelResourceDeliveryTokenIssue,
+  parentIssue: draftFunnelBuilderParentIssue,
+  apiRoute: agentFunnelResourceDeliveryTokenApiRoute,
+  publicTokenApiRoute: publicFunnelResourceDeliveryTokenCapability.apiRoute,
+  sourceDataRoute: "/funnels/source-data",
+  auth: "owner-session",
+  confirmationRequired: true,
+  confirmationText: agentFunnelResourceDeliveryTokenConfirmationText,
+  idempotencyRequired: true,
+  staleRevisionRequired: true,
+  auditCorrelationRequired: true,
+  requiresPublishedFunnel: true,
+  requiresResourceDeliveryLink: true,
+  requiresCheckoutIntentAndEntitlement: true,
+  verifiesBlockProductAndAsset: true,
+  storesIn: "agent_funnel_resource_delivery_token_requests",
+  delegatesTo: "createFunnelResourceDeliveryToken",
+  replayPolicy: "same idempotency key returns audit replay metadata without raw token or download URL",
+  rawTokenStored: false,
+  rawTokenAvailableOnReplay: false,
+  rawOwnerDataIncluded: false,
+  rawRowsIncluded: false,
+  buyerDataIncluded: false,
+  rawR2KeysIncluded: false,
+  signedUrlsIncluded: false,
+  billingMutationCreated: false,
+  publicRouteMutationCreated: false,
+  unauthenticatedAgentWriteCreated: false,
+  safeForPublicAgents: [
+    "Read that verified owner-session agents can create a short-lived funnel-scoped private download token for a published resource block.",
+    "Read that the request requires exact confirmation, an idempotency key, audit correlation, current published funnel revision, checkout intent, entitlement, and block ID.",
+    "Read that replaying the same idempotency key returns audit metadata without returning or storing the raw token again.",
+    "Confirm the endpoint delegates to the entitlement-scoped product download-token validator and does not expose R2 keys, signed URLs, buyer data, raw rows, or owner identity.",
+    "Distinguish owner-session agent token creation from unauthenticated public agent writes, arbitrary uploaded asset delivery, live fulfillment automation, or billing mutation.",
+  ],
+  notYetLive: [
+    "Unauthenticated public agent-created delivery tokens",
+    "Arbitrary uploaded private asset delivery",
+    "Signed object URL creation",
+    "Live fulfillment automation or fulfillment task mutation from funnel pages",
+  ],
+  writeBoundary:
+    "Issue #417 lets verified owner-session agents call /api/agent/funnels/resource-delivery-tokens to create a short-lived funnel-scoped private download token for a published resource block after exact confirmation, idempotency, audit correlation, and current published-revision checks. It delegates entitlement, checkout-intent, product, asset, and private R2-token validation to the existing funnel/product download-token path. Replays return only redacted audit metadata because raw bearer tokens are not stored. The endpoint does not expose owner identity, idempotency keys, raw rows, buyer data, R2 keys, signed URLs, arbitrary uploaded private assets, billing mutations, fulfillment task mutations, public route mutations, or unauthenticated public agent writes.",
 };
 
 export function getFunnelBySlug(slug: string) {
@@ -1342,6 +1395,7 @@ export const funnelSourceData = {
     "/api/products/protected-content",
     "/api/funnels/resource-delivery",
     agentFunnelDraftWriteApiRoute,
+    agentFunnelResourceDeliveryTokenApiRoute,
     ...seededFunnels.map((funnel) => funnel.previewRoute),
   ],
   adminRoutes: [editableDraftCapability.adminRoute, editableDraftCapability.previewRoutePattern],
@@ -1371,6 +1425,7 @@ export const funnelSourceData = {
     "funnelPurgeEventId",
     "agentFunnelDraftWriteId",
     "agentFunnelDraftWriteOperationId",
+    "agentFunnelResourceDeliveryTokenId",
     "auditCorrelationId",
     "checkoutIntentId",
     "checkoutOfferStackId",
@@ -1393,6 +1448,7 @@ export const funnelSourceData = {
   draftFunnelPurgeCapability,
   draftFunnelCheckoutUnlinkCapability,
   agentFunnelDraftWriteCapability,
+  agentFunnelResourceDeliveryTokenCapability,
   templateDraftCreationCapability,
   webinarResourceTemplateCapability,
   checkoutLinkingCapability,
@@ -1403,5 +1459,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session visual style controls for existing blocks, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-confirmed archived-draft purge, owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, archive/unpublish, and archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, full absolute-position canvas editing, direct agent non-archived or bulk purge, and unconfirmed unauthenticated agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session visual style controls for existing blocks, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-confirmed archived-draft purge, owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, archive/unpublish, and archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session agent-created resource delivery tokens for published linked resource blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, full absolute-position canvas editing, direct agent non-archived or bulk purge, and unconfirmed unauthenticated agent-write APIs are not live.",
 };
