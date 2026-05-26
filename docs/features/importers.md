@@ -64,6 +64,12 @@ dedicated importer pages:
   readiness or cleanup metadata and acknowledged go-live blockers only; it does
   not create subscriber rows, enroll sequences, send email, enable exports, or
   turn on buyer-facing effects.
+- Verified publishers can create private importer subscriber records from a
+  confirmed fresh upload or paste after preflight. Those records are scoped to
+  the private import plan and can store normalized private subscriber email/name
+  data server-side for owner review; public responses expose counts only and do
+  not create global audience send-list rows, enroll sequences, send email,
+  enable exports, or turn on buyer-facing effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   after creation. The paired review action route lets that publisher mark each

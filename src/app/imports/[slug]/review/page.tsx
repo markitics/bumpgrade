@@ -12,6 +12,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
 } from "@/lib/importers";
@@ -107,6 +108,15 @@ function subscriberPreflightStatusLabel(record: CompetitorImportPrivateRecord) {
   return "Not recorded yet";
 }
 
+function subscriberImportCreationStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.subscriberImportCreation?.status === "subscriber_records_created") {
+    const count = record.subscriberImportCreation.privateSubscriberRecordCount;
+    return `${count} private subscriber ${count === 1 ? "record" : "records"} saved`;
+  }
+
+  return "No private subscriber records saved yet";
+}
+
 function safeSignalText(values: string[]) {
   return values.length ? values.join(", ") : "No safe signal yet.";
 }
@@ -151,6 +161,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
   const recognizedMatchIds = review?.importReview?.recognizedPlatformExportMatchIds ?? [];
   const recordReview = firstSearchValue(search.recordReview);
   const subscriberPreflight = firstSearchValue(search.subscriberPreflight);
+  const subscriberImport = firstSearchValue(search.subscriberImport);
   const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
@@ -203,6 +214,9 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         ) : null}
         {subscriberPreflight === "needs_cleanup" ? (
           <p className="account-success">Subscriber import preflight marked for cleanup.</p>
+        ) : null}
+        {subscriberImport === "subscriber_records_created" ? (
+          <p className="account-success">Private subscriber records saved for owner review.</p>
         ) : null}
         {review ? (
           <div className="feature-section-heading">
@@ -396,6 +410,49 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                           value={importerPrivateRecordSubscriberPreflightConfirmationText(platform.platformName, "needs_cleanup")}
                         >
                           Needs subscriber cleanup
+                        </button>
+                      </form>
+                      <div className="feature-detail">
+                        <strong>Private subscriber records</strong>
+                        <span>{subscriberImportCreationStatusLabel(record)}</span>
+                      </div>
+                      {record.subscriberImportCreation ? <p>{record.subscriberImportCreation.summary}</p> : null}
+                      <form
+                        className="importer-record-actions importer-subscriber-import-form"
+                        action={importerPrivateRecordReviewActionApiRoute(platform.slug)}
+                        method="post"
+                        encType="multipart/form-data"
+                      >
+                        <input type="hidden" name="action" value="create_subscriber_import_records" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`subscriber-import-records-${record.id}-${record.updatedAt ?? "new"}`}
+                        />
+                        <label htmlFor={inputId(record.id, "subscriber-import", "file")}>Subscriber export</label>
+                        <input
+                          id={inputId(record.id, "subscriber-import", "file")}
+                          name="exportFiles"
+                          type="file"
+                          accept=".csv,.json,.txt,text/csv,application/json,text/plain"
+                        />
+                        <label htmlFor={inputId(record.id, "subscriber-import", "rows")}>Paste subscriber rows</label>
+                        <textarea
+                          id={inputId(record.id, "subscriber-import", "rows")}
+                          name="subscriberImportRows"
+                          rows={4}
+                        />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordSubscriberImportConfirmationText(platform.platformName)}
+                          disabled={record.subscriberImportPreflight?.status !== "ready_for_import_planning"}
+                        >
+                          <Save aria-hidden="true" />
+                          Save private subscribers
                         </button>
                       </form>
                     </div>

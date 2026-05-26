@@ -137,6 +137,10 @@ export function importerPrivateRecordSubscriberPreflightConfirmationText(
     : `Record ${platformName} subscriber import preflight cleanup`;
 }
 
+export function importerPrivateRecordSubscriberImportConfirmationText(platformName: string) {
+  return `Create ${platformName} private subscriber records`;
+}
+
 export function importerDraftImportCapabilityId(platformId: string) {
   return `${platformId.replace(/^importer-/, "")}-private-draft-import`;
 }
@@ -201,6 +205,7 @@ export const commonImporterSafetyGates = [
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
   "Private importer writes create structured private import records for matched review areas without making them buyer-facing.",
+  "Confirmed audience-import review can create private importer subscriber records for owner review, but not global send-list rows or sequence enrollments.",
   "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
   "Rollback archives private import plans without deleting saved work or audit history, so the same source can be restarted cleanly.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
@@ -251,6 +256,11 @@ export const importerPrivateStructuredRecords = {
   subscriberImportPreflightActionRouteField: "privateRecordReviewActionApiRoute",
   subscriberImportPreflightAppliesTo: ["draft_audience_import"],
   subscriberImportPreflightStatusValues: ["not_recorded", "ready_for_import_planning", "needs_cleanup"],
+  subscriberImportCreationResponseField: "subscriberImportCreation",
+  subscriberImportCreationActionLive: true,
+  subscriberImportCreationActionRouteField: "privateRecordReviewActionApiRoute",
+  subscriberImportCreationAppliesTo: ["draft_audience_import"],
+  subscriberImportCreationStatusValues: ["not_created", "subscriber_records_created"],
   publicSourceDataExposesContent: false,
   derivedFrom: ["importReview.platformExportMatches", "safe exportFileAnalysis labels", "platform importableAreas"],
   extractedFieldsDerivedFrom: ["safe header labels", "safe signal labels", "record kind"],
@@ -270,7 +280,9 @@ export const importerPrivateStructuredRecords = {
   storesOwnerEditedExtractedFieldPlan: true,
   storesSafeSubscriberImportDepth: true,
   storesSubscriberImportPreflightMetadata: true,
-  createsSubscriberRows: false,
+  storesPrivateSubscriberImportRecords: true,
+  createsSubscriberRows: true,
+  createsGlobalAudienceSubscriberRows: false,
   createsSequenceEnrollments: false,
   emailDeliveryEnabled: false,
   exportEnabled: false,
@@ -1204,6 +1216,7 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
         "extractedFields",
         "subscriberImportDepth",
         "subscriberImportPreflight",
+        "subscriberImportCreation",
         "recordConfidence",
         "reviewDecision",
         "goLiveEffects",
@@ -1242,18 +1255,27 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
             },
           ],
         },
+        {
+          action: "create_subscriber_import_records",
+          responseField: "subscriberImportCreation",
+          appliesTo: importerPrivateStructuredRecords.subscriberImportCreationAppliesTo,
+          confirmationText: importerPrivateRecordSubscriberImportConfirmationText(platform.platformName),
+          accepts: ["exportFiles", "exportManifest", "subscriberImportRows"],
+        },
       ],
       writes: [
         "record_review_decision_metadata",
         "extracted_field_plan_metadata",
         "subscriber_import_preflight_metadata",
+        "private_subscriber_import_records",
       ],
       idempotencyRequired: true,
       rawRowsEchoed: false,
       rawTextEchoed: false,
       rawExportFileNamesEchoed: false,
       rawExtractedValuesStored: false,
-      subscriberRowsCreated: false,
+      subscriberRowsCreated: true,
+      globalAudienceSubscriberRowsCreated: false,
       sequenceEnrollmentsCreated: false,
       subscriberSendsEnabled: false,
       privateExportsEnabled: false,
@@ -1340,6 +1362,7 @@ export const importerSourceData = {
     privateStructuredImportRecordFieldEditingLive: true,
     privateSubscriberImportDepthLive: true,
     privateSubscriberImportPreflightActionsLive: true,
+    privateSubscriberImportCreationLive: true,
     paidGoLiveRequired: true,
   },
   commonContract: {
@@ -1366,11 +1389,13 @@ export const importerSourceData = {
     privateStructuredImportRecords:
       "Verified private importer writes return importRecords and save structured private review records derived from safe importReview metadata. Records cover matched funnel, page-block, offer, product, audience, sequence, and asset areas as applicable; a verified-publisher private review route can inspect those records for the same owner and mark each record ready or needs cleanup with private metadata-only review decisions, while public source-data exposes only the contract, not private record content, raw rows, raw file text, raw export file names, customer rows, payment credentials, idempotency keys, confirmation text, or go-live effects.",
     privateStructuredImportRecordFieldExtraction:
-      "Private importRecords now include extractedFields: safe target field labels and review prompts derived from matched header labels, signal labels, and record kind. Audience import records also include subscriberImportDepth with aggregate contact-row counts and safe identity/tag/consent/sequence signals. The owner review page can show and edit field labels, review status, and review prompts, and can record a metadata-only subscriberImportPreflight decision after reviewing subscriber import readiness, without storing or exposing raw row values, file names, pasted source text, customer values, private emails, credentials, subscriber writes, sequence enrollments, sends, exports, or go-live effects.",
+      "Private importRecords now include extractedFields: safe target field labels and review prompts derived from matched header labels, signal labels, and record kind. Audience import records also include subscriberImportDepth with aggregate contact-row counts and safe identity/tag/consent/sequence signals. The owner review page can show and edit field labels, review status, and review prompts, record a subscriberImportPreflight decision, then create private importer subscriber records from a confirmed re-upload or paste without exposing raw row values, file names, pasted source text, customer values, private emails, credentials, sequence enrollments, sends, exports, or go-live effects.",
     privateSubscriberImportDepth:
       "Private audience import records include subscriberImportDepth: aggregate contact-row counts plus safe identity, tag/segment, consent/status, and sequence-context signals derived from headers and source signals only. It helps the owner review subscriber import readiness without creating subscriber rows, storing raw emails/names/contact rows, enrolling sequences, sending email, exporting private data, or enabling go-live effects.",
     privateSubscriberImportPreflight:
       "Verified publishers can record subscriberImportPreflight on private audience import records from the private review page after exact confirmation and idempotency. The action stores only readiness/cleanup metadata, aggregate depth references, and acknowledged go-live blockers; it creates no subscriber rows, no sequence enrollments, no private exports, no email sends, and no buyer-facing effects.",
+    privateSubscriberImportCreation:
+      "Verified publishers can create private importer subscriber records from an audience import review after exact confirmation, idempotency, and a fresh export upload or paste. The records are scoped to the private import plan and can store normalized private subscriber email/name data server-side for later owner review, but public responses and source-data expose counts only; no global audience subscriber rows, sequence enrollments, sends, exports, checkout, domains, fulfillment, or go-live effects are enabled.",
     privateStructuredRecords: importerPrivateStructuredRecords,
     preflightSignalLabels: importerPreflightSignalLabels,
     safetyGates: commonImporterSafetyGates,

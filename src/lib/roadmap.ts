@@ -82,7 +82,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(467),
     group: "Migration",
     summary:
-      "Importer center, dedicated platform import paths, public redacted review maps, private draft creation, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
+      "Importer center, dedicated platform import paths, public redacted review maps, private draft creation, private subscriber import records, and reusable source-data contract for moving competitor platform context into private Bumpgrade launch workspaces before go-live.",
     publicEvidence: [
       "Issue #467 tracks easy importers from ClickFunnels and first-wave competitor platforms.",
       "`/imports` lists supported importer paths.",
@@ -99,12 +99,13 @@ export const roadmapItems: RoadmapItem[] = [
       "Verified publishers can edit safe extracted field labels, review status, and prompts without storing raw extracted values or triggering buyer-facing changes.",
       "Private audience import records now include safe subscriber import depth with aggregate row counts and identity, tag, consent, and sequence signals before any subscriber write exists.",
       "Verified publishers can record subscriber import preflight decisions for private audience records without creating subscriber rows, sequence enrollments, sends, private exports, or go-live effects.",
-      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, private record review routes, review-action routes, extracted-field edit actions, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "Verified publishers can create private importer subscriber records from a confirmed fresh upload or paste without creating global audience send-list rows, sequence enrollments, sends, private exports, or go-live effects.",
+      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, private structured import-record fields, extracted field plans, subscriber import depth, subscriber import preflight actions, subscriber import creation actions, private record review routes, review-action routes, extracted-field edit actions, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, structured private import records, steps, or audit history so the same source can be restarted.",
     ],
     nextMilestone:
-      "Keep live subscriber import creation, checkout/payment credential migration, account transfer, domains, and fulfillment parked behind dedicated confirmed-write work; use the importer surface for private migration planning and cleanup until those gates ship.",
+      "Keep global audience send-list promotion, sequence enrollment and sends, private exports, checkout/payment credential migration, account transfer, domains, and fulfillment parked behind dedicated confirmed-write work; use the importer surface for private migration planning and cleanup until those gates ship.",
   },
   {
     id: "roadmap-feature-catalog",
