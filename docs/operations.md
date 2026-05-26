@@ -62,6 +62,10 @@ reply monitoring.
 - Cloudflare Email Routing rule `Codex Worker inbox` routes
   `codex@bumpgrade.com` to Worker `bumpgrade`
   (`1a4cd26c1a33455b93a2a81865c390bd`).
+- Cloudflare Email Routing rule `Public hello forwarding` routes
+  `hello@bumpgrade.com` to the verified destination `m@rkmoriarty.com`
+  (`b272541b01cd4c5e8302888649e9a770`). This mailbox is for public
+  product/contact CTAs and does not invoke the Codex Worker inbox.
 - R2 raw-message bucket: `bumpgrade-mail`.
 - Worker binding for raw mail: `MAIL`.
 - Worker send binding: `EMAIL`, restricted to sender
