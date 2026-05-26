@@ -105,11 +105,13 @@ export default async function AdminFunnelsPage() {
             evidence, and owner-session agents can now use a confirmed JSON write contract for private block copy edits,
             reusable block add/remove, checkout linking and unlinking, resource-delivery linking, webinar-event linking,
             block movement, private draft duplication, public publishing with archive rollback, archive/unpublish, and
-            archived-draft purge with tombstone evidence. Owner-session visual style controls now render in private
+            archived-draft purge with tombstone evidence, and owner-session agents can create funnel-scoped resource
+            delivery tokens for published linked resource blocks after exact confirmation, idempotency, published revision
+            checks, entitlement checks, and audit correlation. Owner-session visual style controls now render in private
             previews and public published routes. Non-archived purge,
             full absolute-position canvas editing,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
-            unauthenticated public agent publishing, and direct agent-created delivery tokens still need confirmed-write slices.
+            unauthenticated public agent publishing, and unauthenticated public agent-created delivery tokens still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">

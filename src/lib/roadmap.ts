@@ -334,10 +334,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #430 adds owner-session granular block title/body editing while preserving block IDs, kinds, ordered step structure, and checkout-link metadata.",
       "Issue #432 adds owner-session block add/remove controls from the reusable block library while refusing checkout-linked block removal.",
       "Issue #409 links owner-created product test checkout links to the seeded offer/funnel delivery gates without live billing or private fulfillment delivery.",
-      "Issue #417 adds owner-confirmed checkout unlinking, owner-confirmed resource delivery links, funnel-scoped private download-token delivery from published linked resource blocks, owner-confirmed webinar event/replay links, owner-session visual block style controls, owner-confirmed archived-draft purge with tombstone evidence, owner-session within-step block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, and owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, duplication, public publishing, archive/unpublish, and archived-draft purge while tracking remaining full absolute-position canvas editing, full webinar integrations, bulk purge policy, live fulfillment automation, arbitrary uploaded private asset delivery, direct agent-created delivery tokens, and unauthenticated public agent publishing after the MVP closeout.",
+      "Issue #417 adds owner-confirmed checkout unlinking, owner-confirmed resource delivery links, funnel-scoped private download-token delivery from published linked resource blocks, owner-session agent-created resource delivery tokens for published linked resource blocks, owner-confirmed webinar event/replay links, owner-session visual block style controls, owner-confirmed archived-draft purge with tombstone evidence, owner-session within-step block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, and owner-session direct agent-safe draft writes for block copy edits, visual style presets, reusable block add/remove, checkout linking/unlinking, resource-delivery linking, webinar-event linking, block movement, duplication, public publishing, archive/unpublish, and archived-draft purge while tracking remaining full absolute-position canvas editing, full webinar integrations, bulk purge policy, live fulfillment automation, arbitrary uploaded private asset delivery, unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing after the MVP closeout.",
     ],
     nextMilestone:
-      "Keep full absolute-position canvas editing, arbitrary uploaded private asset delivery, live fulfillment automation, full webinar integrations, bulk purge policy, direct agent-created delivery tokens, and unauthenticated public agent publishing in issue #417; keep live publisher-offer billing in issue #219.",
+      "Keep full absolute-position canvas editing, arbitrary uploaded private asset delivery, live fulfillment automation, full webinar integrations, bulk purge policy, unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing in issue #417; keep live publisher-offer billing in issue #219.",
   },
   {
     id: "roadmap-advanced-funnel-builder-parity",
@@ -347,7 +347,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(14),
     group: "Funnels and pages",
     summary:
-      "Active post-MVP funnel parity for visual funnel editing, resource delivery, webinar integrations, bulk purge policy, and agent-safe writes; owner-confirmed checkout unlinking, resource delivery links, funnel-scoped private download-token delivery, webinar event/replay links, visual block style controls, archived-draft purge, within-step block reordering, drag/drop block placement through existing move endpoints, cross-step block moves, and owner-session direct agent-safe draft writes including block add/remove, public publishing, and archived-draft purge are now part of this bucket's shipped evidence.",
+      "Active post-MVP funnel parity for visual funnel editing, resource delivery, webinar integrations, bulk purge policy, and agent-safe writes; owner-confirmed checkout unlinking, resource delivery links, funnel-scoped private download-token delivery, owner-session agent-created resource delivery tokens, webinar event/replay links, visual block style controls, archived-draft purge, within-step block reordering, drag/drop block placement through existing move endpoints, cross-step block moves, and owner-session direct agent-safe draft writes including block add/remove, public publishing, and archived-draft purge are now part of this bucket's shipped evidence.",
     publicEvidence: [
       "Issue #417 tracks the advanced funnel parity bucket after issue #14 MVP closeout.",
       "Issue #430 moves granular existing-block title/body editing into the owner-session builder while keeping direct agent block edits pending.",
@@ -355,6 +355,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #417 adds owner-confirmed checkout unlinking from private draft blocks while preserving block IDs, kinds, title/body copy, step order, and audit evidence.",
       "Issue #417 adds owner-confirmed resource delivery links from private draft resource/delivery blocks to public-safe product/access catalog assets without private R2 keys, signed URLs, buyer records, arbitrary uploaded asset delivery, or live fulfillment automation.",
       "Issue #417 adds funnel-scoped private download-token delivery from published linked resource blocks after checkout intent, entitlement, product, and file asset scope match.",
+      "Issue #417 adds owner-session agent-created resource delivery tokens through /api/agent/funnels/resource-delivery-tokens after exact confirmation, idempotency, current published revision checks, entitlement checks, and audit correlation.",
       "Issue #417 adds owner-confirmed webinar event/replay links from private draft webinar blocks to public-safe external URLs without provider secrets, attendance tracking, reminder automation, or replay hosting.",
       "Issue #417 adds owner-session visual style presets for existing private draft blocks while preserving block IDs, copy, checkout/resource/webinar metadata, and audit evidence.",
       "Issue #417 adds owner-session within-step block reordering while preserving block IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata, step membership, and audit evidence.",
@@ -365,7 +366,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #219 tracks live publisher-offer billing separately from advanced funnel editing and resource delivery.",
     ],
     nextMilestone:
-      "Design full absolute-position canvas editing, arbitrary uploaded private asset delivery, live fulfillment automation, full webinar integrations, bulk purge policy, direct agent-created delivery tokens, and unauthenticated public agent publishing as one coherent post-MVP workflow instead of more single-gate readiness slices.",
+      "Design full absolute-position canvas editing, arbitrary uploaded private asset delivery, live fulfillment automation, full webinar integrations, bulk purge policy, unauthenticated public agent-created delivery tokens, and unauthenticated public agent publishing as one coherent post-MVP workflow instead of more single-gate readiness slices.",
   },
   {
     id: "roadmap-checkout-offers",
