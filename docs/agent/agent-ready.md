@@ -247,7 +247,12 @@ matched header/signal metadata, not raw row values, raw source text, file names,
 private emails, customer values, credentials, or go-live actions. A verified
 publisher can edit those field labels, review status, and prompts as private
 metadata with exact confirmation and idempotency, without saving raw extracted
-values or enabling buyer-facing effects. Each platform also exposes a
+values or enabling buyer-facing effects. Audience import records also include
+`subscriberImportDepth`, with aggregate contact-row counts and safe identity,
+tag/segment, consent/status, and sequence-context signals from headers and
+source signals only. It does not create subscriber rows, store raw contact rows,
+store raw emails or names, enroll sequences, send email, enable private exports,
+or turn on go-live effects. Each platform also exposes a
 verified-publisher `privateRecordReviewRoute` that lets the same owner inspect
 those structured records after creation without showing raw rows, raw file text,
 export file names, customer values, private emails, credentials, sessions, or
