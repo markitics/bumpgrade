@@ -101,6 +101,9 @@ reports `ready` after installing the required MX, SPF, and DKIM records.
 Routing rules:
 
 - `Codex Worker inbox` routes `codex@bumpgrade.com` to Worker `bumpgrade`.
+- `Public hello forwarding` routes `hello@bumpgrade.com` to the verified
+  `m@rkmoriarty.com` destination. This public contact mailbox is separate from
+  Codex reply monitoring and does not invoke the Worker `email()` handler.
 
 R2:
 
