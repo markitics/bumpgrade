@@ -364,6 +364,45 @@ export type CompetitorImportPrivateRecordSubscriberAudiencePromotion = {
   };
 };
 
+export type CompetitorImportPrivateRecordSubscriberPrivateExportStatus =
+  | "not_exported"
+  | "private_export_prepared";
+
+export type CompetitorImportPrivateRecordSubscriberPrivateExport = {
+  responseField: "subscriberPrivateExport";
+  status: CompetitorImportPrivateRecordSubscriberPrivateExportStatus;
+  source: "verified_publisher_private_subscriber_export" | null;
+  recordedAt: string | null;
+  exportFileName: string | null;
+  privateSubscriberRecordCount: number;
+  exportedPrivateSubscriberRecordCount: number;
+  csvColumnHeaders: string[];
+  summary: string;
+  nextStep: string;
+  createsSubscriberRows: false;
+  createsConsentEvents: false;
+  createsSequenceEnrollments: false;
+  emailDeliveryEnabled: false;
+  privateExportEnabled: boolean;
+  publicExportEnabled: false;
+  goLiveEffectsEnabled: false;
+  redaction: {
+    ownerOnly: true;
+    publicSourceDataIncluded: false;
+    unauthenticatedResponsesIncluded: false;
+    rawContactRowsIncludedInPublicResponse: false;
+    privateSubscriberEmailsIncludedInJsonResponse: false;
+    confirmationTextStored: false;
+    idempotencyKeysIncluded: false;
+    actorEmailIncluded: false;
+    consentEventsCreated: false;
+    sequenceEnrollmentsCreated: false;
+    emailDeliveryEnabled: false;
+    publicExportEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 export type CompetitorImportPrivateSubscriberRecord = {
   id: string;
   importRecordId: string;
@@ -386,7 +425,8 @@ export type CompetitorImportPrivateSubscriberRecord = {
     globalAudienceSubscriberRow: boolean;
     sequenceEnrollmentCreated: false;
     emailDeliveryEnabled: false;
-    exportEnabled: false;
+    privateExportEligible: boolean;
+    publicExportEnabled: false;
     goLiveEffectsEnabled: false;
   };
 };
@@ -1098,6 +1138,7 @@ export type CompetitorImportPrivateRecord = {
   subscriberImportPreflight: CompetitorImportPrivateRecordSubscriberPreflight | null;
   subscriberImportCreation: CompetitorImportPrivateRecordSubscriberImportCreation | null;
   subscriberAudiencePromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion | null;
+  subscriberPrivateExport: CompetitorImportPrivateRecordSubscriberPrivateExport | null;
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1212,6 +1253,17 @@ export type CompetitorImportPrivateRecordSubscriberAudiencePromotionResult = {
   record: CompetitorImportPrivateRecord;
   promotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion;
   previousPromotion: CompetitorImportPrivateRecordSubscriberAudiencePromotion | null;
+  idempotent: boolean;
+  goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
+  redaction: CompetitorImportPrivateRecord["redaction"];
+};
+
+export type CompetitorImportPrivateRecordSubscriberPrivateExportResult = {
+  draft: DraftFunnelRecord;
+  record: CompetitorImportPrivateRecord;
+  privateSubscriberRecords: CompetitorImportPrivateSubscriberRecord[];
+  subscriberExport: CompetitorImportPrivateRecordSubscriberPrivateExport;
+  previousSubscriberExport: CompetitorImportPrivateRecordSubscriberPrivateExport | null;
   idempotent: boolean;
   goLiveEffects: CompetitorImportPrivateRecord["goLiveEffects"];
   redaction: CompetitorImportPrivateRecord["redaction"];
@@ -2236,6 +2288,98 @@ function competitorImportSubscriberAudiencePromotionFromMetadata(
   };
 }
 
+function competitorImportSubscriberPrivateExportRedaction(): CompetitorImportPrivateRecordSubscriberPrivateExport["redaction"] {
+  return {
+    ownerOnly: true,
+    publicSourceDataIncluded: false,
+    unauthenticatedResponsesIncluded: false,
+    rawContactRowsIncludedInPublicResponse: false,
+    privateSubscriberEmailsIncludedInJsonResponse: false,
+    confirmationTextStored: false,
+    idempotencyKeysIncluded: false,
+    actorEmailIncluded: false,
+    consentEventsCreated: false,
+    sequenceEnrollmentsCreated: false,
+    emailDeliveryEnabled: false,
+    publicExportEnabled: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
+function competitorImportSubscriberPrivateExportSummary(
+  subscriberExport: Pick<
+    CompetitorImportPrivateRecordSubscriberPrivateExport,
+    "status" | "exportedPrivateSubscriberRecordCount"
+  >,
+) {
+  if (subscriberExport.status === "private_export_prepared") {
+    const contactLabel = subscriberExport.exportedPrivateSubscriberRecordCount === 1 ? "contact" : "contacts";
+    return `Prepared a private owner-only subscriber export with ${subscriberExport.exportedPrivateSubscriberRecordCount} ${contactLabel}.`;
+  }
+
+  return "Private subscriber export has not been prepared yet.";
+}
+
+function competitorImportSubscriberPrivateExportNextStep(
+  status: CompetitorImportPrivateRecordSubscriberPrivateExportStatus,
+) {
+  if (status === "private_export_prepared") {
+    return "Use the private export for owner review or migration cleanup; consent events, sequence enrollments, sends, and go-live effects remain disabled.";
+  }
+
+  return "Save private importer subscriber records, then prepare an owner-only export when needed.";
+}
+
+function competitorImportSubscriberPrivateExportFromMetadata(
+  kind: ImportDraftEntity,
+  metadata: Record<string, unknown>,
+): CompetitorImportPrivateRecordSubscriberPrivateExport | null {
+  if (kind !== "draft_audience_import") return null;
+
+  const input =
+    metadata.subscriberPrivateExport &&
+    typeof metadata.subscriberPrivateExport === "object" &&
+    !Array.isArray(metadata.subscriberPrivateExport)
+      ? (metadata.subscriberPrivateExport as Partial<CompetitorImportPrivateRecordSubscriberPrivateExport>)
+      : {};
+  const status = input.status === "private_export_prepared" ? input.status : "not_exported";
+  const source = input.source === "verified_publisher_private_subscriber_export" ? input.source : null;
+  const subscriberExport: CompetitorImportPrivateRecordSubscriberPrivateExport = {
+    responseField: "subscriberPrivateExport",
+    status,
+    source,
+    recordedAt: typeof input.recordedAt === "string" ? input.recordedAt : null,
+    exportFileName: typeof input.exportFileName === "string" ? input.exportFileName : null,
+    privateSubscriberRecordCount: safeSubscriberDepthNumber(input.privateSubscriberRecordCount),
+    exportedPrivateSubscriberRecordCount: safeSubscriberDepthNumber(input.exportedPrivateSubscriberRecordCount),
+    csvColumnHeaders: safeSubscriberDepthStringArray(input.csvColumnHeaders).length
+      ? safeSubscriberDepthStringArray(input.csvColumnHeaders)
+      : ["email", "first_name", "source_status", "source_tags", "status"],
+    summary: "",
+    nextStep: "",
+    createsSubscriberRows: false,
+    createsConsentEvents: false,
+    createsSequenceEnrollments: false,
+    emailDeliveryEnabled: false,
+    privateExportEnabled: status === "private_export_prepared",
+    publicExportEnabled: false,
+    goLiveEffectsEnabled: false,
+    redaction: competitorImportSubscriberPrivateExportRedaction(),
+  };
+
+  return {
+    ...subscriberExport,
+    summary:
+      typeof input.summary === "string" && input.summary.length > 0
+        ? input.summary
+        : competitorImportSubscriberPrivateExportSummary(subscriberExport),
+    nextStep:
+      typeof input.nextStep === "string" && input.nextStep.length > 0
+        ? input.nextStep
+        : competitorImportSubscriberPrivateExportNextStep(status),
+  };
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -2298,6 +2442,7 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     subscriberImportPreflight: competitorImportSubscriberPreflightFromMetadata(row.record_kind, metadata, subscriberImportDepth),
     subscriberImportCreation: competitorImportSubscriberCreationFromMetadata(row.record_kind, metadata),
     subscriberAudiencePromotion: competitorImportSubscriberAudiencePromotionFromMetadata(row.record_kind, metadata),
+    subscriberPrivateExport: competitorImportSubscriberPrivateExportFromMetadata(row.record_kind, metadata),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -3119,7 +3264,8 @@ function competitorImportPrivateSubscriberRecordFromRow(
       globalAudienceSubscriberRow: row.status === "promoted_to_global_audience_pending_review",
       sequenceEnrollmentCreated: false,
       emailDeliveryEnabled: false,
-      exportEnabled: false,
+      privateExportEligible: row.status !== "archived",
+      publicExportEnabled: false,
       goLiveEffectsEnabled: false,
     },
   };
@@ -3168,6 +3314,29 @@ export async function loadCompetitorImportedDraftReviewWithSubscriberRecords(
   };
 }
 
+async function loadCompetitorImportPrivateSubscriberRowsForRecord(
+  db: D1Database,
+  input: { tenantId: string; draftFunnelId: string; importRecordId: string; ownerUserId: string },
+) {
+  const savedSubscriberRows = await db
+    .prepare(
+      `SELECT id, tenant_id, draft_funnel_id, import_record_id, owner_user_id, importer_platform_id, importer_slug, platform_name,
+              email, email_hash, first_name, source_status, status, source_tags_json, metadata_json, created_at, updated_at
+       FROM competitor_import_subscriber_records
+       WHERE tenant_id = ?
+         AND draft_funnel_id = ?
+         AND import_record_id = ?
+         AND owner_user_id = ?
+         AND status != 'archived'
+       ORDER BY updated_at DESC, created_at DESC
+       LIMIT 100`,
+    )
+    .bind(input.tenantId, input.draftFunnelId, input.importRecordId, input.ownerUserId)
+    .all<D1CompetitorImportPrivateSubscriberRecordRow>();
+
+  return savedSubscriberRows.results ?? [];
+}
+
 function subscriberImportCreationSignature(input: {
   contacts: CompetitorImportSubscriberCandidate[];
   malformedContactCount: number;
@@ -3186,6 +3355,17 @@ function subscriberAudiencePromotionSignature(records: D1CompetitorImportPrivate
   return JSON.stringify({
     records: records.map((record) => `${record.id}:${record.email_hash}`).sort(),
   });
+}
+
+function subscriberPrivateExportSignature(records: D1CompetitorImportPrivateSubscriberRecordRow[]) {
+  return JSON.stringify({
+    records: records.map((record) => `${record.id}:${record.email_hash}:${record.status}`).sort(),
+  });
+}
+
+function subscriberPrivateExportFileName(importerSlug: string, recordId: string) {
+  const suffix = recordId.replace(/[^a-zA-Z0-9]/g, "").slice(-10) || "records";
+  return `${importerSlug}-private-subscriber-export-${suffix}.csv`;
 }
 
 function importerAudienceTagId(importerSlug: string, label: string) {
@@ -3435,6 +3615,169 @@ export async function createCompetitorImportPrivateRecordSubscribers(
   };
 }
 
+export async function prepareCompetitorImportPrivateRecordSubscriberExport(
+  db: D1Database,
+  owner: { userId: string; email: string },
+  input: {
+    importerSlug: string;
+    platformName: string;
+    draftId: string;
+    recordId: string;
+    idempotencyKey: string;
+  },
+): Promise<CompetitorImportPrivateRecordSubscriberPrivateExportResult> {
+  const review = await loadCompetitorImportedDraftReview(db, owner, {
+    importerSlug: input.importerSlug,
+    platformName: input.platformName,
+    draftId: input.draftId,
+  });
+  const row = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(input.recordId.trim(), review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!row) {
+    throw new Error("Private import record not found.");
+  }
+
+  if (row.owner_user_id !== owner.userId || row.importer_platform_id !== review.importerPlatformId || row.importer_slug !== review.importerSlug) {
+    throw new Error("Only the publisher who created this private import plan can export importer subscriber records.");
+  }
+
+  if (row.status !== "private_draft") {
+    throw new Error("Archived private import records cannot export private subscriber records.");
+  }
+
+  if (row.record_kind !== "draft_audience_import") {
+    throw new Error("Private subscriber export is available only on private audience import records.");
+  }
+
+  const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
+  const record = competitorImportPrivateRecordFromRow(row);
+  const previousSubscriberExport = record.subscriberPrivateExport;
+
+  if (record.subscriberImportCreation?.status !== "subscriber_records_created") {
+    throw new Error("Save private subscriber records before preparing a private export.");
+  }
+
+  const privateSubscriberRows = await loadCompetitorImportPrivateSubscriberRowsForRecord(db, {
+    tenantId: review.tenantId,
+    draftFunnelId: review.draft.id,
+    importRecordId: row.id,
+    ownerUserId: owner.userId,
+  });
+
+  if (!privateSubscriberRows.length) {
+    throw new Error("Save private subscriber records before preparing a private export.");
+  }
+
+  const signature = await sha256Hex(subscriberPrivateExportSignature(privateSubscriberRows));
+  const previousIdempotencyKey =
+    typeof metadata.subscriberPrivateExportIdempotencyKey === "string"
+      ? metadata.subscriberPrivateExportIdempotencyKey
+      : "";
+  const previousSignature =
+    typeof metadata.subscriberPrivateExportSignature === "string" ? metadata.subscriberPrivateExportSignature : "";
+
+  if (previousIdempotencyKey && previousIdempotencyKey === input.idempotencyKey && previousSignature !== signature) {
+    throw new Error("This idempotency key already prepared a different private subscriber export.");
+  }
+
+  const idempotent = previousIdempotencyKey === input.idempotencyKey && previousSignature === signature;
+
+  if (!idempotent) {
+    const recordedAt = new Date().toISOString();
+    const exportFileName = subscriberPrivateExportFileName(input.importerSlug, row.id);
+    const subscriberPrivateExport: CompetitorImportPrivateRecordSubscriberPrivateExport = {
+      responseField: "subscriberPrivateExport",
+      status: "private_export_prepared",
+      source: "verified_publisher_private_subscriber_export",
+      recordedAt,
+      exportFileName,
+      privateSubscriberRecordCount: privateSubscriberRows.length,
+      exportedPrivateSubscriberRecordCount: privateSubscriberRows.length,
+      csvColumnHeaders: ["email", "first_name", "source_status", "source_tags", "status"],
+      summary: competitorImportSubscriberPrivateExportSummary({
+        status: "private_export_prepared",
+        exportedPrivateSubscriberRecordCount: privateSubscriberRows.length,
+      }),
+      nextStep: competitorImportSubscriberPrivateExportNextStep("private_export_prepared"),
+      createsSubscriberRows: false,
+      createsConsentEvents: false,
+      createsSequenceEnrollments: false,
+      emailDeliveryEnabled: false,
+      privateExportEnabled: true,
+      publicExportEnabled: false,
+      goLiveEffectsEnabled: false,
+      redaction: competitorImportSubscriberPrivateExportRedaction(),
+    };
+
+    await db
+      .prepare(
+        `UPDATE competitor_import_private_records
+         SET metadata_json = ?, updated_at = unixepoch()
+         WHERE id = ? AND draft_funnel_id = ?`,
+      )
+      .bind(
+        JSON.stringify({
+          ...metadata,
+          subscriberPrivateExport,
+          subscriberPrivateExportAt: recordedAt,
+          subscriberPrivateExportSource: "verified_publisher_private_subscriber_export",
+          subscriberPrivateExportIdempotencyKey: input.idempotencyKey,
+          subscriberPrivateExportSignature: signature,
+          subscriberPrivateExportConfirmationMatched: true,
+          subscriberPrivateExportOwnerOnly: true,
+          subscriberPrivateExportPublicSourceDataIncluded: false,
+          subscriberPrivateExportPrivateEmailsIncludedInJsonResponse: false,
+          subscriberPrivateExportCreatesConsentEvents: false,
+          subscriberPrivateExportCreatesSequenceEnrollments: false,
+          subscriberPrivateExportEmailDeliveryEnabled: false,
+          subscriberPrivateExportPublicExportEnabled: false,
+          subscriberPrivateExportGoLiveEffectsEnabled: false,
+        }),
+        row.id,
+        review.draft.id,
+      )
+      .run();
+  }
+
+  const updated = await db
+    .prepare(
+      `SELECT *
+       FROM competitor_import_private_records
+       WHERE id = ? AND draft_funnel_id = ?
+       LIMIT 1`,
+    )
+    .bind(row.id, review.draft.id)
+    .first<D1CompetitorImportPrivateRecordRow>();
+
+  if (!updated) {
+    throw new Error("The private subscriber export could not be loaded after update.");
+  }
+
+  const updatedRecord = competitorImportPrivateRecordFromRow(updated);
+  if (!updatedRecord.subscriberPrivateExport) {
+    throw new Error("The private subscriber export could not be loaded after update.");
+  }
+
+  return {
+    draft: review.draft,
+    record: updatedRecord,
+    privateSubscriberRecords: privateSubscriberRows.map(competitorImportPrivateSubscriberRecordFromRow),
+    subscriberExport: updatedRecord.subscriberPrivateExport,
+    previousSubscriberExport,
+    idempotent,
+    goLiveEffects: competitorImportRecordGoLiveEffects(),
+    redaction: competitorImportRecordRedaction(),
+  };
+}
+
 export async function promoteCompetitorImportPrivateRecordSubscribersToAudience(
   db: D1Database,
   owner: { userId: string; email: string },
@@ -3485,22 +3828,12 @@ export async function promoteCompetitorImportPrivateRecordSubscribersToAudience(
     throw new Error("Save private subscriber records before adding them to the audience list.");
   }
 
-  const savedSubscriberRows = await db
-    .prepare(
-      `SELECT id, tenant_id, draft_funnel_id, import_record_id, owner_user_id, importer_platform_id, importer_slug, platform_name,
-              email, email_hash, first_name, source_status, status, source_tags_json, metadata_json, created_at, updated_at
-       FROM competitor_import_subscriber_records
-       WHERE tenant_id = ?
-         AND draft_funnel_id = ?
-         AND import_record_id = ?
-         AND owner_user_id = ?
-         AND status != 'archived'
-       ORDER BY updated_at DESC, created_at DESC
-       LIMIT 100`,
-    )
-    .bind(review.tenantId, review.draft.id, row.id, owner.userId)
-    .all<D1CompetitorImportPrivateSubscriberRecordRow>();
-  const privateSubscriberRecords = savedSubscriberRows.results ?? [];
+  const privateSubscriberRecords = await loadCompetitorImportPrivateSubscriberRowsForRecord(db, {
+    tenantId: review.tenantId,
+    draftFunnelId: review.draft.id,
+    importRecordId: row.id,
+    ownerUserId: owner.userId,
+  });
 
   if (!privateSubscriberRecords.length) {
     throw new Error("Save private subscriber records before adding them to the audience list.");
