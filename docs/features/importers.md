@@ -83,13 +83,19 @@ dedicated importer pages:
   after exact confirmation. The CSV response is same-owner only and can include
   private email/name/tag values; public source-data, unauthenticated responses,
   and JSON API responses expose counts and redaction rules only.
+- The owner can record `checkoutMigrationReadiness` on private checkout-offer
+  or product-catalog records after exact confirmation. The readiness checkpoint
+  captures whether the imported offer is ready to rebuild in Bumpgrade, needs
+  payment-copy cleanup, or should stay parked. It creates no checkout intents,
+  Stripe sessions, live payment credentials, public checkout routes, account
+  transfer, domains, fulfillment, subscriber sends, or go-live effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   and saved private importer subscriber records after creation. The paired review
   action route lets that publisher mark each private record ready or needing
   cleanup with metadata-only review decisions, edit safe extracted field
-  labels, review status, and prompts before cleanup, and prepare the owner-only
-  private subscriber CSV.
+  labels, review status, and prompts before cleanup, record checkout rebuild
+  readiness, and prepare the owner-only private subscriber CSV.
   These routes and actions keep raw rows, raw file text, file names, customer
   values, private subscriber emails, payment credentials, sessions, confirmation
   text, idempotency keys, and buyer-facing go-live actions out of public
@@ -118,5 +124,5 @@ Agents can use `/imports/source-data`, `/compare/source-data`, and
   import-record contracts, private record review routes and review action
   routes, and the signal labels used by preview review maps, including
   platform-specific export match templates. They must not claim live
-  account transfer, payment migration, customer password migration, subscriber
+  account transfer, live payment migration, customer password migration, subscriber
   sends, or public publishing without later implementation evidence.

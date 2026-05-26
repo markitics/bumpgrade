@@ -209,7 +209,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `imported_pending_review` rows with no consent events, sequence enrollments,
   sends, exports, or go-live effects, and download an owner-only private
   subscriber CSV while public source-data, unauthenticated responses, and JSON
-  API responses expose counts and redaction rules only, and reuse an existing
+  API responses expose counts and redaction rules only. The same private review
+  action route can record `checkoutMigrationReadiness` for checkout-offer or
+  product-catalog records without creating checkout intents, Stripe sessions,
+  payment credentials, public checkout routes, account transfer, fulfillment,
+  domains, subscriber sends, or go-live effects, and reuse an existing
   private draft when platform, workspace, normalized title, and source URL or
   export file name match. The rollback route archives the signed-in publisher's
   private importer plan while preserving saved content, structured import

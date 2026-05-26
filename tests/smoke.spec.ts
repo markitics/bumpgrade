@@ -446,6 +446,7 @@ import {
   importerDraftPreviewApiRoute,
   importerDraftRollbackApiRoute,
   importerDraftRollbackConfirmationText,
+  importerPrivateRecordCheckoutReadinessConfirmationText,
   importerPrivateRecordExtractedFieldEditConfirmationText,
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
@@ -1068,6 +1069,21 @@ test.describe("Bumpgrade scaffold", () => {
         benefits: expect.arrayContaining([expect.stringContaining("aggregate sequence delivery readiness")]),
       }),
     );
+    const competitorImportersFeature = payload.features.find((feature: { id: string }) => feature.id === "feature-competitor-importers");
+    expect(competitorImportersFeature).toEqual(
+      expect.objectContaining({
+        expectedCapabilities: expect.arrayContaining([expect.stringContaining("ready for Bumpgrade checkout rebuild")]),
+        agentContract: expect.stringContaining("checkout migration readiness metadata"),
+      }),
+    );
+    const competitorImportersMarketingFeature = payload.marketingFeatures.find(
+      (feature: { slug: string }) => feature.slug === "competitor-importers",
+    );
+    expect(competitorImportersMarketingFeature).toEqual(
+      expect.objectContaining({
+        benefits: expect.arrayContaining([expect.stringContaining("ready to rebuild")]),
+      }),
+    );
   });
 
   test("importer source data exposes competitor migration contract", async ({ request }) => {
@@ -1197,6 +1213,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.privateSubscriberRecordInspection).toContain("saved private importer subscriber records");
     expect(payload.commonContract.privateSubscriberAudiencePromotion).toContain("imported_pending_review");
     expect(payload.commonContract.privateSubscriberExport).toContain("owner-only CSV");
+    expect(payload.commonContract.privateCheckoutMigrationReadiness).toContain("checkoutMigrationReadiness");
     expect(payload.commonContract.privateStructuredRecords).toEqual(
       expect.objectContaining({
         responseField: "importRecords",
@@ -1254,6 +1271,20 @@ test.describe("Bumpgrade scaffold", () => {
         subscriberPrivateExportIncludesPrivateEmailsInDownload: true,
         subscriberPrivateExportIncludesPrivateEmailsInJsonResponse: false,
         subscriberPrivateExportPublicSourceDataIncludesContactValues: false,
+        checkoutMigrationReadinessResponseField: "checkoutMigrationReadiness",
+        checkoutMigrationReadinessActionLive: true,
+        checkoutMigrationReadinessActionRouteField: "privateRecordReviewActionApiRoute",
+        checkoutMigrationReadinessAppliesTo: expect.arrayContaining(["draft_checkout_offer", "draft_product_catalog"]),
+        checkoutMigrationReadinessStatusValues: expect.arrayContaining([
+          "not_recorded",
+          "ready_for_checkout_rebuild",
+          "needs_payment_copy_cleanup",
+          "parked_for_later",
+        ]),
+        checkoutMigrationReadinessCreatesCheckoutIntents: false,
+        checkoutMigrationReadinessCreatesStripeSessions: false,
+        checkoutMigrationReadinessImportsPaymentCredentials: false,
+        checkoutMigrationReadinessLiveCheckoutEnabled: false,
         storesSafeSubscriberImportDepth: true,
         storesSubscriberImportPreflightMetadata: true,
         storesPrivateSubscriberImportRecords: true,
@@ -1262,6 +1293,9 @@ test.describe("Bumpgrade scaffold", () => {
         createsGlobalAudienceSubscriberRows: true,
         createsConsentEvents: false,
         createsSequenceEnrollments: false,
+        createsCheckoutIntents: false,
+        createsStripeCheckoutSessions: false,
+        importsPaymentCredentials: false,
         emailDeliveryEnabled: false,
         privateExportEnabled: true,
         publicExportEnabled: false,
@@ -1296,6 +1330,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.currentAvailability.privateSubscriberImportRecordInspectionLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberAudiencePromotionLive).toBe(true);
     expect(payload.currentAvailability.privateSubscriberExportLive).toBe(true);
+    expect(payload.currentAvailability.privateCheckoutMigrationReadinessLive).toBe(true);
     expect(payload.commonContract.preflightSignalLabels).toEqual(
       expect.objectContaining({
         source_url: "Source URL",
@@ -1395,6 +1430,13 @@ test.describe("Bumpgrade scaffold", () => {
             subscriberPrivateExportActionRouteField: "privateRecordReviewActionApiRoute",
             subscriberPrivateExportFormat: "text/csv",
             subscriberPrivateExportOwnerOnly: true,
+            checkoutMigrationReadinessResponseField: "checkoutMigrationReadiness",
+            checkoutMigrationReadinessActionLive: true,
+            checkoutMigrationReadinessActionRouteField: "privateRecordReviewActionApiRoute",
+            checkoutMigrationReadinessAppliesTo: expect.arrayContaining(["draft_checkout_offer", "draft_product_catalog"]),
+            checkoutMigrationReadinessCreatesCheckoutIntents: false,
+            checkoutMigrationReadinessCreatesStripeSessions: false,
+            checkoutMigrationReadinessImportsPaymentCredentials: false,
             privateSubscriberEmailsIncludedInOwnerReview: true,
             privateSubscriberEmailsIncludedInPublicResponses: false,
             storesSafeSubscriberImportDepth: true,
@@ -1428,6 +1470,7 @@ test.describe("Bumpgrade scaffold", () => {
               "subscriberImportCreation",
               "subscriberAudiencePromotion",
               "subscriberPrivateExport",
+              "checkoutMigrationReadiness",
               "privateSubscriberRecords",
             ]),
             privateSubscriberRecordInspectionLive: true,
@@ -1472,10 +1515,18 @@ test.describe("Bumpgrade scaffold", () => {
                 format: "text/csv",
                 ownerOnly: true,
               }),
+              expect.objectContaining({
+                action: "record_checkout_migration_readiness",
+                responseField: "checkoutMigrationReadiness",
+                createsCheckoutIntents: false,
+                createsStripeCheckoutSessions: false,
+                importsPaymentCredentials: false,
+              }),
             ]),
             writes: expect.arrayContaining([
               "record_review_decision_metadata",
               "extracted_field_plan_metadata",
+              "checkout_migration_readiness_metadata",
               "subscriber_import_preflight_metadata",
               "private_subscriber_import_records",
               "global_audience_subscriber_review_rows",
@@ -1490,6 +1541,9 @@ test.describe("Bumpgrade scaffold", () => {
             globalAudienceSubscriberRowsCreated: true,
             consentEventsCreated: false,
             sequenceEnrollmentsCreated: false,
+            checkoutIntentsCreated: false,
+            stripeCheckoutSessionsCreated: false,
+            paymentCredentialsImported: false,
             subscriberSendsEnabled: false,
             privateExportsEnabled: true,
             publicExportsEnabled: false,
@@ -21665,6 +21719,7 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("parse safe structure"),
             expect.stringContaining("recognized platform export shape"),
             expect.stringContaining("safe extracted field targets"),
+            expect.stringContaining("ready for Bumpgrade checkout rebuild"),
             expect.stringContaining("owner-only private subscriber CSV"),
             expect.stringContaining("Review the redacted import map"),
           ]),
@@ -21673,15 +21728,17 @@ test.describe("Bumpgrade scaffold", () => {
             expect.stringContaining("Export-file parsing returns structural labels"),
             expect.stringContaining("Platform export matches use safe header"),
             expect.stringContaining("Extracted field plans contain Bumpgrade target labels"),
+            expect.stringContaining("Checkout migration readiness stores owner review metadata"),
             expect.stringContaining("Private subscriber CSV export"),
             expect.stringContaining("Rollback APIs require"),
           ]),
-          agentAccess: expect.stringContaining("owner-only private subscriber export actions"),
+          agentAccess: expect.stringContaining("checkout migration readiness actions"),
           validation: expect.arrayContaining([
             expect.stringContaining("dedicated importer source guides"),
             expect.stringContaining("exportFileAnalysis parsing"),
             expect.stringContaining("platformExportMatches"),
             expect.stringContaining("extracted field plans"),
+            expect.stringContaining("checkout migration readiness"),
             expect.stringContaining("owner-only private subscriber CSV export"),
             expect.stringContaining("Private importer rollback APIs"),
           ]),
@@ -31173,9 +31230,80 @@ test.describe("Bumpgrade scaffold", () => {
     expect(JSON.stringify(fieldEditPayload)).not.toContain("private-buyer@example.com");
     expect(JSON.stringify(fieldEditPayload)).not.toContain("PRIVATE_PRODUCT_NAME");
 
+    const checkoutReadinessResponse = await page.request.post(importerPrivateRecordReviewActionApiRoute("samcart"), {
+      headers: { accept: "application/json" },
+      multipart: {
+        return: "json",
+        action: "record_checkout_migration_readiness",
+        draftId: createPayload.draft.id,
+        recordId: checkoutRecord.id,
+        decision: "ready_for_checkout_rebuild",
+        confirmationText: importerPrivateRecordCheckoutReadinessConfirmationText("SamCart", "ready_for_checkout_rebuild"),
+        idempotencyKey: `checkout-readiness-${suffix}`,
+      },
+    });
+    expect(checkoutReadinessResponse.ok(), await checkoutReadinessResponse.text()).toBeTruthy();
+    const checkoutReadinessPayload = await checkoutReadinessResponse.json();
+    expect(checkoutReadinessPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        action: "record_checkout_migration_readiness",
+        idempotent: false,
+        draft: expect.objectContaining({ id: createPayload.draft.id }),
+        record: expect.objectContaining({
+          id: checkoutRecord.id,
+          kind: "draft_checkout_offer",
+          checkoutMigrationReadiness: expect.objectContaining({
+            responseField: "checkoutMigrationReadiness",
+            status: "ready_for_checkout_rebuild",
+            source: "verified_publisher_checkout_migration_readiness",
+            createsCheckoutIntents: false,
+            createsStripeCheckoutSessions: false,
+            importsPaymentCredentials: false,
+            publicCheckoutRoutesEnabled: false,
+            liveCheckoutEnabled: false,
+            publicPublishingEnabled: false,
+            goLiveEffectsEnabled: false,
+          }),
+        }),
+        checkoutMigrationReadiness: expect.objectContaining({
+          responseField: "checkoutMigrationReadiness",
+          status: "ready_for_checkout_rebuild",
+          redaction: expect.objectContaining({
+            paymentCredentialsIncluded: false,
+            checkoutSessionIdsIncluded: false,
+            customerRowsIncluded: false,
+            confirmationTextStored: false,
+            idempotencyKeysIncluded: false,
+            actorEmailIncluded: false,
+            checkoutIntentsCreated: false,
+            stripeCheckoutSessionsCreated: false,
+            publicCheckoutRoutesEnabled: false,
+            liveCheckoutEnabled: false,
+          }),
+        }),
+        redaction: expect.objectContaining({
+          confirmationTextStored: false,
+          idempotencyKeysIncluded: false,
+          actorEmailIncluded: false,
+          paymentCredentialsIncluded: false,
+          checkoutIntentsCreated: false,
+          stripeCheckoutSessionsCreated: false,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+        }),
+      }),
+    );
+    expect(JSON.stringify(checkoutReadinessPayload)).not.toContain("checkout-readiness-");
+    expect(JSON.stringify(checkoutReadinessPayload)).not.toContain(requestBody.pageCopy);
+    expect(JSON.stringify(checkoutReadinessPayload)).not.toContain("private-buyer@example.com");
+    expect(JSON.stringify(checkoutReadinessPayload)).not.toContain("PRIVATE_PRODUCT_NAME");
+
     await page.goto(samcartReviewRoute);
     await expect(page.getByText("Ready for cleanup").first()).toBeVisible();
     await expect(page.getByText("Offer headline").first()).toBeVisible();
+    await expect(page.getByText("Bumpgrade checkout rebuild").first()).toBeVisible();
+    await expect(page.getByText("Ready for checkout rebuild").first()).toBeVisible();
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
