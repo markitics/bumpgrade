@@ -53,6 +53,12 @@ dedicated importer pages:
   labels, signal labels, and record kind only; they do not store or expose raw
   row values, raw file text, file names, private emails, customer values,
   credentials, or buyer-facing effects.
+- Private audience import records include `subscriberImportDepth`, a safe
+  readiness summary for subscriber migration work. It reports aggregate contact
+  row counts and safe identity, tag/segment, consent/status, and sequence-context
+  signals from headers and source signals only. It does not create subscriber
+  rows, store raw contact rows, store raw emails or names, enroll sequences, send
+  email, enable private exports, or turn on buyer-facing effects.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
   after creation. The paired review action route lets that publisher mark each

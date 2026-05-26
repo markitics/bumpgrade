@@ -197,7 +197,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   offer, product, audience, checkout, funnel/page, sequence, and asset review
   areas, include safe `extractedFields` target labels and review prompts without
   raw row values or private source content, let the verified publisher edit those
-  field labels/status/prompts as private metadata, and reuse an existing private draft
+  field labels/status/prompts as private metadata, include safe
+  `subscriberImportDepth` on audience records with aggregate row counts and
+  identity/tag/consent/sequence signals only, and reuse an existing private draft
   when platform, workspace, normalized title, and source URL or export file name match. The rollback route archives
   the signed-in publisher's private importer plan while preserving saved content,
   structured import records, steps, and audit history so the same source can be

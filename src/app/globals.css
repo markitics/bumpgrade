@@ -4347,6 +4347,71 @@ h3 {
   resize: vertical;
 }
 
+.importer-subscriber-depth {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+  padding: 8px 0 12px 12px;
+  border-left: 3px solid rgba(40, 134, 96, 0.36);
+}
+
+.importer-subscriber-depth svg {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--green);
+}
+
+.importer-subscriber-depth strong,
+.importer-subscriber-depth span,
+.importer-subscriber-depth p {
+  display: block;
+}
+
+.importer-subscriber-depth span {
+  margin-top: 3px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.importer-subscriber-depth p {
+  margin-top: 7px;
+}
+
+.importer-subscriber-depth dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.importer-subscriber-depth dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.importer-subscriber-depth dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.importer-subscriber-depth dd {
+  margin: 0;
+}
+
+.importer-subscriber-depth ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+}
+
+.importer-subscriber-depth li + li {
+  margin-top: 4px;
+}
+
 .importer-preview-panel {
   display: grid;
   gap: 18px;

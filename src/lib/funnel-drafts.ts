@@ -211,6 +211,33 @@ export type CompetitorImportPrivateRecordExtractedField = {
   goLiveEffectsEnabled: false;
 };
 
+export type CompetitorImportPrivateRecordSubscriberImportDepth = {
+  responseField: "subscriberImportDepth";
+  status: "ready_for_private_review" | "needs_context";
+  source: "safe_export_headers_and_signals" | "source_guide";
+  aggregateContactRowCount: number;
+  parsedExportFileCount: number;
+  identitySignals: string[];
+  segmentationSignals: string[];
+  consentStatusSignals: string[];
+  sequenceSignals: string[];
+  sourceChecklistItemIds: string[];
+  reviewSteps: string[];
+  goLiveBlockers: string[];
+  redaction: {
+    rawContactRowsIncluded: false;
+    rawEmailsIncluded: false;
+    rawNamesIncluded: false;
+    rawExportTextIncluded: false;
+    rawFileNamesEchoed: false;
+    subscriberRowsCreated: false;
+    sequenceEnrollmentsCreated: false;
+    emailDeliveryEnabled: false;
+    exportEnabled: false;
+    goLiveEffectsEnabled: false;
+  };
+};
+
 const draftFunnelStepKinds: FunnelStepKind[] = ["opt_in", "sales", "checkout", "upsell", "webinar", "resource", "thank_you"];
 export const draftFunnelPublishConfirmationText = "Publish this draft funnel publicly on Bumpgrade";
 export const draftFunnelTemplateCreationConfirmationText = "Create a private draft from this funnel template";
@@ -907,6 +934,7 @@ export type CompetitorImportPrivateRecord = {
   parsedExportFileCount: number;
   recordConfidence: "recognized_export_match" | "needs_more_context" | "source_guide";
   extractedFields: CompetitorImportPrivateRecordExtractedField[];
+  subscriberImportDepth: CompetitorImportPrivateRecordSubscriberImportDepth | null;
   reviewDecision: CompetitorImportPrivateRecordReviewDecision;
   reviewDecisionAt: string | null;
   reviewDecisionSource: "verified_publisher_record_review" | null;
@@ -1607,6 +1635,128 @@ function competitorImportExtractedFieldsFromMetadata(
   return records.length ? records : fallbackRecords;
 }
 
+function competitorImportSubscriberDepthRedaction(): CompetitorImportPrivateRecordSubscriberImportDepth["redaction"] {
+  return {
+    rawContactRowsIncluded: false,
+    rawEmailsIncluded: false,
+    rawNamesIncluded: false,
+    rawExportTextIncluded: false,
+    rawFileNamesEchoed: false,
+    subscriberRowsCreated: false,
+    sequenceEnrollmentsCreated: false,
+    emailDeliveryEnabled: false,
+    exportEnabled: false,
+    goLiveEffectsEnabled: false,
+  };
+}
+
+function safeSubscriberDepthStringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.length > 0) : [];
+}
+
+function safeSubscriberDepthNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+}
+
+function competitorImportSubscriberDepth(
+  kind: ImportDraftEntity,
+  input: {
+    matchedHeaderLabels: string[];
+    matchedSignalLabels: string[];
+    sourceChecklistItemIds: string[];
+    recordConfidence: CompetitorImportPrivateRecord["recordConfidence"];
+    exportFileAnalysis?: CompetitorImportReviewMetadata["exportFileAnalysis"] | null;
+  },
+): CompetitorImportPrivateRecordSubscriberImportDepth | null {
+  if (kind !== "draft_audience_import") return null;
+
+  const identitySignals = input.matchedHeaderLabels.filter((label) =>
+    label === "Subscriber or customer column" || label === "Name column",
+  );
+  const segmentationSignals = input.matchedHeaderLabels.filter((label) => label === "Tag or segment column");
+  const consentStatusSignals = input.matchedHeaderLabels.filter((label) => label === "Status or date column");
+  const sequenceSignals = input.matchedSignalLabels.filter((label) => label === "Follow-up notes" || label === "Audience context");
+  const aggregateContactRowCount =
+    input.exportFileAnalysis?.files.reduce((total, file) => total + (file.rowCount ?? file.objectCount ?? 0), 0) ?? 0;
+  const readySignals = identitySignals.length + segmentationSignals.length + consentStatusSignals.length + sequenceSignals.length;
+
+  return {
+    responseField: "subscriberImportDepth",
+    status:
+      input.recordConfidence === "recognized_export_match" && identitySignals.length > 0 && readySignals > 1
+        ? "ready_for_private_review"
+        : "needs_context",
+    source: readySignals > 0 ? "safe_export_headers_and_signals" : "source_guide",
+    aggregateContactRowCount,
+    parsedExportFileCount: input.exportFileAnalysis?.parsedFileCount ?? 0,
+    identitySignals,
+    segmentationSignals,
+    consentStatusSignals,
+    sequenceSignals: Array.from(new Set(sequenceSignals)),
+    sourceChecklistItemIds: input.sourceChecklistItemIds,
+    reviewSteps: [
+      "Confirm which safe identity columns should map to subscriber matching.",
+      "Review tag, segment, consent, suppression, and timing context before any subscriber write exists.",
+      "Keep sequence entry and broadcast sends disabled until a later confirmed-write gate exists.",
+    ],
+    goLiveBlockers: [
+      "No subscriber rows are created by the importer.",
+      "No raw contact rows, private emails, names, or export file text are stored in public source-data.",
+      "No sequence enrollments, broadcasts, exports, or provider sends run from this private review.",
+    ],
+    redaction: competitorImportSubscriberDepthRedaction(),
+  };
+}
+
+function competitorImportNormalizeSubscriberDepth(
+  kind: ImportDraftEntity,
+  value: unknown,
+  fallback: CompetitorImportPrivateRecordSubscriberImportDepth | null,
+): CompetitorImportPrivateRecordSubscriberImportDepth | null {
+  if (kind !== "draft_audience_import") return null;
+  if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
+  const input = value as Partial<CompetitorImportPrivateRecordSubscriberImportDepth>;
+  const status =
+    input.status === "ready_for_private_review" || input.status === "needs_context"
+      ? input.status
+      : (fallback?.status ?? "needs_context");
+  const source =
+    input.source === "safe_export_headers_and_signals" || input.source === "source_guide"
+      ? input.source
+      : (fallback?.source ?? "source_guide");
+
+  return {
+    responseField: "subscriberImportDepth",
+    status,
+    source,
+    aggregateContactRowCount:
+      safeSubscriberDepthNumber(input.aggregateContactRowCount) || fallback?.aggregateContactRowCount || 0,
+    parsedExportFileCount: safeSubscriberDepthNumber(input.parsedExportFileCount) || fallback?.parsedExportFileCount || 0,
+    identitySignals: safeSubscriberDepthStringArray(input.identitySignals).length
+      ? safeSubscriberDepthStringArray(input.identitySignals)
+      : (fallback?.identitySignals ?? []),
+    segmentationSignals: safeSubscriberDepthStringArray(input.segmentationSignals).length
+      ? safeSubscriberDepthStringArray(input.segmentationSignals)
+      : (fallback?.segmentationSignals ?? []),
+    consentStatusSignals: safeSubscriberDepthStringArray(input.consentStatusSignals).length
+      ? safeSubscriberDepthStringArray(input.consentStatusSignals)
+      : (fallback?.consentStatusSignals ?? []),
+    sequenceSignals: safeSubscriberDepthStringArray(input.sequenceSignals).length
+      ? safeSubscriberDepthStringArray(input.sequenceSignals)
+      : (fallback?.sequenceSignals ?? []),
+    sourceChecklistItemIds: safeSubscriberDepthStringArray(input.sourceChecklistItemIds).length
+      ? safeSubscriberDepthStringArray(input.sourceChecklistItemIds)
+      : (fallback?.sourceChecklistItemIds ?? []),
+    reviewSteps: safeSubscriberDepthStringArray(input.reviewSteps).length
+      ? safeSubscriberDepthStringArray(input.reviewSteps)
+      : (fallback?.reviewSteps ?? []),
+    goLiveBlockers: safeSubscriberDepthStringArray(input.goLiveBlockers).length
+      ? safeSubscriberDepthStringArray(input.goLiveBlockers)
+      : (fallback?.goLiveBlockers ?? []),
+    redaction: competitorImportSubscriberDepthRedaction(),
+  };
+}
+
 function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateRecordRow): CompetitorImportPrivateRecord {
   const metadata = parseJson<Record<string, unknown>>(row.metadata_json ?? "{}", {});
   const stringArray = (value: unknown) =>
@@ -1617,12 +1767,19 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     );
   const matchedHeaderLabels = stringArray(metadata.matchedHeaderLabels);
   const matchedSignalLabels = stringArray(metadata.matchedSignalLabels);
+  const sourceChecklistItemIds = stringArray(metadata.sourceChecklistItemIds);
   const recordConfidence =
     metadata.recordConfidence === "recognized_export_match" ||
     metadata.recordConfidence === "needs_more_context" ||
     metadata.recordConfidence === "source_guide"
       ? metadata.recordConfidence
       : "source_guide";
+  const fallbackSubscriberImportDepth = competitorImportSubscriberDepth(row.record_kind, {
+    matchedHeaderLabels,
+    matchedSignalLabels,
+    sourceChecklistItemIds,
+    recordConfidence,
+  });
 
   return {
     id: row.id,
@@ -1639,7 +1796,7 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
     tenantId: row.tenant_id,
     ownerUserId: row.owner_user_id,
     draftEntities: entityArray(metadata.draftEntities).length ? entityArray(metadata.draftEntities) : [row.record_kind],
-    sourceChecklistItemIds: stringArray(metadata.sourceChecklistItemIds),
+    sourceChecklistItemIds,
     recognizedPlatformExportMatchIds: stringArray(metadata.recognizedPlatformExportMatchIds),
     matchedHeaderLabels,
     matchedSignalLabels,
@@ -1653,6 +1810,11 @@ function competitorImportPrivateRecordFromRow(row: D1CompetitorImportPrivateReco
       matchedSignalLabels,
       recordConfidence,
     }),
+    subscriberImportDepth: competitorImportNormalizeSubscriberDepth(
+      row.record_kind,
+      metadata.subscriberImportDepth,
+      fallbackSubscriberImportDepth,
+    ),
     reviewDecision: competitorImportRecordReviewDecision(metadata.reviewDecision),
     reviewDecisionAt: typeof metadata.reviewDecisionAt === "string" ? metadata.reviewDecisionAt : null,
     reviewDecisionSource:
@@ -1754,6 +1916,13 @@ function competitorImportPrivateRecordInputs(
           matchedHeaderLabels,
           matchedSignalLabels,
           recordConfidence,
+        }),
+        subscriberImportDepth: competitorImportSubscriberDepth(kind, {
+          matchedHeaderLabels,
+          matchedSignalLabels,
+          sourceChecklistItemIds,
+          recordConfidence,
+          exportFileAnalysis,
         }),
         responseField: "importRecords",
         privateDraftOnly: true,

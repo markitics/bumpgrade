@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, Users } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReview, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
@@ -93,6 +93,15 @@ function countSummary(record: CompetitorImportPrivateRecord) {
 function extractedFieldStatusLabel(status: CompetitorImportPrivateRecord["extractedFields"][number]["status"]) {
   if (status === "ready_for_review") return "Ready for review";
   return "Needs context";
+}
+
+function subscriberDepthStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.subscriberImportDepth?.status === "ready_for_private_review") return "Ready for private review";
+  return "Needs context";
+}
+
+function safeSignalText(values: string[]) {
+  return values.length ? values.join(", ") : "No safe signal yet.";
 }
 
 function inputId(recordId: string, fieldId: string, key: string) {
@@ -292,6 +301,44 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                         </div>
                       </div>
                     ))}
+                  </div>
+                ) : null}
+                {record.subscriberImportDepth ? (
+                  <div className="importer-subscriber-depth">
+                    <Users aria-hidden="true" />
+                    <div>
+                      <strong>Audience import depth</strong>
+                      <span>{subscriberDepthStatusLabel(record)}</span>
+                      <p>
+                        {record.subscriberImportDepth.aggregateContactRowCount} aggregate contact{" "}
+                        {record.subscriberImportDepth.aggregateContactRowCount === 1 ? "row" : "rows"} checked across{" "}
+                        {record.subscriberImportDepth.parsedExportFileCount} parsed{" "}
+                        {record.subscriberImportDepth.parsedExportFileCount === 1 ? "export" : "exports"}.
+                      </p>
+                      <dl>
+                        <div>
+                          <dt>Identity</dt>
+                          <dd>{safeSignalText(record.subscriberImportDepth.identitySignals)}</dd>
+                        </div>
+                        <div>
+                          <dt>Tags and segments</dt>
+                          <dd>{safeSignalText(record.subscriberImportDepth.segmentationSignals)}</dd>
+                        </div>
+                        <div>
+                          <dt>Consent and status</dt>
+                          <dd>{safeSignalText(record.subscriberImportDepth.consentStatusSignals)}</dd>
+                        </div>
+                        <div>
+                          <dt>Sequence context</dt>
+                          <dd>{safeSignalText(record.subscriberImportDepth.sequenceSignals)}</dd>
+                        </div>
+                      </dl>
+                      <ul>
+                        {record.subscriberImportDepth.goLiveBlockers.map((blocker) => (
+                          <li key={blocker}>{blocker}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 ) : null}
                 <div className="feature-detail">
