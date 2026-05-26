@@ -203,9 +203,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   identity/tag/consent/sequence signals only, let the verified publisher record
   `subscriberImportPreflight` readiness or cleanup metadata without subscriber
   rows, sequence enrollments, private exports, sends, or go-live effects, let the
-  verified publisher create private importer subscriber records from a confirmed
-  fresh upload or paste and inspect those saved contacts from the same-owner
-  private review page while public source-data exposes counts only, and reuse an existing private draft
+	  verified publisher create private importer subscriber records from a confirmed
+	  fresh upload or paste, inspect those saved contacts from the same-owner
+	  private review page, and add them to the audience review list as
+	  `imported_pending_review` rows with no consent events, sequence enrollments,
+	  sends, exports, or go-live effects while public source-data exposes counts
+	  only, and reuse an existing private draft
   when platform, workspace, normalized title, and source URL or export file name match. The rollback route archives
   the signed-in publisher's private importer plan while preserving saved content,
   structured import records, steps, and audit history so the same source can be

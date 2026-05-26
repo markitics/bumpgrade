@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers as nextHeaders } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, UserPlus, Users } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
 import { loadCompetitorImportedDraftReviewWithSubscriberRecords, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
@@ -12,6 +12,7 @@ import {
   importerPrivateRecordReviewActionApiRoute,
   importerPrivateRecordReviewConfirmationText,
   importerPrivateRecordReviewRoute,
+  importerPrivateRecordSubscriberAudiencePromotionConfirmationText,
   importerPrivateRecordSubscriberImportConfirmationText,
   importerPrivateRecordSubscriberPreflightConfirmationText,
   importerPlatforms,
@@ -117,6 +118,15 @@ function subscriberImportCreationStatusLabel(record: CompetitorImportPrivateReco
   return "No private subscriber records saved yet";
 }
 
+function subscriberAudiencePromotionStatusLabel(record: CompetitorImportPrivateRecord) {
+  if (record.subscriberAudiencePromotion?.status === "global_audience_rows_created") {
+    const count = record.subscriberAudiencePromotion.promotedPrivateSubscriberRecordCount;
+    return `${count} imported ${count === 1 ? "contact" : "contacts"} in audience review`;
+  }
+
+  return "Not added to audience review yet";
+}
+
 function safeSignalText(values: string[]) {
   return values.length ? values.join(", ") : "No safe signal yet.";
 }
@@ -162,6 +172,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
   const recordReview = firstSearchValue(search.recordReview);
   const subscriberPreflight = firstSearchValue(search.subscriberPreflight);
   const subscriberImport = firstSearchValue(search.subscriberImport);
+  const subscriberAudiencePromotion = firstSearchValue(search.subscriberAudiencePromotion);
   const recordReviewError = firstSearchValue(search.recordReviewError);
 
   return (
@@ -217,6 +228,9 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         ) : null}
         {subscriberImport === "subscriber_records_created" ? (
           <p className="account-success">Private subscriber records saved for owner review.</p>
+        ) : null}
+        {subscriberAudiencePromotion === "global_audience_rows_created" ? (
+          <p className="account-success">Imported subscribers added to the audience review list.</p>
         ) : null}
         {review ? (
           <div className="feature-section-heading">
@@ -439,6 +453,34 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                           <p>Public source-data and unauthenticated responses still expose counts only, not these contact values.</p>
                         </div>
                       ) : null}
+                      <div className="feature-detail">
+                        <strong>Audience review list</strong>
+                        <span>{subscriberAudiencePromotionStatusLabel(record)}</span>
+                      </div>
+                      {record.subscriberAudiencePromotion ? <p>{record.subscriberAudiencePromotion.summary}</p> : null}
+                      <form className="importer-record-actions" action={importerPrivateRecordReviewActionApiRoute(platform.slug)} method="post">
+                        <input type="hidden" name="action" value="promote_subscriber_import_records_to_audience" />
+                        <input type="hidden" name="draftId" value={review.draft.id} />
+                        <input type="hidden" name="recordId" value={record.id} />
+                        <input
+                          type="hidden"
+                          name="idempotencyKey"
+                          value={`subscriber-audience-promotion-${record.id}-${record.subscriberAudiencePromotion?.recordedAt ?? record.updatedAt ?? "new"}`}
+                        />
+                        <button
+                          type="submit"
+                          className="secondary-action compact-action"
+                          name="confirmationText"
+                          value={importerPrivateRecordSubscriberAudiencePromotionConfirmationText(platform.platformName)}
+                          disabled={
+                            record.subscriberImportCreation?.status !== "subscriber_records_created" ||
+                            privateSubscriberRecords.length === 0
+                          }
+                        >
+                          <UserPlus aria-hidden="true" />
+                          Add to audience review
+                        </button>
+                      </form>
                       <form
                         className="importer-record-actions importer-subscriber-import-form"
                         action={importerPrivateRecordReviewActionApiRoute(platform.slug)}
@@ -530,6 +572,7 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
           <span>Raw export rows are not shown.</span>
           <span>Raw file text and file names are not shown.</span>
           <span>Saved importer contacts are shown only to the same verified owner.</span>
+          <span>Audience review list rows are imported pending review, not send-ready.</span>
           <span>Payment credentials and sessions are not imported.</span>
           <span>Publishing and checkout stay off until go-live approval.</span>
           <span>Subscriber sends, domains, and fulfillment stay gated.</span>
