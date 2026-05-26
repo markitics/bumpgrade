@@ -209,7 +209,7 @@ export const commonImporterSafetyGates = [
   "A paid go-live state is required before imported pages, checkout paths, sends, domains, or fulfillment become buyer-facing.",
   "The importer shows a review step before creating Bumpgrade records.",
   "Private importer writes create structured private import records for matched review areas without making them buyer-facing.",
-  "Confirmed audience-import review can create private importer subscriber records for owner review, then add them to the audience review list as imported-pending rows without sequence enrollments or sends.",
+  "Confirmed audience-import review can create private importer subscriber records for owner review, then add them to the audience review list without sequence enrollments or sends.",
   "Duplicate review reuses existing private import work when the source platform, target workspace, normalized title, and normalized source URL or export file name match.",
   "Rollback archives private import plans without deleting saved work or audit history, so the same source can be restarted cleanly.",
   "Write steps require owner authentication, exact confirmation, idempotency, current workspace state, and audit correlation.",
