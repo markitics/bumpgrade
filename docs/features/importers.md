@@ -70,14 +70,18 @@ dedicated importer pages:
   data server-side for owner review; public responses expose counts only and do
   not create global audience send-list rows, enroll sequences, send email,
   enable exports, or turn on buyer-facing effects.
+- After private subscriber creation, the same verified owner can inspect saved
+  importer contacts from the private review page. Public source-data,
+  unauthenticated responses, and public agent contracts still expose counts and
+  redaction rules only, not contact values.
 - The private `privateRecordReviewRoute` listed for each platform lets the
   verified publisher who created an import plan inspect those structured records
-  after creation. The paired review action route lets that publisher mark each
-  private record ready or needing cleanup with metadata-only review decisions,
-  and edit safe extracted field labels, review status, and prompts before
-  cleanup.
-  These actions keep raw rows, raw file text, file names, private emails,
-  customer values, payment credentials, sessions, confirmation text,
+  and saved private importer subscriber records after creation. The paired review
+  action route lets that publisher mark each private record ready or needing
+  cleanup with metadata-only review decisions, and edit safe extracted field
+  labels, review status, and prompts before cleanup.
+  These routes and actions keep raw rows, raw file text, file names, customer
+  values, private subscriber emails, payment credentials, sessions, confirmation text,
   idempotency keys, and buyer-facing go-live actions out of public responses.
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for

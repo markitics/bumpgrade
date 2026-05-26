@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, ArrowRight, FileText, ListChecks, LockKeyhole, Save, ShieldCheck, Users } from "lucide-react";
 
 import { createAuth } from "@/lib/auth";
-import { loadCompetitorImportedDraftReview, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
+import { loadCompetitorImportedDraftReviewWithSubscriberRecords, type CompetitorImportPrivateRecord } from "@/lib/funnel-drafts";
 import {
   getImporterBySlug,
   importerPrivateRecordExtractedFieldEditConfirmationText,
@@ -142,13 +142,13 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
     redirect(`/login?callbackURL=${encodeURIComponent(callbackURL)}`);
   }
 
-  let review: Awaited<ReturnType<typeof loadCompetitorImportedDraftReview>> | null = null;
+  let review: Awaited<ReturnType<typeof loadCompetitorImportedDraftReviewWithSubscriberRecords>> | null = null;
   let reviewError = "";
 
   if (draftId && user.emailVerified) {
     try {
       const db = await getPublisherTenantD1OrThrow();
-      review = await loadCompetitorImportedDraftReview(db, { userId: user.id, email: user.email }, {
+      review = await loadCompetitorImportedDraftReviewWithSubscriberRecords(db, { userId: user.id, email: user.email }, {
         importerSlug: platform.slug,
         platformName: platform.platformName,
         draftId,
@@ -248,7 +248,10 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
             </p>
           </div>
           <div className="feature-grid">
-            {review.importRecords.map((record) => (
+            {review.importRecords.map((record) => {
+              const privateSubscriberRecords = review.privateSubscriberRecordsByImportRecordId[record.id] ?? [];
+
+              return (
               <article key={record.id} className="feature-card content-surface-card">
                 <div className="feature-card-top">
                   <span className="status-badge active">{recordKindLabel(record.kind)}</span>
@@ -417,6 +420,25 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                         <span>{subscriberImportCreationStatusLabel(record)}</span>
                       </div>
                       {record.subscriberImportCreation ? <p>{record.subscriberImportCreation.summary}</p> : null}
+                      {privateSubscriberRecords.length ? (
+                        <div className="importer-private-subscriber-records">
+                          <strong>Saved private contacts</strong>
+                          <p>Only this verified publisher can inspect these importer-staged contact records.</p>
+                          <ul>
+                            {privateSubscriberRecords.slice(0, 20).map((subscriberRecord) => (
+                              <li key={subscriberRecord.id}>
+                                <span>{subscriberRecord.email}</span>
+                                {subscriberRecord.firstName ? <em>{subscriberRecord.firstName}</em> : null}
+                                {subscriberRecord.sourceStatus ? <small>{subscriberRecord.sourceStatus}</small> : null}
+                                {subscriberRecord.sourceTagLabels.length ? (
+                                  <small>{subscriberRecord.sourceTagLabels.join(", ")}</small>
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                          <p>Public source-data and unauthenticated responses still expose counts only, not these contact values.</p>
+                        </div>
+                      ) : null}
                       <form
                         className="importer-record-actions importer-subscriber-import-form"
                         action={importerPrivateRecordReviewActionApiRoute(platform.slug)}
@@ -491,7 +513,8 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
                   </button>
                 </form>
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
       ) : null}
@@ -500,13 +523,13 @@ export default async function ImporterReviewPage({ params, searchParams }: Impor
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Privacy boundary</p>
-            <h2>The review shows safe structure, not private source material.</h2>
+            <h2>Private contact inspection stays behind the owner review gate.</h2>
           </div>
         </div>
         <div className="feature-use-case-grid">
           <span>Raw export rows are not shown.</span>
           <span>Raw file text and file names are not shown.</span>
-          <span>Private emails and customer values are not shown.</span>
+          <span>Saved importer contacts are shown only to the same verified owner.</span>
           <span>Payment credentials and sessions are not imported.</span>
           <span>Publishing and checkout stay off until go-live approval.</span>
           <span>Subscriber sends, domains, and fulfillment stay gated.</span>

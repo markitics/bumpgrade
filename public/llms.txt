@@ -204,7 +204,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `subscriberImportPreflight` readiness or cleanup metadata without subscriber
   rows, sequence enrollments, private exports, sends, or go-live effects, let the
   verified publisher create private importer subscriber records from a confirmed
-  fresh upload or paste while exposing counts only, and reuse an existing private draft
+  fresh upload or paste and inspect those saved contacts from the same-owner
+  private review page while public source-data exposes counts only, and reuse an existing private draft
   when platform, workspace, normalized title, and source URL or export file name match. The rollback route archives
   the signed-in publisher's private importer plan while preserving saved content,
   structured import records, steps, and audit history so the same source can be
