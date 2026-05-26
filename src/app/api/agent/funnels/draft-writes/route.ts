@@ -24,6 +24,7 @@ import {
   removeDraftFunnelBlock,
   unlinkDraftFunnelCheckoutLink,
   updateDraftFunnelBlock,
+  updateDraftFunnelBlockCanvasLayout,
   updateDraftFunnelBlockVisualStyle,
   type DraftFunnelPurgeResult,
   type DraftFunnelRecord,
@@ -55,6 +56,11 @@ type AgentFunnelDraftWriteRequestBody = {
   replayUrl?: unknown;
   providerLabel?: unknown;
   visualStyleId?: unknown;
+  x?: unknown;
+  y?: unknown;
+  width?: unknown;
+  height?: unknown;
+  zIndex?: unknown;
   title?: unknown;
   body?: unknown;
   expectedRevisionId?: unknown;
@@ -260,6 +266,40 @@ export async function POST(request: NextRequest) {
         stepId,
         blockId,
         visualStyleId,
+        expectedRevisionId,
+        idempotencyKey,
+        agentWriteAudit,
+      });
+      publicRouteMutationCreated = draft.status === "published";
+    } else if (operationId === "update-block-canvas-layout") {
+      const stepId = stringValue(body.stepId, 220);
+      const blockId = stringValue(body.blockId, 220);
+
+      if (
+        !stepId ||
+        !blockId ||
+        body.x == null ||
+        body.y == null ||
+        body.width == null ||
+        body.height == null ||
+        body.zIndex == null
+      ) {
+        return jsonError(
+          400,
+          "invalid_update_block_canvas_layout_request",
+          "update-block-canvas-layout requires stepId, blockId, x, y, width, height, and zIndex.",
+        );
+      }
+
+      draft = await updateDraftFunnelBlockCanvasLayout(db, adminState.identity, {
+        draftId,
+        stepId,
+        blockId,
+        x: body.x,
+        y: body.y,
+        width: body.width,
+        height: body.height,
+        zIndex: body.zIndex,
         expectedRevisionId,
         idempotencyKey,
         agentWriteAudit,

@@ -291,7 +291,7 @@ Current funnel boundary: `/funnels/source-data` is the public-safe contract for
 the first seeded draft funnel plus reusable funnel template and block-template
 records, `/funnels/indie-launch-sandbox` is the read-only preview, and
 `/admin/funnels` is the Better Auth owner-gated D1 draft creation, step-edit,
-granular block title/body edit, block add/remove, visual style controls, within-step block reorder,
+granular block title/body edit, block add/remove, visual style controls, bounded canvas layout controls, within-step block reorder,
 drag/drop block placement through existing move endpoints, cross-step block move, private preview, exact-confirmed publish,
 exact-confirmed archive/unpublish, exact-confirmed checkout-unlink, exact-confirmed resource-delivery-link,
 exact-confirmed webinar-event-link, and exact-confirmed archived-draft purge
@@ -322,6 +322,10 @@ owner-session visual block style controls from issue #417 while preserving block
 IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata,
 webinar-link metadata, and audit evidence while storing only curated style IDs
 that render in private previews and public published routes,
+owner-session bounded canvas layout controls from issue #417 while preserving block
+IDs, kinds, title/body copy, checkout-link metadata, resource-link metadata,
+webinar-link metadata, and audit evidence while storing only x, y, width,
+height, and z-index numbers that render in private previews and public published routes,
 and public D1
 funnel publishing to `/funnels/{slug}` after owner confirmation and revision
 checks. Issue #341 lets
@@ -350,7 +354,7 @@ registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
 `/api/agent/funnels/draft-writes` lets verified owner-session agents perform
 direct agent-safe draft writes for block title/body edits, curated visual style
-presets, reusable block add/remove, checkout-offer linking, checkout unlinking,
+presets, bounded canvas layouts, reusable block add/remove, checkout-offer linking, checkout unlinking,
 resource-delivery linking, webinar-event linking, within-step block reordering,
 cross-step block moves, private draft duplication, public publishing,
 archive/unpublish, and archived-draft purge only after exact confirmation,
@@ -359,7 +363,7 @@ checks, and audit correlation; responses are redacted draft or purge tombstone
 summaries and do not expose owner identity or raw rows. Direct agent block
 removal refuses checkout-linked blocks and keeps at least one block per step. It
 is not direct agent template creation, unauthenticated public agent-created
-delivery tokens, live billing mutation, full absolute-position canvas editing,
+delivery tokens, live billing mutation, unbounded arbitrary CSS or script layout editing,
 non-archived purge, bulk purge, one-click upsell
 charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
@@ -367,10 +371,10 @@ hosting, unauthenticated public agent publishing, or public unauthenticated agen
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
 links, funnel-scoped private download-token delivery, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
-owner-session visual block styles, owner-session archived-draft purge UI, and
+owner-session visual block styles, owner-session bounded canvas layouts, owner-session archived-draft purge UI, and
 owner-session agent-created resource delivery tokens, and expanded owner-session direct agent-safe draft writes
-including visual styles, reusable block add/remove, public publishing, and archived-draft purge, and remains
-the pending advanced funnel parity bucket for full absolute-position canvas editing,
+including visual styles, bounded canvas layouts, reusable block add/remove, public publishing, and archived-draft purge, and remains
+the pending advanced funnel parity bucket for
 arbitrary uploaded private asset delivery, live fulfillment automation, full
 webinar integrations, bulk purge policy, unauthenticated public agent-created delivery tokens,
 and unauthenticated public agent publishing. Live

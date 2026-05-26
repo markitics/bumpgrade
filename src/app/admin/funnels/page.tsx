@@ -43,6 +43,7 @@ import {
   funnelBlockVisualStyleForId,
   funnelBlockVisualStyles,
   funnelTemplateLibrary,
+  normalizeFunnelBlockCanvasLayout,
 } from "@/lib/funnels";
 import { productAccessCatalogs } from "@/lib/product-access";
 
@@ -107,9 +108,9 @@ export default async function AdminFunnelsPage() {
             block movement, private draft duplication, public publishing with archive rollback, archive/unpublish, and
             archived-draft purge with tombstone evidence, and owner-session agents can create funnel-scoped resource
             delivery tokens for published linked resource blocks after exact confirmation, idempotency, published revision
-            checks, entitlement checks, and audit correlation. Owner-session visual style controls now render in private
-            previews and public published routes. Non-archived purge,
-            full absolute-position canvas editing,
+            checks, entitlement checks, and audit correlation. Owner-session visual style and bounded canvas layout
+            controls now render in private previews and public published routes. Non-archived purge,
+            unbounded arbitrary CSS or script layout editing,
             live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
             unauthenticated public agent publishing, and unauthenticated public agent-created delivery tokens still need confirmed-write slices.
           </p>
@@ -519,6 +520,7 @@ export default async function AdminFunnelsPage() {
                     >
                       {step.blocks.map((block, blockIndex) => {
                         const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+                        const canvasLayout = normalizeFunnelBlockCanvasLayout(block.canvasLayout, blockIndex);
 
                         return (
                           <div
@@ -562,6 +564,7 @@ export default async function AdminFunnelsPage() {
                                 <span className="status-badge active">webinar link preserved</span>
                               ) : null}
                               <span className="status-badge planned">{visualStyle.label}</span>
+                              {block.canvasLayout ? <span className="status-badge active">canvas layout</span> : null}
                             </div>
                             <label>
                               Block title
@@ -604,6 +607,70 @@ export default async function AdminFunnelsPage() {
                             <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                               Apply style
                               <Palette aria-hidden="true" />
+                            </button>
+                          </form>
+                          <form action="/api/admin/funnels/drafts" method="post" className="admin-block-canvas-form">
+                            <input type="hidden" name="mode" value="update-block-canvas-layout" />
+                            <input type="hidden" name="draftId" value={draft.id} />
+                            <input type="hidden" name="stepId" value={step.id} />
+                            <input type="hidden" name="blockId" value={block.id} />
+                            <input type="hidden" name="expectedRevisionId" value={draft.revisionId} />
+                            <input
+                              type="hidden"
+                              name="idempotencyKey"
+                              value={`block-canvas-layout-${draft.id}-${block.id}-${draft.revisionId}`}
+                            />
+                            <div className="admin-checkout-link-summary">
+                              <PanelsTopLeft aria-hidden="true" />
+                              <p>Set responsive canvas bounds for preview and published pages. Saved values are numbers only.</p>
+                            </div>
+                            <label>
+                              X
+                              <input name="x" type="number" min={0} max={80} step={1} defaultValue={canvasLayout.x} disabled={!canMutateDraft} />
+                            </label>
+                            <label>
+                              Y
+                              <input name="y" type="number" min={0} max={90} step={1} defaultValue={canvasLayout.y} disabled={!canMutateDraft} />
+                            </label>
+                            <label>
+                              Width
+                              <input
+                                name="width"
+                                type="number"
+                                min={20}
+                                max={100}
+                                step={1}
+                                defaultValue={canvasLayout.width}
+                                disabled={!canMutateDraft}
+                              />
+                            </label>
+                            <label>
+                              Height
+                              <input
+                                name="height"
+                                type="number"
+                                min={14}
+                                max={60}
+                                step={1}
+                                defaultValue={canvasLayout.height}
+                                disabled={!canMutateDraft}
+                              />
+                            </label>
+                            <label>
+                              Layer
+                              <input
+                                name="zIndex"
+                                type="number"
+                                min={0}
+                                max={20}
+                                step={1}
+                                defaultValue={canvasLayout.zIndex}
+                                disabled={!canMutateDraft}
+                              />
+                            </label>
+                            <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
+                              Apply layout
+                              <PanelsTopLeft aria-hidden="true" />
                             </button>
                           </form>
                           <div className="admin-block-move-row" aria-label={`Move ${block.title}`}>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from "lucide-react";
@@ -6,7 +7,12 @@ import { ArrowRight, Database, Eye, GitBranch, PanelsTopLeft, ShieldCheck } from
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
 import { getDraftFunnelPreviewState } from "@/lib/funnel-drafts";
-import { draftFunnelPreviewIssue, funnelBlockVisualStyleForId } from "@/lib/funnels";
+import {
+  defaultFunnelBlockCanvasLayoutForIndex,
+  draftFunnelPreviewIssue,
+  funnelBlockCanvasLayoutStyle,
+  funnelBlockVisualStyleForId,
+} from "@/lib/funnels";
 
 type DraftFunnelPreviewPageProps = {
   params: Promise<{
@@ -34,6 +40,8 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
 
   const draft = state.draft;
   const orderedSteps = [...draft.steps].sort((left, right) => left.order - right.order);
+  const previewBlocks = orderedSteps.flatMap((step) => step.blocks.map((block) => ({ step, block })));
+  const hasCanvasLayout = previewBlocks.some(({ block }) => Boolean(block.canvasLayout));
 
   return (
     <main className="route-page admin-draft-preview-page">
@@ -103,16 +111,18 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
             <h2>Blocks from the private draft state</h2>
           </div>
         </div>
-        <div className="feature-grid">
-          {orderedSteps.flatMap((step) =>
-            step.blocks.map((block) => {
+        <div className={`feature-grid${hasCanvasLayout ? " funnel-canvas-grid" : ""}`}>
+          {previewBlocks.map(({ step, block }, blockIndex) => {
               const visualStyle = funnelBlockVisualStyleForId(block.visualStyle);
+              const canvasLayout = block.canvasLayout ?? (hasCanvasLayout ? defaultFunnelBlockCanvasLayoutForIndex(blockIndex) : null);
 
               return (
                 <article
                   key={block.id}
                   className={`feature-card compact-content-card funnel-block-card ${visualStyle.className}`}
                   data-funnel-block-style={visualStyle.id}
+                  data-funnel-canvas-layout={canvasLayout ? "true" : undefined}
+                  style={canvasLayout ? (funnelBlockCanvasLayoutStyle(canvasLayout) as CSSProperties) : undefined}
                 >
                   <div className="feature-card-top">
                     <span className={`status-badge ${block.agentEditable ? "planned" : "pending"}`}>
@@ -147,8 +157,7 @@ export default async function AdminDraftFunnelPreviewPage({ params }: DraftFunne
                   ) : null}
                 </article>
               );
-            }),
-          )}
+            })}
         </div>
       </section>
 
