@@ -752,6 +752,7 @@ export type CompetitorImportedDraftInput = {
   sourceFileNames: string[];
   pageCopy: string;
   followUpNotes: string;
+  importReview?: CompetitorImportReviewMetadata | null;
   idempotencyKey: string;
 };
 
@@ -770,9 +771,80 @@ export type ImporterDuplicateReview = {
   rawSourceEchoed: false;
 };
 
+export type CompetitorImportReviewMetadata = {
+  responseField: "importReview";
+  privateDraftMetadataStored: boolean;
+  privateDraftMetadataReason: "pending_private_draft_create" | "created" | "idempotent_replay" | "source_match_reused";
+  exportFileAnalysis: {
+    fileCount: number;
+    uploadedFileCount: number;
+    pastedManifestCount: number;
+    parsedFileCount: number;
+    skippedFileCount: number;
+    maxFilesPerReview: number;
+    maxParsedBytesPerFile: number;
+    detectedSignalLabels: string[];
+    detectedHeaderLabels: string[];
+    files: Array<{
+      id: string;
+      label: string;
+      kind: string;
+      parseStatus: string;
+      sizeBucket: string;
+      rowCount: number | null;
+      objectCount: number | null;
+      detectedHeaderLabels: string[];
+      detectedSignalLabels: string[];
+      rawFileNameEchoed: false;
+      rawRowsEchoed: false;
+      rawTextEchoed: false;
+    }>;
+    rawExportFilesIncluded: false;
+    rawFileNamesEchoed: false;
+    rawRowsEchoed: false;
+    rawTextEchoed: false;
+  };
+  platformExportMatches: Array<{
+    id: string;
+    label: string;
+    status: string;
+    matchedFileKinds: string[];
+    matchedRequiredHeaders: string[];
+    missingRequiredHeaders: string[];
+    matchedHelpfulHeaders: string[];
+    matchedSignalLabels: string[];
+    sourceChecklistItemIds: string[];
+    draftEntities: string[];
+    usesItFor: string;
+    reviewPrompt: string;
+    rawSourceEchoed: false;
+  }>;
+  recognizedPlatformExportMatchIds: string[];
+  goLiveEffects: {
+    publicPublishingEnabled: false;
+    liveCheckoutEnabled: false;
+    subscriberSendsEnabled: false;
+    customDomainsEnabled: false;
+    fulfillmentEnabled: false;
+  };
+  redaction: {
+    rawExportFilesIncluded: false;
+    rawFileNamesEchoed: false;
+    rawRowsEchoed: false;
+    rawTextEchoed: false;
+    rawSourceEchoed: false;
+    rawPastedMaterialIncludedInResponse: false;
+    customerRowsIncluded: false;
+    privateEmailsIncluded: false;
+    paymentCredentialsIncluded: false;
+    sessionCookiesIncluded: false;
+  };
+};
+
 export type CompetitorImportedDraftResult = {
   draft: DraftFunnelRecord;
   duplicateReview: ImporterDuplicateReview;
+  importReview: CompetitorImportReviewMetadata | null;
 };
 
 export type CompetitorImportedDraftRollbackResult = {
@@ -1016,6 +1088,19 @@ function duplicateReviewFor(
     sourceUrlCompared: options.sourceUrlCompared,
     sourceFileNameCompared: options.sourceFileNameCompared ?? false,
     rawSourceEchoed: false,
+  };
+}
+
+function importReviewForResult(
+  importReview: CompetitorImportReviewMetadata | null | undefined,
+  reason: CompetitorImportReviewMetadata["privateDraftMetadataReason"],
+) {
+  if (!importReview) return null;
+
+  return {
+    ...importReview,
+    privateDraftMetadataStored: reason === "created",
+    privateDraftMetadataReason: reason,
   };
 }
 
@@ -1407,7 +1492,9 @@ export async function createCompetitorImportedDraftFunnel(
       draft: replay,
       duplicateReview: duplicateReviewFor("idempotent_replay", ["idempotency_key"], {
         sourceUrlCompared: input.sourceUrls.length > 0,
+        sourceFileNameCompared: input.sourceFileNames.length > 0,
       }),
+      importReview: importReviewForResult(input.importReview, "idempotent_replay"),
     };
   }
 
@@ -1442,6 +1529,9 @@ export async function createCompetitorImportedDraftFunnel(
         importerPlatformName: platformName,
         importerIssue,
         tenantId: input.tenantId,
+        importReview: importReviewForResult(input.importReview, "source_match_reused"),
+        privateDraftImportReviewStored: false,
+        recognizedPlatformExportMatchIds: input.importReview?.recognizedPlatformExportMatchIds ?? [],
         duplicateReviewStatus: "source_match_reused",
         duplicateReviewPolicy: "source_platform_target_workspace_normalized_title_source_url_or_source_file_name",
         matchedFields: sourceMatch.matchedFields,
@@ -1459,6 +1549,7 @@ export async function createCompetitorImportedDraftFunnel(
         sourceUrlCompared: normalizedSourceUrls.length > 0,
         sourceFileNameCompared: normalizedSourceFileNames.length > 0,
       }),
+      importReview: importReviewForResult(input.importReview, "source_match_reused"),
     };
   }
 
@@ -1482,6 +1573,7 @@ export async function createCompetitorImportedDraftFunnel(
     updatedAt: null,
   };
 
+  const storedImportReview = importReviewForResult(input.importReview, "created");
   const persisted = await persistDraft(
     db,
     draft,
@@ -1499,6 +1591,9 @@ export async function createCompetitorImportedDraftFunnel(
       normalizedOfferTitle,
       normalizedSourceUrls,
       normalizedSourceFileNames,
+      importReview: storedImportReview,
+      privateDraftImportReviewStored: Boolean(storedImportReview),
+      recognizedPlatformExportMatchIds: storedImportReview?.recognizedPlatformExportMatchIds ?? [],
       sourceUrlCount: input.sourceUrls.length,
       sourceFileNameCount: input.sourceFileNames.length,
       sourceUrls: input.sourceUrls,
@@ -1512,7 +1607,11 @@ export async function createCompetitorImportedDraftFunnel(
       customDomainsEnabled: false,
       fulfillmentEnabled: false,
       rawExportStored: false,
+      rawExportRowsStored: false,
+      rawExportTextStored: false,
+      rawExportFileNamesStored: false,
       customerRowsStored: false,
+      privateEmailsStored: false,
       paymentCredentialsStored: false,
       sessionCookiesStored: false,
     },
@@ -1524,6 +1623,7 @@ export async function createCompetitorImportedDraftFunnel(
       sourceUrlCompared: normalizedSourceUrls.length > 0,
       sourceFileNameCompared: normalizedSourceFileNames.length > 0,
     }),
+    importReview: storedImportReview,
   };
 }
 

@@ -1053,6 +1053,7 @@ test.describe("Bumpgrade scaffold", () => {
           platformSpecificPreflightExtractionLive: true,
           exportFilePreflightParsingLive: true,
           platformExportMatchTemplatesLive: true,
+          privateDraftExportReviewMetadataLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1149,6 +1150,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklistReview");
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("exportFileAnalysis");
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("platformExportMatches");
+    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("importReview");
+    expect(payload.commonContract.privateDraftExportReview).toContain("importReview");
+    expect(payload.commonContract.privateDraftExportReview).toContain("redacted export analysis");
     expect(payload.commonContract.exportFilePreflightParser).toEqual(
       expect.objectContaining({
         status: "live",
@@ -1176,7 +1180,11 @@ test.describe("Bumpgrade scaffold", () => {
           apiRoute: clickFunnelsDraftImportApiRoute,
           confirmationText: clickFunnelsDraftImportConfirmationText,
           auth: "verified publisher session",
-          creates: expect.arrayContaining(["free_build_workspace_if_needed", "private_draft_funnel"]),
+          creates: expect.arrayContaining([
+            "free_build_workspace_if_needed",
+            "private_draft_funnel",
+            "private_import_export_review_metadata",
+          ]),
           goLiveEffects: expect.objectContaining({
             publicPublishingEnabled: false,
             liveCheckoutEnabled: false,
@@ -1214,6 +1222,17 @@ test.describe("Bumpgrade scaffold", () => {
               rawRowsEchoed: false,
             }),
           }),
+          privateDraftExportReview: expect.objectContaining({
+            responseField: "importReview",
+            storedOn: "private_draft_metadata_json",
+            storesSafeExportAnalysis: true,
+            storesPlatformExportMatches: true,
+            storesRecognizedPlatformExportMatchIds: true,
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+            goLiveEffectsEnabled: false,
+          }),
           rollback: expect.objectContaining({
             route: importerDraftRollbackApiRoute("clickfunnels"),
             confirmationText: importerDraftRollbackConfirmationText("ClickFunnels"),
@@ -1232,7 +1251,11 @@ test.describe("Bumpgrade scaffold", () => {
           apiRoute: importerDraftImportApiRoute("samcart"),
           confirmationText: importerDraftImportConfirmationText("SamCart"),
           auth: "verified publisher session",
-          creates: expect.arrayContaining(["free_build_workspace_if_needed", "private_draft_funnel"]),
+          creates: expect.arrayContaining([
+            "free_build_workspace_if_needed",
+            "private_draft_funnel",
+            "private_import_export_review_metadata",
+          ]),
           goLiveEffects: expect.objectContaining({
             publicPublishingEnabled: false,
             liveCheckoutEnabled: false,
@@ -29972,10 +29995,24 @@ test.describe("Bumpgrade scaffold", () => {
       confirmationText: importerDraftImportConfirmationText("SamCart"),
       idempotencyKey: `playwright-samcart-import-${suffix}`,
     };
+    const privateExportCsv = Buffer.from(
+      "email,product_title,checkout_url,order_total\nprivate-buyer@example.com,PRIVATE_PRODUCT_NAME,https://private.example/checkout,97\n",
+    );
+    const privateExportManifest = "tag,sequence_name,last_sent_at\nPRIVATE_SEGMENT,PRIVATE_SEQUENCE,2026-05-25\n";
+    const multipartRequestBody = (overrides: Record<string, string> = {}) => ({
+      ...requestBody,
+      ...overrides,
+      exportFiles: {
+        name: "private-samcart-orders.csv",
+        mimeType: "text/csv",
+        buffer: privateExportCsv,
+      },
+      exportManifest: privateExportManifest,
+    });
     const samcartDraftImportApiRoute = importerDraftImportApiRoute("samcart");
     const createResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
-      data: requestBody,
+      multipart: multipartRequestBody(),
     });
     expect(createResponse.ok(), await createResponse.text()).toBeTruthy();
     const createPayload = await createResponse.json();
@@ -30022,7 +30059,56 @@ test.describe("Bumpgrade scaffold", () => {
           sourceFileNameCompared: true,
           rawSourceEchoed: false,
         }),
+        importReview: expect.objectContaining({
+          responseField: "importReview",
+          privateDraftMetadataStored: true,
+          privateDraftMetadataReason: "created",
+          recognizedPlatformExportMatchIds: expect.arrayContaining(["samcart-checkout-order-export"]),
+          exportFileAnalysis: expect.objectContaining({
+            fileCount: 2,
+            uploadedFileCount: 1,
+            pastedManifestCount: 1,
+            parsedFileCount: 2,
+            detectedSignalLabels: expect.arrayContaining([
+              "Parsed export structure",
+              "Source URL",
+              "Page or offer copy",
+              "Audience context",
+            ]),
+            detectedHeaderLabels: expect.arrayContaining([
+              "Subscriber or customer column",
+              "Product or offer column",
+              "Checkout or order column",
+            ]),
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+          }),
+          platformExportMatches: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-order-export",
+              status: "recognized",
+              matchedRequiredHeaders: expect.arrayContaining(["Product or offer column", "Checkout or order column"]),
+              rawSourceEchoed: false,
+            }),
+          ]),
+          goLiveEffects: expect.objectContaining({
+            publicPublishingEnabled: false,
+            liveCheckoutEnabled: false,
+            subscriberSendsEnabled: false,
+          }),
+          redaction: expect.objectContaining({
+            rawExportFilesIncluded: false,
+            rawFileNamesEchoed: false,
+            rawRowsEchoed: false,
+            rawTextEchoed: false,
+            privateEmailsIncluded: false,
+          }),
+        }),
         redaction: expect.objectContaining({
+          rawFileNamesEchoed: false,
+          rawRowsEchoed: false,
+          rawTextEchoed: false,
           rawPastedMaterialIncludedInResponse: false,
           publicPublishingEnabled: false,
           liveCheckoutEnabled: false,
@@ -30034,10 +30120,14 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(createPayload)).not.toContain(requestBody.pageCopy);
     expect(JSON.stringify(createPayload)).not.toContain("samcart-export-main.zip");
+    expect(JSON.stringify(createPayload)).not.toContain("private-samcart-orders.csv");
+    expect(JSON.stringify(createPayload)).not.toContain("private-buyer@example.com");
+    expect(JSON.stringify(createPayload)).not.toContain("PRIVATE_PRODUCT_NAME");
+    expect(JSON.stringify(createPayload)).not.toContain("PRIVATE_SEGMENT");
 
     const replayResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
-      data: requestBody,
+      multipart: multipartRequestBody(),
     });
     expect(replayResponse.ok(), await replayResponse.text()).toBeTruthy();
     const replayPayload = await replayResponse.json();
@@ -30051,16 +30141,20 @@ test.describe("Bumpgrade scaffold", () => {
           matchedFields: expect.arrayContaining(["idempotency_key"]),
           reusesExistingDraft: true,
         }),
+        importReview: expect.objectContaining({
+          privateDraftMetadataStored: false,
+          privateDraftMetadataReason: "idempotent_replay",
+          recognizedPlatformExportMatchIds: expect.arrayContaining(["samcart-checkout-order-export"]),
+        }),
       }),
     );
 
     const sourceMatchResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
-      data: {
-        ...requestBody,
+      multipart: multipartRequestBody({
         pageCopy: "A revised private note for the same source page should not create a near-duplicate draft.",
         idempotencyKey: `playwright-samcart-import-source-match-${suffix}`,
-      },
+      }),
     });
     expect(sourceMatchResponse.ok(), await sourceMatchResponse.text()).toBeTruthy();
     const sourceMatchPayload = await sourceMatchResponse.json();
@@ -30077,19 +30171,23 @@ test.describe("Bumpgrade scaffold", () => {
           sourceUrlCompared: true,
           rawSourceEchoed: false,
         }),
+        importReview: expect.objectContaining({
+          privateDraftMetadataStored: false,
+          privateDraftMetadataReason: "source_match_reused",
+          recognizedPlatformExportMatchIds: expect.arrayContaining(["samcart-checkout-order-export"]),
+        }),
       }),
     );
     expect(JSON.stringify(sourceMatchPayload)).not.toContain("revised private note");
 
     const sourceFileNameMatchResponse = await page.request.post(samcartDraftImportApiRoute, {
       headers: { accept: "application/json" },
-      data: {
-        ...requestBody,
+      multipart: multipartRequestBody({
         sourceUrl: "https://example.com/samcart/changed-page",
-        sourceFileNames: ["SamCart Export Main.zip"],
+        sourceFileNames: "SamCart Export Main.zip",
         pageCopy: "A revised private note for the same export file should not create a near-duplicate draft.",
         idempotencyKey: `playwright-samcart-import-source-file-match-${suffix}`,
-      },
+      }),
     });
     expect(sourceFileNameMatchResponse.ok(), await sourceFileNameMatchResponse.text()).toBeTruthy();
     const sourceFileNameMatchPayload = await sourceFileNameMatchResponse.json();
@@ -30111,6 +30209,7 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("SamCart Export Main.zip");
     expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("revised private note for the same export file");
+    expect(JSON.stringify(sourceFileNameMatchPayload)).not.toContain("private-samcart-orders.csv");
 
     const samcartRollbackApiRoute = importerDraftRollbackApiRoute("samcart");
     const rollbackBody = {

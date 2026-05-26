@@ -35,6 +35,11 @@ dedicated importer pages:
 - The `apiRoute` listed for each platform lets a verified publisher create or
   reuse a Free Build workspace and save a private import draft after exact
   confirmation and idempotency.
+- Private draft responses include `importReview`, which carries the same safe
+  `exportFileAnalysis`, `platformExportMatches`, and recognized match IDs into
+  private draft metadata so the export shape survives the sign-in handoff
+  without storing raw rows, raw file text, customer rows, credentials, or go-live
+  effects.
 - Private draft responses include `duplicateReview.status`: `created`,
   `idempotent_replay`, or `source_match_reused`. Source-match reuse is live for
   the same platform, Free Build workspace, normalized title, and normalized

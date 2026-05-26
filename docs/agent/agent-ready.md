@@ -227,13 +227,16 @@ or private draft creation. The map now includes platform-specific
 `platformExportMatches` for recognized platform-specific export shapes, using
 matched signal labels and safe structure only. It does not persist records,
 create drafts, echo pasted source material, echo raw rows, echo raw file text,
-echo export file names, or enable any go-live effect. Posting to one of the private
-platform API routes can
-create or reuse a Free Build workspace and save a private import plan after
-exact confirmation and idempotency. Responses include redacted
-`duplicateReview.status` values for created drafts, idempotency replay, and
-same-platform/source-file/workspace/title reuse, and do not echo pasted material
-or export file contents. The platform rollback route can archive the signed-in
+echo export file names, or enable any go-live effect. Posting to one of the
+private platform API routes can create or reuse a Free Build workspace and save
+a private import plan after exact confirmation and idempotency. Responses
+include `importReview`, which stores the redacted export analysis,
+platform-specific export matches, and recognized match IDs on new private draft
+metadata without raw rows, raw file text, customer rows, credentials, or go-live
+effects. Responses also include redacted `duplicateReview.status` values for
+created drafts, idempotency replay, and same-platform/source-file/workspace/title
+reuse, and do not echo pasted material or export file contents. The platform
+rollback route can archive the signed-in
 publisher's own private import plan while preserving saved content, steps, and
 audit history, which allows a fresh import from the same source to start cleanly.
 Imported material starts in a private Bumpgrade workspace; public publishing,
