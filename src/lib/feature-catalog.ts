@@ -576,6 +576,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Browser-scoped anonymous playground claim into a verified Free Build account, additive private launch draft, and private offer/product/audience/importer-review records.",
       "Browser-recovery workspace save limits for rapid anonymous playground writes without raw IP or user-agent storage.",
       "Owner-gated anonymous playground cleanup for expiring old recovery while preserving claimed private records.",
+      "Cloudflare Cron cleanup for expired anonymous recovery using the same preserve-claimed-records boundary.",
       "Signed-in Free Build workspace creation before payment.",
       "Paid-plan entitlement gate for publisher account setup.",
       "D1-backed publisher tenant and default Bumpgrade subdomain reservation.",
@@ -589,7 +590,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #9 owns the Better Auth foundation slice.",
       "Admin pages now require an allowlisted Better Auth owner session; public-safe source-data routes remain readable.",
       "Issue #55 adds human owner verification copy, resend actions, and delivery status evidence.",
-      "Issue #466 adds logged-out structured playground save, browser-recovery save limits, owner-gated cleanup, verified account claim, private launch draft creation, and private claim records while keeping go-live actions paid-gated.",
+      "Issue #466 adds logged-out structured playground save, browser-recovery save limits, owner-gated and scheduled cleanup, verified account claim, private launch draft creation, and private claim records while keeping go-live actions paid-gated.",
       "Issue #473 adds signed-in Free Build workspace creation while keeping public go-live actions paid-gated.",
       "Issue #222 adds `/account/setup`, `/account/source-data`, and `POST /api/account/publisher/subdomain` for paid-gated Bumpgrade subdomain reservation.",
       "Issue #223 adds existing custom-domain onboarding, DNS instructions, and redacted verification state.",
@@ -731,7 +732,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Resources hub with comparison, migration, launch, product-note, and blog-index records.",
       "Self-serve pricing page with Experiment, Grow, Enterprise, White glove setup, logged-out playground, signed-in Free Build, and an alternate usage-based pricing draft.",
       "Agent-readable `/pricing/source-data` for Free Build capability boundaries, anonymous playground state, signed-in workspace state, and paid go-live gates.",
-      "Logged-out `/playground` route with browser-scoped structured builder recovery, save limits, owner-gated cleanup, account claim path, private launch draft creation, and private claim-record creation after signup.",
+      "Logged-out `/playground` route with browser-scoped structured builder recovery, save limits, owner-gated and scheduled cleanup, account claim path, private launch draft creation, and private claim-record creation after signup.",
       "Agent-readable `/content/source-data` records for personas, resources, and pricing contracts.",
     ],
     evidence: [
@@ -739,12 +740,12 @@ export const featureCatalog: FeatureRecord[] = [
       "Issue #466 tracks the free build-before-go-live pricing policy.",
       "Issue #473 adds signed-in Free Build workspace creation.",
       "`/users`, `/developers-and-agents`, `/resources`, `/pricing`, `/playground`, and `/pricing-v2` are live destinations.",
-      "`/playground/source-data` exposes logged-out structured builder recovery, save limits, account claim, cleanup, private draft creation, private claim-record creation, redaction, retention, and paid go-live gates.",
+      "`/playground/source-data` exposes logged-out structured builder recovery, save limits, account claim, owner-gated and scheduled cleanup, private draft creation, private claim-record creation, redaction, retention, and paid go-live gates.",
       "`/pricing/source-data` exposes the Free Build design, logged-out playground state, signed-in workspace state, and paid go-live gates.",
       "`/content/source-data` exposes stable audience, resource, and pricing records.",
     ],
     agentContract:
-      "Agents may read content surface records, pricing policy records, anonymous playground records, save-limit boundaries, cleanup boundaries, additive claim merge boundaries, claimed private draft boundaries, private claim-record boundaries, and draft resource copy, but they must distinguish browser-scoped anonymous structured saves, owner-gated cleanup, signed-in Free Build workspace creation, private draft creation without replacing existing workspace work, private claim-record creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
+      "Agents may read content surface records, pricing policy records, anonymous playground records, save-limit boundaries, cleanup boundaries, additive claim merge boundaries, claimed private draft boundaries, private claim-record boundaries, and draft resource copy, but they must distinguish browser-scoped anonymous structured saves, owner-gated and scheduled cleanup, signed-in Free Build workspace creation, private draft creation without replacing existing workspace work, private claim-record creation, and paid go-live actions such as live checkout, public publishing, subscriber sends, custom domains, and fulfillment; public claims need source URLs or shipped-product evidence before publication.",
   },
 ];
 

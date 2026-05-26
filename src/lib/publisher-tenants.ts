@@ -1384,7 +1384,7 @@ export const publisherTenantSourceData = {
     {
       name: "anonymous_playground_workspaces",
       purpose:
-        "Browser-scoped launch playground progress for visitors who have not signed up yet; expired rows can be marked expired and cleared by owner cleanup.",
+        "Browser-scoped launch playground progress for visitors who have not signed up yet; expired rows can be marked expired and cleared by owner or scheduled cleanup.",
       publicSafeFields: ["id", "status", "revision", "expires_at", "source_issue_number"],
       privateFields: [
         "recovery_token_sha256",
@@ -1418,6 +1418,7 @@ export const publisherTenantSourceData = {
     signedInWorkspaceLive: true,
     anonymousPlaygroundLive: true,
     anonymousSaveRateLimitLive: true,
+    anonymousScheduledCleanupLive: true,
     confirmationText: publisherFreeBuildWorkspaceConfirmationText,
     privateBuildPlanStatus: "free_build",
     route: publisherFreeBuildWorkspaceApiRoute,
@@ -1455,6 +1456,9 @@ export const publisherTenantSourceData = {
         idempotencyScope: "anonymous_workspace_id_and_user_id",
       },
       cleanupControlsLive: true,
+      scheduledCleanupLive: true,
+      scheduledCleanupCron: "17 9 * * *",
+      scheduledCleanupActor: "cloudflare_cron",
       retentionDays: 30,
       draftSourceDataRoute: "/funnels/source-data",
       cookieMaxAgeDays: 30,
@@ -1464,7 +1468,7 @@ export const publisherTenantSourceData = {
       "Returning from the same browser reloads saved playground progress while the recovery cookie is present.",
       "Verified signed-in users can attach the saved playground to a private Free Build workspace, private launch draft, and private offer/product/audience/importer-review records.",
       "If the signed-in user already has a Free Build workspace, claiming the playground reuses that workspace and adds a private draft without replacing existing workspace work.",
-      "Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, replace the recovery token hash, and preserve private claimed records.",
+      "Owner cleanup and daily Cloudflare Cron cleanup can expire old anonymous recovery, clear anonymous draft fields, replace the recovery token hash, and preserve private claimed records.",
       "Verified signed-in users can create a private Free Build workspace before payment.",
       "The workspace is persisted in publisher_tenants with plan_status=free_build.",
       "Idempotent replays return the same workspace instead of duplicating tenant rows.",

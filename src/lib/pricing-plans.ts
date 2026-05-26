@@ -285,6 +285,7 @@ export const freeBuildModeContract = {
     signedInFreeWorkspaceLive: true,
     anonymousPlaygroundLive: true,
     anonymousSaveRateLimitLive: true,
+    anonymousScheduledCleanupLive: true,
     paidGoLiveRequired: true,
   },
   signedInWorkspace: {
@@ -304,7 +305,7 @@ export const freeBuildModeContract = {
     claimApiRoute: anonymousPlaygroundClaimApiRoute,
     cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
     persistenceModel:
-      "Logged-out visitors can save structured launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, draft fields, expiry, and claim status. Owner cleanup can expire old recovery, clear anonymous draft fields, and preserve claimed private records.",
+      "Logged-out visitors can save structured launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, draft fields, expiry, and claim status. Owner cleanup and scheduled Cloudflare cleanup can expire old recovery, clear anonymous draft fields, and preserve claimed private records.",
     privacyBoundary:
       "Anonymous work does not expose private customer data, cleanup actors, expired draft content, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
     structuredBuilderFieldsLive: true,
@@ -312,6 +313,14 @@ export const freeBuildModeContract = {
     claimMergePolicy: anonymousPlaygroundClaimMergePolicy,
     claimMapsStructuredFieldsToPrivateDraftBlocks: true,
     cleanupControlsLive: true,
+    scheduledCleanup: {
+      live: true,
+      cron: anonymousPlaygroundSourceData.retentionPolicy.scheduledCleanupCron,
+      label: anonymousPlaygroundSourceData.retentionPolicy.scheduledCleanupLabel,
+      actor: anonymousPlaygroundSourceData.retentionPolicy.scheduledCleanupActor,
+      clearsAnonymousDraftFields: true,
+      preservesClaimedPrivateRecords: true,
+    },
   },
 };
 

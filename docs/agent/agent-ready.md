@@ -213,6 +213,8 @@ existing workspace drafts. `POST
 /api/playground/cleanup` requires an owner session and exact confirmation before
 marking expired anonymous recovery as expired, clearing anonymous draft fields,
 replacing the recovery token hash, and preserving claimed private records. The
+Cloudflare Cron cleanup runs the same expired-recovery boundary daily without an
+owner session, public request, or buyer-facing effect. The
 playground cannot publish routes, collect live payments, send subscribers,
 reserve domains, fulfill protected access, expose private customer data, expose
 raw draft, expired draft, cleanup actor, or claim-record content in public
