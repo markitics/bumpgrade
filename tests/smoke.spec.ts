@@ -20717,44 +20717,27 @@ test.describe("Bumpgrade scaffold", () => {
     );
     expect(JSON.stringify(affiliateRoadmap)).toContain("partner notification");
     expect(JSON.stringify(affiliateRoadmap)).toContain("agent-safe write parity");
+    const mobileRoadmap = payload.roadmapItems.find((item: { id: string }) => item.id === "roadmap-mobile-admin");
+    expect(mobileRoadmap).toEqual(
+      expect.objectContaining({
+        status: "active",
+        issueNumber: 414,
+        publicEvidence: expect.arrayContaining([
+          expect.stringContaining("Director workstream digest"),
+          expect.stringContaining("/api/mobile-admin/director-reviews"),
+          expect.stringContaining("/api/mobile-admin/commerce-reviews"),
+          expect.stringContaining("push-notification boundary"),
+          expect.stringContaining("distribution boundary"),
+        ]),
+        nextMilestone: expect.stringContaining("physical-device proof"),
+      }),
+    );
     if (payload.source !== "fixture") {
       expect(payload.workLogEntries).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-queue-consumer-readiness",
-            title: expect.stringContaining("queue-consumer"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-delivery-result-readiness",
-            title: expect.stringContaining("delivery-result"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-delivery-status-webhook-readiness",
-            title: expect.stringContaining("delivery-status-webhook"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-provider-polling-readiness",
-            title: expect.stringContaining("provider-polling"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-receipt-payload-readiness",
-            title: expect.stringContaining("receipt-payload"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-21-analytics-notification-delivery-receipt-readiness",
-            title: expect.stringContaining("delivery-receipt"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-22-analytics-notification-provider-status-reconciliation-readiness",
-            title: expect.stringContaining("provider-status reconciliation"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-24-analytics-mvp-live-closeout",
-            title: expect.stringContaining("Analytics MVP"),
-          }),
-          expect.objectContaining({
-            id: "work-log-2026-05-24-affiliate-mvp-live-closeout",
-            title: expect.stringContaining("Affiliate/referral MVP"),
+            id: "work-log-2026-05-26-mobile-admin-roadmap-refresh",
+            title: expect.stringContaining("Mobile Admin roadmap"),
           }),
         ]),
       );
@@ -21784,9 +21767,20 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-publisher-checks-mobile-admin",
           proof: expect.objectContaining({
             status: "passed",
+            ciLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://github.com/markitics/bumpgrade/actions/runs/26380078561" }),
+            ]),
             screenshotLinks: expect.arrayContaining([
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-157-ios-live-dashboard-hydration.png" }),
               expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-157-android-live-dashboard-hydration.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-director-digest.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-director-review-api.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-commerce-review-api.png" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/pr-screenshots/issue-414-mobile-push-distribution-boundaries.png" }),
+            ]),
+            validationLinks: expect.arrayContaining([
+              expect.objectContaining({ url: "https://bumpgrade.com/api/mobile-admin/director-reviews" }),
+              expect.objectContaining({ url: "https://bumpgrade.com/api/mobile-admin/commerce-reviews" }),
             ]),
           }),
         }),
