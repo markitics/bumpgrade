@@ -88,14 +88,15 @@ export const roadmapItems: RoadmapItem[] = [
       "`/imports` lists supported importer paths.",
       "Dedicated importer pages can show a redacted preflight review map before sign-in or private draft creation, including platform-specific source-guide readiness.",
       "Public preflight review can parse small CSV, JSON, HTML, or text exports for structure without saving raw files, rows, file names, or pasted text.",
+      "Public preflight review now matches parsed export structure against platform-specific templates before private draft creation.",
       "Dedicated importer pages now list platform-specific source guides for the URLs, exports, files, and notes Bumpgrade can use.",
       "Dedicated importer pages support private Free Build import-plan creation.",
-      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, preflight signal labels, export-file parser fields, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
+      "`/imports/source-data` exposes platform IDs, input kinds, platform-specific source checklists, export match templates, preflight signal labels, export-file parser fields, saved private plan parts, preflight review routes, private-draft API routes, safety gates, limitations, and source evidence IDs for agents.",
       "Private importer writes reuse an existing draft when the same platform, workspace, normalized title, and source URL or export file name match.",
       "Private importer rollback routes archive private import plans without deleting saved plan content, steps, or audit history so the same source can be restarted.",
     ],
     nextMilestone:
-      "Add deeper platform-specific extraction from parsed exports, then subscriber import depth behind explicit confirmed-write gates.",
+      "Use platform export matches to deepen draft extraction, then add subscriber import depth behind explicit confirmed-write gates.",
   },
   {
     id: "roadmap-feature-catalog",

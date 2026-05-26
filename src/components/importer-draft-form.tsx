@@ -52,6 +52,21 @@ type ImporterPreview = {
     rawRowsEchoed: false;
     rawTextEchoed: false;
   };
+  platformExportMatches: Array<{
+    id: string;
+    label: string;
+    status: string;
+    matchedFileKinds: string[];
+    matchedRequiredHeaders: string[];
+    missingRequiredHeaders: string[];
+    matchedHelpfulHeaders: string[];
+    matchedSignalLabels: string[];
+    sourceChecklistItemIds: string[];
+    draftEntities: string[];
+    usesItFor: string;
+    reviewPrompt: string;
+    rawSourceEchoed: false;
+  }>;
   sourceChecklistReview: Array<{
     id: string;
     label: string;
@@ -94,6 +109,12 @@ function parseStatusLabel(status: string) {
   if (status === "name_only") return "Name only";
   if (status === "empty") return "Empty";
   return "Needs another export";
+}
+
+function exportMatchStatusLabel(status: string) {
+  if (status === "recognized") return "Recognized export";
+  if (status === "needs_more_context") return "Needs more context";
+  return "Not detected yet";
 }
 
 function signalSummary(signals: string[], emptyText: string) {
@@ -266,6 +287,20 @@ export function ImporterDraftForm({ action, confirmationText, platformName, prev
                       {file.objectCount !== null ? `; ${file.objectCount} objects` : ""}
                     </p>
                     <p>{signalSummary(file.detectedHeaderLabels, "No safe header groups detected")}</p>
+                  </article>
+                ))}
+              </div>
+              <div className="importer-preview-grid">
+                {preview.platformExportMatches.map((match) => (
+                  <article key={match.id}>
+                    <span>{exportMatchStatusLabel(match.status)}</span>
+                    <h4>{match.label}</h4>
+                    <p>{match.usesItFor}</p>
+                    <p>
+                      Matched:{" "}
+                      {signalSummary([...match.matchedRequiredHeaders, ...match.matchedHelpfulHeaders], "Add matching export columns")}
+                    </p>
+                    <p>Prepares: {match.draftEntities.map((entity) => entity.replace(/^draft_/, "").replaceAll("_", " ")).join(", ")}</p>
                   </article>
                 ))}
               </div>

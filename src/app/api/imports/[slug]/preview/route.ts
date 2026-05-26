@@ -4,9 +4,11 @@ import {
   getImporterBySlug,
   importerDraftPreviewApiRoute,
   importerExportPreflightParser,
+  importerExportMatchTemplates,
   importerIssue,
   importerPreflightSignalLabels,
   sourceChecklistPreflightSignals,
+  type ImportDraftEntity,
   type ImporterPreflightSignal,
   type ImporterPlatform,
 } from "@/lib/importers";
@@ -392,6 +394,40 @@ async function exportFileAnalysisFromPayload(payload: RequestPayload): Promise<E
   };
 }
 
+function platformExportMatches(platform: ImporterPlatform, exportFileAnalysis: ExportFileAnalysis) {
+  const detectedHeaders = new Set(exportFileAnalysis.detectedHeaderLabels);
+  const detectedSignals = new Set(exportFileAnalysis.detectedSignalLabels);
+  const detectedKinds = new Set(exportFileAnalysis.files.map((file) => file.kind));
+
+  return importerExportMatchTemplates(platform).map((template) => {
+    const matchedRequiredHeaders = template.requiredHeaderLabels.filter((label) => detectedHeaders.has(label));
+    const missingRequiredHeaders = template.requiredHeaderLabels.filter((label) => !detectedHeaders.has(label));
+    const matchedHelpfulHeaders = template.helpfulHeaderLabels.filter((label) => detectedHeaders.has(label));
+    const matchedSignalLabels = template.signalLabels.filter((label) => detectedSignals.has(label));
+    const matchedFileKinds = template.fileKinds.filter((kind) => detectedKinds.has(kind));
+    const hasAllRequiredHeaders =
+      template.requiredHeaderLabels.length > 0 && matchedRequiredHeaders.length === template.requiredHeaderLabels.length;
+    const hasUsefulSignal = matchedSignalLabels.length > 0 || matchedHelpfulHeaders.length > 0;
+    const status = hasAllRequiredHeaders ? "recognized" : hasUsefulSignal ? "needs_more_context" : "not_detected";
+
+    return {
+      id: template.id,
+      label: template.label,
+      status,
+      matchedFileKinds,
+      matchedRequiredHeaders,
+      missingRequiredHeaders,
+      matchedHelpfulHeaders,
+      matchedSignalLabels,
+      sourceChecklistItemIds: template.sourceChecklistItemIds,
+      draftEntities: template.draftEntities as ImportDraftEntity[],
+      usesItFor: template.usesItFor,
+      reviewPrompt: template.reviewPrompt,
+      rawSourceEchoed: false,
+    };
+  });
+}
+
 function redaction() {
   return {
     rawExportFilesIncluded: false,
@@ -553,6 +589,7 @@ async function reviewMap(platform: ImporterPlatform, payload: RequestPayload) {
     paidGoLiveRequired: true,
     inputSummary,
     exportFileAnalysis,
+    platformExportMatches: platformExportMatches(platform, exportFileAnalysis),
     sourceChecklistReview: sourceChecklistReview(platform, inputSummary),
     detectedAreas: platform.importableAreas.map((area) => ({
       id: area.id,

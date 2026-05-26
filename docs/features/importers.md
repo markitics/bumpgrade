@@ -28,6 +28,10 @@ dedicated importer pages:
   safe header groups, counts, and signal labels only; it does not store files or
   echo raw rows, raw file text, file names, private emails, customer values,
   credentials, sessions, or payment data.
+- Preview responses include `platformExportMatches` so users and agents can see
+  which platform-specific export shapes Bumpgrade recognizes before private
+  draft creation. Matches use safe header labels and signal labels only, not raw
+  column values or file contents.
 - The `apiRoute` listed for each platform lets a verified publisher create or
   reuse a Free Build workspace and save a private import draft after exact
   confirmation and idempotency.
@@ -52,6 +56,7 @@ and account-to-account transfer claims.
 Agents can use `/imports/source-data`, `/compare/source-data`, and
 `/features/source-data` to answer importer questions, including platform-specific
 source checklist items, export-file parser fields, and the signal labels used by
-preview review maps. They must not claim live account transfer, payment
+preview review maps, including platform-specific export match templates. They
+must not claim live account transfer, payment
 migration, customer password migration, subscriber sends, or public publishing
 without later implementation evidence.

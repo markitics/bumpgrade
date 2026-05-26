@@ -1052,6 +1052,7 @@ test.describe("Bumpgrade scaffold", () => {
           platformSpecificExtractionGuidanceLive: true,
           platformSpecificPreflightExtractionLive: true,
           exportFilePreflightParsingLive: true,
+          platformExportMatchTemplatesLive: true,
           privateDraftImportPlatformIds: expect.arrayContaining(["importer-clickfunnels", "importer-samcart", "importer-kit"]),
           paidGoLiveRequired: true,
         }),
@@ -1091,6 +1092,15 @@ test.describe("Bumpgrade scaffold", () => {
             expect.objectContaining({
               id: "samcart-checkout-page",
               label: "Checkout page or export",
+            }),
+          ]),
+          exportMatchTemplates: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-order-export",
+              label: "SamCart checkout or order export",
+              requiredHeaderLabels: expect.arrayContaining(["Product or offer column", "Checkout or order column"]),
+              signalLabels: expect.arrayContaining(["Parsed export structure", "Page or offer copy"]),
+              draftEntities: expect.arrayContaining(["draft_checkout_offer", "draft_product_catalog"]),
             }),
           ]),
         }),
@@ -1138,6 +1148,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.commonContract.rollback).toContain("archive private importer-created launch plans");
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("sourceChecklistReview");
     expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("exportFileAnalysis");
+    expect(payload.commonContract.platformSpecificExtractionGuidance).toContain("platformExportMatches");
     expect(payload.commonContract.exportFilePreflightParser).toEqual(
       expect.objectContaining({
         status: "live",
@@ -1196,7 +1207,7 @@ test.describe("Bumpgrade scaffold", () => {
             createsDraft: false,
             rawSourceEchoed: false,
             goLiveEffectsEnabled: false,
-            responseFields: expect.arrayContaining(["sourceChecklistReview", "exportFileAnalysis"]),
+            responseFields: expect.arrayContaining(["sourceChecklistReview", "exportFileAnalysis", "platformExportMatches"]),
             exportFileAnalysis: expect.objectContaining({
               responseField: "exportFileAnalysis",
               rawFileNamesEchoed: false,
@@ -1318,6 +1329,13 @@ test.describe("Bumpgrade scaffold", () => {
             rawRowsEchoed: false,
             rawTextEchoed: false,
           }),
+          platformExportMatches: expect.arrayContaining([
+            expect.objectContaining({
+              id: "samcart-checkout-order-export",
+              status: "not_detected",
+              rawSourceEchoed: false,
+            }),
+          ]),
           detectedAreas: expect.arrayContaining([
             expect.objectContaining({
               id: "samcart-checkout-offers",
@@ -1411,6 +1429,17 @@ test.describe("Bumpgrade scaffold", () => {
           rawRowsEchoed: false,
           rawTextEchoed: false,
         }),
+        platformExportMatches: expect.arrayContaining([
+          expect.objectContaining({
+            id: "samcart-checkout-order-export",
+            status: "recognized",
+            matchedRequiredHeaders: expect.arrayContaining(["Product or offer column", "Checkout or order column"]),
+            matchedHelpfulHeaders: expect.arrayContaining(["Page or URL column", "Subscriber or customer column"]),
+            matchedSignalLabels: expect.arrayContaining(["Parsed export structure", "Source URL", "Page or offer copy"]),
+            draftEntities: expect.arrayContaining(["draft_checkout_offer", "draft_product_catalog"]),
+            rawSourceEchoed: false,
+          }),
+        ]),
         sourceChecklistReview: expect.arrayContaining([
           expect.objectContaining({
             id: "samcart-checkout-page",
@@ -20933,17 +20962,20 @@ test.describe("Bumpgrade scaffold", () => {
           happyPath: expect.arrayContaining([
             expect.stringContaining("platform-specific source guide"),
             expect.stringContaining("parse safe structure"),
+            expect.stringContaining("recognized platform export shape"),
             expect.stringContaining("Review the redacted import map"),
           ]),
           edgeCases: expect.arrayContaining([
             expect.stringContaining("source guides"),
             expect.stringContaining("Export-file parsing returns structural labels"),
+            expect.stringContaining("Platform export matches use safe header"),
             expect.stringContaining("Rollback APIs require"),
           ]),
-          agentAccess: expect.stringContaining("exportFileAnalysis fields"),
+          agentAccess: expect.stringContaining("platformExportMatches"),
           validation: expect.arrayContaining([
             expect.stringContaining("dedicated importer source guides"),
             expect.stringContaining("exportFileAnalysis parsing"),
+            expect.stringContaining("platformExportMatches"),
             expect.stringContaining("Private importer rollback APIs"),
           ]),
         }),

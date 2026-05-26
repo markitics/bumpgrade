@@ -223,10 +223,11 @@ verified-publisher private-draft API route listed for each dedicated importer.
 Posting to a platform preview route returns an import review map before sign-in
 or private draft creation. The map now includes platform-specific
 `sourceChecklistReview` status for the guide items on that importer and
-`exportFileAnalysis` for small CSV, JSON, HTML, or text exports, using matched
-signal labels and safe structure only. It does not persist records, create
-drafts, echo pasted source material, echo raw rows, echo raw file text, echo
-export file names, or enable any go-live effect. Posting to one of the private
+`exportFileAnalysis` for small CSV, JSON, HTML, or text exports, and
+`platformExportMatches` for recognized platform-specific export shapes, using
+matched signal labels and safe structure only. It does not persist records,
+create drafts, echo pasted source material, echo raw rows, echo raw file text,
+echo export file names, or enable any go-live effect. Posting to one of the private
 platform API routes can
 create or reuse a Free Build workspace and save a private import plan after
 exact confirmation and idempotency. Responses include redacted
