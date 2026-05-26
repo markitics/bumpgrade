@@ -1,6 +1,7 @@
 import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
+  anonymousPlaygroundCleanupApiRoute,
   anonymousPlaygroundRoute,
   anonymousPlaygroundSourceDataRoute,
 } from "@/lib/anonymous-playground";
@@ -298,12 +299,14 @@ export const freeBuildModeContract = {
     sourceDataRoute: anonymousPlaygroundSourceDataRoute,
     saveApiRoute: anonymousPlaygroundApiRoute,
     claimApiRoute: anonymousPlaygroundClaimApiRoute,
+    cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
     persistenceModel:
-      "Logged-out visitors can save structured launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, draft fields, expiry, and claim status.",
+      "Logged-out visitors can save structured launch context through browser-scoped recovery. The cookie stores a recovery token only; D1 stores a token hash, draft fields, expiry, and claim status. Owner cleanup can expire old recovery, clear anonymous draft fields, and preserve claimed private records.",
     privacyBoundary:
-      "Anonymous work does not expose private customer data, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
+      "Anonymous work does not expose private customer data, cleanup actors, expired draft content, create billing records, send email, publish buyer-facing routes, reserve domains, or grant product access.",
     structuredBuilderFieldsLive: true,
     claimMapsStructuredFieldsToPrivateDraftBlocks: true,
+    cleanupControlsLive: true,
   },
 };
 
@@ -318,6 +321,7 @@ export const pricingSourceData = {
     anonymousPlaygroundSourceDataRoute,
     anonymousPlaygroundApiRoute,
     anonymousPlaygroundClaimApiRoute,
+    anonymousPlaygroundCleanupApiRoute,
     billingCheckoutRoute,
     billingCheckoutSuccessRoute,
   ],

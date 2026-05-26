@@ -15,8 +15,8 @@ before paid go-live.
   structured offer, audience, product, opt-in, checkout, delivery, follow-up,
   source URL, and starting-platform context before signup.
 - `/playground/source-data`: public-safe contract for anonymous recovery,
-  claim-to-account, private claim-record, redaction, cookie, and go-live gate
-  boundaries.
+  claim-to-account, cleanup, retention, private claim-record, redaction, cookie,
+  and go-live gate boundaries.
 - `POST /api/playground/anonymous-workspace`: saves or updates a browser-scoped
   anonymous playground. The cookie stores a recovery token only; D1 stores the
   token hash and draft fields.
@@ -24,6 +24,10 @@ before paid go-live.
   signed-in account, creates or reuses a private Free Build workspace, and saves
   a private launch draft plus private offer, product, audience, and
   importer-review claim records.
+- `POST /api/playground/cleanup`: owner-gated cleanup for expired anonymous
+  recovery. It marks old playgrounds expired, clears anonymous draft fields,
+  replaces the recovery token hash, records audit evidence, and preserves
+  claimed private records.
 - `POST /api/account/publisher/free-build-workspace`: creates or confirms a
   private `plan_status=free_build` workspace for an email-confirmed signed-in
   publisher before payment, with exact confirmation, idempotency, audit
@@ -37,9 +41,12 @@ before paid go-live.
 
 The anonymous playground write path records browser-scoped structured launch
 context in D1 without a public hostname, billing state, email send, fulfillment
-state, or raw cookie value. The Free Build write path records a tenant row and
-audit event in D1 without a public hostname. The paid go-live write path records
-a tenant row, subdomain reservation row, and audit event. Domain requests reject
+state, or raw cookie value. Anonymous recovery expires after 30 days unless a
+later save extends it, and owner cleanup can clear expired anonymous draft
+fields without exposing private content. The Free Build write path records a
+tenant row and audit event in D1 without a public hostname. The paid go-live
+write path records a tenant row, subdomain reservation row, and audit event.
+Domain requests reject
 signed-out, unverified, unpaid, invalid, reserved-name, and already-taken
 subdomain requests.
 
@@ -90,8 +97,8 @@ customer domain rows stay behind authenticated publisher context.
 
 - Buying, registering, renewing, or transferring domains through Bumpgrade.
 - Publisher site editing parity on the reserved hostname.
-- Anonymous playground cleanup, retention controls, abuse limits, and deeper
-  claim/merge semantics for users with existing workspaces.
+- Anonymous playground abuse limits and deeper claim/merge semantics for users
+  with existing workspaces.
 - Raw browser-cookie sharing across unrelated custom domains.
 
 ## Domain Purchase Policy

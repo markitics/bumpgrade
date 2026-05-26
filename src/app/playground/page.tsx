@@ -7,6 +7,7 @@ import {
   anonymousPlaygroundApiRoute,
   anonymousPlaygroundClaimApiRoute,
   anonymousPlaygroundClaimConfirmationText,
+  anonymousPlaygroundCookieMaxAgeDays,
   anonymousPlaygroundCookieName,
   anonymousPlaygroundGoLiveGates,
   anonymousPlaygroundRoute,
@@ -183,9 +184,9 @@ export default async function PlaygroundPage({ searchParams }: PlaygroundPagePro
             <p className="eyebrow">Come back later</p>
             <h3>{workspace?.updatedAt ? "Saved in this browser" : "Save once to recover"}</h3>
             <p>
-              {workspace?.updatedAt
-                ? "Refresh this page or return from the same browser and Bumpgrade will load the saved playground."
-                : "The first save creates browser-scoped recovery so the progress can survive a refresh or return visit."}
+            {workspace?.updatedAt
+                ? `Refresh this page or return from the same browser and Bumpgrade will load the saved playground for up to ${anonymousPlaygroundCookieMaxAgeDays} days after the latest save.`
+                : `The first save creates browser-scoped recovery so progress can survive a refresh or return visit for up to ${anonymousPlaygroundCookieMaxAgeDays} days.`}
             </p>
           </article>
           <article className="account-setup-card">

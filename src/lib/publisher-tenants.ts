@@ -1334,6 +1334,7 @@ export const publisherTenantSourceData = {
     anonymousPlaygroundSourceData: "/playground/source-data",
     anonymousPlaygroundApi: "/api/playground/anonymous-workspace",
     anonymousPlaygroundClaimApi: "/api/playground/claim",
+    anonymousPlaygroundCleanupApi: "/api/playground/cleanup",
     freeBuildWorkspaceApi: publisherFreeBuildWorkspaceApiRoute,
     reserveSubdomainApi: publisherSubdomainApiRoute,
     customDomainApi: publisherCustomDomainApiRoute,
@@ -1380,7 +1381,8 @@ export const publisherTenantSourceData = {
     },
     {
       name: "anonymous_playground_workspaces",
-      purpose: "Browser-scoped launch playground progress for visitors who have not signed up yet.",
+      purpose:
+        "Browser-scoped launch playground progress for visitors who have not signed up yet; expired rows can be marked expired and cleared by owner cleanup.",
       publicSafeFields: ["id", "status", "revision", "expires_at", "source_issue_number"],
       privateFields: [
         "recovery_token_sha256",
@@ -1402,7 +1404,7 @@ export const publisherTenantSourceData = {
     },
     {
       name: "anonymous_playground_audit_events",
-      purpose: "Append-only save and claim evidence for browser-scoped playground progress.",
+      purpose: "Append-only save, claim, and cleanup evidence for browser-scoped playground progress.",
       publicSafeFields: ["event_kind", "created_at"],
       privateFields: ["workspace_id", "idempotency_key", "metadata_json"],
     },
@@ -1422,8 +1424,11 @@ export const publisherTenantSourceData = {
       sourceDataRoute: "/playground/source-data",
       saveApiRoute: "/api/playground/anonymous-workspace",
       claimApiRoute: "/api/playground/claim",
+      cleanupApiRoute: "/api/playground/cleanup",
       claimCreatesPrivateDraftFunnel: true,
       structuredBuilderFieldsLive: true,
+      cleanupControlsLive: true,
+      retentionDays: 30,
       draftSourceDataRoute: "/funnels/source-data",
       cookieMaxAgeDays: 30,
     },
@@ -1431,6 +1436,7 @@ export const publisherTenantSourceData = {
       "Logged-out visitors can save structured launch context in a browser-scoped playground before signup.",
       "Returning from the same browser reloads saved playground progress while the recovery cookie is present.",
       "Verified signed-in users can attach the saved playground to a private Free Build workspace, private launch draft, and private offer/product/audience/importer-review records.",
+      "Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, replace the recovery token hash, and preserve private claimed records.",
       "Verified signed-in users can create a private Free Build workspace before payment.",
       "The workspace is persisted in publisher_tenants with plan_status=free_build.",
       "Idempotent replays return the same workspace instead of duplicating tenant rows.",
@@ -1445,7 +1451,7 @@ export const publisherTenantSourceData = {
       "Fulfillment and protected access",
     ],
     redaction:
-      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, private funnel content, private claim-record content, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
+      "Public source data describes the Free Build and anonymous playground contracts only. Private owner identity, raw playground draft fields, expired playground content, cleanup actors, private funnel content, private claim-record content, recovery cookies, token hashes, idempotency keys, and audit metadata stay out of public source-data.",
   },
   subdomainPolicy: {
     defaultDomain: publisherDefaultDomain,

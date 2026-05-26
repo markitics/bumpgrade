@@ -689,7 +689,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: "2026-05-25T15:40:00.000Z",
     environment: "Local OpenNext preview, browser recovery smoke, authenticated claim smoke, and PR screenshot artifacts for issue #466.",
     method:
-      "Logged-out save, recovery-cookie persistence after refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, and paid go-live gate checks.",
+      "Logged-out save, recovery-cookie persistence after refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, cleanup contract checks, and paid go-live gate checks.",
     summary:
       "Logged-out visitors can save a structured launch playground in one browser, return later, and attach it to a verified Free Build account plus private launch draft and claim records without enabling public publishing, billing, sends, domains, or fulfillment.",
     ciLinks: [{ label: "CI workflow", url: issue217CiWorkflowUrl, kind: "ci" }],
@@ -710,6 +710,7 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     notes: [
       "Anonymous recovery depends on the browser cookie remaining available.",
+      "Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve claimed private records without public exposure.",
       "The playground stores structured launch context and creates a private draft only after verified-account claim; buyer-facing actions remain paid-gated.",
     ],
   },
@@ -1126,6 +1127,44 @@ const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
     relevantUrls: [
       "https://bumpgrade.com/imports/source-data",
       "https://bumpgrade.com/api/imports/samcart/draft/rollback",
+      "https://bumpgrade.com/admin/work-log",
+    ],
+    prCommentUrl: null,
+  },
+  {
+    id: "work-log-2026-05-25-anonymous-playground-retention-controls",
+    title: "Added anonymous playground retention controls",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "bumpgrade-build-heartbeat",
+    promptFromMark:
+      "Owner asked for logged-out product play that saves progress without losing work, while keeping public copy human-facing and agent contracts honest.",
+    githubIssues: [{ number: 466, url: "https://github.com/markitics/bumpgrade/issues/466" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/playground",
+      "https://bumpgrade.com/playground/source-data",
+      "https://bumpgrade.com/account/source-data",
+      "https://bumpgrade.com/agent-docs/source-data",
+    ],
+    roadmapUpdated: ["https://bumpgrade.com/admin/roadmap", "https://bumpgrade.com/roadmap/source-data"],
+    userJourneysUpdated: ["https://bumpgrade.com/admin/user-journeys/source-data"],
+    documentationUpdated: ["docs/agent/agent-ready.md", "docs/features/publisher-tenants.md", "public/llms.txt"],
+    validation: [
+      "typecheck",
+      "lint",
+      "runtime secrets",
+      "local D1 migration",
+      "Cloudflare build",
+      "focused Playwright smoke for anonymous playground retention/source-data/admin copy",
+      "live smoke after deploy",
+    ],
+    flagsAttention: null,
+    firstPromptAt: "2026-05-25T20:25:57.422Z",
+    completedAt: "2026-05-25T21:05:00.000Z",
+    relevantUrls: [
+      "https://bumpgrade.com/playground",
+      "https://bumpgrade.com/playground/source-data",
       "https://bumpgrade.com/admin/work-log",
     ],
     prCommentUrl: null,
@@ -1982,14 +2021,14 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     edgeCases: [
       "Recovery depends on the browser cookie remaining available.",
       "The cookie stores a recovery token only; D1 stores its hash, not the raw cookie value.",
-      "Anonymous playground rows expire after 30 days unless extended by later saves.",
+      "Anonymous playground rows expire after 30 days unless extended by later saves; owner cleanup marks expired recovery, clears anonymous draft fields, and replaces the recovery token hash.",
       "Playground saves do not create billing state, public domains, buyer routes, subscriber sends, or product access.",
       "Attaching to an account creates or reuses a private Free Build workspace, maps structured playground fields into an idempotent private funnel draft plus private claim records, and keeps paid go-live gates intact.",
     ],
     agentAccess:
-      "Agents can read /playground/source-data for the anonymous playground contract. Saving structured playground state is browser-scoped and redacted; attaching it requires authenticated, email-verified publisher context, creates private draft and claim records, and still does not authorize public or billing-impacting actions.",
+      "Agents can read /playground/source-data for the anonymous playground contract. Saving structured playground state is browser-scoped and redacted; cleanup requires an owner session and exact confirmation; attaching it requires authenticated, email-verified publisher context, creates private draft and claim records, and still does not authorize public or billing-impacting actions.",
     validation: [
-      "Playwright covers logged-out save, recovery-cookie persistence across refresh, source-data redaction, unauthenticated claim rejection, verified-account claim, private draft and claim-record creation, idempotent claim replay, and paid go-live gate preservation.",
+      "Playwright covers logged-out save, recovery-cookie persistence across refresh, source-data redaction, unauthenticated claim rejection, owner cleanup rejection, verified-account claim, private draft and claim-record creation, idempotent claim replay, and paid go-live gate preservation.",
       "/pricing/source-data and /account/source-data distinguish anonymous playground, signed-in Free Build, and paid go-live actions.",
     ],
     proof: createJourneyProof("journey-prospect-saves-anonymous-playground", "feature-resources-use-cases-pricing"),

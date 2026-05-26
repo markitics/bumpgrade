@@ -55,6 +55,18 @@ export type AnonymousPlaygroundClaimRecord = {
   updatedAt: string | null;
 };
 
+export type AnonymousPlaygroundCleanupResult = {
+  expiredCount: number;
+  activeExpiredCount: number;
+  claimedRecoveryExpiredCount: number;
+  batchLimit: number;
+  retentionDays: number;
+  rawDraftContentCleared: boolean;
+  recoveryTokenHashReplaced: boolean;
+  privateClaimRecordsPreserved: boolean;
+  paidGoLiveRequired: boolean;
+};
+
 type AnonymousPlaygroundWorkspaceRow = {
   id: string;
   status: AnonymousPlaygroundStatus;
@@ -76,6 +88,14 @@ type AnonymousPlaygroundWorkspaceRow = {
   created_at: number | null;
   updated_at: number | null;
   last_seen_at: number | null;
+};
+
+type AnonymousPlaygroundCleanupCandidateRow = {
+  id: string;
+  status: AnonymousPlaygroundStatus;
+  claimed_by_user_id: string | null;
+  claimed_tenant_id: string | null;
+  expires_at: number | null;
 };
 
 type AnonymousPlaygroundAuditRow = {
@@ -117,10 +137,13 @@ export const anonymousPlaygroundRoute = "/playground";
 export const anonymousPlaygroundSourceDataRoute = "/playground/source-data";
 export const anonymousPlaygroundApiRoute = "/api/playground/anonymous-workspace";
 export const anonymousPlaygroundClaimApiRoute = "/api/playground/claim";
+export const anonymousPlaygroundCleanupApiRoute = "/api/playground/cleanup";
 export const anonymousPlaygroundCookieName = "bumpgrade_anonymous_playground";
 export const anonymousPlaygroundCookieMaxAgeSeconds = 60 * 60 * 24 * 30;
 export const anonymousPlaygroundCookieMaxAgeDays = 30;
 export const anonymousPlaygroundClaimConfirmationText = "Attach this playground to my Bumpgrade account";
+export const anonymousPlaygroundCleanupConfirmationText = "Expire anonymous playgrounds";
+export const anonymousPlaygroundCleanupBatchLimit = 100;
 
 export const anonymousPlaygroundGoLiveGates = [
   "Public publishing",
@@ -769,6 +792,125 @@ export async function claimAnonymousPlaygroundWorkspace(db: D1Database, token: s
   };
 }
 
+export async function cleanupExpiredAnonymousPlaygroundWorkspaces(
+  db: D1Database,
+  input: {
+    confirmationText: string;
+    idempotencyKey: string;
+    actor: { role: string; email: string | null; userId: string | null };
+    batchLimit?: number;
+  },
+): Promise<AnonymousPlaygroundCleanupResult> {
+  if (input.confirmationText.trim() !== anonymousPlaygroundCleanupConfirmationText) {
+    throw new AnonymousPlaygroundError("Confirm anonymous playground cleanup before continuing.", 400, "CONFIRMATION_REQUIRED");
+  }
+
+  const idempotencyKey = input.idempotencyKey.trim();
+  if (!idempotencyKey) {
+    throw new AnonymousPlaygroundError("An idempotency key is required.", 400, "IDEMPOTENCY_REQUIRED");
+  }
+
+  const batchLimit = Math.max(
+    1,
+    Math.min(Math.floor(input.batchLimit ?? anonymousPlaygroundCleanupBatchLimit), anonymousPlaygroundCleanupBatchLimit),
+  );
+  const rows = await db
+    .prepare(
+      `SELECT id, status, claimed_by_user_id, claimed_tenant_id, expires_at
+       FROM anonymous_playground_workspaces
+       WHERE status IN ('active', 'claimed')
+         AND expires_at <= unixepoch()
+       ORDER BY expires_at ASC, updated_at ASC
+       LIMIT ?`,
+    )
+    .bind(batchLimit)
+    .all<AnonymousPlaygroundCleanupCandidateRow>();
+
+  let expiredCount = 0;
+  let activeExpiredCount = 0;
+  let claimedRecoveryExpiredCount = 0;
+
+  for (const row of rows.results ?? []) {
+    const replacementTokenHash = await sha256Hex(`bumpgrade-anonymous-playground-expired:${row.id}:${idempotencyKey}`);
+    const update = await db
+      .prepare(
+        `UPDATE anonymous_playground_workspaces
+         SET status = 'expired',
+             recovery_token_sha256 = ?,
+             offer_name = NULL,
+             audience = NULL,
+             launch_goal = NULL,
+             product_format = NULL,
+             price_point = NULL,
+             lead_magnet = NULL,
+             checkout_plan = NULL,
+             delivery_plan = NULL,
+             follow_up_plan = NULL,
+             source_url = NULL,
+             selected_importer_slug = NULL,
+             metadata_json = ?,
+             updated_at = unixepoch(),
+             last_seen_at = unixepoch()
+         WHERE id = ?
+           AND status IN ('active', 'claimed')
+           AND expires_at <= unixepoch()`,
+      )
+      .bind(
+        replacementTokenHash,
+        JSON.stringify({
+          sourceIssueNumber: anonymousPlaygroundIssue,
+          cleanupStatus: "expired",
+          cleanupReason: "retention_window_elapsed",
+          cleanupActorRole: input.actor.role,
+          rawDraftContentCleared: true,
+          recoveryTokenHashReplaced: true,
+          privateClaimRecordsPreserved: true,
+          publicPublishingEnabled: false,
+          liveCheckoutEnabled: false,
+          emailSendsEnabled: false,
+          fulfillmentEnabled: false,
+        }),
+        row.id,
+      )
+      .run();
+    if (!update.meta.changes) continue;
+
+    await writeAuditEvent(db, {
+      workspaceId: row.id,
+      eventKind: "anonymous_playground_expired",
+      idempotencyKey: `${idempotencyKey}-${row.id}`,
+      metadata: {
+        sourceIssueNumber: anonymousPlaygroundIssue,
+        cleanupActorRole: input.actor.role,
+        cleanupActorUserId: input.actor.userId,
+        previousStatus: row.status,
+        previousExpiresAt: isoFromSeconds(row.expires_at),
+        claimedBeforeCleanup: Boolean(row.claimed_by_user_id || row.claimed_tenant_id),
+        rawDraftContentCleared: true,
+        recoveryTokenHashReplaced: true,
+        privateClaimRecordsPreserved: true,
+        paidGoLiveRequired: true,
+      },
+    });
+
+    expiredCount += 1;
+    if (row.status === "claimed") claimedRecoveryExpiredCount += 1;
+    else activeExpiredCount += 1;
+  }
+
+  return {
+    expiredCount,
+    activeExpiredCount,
+    claimedRecoveryExpiredCount,
+    batchLimit,
+    retentionDays: anonymousPlaygroundCookieMaxAgeDays,
+    rawDraftContentCleared: true,
+    recoveryTokenHashReplaced: true,
+    privateClaimRecordsPreserved: true,
+    paidGoLiveRequired: true,
+  };
+}
+
 export function publicAnonymousPlaygroundClaimedDraft(draft: DraftFunnelRecord | null) {
   if (!draft) return null;
   return {
@@ -851,6 +993,8 @@ export function anonymousPlaygroundRedaction(overrides?: {
     workspaceIncluded: overrides?.workspaceIncluded ?? false,
     privateLaunchRecordContentIncluded: overrides?.privateLaunchRecordContentIncluded ?? false,
     rawDraftContentIncluded: false,
+    expiredWorkspaceContentIncluded: false,
+    cleanupActorIncluded: false,
   };
 }
 
@@ -864,6 +1008,7 @@ export const anonymousPlaygroundSourceData = {
     sourceData: anonymousPlaygroundSourceDataRoute,
     saveApi: anonymousPlaygroundApiRoute,
     claimApi: anonymousPlaygroundClaimApiRoute,
+    cleanupApi: anonymousPlaygroundCleanupApiRoute,
     pricingSourceData: "/pricing/source-data",
     accountSourceData: "/account/source-data",
     importerSourceData: importerSourceDataRoute,
@@ -897,7 +1042,24 @@ export const anonymousPlaygroundSourceData = {
     claimCreatesPrivateDraftFunnelLive: true,
     claimMapsStructuredFieldsToPrivateDraftBlocksLive: true,
     claimCreatesPrivateLaunchRecordsLive: true,
+    cleanupControlsLive: true,
+    expiredWorkspaceCleanupLive: true,
+    ownerGatedCleanupApiLive: true,
     paidGoLiveRequired: true,
+  },
+  retentionPolicy: {
+    activeRecoveryMaxAgeDays: anonymousPlaygroundCookieMaxAgeDays,
+    extendsOnEverySave: true,
+    cleanupApiRoute: anonymousPlaygroundCleanupApiRoute,
+    cleanupConfirmationText: anonymousPlaygroundCleanupConfirmationText,
+    cleanupBatchLimit: anonymousPlaygroundCleanupBatchLimit,
+    expiredStatus: "expired",
+    expiresWhen: "expires_at is older than the current server time",
+    cleanupClearsAnonymousDraftFields: true,
+    cleanupReplacesRecoveryTokenHash: true,
+    cleanupPreservesAuditEvents: true,
+    cleanupPreservesClaimedPrivateRecords: true,
+    unclaimedExpiredDraftsRecoverable: false,
   },
   generatedPrivateRecordTypes: [
     "publisher_tenant",
@@ -925,8 +1087,24 @@ export const anonymousPlaygroundSourceData = {
     customDomainsEnabled: false,
     fulfillmentEnabled: false,
   },
+  cleanupResult: {
+    route: anonymousPlaygroundCleanupApiRoute,
+    auth: "owner session",
+    requiresExactConfirmation: true,
+    marksExpiredRows: true,
+    clearsAnonymousDraftFields: true,
+    replacesRecoveryTokenHash: true,
+    preservesAuditEvents: true,
+    preservesClaimedPrivateRecords: true,
+    exposesPrivateDraftContent: false,
+    publicPublishingEnabled: false,
+    liveCheckoutEnabled: false,
+    subscriberSendsEnabled: false,
+    customDomainsEnabled: false,
+    fulfillmentEnabled: false,
+  },
   goLiveGates: anonymousPlaygroundGoLiveGates,
   redaction: anonymousPlaygroundRedaction(),
   agentBoundary:
-    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, or private claim-record content in public source-data.",
+    "Agents may read this contract and help a visitor prepare structured draft launch context. Anonymous playground saves are browser-scoped; claiming the playground requires an email-verified publisher session and creates a private Free Build workspace, private funnel draft records, and private offer/product/audience/importer-review claim records. Owner cleanup can expire old anonymous recovery, clear anonymous draft fields, and preserve private claimed records. The playground cannot publish, charge buyers, send subscribers, reserve domains, fulfill access, or expose the recovery cookie, token hash, expired draft content, cleanup actor, or private claim-record content in public source-data.",
 };
