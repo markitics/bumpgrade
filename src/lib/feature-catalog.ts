@@ -141,7 +141,7 @@ export const featureCatalog: FeatureRecord[] = [
       "Clear go-live boundary: imported material stays private until publishing, checkout, sends, domains, and fulfillment are approved.",
     ],
     evidence: [
-      "Tracked by issue #467.",
+      "Shipped under issue #467.",
       "`/imports`, dedicated importer pages, platform-specific source guides, `/imports/source-data`, public preview API routes with redacted exportFileAnalysis and platformExportMatches, private platform create routes with importReview metadata persistence, structured importRecords with safe extractedFields, subscriberImportDepth, subscriberImportPreflight actions, subscriberImportCreation actions, subscriberAudiencePromotion actions, owner-only private subscriber record inspection, owner-only private subscriber CSV export, checkoutMigrationReadiness actions, private record review, review-action, extracted-field edit, and private platform rollback routes listed in source-data define the importer contract slice.",
     ],
     agentContract:

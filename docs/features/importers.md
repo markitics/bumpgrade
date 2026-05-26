@@ -1,7 +1,7 @@
 # Competitor Importers
 
-Issue #467 tracks Bumpgrade importers for ClickFunnels and adjacent competitor
-platforms.
+Issue #467 is the shipped parent for Bumpgrade importers from ClickFunnels and
+adjacent competitor platforms.
 
 The shipped contract is review-first, with live private create paths for the
 dedicated importer pages:
@@ -112,6 +112,12 @@ dedicated importer pages:
 Imported material starts in a private Bumpgrade workspace. Public publishing,
 live checkout, subscriber sends, domains, and fulfillment remain behind go-live
 approval or later confirmed-write APIs.
+
+The shipped importer scope stops at private migration planning, private review
+records, checkout rebuild readiness, subscriber review-list promotion, and
+owner-only subscriber export. Live sequence sends, checkout/payment credential
+migration, account transfer, domains, and fulfillment stay in their dedicated
+confirmed-write workstreams.
 
 Current public source-data and API responses intentionally exclude raw exports,
 raw file text, raw rows, customer rows, private emails, payment credentials, API
