@@ -23,7 +23,13 @@ export type AnalyticsEventKind =
   | "sequence_started";
 
 export type MetricFormat = "count" | "rate" | "currency";
-export type ExperimentStatus = "draft" | "assignment_ready" | "seeded_routing_ready" | "seeded_holdout_ready";
+export type ExperimentStatus =
+  | "draft"
+  | "assignment_ready"
+  | "seeded_routing_ready"
+  | "seeded_holdout_ready"
+  | "custom_routing_ready";
+export type ExperimentRoutingSignal = "utmSource" | "utmCampaign" | "referrerHost";
 
 export type AnalyticsEventDefinition = {
   id: string;
@@ -66,6 +72,18 @@ export type ExperimentVariant = {
   routedBody: string;
 };
 
+export type ExperimentCustomRoutingRule = {
+  id: string;
+  label: string;
+  status: "active";
+  priority: number;
+  signal: ExperimentRoutingSignal;
+  expectedValue: string;
+  variantId: string;
+  description: string;
+  privacyBoundary: string;
+};
+
 export type ExperimentDefinition = {
   id: string;
   title: string;
@@ -76,6 +94,7 @@ export type ExperimentDefinition = {
   primaryMetricId: string;
   guardrailMetricIds: string[];
   variants: ExperimentVariant[];
+  customRoutingRules: ExperimentCustomRoutingRule[];
   writeBoundary: string;
 };
 
@@ -102,7 +121,7 @@ export type AnalyticsDashboard = {
   validation: string[];
 };
 
-export const analyticsExperimentsUpdatedAt = "2026-05-24";
+export const analyticsExperimentsUpdatedAt = "2026-05-26";
 
 export const analyticsDashboard: AnalyticsDashboard = {
   id: "analytics-dashboard-indie-launch",
@@ -117,7 +136,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
   linkedOfferRoute: "/offers/indie-launch-stack",
   linkedAudienceRoute: "/audience/indie-launch-waitlist",
   linkedProductRoute: "/products/indie-launch-library",
-  revisionId: "analytics-experiment-revision-indie-launch-2026-05-24-seeded-holdout-routing",
+  revisionId: "analytics-experiment-revision-indie-launch-2026-05-26-custom-routing-rules",
   summary:
     "A privacy-aware analytics dashboard for source attribution, funnel conversion, checkout revenue, audience opt-ins, time-window reports, experiment assignments, alerts, and launch decisions.",
   events: [
@@ -269,11 +288,11 @@ export const analyticsDashboard: AnalyticsDashboard = {
     {
       id: "experiment-opt-in-hero-promise",
       title: "Opt-in hero promise test",
-      status: "seeded_holdout_ready",
+      status: "custom_routing_ready",
       linkedRoute: "/funnels/indie-launch-sandbox#warm-list-opt-in",
       assignmentKey: "anonymousStableVisitorKey",
       assignmentRule:
-        "Hash experiment id plus a caller-provided anonymous assignment key, then map 0-44 to outcome-first, 45-89 to speed-first, and 90-99 to the baseline holdout.",
+        "Apply public-safe source or campaign routing rules first when the browser URL carries a recognized launch signal; otherwise hash experiment id plus a caller-provided anonymous assignment key, then map 0-44 to outcome-first, 45-89 to speed-first, and 90-99 to the baseline holdout.",
       primaryMetricId: "metric-funnel-opt-in-rate",
       guardrailMetricIds: ["metric-checkout-start-rate"],
       variants: [
@@ -310,12 +329,40 @@ export const analyticsDashboard: AnalyticsDashboard = {
           routedBody: "Describe the outcome, who it is for, and what the subscriber receives next.",
         },
       ],
+      customRoutingRules: [
+        {
+          id: "analytics-custom-routing-rule-partner-launch-outcome",
+          label: "Partner launch source",
+          status: "active",
+          priority: 10,
+          signal: "utmSource",
+          expectedValue: "partner-launch",
+          variantId: "variant-opt-in-outcome-first",
+          description:
+            "Visitors arriving from the partner launch source see the proof-oriented promise because that traffic needs confidence that the launch path is real before opting in.",
+          privacyBoundary:
+            "The rule stores only the matched routing-rule ID with assignment evidence. It does not store the raw source URL, contact identity, cookies, private referrer paths, or subscriber data.",
+        },
+        {
+          id: "analytics-custom-routing-rule-fast-lane-speed",
+          label: "Fast lane campaign",
+          status: "active",
+          priority: 20,
+          signal: "utmCampaign",
+          expectedValue: "fast-lane",
+          variantId: "variant-opt-in-speed-first",
+          description:
+            "Visitors arriving from the fast-lane campaign see the speed-oriented promise because that campaign is positioned around getting a launch path ready quickly.",
+          privacyBoundary:
+            "The rule stores only the matched routing-rule ID with assignment evidence. It does not store the raw source URL, contact identity, cookies, private referrer paths, or subscriber data.",
+        },
+      ],
       writeBoundary:
-        "Issue #422 routes the public sandbox funnel opt-in copy through the existing deterministic assignment API with session-scoped anonymous storage, a 10% baseline holdout, and no cookies. Issues #121, #123, and #125 can capture page-view events with the assigned variant ID and normalized source attribution when available. Issue #261 can record owner-confirmed decision evidence with aggregate counts and sample-size caveats, but cookie creation, automated winner execution, custom routing rules, and direct public agent experiment writes require future confirmed-write APIs.",
+        "Issue #422 routes the public sandbox funnel opt-in copy through the existing deterministic assignment API with session-scoped anonymous storage, two public-safe custom routing rules for recognized launch sources, a 10% baseline holdout for unmatched traffic, and no cookies. Issues #121, #123, and #125 can capture page-view events with the assigned variant ID and normalized source attribution when available. Issue #261 can record owner-confirmed decision evidence with aggregate counts and sample-size caveats, but automated winner execution, raw/private routing exports, contact-level analytics, and direct public agent experiment writes require future confirmed-write APIs.",
     },
   ],
   writeBoundary:
-    "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, #311, and #422 can capture seeded analytics events, assign seeded experiment variants, route the public sandbox funnel opt-in copy by seeded session assignment with a baseline holdout, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, record owner-confirmed experiment decision evidence, expose aggregate report export metadata, expose owner-reviewed cohort comparison evidence with sample-size caveats, expose owner-reviewed alert threshold/anomaly-review evidence, expose owner-reviewed notification delivery readiness evidence, record owner-confirmed notification inbox evidence, record owner-confirmed notification dispatch preflight evidence, record owner-reviewed provider/domain readiness evidence, record owner-reviewed content/consent readiness evidence, record owner-reviewed send-payload readiness evidence, record owner-reviewed queue-producer readiness evidence, record owner-reviewed queue-consumer readiness evidence, record owner-reviewed provider-call readiness evidence, record owner-reviewed delivery-attempt readiness evidence, record owner-reviewed delivery-result readiness evidence, record owner-reviewed delivery-status-webhook readiness evidence, record owner-reviewed provider-polling readiness evidence, record owner-reviewed receipt-payload readiness evidence, record owner-reviewed delivery-receipt readiness evidence, and record owner-reviewed provider-status reconciliation readiness evidence. Cookie creation, contact-level analytics, raw campaign/referrer reporting, arbitrary custom events, raw analytics exports, automated alert sends, owner email sends, queue dispatch, Queue producers, Queue consumers, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, body templates, unsubscribe URLs, provider configuration, provider secrets, sender credentials, private DNS credentials, customer alerts, custom experiment routing rules, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
+    "Issues #105, #107, #119, #121, #123, #125, #127, #129, #261, #263, #265, #267, #269, #271, #284, #286, #288, #290, #292, #294, #297, #299, #301, #303, #305, #307, #309, #311, and #422 can capture seeded analytics events, assign seeded experiment variants, route the public sandbox funnel opt-in copy by seeded session assignment with a baseline holdout, apply public-safe custom routing rules for recognized launch source/campaign signals, report aggregate funnel conversion rows, render dashboard-visible aggregate source attribution rows, filter aggregate source and conversion summaries by fixed time windows, record browser-side seeded funnel page-view beacons with deterministic variant evidence, normalized source attribution, session-scoped idempotency, source-route validation, bot/preview suppression, hashed request evidence, aggregate-only public reporting, record owner-confirmed experiment decision evidence, expose aggregate report export metadata, expose owner-reviewed cohort comparison evidence with sample-size caveats, expose owner-reviewed alert threshold/anomaly-review evidence, expose owner-reviewed notification delivery readiness evidence, record owner-confirmed notification inbox evidence, record owner-confirmed notification dispatch preflight evidence, record owner-reviewed provider/domain readiness evidence, record owner-reviewed content/consent readiness evidence, record owner-reviewed send-payload readiness evidence, record owner-reviewed queue-producer readiness evidence, record owner-reviewed queue-consumer readiness evidence, record owner-reviewed provider-call readiness evidence, record owner-reviewed delivery-attempt readiness evidence, record owner-reviewed delivery-result readiness evidence, record owner-reviewed delivery-status-webhook readiness evidence, record owner-reviewed provider-polling readiness evidence, record owner-reviewed receipt-payload readiness evidence, record owner-reviewed delivery-receipt readiness evidence, and record owner-reviewed provider-status reconciliation readiness evidence. Cookie creation, contact-level analytics, raw campaign/referrer reporting, raw routing URL storage, arbitrary custom events, raw analytics exports, automated alert sends, owner email sends, queue dispatch, Queue producers, Queue consumers, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, body templates, unsubscribe URLs, provider configuration, provider secrets, sender credentials, private DNS credentials, customer alerts, automated winners, and revenue claims require actor identity, privacy review, idempotency, stale-state checks, audit correlation, redaction, retention limits, and sample-size caveats.",
   validation: [
     "/analytics/source-data returns seeded events, metrics, aggregate funnel conversion report rows, experiment definitions, and seeded routing metadata.",
     "/analytics/indie-launch-dashboard renders the analytics and seeded experiment routing preview.",
@@ -324,7 +371,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     "/analytics/indie-launch-dashboard renders aggregate source attribution rows when captured source evidence exists.",
     `${analyticsEventCaptureApiRoute} stores seeded analytics event capture evidence with idempotency.`,
     `${analyticsFunnelPageViewBeaconContract.sourceRoute} emits a session-idempotent seeded page-view beacon through ${analyticsFunnelPageViewBeaconContract.apiRoute} with deterministic variant evidence from ${analyticsFunnelPageViewBeaconContract.assignmentApiRoute} and normalized source attribution when URL/referrer evidence is present.`,
-    `${analyticsFunnelPageViewBeaconContract.sourceRoute} routes the opt-in hero copy through the same deterministic assignment API and session-scoped anonymous key with a baseline holdout and without cookies.`,
+    `${analyticsFunnelPageViewBeaconContract.sourceRoute} routes the opt-in hero copy through the same deterministic assignment API and session-scoped anonymous key with public-safe source/campaign routing rules, a baseline holdout for unmatched traffic, and no cookies.`,
     `${analyticsExperimentAssignmentApiRoute} stores seeded experiment assignment evidence with idempotency.`,
     "/api/admin/analytics/experiment-decisions stores owner-confirmed experiment decision evidence with aggregate counts, sample-size caveats, idempotency, and redaction.",
     "/api/admin/analytics/notification-inbox-records stores owner-confirmed analytics notification inbox records with readiness checks, fixed-window evidence, idempotency, and redaction.",
@@ -342,7 +389,7 @@ export const analyticsDashboard: AnalyticsDashboard = {
     "/api/admin/analytics/notification-receipt-payload-readiness stores owner-reviewed analytics notification receipt-payload readiness records with provider-polling readiness checks, fixed-window evidence, idempotency, and redaction.",
     "/api/admin/analytics/notification-delivery-receipt-readiness stores owner-reviewed analytics notification delivery-receipt readiness records with receipt-payload readiness checks, fixed-window evidence, idempotency, and redaction.",
     "/api/admin/analytics/notification-provider-status-reconciliation-readiness stores owner-reviewed analytics notification provider-status reconciliation readiness records with delivery-receipt readiness checks, fixed-window evidence, idempotency, and redaction.",
-    "/analytics/source-data exposes aggregate report export metadata, seeded routing metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox record evidence, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent readiness evidence, owner-reviewed send-payload readiness evidence, owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer readiness evidence, owner-reviewed provider-call readiness evidence, owner-reviewed delivery-attempt readiness evidence, owner-reviewed delivery-result readiness evidence, owner-reviewed delivery-status-webhook readiness evidence, owner-reviewed provider-polling readiness evidence, owner-reviewed receipt-payload readiness evidence, owner-reviewed delivery-receipt readiness evidence, and owner-reviewed provider-status reconciliation readiness evidence without raw event rows, raw assignment rows, visitor keys, contact analytics, recipient identity, recipient payloads, personalized bodies, raw payload bodies, email bodies, body templates, unsubscribe URLs, provider message IDs, provider secrets, private DNS credentials, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, queue payloads, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, delivery receipts, status webhooks, provider polling, receipt payloads, or provider status reconciliation.",
+    "/analytics/source-data exposes aggregate report export metadata, seeded routing metadata, custom routing rule metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox record evidence, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, owner-reviewed content/consent readiness evidence, owner-reviewed send-payload readiness evidence, owner-reviewed queue-producer readiness evidence, owner-reviewed queue-consumer readiness evidence, owner-reviewed provider-call readiness evidence, owner-reviewed delivery-attempt readiness evidence, owner-reviewed delivery-result readiness evidence, owner-reviewed delivery-status-webhook readiness evidence, owner-reviewed provider-polling readiness evidence, owner-reviewed receipt-payload readiness evidence, owner-reviewed delivery-receipt readiness evidence, and owner-reviewed provider-status reconciliation readiness evidence without raw event rows, raw assignment rows, visitor keys, contact analytics, raw routing URLs, recipient identity, recipient payloads, personalized bodies, raw payload bodies, email bodies, body templates, unsubscribe URLs, provider message IDs, provider secrets, private DNS credentials, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, queue payloads, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, delivery receipts, status webhooks, provider polling, receipt payloads, or provider status reconciliation.",
     `${analyticsConversionReportContract.sourceDataRoute} reports captured test-event conversion rows without exposing raw events.`,
     "/agent-docs/source-data lists the analytics read contract for future MCP resources.",
   ],
@@ -357,7 +404,7 @@ export function getAnalyticsDashboardBySlug(slug: string) {
 export const analyticsExperimentsSourceData = {
   id: "bumpgrade-analytics-experiments-source-data",
   updatedAt: analyticsExperimentsUpdatedAt,
-  status: "seeded-holdout-routing-ready",
+  status: "custom-routing-rules-ready",
   issue: 129,
   executionIssue: 422,
   parentIssue: 18,
@@ -394,6 +441,8 @@ export const analyticsExperimentsSourceData = {
     "analyticsTimeWindow",
     "analyticsExperimentTrafficRoutingId",
     "analyticsExperimentHoldoutRoutingId",
+    "analyticsExperimentCustomRoutingRuleId",
+    "analyticsExperimentRoutingSignal",
     "experimentAssignmentId",
     "analyticsExperimentDecisionId",
     "analyticsExperimentDecisionKind",
@@ -488,9 +537,10 @@ export const analyticsExperimentsSourceData = {
     holdoutTrafficWeight: 10,
     treatmentTrafficWeight: 90,
     automatedWinnerEnabled: false,
-    customRoutingRulesEnabled: false,
+    customRoutingRulesEnabled: true,
+    customRoutingRuleIds: analyticsDashboard.experiments[0]?.customRoutingRules.map((rule) => rule.id) ?? [],
     writeBoundary:
-      "Issue #422 routes the public sandbox opt-in hero copy by seeded session assignment through /api/analytics/assignments and keeps 10% of assignments on the baseline holdout. The route does not create cookies, expose raw visitor keys, expose raw assignment rows, use contact analytics, choose automated winners, or allow direct public agent writes.",
+      "Issue #422 routes the public sandbox opt-in hero copy by public-safe source/campaign rules first, then seeded session assignment through /api/analytics/assignments with 10% of unmatched assignments on the baseline holdout. The route does not create cookies, expose raw visitor keys, expose raw assignment rows, store raw routing URLs, use contact analytics, choose automated winners, or allow direct public agent writes.",
   },
   holdoutRouting: {
     id: "analytics-seeded-funnel-holdout-routing",
@@ -514,6 +564,39 @@ export const analyticsExperimentsSourceData = {
     directAgentWriteAllowed: false,
     writeBoundary:
       "The holdout uses the same seeded assignment response as the routed variants and renders the original server block copy for baseline evidence. It is not custom targeting, cookie assignment, contact analytics, automated winner selection, or direct public agent write access.",
+  },
+  customRoutingRules: {
+    id: "analytics-seeded-funnel-custom-routing-rules",
+    status: "custom-routing-rules-ready",
+    issue: 422,
+    parentIssue: 18,
+    route: analyticsFunnelPageViewBeaconContract.sourceRoute,
+    experimentId: "experiment-opt-in-hero-promise",
+    linkedBlockId: "block-opt-in-hero",
+    assignmentApiRoute: analyticsExperimentAssignmentApiRoute,
+    assignmentStorage: "sessionStorage",
+    matchingSignals: ["utmSource", "utmCampaign", "referrerHost"],
+    rules:
+      analyticsDashboard.experiments[0]?.customRoutingRules.map((rule) => ({
+        analyticsExperimentCustomRoutingRuleId: rule.id,
+        label: rule.label,
+        status: rule.status,
+        priority: rule.priority,
+        signal: rule.signal,
+        expectedValue: rule.expectedValue,
+        variantId: rule.variantId,
+        description: rule.description,
+        privacyBoundary: rule.privacyBoundary,
+      })) ?? [],
+    rawRoutingValuesStored: false,
+    rawUrlsStored: false,
+    cookieAssignmentEnabled: false,
+    rawVisitorKeysIncluded: false,
+    contactAnalyticsIncluded: false,
+    automatedWinnerEnabled: false,
+    directAgentWriteAllowed: false,
+    writeBoundary:
+      "The custom routing rules match public-safe URL attribution signals in the browser, send normalized public-safe signal values to the assignment API, and store only the matched rule ID in assignment metadata. They do not store raw URLs, contact identity, raw visitor keys, cookies, private referrer paths, automated winner state, or direct public agent writes.",
   },
   experimentDecisionWrites: {
     id: "analytics-experiment-decision-contract",

@@ -34,7 +34,7 @@ export const analyticsEventCaptureWriteContract = {
     "raw referrer URL",
   ],
   writeBoundary:
-    "Issues #105, #121, #123, and #125 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, deterministic variant evidence, normalized campaign/source public properties, and public-safe responses. Issue #422 can route seeded sandbox funnel copy through the same deterministic assignment with a baseline holdout. Cookie assignment, contact-level reporting, arbitrary custom events, raw campaign/referrer exposure, custom A/B routing rules, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
+    "Issues #105, #121, #123, and #125 can capture seeded analytics events with idempotency, source-route validation, hashed request evidence, bot/preview suppression, browser-side funnel page-view beacons, deterministic variant evidence, normalized campaign/source public properties, and public-safe responses. Issue #422 can route seeded sandbox funnel copy through public-safe source/campaign rules first, then the same deterministic assignment with a baseline holdout. Cookie assignment, contact-level reporting, arbitrary custom events, raw campaign/referrer exposure, raw routing URL storage, automated decisions, and direct agent analytics writes require future confirmed-write APIs.",
 };
 
 export const analyticsFunnelPageViewBeaconContract = {
@@ -76,7 +76,7 @@ export const analyticsFunnelPageViewBeaconContract = {
     "contact identifiers",
   ],
   writeBoundary:
-    "Issues #121, #123, and #125 record a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API, attach deterministic seeded variant or holdout evidence when assignment succeeds, and include normalized UTM/source public properties when present. It does not create cookies, use custom A/B routing rules, expose raw visitors, store full referrer URLs or raw query strings, assign contact identity, or make automated optimization decisions.",
+    "Issues #121, #123, and #125 record a seeded funnel page-view event from the public funnel preview once per browser session and step using the existing seeded analytics event API, attach deterministic seeded variant, public-safe custom routing rule, or holdout evidence when assignment succeeds, and include normalized UTM/source public properties when present. It does not create cookies, expose raw visitors, store full referrer URLs or raw query strings, assign contact identity, or make automated optimization decisions.",
 };
 
 export type AnalyticsEventCaptureDefinition = {

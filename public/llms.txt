@@ -498,21 +498,23 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed receipt-payload readiness evidence,
   owner-reviewed delivery-receipt readiness evidence,
   owner-reviewed provider-status reconciliation readiness evidence, and
-  aggregate/source-data evidence, and seeded sandbox funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email sends,
+  aggregate/source-data evidence, public-safe source/campaign routing rules, and seeded sandbox funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email sends,
   provider sends, provider calls, delivery attempts, delivery results, provider responses, provider message IDs, delivery receipts, status webhooks, provider polling, provider status reconciliation, provider configuration,
   provider secrets, sender credentials, private DNS credentials, body templates,
   unsubscribe URLs, Queue producer execution, Queue consumer execution, queue dispatch, queue messages,
   queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads,
-  queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, customer alerts, traffic routing beyond the seeded sandbox copy path,
+  queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, customer alerts, raw routing URL storage, traffic routing beyond the seeded sandbox copy path,
   contact-level analytics, raw referrer/query exposure, raw
   event or assignment exposure, raw analytics exports, automated winners,
   direct public agent analytics writes, revenue claims, or statistically
   meaningful proof.
-- Issue #18 is the live analytics MVP boundary. Issue #422 has started seeded
-  sandbox funnel routing with a baseline holdout and still tracks custom analytics schemas, custom routing rules,
-  winner selection, notification execution, Queue producer/consumer execution,
-  provider calls, delivery attempts/results, webhooks, polling, receipts,
-  raw/private exports, and agent-safe write parity work as the remaining bucket.
+- Issue #18 is the live analytics MVP boundary. Issue #422 has started
+  public-safe source/campaign routing rules, seeded sandbox funnel routing, and a
+  baseline holdout and still tracks custom analytics schemas beyond the current
+  seeded boundary, winner selection, notification execution, Queue
+  producer/consumer execution, provider calls, delivery attempts/results,
+  webhooks, polling, receipts, raw/private exports, and agent-safe write parity
+  work as the remaining bucket.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, public-safe
   partner portal status pages, public-safe partner statement snapshots, aggregate click

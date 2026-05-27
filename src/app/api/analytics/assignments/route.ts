@@ -10,6 +10,7 @@ type AnalyticsAssignmentBody = {
   anonymousAssignmentKey?: unknown;
   anonymousId?: unknown;
   idempotencyKey?: unknown;
+  routingContext?: unknown;
 };
 
 type AnalyticsRuntime = {
@@ -37,6 +38,16 @@ function requestClientIp(request: NextRequest) {
   return request.headers.get("cf-connecting-ip") ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 }
 
+function publicRoutingContext(value: unknown) {
+  if (!value || typeof value !== "object") return undefined;
+  const candidate = value as Record<string, unknown>;
+  return {
+    utmSource: typeof candidate.utmSource === "string" ? candidate.utmSource : null,
+    utmCampaign: typeof candidate.utmCampaign === "string" ? candidate.utmCampaign : null,
+    referrerHost: typeof candidate.referrerHost === "string" ? candidate.referrerHost : null,
+  };
+}
+
 export async function POST(request: NextRequest) {
   const { db } = await getRuntime();
   const body = await parseBody(request);
@@ -50,6 +61,7 @@ export async function POST(request: NextRequest) {
           ? body.anonymousId
           : "",
     idempotencyKey: typeof body.idempotencyKey === "string" ? body.idempotencyKey : "",
+    routingContext: publicRoutingContext(body.routingContext),
     requestIp: requestClientIp(request),
     userAgent: request.headers.get("user-agent"),
   });

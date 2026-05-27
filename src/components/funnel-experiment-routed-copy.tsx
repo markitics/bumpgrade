@@ -4,9 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   analyticsAnonymousStorageKey,
+  analyticsRoutingContextFromLocation,
   analyticsSessionValue,
-  assignSeededExperimentVariant,
+  assignSeededExperimentVariantResult,
   shouldSkipAnalyticsBrowserWork,
+  type AnalyticsBrowserAssignmentResult,
 } from "@/lib/analytics-browser-session";
 
 export type FunnelExperimentRoutedVariant = {
@@ -32,10 +34,10 @@ export function FunnelExperimentRoutedCopy({
   fallbackBody,
   variants,
 }: FunnelExperimentRoutedCopyProps) {
-  const [assignedVariantId, setAssignedVariantId] = useState<string | null>(null);
+  const [assignment, setAssignment] = useState<AnalyticsBrowserAssignmentResult | null>(null);
   const assignedVariant = useMemo(
-    () => variants.find((variant) => variant.id === assignedVariantId) ?? null,
-    [assignedVariantId, variants],
+    () => variants.find((variant) => variant.id === assignment?.variantId) ?? null,
+    [assignment?.variantId, variants],
   );
   const isHoldout = assignedVariant?.routingRole === "holdout";
 
@@ -43,11 +45,12 @@ export function FunnelExperimentRoutedCopy({
     if (shouldSkipAnalyticsBrowserWork()) return undefined;
     const anonymousId = analyticsSessionValue(analyticsAnonymousStorageKey, "anonymous-session");
     if (!anonymousId) return undefined;
+    const routingContext = analyticsRoutingContextFromLocation();
 
     let cancelled = false;
-    void assignSeededExperimentVariant(experimentId, sourceRoute, anonymousId).then((variantId) => {
-      if (!cancelled && variantId) {
-        setAssignedVariantId(variantId);
+    void assignSeededExperimentVariantResult(experimentId, sourceRoute, anonymousId, routingContext).then((result) => {
+      if (!cancelled && result) {
+        setAssignment(result);
       }
     });
 
@@ -62,6 +65,8 @@ export function FunnelExperimentRoutedCopy({
       data-experiment-variant={assignedVariant?.id ?? "fallback"}
       data-experiment-holdout={isHoldout ? "true" : "false"}
       data-experiment-routing="seeded-session"
+      data-experiment-custom-routing={assignment?.customRoutingRuleMatched ? "true" : "false"}
+      data-experiment-custom-routing-rule={assignment?.customRoutingRuleId ?? "none"}
     >
       <h3>{isHoldout ? fallbackTitle : assignedVariant?.routedTitle ?? fallbackTitle}</h3>
       <p>{isHoldout ? fallbackBody : assignedVariant?.routedBody ?? fallbackBody}</p>

@@ -9621,13 +9621,13 @@ test.describe("Bumpgrade scaffold", () => {
     const response = await request.get("/analytics/source-data");
     expect(response.ok()).toBeTruthy();
     const payload = await response.json();
-    expect(payload).toEqual(
-      expect.objectContaining({
-        id: analyticsExperimentsSourceData.id,
-        status: "seeded-holdout-routing-ready",
-        issue: 129,
-        executionIssue: 422,
-        parentIssue: 18,
+      expect(payload).toEqual(
+        expect.objectContaining({
+          id: analyticsExperimentsSourceData.id,
+          status: "custom-routing-rules-ready",
+          issue: 129,
+          executionIssue: 422,
+          parentIssue: 18,
       }),
     );
     expect(payload.routes).toEqual(
@@ -9656,6 +9656,8 @@ test.describe("Bumpgrade scaffold", () => {
         "analyticsTimeWindow",
         "analyticsExperimentTrafficRoutingId",
         "analyticsExperimentHoldoutRoutingId",
+        "analyticsExperimentCustomRoutingRuleId",
+        "analyticsExperimentRoutingSignal",
         "experimentAssignmentId",
         "analyticsExperimentDecisionId",
         "analyticsExperimentDecisionKind",
@@ -9713,14 +9715,15 @@ test.describe("Bumpgrade scaffold", () => {
         assignmentApiRoute: "/api/analytics/assignments",
       }),
     );
-    expect(payload.assignmentWrites).toEqual(
-      expect.objectContaining({
-        status: "assignment-ready",
-        issue: 107,
-        apiRoute: "/api/analytics/assignments",
-        tables: expect.arrayContaining(["analytics_experiment_assignments"]),
-      }),
-    );
+      expect(payload.assignmentWrites).toEqual(
+        expect.objectContaining({
+          status: "custom-routing-assignment-ready",
+          issue: 107,
+          apiRoute: "/api/analytics/assignments",
+          tables: expect.arrayContaining(["analytics_experiment_assignments"]),
+          publicSafeFields: expect.arrayContaining(["customRoutingRuleId", "customRoutingRuleMatched"]),
+        }),
+      );
     expect(payload.trafficRouting).toEqual(
       expect.objectContaining({
         id: "analytics-seeded-funnel-experiment-routing",
@@ -9740,7 +9743,42 @@ test.describe("Bumpgrade scaffold", () => {
         holdoutTrafficWeight: 10,
         treatmentTrafficWeight: 90,
         automatedWinnerEnabled: false,
-        customRoutingRulesEnabled: false,
+        customRoutingRulesEnabled: true,
+        customRoutingRuleIds: expect.arrayContaining([
+          "analytics-custom-routing-rule-partner-launch-outcome",
+          "analytics-custom-routing-rule-fast-lane-speed",
+        ]),
+      }),
+    );
+    expect(payload.customRoutingRules).toEqual(
+      expect.objectContaining({
+        id: "analytics-seeded-funnel-custom-routing-rules",
+        status: "custom-routing-rules-ready",
+        issue: 422,
+        route: "/funnels/indie-launch-sandbox",
+        assignmentStorage: "sessionStorage",
+        matchingSignals: expect.arrayContaining(["utmSource", "utmCampaign", "referrerHost"]),
+        rawRoutingValuesStored: false,
+        rawUrlsStored: false,
+        cookieAssignmentEnabled: false,
+        rawVisitorKeysIncluded: false,
+        contactAnalyticsIncluded: false,
+        automatedWinnerEnabled: false,
+        directAgentWriteAllowed: false,
+        rules: expect.arrayContaining([
+          expect.objectContaining({
+            analyticsExperimentCustomRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
+            signal: "utmSource",
+            expectedValue: "partner-launch",
+            variantId: "variant-opt-in-outcome-first",
+          }),
+          expect.objectContaining({
+            analyticsExperimentCustomRoutingRuleId: "analytics-custom-routing-rule-fast-lane-speed",
+            signal: "utmCampaign",
+            expectedValue: "fast-lane",
+            variantId: "variant-opt-in-speed-first",
+          }),
+        ]),
       }),
     );
     expect(payload.holdoutRouting).toEqual(
@@ -10449,7 +10487,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("group", { name: "Conversion window" })).toBeVisible();
     await expect(page.getByRole("group", { name: "Source window" })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: /Seeded experiment routing keeps a baseline holdout without cookies/i }),
+      page.getByRole("heading", { name: /Custom source rules and seeded routing keep a baseline holdout without cookies/i }),
     ).toBeVisible();
     await expect(page.getByText("Opt-in hero promise test")).toBeVisible();
     await expect(page.getByText("No automated winners")).toBeVisible();
@@ -10712,6 +10750,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(routedCopy).toHaveAttribute("data-experiment-routing", "seeded-session");
     await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
     await expect(routedCopy).toHaveAttribute("data-experiment-holdout", /true|false/);
+    await expect(routedCopy).toHaveAttribute("data-experiment-custom-routing", "false");
+    await expect(routedCopy).toHaveAttribute("data-experiment-custom-routing-rule", "none");
     await expect(
       page.getByRole("heading", {
         name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon|Lead with the promise/i,
@@ -10726,6 +10766,8 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /Indie launch funnel/i })).toBeVisible();
     await expect(routedCopy).toHaveAttribute("data-experiment-variant", /variant-opt-in-/);
     await expect(routedCopy).toHaveAttribute("data-experiment-holdout", /true|false/);
+    await expect(routedCopy).toHaveAttribute("data-experiment-custom-routing", "false");
+    await expect(routedCopy).toHaveAttribute("data-experiment-custom-routing-rule", "none");
     await expect(
       page.getByRole("heading", {
         name: /Launch with proof, not crossed fingers|Build your launch path in one focused afternoon|Lead with the promise/i,
@@ -10841,6 +10883,9 @@ test.describe("Bumpgrade scaffold", () => {
         sourceRoute: "/funnels/indie-launch-sandbox",
         privateDataIncluded: false,
         rawRequestDataIncluded: false,
+        customRoutingRuleId: null,
+        customRoutingRuleMatched: false,
+        rawRoutingValuesIncluded: false,
       }),
     );
     expect(["variant-opt-in-outcome-first", "variant-opt-in-speed-first", "variant-opt-in-baseline-holdout"]).toContain(
@@ -10860,6 +10905,9 @@ test.describe("Bumpgrade scaffold", () => {
         experimentAssignmentId: firstResult.experimentAssignmentId,
         variantId: firstResult.variantId,
         assignmentBucket: firstResult.assignmentBucket,
+        customRoutingRuleId: null,
+        customRoutingRuleMatched: false,
+        rawRoutingValuesIncluded: false,
       }),
     );
 
@@ -10874,6 +10922,69 @@ test.describe("Bumpgrade scaffold", () => {
         duplicate: false,
         variantId: firstResult.variantId,
         assignmentBucket: firstResult.assignmentBucket,
+        customRoutingRuleId: null,
+        customRoutingRuleMatched: false,
+        rawRoutingValuesIncluded: false,
+      }),
+    );
+
+    const partnerRoutingPayload = {
+      ...payload,
+      anonymousAssignmentKey: `playwright-custom-routing-partner-${idempotencyKey}`,
+      idempotencyKey: `${idempotencyKey}-partner-route`,
+      routingContext: { utmSource: " partner-launch ", utmCampaign: "ignored" },
+    };
+    const partnerRoutingResponse = await request.post("/api/analytics/assignments", { data: partnerRoutingPayload });
+    expect(partnerRoutingResponse.ok(), await partnerRoutingResponse.text()).toBeTruthy();
+    const partnerRoutingResult = await partnerRoutingResponse.json();
+    expect(partnerRoutingResult).toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        variantId: "variant-opt-in-outcome-first",
+        customRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
+        customRoutingRuleMatched: true,
+        rawRoutingValuesIncluded: false,
+        privateDataIncluded: false,
+        rawRequestDataIncluded: false,
+      }),
+    );
+    expect(partnerRoutingResult.assignmentBucket).toBeGreaterThanOrEqual(0);
+    expect(partnerRoutingResult.assignmentBucket).toBeLessThan(100);
+    expect(JSON.stringify(partnerRoutingResult)).not.toContain("utmSource");
+    expect(JSON.stringify(partnerRoutingResult)).not.toContain("routingContext");
+
+    const partnerRoutingDuplicate = await request.post("/api/analytics/assignments", { data: partnerRoutingPayload });
+    expect(partnerRoutingDuplicate.ok(), await partnerRoutingDuplicate.text()).toBeTruthy();
+    await expect(partnerRoutingDuplicate.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: true,
+        experimentAssignmentId: partnerRoutingResult.experimentAssignmentId,
+        variantId: "variant-opt-in-outcome-first",
+        customRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
+        customRoutingRuleMatched: true,
+        rawRoutingValuesIncluded: false,
+      }),
+    );
+
+    const fastLaneRoutingResponse = await request.post("/api/analytics/assignments", {
+      data: {
+        ...payload,
+        anonymousAssignmentKey: `playwright-custom-routing-fast-lane-${idempotencyKey}`,
+        idempotencyKey: `${idempotencyKey}-fast-lane-route`,
+        routingContext: { utmCampaign: "FAST-LANE" },
+      },
+    });
+    expect(fastLaneRoutingResponse.ok(), await fastLaneRoutingResponse.text()).toBeTruthy();
+    await expect(fastLaneRoutingResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        duplicate: false,
+        variantId: "variant-opt-in-speed-first",
+        customRoutingRuleId: "analytics-custom-routing-rule-fast-lane-speed",
+        customRoutingRuleMatched: true,
+        rawRoutingValuesIncluded: false,
       }),
     );
 
@@ -10909,7 +11020,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({ ok: false, code: "idempotency_required" }),
     );
 
-    await expect.poll(countFor).toBe(beforeCount + 2);
+    await expect.poll(countFor).toBe(beforeCount + 4);
   });
 
   test("owner analytics experiment decisions require auth, confirmation, idempotency, stale evidence checks, and redaction", async ({
@@ -20933,14 +21044,15 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         status: "live",
         publicEvidence: expect.arrayContaining([
-          expect.stringContaining("Issues #261 through #311"),
-          expect.stringContaining("Issue #422"),
+          expect.stringContaining("Issue #311"),
+          expect.stringContaining("Issue #422 routes"),
         ]),
         nextMilestone: expect.stringContaining("issue #422"),
       }),
     );
     expect(JSON.stringify(analyticsRoadmap)).toContain("provider-call");
     expect(JSON.stringify(analyticsRoadmap)).toContain("provider-status");
+    expect(JSON.stringify(analyticsRoadmap)).toContain("source/campaign");
     expect(JSON.stringify(analyticsRoadmap)).toContain("direct agent-safe write parity");
     const affiliateRoadmap = payload.roadmapItems.find(
       (item: { id: string }) => item.id === "roadmap-affiliates-referrals",
@@ -23200,6 +23312,8 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsEventVariantAggregateId",
             "analyticsExperimentTrafficRoutingId",
             "analyticsExperimentHoldoutRoutingId",
+            "analyticsExperimentCustomRoutingRuleId",
+            "analyticsExperimentRoutingSignal",
             "experimentAssignmentId",
             "analyticsExperimentDecisionId",
             "analyticsReportExportId",
@@ -23259,7 +23373,7 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
-            "Inspect seeded sandbox funnel copy routing and baseline holdout metadata",
+            "Inspect public-safe custom routing rules, seeded sandbox funnel copy routing, and baseline holdout metadata",
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",
             "Inspect owner-reviewed alert threshold and anomaly-review evidence without automated alerts or traffic routing",
