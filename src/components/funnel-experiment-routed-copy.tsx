@@ -67,6 +67,8 @@ export function FunnelExperimentRoutedCopy({
       data-experiment-routing="seeded-session"
       data-experiment-custom-routing={assignment?.customRoutingRuleMatched ? "true" : "false"}
       data-experiment-custom-routing-rule={assignment?.customRoutingRuleId ?? "none"}
+      data-experiment-winner-rollout={assignment?.winnerRolloutMatched ? "true" : "false"}
+      data-experiment-winner-rollout-id={assignment?.winnerRolloutId ?? "none"}
     >
       <h3>{isHoldout ? fallbackTitle : assignedVariant?.routedTitle ?? fallbackTitle}</h3>
       <p>{isHoldout ? fallbackBody : assignedVariant?.routedBody ?? fallbackBody}</p>

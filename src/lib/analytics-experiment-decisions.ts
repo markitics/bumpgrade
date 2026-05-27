@@ -420,7 +420,7 @@ function parseExpectedVariantCounts(experiment: ExperimentDefinition, value: unk
   return parsed;
 }
 
-async function loadDecisionEvidence(
+export async function loadAnalyticsExperimentDecisionEvidence(
   db: D1Database | undefined,
   experiment: ExperimentDefinition,
   timeWindow: AnalyticsTimeWindow,
@@ -476,8 +476,11 @@ async function loadDecisionEvidence(
   };
 }
 
-async function loadAllDecisionEvidence(db: D1Database | undefined, experiment: ExperimentDefinition) {
-  return Promise.all(analyticsTimeWindows.map((window) => loadDecisionEvidence(db, experiment, window)));
+export async function loadAllAnalyticsExperimentDecisionEvidence(
+  db: D1Database | undefined,
+  experiment: ExperimentDefinition,
+) {
+  return Promise.all(analyticsTimeWindows.map((window) => loadAnalyticsExperimentDecisionEvidence(db, experiment, window)));
 }
 
 async function findDecisionByIdempotency(db: D1Database, idempotencyKey: string) {
@@ -547,7 +550,7 @@ export async function getAnalyticsExperimentDecisionSummary(
     const db = dbInput ?? (await getRuntime()).db;
     return {
       ...emptySummary("d1", null),
-      currentEvidenceByWindow: await loadAllDecisionEvidence(db, experiment),
+      currentEvidenceByWindow: await loadAllAnalyticsExperimentDecisionEvidence(db, experiment),
       counts: await loadDecisionCounts(db),
       latestDecisions: await loadLatestDecisions(db),
     };
@@ -690,7 +693,7 @@ export async function createAnalyticsExperimentDecision(
   }
 
   const { db } = await getRuntime();
-  const currentEvidence = await loadDecisionEvidence(db, experiment, timeWindow);
+  const currentEvidence = await loadAnalyticsExperimentDecisionEvidence(db, experiment, timeWindow);
   const currentVariantCounts = Object.fromEntries(
     currentEvidence.variantCounts.map((variant) => [variant.variantId, variant.totalAssignments]),
   );

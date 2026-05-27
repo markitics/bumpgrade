@@ -2883,6 +2883,67 @@ export const analyticsExperimentDecisions = sqliteTable(
   }),
 );
 
+export const analyticsExperimentWinnerRollouts = sqliteTable(
+  "analytics_experiment_winner_rollouts",
+  {
+    id: text("id").primaryKey(),
+    dashboardId: text("dashboard_id").notNull(),
+    experimentId: text("experiment_id").notNull(),
+    selectedVariantId: text("selected_variant_id").notNull(),
+    sourceRoute: text("source_route").notNull(),
+    rolloutStatus: text("rollout_status").notNull().default("active"),
+    timeWindowKey: text("time_window_key").notNull(),
+    expectedDashboardRevisionId: text("expected_dashboard_revision_id").notNull(),
+    expectedExperimentStatus: text("expected_experiment_status").notNull(),
+    expectedAssignmentCount: integer("expected_assignment_count").notNull().default(0),
+    expectedVariantCountsJson: text("expected_variant_counts_json").notNull(),
+    expectedPrimaryMetricId: text("expected_primary_metric_id").notNull(),
+    expectedConversionSampleSize: integer("expected_conversion_sample_size").notNull().default(0),
+    sampleSizeCaveatAcknowledged: integer("sample_size_caveat_acknowledged", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    idempotencyKey: text("idempotency_key").notNull(),
+    actorUserId: text("actor_user_id"),
+    actorEmailHash: text("actor_email_hash").notNull(),
+    privateNoteSha256: text("private_note_sha256"),
+    confirmationTextSha256: text("confirmation_text_sha256").notNull(),
+    rollbackIdempotencyKey: text("rollback_idempotency_key"),
+    rollbackActorUserId: text("rollback_actor_user_id"),
+    rollbackActorEmailHash: text("rollback_actor_email_hash"),
+    rollbackNoteSha256: text("rollback_note_sha256"),
+    rollbackConfirmationTextSha256: text("rollback_confirmation_text_sha256"),
+    rolledBackAt: integer("rolled_back_at", { mode: "timestamp" }),
+    trafficRoutingEnabled: integer("traffic_routing_enabled", { mode: "boolean" }).notNull().default(false),
+    automatedWinnerEnabled: integer("automated_winner_enabled", { mode: "boolean" }).notNull().default(false),
+    customRoutingPreserved: integer("custom_routing_preserved", { mode: "boolean" }).notNull().default(true),
+    cookieAssignmentEnabled: integer("cookie_assignment_enabled", { mode: "boolean" }).notNull().default(false),
+    revenueClaimEnabled: integer("revenue_claim_enabled", { mode: "boolean" }).notNull().default(false),
+    rawEventRowsExposed: integer("raw_event_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    rawAssignmentRowsExposed: integer("raw_assignment_rows_exposed", { mode: "boolean" }).notNull().default(false),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    idempotencyUnique: uniqueIndex("analytics_experiment_winner_rollouts_idempotency_unique").on(
+      table.idempotencyKey,
+    ),
+    rollbackIdempotencyUnique: uniqueIndex(
+      "analytics_experiment_winner_rollouts_rollback_idempotency_unique",
+    ).on(table.rollbackIdempotencyKey),
+    activeIdx: index("analytics_experiment_winner_rollouts_active_idx").on(
+      table.experimentId,
+      table.sourceRoute,
+      table.rolloutStatus,
+      table.createdAt,
+    ),
+    dashboardTimeIdx: index("analytics_experiment_winner_rollouts_dashboard_time_idx").on(
+      table.dashboardId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const analyticsNotificationInboxRecords = sqliteTable(
   "analytics_notification_inbox_records",
   {

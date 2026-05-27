@@ -9,6 +9,8 @@ type AssignmentResponse = {
   variantId?: unknown;
   customRoutingRuleId?: unknown;
   customRoutingRuleMatched?: unknown;
+  winnerRolloutId?: unknown;
+  winnerRolloutMatched?: unknown;
 };
 
 export type AnalyticsBrowserRoutingContext = {
@@ -21,6 +23,8 @@ export type AnalyticsBrowserAssignmentResult = {
   variantId: string;
   customRoutingRuleId: string | null;
   customRoutingRuleMatched: boolean;
+  winnerRolloutId: string | null;
+  winnerRolloutMatched: boolean;
 };
 
 const assignmentRequests = new Map<string, Promise<AnalyticsBrowserAssignmentResult | null>>();
@@ -135,6 +139,8 @@ export async function assignSeededExperimentVariantResult(
         variantId: result.variantId,
         customRoutingRuleId: typeof result.customRoutingRuleId === "string" ? result.customRoutingRuleId : null,
         customRoutingRuleMatched: result.customRoutingRuleMatched === true,
+        winnerRolloutId: typeof result.winnerRolloutId === "string" ? result.winnerRolloutId : null,
+        winnerRolloutMatched: result.winnerRolloutMatched === true,
       };
     })
     .catch(() => null);
