@@ -138,6 +138,23 @@ Issue #193 adds public-safe affiliate partner reports:
   payout batches, Stripe payouts, fraud decisions, tax collection, partner
   notification, or direct agent affiliate writes.
 
+Issue #424 adds public-safe affiliate partner statement snapshots:
+
+- `/affiliates/source-data` exposes statement snapshots keyed by
+  `affiliatePartnerStatementSnapshotId` and visible on the seeded partner
+  portal.
+- Snapshots summarize statement windows, aggregate report totals, review-only
+  commission totals, eligible/blocked/reversed fixture counts, payout
+  preparation status, fraud status, notification readiness status, and redaction
+  flags.
+- Snapshots never expose partner email, buyer data, raw click rows, raw checkout
+  rows, raw ledger rows, private fraud signals, payout accounts, tax forms,
+  Stripe payout or transfer IDs, recipient emails, message bodies, provider
+  secrets, send payloads, or queue rows.
+- This does not create payable partner statements, payable commission state,
+  Stripe payouts, partner notifications, payout account storage, tax collection,
+  provider calls, queue dispatch, or direct agent affiliate writes.
+
 Issue #195 adds read-only affiliate payout preparation:
 
 - `/affiliates/source-data` exposes payout preparation rows keyed by

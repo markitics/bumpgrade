@@ -17607,7 +17607,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload).toEqual(
       expect.objectContaining({
         id: affiliateReferralsSourceData.id,
-        status: "partner-portal-status-ready",
+        status: "partner-statement-snapshots-ready",
         issue: 424,
         parentIssue: 19,
       }),
@@ -17635,6 +17635,8 @@ test.describe("Bumpgrade scaffold", () => {
         "affiliatePartnerPortalId",
         "affiliatePartnerPortalRoute",
         "affiliatePartnerPortalStatus",
+        "affiliatePartnerStatementSnapshotId",
+        "affiliatePartnerStatementSnapshotStatus",
         "payoutPreparationRecordId",
         "payoutPreparationRecordStatus",
         "fraudReviewRecordId",
@@ -17713,6 +17715,22 @@ test.describe("Bumpgrade scaffold", () => {
           "affiliatePartnerPortalId",
           "affiliatePartnerId",
           "affiliatePartnerReportId",
+        ]),
+      }),
+    );
+    expect(payload.partnerStatementSnapshotContract).toEqual(
+      expect.objectContaining({
+        id: "affiliate-partner-statement-snapshot-contract",
+        status: "partner-statement-snapshots-ready",
+        issue: 424,
+        routePattern: "/affiliates/{programSlug}/partners/{partnerSlug}",
+        auth: "public-preview-redacted",
+        stableIds: expect.arrayContaining([
+          "affiliatePartnerStatementSnapshotId",
+          "affiliatePartnerStatementSnapshotStatus",
+          "affiliatePartnerPortalId",
+          "affiliatePartnerReportId",
+          "payoutPreparationId",
         ]),
       }),
     );
@@ -17846,6 +17864,9 @@ test.describe("Bumpgrade scaffold", () => {
             partnerId: "affiliate-partner-launch-circle",
             partnerSlug: "launch-circle",
             referralLinkIds: expect.arrayContaining(["ref-link-launch-circle-waitlist"]),
+            statementSnapshotIds: expect.arrayContaining([
+              "affiliate-partner-statement-snapshot-launch-circle-may-preview",
+            ]),
             partnerReportIds: expect.arrayContaining(["affiliate-partner-report-launch-circle"]),
             totals: expect.objectContaining({
               totalClicks: expect.any(Number),
@@ -17882,6 +17903,79 @@ test.describe("Bumpgrade scaffold", () => {
             }),
             notLive: expect.arrayContaining([
               "private partner authentication",
+              "Stripe payout or transfer execution",
+              "partner notification sending",
+            ]),
+          }),
+        ]),
+      }),
+    );
+    expect(payload.partnerStatementSnapshotSummary).toEqual(
+      expect.objectContaining({
+        status: "available",
+        rawRowsIncluded: false,
+        privateDataIncluded: false,
+        buyerDataIncluded: false,
+        rawClickRowsIncluded: false,
+        rawCheckoutRowsIncluded: false,
+        rawLedgerRowsIncluded: false,
+        privateFraudSignalsIncluded: false,
+        payoutAccountsIncluded: false,
+        taxRowsIncluded: false,
+        stripeIdsIncluded: false,
+        recipientEmailsIncluded: false,
+        notificationBodiesIncluded: false,
+        sendPayloadsIncluded: false,
+        providerSecretsIncluded: false,
+        snapshots: expect.arrayContaining([
+          expect.objectContaining({
+            affiliatePartnerStatementSnapshotId: "affiliate-partner-statement-snapshot-launch-circle-may-preview",
+            affiliatePartnerStatementSnapshotStatus: "public_safe_statement_snapshot_ready",
+            affiliatePartnerPortalRoute: "/affiliates/indie-launch-partners/partners/launch-circle",
+            affiliatePartnerReportId: "affiliate-partner-report-launch-circle",
+            payoutPreparationId: "payout-preparation-indie-launch-may-preview",
+            payoutBatchId: "payout-batch-indie-launch-may-preview",
+            statementWindow: expect.objectContaining({ label: "May 2026 preview" }),
+            totals: expect.objectContaining({
+              totalClicks: expect.any(Number),
+              attributedCheckouts: expect.any(Number),
+              totalCommissionCents: expect.any(Number),
+              eligibleFixtureLedgers: 1,
+              blockedFixtureLedgers: 0,
+              reversedFixtureLedgers: 1,
+              fixtureCommissionCents: 2700,
+              currency: "USD",
+            }),
+            payoutPreparation: expect.objectContaining({
+              status: "review_required",
+              payableStatementCreated: false,
+              payableCommissionCreated: false,
+              stripePayoutCreated: false,
+              payoutAccountStored: false,
+              taxDataCollected: false,
+            }),
+            riskAndNotificationStatus: expect.objectContaining({
+              partnerNotificationSent: false,
+              notificationProviderCalled: false,
+              notificationProviderSendEnabled: false,
+              notificationProviderConfigured: false,
+            }),
+            redaction: expect.objectContaining({
+              partnerEmailIncluded: false,
+              buyerDataIncluded: false,
+              rawClickRowsIncluded: false,
+              rawCheckoutRowsIncluded: false,
+              rawLedgerRowsIncluded: false,
+              payoutAccountIncluded: false,
+              taxDataIncluded: false,
+              stripeIdsIncluded: false,
+              recipientEmailIncluded: false,
+              notificationBodyIncluded: false,
+              sendPayloadIncluded: false,
+              providerSecretIncluded: false,
+            }),
+            notLive: expect.arrayContaining([
+              "payable partner statements",
               "Stripe payout or transfer execution",
               "partner notification sending",
             ]),
@@ -18289,6 +18383,13 @@ test.describe("Bumpgrade scaffold", () => {
               issue: 193,
             }),
           ]),
+          partnerStatementSnapshots: expect.arrayContaining([
+            expect.objectContaining({
+              id: "affiliate-partner-statement-snapshot-launch-circle-may-preview",
+              status: "public_safe_statement_snapshot_ready",
+              issue: 424,
+            }),
+          ]),
           partners: expect.arrayContaining([
             expect.objectContaining({ id: "affiliate-partner-launch-circle", portalSlug: "launch-circle", status: "approved" }),
             expect.objectContaining({ id: "affiliate-partner-template-studio", status: "review" }),
@@ -18327,9 +18428,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.writeBoundary).toContain("Issue #279 lets verified owners record partner notification send preflight evidence");
     expect(payload.writeBoundary).toContain("Issue #281 lets verified owners record notification provider readiness evidence");
     expect(payload.writeBoundary).toContain("public-safe partner portal status pages");
+    expect(payload.writeBoundary).toContain("partner statement snapshots");
     expect(payload.caveat).toContain("review-only commission ledger evidence");
     expect(payload.caveat).toContain("public-safe partner reports");
     expect(payload.caveat).toContain("public-safe partner portal status pages");
+    expect(payload.caveat).toContain("public-safe partner statement snapshots");
     expect(payload.caveat).toContain("read-only payout preparation");
     expect(payload.caveat).toContain("owner-confirmed payout preparation records");
     expect(payload.caveat).toContain("owner-reviewed fraud review evidence");
@@ -18352,8 +18455,10 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/affiliates/indie-launch-partners/partners/launch-circle");
     await expect(page.getByRole("heading", { name: /Launch Circle partner portal/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Referral activity and commission evidence stay aggregate-only/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Review-only statement totals are visible before payout goes live/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Payout status is visible without account, tax, or Stripe data/i })).toBeVisible();
     await expect(page.getByText("affiliate-partner-portal-launch-circle")).toBeVisible();
+    await expect(page.getByText("affiliate-partner-statement-snapshot-launch-circle-may-preview")).toBeVisible();
     await expect(page.getByText(/No recipient email, message body, send payload/i)).toBeVisible();
     await signInOrCreateOwner(page);
     await page.goto("/admin/affiliates");
@@ -22971,6 +23076,8 @@ test.describe("Bumpgrade scaffold", () => {
             "affiliatePartnerPortalId",
             "affiliatePartnerPortalRoute",
             "affiliatePartnerPortalStatus",
+            "affiliatePartnerStatementSnapshotId",
+            "affiliatePartnerStatementSnapshotStatus",
             "payoutPreparationRecordId",
             "payoutPreparationRecordStatus",
             "fraudReviewRecordId",
@@ -23174,6 +23281,7 @@ test.describe("Bumpgrade scaffold", () => {
           id: "read-affiliate-referrals",
           stableIds: expect.arrayContaining([
             "affiliatePartnerPortalId",
+            "affiliatePartnerStatementSnapshotId",
             "affiliatePartnerReportId",
             "payoutPreparationId",
             "payoutPreparationRecordId",
@@ -23190,6 +23298,7 @@ test.describe("Bumpgrade scaffold", () => {
           safeForAgents: expect.arrayContaining([
             "Inspect public-safe partner performance reports",
             "Inspect public-safe partner portal status pages without private partner auth, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes",
+            "Inspect public-safe partner statement snapshots without payable statements, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes",
             "Inspect read-only payout preparation checklists",
             "Inspect owner-confirmed payout preparation records without payout accounts, tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger rows, or raw actor fields",
             "Inspect owner-reviewed fraud review records without private fraud signals, buyer data, raw ledger/click/checkout rows, actor identity, payout accounts, tax data, Stripe payout IDs, or partner notification bodies",

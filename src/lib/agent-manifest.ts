@@ -2390,6 +2390,8 @@ export const agentReadContracts: AgentReadContract[] = [
       "affiliatePartnerPortalId",
       "affiliatePartnerPortalRoute",
       "affiliatePartnerPortalStatus",
+      "affiliatePartnerStatementSnapshotId",
+      "affiliatePartnerStatementSnapshotStatus",
       "affiliatePartnerReportId",
       "payoutPreparationId",
       "payoutPreparationRecordId",
@@ -2427,6 +2429,7 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect aggregate owner review and reversal action counts",
       "Inspect public-safe partner performance reports",
       "Inspect public-safe partner portal status pages without private partner auth, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes",
+      "Inspect public-safe partner statement snapshots without payable statements, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes",
       "Inspect read-only payout preparation checklists",
       "Inspect owner-confirmed payout preparation records without payout accounts, tax data, Stripe payout IDs, partner notification bodies, buyer data, raw ledger rows, or raw actor fields",
       "Inspect owner-reviewed fraud review records without private fraud signals, buyer data, raw ledger/click/checkout rows, actor identity, payout accounts, tax data, Stripe payout IDs, or partner notification bodies",
@@ -3080,17 +3083,18 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "assignmentRuleId",
     ],
     volatileClaims:
-      "The analytics contract includes seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, seeded assignment, seeded sandbox funnel copy routing with a baseline holdout, dashboard-visible aggregate source rows, fixed-window aggregate counts, aggregate source counts, aggregate variant counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflight evidence, owner-reviewed provider/domain readiness evidence, and owner-confirmed experiment decision evidence; it is not cookie assignment, automated alert sends, owner email sends, provider sends, provider configuration, provider secrets, private DNS credentials, queue dispatch, customer alerts, custom traffic routing rules, contact-level analytics, raw event or assignment exposure, raw referrer/query exposure, raw analytics exports, automated winners, revenue claims, or statistically meaningful proof.",
+      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, aggregate counts, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records; it is not cookie assignment, buyer attribution finalization, payable statement creation, payable commission state, private fraud signal exposure, tax collection, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, authenticated private partner portal access, direct agent review automation, or Stripe payout capability.",
   },
   {
     id: "evidence-affiliate-referrals",
     route: "/affiliates/source-data",
     resolves:
-      "Seeded affiliate program, partner records, referral links, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
+      "Seeded affiliate program, partner records, referral links, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, referral click capture API, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, aggregate counts, attribution rules, commission rules, ledger fixtures, payout batch, review flags, and confirmed-write boundary.",
     stableIds: [
       "affiliateProgramId",
       "affiliatePartnerId",
       "affiliatePartnerPortalId",
+      "affiliatePartnerStatementSnapshotId",
       "affiliatePartnerReportId",
       "payoutPreparationId",
       "payoutPreparationRecordId",
@@ -3114,7 +3118,7 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
       "payoutBatchId",
     ],
     volatileClaims:
-      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, aggregate counts, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records; it is not cookie assignment, buyer attribution finalization, payable commission state, private fraud signal exposure, tax collection, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, authenticated private partner portal access, direct agent review automation, or Stripe payout capability.",
+      "The affiliate/referral contract includes seeded click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal action boundaries, aggregate counts, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records; it is not cookie assignment, buyer attribution finalization, payable statement creation, payable commission state, private fraud signal exposure, tax collection, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, authenticated private partner portal access, direct agent review automation, or Stripe payout capability.",
   },
   {
     id: "evidence-mobile-admin",
@@ -3750,9 +3754,9 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/affiliates/source-data",
     purpose:
-      "Expose seeded affiliate programs, partner records, referral links, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
+      "Expose seeded affiliate programs, partner records, referral links, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, aggregate click counts, checkout attribution evidence, attribution rules, commission fixtures, payout review, and fraud flags.",
     safetyBoundary:
-      "Seeded referral click capture, checkout attribution evidence, review-only commission evidence, owner review actions, public-safe partner reports, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records are live; buyer attribution finalization, payable commission writes, tax handling, payout account access, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, and Stripe payouts require confirmed-write contracts.",
+      "Seeded referral click capture, checkout attribution evidence, review-only commission evidence, owner review actions, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-confirmed fraud enforcement records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, and owner-reviewed notification provider readiness records are live; buyer attribution finalization, payable statement creation, payable commission writes, tax handling, payout account access, partner notification sends, provider-send enablement, provider configuration, provider secret storage, provider calls, send payload creation, queue dispatch, and Stripe payouts require confirmed-write contracts.",
   },
   {
     id: "mcp-tool-create-affiliate-payout-preparation-record",
