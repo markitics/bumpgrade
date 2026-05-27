@@ -21,7 +21,7 @@ type AnalyticsPageProps = {
 };
 
 const publicAnalyticsBoundary =
-  "Seeded public funnel routing can change opt-in copy by session assignment while preserving a baseline holdout; custom routing rules and automated winners open only after privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
+  "Seeded public funnel routing can change opt-in copy by safe source or campaign rules, then session assignment, while preserving a baseline holdout. Automated winners, raw exports, and contact analytics stay behind privacy review, sample-size checks, retention limits, owner confirmation, and redacted audit evidence.";
 const analyticsPageDescription =
   "A launch analytics dashboard that summarizes funnel conversion, source attribution, and experiment results without publishing visitor-level data.";
 
@@ -64,6 +64,20 @@ function ExperimentCard({ experiment }: { experiment: ExperimentDefinition }) {
         <strong>Variants</strong>
         <span>{experiment.variants.map((variant) => `${variant.label} ${variant.trafficWeight}%`).join(" / ")}</span>
       </div>
+      {experiment.customRoutingRules.length > 0 ? (
+        <div className="roadmap-detail">
+          <strong>Custom rules</strong>
+          <span>
+            {experiment.customRoutingRules
+              .map((rule) => {
+                const variantLabel =
+                  experiment.variants.find((variant) => variant.id === rule.variantId)?.label ?? rule.variantId;
+                return `${rule.label}: ${rule.signal} -> ${variantLabel}`;
+              })
+              .join(" / ")}
+          </span>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -190,7 +204,7 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Experiment model</p>
-            <h2>Seeded experiment routing keeps a baseline holdout without cookies</h2>
+            <h2>Custom source rules and seeded routing keep a baseline holdout without cookies</h2>
           </div>
           <Link href={dashboard.linkedOfferRoute} className="text-link compact-link">
             Checkout offer
@@ -207,9 +221,9 @@ export default async function AnalyticsDashboardPage({ params }: AnalyticsPagePr
             <ShieldCheck aria-hidden="true" />
             <h3>No automated winners</h3>
             <p>
-              Bumpgrade can route the launch-page opt-in promise by seeded session assignment, keep a small baseline
-              holdout on the original copy, then summarize counts and decision evidence. Custom routing rules and
-              automated winners still wait for sample-size checks and owner confirmation.
+              Bumpgrade can route recognized launch source and campaign traffic to a matching opt-in promise, fall
+              back to seeded session assignment with a small baseline holdout, then summarize counts and decision
+              evidence. Automated winners still wait for sample-size checks and owner confirmation.
             </p>
           </article>
         </div>

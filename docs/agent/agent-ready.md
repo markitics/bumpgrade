@@ -791,7 +791,8 @@ delivery-status-webhook readiness evidence, owner-reviewed provider-polling
 readiness evidence, owner-reviewed receipt-payload readiness evidence,
 owner-reviewed delivery-receipt readiness evidence, owner-reviewed
 provider-status reconciliation readiness evidence, plus aggregate
-export metadata and seeded sandbox funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email
+export metadata, public-safe source/campaign routing rules, and seeded sandbox
+funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email
 sends, provider sends, provider calls, delivery attempts, delivery results,
 delivery receipts, status webhooks, provider polling, provider status
 reconciliation, provider configuration,
@@ -800,18 +801,19 @@ private DNS credentials, body templates, unsubscribe URLs, Queue producer execut
 Queue consumer execution, queue dispatch, queue messages, queue message
 consumption, acknowledgements, retry/dead-letter rows, queue payload body
 reads, queue payload bodies, recipient payloads,
-personalized bodies, raw payload bodies, customer alerts, traffic routing beyond the seeded sandbox copy path,
+personalized bodies, raw payload bodies, customer alerts, raw routing URL storage, traffic routing beyond the seeded sandbox copy path,
 contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.
 
-Issue #18 is the live analytics MVP boundary. Issue #422 has started seeded
-sandbox funnel routing with a baseline holdout and still tracks custom analytics schemas, custom routing rules,
-winner selection, notification execution, Cloudflare Queue producer/consumer
-execution, provider calls, delivery attempts/results, webhooks, polling,
-receipts, raw/private exports, and agent-safe write parity work as the
-remaining bucket.
+Issue #18 is the live analytics MVP boundary. Issue #422 has started
+public-safe source/campaign routing rules, seeded sandbox funnel routing, and a
+baseline holdout and still tracks custom analytics schemas beyond the current
+seeded boundary, winner selection, notification execution, Cloudflare Queue
+producer/consumer execution, provider calls, delivery attempts/results,
+webhooks, polling, receipts, raw/private exports, and agent-safe write parity
+work as the remaining bucket.
 
 Current affiliate/referral boundary: `/affiliates/source-data` is the
 public-safe read contract for seeded affiliate programs, partner records,

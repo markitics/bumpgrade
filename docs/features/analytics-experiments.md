@@ -27,12 +27,13 @@ owner-reviewed notification provider-status reconciliation readiness evidence,
 and the first seeded public funnel copy routing for issue #18.
 
 Issue #18 is now the live analytics MVP boundary. Issue #422 has started moving
-from readiness into execution with seeded sandbox funnel routing and a baseline
-holdout; it still tracks custom/non-seeded analytics schemas, custom routing
-rules, winner selection, rollback/audit logs, notification execution, Queue
-producer/consumer execution, provider calls, delivery attempts/results,
-webhooks, polling, receipts, raw/private exports, and agent-safe write parity
-work as the remaining post-MVP execution bucket.
+from readiness into execution with public-safe source/campaign routing rules,
+seeded sandbox funnel routing, and a baseline holdout; it still tracks custom
+analytics schemas beyond the current seeded boundary, winner selection,
+rollback/audit logs, notification execution, Queue producer/consumer execution,
+provider calls, delivery attempts/results, webhooks, polling, receipts,
+raw/private exports, and agent-safe write parity work as the remaining post-MVP
+execution bucket.
 
 ## Live Routes
 
@@ -109,7 +110,8 @@ The first dashboard includes stable IDs for:
 - experiment definitions;
 - variants;
 - assignment rules.
-- seeded sandbox funnel copy routing and baseline holdout metadata.
+- public-safe custom routing rule metadata, seeded sandbox funnel copy routing,
+  and baseline holdout metadata.
 - aggregate event counts, aggregate variant event counts, aggregate assignment
   counts, aggregate source attribution counts, seeded event ingestion
   boundaries, and seeded assignment boundaries.
@@ -377,13 +379,13 @@ bodies, create queue payload bodies, create recipient payloads, create personali
 store raw payload bodies, create delivery results, create delivery receipts,
 process status webhooks, poll providers, create customer alerts, expose body templates,
 reconcile provider statuses,
-expose unsubscribe URLs, route experiment traffic beyond the seeded sandbox copy path, make automated winner decisions, make revenue
+expose unsubscribe URLs, store raw routing URLs, route experiment traffic beyond the seeded sandbox copy path, make automated winner decisions, make revenue
 claims, or prove statistical significance.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, event capture boundary,
-page-view beacon boundary, seeded sandbox routing metadata, dashboard-visible aggregate source attribution
+page-view beacon boundary, public-safe custom routing rule metadata, seeded sandbox routing metadata, dashboard-visible aggregate source attribution
 evidence, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
@@ -412,7 +414,7 @@ unsubscribe URLs, Queue producer execution, Queue consumer execution, queue
 dispatch, queue messages, queue message consumption, acknowledgements,
 retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads,
 personalized bodies, raw payload bodies, customer alerts,
-experiment traffic routing beyond the seeded sandbox copy path, custom routing rules, automated winners, or revenue claims require
+experiment traffic routing beyond the seeded sandbox copy path, automated winners, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention
 limits, and sample-size caveats.
