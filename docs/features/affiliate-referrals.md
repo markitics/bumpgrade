@@ -7,8 +7,8 @@ path, checkout attribution evidence path, review-only commission ledger path,
 owner review/reversal action boundary, public-safe partner report contract, and
 read-only payout preparation plus owner-confirmed payout preparation record
 owner-reviewed fraud review record, owner-confirmed fraud enforcement record,
-public-safe partner portal status pages, and owner-reviewed partner notification
-readiness, send preflight, and provider readiness record contracts for parent
+public-safe partner portal status pages, public-safe partner statement
+snapshots, and owner-reviewed partner notification readiness, send preflight, and provider readiness record contracts for parent
 issue #19/#424. Issue #19 is now the live affiliate/referral MVP boundary. Issue
 #424 tracks remaining payout execution, partner notification sends, private
 payout/tax data, authenticated private partner portals, buyer attribution
@@ -26,8 +26,9 @@ post-MVP execution bucket.
   program for humans and browser agents.
 - `/affiliates/indie-launch-partners/partners/launch-circle`: public-safe
   partner portal status page for aggregate referral, commission,
-  payout-readiness, fraud, and notification status without partner email, buyer,
-  payout account, tax, Stripe, provider, message, queue, or raw-row data.
+  statement snapshot, payout-readiness, fraud, and notification status without
+  partner email, buyer, payout account, tax, Stripe, provider, message, queue,
+  or raw-row data.
 - `/api/affiliates/clicks`: public POST endpoint for seeded referral clicks.
 - `/api/commerce/checkout`: sandbox checkout endpoint can attach eligible
   referral click IDs as public-safe attribution evidence.
@@ -59,6 +60,11 @@ post-MVP execution bucket.
   with portal routes, partner status, referral link IDs, partner report IDs,
   payout readiness blockers, fraud/notification status, non-live execution
   boundaries, and redaction flags.
+- `/affiliates/source-data.partnerStatementSnapshotSummary`: public-safe
+  partner statement snapshots with statement windows, aggregate report totals,
+  review-only commission totals, eligible/blocked/reversed fixture counts,
+  payout-preparation status, fraud/notification readiness status, non-live
+  execution boundaries, and redaction flags.
 - `/affiliates/source-data.payoutPreparationSummary`: aggregate payout
   preparation rows for eligible, blocked, and reversed fixture ledgers,
   readiness checklist items, review action counts, and redaction flags.
@@ -87,6 +93,8 @@ The contract introduces stable IDs for:
 - `affiliatePartnerPortalId`
 - `affiliatePartnerPortalRoute`
 - `affiliatePartnerPortalStatus`
+- `affiliatePartnerStatementSnapshotId`
+- `affiliatePartnerStatementSnapshotStatus`
 - `affiliatePartnerReportId`
 - `payoutPreparationId`
 - `payoutPreparationRecordId`
@@ -194,10 +202,11 @@ buyer data, raw ledger/click/checkout rows, raw actor identity, private fraud
 signals, and direct public agent writes. It proves owner-visible fraud
 enforcement state, not payout execution, partner notification sending, or agent
 affiliate writes. Issue #424 also exposes public-safe partner portal status
-pages so partners can inspect aggregate report, payout-readiness, fraud, and
-notification status without private partner auth, buyer data, payout account,
-tax, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows,
-or direct public agent writes.
+pages and statement snapshots so partners can inspect aggregate report,
+review-only statement totals, payout-readiness, fraud, and notification status
+without private partner auth, buyer data, payout account, tax, Stripe payout
+IDs, provider secrets, message bodies, queue rows, raw rows, or direct public
+agent writes.
 
 Tracked by issue #424, not live in the MVP:
 
@@ -206,7 +215,7 @@ Tracked by issue #424, not live in the MVP:
 - payable commission writes;
 - direct agent review writes;
 - payout batch execution;
-- payout preparation as payable state;
+- payout preparation or statement snapshots as payable state;
 - payout account storage;
 - tax form collection;
 - Stripe payout actions;

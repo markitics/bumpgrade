@@ -595,7 +595,7 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Affiliate/referral MVP contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, public-safe partner portal status pages, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, attribution boundaries, payout review, and fraud review proof.",
+      "Affiliate/referral MVP contract, partner profiles, referral links, privacy-safe click capture, checkout attribution evidence, review-only commission ledger evidence, owner review/reversal actions, public-safe partner reports, public-safe partner portal status pages, public-safe partner statement snapshots, read-only payout preparation, owner-confirmed payout preparation records, owner-reviewed fraud review records, owner-reviewed partner notification readiness records, owner-reviewed partner notification send preflight records, owner-reviewed notification provider readiness records, attribution boundaries, payout review, and fraud review proof.",
     publicEvidence: [
       "Tracked by issue #19.",
       "Issue #89 adds the first `/affiliates/source-data` contract and `/affiliates/indie-launch-partners` preview foundation.",
@@ -604,7 +604,7 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #113 creates review-only commission ledger evidence from trusted checkout attribution without making commissions payable.",
       "Issue #115 adds owner-gated review, hold, and reversal actions without creating payout state.",
       "Issue #193 adds public-safe partner reports without exposing buyer, payout, tax, Stripe, raw click, raw checkout, or private actor data.",
-      "Issue #424 adds public-safe partner portal status pages without private partner auth, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes.",
+      "Issue #424 adds public-safe partner portal status pages and statement snapshots without private partner auth, payable statements, buyer data, payout accounts, tax forms, Stripe payout IDs, provider secrets, message bodies, queue rows, raw rows, or direct public agent writes.",
       "Issue #195 adds read-only payout preparation without Stripe payouts, payout account storage, tax collection, partner notifications, payable commission finalization, or direct agent writes.",
       "Issue #273 adds owner-confirmed payout preparation records without payable commission state, Stripe payouts, payout account storage, tax collection, partner notifications, buyer data, raw ledger rows, fraud enforcement, or direct agent writes.",
       "Issue #275 adds owner-reviewed fraud review records without fraud enforcement, payable commission state, Stripe payouts, payout account storage, tax collection, partner notifications, buyer data, raw ledger/click/checkout rows, private fraud signals, or direct agent writes.",
@@ -612,10 +612,10 @@ export const roadmapItems: RoadmapItem[] = [
       "Issue #279 adds owner-reviewed partner notification send preflight records without partner sends, provider-send enablement, provider calls, send payloads, queue dispatch, recipient emails, message bodies, provider message IDs, fraud enforcement, payable commission state, Stripe payouts, payout accounts, tax data, buyer data, raw rows, private fraud signals, or direct agent writes.",
       "Issue #281 adds owner-reviewed notification provider readiness records without provider configuration, provider secrets, sender credentials, partner sends, provider-send enablement, provider calls, send payloads, queue dispatch, recipient emails, message bodies, provider message IDs, fraud enforcement, payable commission state, Stripe payouts, payout accounts, tax data, buyer data, raw rows, private fraud signals, or direct agent writes.",
       "Issue #424 adds owner-confirmed fraud enforcement records without payable commission state, Stripe payouts, payout accounts, tax data, partner sends, provider calls, buyer data, raw rows, private fraud signals, or direct agent writes.",
-      "Issue #424 still tracks live payout execution, partner notifications, private payout/tax data, authenticated private partner portals, and direct agent-safe write parity as one pending post-MVP execution bucket.",
+      "Issue #424 still tracks live payout execution, partner notifications, private payout/tax data, authenticated private partner portals, payable statement creation, and direct agent-safe write parity as one pending post-MVP execution bucket.",
     ],
     nextMilestone:
-      "Keep payable commissions, Stripe payout execution, partner notification sends, provider configuration, private payout/tax data, authenticated private partner portals, and agent-safe write tools in issue #424 instead of reopening more isolated readiness-gate slices.",
+      "Keep payable statements, payable commissions, Stripe payout execution, partner notification sends, provider configuration, private payout/tax data, authenticated private partner portals, and agent-safe write tools in issue #424 instead of reopening more isolated readiness-gate slices.",
   },
   {
     id: "roadmap-live-affiliate-execution",
@@ -625,15 +625,16 @@ export const roadmapItems: RoadmapItem[] = [
     featureId: featureIdFor(19),
     group: "Growth system",
     summary:
-      "Pending post-MVP execution bucket for payable commission finalization, private payout account and tax boundaries, Stripe payouts/transfers/reversals/receipts/reconciliation, partner notification execution, provider configuration and sends, authenticated private partner portals, partner statements, buyer attribution finalization, and direct agent-safe affiliate/referral write APIs. Owner-confirmed fraud enforcement records and public-safe partner portal status pages are live as non-payout #424 slices.",
+      "Pending post-MVP execution bucket for payable commission finalization, private payout account and tax boundaries, Stripe payouts/transfers/reversals/receipts/reconciliation, payable statement creation, partner notification execution, provider configuration and sends, authenticated private partner portals, buyer attribution finalization, and direct agent-safe affiliate/referral write APIs. Owner-confirmed fraud enforcement records, public-safe partner portal status pages, and public-safe partner statement snapshots are live as non-payout #424 slices.",
     publicEvidence: [
       "Issue #424 tracks this pending post-MVP execution bucket.",
       "Issue #424 adds public-safe partner portal status pages for aggregate partner report, payout-readiness, fraud, and notification status without private payout, tax, buyer, provider, or raw-row data.",
+      "Issue #424 adds public-safe partner statement snapshots for review-only partner totals, payout-preparation blockers, fraud status, notification readiness status, and redaction flags without payable statement creation.",
       "Issue #19 remains the shipped affiliate/referral MVP for source data, partner links, privacy-safe clicks, checkout attribution, review-only commission evidence, owner review/reversal, public-safe partner reports, payout preparation, fraud review records, and partner notification readiness/preflight/provider-readiness proof.",
       "The issue #19 closeout deliberately stops creating more single-gate proof slices unless they directly unlock live payout, notification, fraud, private portal, or agent-write execution.",
     ],
     nextMilestone:
-      "Design and ship live affiliate execution as one coherent workflow with payout safety, tax/private-data boundaries, idempotency, audit correlation, stale-state checks, redaction, refund-window checks, provider/payment safety, fraud-review safety, rollback/dispute paths, and confirmed-write checks.",
+      "Design and ship live affiliate execution as one coherent workflow with payable statement creation, payout safety, tax/private-data boundaries, idempotency, audit correlation, stale-state checks, redaction, refund-window checks, provider/payment safety, fraud-review safety, rollback/dispute paths, and confirmed-write checks.",
   },
   {
     id: "roadmap-marketing-surfaces",

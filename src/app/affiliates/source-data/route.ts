@@ -11,6 +11,7 @@ import {
   affiliatePrograms,
   affiliateReferralsSourceData,
   type AffiliatePartnerReport,
+  type AffiliatePartnerStatementSnapshot,
   type PayoutBatchFixture,
 } from "@/lib/affiliate-referrals";
 import {
@@ -395,6 +396,9 @@ function buildPartnerPortalSummary(input: {
         partnerDisplayName: partner.displayName,
         partnerStatus: partner.status,
         referralLinkIds: partner.referralLinkIds,
+        statementSnapshotIds: program.partnerStatementSnapshots
+          .filter((snapshot) => snapshot.partnerId === partner.id)
+          .map((snapshot) => snapshot.id),
         partnerReportIds: [...reportIds],
         payoutPreparationIds: payoutRows.map((batch) => batch.payoutPreparationId),
         payoutBatchIds: payoutRows.map((batch) => batch.payoutBatchId),
@@ -495,6 +499,157 @@ function buildPartnerPortalSummary(input: {
   };
 }
 
+function buildPartnerStatementSnapshotSummary(input: {
+  partnerReportSummary: ReturnType<typeof buildPartnerReportSummary>;
+  payoutPreparationSummary: ReturnType<typeof buildPayoutPreparationSummary>;
+  fraudReviewRecords: PartnerEvidenceSummary;
+  fraudEnforcementRecords: PartnerEvidenceSummary;
+  partnerNotificationReadinessRecords: PartnerEvidenceSummary;
+  partnerNotificationSendPreflightRecords: PartnerEvidenceSummary;
+  partnerNotificationProviderReadinessRecords: PartnerEvidenceSummary;
+}) {
+  const snapshots = affiliatePrograms.flatMap((program) =>
+    program.partnerStatementSnapshots.map((snapshot: AffiliatePartnerStatementSnapshot) => {
+      const partner = program.partners.find((candidate) => candidate.id === snapshot.partnerId);
+      const partnerSlug = partner?.portalSlug ?? snapshot.partnerId;
+      const reportRows = input.partnerReportSummary.reports.filter(
+        (report) => report.affiliatePartnerReportId === snapshot.partnerReportId,
+      );
+      const payoutRow = input.payoutPreparationSummary.batches.find(
+        (batch) => batch.payoutPreparationId === snapshot.payoutPreparationId,
+      );
+      const blockedChecklistCount =
+        payoutRow?.readinessChecklist.filter((item) => item.status !== "passed").length ??
+        snapshot.payoutPreparationStatus.blockers.length;
+
+      return {
+        affiliatePartnerStatementSnapshotId: snapshot.id,
+        affiliatePartnerStatementSnapshotStatus: snapshot.status,
+        title: snapshot.title,
+        issue: snapshot.issue,
+        auth: "public-preview-redacted",
+        programId: program.id,
+        programSlug: program.slug,
+        partnerId: snapshot.partnerId,
+        partnerSlug,
+        partnerDisplayName: partner?.displayName ?? snapshot.partnerId,
+        partnerStatus: partner?.status ?? "review",
+        affiliatePartnerPortalId: affiliatePartnerPortalId(snapshot.partnerId),
+        affiliatePartnerPortalRoute: affiliatePartnerPortalRoute(program.slug, partnerSlug),
+        affiliatePartnerReportId: snapshot.partnerReportId,
+        payoutPreparationId: snapshot.payoutPreparationId,
+        payoutBatchId: snapshot.payoutBatchId,
+        statementWindow: snapshot.statementWindow,
+        referralLinkIds: snapshot.referralLinkIds,
+        eligibleLedgerIds: snapshot.eligibleLedgerIds,
+        blockedLedgerIds: snapshot.blockedLedgerIds,
+        reversedLedgerIds: snapshot.reversedLedgerIds,
+        reviewFlagIds: snapshot.reviewFlagIds,
+        sourceRoutes: snapshot.sourceRoutes,
+        totals: {
+          totalClicks: reportRows.reduce((sum, report) => sum + report.totals.totalClicks, 0),
+          attributedCheckouts: reportRows.reduce((sum, report) => sum + report.totals.attributedCheckouts, 0),
+          reviewOnlyLedgers: reportRows.reduce((sum, report) => sum + report.totals.reviewOnlyLedgers, 0),
+          reviewRequiredLedgers: reportRows.reduce(
+            (sum, report) => sum + report.totals.reviewRequiredLedgers,
+            0,
+          ),
+          totalCommissionCents:
+            reportRows.reduce((sum, report) => sum + report.totals.totalCommissionCents, 0) ||
+            snapshot.reviewOnlyTotals.fixtureCommissionCents,
+          eligibleFixtureLedgers: snapshot.reviewOnlyTotals.eligibleFixtureLedgers,
+          blockedFixtureLedgers: snapshot.reviewOnlyTotals.blockedFixtureLedgers,
+          reversedFixtureLedgers: snapshot.reviewOnlyTotals.reversedFixtureLedgers,
+          fixtureCommissionCents: snapshot.reviewOnlyTotals.fixtureCommissionCents,
+          currency: snapshot.reviewOnlyTotals.currency,
+        },
+        payoutPreparation: {
+          status: snapshot.payoutPreparationStatus.status,
+          payoutBatchStatus: payoutRow?.status ?? "review_required",
+          blockedChecklistCount,
+          blockers: snapshot.payoutPreparationStatus.blockers,
+          payableStatementCreated: false,
+          payableCommissionCreated: false,
+          stripePayoutCreated: false,
+          stripeTransferCreated: false,
+          payoutAccountStored: false,
+          taxDataCollected: false,
+        },
+        riskAndNotificationStatus: {
+          fraudReview: evidenceStatusForPartner(
+            input.fraudReviewRecords,
+            snapshot.partnerId,
+            snapshot.reviewFlagIds,
+            "review_recorded",
+          ),
+          fraudEnforcement: evidenceStatusForPartner(
+            input.fraudEnforcementRecords,
+            snapshot.partnerId,
+            snapshot.reviewFlagIds,
+            "enforcement_recorded",
+          ),
+          notificationReadiness: evidenceStatusForPartner(
+            input.partnerNotificationReadinessRecords,
+            snapshot.partnerId,
+            snapshot.reviewFlagIds,
+            "readiness_recorded",
+          ),
+          notificationSendPreflight: evidenceStatusForPartner(
+            input.partnerNotificationSendPreflightRecords,
+            snapshot.partnerId,
+            snapshot.reviewFlagIds,
+            "send_preflight_recorded",
+          ),
+          notificationProviderReadiness: evidenceStatusForPartner(
+            input.partnerNotificationProviderReadinessRecords,
+            snapshot.partnerId,
+            snapshot.reviewFlagIds,
+            "provider_readiness_recorded",
+          ),
+          partnerNotificationSent: false,
+          notificationProviderCalled: false,
+          notificationProviderSendEnabled: false,
+          notificationProviderConfigured: false,
+        },
+        execution: snapshot.execution,
+        redaction: snapshot.redaction,
+        caveat: snapshot.caveat,
+        notLive: [
+          "payable partner statements",
+          "payable commission state",
+          "Stripe payout or transfer execution",
+          "payout account storage",
+          "tax form collection",
+          "partner notification sending",
+          "provider configuration or calls",
+          "queue dispatch",
+          "direct public agent writes",
+        ],
+      };
+    }),
+  );
+
+  return {
+    status: "available",
+    snapshots,
+    rawRowsIncluded: false,
+    privateDataIncluded: false,
+    buyerDataIncluded: false,
+    rawClickRowsIncluded: false,
+    rawCheckoutRowsIncluded: false,
+    rawLedgerRowsIncluded: false,
+    privateFraudSignalsIncluded: false,
+    payoutAccountsIncluded: false,
+    taxRowsIncluded: false,
+    stripeIdsIncluded: false,
+    recipientEmailsIncluded: false,
+    notificationBodiesIncluded: false,
+    sendPayloadsIncluded: false,
+    providerSecretsIncluded: false,
+    sendQueueRowsIncluded: false,
+  };
+}
+
 export async function GET() {
   const db = await getDb();
   const [
@@ -544,6 +699,15 @@ export async function GET() {
     partnerReviewActionSummary,
     partnerReportSummary,
     partnerPortalSummary: buildPartnerPortalSummary({
+      partnerReportSummary,
+      payoutPreparationSummary,
+      fraudReviewRecords,
+      fraudEnforcementRecords,
+      partnerNotificationReadinessRecords,
+      partnerNotificationSendPreflightRecords,
+      partnerNotificationProviderReadinessRecords,
+    }),
+    partnerStatementSnapshotSummary: buildPartnerStatementSnapshotSummary({
       partnerReportSummary,
       payoutPreparationSummary,
       fraudReviewRecords,

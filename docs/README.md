@@ -68,11 +68,12 @@ then open the relevant shelf for the task.
 - `features/affiliate-referrals.md`: affiliate program, referral link, click
   capture, checkout attribution evidence, review-only commission ledger, payout
   review, owner review/reversal actions, public-safe partner reports, read-only
-  payout preparation, owner-confirmed payout preparation records, and fraud flag
-  and fraud review record, partner notification readiness record, and partner
-  notification send preflight record, and notification provider readiness
-  source-data contracts from issues #89, #109, #111, #113, #115, #193, #195,
-  #273, #275, #277, #279, and #281.
+  payout preparation, public-safe partner statement snapshots,
+  owner-confirmed payout preparation records, and fraud flag and fraud review
+  record, partner notification readiness record, partner notification send
+  preflight record, and notification provider readiness source-data contracts
+  from issues #89, #109, #111, #113, #115, #193, #195, #273, #275, #277, #279,
+  #281, and #424.
 - `features/payments.md`: Stripe checkout, D1 commerce tables, webhook, and
   billing-safe agent rules.
 - `features/mobile-admin.md`: iOS and Android publisher/admin app planning,

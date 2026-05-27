@@ -7,6 +7,7 @@ import {
   Bell,
   ChartNoAxesCombined,
   ClipboardCheck,
+  FileText,
   Link2,
   ShieldCheck,
   UserCheck,
@@ -41,6 +42,8 @@ function publicStatusLabel(value: string) {
   if (value === "review_required") return "Needs review";
   if (value === "reversed") return "Reversed";
   if (value === "public_safe_report_ready") return "Report ready";
+  if (value === "public_safe_statement_snapshot_ready") return "Statement ready";
+  if (value === "blocked_by_review") return "Blocked by review";
   return value.replaceAll("_", " ");
 }
 
@@ -83,6 +86,9 @@ export default async function AffiliatePartnerPortalPage({ params }: PartnerPort
   const partnerReferralLinkIds = new Set(partner.referralLinkIds);
   const referralLinks = program.referralLinks.filter((link) => partnerReferralLinkIds.has(link.id));
   const partnerReports = program.partnerReports.filter((report) => report.partnerId === partner.id);
+  const partnerStatementSnapshots = program.partnerStatementSnapshots.filter(
+    (snapshot) => snapshot.partnerId === partner.id,
+  );
   const partnerReportIds = new Set(partnerReports.map((report) => report.id));
   const payoutBatches = program.payoutBatches.filter((batch) =>
     batch.partnerReportIds.some((reportId) => partnerReportIds.has(reportId)),
@@ -206,6 +212,48 @@ export default async function AffiliatePartnerPortalPage({ params }: PartnerPort
       <section className="content-band">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Statement snapshot</p>
+            <h2>Review-only statement totals are visible before payout goes live</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {partnerStatementSnapshots.map((snapshot) => (
+            <article key={snapshot.id} className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge planned">{publicStatusLabel(snapshot.status)}</span>
+                <span className="admin-pill">{snapshot.statementWindow.label}</span>
+              </div>
+              <FileText aria-hidden="true" />
+              <h3>{snapshot.title}</h3>
+              <p>{snapshot.caveat}</p>
+              <div className="roadmap-detail">
+                <strong>Snapshot ID</strong>
+                <span>{snapshot.id}</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Review-only total</strong>
+                <span>{formatMoney(snapshot.reviewOnlyTotals.fixtureCommissionCents)} before payable state exists</span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Ledger status</strong>
+                <span>
+                  {snapshot.reviewOnlyTotals.eligibleFixtureLedgers} eligible,{" "}
+                  {snapshot.reviewOnlyTotals.blockedFixtureLedgers} blocked,{" "}
+                  {snapshot.reviewOnlyTotals.reversedFixtureLedgers} reversed
+                </span>
+              </div>
+              <div className="roadmap-detail">
+                <strong>Still required</strong>
+                <span>{snapshot.payoutPreparationStatus.blockers.join(", ")}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Payout readiness</p>
             <h2>Payout status is visible without account, tax, or Stripe data</h2>
           </div>
@@ -244,7 +292,7 @@ export default async function AffiliatePartnerPortalPage({ params }: PartnerPort
         </div>
       </section>
 
-      <section className="content-band alternate">
+      <section className="content-band">
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Communication readiness</p>

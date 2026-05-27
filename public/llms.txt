@@ -515,7 +515,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   raw/private exports, and agent-safe write parity work as the remaining bucket.
 - `/affiliates/source-data` exposes the first affiliate/referral workspace with
   partner records, referral links, public-safe partner reports, public-safe
-  partner portal status pages, aggregate click
+  partner portal status pages, public-safe partner statement snapshots, aggregate click
   counts, checkout attribution evidence, aggregate review-only commission ledger
   counts, read-only payout preparation, owner-confirmed payout preparation
   records, owner-reviewed fraud review records, owner-confirmed fraud
@@ -526,13 +526,13 @@ GitHub repo: https://github.com/markitics/bumpgrade
   write boundary. Treat it as
   seeded click capture, referral-click-to-checkout, review-only ledger evidence,
   owner review evidence, aggregate partner report evidence, partner portal
-  status evidence, payout
+  status evidence, partner statement snapshot evidence, payout
   preparation checklist evidence, owner-confirmed payout preparation record
   evidence, owner-reviewed fraud review evidence, owner-confirmed fraud
   enforcement evidence, and owner-reviewed partner
   notification readiness evidence, and owner-reviewed partner notification send
   preflight evidence, not cookie assignment, buyer attribution finalization,
-  payable commission state, payout account storage, tax collection, Stripe
+  payable statement creation, payable commission state, payout account storage, tax collection, Stripe
   payout capability, partner notification sends, provider-send enablement,
   provider calls, send payload creation, queue dispatch, authenticated private
   partner portal access, direct agent review writes, or
@@ -541,8 +541,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   admin action API. Issue #19 is the live affiliate/referral MVP boundary.
   Issue #424 tracks remaining live payout execution, partner notification
   execution, authenticated private partner portal, payout/tax-data, buyer
-  attribution finalization, and agent-safe affiliate/referral write parity work
-  as one pending bucket.
+  attribution finalization, payable statement creation, and agent-safe
+  affiliate/referral write parity work as one pending bucket.
 - Public, destructive, moderation, publishing, source-editing, billing-impacting,
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
@@ -573,8 +573,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   `/api/admin/affiliates/notification-provider-readiness` lets owner sessions
   record redacted partner notification provider readiness evidence.
   `/affiliates/indie-launch-partners/partners/launch-circle` exposes a
-  public-safe partner portal status page, but live billing, payable commission
-  writes, payout mutation, direct agent review writes, payout account storage,
+  public-safe partner portal status page and statement snapshot, but live
+  billing, payable statement creation, payable commission writes, payout
+  mutation, direct agent review writes, payout account storage,
   tax collection, Stripe payouts, authenticated private partner access, private
   fraud signal exposure, recipient exposure, provider configuration, provider
   secret storage, sender credential storage, provider-send enablement, provider
