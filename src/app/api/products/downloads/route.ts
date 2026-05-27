@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
       "content-length": String(result.file.byteLength),
       "x-bumpgrade-delivery": "private-r2-fixture",
       "x-bumpgrade-redaction": "private-r2-keys=false; signed-urls=false; buyer-email=false",
+      "x-bumpgrade-funnel-delivery-receipt": result.funnelResourceDeliveryReceipt.recorded ? "recorded" : "none",
     },
   });
 }

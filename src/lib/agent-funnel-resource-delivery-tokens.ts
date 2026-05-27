@@ -354,6 +354,7 @@ export async function createAgentFunnelResourceDeliveryToken(
     blockId,
     checkoutIntentId,
     entitlementId,
+    deliverySource: "owner-agent-funnel-resource-delivery",
   });
 
   if (!tokenResult.ok) {

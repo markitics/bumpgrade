@@ -4620,6 +4620,44 @@ export const agentFunnelResourceDeliveryTokenRequests = sqliteTable(
   }),
 );
 
+export const funnelResourceDeliveryReceipts = sqliteTable(
+  "funnel_resource_delivery_receipts",
+  {
+    id: text("id").primaryKey(),
+    productDownloadTokenId: text("product_download_token_id").notNull(),
+    deliverySource: text("delivery_source").notNull(),
+    funnelId: text("funnel_id").notNull(),
+    funnelSlug: text("funnel_slug").notNull(),
+    funnelTitle: text("funnel_title").notNull(),
+    funnelRevisionId: text("funnel_revision_id").notNull(),
+    blockId: text("block_id").notNull(),
+    blockTitle: text("block_title").notNull(),
+    productId: text("product_id").notNull(),
+    productTitle: text("product_title").notNull(),
+    assetId: text("asset_id").notNull(),
+    assetTitle: text("asset_title").notNull(),
+    checkoutIntentSha256: text("checkout_intent_sha256").notNull(),
+    entitlementSha256: text("entitlement_sha256").notNull(),
+    receiptStatus: text("receipt_status").notNull().default("downloaded"),
+    redactionJson: text("redaction_json").notNull(),
+    metadataJson: text("metadata_json"),
+    createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).default(sql`(unixepoch())`).notNull(),
+  },
+  (table) => ({
+    tokenUnique: uniqueIndex("funnel_resource_delivery_receipts_token_idx").on(table.productDownloadTokenId),
+    funnelCreatedIdx: index("funnel_resource_delivery_receipts_funnel_idx").on(
+      table.funnelSlug,
+      table.createdAt,
+    ),
+    blockCreatedIdx: index("funnel_resource_delivery_receipts_block_idx").on(
+      table.funnelSlug,
+      table.blockId,
+      table.createdAt,
+    ),
+  }),
+);
+
 export const publisherPlanEntitlements = sqliteTable(
   "publisher_plan_entitlements",
   {

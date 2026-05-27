@@ -345,6 +345,7 @@ import {
   funnelResourceDeliveryIssue,
   funnelResourceDeliveryStatus,
 } from "../src/lib/funnel-resource-delivery";
+import { funnelResourceDeliveryReceiptCapability } from "../src/lib/funnel-resource-delivery-receipts";
 import { mobileAdminContract } from "../src/lib/mobile-admin";
 import {
   mobileAdminActionIntentApiRoute,
@@ -3003,6 +3004,41 @@ test.describe("Bumpgrade scaffold", () => {
         unauthenticatedAgentWriteCreated: false,
       }),
     );
+    expect(payload.funnelResourceDeliveryReceiptCapability).toEqual(
+      expect.objectContaining({
+        id: funnelResourceDeliveryReceiptCapability.id,
+        status: funnelResourceDeliveryReceiptCapability.status,
+        issue: funnelResourceDeliveryReceiptCapability.issue,
+        table: "funnel_resource_delivery_receipts",
+        recordsOn: "/api/products/downloads",
+        rawTokensIncluded: false,
+        rawCheckoutIntentIdsIncluded: false,
+        rawEntitlementIdsIncluded: false,
+        buyerDataIncluded: false,
+        rawR2KeysIncluded: false,
+        signedUrlsIncluded: false,
+        liveFulfillmentAutomationEnabled: false,
+        unauthenticatedAgentWriteCreated: false,
+      }),
+    );
+    expect(payload.funnelResourceDeliveryReceipts).toEqual(
+      expect.objectContaining({
+        id: funnelResourceDeliveryReceiptCapability.id,
+        status: funnelResourceDeliveryReceiptCapability.status,
+        count: expect.any(Number),
+        countsBySource: expect.any(Array),
+        latestReceipts: expect.any(Array),
+        redaction: expect.objectContaining({
+          rawTokensIncluded: false,
+          rawCheckoutIntentIdsIncluded: false,
+          rawEntitlementIdsIncluded: false,
+          buyerDataIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
     expect(payload.agentFunnelDraftWriteCapability).toEqual(
       expect.objectContaining({
         id: agentFunnelDraftWriteCapability.id,
@@ -3158,6 +3194,7 @@ test.describe("Bumpgrade scaffold", () => {
         "funnelCheckoutUnlinkId",
         "funnelResourceDeliveryLinkId",
         "funnelResourceDeliveryTokenId",
+        "funnelResourceDeliveryReceiptId",
         "funnelWebinarEventLinkId",
         "funnelWebinarResourceTemplateId",
         "funnelDraftDuplicateId",
@@ -5336,6 +5373,7 @@ test.describe("Bumpgrade scaffold", () => {
     const agentDownload = await request.get(agentTokenPayload.downloadUrl);
     const agentDownloadText = await agentDownload.text();
     expect(agentDownload.ok(), agentDownloadText).toBeTruthy();
+    expect(agentDownload.headers()["x-bumpgrade-funnel-delivery-receipt"]).toBe("recorded");
     expect(agentDownloadText).toContain("Bumpgrade Launch Checklist");
 
     const token = await request.post(funnelResourceDeliveryApiRoute, {
@@ -5382,6 +5420,7 @@ test.describe("Bumpgrade scaffold", () => {
     const download = await request.get(tokenPayload.downloadUrl);
     expect(download.ok(), await download.text()).toBeTruthy();
     expect(download.headers()["x-bumpgrade-delivery"]).toContain("private-r2-fixture");
+    expect(download.headers()["x-bumpgrade-funnel-delivery-receipt"]).toBe("recorded");
     const downloadText = await download.text();
     expect(downloadText).toContain("Bumpgrade Launch Checklist");
     expect(downloadText).not.toContain(buyerEmail);
@@ -5401,11 +5440,45 @@ test.describe("Bumpgrade scaffold", () => {
     const source = await request.get("/funnels/source-data");
     const sourceText = await source.text();
     expect(source.ok(), sourceText).toBeTruthy();
+    const sourcePayload = JSON.parse(sourceText);
     expect(sourceText).toContain(funnelResourceDeliveryStatus);
     expect(sourceText).toContain(funnelResourceDeliveryApiRoute);
     expect(sourceText).toContain(agentFunnelResourceDeliveryTokenStatus);
     expect(sourceText).toContain(agentFunnelResourceDeliveryTokenApiRoute);
+    expect(sourcePayload.funnelResourceDeliveryReceipts).toEqual(
+      expect.objectContaining({
+        id: funnelResourceDeliveryReceiptCapability.id,
+        status: funnelResourceDeliveryReceiptCapability.status,
+        count: expect.any(Number),
+        latestReceipts: expect.arrayContaining([
+          expect.objectContaining({
+            funnelSlug: publishedDraft.slug,
+            blockId: deliveryBlock.id,
+            productId: "product-launch-checklist-download",
+            assetId: "asset-launch-checklist-pdf",
+            receiptStatus: "downloaded",
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          rawTokensIncluded: false,
+          rawCheckoutIntentIdsIncluded: false,
+          rawEntitlementIdsIncluded: false,
+          buyerDataIncluded: false,
+          rawR2KeysIncluded: false,
+          signedUrlsIncluded: false,
+          rawRowsIncluded: false,
+        }),
+      }),
+    );
+    expect(sourcePayload.funnelResourceDeliveryReceipts.count).toBeGreaterThanOrEqual(2);
+    expect(sourcePayload.funnelResourceDeliveryReceipts.countsBySource).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ deliverySource: "owner-agent-funnel-resource-delivery" }),
+        expect.objectContaining({ deliverySource: "public-funnel-resource-delivery" }),
+      ]),
+    );
     expect(sourceText).not.toContain(buyerEmail);
+    expect(sourceText).not.toContain(grant.checkoutIntentId);
     expect(sourceText).not.toContain(downloadEntitlement.id);
   });
 
@@ -22534,6 +22607,7 @@ test.describe("Bumpgrade scaffold", () => {
             "funnelCheckoutUnlinkId",
             "funnelResourceDeliveryLinkId",
             "funnelResourceDeliveryTokenId",
+            "funnelResourceDeliveryReceiptId",
             "funnelDraftBulkPurgeId",
             "agentFunnelDraftWriteId",
             "agentFunnelDraftWriteOperationId",
@@ -22549,6 +22623,7 @@ test.describe("Bumpgrade scaffold", () => {
             "Discover owner-session resource delivery linking from issue #417",
             "Discover public funnel-scoped resource delivery tokens from issue #417",
             "Discover owner-session agent-created resource delivery tokens from issue #417",
+            "Discover redacted resource-delivery receipt evidence from issue #417",
             "Discover owner-session visual style controls for existing funnel blocks from issue #417",
             "Discover owner-session bounded canvas layout controls for existing funnel blocks from issue #417",
             "Discover owner-session block reordering from issue #417",
@@ -22645,7 +22720,15 @@ test.describe("Bumpgrade scaffold", () => {
           id: "create-public-funnel-resource-delivery-token",
           route: funnelResourceDeliveryApiRoute,
           auth: "public",
-          stableIds: expect.arrayContaining(["funnelResourceDeliveryTokenId", "checkoutIntentId", "productEntitlementId"]),
+          stableIds: expect.arrayContaining([
+            "funnelResourceDeliveryTokenId",
+            "funnelResourceDeliveryReceiptId",
+            "checkoutIntentId",
+            "productEntitlementId",
+          ]),
+          safeForAgents: expect.arrayContaining([
+            "Read redacted receipt evidence after successful private download redemption without raw buyer, checkout, entitlement, token, R2, or signed URL data",
+          ]),
         }),
         expect.objectContaining({
           id: "read-protected-product-content",

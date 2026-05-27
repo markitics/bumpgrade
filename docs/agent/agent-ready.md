@@ -363,7 +363,12 @@ owner-session agents can create the same scoped token through
 `/api/agent/funnels/resource-delivery-tokens` only after exact confirmation,
 idempotency, current published revision checks, checkout intent, entitlement,
 and audit correlation; idempotent replays return redacted audit metadata because
-raw bearer tokens are not stored. Published
+raw bearer tokens are not stored. Successful redemption through the existing
+Bumpgrade download route records redacted resource-delivery receipt evidence in
+`/funnels/source-data`, including safe funnel, block, product, asset, source,
+and aggregate count metadata without exposing buyer data, raw checkout IDs, raw
+entitlement IDs, tokens, R2 keys, signed URLs, raw rows, arbitrary uploaded
+asset delivery, or live fulfillment automation. Published
 webinar-linked blocks can render external
 registration/replay references without provider secrets, attendee records,
 scheduling, reminders, attendance tracking, or hosted replay media.
@@ -384,7 +389,8 @@ charging, arbitrary uploaded private asset delivery, signed URL creation, live
 fulfillment automation, live webinar scheduling, attendance tracking, replay
 hosting, unauthenticated public agent publishing, or public unauthenticated agent writes. Issue #14 is the shipped MVP boundary;
 issue #417 now includes owner-confirmed checkout unlinking, resource delivery
-links, funnel-scoped private download-token delivery, webinar event/replay links,
+links, funnel-scoped private download-token delivery, redacted resource-delivery
+receipt evidence, webinar event/replay links,
 within-step block reordering, drag/drop block placement, cross-step block moves,
 owner-session visual block styles, owner-session bounded canvas layouts, owner-session archived-draft purge UI, and
 owner-session agent-created resource delivery tokens, and expanded owner-session direct agent-safe draft writes

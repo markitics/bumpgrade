@@ -15,15 +15,18 @@ readiness. Issue #215 adds owner-confirmed private draft duplication. Issue
 #341 adds owner-confirmed archive/unpublish lifecycle actions. Issue #417 adds
 owner-confirmed checkout unlinking, owner-confirmed resource delivery links to
 product/access catalog assets, funnel-scoped private download-token delivery
-from published linked resource blocks, owner-confirmed webinar event/replay
-links to public-safe external URLs, owner-session within-step block reordering,
-drag/drop block placement through existing move endpoints, cross-step block
-moves, owner-session direct agent-safe draft writes for block copy edits,
-visual style presets, bounded canvas layouts, reusable block add/remove, checkout linking/unlinking, resource-delivery
-linking, webinar-event linking, block movement, duplication, public publishing,
-archive/unpublish, and archived-draft purge, owner-session visual block style controls,
-owner-session bounded canvas layout controls,
-and owner-confirmed archived-draft purge with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
+from published linked resource blocks, owner-session agent-created resource
+delivery tokens for published linked resource blocks, redacted resource-delivery
+receipt evidence after successful private download redemption, owner-confirmed
+webinar event/replay links to public-safe external URLs, owner-session
+within-step block reordering, drag/drop block placement through existing move
+endpoints, cross-step block moves, owner-session direct agent-safe draft writes
+for block copy edits, visual style presets, bounded canvas layouts, reusable
+block add/remove, checkout linking/unlinking, resource-delivery linking,
+webinar-event linking, block movement, duplication, public publishing,
+archive/unpublish, archived-draft purge, and bulk archived-draft purge,
+owner-session visual block style controls, owner-session bounded canvas layout controls,
+and owner-confirmed archived-draft purge plus bulk purge with tombstone evidence. Issue #430 adds owner-session granular block title/body editing that
 preserves block IDs, block kinds, ordered step structure, and checkout-link
 metadata. Issue #432 adds owner-session block add/remove controls backed by the
 reusable block library while refusing checkout-linked block removal. Issue #409
@@ -41,6 +44,7 @@ Live in this slice:
   ID, preview route, webinar/resource page-shape metadata, owner-session
   editable draft capability metadata, owner-session checkout-link capability
   metadata, owner-session resource delivery link capability metadata,
+  funnel resource-delivery receipt capability metadata,
   owner-session webinar event link capability metadata, owner-session visual
   block style capability metadata, owner-session bounded canvas layout capability metadata,
   owner-session block reorder capability metadata, owner-session cross-step
@@ -91,8 +95,18 @@ Live in this slice:
   revision, and audit correlation checks. Responses are redacted
   and exclude owner email, owner user ID, private session data, raw rows, buyer
   data, R2 keys, signed URLs, billing mutations, and public agent write state.
+- `/api/agent/funnels/resource-delivery-tokens`: owner-session JSON endpoint
+  that creates funnel-scoped private download tokens for published linked
+  resource blocks after exact confirmation, idempotency, current published
+  revision, checkout intent, entitlement, and audit correlation checks.
+- `/api/products/downloads`: existing private download route. When a
+  funnel-scoped resource token is redeemed successfully, it records a redacted
+  resource-delivery receipt with safe funnel, block, product, asset, and source
+  metadata. Receipt source-data excludes buyer data, raw checkout IDs, raw
+  entitlement IDs, bearer tokens, R2 keys, signed URLs, raw rows, arbitrary
+  uploaded asset delivery, and live fulfillment automation.
 - D1 tables: `funnel_drafts`, `funnel_draft_steps`, `funnel_audit_events`, and
-  `funnel_purge_events`.
+  `funnel_purge_events`, plus `funnel_resource_delivery_receipts`.
 - Agent manifest entries for reading funnel state, distinguishing owner-session
   draft capability, and future MCP resources/tools.
 
@@ -180,7 +194,11 @@ fulfillment automation. Verified owner-session agents can create the same
 scoped delivery token through `/api/agent/funnels/resource-delivery-tokens`
 after exact confirmation, idempotency, current published revision checks,
 checkout intent, entitlement, and audit correlation; idempotent replays return
-redacted audit metadata because raw bearer tokens are not stored. Published webinar-linked blocks can render external
+redacted audit metadata because raw bearer tokens are not stored. Successful
+redemption through `/api/products/downloads` records a redacted
+resource-delivery receipt keyed to the safe funnel, block, product, asset, and
+source metadata, with only hashed checkout and entitlement references in the
+stored receipt. Published webinar-linked blocks can render external
 registration and replay references while keeping provider secrets and attendee
 records hidden. Owner product delivery-gate links can
 connect an owner-created product test checkout link to the seeded offer/funnel
@@ -207,7 +225,10 @@ a private draft, publish a draft, archive/unpublish a draft, or purge an already
 archived draft while returning only redacted draft or purge tombstone summaries.
 The owner-session resource-token endpoint can create a scoped download token for
 published linked resource blocks; it does not expose raw tokens on replay,
-private R2 keys, signed URLs, buyer data, or owner identity.
+private R2 keys, signed URLs, buyer data, or owner identity. Successful
+redemption records a redacted resource-delivery receipt and `/funnels/source-data`
+exposes aggregate receipt counts plus latest safe receipt summaries without raw
+buyer, checkout, entitlement, token, R2, signed URL, or raw-row data.
 Future unauthenticated public agent publishing, unauthenticated public agent-created delivery tokens, live
 billing, live webinar scheduling, attendance tracking, replay hosting,
 arbitrary uploaded private asset delivery, signed URLs, live fulfillment

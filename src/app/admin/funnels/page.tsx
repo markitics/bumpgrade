@@ -47,6 +47,7 @@ import {
   funnelTemplateLibrary,
   normalizeFunnelBlockCanvasLayout,
 } from "@/lib/funnels";
+import { getFunnelResourceDeliveryReceiptSummary } from "@/lib/funnel-resource-delivery-receipts";
 import { productAccessCatalogs } from "@/lib/product-access";
 
 export const metadata: Metadata = {
@@ -84,7 +85,10 @@ export default async function AdminFunnelsPage() {
   const adminState = await getCurrentAdminState();
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/funnels" />;
 
-  const state = await getDraftFunnelAdminState();
+  const [state, resourceDeliveryReceipts] = await Promise.all([
+    getDraftFunnelAdminState(),
+    getFunnelResourceDeliveryReceiptSummary(),
+  ]);
   const seedIdempotencyKey = "funnel-draft-seed-indie-launch-working-copy-v1";
   const templateIdempotencySeed = state.drafts.length;
   const archivedDrafts = state.drafts.filter((draft) => draft.status === "archived");
@@ -118,12 +122,14 @@ export default async function AdminFunnelsPage() {
             block movement, private draft duplication, public publishing with archive rollback, archive/unpublish, and
             archived-draft purge with tombstone evidence, and owner-session agents can create funnel-scoped resource
             delivery tokens for published linked resource blocks after exact confirmation, idempotency, published revision
-            checks, entitlement checks, and audit correlation. Owner-session visual style and bounded canvas layout
-            controls now render in private previews and public published routes. Archived-draft bulk retention cleanup is
-            available for selected archived drafts with one tombstone per draft. Non-archived purge,
-            unbounded arbitrary CSS or script layout editing,
-            live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery automation,
-            unauthenticated public agent publishing, and unauthenticated public agent-created delivery tokens still need confirmed-write slices.
+            checks, entitlement checks, and audit correlation. Successful private resource downloads now record redacted
+            receipt evidence for the linked funnel, block, product, and asset without exposing buyer data, raw checkout or
+            entitlement IDs, tokens, R2 keys, or signed URLs. Owner-session visual style and bounded canvas layout controls
+            now render in private previews and public published routes. Archived-draft bulk retention cleanup is available
+            for selected archived drafts with one tombstone per draft. Non-archived purge, unbounded arbitrary CSS or script
+            layout editing, live webinar scheduling, attendance tracking, replay hosting, arbitrary resource delivery
+            automation, unauthenticated public agent publishing, and unauthenticated public agent-created delivery tokens
+            still need confirmed-write slices.
           </p>
           <div className="hero-actions">
             <Link href="/funnels/source-data" className="primary-action">
@@ -142,6 +148,73 @@ export default async function AdminFunnelsPage() {
           <strong>{state.drafts.length} draft{state.drafts.length === 1 ? "" : "s"}</strong>
           <span>{state.loadError ?? state.storage}</span>
         </aside>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Delivery receipts</p>
+            <h2>Private resource access has redacted receipt evidence</h2>
+          </div>
+          <span className="status-badge active">{resourceDeliveryReceipts.status}</span>
+        </div>
+        <div className="admin-action-grid">
+          <article className="admin-action-panel">
+            <div>
+              <p className="eyebrow">Fulfillment proof</p>
+              <h3>
+                {resourceDeliveryReceipts.count} resource receipt{resourceDeliveryReceipts.count === 1 ? "" : "s"}
+              </h3>
+              <p>
+                Successful funnel-scoped private downloads record safe funnel, block, product, asset, and receipt-source
+                metadata. Buyer data, raw checkout and entitlement IDs, raw bearer tokens, R2 keys, signed URLs, and raw
+                rows stay out of this summary.
+              </p>
+            </div>
+            <div className="feature-detail-grid">
+              {resourceDeliveryReceipts.countsBySource.length > 0 ? (
+                resourceDeliveryReceipts.countsBySource.map((source, index) => (
+                  <span key={source.deliverySource}>
+                    {source.deliverySource.replaceAll("-", " ")}: {source.count}
+                    {index < resourceDeliveryReceipts.countsBySource.length - 1 ? "; " : ""}
+                  </span>
+                ))
+              ) : (
+                <span>No resource receipt rows yet</span>
+              )}
+            </div>
+            <Link href="/funnels/source-data" className="secondary-action">
+              Inspect receipt source data
+              <ShieldCheck aria-hidden="true" />
+            </Link>
+          </article>
+          <article className="admin-action-panel">
+            <div>
+              <p className="eyebrow">Latest safe receipt</p>
+              {resourceDeliveryReceipts.latestReceipts[0] ? (
+                <>
+                  <h3>{resourceDeliveryReceipts.latestReceipts[0].assetTitle}</h3>
+                  <p>
+                    {resourceDeliveryReceipts.latestReceipts[0].funnelTitle} /{" "}
+                    {resourceDeliveryReceipts.latestReceipts[0].blockTitle}
+                  </p>
+                  <p>
+                    Source: {resourceDeliveryReceipts.latestReceipts[0].deliverySource.replaceAll("-", " ")}. Recorded:{" "}
+                    {resourceDeliveryReceipts.latestReceipts[0].createdAt ?? "recently"}.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3>Receipts will appear after a private resource download</h3>
+                  <p>
+                    The first successful published funnel resource download will show here with safe asset and block
+                    context only.
+                  </p>
+                </>
+              )}
+            </div>
+          </article>
+        </div>
       </section>
 
       <section className="content-band alternate">
