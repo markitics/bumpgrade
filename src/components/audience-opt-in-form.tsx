@@ -76,7 +76,6 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           value={email}
           autoComplete="email"
           inputMode="email"
-          placeholder="publisher@example.com"
           onChange={(event) => setEmail(event.target.value)}
           onBlur={(event) => setEmail(event.currentTarget.value.trim())}
         />
@@ -87,7 +86,6 @@ export function AudienceOptInForm({ formId, consentStatement }: AudienceOptInFor
           type="text"
           value={firstName}
           autoComplete="given-name"
-          placeholder="Mark"
           onChange={(event) => setFirstName(event.target.value)}
           onBlur={(event) => setFirstName(event.currentTarget.value.trim())}
         />

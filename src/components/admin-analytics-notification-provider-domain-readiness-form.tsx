@@ -189,7 +189,6 @@ export function AdminAnalyticsNotificationProviderDomainReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private provider/domain readiness note, hashed before storage"
         />
       </label>
       <button

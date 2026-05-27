@@ -112,20 +112,21 @@ export function AdminProductOfferAccessGrantForm({ products }: AdminProductOffer
       </label>
       <label className="admin-form-field">
         <span>Offer ID</span>
-        <input value={offerId} onChange={(event) => setOfferId(event.target.value)} placeholder={resolvedOfferId || "offer-owner-product-test"} />
+        <input value={offerId} onChange={(event) => setOfferId(event.target.value)} />
       </label>
       <label className="admin-form-field">
         <span>Funnel ID</span>
-        <input value={funnelId} onChange={(event) => setFunnelId(event.target.value)} placeholder={resolvedFunnelId || "funnel-owner-product-test"} />
+        <input value={funnelId} onChange={(event) => setFunnelId(event.target.value)} />
       </label>
+      <p className="field-hint">Leave offer and funnel IDs blank to use test IDs for the selected product.</p>
       <label className="admin-form-field">
         <span>Test buyer email</span>
         <input
           value={buyerEmail}
           onChange={(event) => setBuyerEmail(event.target.value)}
-          placeholder={selectedProduct ? `test-buyer+${selectedProduct.slug}@bumpgrade.local` : "test-buyer@bumpgrade.local"}
         />
       </label>
+      <p className="field-hint">Leave buyer email blank to use a test buyer address for the selected product.</p>
       <label className="admin-form-field">
         <span>Test amount cents</span>
         <input inputMode="numeric" value={amountCents} onChange={(event) => setAmountCents(event.target.value)} />

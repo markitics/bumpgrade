@@ -167,7 +167,6 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
             <input
               type="email"
               value={buyerEmail}
-              placeholder="buyer@example.com"
               onChange={(event) => setBuyerEmail(event.target.value)}
               onBlur={(event) => setBuyerEmail(event.currentTarget.value.trim())}
             />
@@ -179,7 +178,6 @@ export function CheckoutStartPanel({ stack, context }: CheckoutStartPanelProps) 
               value={confirmationText}
               onChange={(event) => setConfirmationText(event.target.value)}
               rows={3}
-              placeholder={stack.confirmation.checkoutText}
             />
           </label>
 

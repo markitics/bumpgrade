@@ -75,7 +75,6 @@ export function AdminAudienceNoteForm({ subscriberId, expectedSubscriberStatus }
           value={noteBody}
           rows={3}
           maxLength={800}
-          placeholder="Add owner-only contact context"
           onChange={(event) => setNoteBody(event.target.value)}
         />
       </label>

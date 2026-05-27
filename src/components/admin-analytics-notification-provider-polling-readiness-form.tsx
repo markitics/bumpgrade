@@ -232,7 +232,6 @@ export function AdminAnalyticsNotificationProviderPollingReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private provider-polling readiness note, hashed before storage"
         />
       </label>
       <button

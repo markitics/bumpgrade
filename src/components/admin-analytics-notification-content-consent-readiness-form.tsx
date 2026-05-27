@@ -200,7 +200,6 @@ export function AdminAnalyticsNotificationContentConsentReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private content/consent readiness note, hashed before storage"
         />
       </label>
       <button

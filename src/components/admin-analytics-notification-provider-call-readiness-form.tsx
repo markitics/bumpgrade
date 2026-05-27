@@ -228,7 +228,6 @@ export function AdminAnalyticsNotificationProviderCallReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private provider-call readiness note, hashed before storage"
         />
       </label>
       <button

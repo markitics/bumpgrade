@@ -104,7 +104,6 @@ export function ProductTestCheckoutPanel({ link }: ProductTestCheckoutPanelProps
               type="email"
               required
               value={buyerEmail}
-              placeholder="buyer@example.com"
               onChange={(event) => setBuyerEmail(event.target.value)}
               onBlur={(event) => setBuyerEmail(event.currentTarget.value.trim())}
             />
@@ -116,7 +115,6 @@ export function ProductTestCheckoutPanel({ link }: ProductTestCheckoutPanelProps
               value={confirmationText}
               onChange={(event) => setConfirmationText(event.target.value)}
               rows={3}
-              placeholder={productTestCheckoutConfirmationText}
             />
           </label>
 

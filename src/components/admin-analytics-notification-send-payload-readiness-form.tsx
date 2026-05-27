@@ -207,7 +207,6 @@ export function AdminAnalyticsNotificationSendPayloadReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private send-payload readiness note, hashed before storage"
         />
       </label>
       <button

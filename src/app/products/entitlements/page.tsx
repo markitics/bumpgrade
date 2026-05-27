@@ -73,7 +73,6 @@ export default async function CustomerProductEntitlementsPage({ searchParams }: 
               name="checkout_intent_id"
               type="text"
               defaultValue={checkoutIntentId ?? ""}
-              placeholder="checkout-intent-..."
               autoComplete="off"
             />
             <div className="hero-actions">

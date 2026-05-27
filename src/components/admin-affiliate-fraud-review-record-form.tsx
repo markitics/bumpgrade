@@ -128,7 +128,6 @@ export function AdminAffiliateFraudReviewRecordForm({ evidence }: AdminAffiliate
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private fraud review note, hashed before storage"
         />
       </label>
       <button type="submit" className="secondary-action admin-step-goal-field" disabled={isSubmitting}>

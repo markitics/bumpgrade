@@ -116,7 +116,6 @@ export function AdminProductRevocationIntentForm({
           value={privateReason}
           onChange={(event) => setPrivateReason(event.target.value)}
           rows={3}
-          placeholder="Private owner note, hashed before storage"
         />
       </label>
       <button type="submit" className="secondary-action" disabled={isSubmitting}>
