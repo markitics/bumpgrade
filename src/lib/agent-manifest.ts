@@ -78,6 +78,10 @@ import {
   analyticsExperimentDecisionIssue,
 } from "@/lib/analytics-experiment-decisions";
 import {
+  analyticsExperimentWinnerRolloutApiRoute,
+  analyticsExperimentWinnerRolloutIssue,
+} from "@/lib/analytics-experiment-winner-rollouts";
+import {
   analyticsNotificationInboxApiRoute,
   analyticsNotificationInboxIssue,
 } from "@/lib/analytics-notification-inbox";
@@ -1788,7 +1792,8 @@ export const agentReadContracts: AgentReadContract[] = [
     route: "/analytics/source-data",
     kind: "json",
     auth: "public",
-    sourceOfTruth: "src/lib/analytics-experiments.ts + src/lib/analytics-conversion-report.ts",
+    sourceOfTruth:
+      "src/lib/analytics-experiments.ts + src/lib/analytics-conversion-report.ts + src/lib/analytics-experiment-winner-rollouts.ts",
     stableIds: [
       "analyticsEventId",
       "analyticsEventIngestionId",
@@ -1801,6 +1806,9 @@ export const agentReadContracts: AgentReadContract[] = [
       "analyticsExperimentRoutingSignal",
       "experimentAssignmentId",
       "analyticsExperimentDecisionId",
+      "analyticsExperimentWinnerRolloutId",
+      "analyticsExperimentWinnerRolloutStatus",
+      "analyticsExperimentWinnerRolloutRevision",
       "analyticsReportExportId",
       "analyticsReportExportSectionId",
       "analyticsCohortFixtureId",
@@ -1903,11 +1911,12 @@ export const agentReadContracts: AgentReadContract[] = [
       "Inspect browser-side page-view beacon boundary",
       "Inspect seeded experiment assignment boundary",
       "Inspect public-safe custom routing rules, seeded sandbox funnel copy routing, and baseline holdout metadata",
+      "Inspect owner-confirmed winner rollout and rollback evidence without raw event rows or raw assignment rows",
       "Inspect experiment assignment boundaries",
       "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
     ],
     writeBoundary:
-      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, public-safe custom source/campaign routing rules, seeded sandbox funnel copy routing with a baseline holdout, owner-confirmed notification inbox records from issue #${analyticsNotificationInboxIssue}, owner-confirmed notification dispatch preflights from issue #${analyticsNotificationDispatchPreflightIssue}, owner-reviewed provider/domain readiness records from issue #${analyticsNotificationProviderDomainReadinessIssue}, owner-reviewed content/consent readiness records from issue #${analyticsNotificationContentConsentReadinessIssue}, owner-reviewed send-payload readiness records from issue #${analyticsNotificationSendPayloadReadinessIssue}, owner-reviewed queue-producer readiness records from issue #${analyticsNotificationQueueProducerReadinessIssue}, owner-reviewed queue-consumer readiness records from issue #${analyticsNotificationQueueConsumerReadinessIssue}, owner-reviewed provider-call readiness records from issue #${analyticsNotificationProviderCallReadinessIssue}, owner-reviewed delivery-attempt readiness records from issue #${analyticsNotificationDeliveryAttemptReadinessIssue}, owner-reviewed delivery-result readiness records from issue #${analyticsNotificationDeliveryResultReadinessIssue}, owner-reviewed delivery-status-webhook readiness records from issue #${analyticsNotificationDeliveryStatusWebhookReadinessIssue}, owner-reviewed provider-polling readiness records from issue #${analyticsNotificationProviderPollingReadinessIssue}, owner-reviewed receipt-payload readiness records from issue #${analyticsNotificationReceiptPayloadReadinessIssue}, owner-reviewed delivery-receipt readiness records from issue #${analyticsNotificationDeliveryReceiptReadinessIssue}, owner-reviewed provider-status reconciliation readiness records from issue #${analyticsNotificationProviderStatusReconciliationReadinessIssue}, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, and redacted decision counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw routing URL storage, raw analytics exports, automated alert sends, owner email sends, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, provider configuration, provider secrets, sender credentials, private DNS credentials, queue dispatch, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, body templates, unsubscribe URLs, customer alerts, custom events beyond the seeded boundary, traffic routing beyond the seeded sandbox copy path, automated winners, and direct public agent decision writes require future confirmed-write APIs.`,
+      `Seeded analytics events, browser-side seeded funnel page-view beacons with deterministic variant evidence and normalized source attribution, seeded experiment assignments, public-safe custom source/campaign routing rules, seeded sandbox funnel copy routing with a baseline holdout, owner-confirmed winner rollout and rollback routing from issue #${analyticsExperimentWinnerRolloutIssue}, owner-confirmed notification inbox records from issue #${analyticsNotificationInboxIssue}, owner-confirmed notification dispatch preflights from issue #${analyticsNotificationDispatchPreflightIssue}, owner-reviewed provider/domain readiness records from issue #${analyticsNotificationProviderDomainReadinessIssue}, owner-reviewed content/consent readiness records from issue #${analyticsNotificationContentConsentReadinessIssue}, owner-reviewed send-payload readiness records from issue #${analyticsNotificationSendPayloadReadinessIssue}, owner-reviewed queue-producer readiness records from issue #${analyticsNotificationQueueProducerReadinessIssue}, owner-reviewed queue-consumer readiness records from issue #${analyticsNotificationQueueConsumerReadinessIssue}, owner-reviewed provider-call readiness records from issue #${analyticsNotificationProviderCallReadinessIssue}, owner-reviewed delivery-attempt readiness records from issue #${analyticsNotificationDeliveryAttemptReadinessIssue}, owner-reviewed delivery-result readiness records from issue #${analyticsNotificationDeliveryResultReadinessIssue}, owner-reviewed delivery-status-webhook readiness records from issue #${analyticsNotificationDeliveryStatusWebhookReadinessIssue}, owner-reviewed provider-polling readiness records from issue #${analyticsNotificationProviderPollingReadinessIssue}, owner-reviewed receipt-payload readiness records from issue #${analyticsNotificationReceiptPayloadReadinessIssue}, owner-reviewed delivery-receipt readiness records from issue #${analyticsNotificationDeliveryReceiptReadinessIssue}, owner-reviewed provider-status reconciliation readiness records from issue #${analyticsNotificationProviderStatusReconciliationReadinessIssue}, and owner-confirmed experiment decision evidence can be captured with idempotency, source-route validation, aggregate count checks, and bot/preview suppression; fixed-window aggregate funnel conversion reports, dashboard-visible aggregate source counts, aggregate variant counts, aggregate report export metadata, owner-reviewed cohort comparison evidence from issue #${analyticsCohortComparisonIssue}, owner-reviewed alert threshold/anomaly-review evidence from issue #${analyticsAlertAnomalyIssue}, owner-reviewed notification delivery readiness evidence from issue #${analyticsNotificationReadinessIssue}, redacted decision counts, and redacted winner rollout counts can be read from captured test events. Cookie assignment, contact analytics, raw campaign/referrer reporting, raw routing URL storage, raw analytics exports, automated alert sends, owner email sends, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, provider configuration, provider secrets, sender credentials, private DNS credentials, queue dispatch, Queue producer execution, Queue consumer execution, queue messages, queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, body templates, unsubscribe URLs, customer alerts, custom events beyond the seeded boundary, raw/private exports, and direct public agent decision writes require future confirmed-write APIs.`,
   },
   {
     id: "create-owner-analytics-experiment-decision",
@@ -1933,6 +1942,33 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       `This owner-session API records redacted experiment decision evidence in D1 after exact confirmation, idempotency, dashboard revision checks, experiment status checks, aggregate count validation, and sample-size caveat acknowledgement. It does not route traffic, assign cookies, select automated winners, expose raw event rows, expose raw assignment rows, expose contact analytics, make revenue claims, or allow unauthenticated/direct public agent experiment writes. Issue #${analyticsExperimentDecisionIssue} tracks this slice.`,
+  },
+  {
+    id: "create-owner-analytics-winner-rollout",
+    title: "Owner analytics winner rollout",
+    route: analyticsExperimentWinnerRolloutApiRoute,
+    kind: "api",
+    auth: "owner-session",
+    sourceOfTruth: "D1 table analytics_experiment_winner_rollouts plus analytics_events and analytics_experiment_assignments aggregates",
+    stableIds: [
+      "analyticsExperimentWinnerRolloutId",
+      "analyticsExperimentWinnerRolloutRevision",
+      "analyticsDashboardId",
+      "experimentId",
+      "variantId",
+      "analyticsTimeWindow",
+      "ownerUserId",
+      "idempotencyKey",
+    ],
+    safeForAgents: [
+      "Inspect the owner-only analytics winner rollout and rollback confirmation contract",
+      "Record owner-reviewed winner rollout evidence only with an owner session",
+      "Record owner-reviewed rollback evidence only with a current rollout revision",
+      "Use exact confirmation, idempotency, dashboard revision checks, experiment status checks, aggregate assignment counts, and sample-size caveat acknowledgement before writing",
+      "Confirm responses omit raw event rows, raw assignment rows, visitor keys, actor emails, actor hashes, private notes, contact analytics, raw routing URLs, raw/private exports, provider sends, Queue execution, and revenue claims",
+    ],
+    writeBoundary:
+      `This owner-session API records redacted winner rollout and rollback evidence in D1 after exact confirmation, idempotency, dashboard revision checks, experiment status checks, aggregate count validation, current rollout revision checks, and sample-size caveat acknowledgement. Custom source/campaign rules stay ahead of winner rollout routing. It does not assign cookies, expose raw event rows, expose raw assignment rows, expose contact analytics, expose raw routing URLs, make revenue claims, call providers, dispatch queues, or allow unauthenticated/direct public agent experiment writes. Issue #${analyticsExperimentWinnerRolloutIssue} tracks this slice.`,
   },
   {
     id: "create-owner-analytics-notification-inbox-record",
@@ -3427,9 +3463,18 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     status: "ready-contract",
     backedBy: "/analytics/source-data",
     purpose:
-      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, public-safe custom routing rules, seeded sandbox funnel copy routing, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflight evidence, owner-reviewed notification delivery-status webhook readiness evidence, owner-reviewed notification provider-polling readiness evidence, owner-reviewed notification receipt-payload readiness evidence, owner-reviewed notification delivery-receipt readiness evidence, owner-reviewed notification provider-status reconciliation readiness evidence, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
+      "Expose seeded event taxonomy, browser-side page-view beacon boundaries, public-safe custom routing rules, seeded sandbox funnel copy routing, owner-confirmed winner rollout evidence, dashboard-visible aggregate source attribution rows, fixed time-window metadata, aggregate event counts, aggregate source attribution counts, aggregate variant event counts, aggregate assignment counts, aggregate conversion report rows, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflight evidence, owner-reviewed notification delivery-status webhook readiness evidence, owner-reviewed notification provider-polling readiness evidence, owner-reviewed notification receipt-payload readiness evidence, owner-reviewed notification delivery-receipt readiness evidence, owner-reviewed notification provider-status reconciliation readiness evidence, owner-confirmed experiment decision evidence, metric formulas, experiment variants, assignment rules, and sample-size caveats.",
     safetyBoundary:
-      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, public-safe custom source/campaign routing rules, seeded sandbox funnel copy routing, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflight evidence, staged notification readiness through provider-status reconciliation evidence, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, raw routing URL storage, raw analytics exports, contact analytics, automated alert sends, owner email sends, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, status webhooks, provider polling, receipt payload capture, delivery receipt creation, provider status reconciliation, queue dispatch, customer alerts, experiment traffic routing beyond the seeded sandbox copy path, custom events beyond the seeded boundary, automated winners, and public decision writes require confirmed-write contracts.",
+      "Seeded event capture, browser-side page-view beacons with deterministic variant evidence and normalized source attribution, deterministic assignment, public-safe custom source/campaign routing rules, seeded sandbox funnel copy routing, owner-confirmed winner rollout and rollback evidence, dashboard-visible fixed-window aggregate source rows, aggregate conversion reporting, aggregate report export metadata, owner-reviewed cohort comparison evidence, owner-reviewed alert threshold/anomaly-review evidence, owner-reviewed notification delivery readiness evidence, owner-confirmed notification inbox records, owner-confirmed dispatch preflight evidence, staged notification readiness through provider-status reconciliation evidence, and owner-confirmed decision evidence are live; cookie assignment, raw visitor tracking, raw referrer/query reporting, raw routing URL storage, raw analytics exports, contact analytics, automated alert sends, owner email sends, provider sends, provider calls, delivery attempts, delivery results, delivery status webhooks, status webhooks, provider polling, receipt payload capture, delivery receipt creation, provider status reconciliation, queue dispatch, customer alerts, custom events beyond the seeded boundary, and public decision writes require confirmed-write contracts.",
+  },
+  {
+    id: "mcp-resource-analytics-winner-rollouts",
+    resourceOrTool: "resource bumpgrade://analytics-winner-rollouts",
+    status: "ready-contract",
+    backedBy: "/analytics/source-data",
+    purpose: `Expose owner-confirmed analytics winner rollout and rollback evidence from issue #${analyticsExperimentWinnerRolloutIssue}.`,
+    safetyBoundary:
+      "This resource reads aggregate winner rollout counts, active rollout public metadata, selected treatment variant IDs, current rollout revisions, selected fixed windows, sample-size caveats, and redaction flags only. It must not expose raw event rows, raw assignment rows, visitor keys, contact analytics, raw routing URLs, private notes, actor emails, actor hashes, raw/private exports, provider sends, Queue execution, public agent writes, or revenue claims.",
   },
   {
     id: "mcp-resource-analytics-report-exports",
@@ -3603,6 +3648,16 @@ export const agentMcpPlan: AgentMcpPlan[] = [
       `Record owner-confirmed analytics experiment decision evidence on top of the same D1 contract from issue #${analyticsExperimentDecisionIssue}.`,
     safetyBoundary:
       "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, experiment status checks, fixed time-window selection, aggregate count validation, sample-size caveat acknowledgement, audit metadata, and redacted output. It must not route traffic, assign cookies, choose automated winners, expose raw event rows, expose raw assignment rows, expose contact analytics, make revenue claims, or enable direct public agent experiment writes.",
+  },
+  {
+    id: "mcp-tool-create-analytics-winner-rollout",
+    resourceOrTool: "tool create_analytics_winner_rollout",
+    status: "planned",
+    backedBy: analyticsExperimentWinnerRolloutApiRoute,
+    purpose:
+      `Record owner-confirmed analytics winner rollout or rollback evidence on top of the same D1 contract from issue #${analyticsExperimentWinnerRolloutIssue}.`,
+    safetyBoundary:
+      "Requires owner identity, exact confirmation, idempotency key, dashboard revision checks, experiment status checks, fixed time-window selection, aggregate count validation, sample-size caveat acknowledgement, current rollout revision checks for rollback, audit metadata, and redacted output. Custom source/campaign rules stay ahead of winner rollout routing. It must not assign cookies, expose raw event rows, expose raw assignment rows, expose contact analytics, expose raw routing URLs, make revenue claims, call providers, dispatch queues, or enable direct public agent experiment writes.",
   },
   {
     id: "mcp-tool-create-analytics-notification-inbox-record",

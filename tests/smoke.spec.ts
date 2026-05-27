@@ -205,6 +205,13 @@ import {
   analyticsExperimentDecisionStatus,
 } from "../src/lib/analytics-experiment-decisions";
 import {
+  analyticsExperimentWinnerRollbackConfirmationText,
+  analyticsExperimentWinnerRolloutApiRoute,
+  analyticsExperimentWinnerRolloutConfirmationText,
+  analyticsExperimentWinnerRolloutIssue,
+  analyticsExperimentWinnerRolloutStatus,
+} from "../src/lib/analytics-experiment-winner-rollouts";
+import {
   analyticsNotificationInboxApiRoute,
   analyticsNotificationInboxConfirmationText,
   analyticsNotificationInboxIssue,
@@ -9697,7 +9704,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect(payload).toEqual(
         expect.objectContaining({
           id: analyticsExperimentsSourceData.id,
-          status: "custom-routing-rules-ready",
+          status: "winner-rollout-ready",
           issue: 129,
           executionIssue: 422,
           parentIssue: 18,
@@ -9709,6 +9716,7 @@ test.describe("Bumpgrade scaffold", () => {
         "/api/analytics/events",
         "/api/analytics/assignments",
         analyticsExperimentDecisionApiRoute,
+        analyticsExperimentWinnerRolloutApiRoute,
         analyticsNotificationInboxApiRoute,
         analyticsNotificationDispatchPreflightApiRoute,
         analyticsNotificationProviderDomainReadinessApiRoute,
@@ -9734,6 +9742,9 @@ test.describe("Bumpgrade scaffold", () => {
         "experimentAssignmentId",
         "analyticsExperimentDecisionId",
         "analyticsExperimentDecisionKind",
+        "analyticsExperimentWinnerRolloutId",
+        "analyticsExperimentWinnerRolloutStatus",
+        "analyticsExperimentWinnerRolloutRevision",
         "analyticsNotificationInboxRecordId",
         "analyticsNotificationInboxStatus",
         "analyticsNotificationDispatchPreflightId",
@@ -9794,7 +9805,12 @@ test.describe("Bumpgrade scaffold", () => {
           issue: 107,
           apiRoute: "/api/analytics/assignments",
           tables: expect.arrayContaining(["analytics_experiment_assignments"]),
-          publicSafeFields: expect.arrayContaining(["customRoutingRuleId", "customRoutingRuleMatched"]),
+          publicSafeFields: expect.arrayContaining([
+            "customRoutingRuleId",
+            "customRoutingRuleMatched",
+            "winnerRolloutId",
+            "winnerRolloutMatched",
+          ]),
         }),
       );
     expect(payload.trafficRouting).toEqual(
@@ -9816,6 +9832,7 @@ test.describe("Bumpgrade scaffold", () => {
         holdoutTrafficWeight: 10,
         treatmentTrafficWeight: 90,
         automatedWinnerEnabled: false,
+        winnerRolloutEnabled: true,
         customRoutingRulesEnabled: true,
         customRoutingRuleIds: expect.arrayContaining([
           "analytics-custom-routing-rule-partner-launch-outcome",
@@ -9881,6 +9898,17 @@ test.describe("Bumpgrade scaffold", () => {
         apiRoute: analyticsExperimentDecisionApiRoute,
         auth: "owner-session",
         tables: expect.arrayContaining(["analytics_experiment_decisions"]),
+      }),
+    );
+    expect(payload.winnerRolloutWrites).toEqual(
+      expect.objectContaining({
+        status: analyticsExperimentWinnerRolloutStatus,
+        issue: analyticsExperimentWinnerRolloutIssue,
+        apiRoute: analyticsExperimentWinnerRolloutApiRoute,
+        auth: "owner-session",
+        tables: expect.arrayContaining(["analytics_experiment_winner_rollouts"]),
+        rolloutConfirmationText: analyticsExperimentWinnerRolloutConfirmationText,
+        rollbackConfirmationText: analyticsExperimentWinnerRollbackConfirmationText,
       }),
     );
     expect(payload.notificationInboxWrites).toEqual(
@@ -9984,6 +10012,31 @@ test.describe("Bumpgrade scaffold", () => {
           privateNoteIncluded: false,
           trafficRoutingEnabled: false,
           automatedWinnerEnabled: false,
+        }),
+      }),
+    );
+    expect(payload.experimentWinnerRollouts).toEqual(
+      expect.objectContaining({
+        status: analyticsExperimentWinnerRolloutStatus,
+        issue: analyticsExperimentWinnerRolloutIssue,
+        apiRoute: analyticsExperimentWinnerRolloutApiRoute,
+        ownerRoute: "/admin/analytics",
+        currentEvidenceByWindow: expect.arrayContaining([
+          expect.objectContaining({
+            timeWindow: expect.objectContaining({ key: "all" }),
+            experimentId: "experiment-opt-in-hero-promise",
+            rawRowsIncluded: false,
+            privateDataIncluded: false,
+          }),
+        ]),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          privateNoteIncluded: false,
+          rollbackNoteIncluded: false,
+          rawRoutingUrlsIncluded: false,
+          customRoutingPreserved: true,
         }),
       }),
     );
@@ -10958,6 +11011,8 @@ test.describe("Bumpgrade scaffold", () => {
         rawRequestDataIncluded: false,
         customRoutingRuleId: null,
         customRoutingRuleMatched: false,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
       }),
     );
@@ -10980,6 +11035,8 @@ test.describe("Bumpgrade scaffold", () => {
         assignmentBucket: firstResult.assignmentBucket,
         customRoutingRuleId: null,
         customRoutingRuleMatched: false,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
       }),
     );
@@ -10997,6 +11054,8 @@ test.describe("Bumpgrade scaffold", () => {
         assignmentBucket: firstResult.assignmentBucket,
         customRoutingRuleId: null,
         customRoutingRuleMatched: false,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
       }),
     );
@@ -11017,6 +11076,8 @@ test.describe("Bumpgrade scaffold", () => {
         variantId: "variant-opt-in-outcome-first",
         customRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
         customRoutingRuleMatched: true,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
         privateDataIncluded: false,
         rawRequestDataIncluded: false,
@@ -11037,6 +11098,8 @@ test.describe("Bumpgrade scaffold", () => {
         variantId: "variant-opt-in-outcome-first",
         customRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
         customRoutingRuleMatched: true,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
       }),
     );
@@ -11057,6 +11120,8 @@ test.describe("Bumpgrade scaffold", () => {
         variantId: "variant-opt-in-speed-first",
         customRoutingRuleId: "analytics-custom-routing-rule-fast-lane-speed",
         customRoutingRuleMatched: true,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
         rawRoutingValuesIncluded: false,
       }),
     );
@@ -11315,9 +11380,334 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sourceText).not.toContain("m@rkmoriarty.com");
 
     await page.goto("/admin/analytics");
-    await expect(page.getByRole("heading", { name: /Experiment decisions stay evidenced before automated winners/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Experiment winners need evidence and rollback/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Record experiment decision/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: variant.label }).first()).toBeVisible();
+  });
+
+  test("owner analytics winner rollouts require auth, exact rollback state, and preserve custom routing priority", async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Owner analytics winner rollout auth flow is covered once on desktop.");
+
+    const suffix = Date.now();
+    const experiment = analyticsDashboard.experiments[0];
+    const selectedVariant = experiment.variants.find((variant) => variant.id === "variant-opt-in-speed-first") ?? experiment.variants[1];
+    const holdoutVariant = experiment.variants.find((variant) => variant.routingRole === "holdout") ?? experiment.variants[2];
+    const privateNote = `Private analytics winner rollout note for m@rkmoriarty.com ${suffix}`;
+
+    const sourceResponse = await request.get("/analytics/source-data");
+    expect(sourceResponse.ok(), await sourceResponse.text()).toBeTruthy();
+    const sourcePayload = await sourceResponse.json();
+    const evidence = sourcePayload.experimentWinnerRollouts.currentEvidenceByWindow.find(
+      (candidate: { timeWindow: { key: string } }) => candidate.timeWindow.key === "all",
+    );
+    expect(evidence).toBeTruthy();
+    const expectedVariantCounts = Object.fromEntries(
+      evidence.variantCounts.map((row: { variantId: string; totalAssignments: number }) => [
+        row.variantId,
+        row.totalAssignments,
+      ]),
+    );
+    const idempotencyKey = `playwright-analytics-winner-rollout-${suffix}`;
+    const requestBody = {
+      action: "rollout_winner",
+      dashboardId: analyticsDashboard.id,
+      experimentId: experiment.id,
+      selectedVariantId: selectedVariant.id,
+      timeWindowKey: evidence.timeWindow.key,
+      expectedDashboardRevisionId: analyticsDashboard.revisionId,
+      expectedExperimentStatus: experiment.status,
+      expectedAssignmentCount: evidence.assignmentCount,
+      expectedVariantCounts,
+      expectedPrimaryMetricId: evidence.primaryMetricId,
+      expectedConversionSampleSize: evidence.conversionSampleSize,
+      sampleSizeCaveatAcknowledged: true,
+      privateNote,
+      confirmationText: analyticsExperimentWinnerRolloutConfirmationText,
+      idempotencyKey,
+    };
+
+    const unauthorizedGet = await request.get(analyticsExperimentWinnerRolloutApiRoute);
+    expect(unauthorizedGet.status()).toBe(401);
+    await expect(unauthorizedGet.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "owner_session_required",
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          rawRoutingUrlsIncluded: false,
+          actorEmailIncluded: false,
+        }),
+      }),
+    );
+
+    const unauthorizedPost = await request.post(analyticsExperimentWinnerRolloutApiRoute, { data: requestBody });
+    expect(unauthorizedPost.status()).toBe(401);
+    await expect(unauthorizedPost.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "owner_session_required" }),
+    );
+
+    await signInOrCreateOwner(page);
+
+    const activeBefore = sourcePayload.experimentWinnerRollouts.activeRollout;
+    if (activeBefore) {
+      const cleanup = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+        data: {
+          action: "rollback_winner_rollout",
+          dashboardId: analyticsDashboard.id,
+          experimentId: experiment.id,
+          rolloutId: activeBefore.id,
+          expectedActiveRolloutRevision: activeBefore.rolloutRevision,
+          privateNote: `Cleanup stale active rollout ${suffix}`,
+          confirmationText: analyticsExperimentWinnerRollbackConfirmationText,
+          idempotencyKey: `playwright-analytics-winner-cleanup-${suffix}`,
+        },
+      });
+      expect(cleanup.ok(), await cleanup.text()).toBeTruthy();
+    }
+
+    const contractResponse = await page.request.get(analyticsExperimentWinnerRolloutApiRoute);
+    expect(contractResponse.ok(), await contractResponse.text()).toBeTruthy();
+    await expect(contractResponse.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: analyticsExperimentWinnerRolloutStatus,
+        route: analyticsExperimentWinnerRolloutApiRoute,
+        confirmation: expect.objectContaining({
+          rolloutText: analyticsExperimentWinnerRolloutConfirmationText,
+          rollbackText: analyticsExperimentWinnerRollbackConfirmationText,
+        }),
+        contract: expect.objectContaining({
+          redaction: expect.objectContaining({
+            rawEventRowsIncluded: false,
+            rawAssignmentRowsIncluded: false,
+            privateNoteIncluded: false,
+            rollbackNoteIncluded: false,
+            rawRoutingUrlsIncluded: false,
+          }),
+        }),
+      }),
+    );
+
+    const missingConfirmation = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: { ...requestBody, confirmationText: "Pick winner now", idempotencyKey: `${idempotencyKey}-missing` },
+    });
+    expect(missingConfirmation.status()).toBe(400);
+    await expect(missingConfirmation.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "confirmation_required" }),
+    );
+
+    const holdoutWinner = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: { ...requestBody, selectedVariantId: holdoutVariant.id, idempotencyKey: `${idempotencyKey}-holdout` },
+    });
+    expect(holdoutWinner.status()).toBe(400);
+    await expect(holdoutWinner.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "holdout_variant_not_rollout_winner" }),
+    );
+
+    const staleRevision = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: {
+        ...requestBody,
+        expectedDashboardRevisionId: "stale-analytics-dashboard-revision",
+        idempotencyKey: `${idempotencyKey}-stale-revision`,
+      },
+    });
+    expect(staleRevision.status()).toBe(409);
+    await expect(staleRevision.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: false,
+        code: "stale_dashboard_revision",
+        currentDashboardRevisionId: analyticsDashboard.revisionId,
+      }),
+    );
+
+    const staleEvidence = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: {
+        ...requestBody,
+        expectedAssignmentCount: requestBody.expectedAssignmentCount + 1,
+        idempotencyKey: `${idempotencyKey}-stale-evidence`,
+      },
+    });
+    expect(staleEvidence.status()).toBe(409);
+    await expect(staleEvidence.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "stale_analytics_evidence" }),
+    );
+
+    const created = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, { data: requestBody });
+    expect(created.status(), await created.text()).toBe(201);
+    const createdPayload = await created.json();
+    expect(createdPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_experiment_winner_rollout_recorded",
+        duplicate: false,
+        rollout: expect.objectContaining({
+          dashboardId: analyticsDashboard.id,
+          experimentId: experiment.id,
+          selectedVariantId: selectedVariant.id,
+          rolloutStatus: "active",
+          timeWindowKey: "all",
+          expectedAssignmentCount: requestBody.expectedAssignmentCount,
+          expectedConversionSampleSize: requestBody.expectedConversionSampleSize,
+          sampleSizeCaveatAcknowledged: true,
+          privateNoteRecorded: true,
+          trafficRoutingEnabled: true,
+          automatedWinnerEnabled: true,
+          customRoutingPreserved: true,
+          cookieAssignmentEnabled: false,
+          revenueClaimEnabled: false,
+          rawEventRowsExposed: false,
+          rawAssignmentRowsExposed: false,
+        }),
+        redaction: expect.objectContaining({
+          rawEventRowsIncluded: false,
+          rawAssignmentRowsIncluded: false,
+          actorEmailIncluded: false,
+          actorEmailHashIncluded: false,
+          privateNoteIncluded: false,
+          rawRoutingUrlsIncluded: false,
+          trafficRoutingEnabled: true,
+          automatedWinnerEnabled: true,
+        }),
+      }),
+    );
+
+    const replay = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, { data: requestBody });
+    expect(replay.status(), await replay.text()).toBe(200);
+    await expect(replay.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_experiment_winner_rollout_replayed",
+        duplicate: true,
+        rollout: expect.objectContaining({ id: createdPayload.rollout.id }),
+      }),
+    );
+
+    const winnerAssignment = await page.request.post("/api/analytics/assignments", {
+      data: {
+        experimentId: experiment.id,
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        anonymousAssignmentKey: `playwright-winner-rollout-assignment-${suffix}`,
+        idempotencyKey: `playwright-winner-rollout-assignment-${suffix}`,
+      },
+    });
+    expect(winnerAssignment.ok(), await winnerAssignment.text()).toBeTruthy();
+    await expect(winnerAssignment.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        variantId: selectedVariant.id,
+        winnerRolloutId: createdPayload.rollout.id,
+        winnerRolloutMatched: true,
+        customRoutingRuleId: null,
+        customRoutingRuleMatched: false,
+        trafficRoutingEnabled: true,
+        automatedWinnerEnabled: true,
+        rawRoutingValuesIncluded: false,
+      }),
+    );
+
+    const customPriorityAssignment = await page.request.post("/api/analytics/assignments", {
+      data: {
+        experimentId: experiment.id,
+        sourceRoute: "/funnels/indie-launch-sandbox",
+        anonymousAssignmentKey: `playwright-winner-custom-priority-${suffix}`,
+        idempotencyKey: `playwright-winner-custom-priority-${suffix}`,
+        routingContext: { utmSource: "partner-launch" },
+      },
+    });
+    expect(customPriorityAssignment.ok(), await customPriorityAssignment.text()).toBeTruthy();
+    await expect(customPriorityAssignment.json()).resolves.toEqual(
+      expect.objectContaining({
+        ok: true,
+        variantId: "variant-opt-in-outcome-first",
+        customRoutingRuleId: "analytics-custom-routing-rule-partner-launch-outcome",
+        customRoutingRuleMatched: true,
+        winnerRolloutId: null,
+        winnerRolloutMatched: false,
+      }),
+    );
+
+    const sourceAfterRollout = await page.request.get("/analytics/source-data");
+    expect(sourceAfterRollout.ok(), await sourceAfterRollout.text()).toBeTruthy();
+    const sourceAfterRolloutPayload = await sourceAfterRollout.json();
+    expect(sourceAfterRolloutPayload.experimentWinnerRollouts.activeRollout).toEqual(
+      expect.objectContaining({
+        id: createdPayload.rollout.id,
+        selectedVariantId: selectedVariant.id,
+        trafficRoutingEnabled: true,
+        automatedWinnerEnabled: true,
+        customRoutingPreserved: true,
+      }),
+    );
+    const sourceText = JSON.stringify(sourceAfterRolloutPayload.experimentWinnerRollouts);
+    expect(sourceText).not.toContain(privateNote);
+    expect(sourceText).not.toContain("m@rkmoriarty.com");
+
+    const rollback = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: {
+        action: "rollback_winner_rollout",
+        dashboardId: analyticsDashboard.id,
+        experimentId: experiment.id,
+        rolloutId: createdPayload.rollout.id,
+        expectedActiveRolloutRevision: createdPayload.rollout.rolloutRevision,
+        privateNote: `Rollback winner rollout ${suffix}`,
+        confirmationText: analyticsExperimentWinnerRollbackConfirmationText,
+        idempotencyKey: `${idempotencyKey}-rollback`,
+      },
+    });
+    expect(rollback.status(), await rollback.text()).toBe(201);
+    const rollbackPayload = await rollback.json();
+    expect(rollbackPayload).toEqual(
+      expect.objectContaining({
+        ok: true,
+        status: "analytics_experiment_winner_rollout_rolled_back",
+        rollout: expect.objectContaining({
+          id: createdPayload.rollout.id,
+          rolloutStatus: "rolled_back",
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+          rollbackNoteRecorded: true,
+        }),
+      }),
+    );
+
+    const staleRollback = await page.request.post(analyticsExperimentWinnerRolloutApiRoute, {
+      data: {
+        action: "rollback_winner_rollout",
+        dashboardId: analyticsDashboard.id,
+        experimentId: experiment.id,
+        rolloutId: createdPayload.rollout.id,
+        expectedActiveRolloutRevision: createdPayload.rollout.rolloutRevision,
+        confirmationText: analyticsExperimentWinnerRollbackConfirmationText,
+        idempotencyKey: `${idempotencyKey}-stale-rollback`,
+      },
+    });
+    expect(staleRollback.status()).toBe(400);
+    await expect(staleRollback.json()).resolves.toEqual(
+      expect.objectContaining({ ok: false, code: "rollout_not_active" }),
+    );
+
+    const sourceAfterRollback = await page.request.get("/analytics/source-data");
+    expect(sourceAfterRollback.ok(), await sourceAfterRollback.text()).toBeTruthy();
+    const sourceAfterRollbackPayload = await sourceAfterRollback.json();
+    expect(sourceAfterRollbackPayload.experimentWinnerRollouts.activeRollout).toBeNull();
+    expect(sourceAfterRollbackPayload.experimentWinnerRollouts.latestRollouts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: createdPayload.rollout.id,
+          rolloutStatus: "rolled_back",
+          trafficRoutingEnabled: false,
+          automatedWinnerEnabled: false,
+        }),
+      ]),
+    );
+
+    await page.goto("/admin/analytics");
+    await expect(page.getByRole("heading", { name: /Experiment winners need evidence and rollback/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Route winner rollout/i })).toBeVisible();
   });
 
   test("owner analytics notification inbox records require auth, confirmation, idempotency, stale evidence checks, and redaction", async ({
@@ -22507,6 +22897,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-tool-create-audience-import-intent", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-audience-import-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-resource-analytics-experiments", status: "ready-contract" }),
+        expect.objectContaining({ id: "mcp-resource-analytics-winner-rollouts", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-report-exports", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-alert-reviews", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-readiness", status: "ready-contract" }),
@@ -22526,6 +22917,7 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({ id: "mcp-resource-analytics-notification-delivery-receipt-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-resource-analytics-notification-provider-status-reconciliation-readiness", status: "ready-contract" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-experiment-decision", status: "planned" }),
+        expect.objectContaining({ id: "mcp-tool-create-analytics-winner-rollout", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-inbox-record", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-dispatch-preflight", status: "planned" }),
         expect.objectContaining({ id: "mcp-tool-create-analytics-notification-provider-domain-readiness", status: "planned" }),
@@ -23044,6 +23436,17 @@ test.describe("Bumpgrade scaffold", () => {
           stableIds: expect.arrayContaining(["analyticsExperimentDecisionId", "analyticsTimeWindow", "idempotencyKey"]),
         }),
         expect.objectContaining({
+          id: "create-owner-analytics-winner-rollout",
+          route: analyticsExperimentWinnerRolloutApiRoute,
+          auth: "owner-session",
+          stableIds: expect.arrayContaining([
+            "analyticsExperimentWinnerRolloutId",
+            "analyticsExperimentWinnerRolloutRevision",
+            "analyticsTimeWindow",
+            "idempotencyKey",
+          ]),
+        }),
+        expect.objectContaining({
           id: "create-owner-analytics-notification-inbox-record",
           route: analyticsNotificationInboxApiRoute,
           auth: "owner-session",
@@ -23399,6 +23802,9 @@ test.describe("Bumpgrade scaffold", () => {
             "analyticsExperimentRoutingSignal",
             "experimentAssignmentId",
             "analyticsExperimentDecisionId",
+            "analyticsExperimentWinnerRolloutId",
+            "analyticsExperimentWinnerRolloutStatus",
+            "analyticsExperimentWinnerRolloutRevision",
             "analyticsReportExportId",
             "analyticsReportExportSectionId",
             "analyticsCohortFixtureId",
@@ -23456,6 +23862,7 @@ test.describe("Bumpgrade scaffold", () => {
           ]),
           safeForAgents: expect.arrayContaining([
             "Inspect owner-confirmed experiment decision evidence without raw event rows or raw assignment rows",
+            "Inspect owner-confirmed winner rollout and rollback evidence without raw event rows or raw assignment rows",
             "Inspect public-safe custom routing rules, seeded sandbox funnel copy routing, and baseline holdout metadata",
             "Inspect aggregate report export sections without raw analytics downloads",
             "Inspect owner-reviewed cohort comparison evidence without winner or revenue claims",

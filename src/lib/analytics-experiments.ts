@@ -9,6 +9,11 @@ import {
   analyticsExperimentAssignmentWriteContract,
 } from "@/lib/experiment-assignments";
 
+const analyticsExperimentWinnerRolloutSourceDataApiRoute = "/api/admin/analytics/winner-rollouts";
+const analyticsExperimentWinnerRolloutSourceDataStatus = "owner-experiment-winner-rollout-ready";
+const analyticsExperimentWinnerRolloutSourceDataConfirmationText = "Route Bumpgrade experiment winner";
+const analyticsExperimentWinnerRollbackSourceDataConfirmationText = "Rollback Bumpgrade experiment winner rollout";
+
 export type AnalyticsStatus = "draft";
 export type AnalyticsEventKind =
   | "page_view"
@@ -121,7 +126,7 @@ export type AnalyticsDashboard = {
   validation: string[];
 };
 
-export const analyticsExperimentsUpdatedAt = "2026-05-26";
+export const analyticsExperimentsUpdatedAt = "2026-05-27";
 
 export const analyticsDashboard: AnalyticsDashboard = {
   id: "analytics-dashboard-indie-launch",
@@ -404,7 +409,7 @@ export function getAnalyticsDashboardBySlug(slug: string) {
 export const analyticsExperimentsSourceData = {
   id: "bumpgrade-analytics-experiments-source-data",
   updatedAt: analyticsExperimentsUpdatedAt,
-  status: "custom-routing-rules-ready",
+  status: "winner-rollout-ready",
   issue: 129,
   executionIssue: 422,
   parentIssue: 18,
@@ -414,6 +419,7 @@ export const analyticsExperimentsSourceData = {
     analyticsEventCaptureApiRoute,
     analyticsExperimentAssignmentApiRoute,
     "/api/admin/analytics/experiment-decisions",
+    analyticsExperimentWinnerRolloutSourceDataApiRoute,
     "/api/admin/analytics/notification-inbox-records",
     "/api/admin/analytics/notification-dispatch-preflights",
     "/api/admin/analytics/notification-provider-domain-readiness",
@@ -446,6 +452,9 @@ export const analyticsExperimentsSourceData = {
     "experimentAssignmentId",
     "analyticsExperimentDecisionId",
     "analyticsExperimentDecisionKind",
+    "analyticsExperimentWinnerRolloutId",
+    "analyticsExperimentWinnerRolloutStatus",
+    "analyticsExperimentWinnerRolloutRevision",
     "analyticsReportExportId",
     "analyticsReportExportSectionId",
     "analyticsCohortFixtureId",
@@ -537,10 +546,11 @@ export const analyticsExperimentsSourceData = {
     holdoutTrafficWeight: 10,
     treatmentTrafficWeight: 90,
     automatedWinnerEnabled: false,
+    winnerRolloutEnabled: true,
     customRoutingRulesEnabled: true,
     customRoutingRuleIds: analyticsDashboard.experiments[0]?.customRoutingRules.map((rule) => rule.id) ?? [],
     writeBoundary:
-      "Issue #422 routes the public sandbox opt-in hero copy by public-safe source/campaign rules first, then seeded session assignment through /api/analytics/assignments with 10% of unmatched assignments on the baseline holdout. The route does not create cookies, expose raw visitor keys, expose raw assignment rows, store raw routing URLs, use contact analytics, choose automated winners, or allow direct public agent writes.",
+      "Issue #422 routes the public sandbox opt-in hero copy by public-safe source/campaign rules first, then seeded session assignment through /api/analytics/assignments with 10% of unmatched assignments on the baseline holdout. Owner-confirmed winner rollouts can route future unmatched assignment traffic to a selected treatment variant and can be rolled back from the same owner-gated API. The route does not create cookies, expose raw visitor keys, expose raw assignment rows, store raw routing URLs, use contact analytics, expose raw/private exports, call providers, dispatch queues, or allow direct public agent writes.",
   },
   holdoutRouting: {
     id: "analytics-seeded-funnel-holdout-routing",
@@ -597,6 +607,50 @@ export const analyticsExperimentsSourceData = {
     directAgentWriteAllowed: false,
     writeBoundary:
       "The custom routing rules match public-safe URL attribution signals in the browser, send normalized public-safe signal values to the assignment API, and store only the matched rule ID in assignment metadata. They do not store raw URLs, contact identity, raw visitor keys, cookies, private referrer paths, automated winner state, or direct public agent writes.",
+  },
+  winnerRolloutWrites: {
+    id: "analytics-experiment-winner-rollout-contract",
+    status: analyticsExperimentWinnerRolloutSourceDataStatus,
+    issue: 422,
+    parentIssue: 18,
+    apiRoute: analyticsExperimentWinnerRolloutSourceDataApiRoute,
+    auth: "owner-session",
+    tables: ["analytics_experiment_winner_rollouts"],
+    rolloutConfirmationText: analyticsExperimentWinnerRolloutSourceDataConfirmationText,
+    rollbackConfirmationText: analyticsExperimentWinnerRollbackSourceDataConfirmationText,
+    publicSafeFields: [
+      "analyticsExperimentWinnerRolloutId",
+      "experimentId",
+      "selectedVariantId",
+      "sourceRoute",
+      "rolloutStatus",
+      "rolloutRevision",
+      "timeWindowKey",
+      "expectedAssignmentCount",
+      "expectedVariantCounts",
+      "expectedConversionSampleSize",
+      "trafficRoutingEnabled",
+      "automatedWinnerEnabled",
+      "customRoutingPreserved",
+      "rolledBackAt",
+    ],
+    serverPrivateFields: [
+      "actor_user_id",
+      "actor_email_hash",
+      "private_note_sha256",
+      "rollback_note_sha256",
+      "confirmation_text_sha256",
+      "rollback_confirmation_text_sha256",
+      "idempotency_key",
+      "rollback_idempotency_key",
+      "raw analytics event rows",
+      "raw experiment assignment rows",
+      "raw visitor keys",
+      "raw routing URLs",
+      "metadata_json",
+    ],
+    writeBoundary:
+      "Issue #422 lets verified owners route future unmatched seeded experiment assignments to a selected treatment variant after exact confirmation, idempotency, dashboard revision checks, experiment status checks, aggregate evidence checks, and sample-size caveat acknowledgement. Custom source/campaign routing rules still run first. Rollback requires the current rollout revision and exact confirmation. It does not expose raw events, raw assignments, visitor keys, contact analytics, raw routing URLs, raw/private exports, provider sends, Queue execution, or public agent write authority.",
   },
   experimentDecisionWrites: {
     id: "analytics-experiment-decision-contract",

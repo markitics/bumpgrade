@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { loadAnalyticsFunnelConversionReport } from "@/lib/analytics-conversion-report";
 import { getAnalyticsExperimentDecisionSummary } from "@/lib/analytics-experiment-decisions";
+import { getAnalyticsExperimentWinnerRolloutSummary } from "@/lib/analytics-experiment-winner-rollouts";
 import { analyticsDashboard, analyticsExperimentsSourceData } from "@/lib/analytics-experiments";
 import { getAnalyticsNotificationContentConsentReadinessSummary } from "@/lib/analytics-notification-content-consent-readiness";
 import { getAnalyticsNotificationDeliveryAttemptReadinessSummary } from "@/lib/analytics-notification-delivery-attempt-readiness";
@@ -209,6 +210,7 @@ export async function GET(request: NextRequest) {
   const assignmentSummary = await loadAssignmentSummary(db);
   const funnelConversionReport = await loadAnalyticsFunnelConversionReport(db, analyticsDashboard, timeWindow);
   const experimentDecisions = await getAnalyticsExperimentDecisionSummary(db);
+  const experimentWinnerRollouts = await getAnalyticsExperimentWinnerRolloutSummary(db);
   const notificationInboxRecords = await getAnalyticsNotificationInboxSummary(db);
   const notificationDispatchPreflights = await getAnalyticsNotificationDispatchPreflightSummary(db);
   const notificationProviderDomainReadiness = await getAnalyticsNotificationProviderDomainReadinessSummary(db);
@@ -236,6 +238,7 @@ export async function GET(request: NextRequest) {
     assignmentSummary,
     funnelConversionReport,
     experimentDecisions,
+    experimentWinnerRollouts,
     notificationInboxRecords,
     notificationDispatchPreflights,
     notificationProviderDomainReadiness,

@@ -24,13 +24,14 @@ owner-reviewed notification provider-polling readiness evidence,
 owner-reviewed notification receipt-payload readiness evidence, and
 owner-reviewed notification delivery-receipt readiness evidence, and
 owner-reviewed notification provider-status reconciliation readiness evidence,
-and the first seeded public funnel copy routing for issue #18.
+the first seeded public funnel copy routing for issue #18, and the first
+owner-confirmed winner rollout/rollback path for issue #422.
 
 Issue #18 is now the live analytics MVP boundary. Issue #422 has started moving
 from readiness into execution with public-safe source/campaign routing rules,
-seeded sandbox funnel routing, and a baseline holdout; it still tracks custom
-analytics schemas beyond the current seeded boundary, winner selection,
-rollback/audit logs, notification execution, Queue producer/consumer execution,
+seeded sandbox funnel routing, a baseline holdout, and owner-confirmed winner
+rollout/rollback routing for unmatched assignment traffic; it still tracks custom
+analytics schemas beyond the current seeded boundary, notification execution, Queue producer/consumer execution,
 provider calls, delivery attempts/results, webhooks, polling, receipts,
 raw/private exports, and agent-safe write parity work as the remaining post-MVP
 execution bucket.
@@ -48,6 +49,8 @@ execution bucket.
   assignments.
 - `/api/admin/analytics/experiment-decisions`: owner-gated GET/POST endpoint for
   confirmed experiment decision evidence.
+- `/api/admin/analytics/winner-rollouts`: owner-gated GET/POST endpoint for
+  confirmed winner rollout and rollback evidence.
 - `/api/admin/analytics/notification-inbox-records`: owner-gated GET/POST
   endpoint for confirmed notification inbox evidence.
 - `/api/admin/analytics/notification-dispatch-preflights`: owner-gated GET/POST
@@ -112,6 +115,8 @@ The first dashboard includes stable IDs for:
 - assignment rules.
 - public-safe custom routing rule metadata, seeded sandbox funnel copy routing,
   and baseline holdout metadata.
+- owner-confirmed winner rollout metadata, current rollout revision, and
+  rollback evidence.
 - aggregate event counts, aggregate variant event counts, aggregate assignment
   counts, aggregate source attribution counts, seeded event ingestion
   boundaries, and seeded assignment boundaries.
@@ -264,6 +269,12 @@ falls back to fixture rows only when no samples exist. Owner sessions can record
 experiment decision evidence only after exact confirmation, idempotency,
 dashboard revision checks, experiment status checks, aggregate assignment-count
 checks, selected fixed-window evidence, and sample-size caveat acknowledgement.
+Owner sessions can route future unmatched assignment traffic to a treatment
+variant only after exact confirmation, idempotency, dashboard revision checks,
+experiment status checks, aggregate assignment-count checks, selected
+fixed-window evidence, and sample-size caveat acknowledgement. Custom
+source/campaign routing rules still run before winner rollout routing. Rollback
+requires the current rollout revision and exact confirmation.
 Owner sessions can record notification inbox evidence only after exact
 confirmation, idempotency, dashboard revision checks, notification readiness
 checks, selected fixed-window sample-size checks, and sample-size caveat
@@ -379,14 +390,14 @@ bodies, create queue payload bodies, create recipient payloads, create personali
 store raw payload bodies, create delivery results, create delivery receipts,
 process status webhooks, poll providers, create customer alerts, expose body templates,
 reconcile provider statuses,
-expose unsubscribe URLs, store raw routing URLs, route experiment traffic beyond the seeded sandbox copy path, make automated winner decisions, make revenue
+expose unsubscribe URLs, store raw routing URLs, route experiment traffic beyond owner-confirmed winner rollout rules, make revenue
 claims, or prove statistical significance.
 
 ## Agent Boundary
 
 Agents may read the source-data route, preview route, event capture boundary,
 page-view beacon boundary, public-safe custom routing rule metadata, seeded sandbox routing metadata, dashboard-visible aggregate source attribution
-evidence, fixed-window metadata, aggregate variant evidence, assignment
+evidence, owner-confirmed winner rollout metadata, fixed-window metadata, aggregate variant evidence, assignment
 boundary, owner-confirmed experiment decision evidence, and aggregate conversion
 report rows, aggregate report export metadata, and owner-reviewed cohort
 comparison evidence, and owner-reviewed alert threshold/anomaly-review evidence
@@ -414,7 +425,7 @@ unsubscribe URLs, Queue producer execution, Queue consumer execution, queue
 dispatch, queue messages, queue message consumption, acknowledgements,
 retry/dead-letter rows, queue payload body reads, queue payload bodies, recipient payloads,
 personalized bodies, raw payload bodies, customer alerts,
-experiment traffic routing beyond the seeded sandbox copy path, automated winners, or revenue claims require
+experiment traffic routing beyond owner-confirmed winner rollout rules, or revenue claims require
 authenticated confirmed-write APIs with actor identity, privacy review,
 idempotency, stale-state checks, audit correlation, redaction, retention
 limits, and sample-size caveats.
