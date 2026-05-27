@@ -1,4 +1,5 @@
 import { sha256Hex } from "@/lib/analytics-events";
+import { loadActiveExperimentWinnerRolloutForAssignment } from "@/lib/analytics-experiment-winner-rollout-routing";
 
 export const analyticsExperimentAssignmentUpdatedAt = "2026-05-24";
 
@@ -18,6 +19,8 @@ export const analyticsExperimentAssignmentWriteContract = {
     "assignmentBucket",
     "customRoutingRuleId",
     "customRoutingRuleMatched",
+    "winnerRolloutId",
+    "winnerRolloutMatched",
     "sourceRoute",
     "duplicate",
     "status",
@@ -34,7 +37,7 @@ export const analyticsExperimentAssignmentWriteContract = {
     "raw visitor keys",
   ],
   writeBoundary:
-    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, and issue #422 reuses the same assignment key for seeded sandbox funnel copy routing, public-safe source/campaign routing rules, and the baseline holdout. Cookie creation, contact-level reporting, automated winner decisions, raw routing exports, and direct agent experiment writes require future confirmed-write APIs.",
+    "Issue #107 can assign seeded experiment variants deterministically with idempotency, source-route validation, hashed visitor evidence, and public-safe responses. Issues #121 and #123 can call this assignment path from the seeded funnel page-view beacon using session-scoped storage, and issue #422 reuses the same assignment key for seeded sandbox funnel copy routing, public-safe source/campaign routing rules, baseline holdout, and owner-confirmed winner rollout routing. Cookie creation, contact-level reporting, raw routing exports, raw/private analytics exports, provider sends, Queue execution, and direct public agent experiment writes require future confirmed-write APIs.",
 };
 
 export type ExperimentAssignmentVariant = {
@@ -96,6 +99,10 @@ type ExperimentAssignmentResult =
       assignmentBucket: number;
       customRoutingRuleId: string | null;
       customRoutingRuleMatched: boolean;
+      winnerRolloutId: string | null;
+      winnerRolloutMatched: boolean;
+      trafficRoutingEnabled: boolean;
+      automatedWinnerEnabled: boolean;
       privateDataIncluded: false;
       rawRequestDataIncluded: false;
       rawRoutingValuesIncluded: false;
@@ -149,6 +156,10 @@ function assignmentMetadata(row: ExperimentAssignmentRow) {
     return JSON.parse(row.metadata_json) as {
       customRoutingRuleId?: unknown;
       customRoutingRuleMatched?: unknown;
+      winnerRolloutId?: unknown;
+      winnerRolloutMatched?: unknown;
+      trafficRoutingEnabled?: unknown;
+      automatedWinnerEnabled?: unknown;
     };
   } catch {
     return null;
@@ -161,6 +172,8 @@ function publicResult(row: ExperimentAssignmentRow, duplicate: boolean): Experim
     typeof metadata?.customRoutingRuleId === "string" && metadata.customRoutingRuleId.trim()
       ? metadata.customRoutingRuleId
       : null;
+  const winnerRolloutId =
+    typeof metadata?.winnerRolloutId === "string" && metadata.winnerRolloutId.trim() ? metadata.winnerRolloutId : null;
   return {
     ok: true,
     duplicate,
@@ -172,6 +185,10 @@ function publicResult(row: ExperimentAssignmentRow, duplicate: boolean): Experim
     assignmentBucket: row.assignment_bucket,
     customRoutingRuleId,
     customRoutingRuleMatched: Boolean(metadata?.customRoutingRuleMatched && customRoutingRuleId),
+    winnerRolloutId,
+    winnerRolloutMatched: Boolean(metadata?.winnerRolloutMatched && winnerRolloutId),
+    trafficRoutingEnabled: Boolean(metadata?.trafficRoutingEnabled && winnerRolloutId),
+    automatedWinnerEnabled: Boolean(metadata?.automatedWinnerEnabled && winnerRolloutId),
     privateDataIncluded: false,
     rawRequestDataIncluded: false,
     rawRoutingValuesIncluded: false,
@@ -279,7 +296,13 @@ export async function assignExperimentVariant(
 
   const { assignmentHash, assignmentBucket } = await experimentAssignmentBucket(experiment.id, anonymousAssignmentKey);
   const customMatch = customRoutingMatch(experiment, input.routingContext);
-  const variant = customMatch?.variant ?? variantForBucket(experiment, assignmentBucket);
+  const winnerRollout = customMatch
+    ? null
+    : await loadActiveExperimentWinnerRolloutForAssignment(db, experiment.id, expectedSourceRoute);
+  const winnerVariant = winnerRollout
+    ? experiment.variants.find((candidate) => candidate.id === winnerRollout.selectedVariantId)
+    : null;
+  const variant = customMatch?.variant ?? winnerVariant ?? variantForBucket(experiment, assignmentBucket);
   if (!variant) {
     return {
       ok: false,
@@ -302,6 +325,8 @@ export async function assignExperimentVariant(
       variantId: variant.id,
       customRoutingRuleId: customMatch?.rule.id ?? null,
       customRoutingRuleMatched: Boolean(customMatch),
+      winnerRolloutId: winnerRollout?.id ?? null,
+      winnerRolloutMatched: Boolean(winnerRollout && winnerVariant),
     }),
   );
 
@@ -332,6 +357,10 @@ export async function assignExperimentVariant(
         rawRoutingValuesIncluded: false,
         customRoutingRuleId: customMatch?.rule.id ?? null,
         customRoutingRuleMatched: Boolean(customMatch),
+        winnerRolloutId: winnerRollout?.id ?? null,
+        winnerRolloutMatched: Boolean(winnerRollout && winnerVariant),
+        trafficRoutingEnabled: Boolean(winnerRollout && winnerVariant),
+        automatedWinnerEnabled: Boolean(winnerRollout && winnerVariant),
         routingSignalLabels: customMatch ? [customMatch.rule.signal] : [],
       }),
     )

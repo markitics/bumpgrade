@@ -65,6 +65,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Seeded analytics event API: https://bumpgrade.com/api/analytics/events
 - Seeded analytics assignment API: https://bumpgrade.com/api/analytics/assignments
 - Owner analytics decision API: https://bumpgrade.com/api/admin/analytics/experiment-decisions (human page/API requires Better Auth owner session)
+- Owner analytics winner rollout API: https://bumpgrade.com/api/admin/analytics/winner-rollouts (human page/API requires Better Auth owner session)
 - Owner analytics notification inbox API: https://bumpgrade.com/api/admin/analytics/notification-inbox-records (human page/API requires Better Auth owner session)
 - Owner analytics notification dispatch preflight API: https://bumpgrade.com/api/admin/analytics/notification-dispatch-preflights (human page/API requires Better Auth owner session)
 - Owner analytics notification provider/domain readiness API: https://bumpgrade.com/api/admin/analytics/notification-provider-domain-readiness (human page/API requires Better Auth owner session)
@@ -450,6 +451,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   workspace with event definitions, aggregate event counts, aggregate source
   attribution counts, aggregate variant event counts, aggregate assignment
   counts, owner-confirmed experiment decision evidence, owner-confirmed
+  winner rollout and rollback evidence, owner-confirmed
   notification inbox aggregate evidence, owner-confirmed dispatch preflight
   aggregate evidence, owner-reviewed provider/domain readiness aggregate
   evidence, owner-reviewed content/consent readiness aggregate evidence,
@@ -506,20 +508,20 @@ GitHub repo: https://github.com/markitics/bumpgrade
   owner-reviewed receipt-payload readiness evidence,
   owner-reviewed delivery-receipt readiness evidence,
   owner-reviewed provider-status reconciliation readiness evidence, and
-  aggregate/source-data evidence, public-safe source/campaign routing rules, and seeded sandbox funnel copy routing with a baseline holdout, not cookie assignment, automated alert sends, owner email sends,
+  aggregate/source-data evidence, public-safe source/campaign routing rules, seeded sandbox funnel copy routing with a baseline holdout, and owner-confirmed winner rollout routing for unmatched traffic, not cookie assignment, automated alert sends, owner email sends,
   provider sends, provider calls, delivery attempts, delivery results, provider responses, provider message IDs, delivery receipts, status webhooks, provider polling, provider status reconciliation, provider configuration,
   provider secrets, sender credentials, private DNS credentials, body templates,
   unsubscribe URLs, Queue producer execution, Queue consumer execution, queue dispatch, queue messages,
   queue message consumption, queue acknowledgements, retry/dead-letter rows, queue payload body reads,
   queue payload bodies, recipient payloads, personalized bodies, raw payload bodies, customer alerts, raw routing URL storage, traffic routing beyond the seeded sandbox copy path,
   contact-level analytics, raw referrer/query exposure, raw
-  event or assignment exposure, raw analytics exports, automated winners,
+  event or assignment exposure, raw analytics exports, direct public agent analytics writes,
   direct public agent analytics writes, revenue claims, or statistically
   meaningful proof.
 - Issue #18 is the live analytics MVP boundary. Issue #422 has started
-  public-safe source/campaign routing rules, seeded sandbox funnel routing, and a
-  baseline holdout and still tracks custom analytics schemas beyond the current
-  seeded boundary, winner selection, notification execution, Queue
+  public-safe source/campaign routing rules, seeded sandbox funnel routing, a
+  baseline holdout, and owner-confirmed winner rollout/rollback routing, and still tracks custom analytics schemas beyond the current
+  seeded boundary, notification execution, Queue
   producer/consumer execution, provider calls, delivery attempts/results,
   webhooks, polling, receipts, raw/private exports, and agent-safe write parity
   work as the remaining bucket.

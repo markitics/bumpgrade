@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, Bell, Database, FlaskConical, MailCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, BarChart3, Bell, Database, FlaskConical, MailCheck, ShieldCheck, Trophy } from "lucide-react";
 
 import { AdminAnalyticsExperimentDecisionForm } from "@/components/admin-analytics-experiment-decision-form";
+import { AdminAnalyticsWinnerRolloutForm } from "@/components/admin-analytics-winner-rollout-form";
 import { AdminAnalyticsNotificationDispatchPreflightForm } from "@/components/admin-analytics-notification-dispatch-preflight-form";
 import { AdminAnalyticsNotificationInboxForm } from "@/components/admin-analytics-notification-inbox-form";
 import { AdminAnalyticsNotificationContentConsentReadinessForm } from "@/components/admin-analytics-notification-content-consent-readiness-form";
@@ -24,6 +25,10 @@ import {
   analyticsExperimentDecisionIssue,
   getAnalyticsExperimentDecisionSummary,
 } from "@/lib/analytics-experiment-decisions";
+import {
+  analyticsExperimentWinnerRolloutIssue,
+  getAnalyticsExperimentWinnerRolloutSummary,
+} from "@/lib/analytics-experiment-winner-rollouts";
 import {
   analyticsNotificationInboxIssue,
   getAnalyticsNotificationInboxSummary,
@@ -103,6 +108,7 @@ export default async function AdminAnalyticsPage() {
   if (!adminState.identity) return <AdminLocked state={adminState} surface="/admin/analytics" />;
 
   const summary = await getAnalyticsExperimentDecisionSummary();
+  const winnerRolloutSummary = await getAnalyticsExperimentWinnerRolloutSummary();
   const notificationSummary = await getAnalyticsNotificationInboxSummary();
   const dispatchPreflightSummary = await getAnalyticsNotificationDispatchPreflightSummary();
   const providerDomainReadinessSummary = await getAnalyticsNotificationProviderDomainReadinessSummary();
@@ -120,6 +126,7 @@ export default async function AdminAnalyticsPage() {
   const providerStatusReconciliationReadinessSummary =
     await getAnalyticsNotificationProviderStatusReconciliationReadinessSummary();
   const latestDecision = summary.latestDecisions[0];
+  const latestWinnerRollout = winnerRolloutSummary.latestRollouts[0];
   const latestNotification = notificationSummary.latestRecords[0];
   const latestDispatchPreflight = dispatchPreflightSummary.latestRecords[0];
   const latestProviderDomainReadiness = providerDomainReadinessSummary.latestRecords[0];
@@ -142,12 +149,12 @@ export default async function AdminAnalyticsPage() {
       <section className="roadmap-hero">
         <div>
           <p className="eyebrow">Admin analytics</p>
-          <h1>Experiment decisions stay evidenced before automated winners.</h1>
+            <h1>Experiment winners need evidence and rollback.</h1>
           <p className="lede">
             Owners can inspect aggregate assignment counts, fixed-window conversion sample sizes, and sample-size
-            caveats before recording experiment decisions or staged notification readiness records. The evidence rows stay
-            redacted and do not send email, enable Queue producers, create Queue messages, assign cookies, change routing
-            rules, pick automated winners, expose raw events, expose raw assignments, or make revenue claims.
+            caveats before recording experiment decisions, routing unmatched traffic to a winner, or rolling that route
+            back. The evidence rows stay redacted and do not send email, enable Queue producers, create Queue messages,
+            assign cookies, expose raw events, expose raw assignments, or make revenue claims.
           </p>
           <div className="hero-actions">
             <Link href="/analytics/source-data" className="primary-action">
@@ -156,6 +163,13 @@ export default async function AdminAnalyticsPage() {
             </Link>
             <Link href={`https://github.com/markitics/bumpgrade/issues/${analyticsExperimentDecisionIssue}`} className="secondary-action">
               Issue #{analyticsExperimentDecisionIssue}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+            <Link
+              href={`https://github.com/markitics/bumpgrade/issues/${analyticsExperimentWinnerRolloutIssue}`}
+              className="secondary-action"
+            >
+              Issue #{analyticsExperimentWinnerRolloutIssue}
               <ArrowRight aria-hidden="true" />
             </Link>
             <Link href={`https://github.com/markitics/bumpgrade/issues/${analyticsNotificationInboxIssue}`} className="secondary-action">
@@ -283,6 +297,7 @@ export default async function AdminAnalyticsPage() {
               receiptPayloadReadinessSummary.loadError ??
               deliveryReceiptReadinessSummary.loadError ??
               providerStatusReconciliationReadinessSummary.loadError ??
+              winnerRolloutSummary.loadError ??
               "Owner-confirmed experiment and notification evidence loads from aggregate analytics."}
           </span>
         </aside>
@@ -301,11 +316,11 @@ export default async function AdminAnalyticsPage() {
             <p>{summary.currentEvidenceByWindow[0]?.sampleSizeCaveat ?? "Sample-size caveat unavailable."}</p>
           </div>
           <div>
-            <FlaskConical aria-hidden="true" />
-            <h3>Decision boundary</h3>
+            <Trophy aria-hidden="true" />
+            <h3>Winner rollout</h3>
             <p>
-              {summary.counts.trafficRoutingEnabledRecords} traffic-routing records;{" "}
-              {summary.counts.automatedWinnerEnabledRecords} automated-winner records.
+              {winnerRolloutSummary.counts.activeRollouts} active rollout;{" "}
+              {winnerRolloutSummary.counts.rolledBackRollouts} rolled back.
             </p>
           </div>
           <div>
@@ -960,6 +975,30 @@ export default async function AdminAnalyticsPage() {
       <section className="content-band alternate">
         <div className="feature-section-heading">
           <div>
+            <p className="eyebrow">Winner rollout</p>
+            <h2>Route unmatched traffic to a winner with rollback evidence.</h2>
+          </div>
+          <Link href="/analytics/source-data" className="text-link compact-link">
+            Read rollout contract
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <AdminAnalyticsWinnerRolloutForm
+          dashboardId={winnerRolloutSummary.dashboard.id}
+          dashboardTitle={winnerRolloutSummary.dashboard.title}
+          dashboardRevisionId={winnerRolloutSummary.dashboard.revisionId}
+          experimentId={winnerRolloutSummary.experiment.id}
+          experimentTitle={winnerRolloutSummary.experiment.title}
+          experimentStatus={winnerRolloutSummary.experiment.status}
+          variants={summary.experiment.variants}
+          currentEvidenceByWindow={winnerRolloutSummary.currentEvidenceByWindow}
+          activeRollout={winnerRolloutSummary.activeRollout}
+        />
+      </section>
+
+      <section className="content-band alternate">
+        <div className="feature-section-heading">
+          <div>
             <p className="eyebrow">Latest notifications</p>
             <h2>Inbox records hide recipients and email bodies.</h2>
           </div>
@@ -1178,6 +1217,53 @@ export default async function AdminAnalyticsPage() {
               <FlaskConical aria-hidden="true" />
               <h3>Decision evidence is ready to record</h3>
               <p>Use the confirmed-write form once the owner has reviewed the aggregate experiment snapshot.</p>
+            </article>
+          )}
+        </div>
+      </section>
+
+      <section className="content-band">
+        <div className="feature-section-heading">
+          <div>
+            <p className="eyebrow">Latest winner rollout</p>
+            <h2>Rollout records preserve rollback state and keep custom routing first.</h2>
+          </div>
+        </div>
+        <div className="roadmap-grid">
+          {latestWinnerRollout ? (
+            winnerRolloutSummary.latestRollouts.map((rollout) => (
+              <article key={rollout.id} className="roadmap-card">
+                <div className="roadmap-card-top">
+                  <span className={`status-badge ${rollout.rolloutStatus === "active" ? "live" : "pending"}`}>
+                    {rollout.rolloutStatus.replaceAll("_", " ")}
+                  </span>
+                  <span className="admin-pill">{rollout.timeWindowKey}</span>
+                </div>
+                <Trophy aria-hidden="true" />
+                <h3>{rollout.selectedVariantLabel ?? rollout.selectedVariantId}</h3>
+                <p>
+                  {rollout.expectedAssignmentCount} assignments and {rollout.expectedConversionSampleSize} conversion
+                  samples acknowledged at {compactDate(rollout.createdAt)}.
+                </p>
+                <div className="roadmap-detail">
+                  <strong>Routing state</strong>
+                  <span>
+                    Traffic routing {String(rollout.trafficRoutingEnabled)}, automated winner{" "}
+                    {String(rollout.automatedWinnerEnabled)}, custom rules preserved{" "}
+                    {String(rollout.customRoutingPreserved)}
+                  </span>
+                </div>
+              </article>
+            ))
+          ) : (
+            <article className="roadmap-card">
+              <div className="roadmap-card-top">
+                <span className="status-badge pending">No rollout yet</span>
+                <span className="admin-pill">Ready</span>
+              </div>
+              <Trophy aria-hidden="true" />
+              <h3>Winner rollout is ready</h3>
+              <p>Use the owner-confirmed form after reviewing aggregate assignments and sample-size caveats.</p>
             </article>
           )}
         </div>

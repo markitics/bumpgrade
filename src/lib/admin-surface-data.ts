@@ -1046,9 +1046,9 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
     lastTestedAt: "2026-05-24T09:00:00.000Z",
     environment: "Production screenshot and analytics source-data evidence.",
     method:
-      "Analytics event, page-view beacon, source attribution, custom routing rule, variant, time-window, report-export, staged notification readiness through provider-status reconciliation readiness, and owner decision-evidence route checks.",
+      "Analytics event, page-view beacon, source attribution, custom routing rule, winner rollout, variant, time-window, report-export, staged notification readiness through provider-status reconciliation readiness, and owner decision-evidence route checks.",
     summary:
-      "Analytics MVP proof is live: seeded event writes, deterministic assignments, public-safe custom source/campaign routing rules, aggregate conversion reporting, source attribution, time windows, aggregate report export metadata, owner-confirmed experiment decision evidence, owner-reviewed content/consent readiness, send-payload readiness, queue-producer and queue-consumer readiness, provider-call readiness, delivery-attempt/result/status readiness, provider-polling readiness, receipt-payload readiness, delivery-receipt readiness, and provider-status reconciliation readiness have proof surfaces while live execution remains grouped in issue #422.",
+      "Analytics MVP proof is live: seeded event writes, deterministic assignments, public-safe custom source/campaign routing rules, owner-confirmed winner rollout/rollback routing, aggregate conversion reporting, source attribution, time windows, aggregate report export metadata, owner-confirmed experiment decision evidence, owner-reviewed content/consent readiness, send-payload readiness, queue-producer and queue-consumer readiness, provider-call readiness, delivery-attempt/result/status readiness, provider-polling readiness, receipt-payload readiness, delivery-receipt readiness, and provider-status reconciliation readiness have proof surfaces while remaining live execution stays grouped in issue #422.",
     ciLinks: [{ label: "GitHub Actions", url: "https://github.com/markitics/bumpgrade/actions", kind: "ci" }],
     screenshotLinks: [
       { label: "Analytics time windows", url: "https://bumpgrade.com/pr-screenshots/issue-129-analytics-time-windows-desktop.png", kind: "screenshot" },
@@ -1067,12 +1067,13 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
       { label: "Delivery-receipt readiness", url: "https://bumpgrade.com/pr-screenshots/issue-309-admin-analytics-delivery-receipt-readiness.png", kind: "screenshot" },
       { label: "Provider-status reconciliation readiness", url: "https://bumpgrade.com/pr-screenshots/issue-311-admin-analytics-provider-status-reconciliation-readiness.png", kind: "screenshot" },
       { label: "Analytics custom routing rules", url: "https://bumpgrade.com/pr-screenshots/issue-422-analytics-custom-routing-rules.png", kind: "screenshot" },
+      { label: "Analytics winner rollouts", url: "https://bumpgrade.com/pr-screenshots/issue-422-analytics-winner-rollouts.png", kind: "screenshot" },
       { label: "Analytics MVP roadmap closeout", url: "https://bumpgrade.com/pr-screenshots/issue-18-analytics-mvp-live-closeout-roadmap.png", kind: "screenshot" },
       { label: "Analytics MVP features closeout", url: "https://bumpgrade.com/pr-screenshots/issue-18-analytics-mvp-live-closeout-features.png", kind: "screenshot" },
     ],
     validationLinks: [{ label: "Analytics source data", url: "https://bumpgrade.com/analytics/source-data", kind: "source-data" }],
     notes: [
-      "Reports, report export metadata, custom routing rule metadata, queue readiness, provider-call readiness, delivery-attempt readiness, delivery-result readiness, delivery-status webhook readiness, provider-polling readiness, receipt-payload readiness, delivery-receipt readiness, provider-status reconciliation readiness, and decision evidence are aggregate and public-safe; raw visitor data, raw routing URLs, queue payload bodies, message consumption, acknowledgements, retry/dead-letter rows, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, secrets, sender credentials, and sends are not exposed or enabled.",
+      "Reports, report export metadata, custom routing rule metadata, winner rollout metadata, queue readiness, provider-call readiness, delivery-attempt readiness, delivery-result readiness, delivery-status webhook readiness, provider-polling readiness, receipt-payload readiness, delivery-receipt readiness, provider-status reconciliation readiness, and decision evidence are aggregate and public-safe; raw visitor data, raw routing URLs, queue payload bodies, message consumption, acknowledgements, retry/dead-letter rows, provider calls, delivery attempts, delivery results, delivery status webhooks, provider responses, provider message IDs, delivery receipts, receipt payloads, status webhooks, provider polling, provider status reconciliation, secrets, sender credentials, and sends are not exposed or enabled.",
     ],
   },
   "feature-affiliates-referrals": {

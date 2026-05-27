@@ -615,7 +615,9 @@ aggregate funnel conversion report rows, fixed time-window metadata, metric
 formulas, A/B test variants, deterministic assignment rules, the
 `/api/analytics/events` write boundary, the `/api/analytics/assignments`
 write boundary, the owner-gated `/api/admin/analytics/experiment-decisions`
-decision-evidence boundary, aggregate report export metadata, and owner-reviewed
+decision-evidence boundary, the owner-gated
+`/api/admin/analytics/winner-rollouts` winner rollout/rollback boundary,
+aggregate report export metadata, and owner-reviewed
 cohort comparison evidence, plus owner-reviewed alert threshold/anomaly-review
 evidence, owner-reviewed notification delivery readiness evidence,
 owner-confirmed notification inbox record evidence, and owner-confirmed
@@ -639,7 +641,12 @@ windows. Aggregate conversion rows are computed from captured test events when
 samples exist. `/admin/analytics` lets verified owners record redacted
 experiment decision evidence after exact confirmation, aggregate count checks,
 fixed-window selection, current dashboard/experiment checks, and sample-size
-caveat acknowledgement. `/admin/analytics` also lets verified owners record
+caveat acknowledgement. `/admin/analytics` also lets verified owners route
+future unmatched assignment traffic to a treatment variant, and roll that route
+back, after exact confirmation, aggregate count checks, fixed-window selection,
+current dashboard/experiment checks, current rollout revision checks for
+rollback, and sample-size caveat acknowledgement. Custom source/campaign rules
+still run before winner rollout routing. `/admin/analytics` also lets verified owners record
 redacted notification inbox evidence after exact confirmation, readiness checks,
 fixed-window sample-size checks, and sample-size caveat acknowledgement. The
 same admin page lets verified owners record redacted notification dispatch
@@ -807,16 +814,16 @@ private DNS credentials, body templates, unsubscribe URLs, Queue producer execut
 Queue consumer execution, queue dispatch, queue messages, queue message
 consumption, acknowledgements, retry/dead-letter rows, queue payload body
 reads, queue payload bodies, recipient payloads,
-personalized bodies, raw payload bodies, customer alerts, raw routing URL storage, traffic routing beyond the seeded sandbox copy path,
+personalized bodies, raw payload bodies, customer alerts, raw routing URL storage, traffic routing beyond owner-confirmed winner rollout rules,
 contact-level reporting, raw referrer/query
 exposure, raw event or assignment exposure, raw analytics exports, automated
 winners, direct public agent analytics writes, revenue claims, or statistically
 meaningful proof.
 
 Issue #18 is the live analytics MVP boundary. Issue #422 has started
-public-safe source/campaign routing rules, seeded sandbox funnel routing, and a
-baseline holdout and still tracks custom analytics schemas beyond the current
-seeded boundary, winner selection, notification execution, Cloudflare Queue
+public-safe source/campaign routing rules, seeded sandbox funnel routing, a
+baseline holdout, and owner-confirmed winner rollout/rollback routing, and still tracks custom analytics schemas beyond the current
+seeded boundary, notification execution, Cloudflare Queue
 producer/consumer execution, provider calls, delivery attempts/results,
 webhooks, polling, receipts, raw/private exports, and agent-safe write parity
 work as the remaining bucket.
