@@ -268,6 +268,8 @@ GitHub repo: https://github.com/markitics/bumpgrade
   funnel-scoped private download-token delivery from published resource blocks
   only after the checkout intent and entitlement match the linked product and
   file asset,
+  redacted resource-delivery receipt evidence after successful private download
+  redemption with safe funnel, block, product, asset, and source metadata only,
   owner-confirmed webinar event/replay linking to public-safe external URLs
   without provider secrets, attendee records, scheduling, reminders, attendance
   tracking, or hosted replay media,
@@ -286,7 +288,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
   scoped token through `/api/agent/funnels/resource-delivery-tokens` after exact
   confirmation, idempotency, current published revision, checkout intent,
   entitlement, and audit correlation; idempotent replays return redacted audit
-  metadata because raw bearer tokens are not stored. Published webinar-linked blocks can render external
+  metadata because raw bearer tokens are not stored. Successful redemption
+  through `/api/products/downloads` records redacted receipt evidence and
+  `/funnels/source-data` exposes aggregate receipt counts plus latest safe
+  receipt summaries without buyer data, raw checkout IDs, raw entitlement IDs,
+  tokens, R2 keys, signed URLs, raw rows, arbitrary uploaded asset delivery, or
+  live fulfillment automation. Published webinar-linked blocks can render external
   registration/replay references. `/api/agent/funnels/draft-writes` lets
   verified owner-session agents update private draft block copy, apply curated
   visual style presets, set bounded canvas layout, add reusable blocks, remove eligible unlinked blocks,
@@ -305,6 +312,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
   Treat issue #14 as the shipped MVP boundary. Issue #417 includes
   owner-confirmed checkout unlinking, resource delivery links, webinar
   event/replay links, funnel-scoped private download-token delivery,
+  redacted resource-delivery receipt evidence,
   owner-session visual block styles, bounded canvas layouts, within-step block reordering, cross-step
   block moves, archived-draft purge, bulk archived-draft purge, owner-session agent-created resource delivery tokens,
   and expanded owner-session direct
