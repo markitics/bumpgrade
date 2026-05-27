@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getPublishedD1FunnelSourceData } from "@/lib/funnel-drafts";
+import { getFunnelResourceDeliveryReceiptSummary } from "@/lib/funnel-resource-delivery-receipts";
 import { funnelSourceData } from "@/lib/funnels";
 import { getProductDeliveryGateSummary } from "@/lib/product-delivery-gates";
 
@@ -8,9 +9,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  const [publishedD1, ownerProductDeliveryGates] = await Promise.all([
+  const [publishedD1, ownerProductDeliveryGates, funnelResourceDeliveryReceipts] = await Promise.all([
     getPublishedD1FunnelSourceData(),
     getProductDeliveryGateSummary(),
+    getFunnelResourceDeliveryReceiptSummary(),
   ]);
 
   return NextResponse.json({
@@ -27,5 +29,6 @@ export async function GET() {
     privateDraftsIncluded: publishedD1.privateDraftsIncluded,
     rawOwnerDataIncluded: publishedD1.rawOwnerDataIncluded,
     ownerProductDeliveryGates,
+    funnelResourceDeliveryReceipts,
   });
 }

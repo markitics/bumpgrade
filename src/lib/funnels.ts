@@ -1,5 +1,6 @@
 import type { ProductAssetKind, ProductKind } from "@/lib/product-access";
 import { productDeliveryGateApiRoute } from "@/lib/product-delivery-gates";
+import { funnelResourceDeliveryReceiptCapability } from "@/lib/funnel-resource-delivery-receipts";
 
 export type FunnelStatus = "draft" | "published";
 export type FunnelStepKind = "opt_in" | "sales" | "checkout" | "upsell" | "webinar" | "resource" | "thank_you";
@@ -1603,6 +1604,7 @@ export const funnelSourceData = {
     "funnelCheckoutUnlinkId",
     "funnelResourceDeliveryLinkId",
     "funnelResourceDeliveryTokenId",
+    "funnelResourceDeliveryReceiptId",
     "funnelWebinarEventLinkId",
     "funnelWebinarResourceTemplateId",
     "funnelRevisionId",
@@ -1641,6 +1643,7 @@ export const funnelSourceData = {
   draftFunnelCheckoutUnlinkCapability,
   agentFunnelDraftWriteCapability,
   agentFunnelResourceDeliveryTokenCapability,
+  funnelResourceDeliveryReceiptCapability,
   templateDraftCreationCapability,
   webinarResourceTemplateCapability,
   checkoutLinkingCapability,
@@ -1651,5 +1654,5 @@ export const funnelSourceData = {
   blockLibrary: funnelBlockLibrary,
   funnels: seededFunnels,
   caveat:
-    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session visual style controls for existing blocks, bounded owner-session canvas layout controls for existing blocks, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-confirmed archived-draft purge, owner-confirmed bulk archived-draft purge, owner-session direct agent-safe draft writes for block copy edits, visual style presets, bounded canvas layouts, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, archive/unpublish, archived-draft purge, and bulk archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session agent-created resource delivery tokens for published linked resource blocks, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, unbounded arbitrary CSS/script layout editing, direct agent non-archived purge, and unconfirmed unauthenticated agent-write APIs are not live.",
+    "This public contract proves read and preview semantics, reusable template and block-template records including webinar and resource page shapes from issue #213, owner-session confirmed template-to-draft creation, owner-session private draft duplication from issue #215, owner-session checkout-offer linking on private draft steps, owner-session checkout unlinking, owner-session resource delivery linking, owner-session webinar event/replay linking, owner-session visual style controls for existing blocks, bounded owner-session canvas layout controls for existing blocks, owner-session block reordering, owner-session drag/drop block placement through existing move endpoints, owner-session cross-step block moves, owner-confirmed archived-draft purge, owner-confirmed bulk archived-draft purge, owner-session direct agent-safe draft writes for block copy edits, visual style presets, bounded canvas layouts, reusable block add/remove, checkout-offer linking, checkout unlinking, resource-delivery linking, webinar-event linking, within-step block reordering, cross-step block moves, private duplication, owner-confirmed direct agent public publishing, archive/unpublish, archived-draft purge, and bulk archived-draft purge from issue #417, public sandbox checkout start rendering on published linked checkout blocks, funnel-scoped private download-token delivery for published resource blocks, owner-session agent-created resource delivery tokens for published linked resource blocks, redacted resource-delivery receipt evidence after successful private download redemption, owner-session granular block title/body editing from issue #430, owner-session block add/remove controls with checkout-linked block protection from issue #432, owner-created product delivery-gate links for the seeded offer/funnel path from issue #409, exact-confirmed owner archive/unpublish from issue #341, plus the existence of an owner-session D1 draft builder with step edit/reorder controls, owner-gated private draft preview, and exact-confirmed public publishing. Direct agent template creation, unauthenticated public agent publishing, live billing mutation, live webinar scheduling, attendance tracking, replay hosting, arbitrary uploaded private asset delivery, signed URLs, live fulfillment automation, unbounded arbitrary CSS/script layout editing, direct agent non-archived purge, and unconfirmed unauthenticated agent-write APIs are not live.",
 };

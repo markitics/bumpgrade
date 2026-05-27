@@ -1,5 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+import {
+  recordFunnelResourceDeliveryReceiptFromDownloadToken,
+  type FunnelResourceDeliveryTokenSourceMetadata,
+} from "@/lib/funnel-resource-delivery-receipts";
 import { productAccessCatalogs } from "@/lib/product-access";
 
 export const productDownloadTokenIssue = 143;
@@ -37,6 +41,7 @@ type DownloadTokenRow = {
   expires_at: number | string;
   created_at: number | string;
   used_at: number | string | null;
+  metadata_json: string | null;
 };
 
 type DownloadTokenRedemptionRow = DownloadTokenRow & {
@@ -279,6 +284,7 @@ export async function createProductDownloadToken(input: {
   entitlementId: string | null | undefined;
   productId?: string | null | undefined;
   assetId?: string | null | undefined;
+  funnelResourceDelivery?: FunnelResourceDeliveryTokenSourceMetadata | null | undefined;
 }): Promise<ProductDownloadTokenResult> {
   const checkoutIntentId = input.checkoutIntentId?.trim();
   const entitlementId = input.entitlementId?.trim();
@@ -330,6 +336,19 @@ export async function createProductDownloadToken(input: {
     const tokenId = `product-download-token-${crypto.randomUUID()}`;
     const expiresAtSeconds = Math.floor(Date.now() / 1000) + productDownloadTokenTtlSeconds;
 
+    const metadata = {
+      issue: productDownloadAssetDeliveryIssue,
+      followsIssue: productDownloadTokenIssue,
+      rawR2KeysIncluded: false,
+      signedUrlsIncluded: false,
+      buyerDataIncluded: false,
+      ...(input.funnelResourceDelivery
+        ? {
+            funnelResourceDelivery: input.funnelResourceDelivery,
+          }
+        : {}),
+    };
+
     await db
       .prepare(
         `INSERT INTO product_download_tokens (
@@ -345,13 +364,7 @@ export async function createProductDownloadToken(input: {
         entitlement.product_id,
         asset.assetId,
         expiresAtSeconds,
-        JSON.stringify({
-          issue: productDownloadAssetDeliveryIssue,
-          followsIssue: productDownloadTokenIssue,
-          rawR2KeysIncluded: false,
-          signedUrlsIncluded: false,
-          buyerDataIncluded: false,
-        }),
+        JSON.stringify(metadata),
       )
       .run();
 
@@ -452,6 +465,8 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
     return { ok: false as const, status: 410, message: "Download token has already been used." };
   }
 
+  const funnelResourceDeliveryReceipt = await recordFunnelResourceDeliveryReceiptFromDownloadToken(db, row);
+
   return {
     ok: true as const,
     tokenId: row.id,
@@ -460,5 +475,6 @@ export async function consumeProductDownloadToken(tokenInput: string | null | un
     asset,
     file: privateAsset,
     expiresAt: timestampValue(row.expires_at),
+    funnelResourceDeliveryReceipt,
   };
 }

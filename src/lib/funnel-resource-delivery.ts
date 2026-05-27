@@ -1,4 +1,8 @@
 import { getPublishedD1FunnelBySlug } from "@/lib/funnel-drafts";
+import {
+  funnelResourceDeliveryTokenMetadata,
+  type FunnelResourceDeliverySource,
+} from "@/lib/funnel-resource-delivery-receipts";
 import { type FunnelBlock, type FunnelRecord, publicFunnelResourceDeliveryTokenCapability } from "@/lib/funnels";
 import { createProductDownloadToken, type ProductDownloadRedaction } from "@/lib/product-download-tokens";
 
@@ -11,6 +15,7 @@ type FunnelResourceDeliveryInput = {
   blockId?: unknown;
   checkoutIntentId?: unknown;
   entitlementId?: unknown;
+  deliverySource?: FunnelResourceDeliverySource;
 };
 
 type FunnelResourceDeliveryRedaction = ProductDownloadRedaction & {
@@ -132,20 +137,33 @@ export async function createFunnelResourceDeliveryToken(
     return deliveryError("not_eligible", "This funnel resource block does not point to a private file asset.");
   }
 
+  const publicBlockData = publicBlock(block);
+  if (!publicBlockData) {
+    return deliveryError("not_found", "No public resource delivery block data was available.");
+  }
+
   const tokenResult = await createProductDownloadToken({
     checkoutIntentId,
     entitlementId,
     productId: block.resourceDeliveryLink.productId,
     assetId: block.resourceDeliveryLink.assetId,
+    funnelResourceDelivery: funnelResourceDeliveryTokenMetadata({
+      deliverySource: input.deliverySource ?? "public-funnel-resource-delivery",
+      funnelId: funnel.id,
+      funnelSlug: funnel.slug,
+      funnelTitle: funnel.title,
+      funnelRevisionId: funnel.revisionId,
+      blockId: publicBlockData.id,
+      blockTitle: publicBlockData.title,
+      productId: publicBlockData.productId,
+      productTitle: publicBlockData.productTitle,
+      assetId: publicBlockData.assetId,
+      assetTitle: publicBlockData.assetTitle,
+    }).funnelResourceDelivery,
   });
 
   if (!tokenResult.ok) {
     return deliveryError(tokenResult.status, tokenResult.message);
-  }
-
-  const publicBlockData = publicBlock(block);
-  if (!publicBlockData) {
-    return deliveryError("not_found", "No public resource delivery block data was available.");
   }
 
   return {
