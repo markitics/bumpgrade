@@ -63,6 +63,14 @@ function sourceLabel(source: string) {
   return "Fixture fallback";
 }
 
+function ConfirmationHint({ text }: { text: string }) {
+  return (
+    <p className="field-hint">
+      Type: <code>{text}</code>
+    </p>
+  );
+}
+
 const resourceDeliveryOptions = productAccessCatalogs.flatMap((catalog) =>
   catalog.products.flatMap((product) =>
     product.assetIds.flatMap((assetId) => {
@@ -298,10 +306,10 @@ export default async function AdminFunnelsPage() {
                 <input
                   name="confirmationText"
                   type="text"
-                  placeholder={draftFunnelTemplateCreationConfirmationText}
                   disabled={!state.canWrite}
                 />
               </label>
+              <ConfirmationHint text={draftFunnelTemplateCreationConfirmationText} />
               <button type="submit" className="primary-action" disabled={!state.canWrite}>
                 Create from template
                 <GitBranch aria-hidden="true" />
@@ -343,7 +351,6 @@ export default async function AdminFunnelsPage() {
               <input
                 name="confirmationText"
                 type="text"
-                placeholder={draftFunnelBulkPurgeConfirmationText}
                 disabled={!state.canWrite}
               />
             </label>
@@ -412,10 +419,10 @@ export default async function AdminFunnelsPage() {
                     <input
                       name="confirmationText"
                       type="text"
-                      placeholder={draftFunnelDuplicationConfirmationText}
                       disabled={!canMutateDraft}
                     />
                   </label>
+                  <ConfirmationHint text={draftFunnelDuplicationConfirmationText} />
                   <p>Creates a new private draft with copied ordered steps and blocks. Checkout links are not copied.</p>
                   <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
                     Duplicate draft
@@ -439,7 +446,6 @@ export default async function AdminFunnelsPage() {
                       <input
                         name="confirmationText"
                         type="text"
-                        placeholder="Exact purge confirmation"
                         disabled={!canPurgeDraft}
                       />
                     </label>
@@ -467,10 +473,10 @@ export default async function AdminFunnelsPage() {
                     <input
                       name="confirmationText"
                       type="text"
-                      placeholder={draftFunnelArchiveConfirmationText}
                       disabled={!canMutateDraft}
                     />
                   </label>
+                  <ConfirmationHint text={draftFunnelArchiveConfirmationText} />
                   <p>
                     {draft.status === "published"
                       ? "Archives this draft and removes its public route without deleting steps or audit events."
@@ -623,12 +629,13 @@ export default async function AdminFunnelsPage() {
                       </label>
                       <label>
                         Block title
-                        <input name="title" type="text" placeholder="Use library title" maxLength={120} disabled={!canMutateDraft} />
+                        <input name="title" type="text" maxLength={120} disabled={!canMutateDraft} />
                       </label>
                       <label className="admin-step-goal-field">
                         Block body
-                        <textarea name="body" placeholder="Use library purpose" maxLength={1200} rows={3} disabled={!canMutateDraft} />
+                        <textarea name="body" maxLength={1200} rows={3} disabled={!canMutateDraft} />
                       </label>
+                      <p className="field-hint">Leave title or body blank to use the selected library block copy.</p>
                       <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
                         Add block
                         <Plus aria-hidden="true" />
@@ -911,11 +918,11 @@ export default async function AdminFunnelsPage() {
                                 Checkout unlink confirmation
                                 <textarea
                                   name="confirmationText"
-                                  placeholder={draftFunnelCheckoutUnlinkConfirmationText}
                                   rows={2}
                                   disabled={!canMutateDraft}
                                 />
                               </label>
+                              <ConfirmationHint text={draftFunnelCheckoutUnlinkConfirmationText} />
                               <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                                 Unlink checkout
                                 <Unlink aria-hidden="true" />
@@ -964,11 +971,11 @@ export default async function AdminFunnelsPage() {
                                 Resource delivery confirmation
                                 <textarea
                                   name="confirmationText"
-                                  placeholder={draftFunnelResourceDeliveryLinkConfirmationText}
                                   rows={2}
                                   disabled={!canMutateDraft}
                                 />
                               </label>
+                              <ConfirmationHint text={draftFunnelResourceDeliveryLinkConfirmationText} />
                               <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                                 Link resource
                                 <ShieldCheck aria-hidden="true" />
@@ -1020,7 +1027,6 @@ export default async function AdminFunnelsPage() {
                                 <input
                                   name="registrationUrl"
                                   type="url"
-                                  placeholder="https://example.com/register"
                                   defaultValue={block.webinarEventLink?.registrationUrl ?? ""}
                                   maxLength={500}
                                   disabled={!canMutateDraft}
@@ -1031,7 +1037,6 @@ export default async function AdminFunnelsPage() {
                                 <input
                                   name="replayUrl"
                                   type="url"
-                                  placeholder="https://example.com/replay"
                                   defaultValue={block.webinarEventLink?.replayUrl ?? ""}
                                   maxLength={500}
                                   disabled={!canMutateDraft}
@@ -1041,11 +1046,11 @@ export default async function AdminFunnelsPage() {
                                 Webinar link confirmation
                                 <textarea
                                   name="confirmationText"
-                                  placeholder={draftFunnelWebinarEventLinkConfirmationText}
                                   rows={2}
                                   disabled={!canMutateDraft}
                                 />
                               </label>
+                              <ConfirmationHint text={draftFunnelWebinarEventLinkConfirmationText} />
                               <button type="submit" className="secondary-action compact-action" disabled={!canMutateDraft}>
                                 Link webinar
                                 <CalendarDays aria-hidden="true" />
@@ -1076,11 +1081,11 @@ export default async function AdminFunnelsPage() {
                           Checkout link confirmation
                           <textarea
                             name="confirmationText"
-                            placeholder={draftFunnelCheckoutLinkConfirmationText}
                             rows={2}
                             disabled={!canMutateDraft}
                           />
                         </label>
+                        <ConfirmationHint text={draftFunnelCheckoutLinkConfirmationText} />
                         <button type="submit" className="secondary-action" disabled={!canMutateDraft}>
                           Link checkout offer
                           <CreditCard aria-hidden="true" />
@@ -1102,10 +1107,10 @@ export default async function AdminFunnelsPage() {
                     <input
                       name="confirmationText"
                       type="text"
-                      placeholder={draftFunnelPublishConfirmationText}
                       disabled={!canMutateDraft}
                     />
                   </label>
+                  <ConfirmationHint text={draftFunnelPublishConfirmationText} />
                   <button type="submit" className="primary-action" disabled={!canMutateDraft || draft.steps.length < 3}>
                     Publish funnel
                     <ArrowRight aria-hidden="true" />

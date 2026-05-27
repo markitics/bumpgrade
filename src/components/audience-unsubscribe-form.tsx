@@ -75,7 +75,6 @@ export function AudienceUnsubscribeForm() {
           value={email}
           autoComplete="email"
           inputMode="email"
-          placeholder="publisher@example.com"
           onChange={(event) => setEmail(event.target.value)}
           onBlur={(event) => setEmail(event.currentTarget.value.trim())}
         />
@@ -85,7 +84,6 @@ export function AudienceUnsubscribeForm() {
         <input
           type="text"
           value={reason}
-          placeholder="No longer interested"
           onChange={(event) => setReason(event.target.value)}
           onBlur={(event) => setReason(event.currentTarget.value.trim())}
         />

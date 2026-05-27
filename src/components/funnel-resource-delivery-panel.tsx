@@ -74,7 +74,6 @@ export function FunnelResourceDeliveryPanel({
         type="text"
         value={checkoutIntentId}
         onChange={(event) => setCheckoutIntentId(event.target.value)}
-        placeholder="checkout-intent-..."
         autoComplete="off"
       />
       <label htmlFor={`entitlement-${blockId}`}>Entitlement ID</label>
@@ -83,7 +82,6 @@ export function FunnelResourceDeliveryPanel({
         type="text"
         value={entitlementId}
         onChange={(event) => setEntitlementId(event.target.value)}
-        placeholder="entitlement-..."
         autoComplete="off"
       />
       {state.downloadUrl ? (

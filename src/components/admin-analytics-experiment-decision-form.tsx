@@ -187,7 +187,6 @@ export function AdminAnalyticsExperimentDecisionForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private decision note, hashed before storage"
         />
       </label>
       <button type="submit" className="secondary-action admin-step-goal-field" disabled={isSubmitting || !selectedEvidence}>

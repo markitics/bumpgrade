@@ -1,3 +1,6 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join, relative } from "node:path";
+
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { createEmailVerificationToken } from "better-auth/api";
 
@@ -572,6 +575,20 @@ function publicCopyTextValues(value: unknown, path = ""): string[] {
   return [];
 }
 
+async function tsxFilesIn(root: string): Promise<string[]> {
+  const entries = await readdir(root, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const entryPath = join(root, entry.name);
+      if (entry.isDirectory()) return tsxFilesIn(entryPath);
+      if (entry.isFile() && entry.name.endsWith(".tsx")) return [entryPath];
+      return [];
+    }),
+  );
+
+  return files.flat();
+}
+
 const authSecret = "playwright-local-better-auth-secret";
 const testAuthOrigin = "http://localhost:3100";
 
@@ -816,6 +833,23 @@ test.describe("Bumpgrade scaffold", () => {
     expect(body).not.toContain("placeholder=");
     expect(body).not.toContain("your-name");
     expect(body).not.toContain("www.example.com");
+  });
+
+  test("app and component forms do not use placeholder attributes", async () => {
+    const repoRoot = process.cwd();
+    const files = (
+      await Promise.all([tsxFilesIn(join(repoRoot, "src/app")), tsxFilesIn(join(repoRoot, "src/components"))])
+    ).flat();
+    const filesWithPlaceholders: string[] = [];
+
+    for (const file of files) {
+      const body = await readFile(file, "utf8");
+      if (/\bplaceholder\s*=/.test(body)) {
+        filesWithPlaceholders.push(relative(repoRoot, file));
+      }
+    }
+
+    expect(filesWithPlaceholders).toEqual([]);
   });
 
   test("public example routes avoid test-fixture wording", async ({ page }) => {

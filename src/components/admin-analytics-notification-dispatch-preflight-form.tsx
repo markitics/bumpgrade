@@ -180,7 +180,6 @@ export function AdminAnalyticsNotificationDispatchPreflightForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private dispatch preflight note, hashed before storage"
         />
       </label>
       <button

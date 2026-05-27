@@ -228,7 +228,6 @@ export function AdminAudienceImportPreflightForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private preflight note, hashed before storage"
         />
       </label>
       <button type="submit" className="secondary-action admin-step-goal-field" disabled={isSubmitting || !selectedIntent}>

@@ -102,12 +102,13 @@ export function AdminProductCreationForm() {
       </div>
       <label className="admin-form-field">
         <span>Name</span>
-        <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Launch checklist download" />
+        <input value={name} onChange={(event) => setName(event.target.value)} />
       </label>
       <label className="admin-form-field">
         <span>Slug</span>
-        <input value={slug} onChange={(event) => setSlug(event.target.value)} placeholder={resolvedSlug || "launch-checklist-download"} />
+        <input value={slug} onChange={(event) => setSlug(event.target.value)} />
       </label>
+      <p className="field-hint">Leave slug blank to generate it from the product name.</p>
       <label className="admin-form-field">
         <span>Kind</span>
         <select value={kind} onChange={(event) => setKind(event.target.value as ProductCreationKind)}>
@@ -124,7 +125,6 @@ export function AdminProductCreationForm() {
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           rows={3}
-          placeholder="Short owner-facing product summary"
         />
       </label>
       <button type="submit" className="secondary-action" disabled={isSubmitting || !name.trim() || !resolvedSlug}>

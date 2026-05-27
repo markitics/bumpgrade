@@ -229,7 +229,6 @@ export function AdminAnalyticsNotificationDeliveryAttemptReadinessForm({
           value={privateNote}
           onChange={(event) => setPrivateNote(event.target.value)}
           rows={3}
-          placeholder="Private delivery-attempt readiness note, hashed before storage"
         />
       </label>
       <button
