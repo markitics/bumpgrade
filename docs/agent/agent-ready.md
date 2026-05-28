@@ -116,6 +116,13 @@ manifest. It lists agent-doc pages, stable read contracts, source-evidence
 routes, the MCP roadmap, and write-safety rules. It is discovery metadata, not
 permission to write.
 
+Current comparison boundary: `/compare/source-data` is the public-safe
+competitor research contract. It exposes competitor IDs, source IDs and URLs,
+SEO target IDs, importer platform IDs, and feature-match rows with stable row
+IDs, Bumpgrade feature IDs, public proof routes, roadmap item IDs, and use-case
+IDs. It must not expose private admin notes, owner-only routes, raw private
+import records, provider data, or customer data.
+
 Current mobile-admin boundary: `/mobile-admin/source-data` is the shared
 iOS/Android app contract, `/mobile-admin/ios/source-data` and
 `/mobile-admin/android/source-data` describe the first simulator/emulator smoke
