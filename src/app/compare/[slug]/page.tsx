@@ -20,8 +20,8 @@ export function generateStaticParams() {
 
 function statusLabel(status: string) {
   if (status === "live") return "Live";
-  if (status === "launch-preview") return "Launch preview";
-  return "Pending";
+  if (status === "launch-preview") return "Available now";
+  return "Coming soon";
 }
 
 function statusClass(status: string) {
@@ -245,7 +245,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
               <h2>Follow the feature paths behind this comparison.</h2>
             </div>
             <Link href="/features/source-data" className="text-link compact-link">
-              Feature source data
+              Feature evidence
               <ArrowRight aria-hidden="true" />
             </Link>
           </div>

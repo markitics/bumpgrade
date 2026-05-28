@@ -1178,7 +1178,7 @@ test.describe("Bumpgrade scaffold", () => {
     for (const comparison of expectedComparisons) {
       await page.goto(`/compare/${comparison.slug}`);
       await expect(page.getByRole("heading", { name: "Follow the feature paths behind this comparison." })).toBeVisible();
-      await expect(page.getByRole("link", { name: /Feature source data/i })).toBeVisible();
+      await expect(page.getByRole("link", { name: /Feature evidence/i })).toBeVisible();
 
       for (const featureTitle of comparison.featureTitles) {
         await expect(page.locator(".related-feature-card").filter({ hasText: featureTitle })).toBeVisible();

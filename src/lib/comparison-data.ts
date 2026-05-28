@@ -406,7 +406,7 @@ export const competitors: Competitor[] = [
         featureSlug: "ai-business-coach",
         sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
         criteria: ["Optimization, affiliates, and AI helpers", "AI help"],
-        rationale: "Points agents and buyers to the source-data surfaces used for AI-assisted launch planning.",
+        rationale: "Points agents and buyers to the evidence pages used for AI-assisted launch planning.",
       },
     ],
     evidence: [
