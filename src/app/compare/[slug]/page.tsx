@@ -197,7 +197,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
         <section className="content-band alternate">
           <div className="compare-section-heading">
             <div>
-              <p className="eyebrow">ClickFunnels competitors map</p>
+              <p className="eyebrow">Buyer decision map</p>
               <h2>{competitor.deepDive.title}</h2>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
           <div className="comparison-table deep-dive-table" role="table" aria-label={`${competitor.name} SEO capability checklist`}>
             <div className="comparison-table-row comparison-table-head" role="row">
               <div role="columnheader">Capability cluster</div>
-              <div role="columnheader">Official-source ClickFunnels surface</div>
+              <div role="columnheader">What {competitor.name} emphasizes</div>
               <div role="columnheader">Bumpgrade approach</div>
             </div>
             {competitor.deepDive.checklist.map((row) => (
