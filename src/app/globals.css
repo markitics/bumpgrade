@@ -514,6 +514,109 @@ h3 {
   line-height: 1.55;
 }
 
+.marketing-path-panel {
+  align-self: center;
+  display: grid;
+  gap: 14px;
+  overflow: hidden;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.marketing-path-media {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(18, 23, 19, 0.12);
+  border-radius: 8px;
+  background: #edf6ef;
+}
+
+.marketing-path-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.55;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.marketing-path-summary {
+  display: grid;
+  gap: 7px;
+  padding: 4px 2px 0;
+}
+
+.marketing-path-summary svg {
+  width: 30px;
+  height: 30px;
+  color: var(--green);
+}
+
+.marketing-path-summary p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.marketing-path-summary strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1.08;
+}
+
+.marketing-path-summary span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.marketing-path-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marketing-path-list li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fbf6;
+}
+
+.marketing-path-list > li > span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-weight: 900;
+}
+
+.marketing-path-list strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.marketing-path-list a {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .content-band {
   border-top: 1px solid var(--line);
   background: var(--panel);
@@ -1499,6 +1602,54 @@ h3 {
 
 .feature-proof-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.audience-launch-rail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 28px auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audience-launch-rail li {
+  display: grid;
+  grid-template-columns: 38px 30px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-height: 190px;
+  padding: 18px;
+  border: 1px solid rgba(248, 244, 235, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.audience-launch-rail > li > span {
+  display: grid;
+  place-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  background: rgba(200, 215, 175, 0.18);
+  color: #f8f4eb;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.audience-launch-rail svg {
+  width: 30px;
+  height: 30px;
+  color: #c8d7af;
+}
+
+.audience-launch-rail h3 {
+  margin-top: 0;
+  color: #f8f4eb;
+}
+
+.audience-launch-rail p {
+  color: #d9ded4;
+  line-height: 1.55;
 }
 
 .feature-card,
@@ -5784,6 +5935,7 @@ h3 {
   .feature-grid,
   .live-feature-grid,
   .feature-proof-grid,
+  .audience-launch-rail,
   .source-attribution-panel,
   .roadmap-grid,
   .roadmap-proof-grid,
@@ -5986,6 +6138,7 @@ h3 {
   .feature-grid,
   .live-feature-grid,
   .feature-proof-grid,
+  .audience-launch-rail,
   .source-attribution-panel,
   .roadmap-grid,
   .roadmap-lane-strip,
@@ -6189,6 +6342,18 @@ h3 {
 
   .content-band {
     padding: 42px 16px;
+  }
+
+  .marketing-path-summary strong {
+    font-size: 26px;
+  }
+
+  .audience-launch-rail li {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .audience-launch-rail svg {
+    display: none;
   }
 
   .admin-meta-grid {

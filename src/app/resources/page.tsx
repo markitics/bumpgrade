@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpen, FileText, FileSearch, Sparkles } from "lucide-react";
 
+import {
+  ContentBand,
+  MarketingCard,
+  MarketingHero,
+  SplitHeading,
+} from "@/components/marketing-primitives";
 import { resourceHubItems } from "@/lib/content-surfaces";
+import { marketingDesignTokens } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -13,6 +21,24 @@ export const metadata: Metadata = {
     canonical: `${site.url}/resources`,
   },
 };
+
+const resourcePathSteps = [
+  {
+    label: "01",
+    title: "Compare the platform decision",
+    href: "/compare",
+  },
+  {
+    label: "02",
+    title: "Map the source platform",
+    href: "/imports",
+  },
+  {
+    label: "03",
+    title: "Publish from evidence",
+    href: "/content/source-data",
+  },
+];
 
 const resourceDisplay: Record<
   string,
@@ -110,46 +136,73 @@ function resourceUseItTo(type: string) {
 export default function ResourcesPage() {
   return (
     <main className="route-page">
-      <section className="route-hero">
-        <div>
-          <p className="eyebrow">Resources</p>
-          <h1>Guides, comparisons, migrations, and launch notes for publishers.</h1>
-          <p className="lede">
-            Start with platform comparisons, checkout notes, and practical launch resources. The goal is simple: help
-            you decide what to sell, where the buyer goes next, and which Bumpgrade features should support the first
-            launch.
-          </p>
-          <div className="hero-actions">
-            <Link href="/compare" className="primary-action">
+      <MarketingHero
+        className="route-hero"
+        eyebrow="Resources"
+        title="Guides, comparisons, migrations, and launch notes for publishers."
+        lede="Start with platform comparisons, checkout notes, and practical launch resources. The goal is simple: help you decide what to sell, where the buyer goes next, and which Bumpgrade features should support the first launch."
+        actions={
+          <>
+            <Link href="/compare" className={marketingDesignTokens.actionClasses.primary}>
               Compare platforms
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/features" className="secondary-action">
+            <Link href="/features" className={marketingDesignTokens.actionClasses.secondary}>
               Browse features
               <Sparkles aria-hidden="true" />
             </Link>
-          </div>
-        </div>
-        <aside className="route-status-panel" aria-label="Resource surface status">
-          <FileText aria-hidden="true" />
-          <p>Resource library</p>
-          <strong>{resourceHubItems.length} launch resources</strong>
-          <span>Use available guides, checkout notes, and clearly marked future guides to choose your next launch move.</span>
-        </aside>
-      </section>
+          </>
+        }
+        visual={
+          <aside className="marketing-path-panel resource-path-panel" aria-label="Resource surface status">
+            <figure className="marketing-path-media">
+              <Image
+                src="/marketing/launch-funnel-card.png"
+                alt="Bumpgrade launch funnel workspace with opt-in, offer, checkout, and delivery steps."
+                width={1200}
+                height={650}
+                priority
+                unoptimized
+              />
+            </figure>
+            <div className="marketing-path-summary">
+              <FileText aria-hidden="true" />
+              <p>Resource library</p>
+              <strong>{resourceHubItems.length} launch resources</strong>
+              <span>
+                Use available guides, checkout notes, and clearly marked future guides to choose your next launch move.
+              </span>
+            </div>
+            <ol className="marketing-path-list">
+              {resourcePathSteps.map((step) => (
+                <li key={step.href}>
+                  <span>{step.label}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <Link href={step.href}>Open path</Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        }
+      />
 
-      <section className="content-band alternate">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Resource hub</p>
-            <h2>Start with the guide that matches the decision in front of you.</h2>
-          </div>
-        </div>
+      <ContentBand tone="alternate">
+        <SplitHeading
+          eyebrow="Resource hub"
+          title="Start with the guide that matches the decision in front of you."
+          className="feature-section-heading"
+        />
         <div className="feature-grid">
           {resourceHubItems.map((item) => {
             const display = displayForResource(item.id);
             return (
-              <article key={item.id} id={item.id.replace("resource-", "")} className="feature-card content-surface-card">
+              <MarketingCard
+                key={item.id}
+                id={item.id.replace("resource-", "")}
+                className="feature-card content-surface-card"
+              >
                 <div className="feature-card-top">
                   <span className={`status-badge ${resourceStatusClass(item.status)}`}>{display.label}</span>
                   <Link href={display.href ?? item.route}>{display.cta}</Link>
@@ -164,23 +217,26 @@ export default function ResourcesPage() {
                   <strong>Use it to</strong>
                   <span>{display.useItTo ?? resourceUseItTo(item.type)}</span>
                 </div>
-              </article>
+              </MarketingCard>
             );
           })}
         </div>
-      </section>
+      </ContentBand>
 
-      <section className="content-band dark-band">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Reading path</p>
-            <h2>Use the resources to shorten the path from research to launch.</h2>
-          </div>
-          <Link href="/features" className="text-link compact-link">
+      <ContentBand tone="dark">
+        <SplitHeading
+          eyebrow="Reading path"
+          title="Use the resources to shorten the path from research to launch."
+          className="feature-section-heading"
+        >
+          <Link
+            href="/features"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
             Browse features
             <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
+        </SplitHeading>
         <div className="feature-proof-grid">
           <div>
             <FileSearch aria-hidden="true" />
@@ -198,7 +254,7 @@ export default function ResourcesPage() {
             <p>Use the feature pages and comparison hub to pick the next launch, checkout, audience, or product step.</p>
           </div>
         </div>
-      </section>
+      </ContentBand>
     </main>
   );
 }

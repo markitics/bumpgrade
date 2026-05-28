@@ -91,20 +91,26 @@ export function MarketingCard({
   children,
   className,
   href,
+  id,
 }: {
   children: ReactNode;
   className: string;
   href?: string;
+  id?: string;
 }) {
   if (href) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} id={id} className={className}>
         {children}
       </Link>
     );
   }
 
-  return <article className={className}>{children}</article>;
+  return (
+    <article id={id} className={className}>
+      {children}
+    </article>
+  );
 }
 
 export type ComparisonTableColumn<Row> = {
