@@ -14,49 +14,6 @@ export const metadata: Metadata = {
   },
 };
 
-const useCaseDetails: Record<string, { bestFor: string; outcome: string; href: string }> = {
-  "audience-creators": {
-    bestFor: "Templates, communities, paid downloads, services, and expertise packaged into a clear offer.",
-    outcome: "Turn a scattered idea into a focused page, offer, checkout path, and follow-up plan.",
-    href: "/features/simple-landing-page",
-  },
-  "audience-coaches": {
-    bestFor: "Coaches, consultants, and solo experts selling audits, workshops, cohorts, or retainers.",
-    outcome: "Qualify demand, sell the first package, and keep the follow-up organized around real buyers.",
-    href: "/features/order-bump",
-  },
-  "audience-newsletter-publishers": {
-    bestFor: "Audience owners who want to grow a list and turn attention into paid products.",
-    outcome: "Capture subscribers, segment interest, and prepare a launch sequence without stitching together extra tools.",
-    href: "/features/email-campaigns",
-  },
-  "audience-course-sellers": {
-    bestFor: "Course creators, membership sellers, and productized knowledge businesses.",
-    outcome: "Sell access, deliver protected files or lessons, and keep customer access tied to the purchase.",
-    href: "/features/digital-products",
-  },
-  "audience-agencies": {
-    bestFor: "Operators managing repeated launches, client offers, partner campaigns, and reporting.",
-    outcome: "Reuse launch structures, review performance, and coordinate approvals across offers.",
-    href: "/features/ad-tracking",
-  },
-  "audience-indie-hackers": {
-    bestFor: "Tiny teams and builders who want one owned growth system around a minimum viable offer.",
-    outcome: "Ship a useful funnel, take payment when ready, and keep enough context for AI helpers to assist.",
-    href: "/features/ai-business-coach",
-  },
-};
-
-function detailForSegment(id: string) {
-  return (
-    useCaseDetails[id] ?? {
-      bestFor: "Publishers turning a focused audience into a paid offer.",
-      outcome: "Shape the path from idea to signup, checkout, fulfillment, and follow-up.",
-      href: "/features",
-    }
-  );
-}
-
 export default function UsersPage() {
   return (
     <main className="route-page">
@@ -97,10 +54,10 @@ export default function UsersPage() {
         </div>
         <div className="feature-grid">
           {audienceSegments.map((segment) => (
-            <article key={segment.id} id={segment.id.replace("audience-", "")} className="feature-card content-surface-card">
+            <article key={segment.id} id={segment.slug} className="feature-card content-surface-card">
               <div className="feature-card-top">
                 <span className="status-badge live">Use case</span>
-                <Link href={detailForSegment(segment.id).href}>Start here</Link>
+                <Link href={segment.route}>View page</Link>
               </div>
               <h3>{segment.title}</h3>
               <p>{segment.summary}</p>
@@ -111,11 +68,11 @@ export default function UsersPage() {
               </ul>
               <div className="feature-detail">
                 <strong>Best for</strong>
-                <span>{detailForSegment(segment.id).bestFor}</span>
+                <span>{segment.bestFor}</span>
               </div>
               <div className="feature-detail">
                 <strong>Outcome</strong>
-                <span>{detailForSegment(segment.id).outcome}</span>
+                <span>{segment.outcome}</span>
               </div>
             </article>
           ))}
