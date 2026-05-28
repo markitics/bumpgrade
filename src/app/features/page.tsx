@@ -4,6 +4,12 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, HeartHandshake, Sparkles } from "lucide-react";
 
 import {
+  ContentBand,
+  MarketingCard,
+  MarketingHero,
+  SplitHeading,
+} from "@/components/marketing-primitives";
+import {
   featuredMarketingFeatureSlugs,
   getMarketingFeature,
   marketingFeatureCategories,
@@ -11,6 +17,7 @@ import {
   type MarketingFeature,
 } from "@/lib/marketing-features";
 import { MarketingProductVisual } from "@/components/marketing-product-visual";
+import { marketingDesignTokens, type MarketingBadgeTone } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -31,48 +38,47 @@ function availabilityLabel(feature: MarketingFeature) {
   return "Next release";
 }
 
-function availabilityClass(feature: MarketingFeature) {
+function availabilityTone(feature: MarketingFeature): MarketingBadgeTone {
   return feature.status === "live" ? "live" : feature.status === "launch-preview" ? "active" : "pending";
+}
+
+function statusBadgeClass(feature: MarketingFeature) {
+  return `${marketingDesignTokens.badgeClasses.base} ${availabilityTone(feature)}`;
 }
 
 export default function FeaturesPage() {
   return (
     <main className="marketing-features-page">
-      <section className="marketing-features-hero">
-        <div>
-          <p className="eyebrow">Bumpgrade features</p>
-          <h1>Everything a publisher needs to launch, sell, deliver, and improve an offer.</h1>
-          <p className="lede">
-            Bumpgrade brings together the core jobs people usually split across ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics tools. Start with the launch workflow, then dig into the feature pages that match your offer.
-          </p>
-          <div className="hero-actions">
-            <Link href="/pricing" className="primary-action">
+      <MarketingHero
+        className="marketing-features-hero"
+        eyebrow="Bumpgrade features"
+        title="Everything a publisher needs to launch, sell, deliver, and improve an offer."
+        lede="Bumpgrade brings together the core jobs people usually split across ClickFunnels, SamCart, Kit, Kajabi, Shopify, ThriveCart, and analytics tools. Start with the launch workflow, then dig into the feature pages that match your offer."
+        actions={
+          <>
+            <Link href="/pricing" className={marketingDesignTokens.actionClasses.primary}>
               See launch pricing
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/compare" className="secondary-action">
+            <Link href="/compare" className={marketingDesignTokens.actionClasses.secondary}>
               Compare alternatives
               <BadgeCheck aria-hidden="true" />
             </Link>
-          </div>
-        </div>
-        <MarketingProductVisual />
-      </section>
+          </>
+        }
+        visual={<MarketingProductVisual />}
+      />
 
-      <section className="content-band marketing-outcome-band">
-        <div className="split-heading">
-          <div>
-            <p className="eyebrow">Featured workflows</p>
-            <h2>The main things Bumpgrade can do for a launch.</h2>
-          </div>
+      <ContentBand className="marketing-outcome-band">
+        <SplitHeading eyebrow="Featured workflows" title="The main things Bumpgrade can do for a launch.">
           <p>
             Use these paths to plan the first page, collect the buyer, deliver the product, measure the result, and choose
             what to improve next.
           </p>
-        </div>
+        </SplitHeading>
         <div className="spotlight-feature-grid">
           {featuredFeatures.map((feature) => (
-            <article key={feature.slug} className="spotlight-feature-card">
+            <MarketingCard key={feature.slug} className="spotlight-feature-card">
               <Image
                 src={feature.cardImageUrl ?? feature.imageUrl}
                 alt={feature.cardImageAlt ?? feature.imageAlt}
@@ -81,39 +87,30 @@ export default function FeaturesPage() {
                 unoptimized
               />
               <div>
-                <span className={`status-badge ${availabilityClass(feature)}`}>
-                  {availabilityLabel(feature)}
-                </span>
+                <span className={statusBadgeClass(feature)}>{availabilityLabel(feature)}</span>
                 <p className="eyebrow">{feature.eyebrow}</p>
                 <h3>{feature.title}</h3>
                 <p>{feature.outcome}</p>
-                <Link href={`/features/${feature.slug}`} className="text-link">
+                <Link href={`/features/${feature.slug}`} className={marketingDesignTokens.actionClasses.text}>
                   Learn more
                   <ArrowRight aria-hidden="true" />
                 </Link>
               </div>
-            </article>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </ContentBand>
 
       {marketingFeatureCategories.map((category) => {
         const categoryFeatures = marketingFeatures.filter((feature) => feature.category === category);
         return (
-          <section key={category} className="content-band">
-            <div className="feature-section-heading">
-              <div>
-                <p className="eyebrow">Feature group</p>
-                <h2>{category}</h2>
-              </div>
-            </div>
+          <ContentBand key={category}>
+            <SplitHeading eyebrow="Feature group" title={category} className="feature-section-heading" />
             <div className="marketing-feature-grid">
               {categoryFeatures.map((feature) => (
-                <article key={feature.slug} className="marketing-feature-card">
+                <MarketingCard key={feature.slug} className="marketing-feature-card">
                   <div className="feature-card-top">
-                    <span className={`status-badge ${availabilityClass(feature)}`}>
-                      {availabilityLabel(feature)}
-                    </span>
+                    <span className={statusBadgeClass(feature)}>{availabilityLabel(feature)}</span>
                     <span>{feature.availability}</span>
                   </div>
                   <h3>{feature.title}</h3>
@@ -122,28 +119,27 @@ export default function FeaturesPage() {
                     <strong>Best for</strong>
                     <span>{feature.audience}</span>
                   </div>
-                  <Link href={`/features/${feature.slug}`} className="text-link compact-link">
+                  <Link
+                    href={`/features/${feature.slug}`}
+                    className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+                  >
                     Learn more
                     <ArrowRight aria-hidden="true" />
                   </Link>
-                </article>
+                </MarketingCard>
               ))}
             </div>
-          </section>
+          </ContentBand>
         );
       })}
 
-      <section className="content-band dark-band marketing-trust-band">
-        <div className="split-heading">
-          <div>
-            <p className="eyebrow">Why it feels different</p>
-            <h2>One launch workflow instead of a stack of disconnected tools.</h2>
-          </div>
-          <Link href="/compare" className="secondary-action">
+      <ContentBand className="marketing-trust-band" tone="dark">
+        <SplitHeading eyebrow="Why it feels different" title="One launch workflow instead of a stack of disconnected tools.">
+          <Link href="/compare" className={marketingDesignTokens.actionClasses.secondary}>
             Compare alternatives
             <BadgeCheck aria-hidden="true" />
           </Link>
-        </div>
+        </SplitHeading>
         <div className="feature-proof-grid">
           <div>
             <HeartHandshake aria-hidden="true" />
@@ -161,7 +157,7 @@ export default function FeaturesPage() {
             <p>Each main capability has a deeper page for email campaigns, order bumps, landing pages, analytics, and AI help.</p>
           </div>
         </div>
-      </section>
+      </ContentBand>
     </main>
   );
 }
