@@ -3,12 +3,20 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, GitCompareArrows, ShieldCheck } from "lucide-react";
 
 import {
+  ComparisonTable,
+  ContentBand,
+  MarketingCard,
+  MarketingHero,
+  SplitHeading,
+} from "@/components/marketing-primitives";
+import {
   comparisonHubRows,
   comparisonPrinciples,
   comparisonRetrievedAt,
   comparisonSeoTargets,
   competitors,
 } from "@/lib/comparison-data";
+import { marketingDesignTokens } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -53,48 +61,50 @@ export default function ComparePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pageJsonLd).replaceAll("<", "\\u003c") }}
       />
-      <section className="compare-hero">
-        <div>
-          <p className="eyebrow">ClickFunnels alternatives</p>
-          <h1>Compare ClickFunnels competitors and indiepreneur platforms.</h1>
-          <p className="lede">
-            Bumpgrade is the launch system for publishers who want funnel, checkout, email, product, analytics,
-            and AI-assist workflows to connect. Use this hub to see where Bumpgrade can replace a stack of specialist
-            tools and where a dedicated platform still makes sense.
-          </p>
-          <div className="hero-actions">
-            <Link href="/features" className="primary-action">
+      <MarketingHero
+        className="compare-hero"
+        eyebrow="ClickFunnels alternatives"
+        title="Compare ClickFunnels competitors and indiepreneur platforms."
+        lede="Bumpgrade is the launch system for publishers who want funnel, checkout, email, product, analytics, and AI-assist workflows to connect. Use this hub to see where Bumpgrade can replace a stack of specialist tools and where a dedicated platform still makes sense."
+        actions={
+          <>
+            <Link href="/features" className={marketingDesignTokens.actionClasses.primary}>
               See features
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/compare/clickfunnels-alternative" className="secondary-action">
+            <Link href="/compare/clickfunnels-alternative" className={marketingDesignTokens.actionClasses.secondary}>
               Compare ClickFunnels
               <BookOpen aria-hidden="true" />
             </Link>
-          </div>
-        </div>
-        <aside className="compare-scorecard" aria-label="Comparison status">
-          <GitCompareArrows aria-hidden="true" />
-          <p>Comparison set</p>
-          <strong>{competitors.length} alternatives</strong>
-          <span>Alternative pages reviewed {comparisonRetrievedAt}. Start with the platform you already know.</span>
-        </aside>
-      </section>
+          </>
+        }
+        visual={
+          <aside className="compare-scorecard" aria-label="Comparison status">
+            <GitCompareArrows aria-hidden="true" />
+            <p>Comparison set</p>
+            <strong>{competitors.length} alternatives</strong>
+            <span>Alternative pages reviewed {comparisonRetrievedAt}. Start with the platform you already know.</span>
+          </aside>
+        }
+      />
 
-      <section className="content-band">
-        <div className="compare-section-heading">
-          <div>
-            <p className="eyebrow">Buyer research</p>
-            <h2>Start with the question your current tool raises.</h2>
-          </div>
-          <Link href="/compare/clickfunnels-alternative" className="text-link compact-link">
+      <ContentBand>
+        <SplitHeading
+          eyebrow="Buyer research"
+          title="Start with the question your current tool raises."
+          className="compare-section-heading"
+        >
+          <Link
+            href="/compare/clickfunnels-alternative"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
             ClickFunnels page
             <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
+        </SplitHeading>
         <div className="seo-target-grid">
           {comparisonSeoTargets.map((target) => (
-            <article key={target.id} className="seo-target-card">
+            <MarketingCard key={target.id} className="seo-target-card">
               <span>{target.primaryKeyword}</span>
               <h3>{target.intent}</h3>
               <p>{target.caveat}</p>
@@ -103,25 +113,24 @@ export default function ComparePage() {
                   <li key={keyword}>{keyword}</li>
                 ))}
               </ul>
-            </article>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </ContentBand>
 
-      <section className="content-band alternate">
-        <div className="compare-section-heading">
-          <div>
-            <p className="eyebrow">Compare by platform</p>
-            <h2>First-wave alternative pages</h2>
-          </div>
-          <Link href="/features" className="text-link compact-link">
+      <ContentBand tone="alternate">
+        <SplitHeading eyebrow="Compare by platform" title="First-wave alternative pages" className="compare-section-heading">
+          <Link
+            href="/features"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
             Feature overview
             <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
+        </SplitHeading>
         <div className="alternative-grid">
           {competitors.map((competitor) => (
-            <Link key={competitor.id} href={`/compare/${competitor.slug}`} className="alternative-card">
+            <MarketingCard key={competitor.id} href={`/compare/${competitor.slug}`} className="alternative-card">
               <span>{competitor.category}</span>
               <h3>{competitor.name} alternative</h3>
               <p>{competitor.summary}</p>
@@ -129,41 +138,47 @@ export default function ComparePage() {
                 Open comparison
                 <ArrowRight aria-hidden="true" />
               </strong>
-            </Link>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </ContentBand>
 
-      <section className="content-band">
-        <div className="compare-section-heading">
-          <div>
-            <p className="eyebrow">Platform decision</p>
-            <h2>What Bumpgrade is trying to combine</h2>
-          </div>
-        </div>
-        <div className="comparison-table" role="table" aria-label="Bumpgrade comparison strategy">
-          <div className="comparison-table-row comparison-table-head" role="row">
-            <div role="columnheader">Area</div>
-            <div role="columnheader">What incumbents cover</div>
-            <div role="columnheader">Bumpgrade approach</div>
-          </div>
-          {comparisonHubRows.map((row) => (
-            <div key={row.area} className="comparison-table-row" role="row">
-              <div role="cell">
-                <strong>{row.area}</strong>
-              </div>
-              <div role="cell">{row.incumbent}</div>
-              <div role="cell">{row.bumpgradePlan}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ContentBand>
+        <SplitHeading
+          eyebrow="Platform decision"
+          title="What Bumpgrade is trying to combine"
+          className="compare-section-heading"
+        />
+        <ComparisonTable
+          ariaLabel="Bumpgrade comparison strategy"
+          rows={comparisonHubRows}
+          rowKey={(row) => row.area}
+          columns={[
+            {
+              key: "area",
+              header: "Area",
+              render: (row) => <strong>{row.area}</strong>,
+            },
+            {
+              key: "incumbent",
+              header: "What incumbents cover",
+              render: (row) => row.incumbent,
+            },
+            {
+              key: "bumpgrade",
+              header: "Bumpgrade approach",
+              render: (row) => row.bumpgradePlan,
+            },
+          ]}
+        />
+      </ContentBand>
 
-      <section className="content-band dark-band">
-        <div className="section-heading">
-          <p className="eyebrow">How to choose</p>
-          <h2>Compare the job you need done, not just the logo on the tool.</h2>
-        </div>
+      <ContentBand tone="dark">
+        <SplitHeading
+          eyebrow="How to choose"
+          title="Compare the job you need done, not just the logo on the tool."
+          className="section-heading"
+        />
         <div className="principle-grid">
           {comparisonPrinciples.map((principle) => (
             <div key={principle.title} className="principle-card">
@@ -173,7 +188,7 @@ export default function ComparePage() {
             </div>
           ))}
         </div>
-      </section>
+      </ContentBand>
     </main>
   );
 }
