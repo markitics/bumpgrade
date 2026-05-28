@@ -156,6 +156,9 @@ GitHub repo: https://github.com/markitics/bumpgrade
   evidence, and work-log entries when available.
 - `/agent-docs/source-data` is the current public-safe agent manifest. It lists
   docs, read contracts, evidence routes, MCP plans, and write-safety boundaries.
+- `robots.txt` intentionally disallows owner-gated admin UI pages while allowing
+  the public-safe `/admin/*/source-data` routes listed here. Agents should use
+  those source-data routes instead of scraping private admin pages.
 - Comparison pages are source-linked snapshots. Refresh source URLs before using
   dated pricing, packaging, or feature-availability claims in a user-facing
   answer.

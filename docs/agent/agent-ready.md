@@ -106,6 +106,10 @@ Public agent docs should answer:
 Current auth boundary: human admin pages use Better Auth owner sessions.
 Agent-readable source-data routes stay public-safe and unauthenticated until a
 confirmed-write or delegated-agent auth model exists.
+Discovery policy follows that same split: `robots.txt` disallows owner-gated
+human admin pages while explicitly allowing public-safe `/admin/*/source-data`
+routes, and the sitemap lists those source-data routes instead of private admin
+UI pages.
 
 Current manifest boundary: `/agent-docs/source-data` is the public-safe agent
 manifest. It lists agent-doc pages, stable read contracts, source-evidence

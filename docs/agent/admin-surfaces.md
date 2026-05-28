@@ -86,6 +86,9 @@ Issue #9 added Better Auth as the human admin gate. Browser-rendered admin pages
 require an allowlisted owner session. Public-safe `/admin/*/source-data` routes
 remain readable by agents and must not contain private notes, secrets, raw
 provider identifiers, or private user data.
+The sitemap and `robots.txt` mirror this boundary: public-safe admin source-data
+routes are crawlable, while owner-gated admin UI pages stay disallowed and are
+not listed in the sitemap.
 
 Recommended status values:
 
