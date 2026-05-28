@@ -1114,6 +1114,111 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("non-ClickFunnels comparison pages expose source-backed SEO depth", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "SEO depth is checked once on desktop.");
+
+    const internalTerms =
+      /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access|Open example/i;
+    const nonClickFunnelsCompetitors = competitors.filter((competitor) => competitor.id !== "competitor-clickfunnels");
+    const response = await request.get("/compare/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = (await response.json()) as {
+      seoTargets: Array<{ route: string; evidenceSourceIds: string[]; primaryKeyword: string }>;
+      competitors: Array<{
+        id: string;
+        slug: string;
+        sourceId: string;
+        sourceIds?: string[];
+        seoKeywords?: string[];
+        searchIntent?: string;
+        faqs?: Array<{ question: string; answer: string }>;
+        deepDive?: { title: string; checklist: unknown[]; relatedLinks: unknown[] };
+        rows: unknown[];
+      }>;
+    };
+
+    for (const competitor of nonClickFunnelsCompetitors) {
+      const route = `/compare/${competitor.slug}`;
+      const metaTitle = competitor.metaTitle ?? `${competitor.name} Alternative`;
+      const metaDescription = competitor.metaDescription ?? "";
+      const firstKeyword = competitor.seoKeywords?.[0] ?? `${competitor.name} alternative`;
+      const firstFaq = competitor.faqs?.[0];
+      const deepDive = competitor.deepDive;
+
+      expect(metaDescription, `${competitor.name} should have a meta description`).toBeTruthy();
+      expect(firstFaq, `${competitor.name} should have a visible FAQ`).toBeTruthy();
+      expect(deepDive, `${competitor.name} should have a deep-dive section`).toBeTruthy();
+
+      await page.goto(route);
+      await expect(page).toHaveTitle(new RegExp(escapeRegExp(metaTitle), "i"));
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", metaDescription);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+        "href",
+        `https://bumpgrade.com/compare/${competitor.slug}`,
+      );
+      await expect(page.getByRole("heading", { name: competitor.headline })).toBeVisible();
+      await expect(page.locator(".keyword-list li").filter({ hasText: new RegExp(`^${escapeRegExp(firstKeyword)}$`) })).toBeVisible();
+      await expect(page.getByRole("heading", { name: deepDive?.title ?? "" })).toBeVisible();
+      await expect(page.getByRole("columnheader", { name: `What ${competitor.name} emphasizes` })).toBeVisible();
+      await expect(page.locator(`[aria-label="${competitor.name} alternative matrix"] [role="row"]`)).toHaveCount(
+        competitor.rows.length + 1,
+      );
+      await expect(page.getByRole("heading", { name: `Questions about choosing Bumpgrade instead of ${competitor.name}` })).toBeVisible();
+      await expect(page.getByRole("heading", { name: firstFaq?.question ?? "" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Official source" })).toHaveAttribute("href", competitor.sourceUrl);
+
+      const visibleText = await page.locator("body").innerText();
+      expect(visibleText).not.toMatch(internalTerms);
+
+      const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').evaluateAll((scripts) =>
+        scripts.map((script) => JSON.parse(script.textContent ?? "{}")),
+      );
+      expect(jsonLdBlocks).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            "@type": "FAQPage",
+            mainEntity: expect.arrayContaining([
+              expect.objectContaining({
+                "@type": "Question",
+                name: firstFaq?.question,
+              }),
+            ]),
+          }),
+        ]),
+      );
+
+      const sourceDataCompetitor = payload.competitors.find((item) => item.slug === competitor.slug);
+      expect(sourceDataCompetitor).toEqual(
+        expect.objectContaining({
+          id: competitor.id,
+          sourceIds: expect.arrayContaining([competitor.sourceId]),
+          seoKeywords: expect.arrayContaining([firstKeyword]),
+          searchIntent: expect.any(String),
+          faqs: expect.any(Array),
+          deepDive: expect.objectContaining({
+            title: deepDive?.title,
+            checklist: expect.any(Array),
+            relatedLinks: expect.any(Array),
+          }),
+          rows: expect.any(Array),
+        }),
+      );
+      expect(sourceDataCompetitor?.seoKeywords?.length).toBeGreaterThanOrEqual(4);
+      expect(sourceDataCompetitor?.faqs?.length).toBeGreaterThanOrEqual(2);
+      expect(sourceDataCompetitor?.deepDive?.checklist.length).toBeGreaterThanOrEqual(3);
+      expect(sourceDataCompetitor?.deepDive?.relatedLinks.length).toBeGreaterThanOrEqual(4);
+      expect(sourceDataCompetitor?.rows.length).toBeGreaterThanOrEqual(3);
+
+      const seoTarget = payload.seoTargets.find((target) => target.route === route);
+      expect(seoTarget).toEqual(
+        expect.objectContaining({
+          primaryKeyword: firstKeyword,
+          evidenceSourceIds: expect.arrayContaining([competitor.sourceId]),
+        }),
+      );
+    }
+  });
+
   test("dedicated use-case pages expose SEO metadata and agent-readable links", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "SEO metadata is checked once on desktop.");
 
