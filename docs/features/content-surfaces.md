@@ -11,7 +11,9 @@ surfaces instead of placeholders:
 - `/developers-and-agents`: public read contracts, agent docs, MCP direction,
   and write-safety boundaries.
 - `/resources`: comparison, migration, launch, product, blog-index, and agent
-  resources with evidence routes.
+  resources with evidence routes. Live resource records should point at
+  crawlable routes such as `/resources/product-notes`; future resources should
+  stay visibly non-live until the source evidence supports them.
 - `/pricing`: self-serve Experiment and Grow plans, Enterprise contact path,
   optional White glove setup, current billing boundaries, and the canonical
   buyer pricing URL.

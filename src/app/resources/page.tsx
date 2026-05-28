@@ -14,7 +14,18 @@ export const metadata: Metadata = {
   },
 };
 
-const resourceDisplay: Record<string, { title: string; summary: string; label: string; cta: string }> = {
+const resourceDisplay: Record<
+  string,
+  {
+    title: string;
+    summary: string;
+    label: string;
+    cta: string;
+    href?: string;
+    bestWhen?: string;
+    useItTo?: string;
+  }
+> = {
   "resource-comparison-hub": {
     title: "Platform comparison hub",
     summary: "Compare Bumpgrade with the tools publishers already know so you can choose the right launch setup.",
@@ -35,13 +46,17 @@ const resourceDisplay: Record<string, { title: string; summary: string; label: s
   },
   "resource-launch-playbook": {
     title: "Offer launch playbook",
-    summary: "A step-by-step guide for turning a warm audience into an opt-in, sales page, checkout, follow-up, and reporting loop.",
-    label: "Launch worksheet",
-    cta: "See launch stack",
+    summary:
+      "A future guide for connecting opt-in, sales, checkout, follow-up, and reporting work once the supporting launch paths have stronger public evidence.",
+    label: "Not live yet",
+    cta: "See related features",
+    href: "/features",
+    bestWhen: "You are shaping a launch path and want the current feature pages first.",
+    useItTo: "Track the pieces that need stronger public evidence before this becomes a full guide.",
   },
   "resource-product-notes-blog-index": {
     title: "Launch essays and product guidance",
-    summary: "Short practical notes on building stronger launch systems, choosing features, and improving offer workflows.",
+    summary: "Current public notes on Bumpgrade launch systems, feature choices, and safer offer workflows.",
     label: "Available now",
     cta: "Open notes",
   },
@@ -76,6 +91,22 @@ function displayForResource(id: string) {
   );
 }
 
+function resourceStatusClass(status: "live" | "planned") {
+  return status === "live" ? "live" : "planned";
+}
+
+function resourceBestWhen(type: string) {
+  return type === "comparison"
+    ? "You are choosing between platforms or explaining the switch."
+    : "You want a clearer next step for your launch.";
+}
+
+function resourceUseItTo(type: string) {
+  return type === "migration"
+    ? "Map what moves, what changes, and what can be simplified."
+    : "Turn the idea into a decision you can act on.";
+}
+
 export default function ResourcesPage() {
   return (
     <main className="route-page">
@@ -103,7 +134,7 @@ export default function ResourcesPage() {
           <FileText aria-hidden="true" />
           <p>Resource library</p>
           <strong>{resourceHubItems.length} launch resources</strong>
-          <span>Use the comparison hub, checkout notes, and worksheets to choose your next launch move.</span>
+          <span>Use available guides, checkout notes, and clearly marked future guides to choose your next launch move.</span>
         </aside>
       </section>
 
@@ -118,24 +149,24 @@ export default function ResourcesPage() {
           {resourceHubItems.map((item) => {
             const display = displayForResource(item.id);
             return (
-            <article key={item.id} id={item.id.replace("resource-", "")} className="feature-card content-surface-card">
-              <div className="feature-card-top">
-                <span className="status-badge live">{display.label}</span>
-                <Link href={item.route}>{display.cta}</Link>
-              </div>
-              <h3>{display.title}</h3>
-              <p>{display.summary}</p>
-              <div className="feature-detail">
-                <strong>Best when</strong>
-                <span>{item.type === "comparison" ? "You are choosing between platforms or explaining the switch." : "You want a clearer next step for your launch."}</span>
-              </div>
-              <div className="feature-detail">
-                <strong>Use it to</strong>
-                <span>{item.type === "migration" ? "Map what moves, what changes, and what can be simplified." : "Turn the idea into a decision you can act on."}</span>
-              </div>
-            </article>
-          );
-        })}
+              <article key={item.id} id={item.id.replace("resource-", "")} className="feature-card content-surface-card">
+                <div className="feature-card-top">
+                  <span className={`status-badge ${resourceStatusClass(item.status)}`}>{display.label}</span>
+                  <Link href={display.href ?? item.route}>{display.cta}</Link>
+                </div>
+                <h3>{display.title}</h3>
+                <p>{display.summary}</p>
+                <div className="feature-detail">
+                  <strong>Best when</strong>
+                  <span>{display.bestWhen ?? resourceBestWhen(item.type)}</span>
+                </div>
+                <div className="feature-detail">
+                  <strong>Use it to</strong>
+                  <span>{display.useItTo ?? resourceUseItTo(item.type)}</span>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 

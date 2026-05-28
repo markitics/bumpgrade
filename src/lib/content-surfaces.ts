@@ -520,8 +520,8 @@ export const resourceHubItems: ResourceHubItem[] = [
     title: "Product notes and blog index",
     type: "blog",
     status: "live",
-    route: "/resources#product-notes-blog-index",
-    summary: "Current index for product notes, launch essays, and future blog posts before dedicated article routes exist.",
+    route: "/resources/product-notes",
+    summary: "Current index for product notes, launch guidance, and the public evidence routes behind Bumpgrade resources.",
     evidenceRoutes: ["/content/source-data", "/features/source-data", "/roadmap/source-data"],
     issueNumbers: [20],
     agentBoundary: "Posts should cite source routes, issue evidence, or retrieved source URLs before factual claims are published.",
@@ -560,6 +560,10 @@ export const resourceHubItems: ResourceHubItem[] = [
     agentBoundary: "Agents may cite brand assets and principles, but new public claims still need source evidence.",
   },
 ];
+
+export const resourceHubRoutes = Array.from(
+  new Set(resourceHubItems.map((item) => item.route).filter((route) => !route.includes("#"))),
+);
 
 export const pricingPrinciples: PricingPrinciple[] = [
   {
@@ -690,22 +694,25 @@ export const contentSourceData = {
   id: "bumpgrade-content-surface-source-data",
   updatedAt: contentSurfacesUpdatedAt,
   issue: 20,
-  routes: [
-    "/users",
-    ...audienceSegmentRoutes,
-    "/developers-and-agents",
-    "/resources",
-    importerHubRoute,
-    "/brand",
-    canonicalPricingRoute,
-    pricingSourceDataRoute,
-    "/playground",
-    "/playground/source-data",
-    usagePricingDraftRoute,
-    "/account/setup",
-    importerSourceDataRoute,
-    "/content/source-data",
-  ],
+  routes: Array.from(
+    new Set([
+      "/users",
+      ...audienceSegmentRoutes,
+      "/developers-and-agents",
+      "/resources",
+      ...resourceHubRoutes,
+      importerHubRoute,
+      "/brand",
+      canonicalPricingRoute,
+      pricingSourceDataRoute,
+      "/playground",
+      "/playground/source-data",
+      usagePricingDraftRoute,
+      "/account/setup",
+      importerSourceDataRoute,
+      "/content/source-data",
+    ]),
+  ),
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,
