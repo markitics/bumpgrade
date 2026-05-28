@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SiteFooter } from "@/components/site-footer";
 import { TopNav } from "@/components/top-nav";
 import { site } from "@/lib/site";
 import "./globals.css";
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <TopNav />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

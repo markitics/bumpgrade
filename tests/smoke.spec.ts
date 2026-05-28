@@ -783,6 +783,34 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByText("In build")).toHaveCount(0);
   });
 
+  test("global marketing footer exposes public discovery and trust links", async ({ page }) => {
+    await page.goto("/");
+    const footer = page.getByRole("contentinfo");
+
+    await expect(footer).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Features" })).toHaveAttribute("href", "/features");
+    await expect(footer.getByRole("link", { name: "ClickFunnels import" })).toHaveAttribute("href", "/imports/clickfunnels");
+    await expect(footer.getByRole("link", { name: "Agent manifest" })).toHaveAttribute("href", "/agent-docs/source-data");
+    await expect(footer.getByRole("link", { name: "llms.txt" })).toHaveAttribute("href", "/llms.txt");
+    await expect(footer.getByRole("link", { name: "Availability map" })).toHaveAttribute("href", "/roadmap");
+    await expect(footer.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "mailto:hello@bumpgrade.com");
+    await expect(footer.getByText("Owner approval")).toBeVisible();
+    await expect(footer.getByText("Legal docs are not public yet.")).toBeVisible();
+    expect(await footer.locator('a[href^="/admin"]').count()).toBe(0);
+  });
+
+  test("global marketing footer stacks cleanly on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/resources");
+    const footer = page.getByRole("contentinfo");
+
+    await expect(footer).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Import center" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Agent docs" })).toBeVisible();
+    await expect(footer.getByText("Available now")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  });
+
   test("public launch pages avoid internal build language", async ({ page }) => {
     const internalTerms =
       /\b(?:Cloudflare|D1|database|admin|roadmap|contract|scaffold|pending|planned|preview|sandbox|pilot|draft|placeholder)\b|source-data|source data|launch-preview|Issue #|PR #|In build|feature coming|request access|Open example/i;
