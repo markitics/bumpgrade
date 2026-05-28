@@ -5151,6 +5151,16 @@ h3 {
   font-weight: 800;
 }
 
+.pricing-feature-availability {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.pricing-feature-mobile-plan-label {
+  display: none;
+}
+
 .usage-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5775,11 +5785,53 @@ h3 {
   }
 
   .pricing-feature-table {
-    overflow-x: auto;
+    gap: 12px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
   }
 
   .pricing-feature-row {
-    min-width: 760px;
+    grid-template-columns: 1fr;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .pricing-feature-row:first-child {
+    display: none;
+  }
+
+  .pricing-feature-row > span {
+    grid-template-columns: minmax(0, 1fr);
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .pricing-feature-row > span:first-child {
+    border-top: 0;
+    background: #f7fbf8;
+  }
+
+  .pricing-feature-row > span:not(:first-child) {
+    grid-template-columns: minmax(88px, 0.42fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .pricing-feature-availability {
+    grid-column: 2;
+  }
+
+  .pricing-feature-mobile-plan-label {
+    display: block;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0;
+    line-height: 1.35;
+    text-transform: uppercase;
   }
 
   .subdomain-input-row span {
