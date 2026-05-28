@@ -326,7 +326,7 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
             <div role="columnheader">Bumpgrade approach</div>
           </div>
           {competitor.rows.map((row) => (
-            <div key={row.area} className="comparison-table-row" role="row">
+            <div key={row.id} className="comparison-table-row" role="row">
               <div role="cell">
                 <strong>{row.area}</strong>
               </div>

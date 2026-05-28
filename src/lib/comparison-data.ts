@@ -15,6 +15,18 @@ export type ComparisonRow = {
   bumpgradePlan: string;
 };
 
+export type CompetitorFeatureMatch = {
+  relatedFeatureId: string;
+  featureSlug: string;
+  sourceIds: string[];
+  useCaseIds: string[];
+};
+
+export type CompetitorComparisonRow = ComparisonRow & {
+  id: string;
+  featureMatch: CompetitorFeatureMatch;
+};
+
 export type ComparisonSeoTarget = {
   id: string;
   route: string;
@@ -70,7 +82,7 @@ export type Competitor = {
   relatedFeatures: ComparisonRelatedFeature[];
   evidence: string[];
   gapsToAddress: string[];
-  rows: ComparisonRow[];
+  rows: CompetitorComparisonRow[];
 };
 
 export const comparisonRetrievedAt = "2026-05-28";
@@ -501,16 +513,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-clickfunnels-funnel-model",
+        featureMatch: {
+          relatedFeatureId: "clickfunnels-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+          useCaseIds: ["use-case-compare-funnel-models"],
+        },
         area: "Funnel model",
         incumbent: "ClickFunnels leads with funnel stages and conversion-oriented pages.",
         bumpgradePlan: "Bumpgrade represents funnels as offer paths that humans and AI helpers can inspect, test, and improve.",
       },
       {
+        id: "row-clickfunnels-revenue-expansion",
+        featureMatch: {
+          relatedFeatureId: "clickfunnels-order-bump",
+          featureSlug: "order-bump",
+          sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+          useCaseIds: ["use-case-compare-checkout-expansion"],
+        },
         area: "Revenue expansion",
         incumbent: "ClickFunnels includes checkout, upsell, discounts, payments, and affiliate center surfaces.",
         bumpgradePlan: "Bumpgrade connects order bumps, upsells, subscriptions, discounts, payments, and affiliate tracking to the offer.",
       },
       {
+        id: "row-clickfunnels-ai-help",
+        featureMatch: {
+          relatedFeatureId: "clickfunnels-ai-business-coach",
+          featureSlug: "ai-business-coach",
+          sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+          useCaseIds: ["use-case-compare-agent-readable-launches"],
+        },
         area: "AI help",
         incumbent: "ClickFunnels is a mature human product surface.",
         bumpgradePlan: "Bumpgrade keeps enough structured context for AI helpers to explain the launch and prepare safe changes.",
@@ -644,16 +677,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-kit-email-system",
+        featureMatch: {
+          relatedFeatureId: "kit-email-campaigns",
+          featureSlug: "email-campaigns",
+          sourceIds: ["source-kit-home"],
+          useCaseIds: ["use-case-compare-creator-email"],
+        },
         area: "Email system",
         incumbent: "Kit is centered on creator email, automation, paid newsletters, and recommendations.",
         bumpgradePlan: "Bumpgrade connects email to funnel steps, offers, product access, checkout events, and customer context.",
       },
       {
+        id: "row-kit-commerce-depth",
+        featureMatch: {
+          relatedFeatureId: "kit-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-kit-home"],
+          useCaseIds: ["use-case-compare-email-to-checkout"],
+        },
         area: "Commerce depth",
         incumbent: "Kit includes creator commerce, but the public positioning is email-first.",
         bumpgradePlan: "Bumpgrade makes checkout, order bumps, upsells, products, and subscriptions part of the launch system.",
       },
       {
+        id: "row-kit-use-case",
+        featureMatch: {
+          relatedFeatureId: "kit-audience-crm",
+          featureSlug: "audience-crm",
+          sourceIds: ["source-kit-home"],
+          useCaseIds: ["use-case-compare-audience-context"],
+        },
         area: "Use case",
         incumbent: "Kit is compelling when the newsletter is the center of gravity.",
         bumpgradePlan: "Bumpgrade should be compelling when the newsletter, offer, checkout, product delivery, and AI helper workflow need one connected system.",
@@ -792,16 +846,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-shopify-commerce-scope",
+        featureMatch: {
+          relatedFeatureId: "shopify-order-bump",
+          featureSlug: "order-bump",
+          sourceIds: ["source-shopify-compare"],
+          useCaseIds: ["use-case-compare-store-versus-offer"],
+        },
         area: "Commerce scope",
         incumbent: "Shopify is a mature general commerce platform for merchants.",
         bumpgradePlan: "Bumpgrade targets publisher funnels, digital offers, checkout optimization, subscriptions, and content-led commerce.",
       },
       {
+        id: "row-shopify-comparison-style",
+        featureMatch: {
+          relatedFeatureId: "shopify-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-shopify-compare"],
+          useCaseIds: ["use-case-compare-platform-categories"],
+        },
         area: "Comparison style",
         incumbent: "Shopify's hub helps buyers compare platform categories clearly.",
         bumpgradePlan: "Bumpgrade uses the same clear buyer posture while focusing on publisher launch jobs.",
       },
       {
+        id: "row-shopify-ai-surface",
+        featureMatch: {
+          relatedFeatureId: "shopify-ai-business-coach",
+          featureSlug: "ai-business-coach",
+          sourceIds: ["source-shopify-compare"],
+          useCaseIds: ["use-case-compare-agent-readable-operations"],
+        },
         area: "AI surface",
         incumbent: "Shopify has a large ecosystem and developer surface.",
         bumpgradePlan: "Bumpgrade keeps offer, customer, checkout, and product context readable enough for AI helpers.",
@@ -940,16 +1015,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-samcart-checkout",
+        featureMatch: {
+          relatedFeatureId: "samcart-order-bump",
+          featureSlug: "order-bump",
+          sourceIds: ["source-samcart-checkout"],
+          useCaseIds: ["use-case-compare-checkout-optimization"],
+        },
         area: "Checkout",
         incumbent: "SamCart is checkout-first and emphasizes average-order-value expansion.",
         bumpgradePlan: "Bumpgrade makes checkout and revenue expansion core, but ties them to funnels, products, and follow-up.",
       },
       {
+        id: "row-samcart-offer-paths",
+        featureMatch: {
+          relatedFeatureId: "samcart-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-samcart-checkout"],
+          useCaseIds: ["use-case-compare-offer-paths"],
+        },
         area: "Offer paths",
         incumbent: "SamCart highlights bumps, one-click upsells, subscriptions, and reporting.",
         bumpgradePlan: "Bumpgrade models bumps, upsells, downsells, subscriptions, and follow-up actions around the same offer.",
       },
       {
+        id: "row-samcart-ai-fit",
+        featureMatch: {
+          relatedFeatureId: "samcart-ad-tracking",
+          featureSlug: "ad-tracking",
+          sourceIds: ["source-samcart-checkout"],
+          useCaseIds: ["use-case-compare-checkout-reporting"],
+        },
         area: "AI fit",
         incumbent: "SamCart is optimized for sellers using a dashboard.",
         bumpgradePlan: "Bumpgrade keeps checkout context clear enough for AI helpers to suggest changes without hiding risk.",
@@ -1088,16 +1184,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-kajabi-knowledge-products",
+        featureMatch: {
+          relatedFeatureId: "kajabi-digital-products",
+          featureSlug: "digital-products",
+          sourceIds: ["source-kajabi-home"],
+          useCaseIds: ["use-case-compare-knowledge-products"],
+        },
         area: "Knowledge products",
         incumbent: "Kajabi is strong for courses, coaching, memberships, and expert businesses.",
         bumpgradePlan: "Bumpgrade supports knowledge products with access, billing, delivery, and customer context tied together.",
       },
       {
+        id: "row-kajabi-all-in-one-promise",
+        featureMatch: {
+          relatedFeatureId: "kajabi-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-kajabi-home"],
+          useCaseIds: ["use-case-compare-all-in-one-launches"],
+        },
         area: "All-in-one promise",
         incumbent: "Kajabi emphasizes replacing scattered tools with one connected system.",
         bumpgradePlan: "Bumpgrade uses the same connected-system goal with a launch-first workflow for small teams.",
       },
       {
+        id: "row-kajabi-mobile-visibility",
+        featureMatch: {
+          relatedFeatureId: "kajabi-digital-products",
+          featureSlug: "digital-products",
+          sourceIds: ["source-kajabi-home"],
+          useCaseIds: ["use-case-compare-product-visibility"],
+        },
         area: "Mobile visibility",
         incumbent: "Kajabi promotes a branded mobile app experience.",
         bumpgradePlan: "Bumpgrade gives publishers a mobile-readable view of launch, checkout, product, and customer state.",
@@ -1236,16 +1353,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-podia-creator-friendliness",
+        featureMatch: {
+          relatedFeatureId: "podia-simple-landing-page",
+          featureSlug: "simple-landing-page",
+          sourceIds: ["source-podia-courses"],
+          useCaseIds: ["use-case-compare-creator-friendly-setup"],
+        },
         area: "Creator friendliness",
         incumbent: "Podia is approachable for creators who want less tool wiring.",
         bumpgradePlan: "Bumpgrade keeps setup lightweight while preserving enough structure for future AI and API help.",
       },
       {
+        id: "row-podia-digital-products",
+        featureMatch: {
+          relatedFeatureId: "podia-digital-products",
+          featureSlug: "digital-products",
+          sourceIds: ["source-podia-courses"],
+          useCaseIds: ["use-case-compare-digital-product-selling"],
+        },
         area: "Digital products",
         incumbent: "Podia supports courses, coaching, downloads, webinars, checkout, affiliates, and email.",
         bumpgradePlan: "Bumpgrade keeps products, offers, checkout, and automation records connected.",
       },
       {
+        id: "row-podia-launch-clarity",
+        featureMatch: {
+          relatedFeatureId: "podia-email-campaigns",
+          featureSlug: "email-campaigns",
+          sourceIds: ["source-podia-courses"],
+          useCaseIds: ["use-case-compare-launch-clarity"],
+        },
         area: "Launch clarity",
         incumbent: "Podia is a mature human-facing product.",
         bumpgradePlan: "Bumpgrade keeps launch context visible so publishers can see what to improve next.",
@@ -1384,16 +1522,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-systeme-breadth",
+        featureMatch: {
+          relatedFeatureId: "systeme-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-systeme-features"],
+          useCaseIds: ["use-case-compare-all-in-one-breadth"],
+        },
         area: "Breadth",
         incumbent: "Systeme.io covers many indiepreneur needs in one place.",
         bumpgradePlan: "Bumpgrade pursues similar breadth through a publisher-specific launch workflow.",
       },
       {
+        id: "row-systeme-integrated-list-funnel",
+        featureMatch: {
+          relatedFeatureId: "systeme-email-campaigns",
+          featureSlug: "email-campaigns",
+          sourceIds: ["source-systeme-features"],
+          useCaseIds: ["use-case-compare-integrated-list-funnel"],
+        },
         area: "Integrated list/funnel",
         incumbent: "Systeme.io emphasizes email lists integrated with funnels and websites.",
         bumpgradePlan: "Bumpgrade connects list events to offers, checkout, products, subscriptions, and AI-assisted workflows.",
       },
       {
+        id: "row-systeme-launch-clarity",
+        featureMatch: {
+          relatedFeatureId: "systeme-digital-products",
+          featureSlug: "digital-products",
+          sourceIds: ["source-systeme-features"],
+          useCaseIds: ["use-case-compare-launch-structure"],
+        },
         area: "Launch clarity",
         incumbent: "Systeme.io has a mature feature set.",
         bumpgradePlan: "Bumpgrade keeps the publisher focused on what helps the next launch earn revenue.",
@@ -1532,16 +1691,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-kartra-marketing-suite",
+        featureMatch: {
+          relatedFeatureId: "kartra-sales-funnels",
+          featureSlug: "sales-funnels",
+          sourceIds: ["source-kartra-home"],
+          useCaseIds: ["use-case-compare-marketing-suites"],
+        },
         area: "Marketing suite",
         incumbent: "Kartra covers campaigns, pages, funnels, leads, email/SMS, checkout, affiliates, video, and webinars.",
         bumpgradePlan: "Bumpgrade models those workflows as connected records around offers, buyers, and follow-up.",
       },
       {
+        id: "row-kartra-creator-operations",
+        featureMatch: {
+          relatedFeatureId: "kartra-email-campaigns",
+          featureSlug: "email-campaigns",
+          sourceIds: ["source-kartra-home"],
+          useCaseIds: ["use-case-compare-creator-operations"],
+        },
         area: "Creator operations",
         incumbent: "Kartra speaks to building and marketing inside a unified suite.",
         bumpgradePlan: "Bumpgrade ties marketing actions to launch context so future AI helpers can recover the why behind changes.",
       },
       {
+        id: "row-kartra-rollout-clarity",
+        featureMatch: {
+          relatedFeatureId: "kartra-webinars-and-resources",
+          featureSlug: "webinars-and-resources",
+          sourceIds: ["source-kartra-home"],
+          useCaseIds: ["use-case-compare-reviewed-rollouts"],
+        },
         area: "Rollout clarity",
         incumbent: "Kartra's breadth is already live.",
         bumpgradePlan:
@@ -1681,16 +1861,37 @@ export const competitors: Competitor[] = [
     ],
     rows: [
       {
+        id: "row-thrivecart-revenue-optimization",
+        featureMatch: {
+          relatedFeatureId: "thrivecart-order-bump",
+          featureSlug: "order-bump",
+          sourceIds: ["source-thrivecart-features"],
+          useCaseIds: ["use-case-compare-revenue-optimization"],
+        },
         area: "Revenue optimization",
         incumbent: "ThriveCart emphasizes checkout, bumps, upsells, downsells, subscriptions, and revenue reporting.",
         bumpgradePlan: "Bumpgrade builds these as commerce and funnel records connected to the buyer journey.",
       },
       {
+        id: "row-thrivecart-learning-delivery",
+        featureMatch: {
+          relatedFeatureId: "thrivecart-digital-products",
+          featureSlug: "digital-products",
+          sourceIds: ["source-thrivecart-features"],
+          useCaseIds: ["use-case-compare-learning-delivery"],
+        },
         area: "Learning delivery",
         incumbent: "ThriveCart includes LMS and course/membership-related features.",
         bumpgradePlan: "Bumpgrade's product and access model includes courses, memberships, downloads, and subscriptions.",
       },
       {
+        id: "row-thrivecart-ai-controls",
+        featureMatch: {
+          relatedFeatureId: "thrivecart-ad-tracking",
+          featureSlug: "ad-tracking",
+          sourceIds: ["source-thrivecart-features"],
+          useCaseIds: ["use-case-compare-ai-review-controls"],
+        },
         area: "AI controls",
         incumbent: "ThriveCart is strong at seller dashboard workflows.",
         bumpgradePlan: "Bumpgrade keeps commerce changes explicit so AI-assisted edits can be reviewed before they affect buyers.",
