@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { MarketingProductVisual } from "@/components/marketing-product-visual";
+import { HomepageDemoLoop } from "@/components/homepage-demo-loop";
 import { featuredMarketingFeatureSlugs, getMarketingFeature, marketingFeatures } from "@/lib/marketing-features";
 
 const featuredFeatures = featuredMarketingFeatureSlugs.map((slug) => getMarketingFeature(slug)).filter(Boolean);
@@ -88,7 +88,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <MarketingProductVisual />
+        <HomepageDemoLoop />
       </section>
 
       <section className="content-band launch-outcome-band">
