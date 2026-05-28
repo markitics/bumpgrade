@@ -790,11 +790,18 @@ test.describe("Bumpgrade scaffold", () => {
     });
   }
 
-  test("pricing canonical metadata keeps the usage draft out of indexed discovery", async ({ page, request }) => {
+  test("pricing canonical metadata keeps the usage draft out of indexed discovery", async ({ page, request }, testInfo) => {
     await page.goto("/");
-    const navigation = page.getByRole("navigation", { name: "Main navigation" });
-    await expect(navigation.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", canonicalPricingRoute);
-    await expect(navigation.locator(`a[href="${usagePricingDraftRoute}"]`)).toHaveCount(0);
+    if (testInfo.project.name === "mobile") {
+      await page.getByLabel("Open navigation").click();
+      const panel = page.locator(".mobile-nav-panel");
+      await expect(panel.getByRole("link", { name: "Pricing", exact: true })).toHaveAttribute("href", canonicalPricingRoute);
+      await expect(panel.locator(`a[href="${usagePricingDraftRoute}"]`)).toHaveCount(0);
+    } else {
+      const navigation = page.getByRole("navigation", { name: "Main navigation" });
+      await expect(navigation.getByRole("link", { name: "Pricing", exact: true })).toHaveAttribute("href", canonicalPricingRoute);
+      await expect(navigation.locator(`a[href="${usagePricingDraftRoute}"]`)).toHaveCount(0);
+    }
 
     await page.goto(canonicalPricingRoute);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://bumpgrade.com/pricing");
