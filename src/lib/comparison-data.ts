@@ -41,6 +41,14 @@ export type ComparisonDeepDive = {
   }[];
 };
 
+export type ComparisonRelatedFeature = {
+  id: string;
+  featureSlug: string;
+  sourceIds: string[];
+  criteria: string[];
+  rationale: string;
+};
+
 export type Competitor = {
   id: string;
   name: string;
@@ -59,6 +67,7 @@ export type Competitor = {
   searchIntent?: string;
   faqs?: ComparisonFaq[];
   deepDive?: ComparisonDeepDive;
+  relatedFeatures: ComparisonRelatedFeature[];
   evidence: string[];
   gapsToAddress: string[];
   rows: ComparisonRow[];
@@ -363,6 +372,43 @@ export const competitors: Competitor[] = [
         },
       ],
     },
+    relatedFeatures: [
+      {
+        id: "clickfunnels-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+        criteria: ["Funnel and page builder", "Funnel model"],
+        rationale: "Connects funnel pages, checkout handoffs, and follow-up around one launch path.",
+      },
+      {
+        id: "clickfunnels-order-bump",
+        featureSlug: "order-bump",
+        sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+        criteria: ["Checkout, bumps, and upsells", "Revenue expansion"],
+        rationale: "Maps checkout, bumps, upsells, subscriptions, and post-purchase decisions to one offer record.",
+      },
+      {
+        id: "clickfunnels-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+        criteria: ["Email, CRM, and automation"],
+        rationale: "Keeps campaign prep, opt-ins, consent, suppression, and launch follow-up near the funnel.",
+      },
+      {
+        id: "clickfunnels-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+        criteria: ["Courses, memberships, and community"],
+        rationale: "Shows the product-access side of courses, memberships, downloads, subscriptions, and fulfillment.",
+      },
+      {
+        id: "clickfunnels-ai-business-coach",
+        featureSlug: "ai-business-coach",
+        sourceIds: ["source-clickfunnels-home", "source-clickfunnels-pricing"],
+        criteria: ["Optimization, affiliates, and AI helpers", "AI help"],
+        rationale: "Points agents and buyers to the source-data surfaces used for AI-assisted launch planning.",
+      },
+    ],
     evidence: [
       "Official site lists funnels, ClickFunnels editor, smart checkout, A/B testing, landing pages, courses, community, store, email, automations, analytics, payments, and affiliate center.",
       "The homepage describes the funnel mindset across attract, sell, upsell, ascend, and repeat stages.",
@@ -403,6 +449,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade keeps Kit's creator focus but extends the workflow into checkout, products, funnels, customer context, and AI-assisted launch work.",
     sourceId: "source-kit-home",
     sourceUrl: "https://kit.com/",
+    relatedFeatures: [
+      {
+        id: "kit-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-kit-home"],
+        criteria: ["Email system", "Creator email and automation"],
+        rationale: "Routes email-first buyers to Bumpgrade's consent-aware opt-in, campaign prep, and sequence readiness work.",
+      },
+      {
+        id: "kit-audience-crm",
+        featureSlug: "audience-crm",
+        sourceIds: ["source-kit-home"],
+        criteria: ["Email system", "Use case"],
+        rationale: "Shows how subscriber context, tags, suppression, and CRM notes stay attached to launch work.",
+      },
+      {
+        id: "kit-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-kit-home"],
+        criteria: ["Commerce depth", "Use case"],
+        rationale: "Connects the audience workflow to pages, offers, checkout handoffs, and follow-up steps.",
+      },
+      {
+        id: "kit-competitor-importers",
+        featureSlug: "competitor-importers",
+        sourceIds: ["source-kit-home"],
+        criteria: ["Email system", "Use case"],
+        rationale: "Points migrators toward the private import-planning flow for audience and launch context.",
+      },
+    ],
     evidence: [
       "Official navigation highlights email-focused features such as email editor, landing pages, forms, visual automations, app store, commerce, paid recommendations, and paid newsletter.",
       "Kit explicitly frames itself around creators, including artists, authors, bloggers, coaches, course creators, musicians, newsletter creators, podcasters, and YouTubers.",
@@ -443,6 +519,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade is not trying to be Shopify-scale commerce. It targets indiepreneur offers, funnels, checkout, digital products, automations, and AI-assisted operations.",
     sourceId: "source-shopify-compare",
     sourceUrl: "https://www.shopify.com/compare",
+    relatedFeatures: [
+      {
+        id: "shopify-order-bump",
+        featureSlug: "order-bump",
+        sourceIds: ["source-shopify-compare"],
+        criteria: ["Commerce scope"],
+        rationale: "Frames Bumpgrade's narrower offer, checkout, bump, and post-purchase path for publisher commerce.",
+      },
+      {
+        id: "shopify-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-shopify-compare"],
+        criteria: ["Commerce scope"],
+        rationale: "Highlights product access and membership delivery for digital offers rather than general retail operations.",
+      },
+      {
+        id: "shopify-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-shopify-compare"],
+        criteria: ["Comparison style", "Commerce scope"],
+        rationale: "Keeps the comparison focused on launch funnels when the offer is the center of gravity.",
+      },
+      {
+        id: "shopify-ai-business-coach",
+        featureSlug: "ai-business-coach",
+        sourceIds: ["source-shopify-compare"],
+        criteria: ["AI surface"],
+        rationale: "Shows the agent-readable route for launch context, source evidence, and safe AI assistance.",
+      },
+    ],
     evidence: [
       "Shopify's compare hub frames the decision around an all-in-one commerce platform and tools to start, run, and grow a business.",
       "The structure uses broad buyer guidance rather than narrow feature-by-feature takedowns.",
@@ -483,6 +589,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade matches the revenue-expansion path while keeping checkout, offers, bumps, upsells, products, and follow-up in one workflow.",
     sourceId: "source-samcart-checkout",
     sourceUrl: "https://www.samcart.com/checkout",
+    relatedFeatures: [
+      {
+        id: "samcart-order-bump",
+        featureSlug: "order-bump",
+        sourceIds: ["source-samcart-checkout"],
+        criteria: ["Checkout", "Offer paths"],
+        rationale: "Maps checkout pages, order bumps, one-click upsells, subscriptions, and post-purchase paths to Bumpgrade's offer stack.",
+      },
+      {
+        id: "samcart-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-samcart-checkout"],
+        criteria: ["Offer paths"],
+        rationale: "Connects checkout optimization back to the surrounding funnel, page, and follow-up sequence.",
+      },
+      {
+        id: "samcart-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-samcart-checkout"],
+        criteria: ["Checkout", "Offer paths"],
+        rationale: "Shows how paid products, courses, memberships, and access can stay tied to checkout state.",
+      },
+      {
+        id: "samcart-ad-tracking",
+        featureSlug: "ad-tracking",
+        sourceIds: ["source-samcart-checkout"],
+        criteria: ["Checkout", "AI fit"],
+        rationale: "Routes revenue-focused buyers to aggregate conversion, source, and checkout reporting.",
+      },
+    ],
     evidence: [
       "Official checkout page positions checkout as a revenue opportunity with order bumps and one-click upsells.",
       "SamCart's feature lists include checkout, order bumps and add-ons, payment options, payment processors, reporting, sales pages, subscriptions, and courses app.",
@@ -523,6 +659,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade is for experts who want pages, checkout, products, email, and buyer context to stay connected as the offer evolves.",
     sourceId: "source-kajabi-home",
     sourceUrl: "https://www.kajabi.com/",
+    relatedFeatures: [
+      {
+        id: "kajabi-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-kajabi-home"],
+        criteria: ["Knowledge products"],
+        rationale: "Points course, coaching, membership, and download buyers toward product access and fulfillment records.",
+      },
+      {
+        id: "kajabi-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-kajabi-home"],
+        criteria: ["All-in-one promise"],
+        rationale: "Shows Bumpgrade's launch-first version of connected pages, offers, checkout, and follow-up.",
+      },
+      {
+        id: "kajabi-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-kajabi-home"],
+        criteria: ["All-in-one promise"],
+        rationale: "Connects expert-led launch emails, opt-ins, consent, and campaign readiness to the offer path.",
+      },
+      {
+        id: "kajabi-webinars-and-resources",
+        featureSlug: "webinars-and-resources",
+        sourceIds: ["source-kajabi-home"],
+        criteria: ["Knowledge products"],
+        rationale: "Routes teaching-led launches toward webinar, replay, resource, and education funnel templates.",
+      },
+    ],
     evidence: [
       "Official homepage frames Kajabi around turning expertise into a business with courses, coaching, communities, memberships, newsletters, downloads, podcasts, payments, funnels, and automations.",
       "Kajabi positions itself as an all-in-one connected system for expert-led businesses.",
@@ -563,6 +729,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade preserves that low-friction creator feel while connecting offers, checkout, products, email, reporting, and AI-assisted operations.",
     sourceId: "source-podia-courses",
     sourceUrl: "https://www.podia.com/online-courses",
+    relatedFeatures: [
+      {
+        id: "podia-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-podia-courses"],
+        criteria: ["Digital products", "Creator friendliness"],
+        rationale: "Maps courses, downloads, memberships, protected content, and customer access to Bumpgrade's product model.",
+      },
+      {
+        id: "podia-simple-landing-page",
+        featureSlug: "simple-landing-page",
+        sourceIds: ["source-podia-courses"],
+        criteria: ["Creator friendliness", "Launch clarity"],
+        rationale: "Points simple creator-site needs toward a first landing page connected to the launch path.",
+      },
+      {
+        id: "podia-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-podia-courses"],
+        criteria: ["Digital products", "Launch clarity"],
+        rationale: "Keeps email capture, follow-up, consent, and product launches in the same workflow.",
+      },
+      {
+        id: "podia-webinars-and-resources",
+        featureSlug: "webinars-and-resources",
+        sourceIds: ["source-podia-courses"],
+        criteria: ["Digital products"],
+        rationale: "Routes coaching, webinars, resources, and education-led selling into reusable funnel templates.",
+      },
+    ],
     evidence: [
       "Official page says Podia puts website, email marketing, digital products, and course-selling features in one place.",
       "The FAQ lists website, blog, landing pages, courses, coaching, downloads, webinars, checkout cart, online store, affiliates, and email marketing.",
@@ -603,6 +799,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade competes on breadth by connecting each offer, funnel, checkout, email, product, affiliate, and analytics step around the same launch.",
     sourceId: "source-systeme-features",
     sourceUrl: "https://systeme.io/features",
+    relatedFeatures: [
+      {
+        id: "systeme-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-systeme-features"],
+        criteria: ["Breadth", "Integrated list/funnel"],
+        rationale: "Maps all-in-one funnel scope to Bumpgrade's connected page, offer, checkout, and follow-up records.",
+      },
+      {
+        id: "systeme-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-systeme-features"],
+        criteria: ["Integrated list/funnel"],
+        rationale: "Shows how list growth, automation, and campaign prep stay tied to the launch path.",
+      },
+      {
+        id: "systeme-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-systeme-features"],
+        criteria: ["Breadth"],
+        rationale: "Connects courses, memberships, downloads, and product access to customer and checkout state.",
+      },
+      {
+        id: "systeme-affiliate-referrals",
+        featureSlug: "affiliate-referrals",
+        sourceIds: ["source-systeme-features"],
+        criteria: ["Breadth"],
+        rationale: "Routes affiliate-management comparisons to referral tracking, commission review, and payout preparation.",
+      },
+    ],
     evidence: [
       "Official features page groups website builder, business automation, sales funnels, email marketing, courses, affiliate management, communities, booking, SMS, and pipelines.",
       "The page says the email list is integrated into sales funnels and websites.",
@@ -643,6 +869,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade should compete by connecting the marketing suite around clear funnel, offer, checkout, lead, automation, source, and permission records.",
     sourceId: "source-kartra-home",
     sourceUrl: "https://kartra.com/home/",
+    relatedFeatures: [
+      {
+        id: "kartra-sales-funnels",
+        featureSlug: "sales-funnels",
+        sourceIds: ["source-kartra-home"],
+        criteria: ["Marketing suite", "Creator operations"],
+        rationale: "Maps campaign, page, and funnel breadth to Bumpgrade's connected launch path.",
+      },
+      {
+        id: "kartra-email-campaigns",
+        featureSlug: "email-campaigns",
+        sourceIds: ["source-kartra-home"],
+        criteria: ["Marketing suite"],
+        rationale: "Points email and follow-up comparisons to Bumpgrade's consent-aware campaign and sequence readiness.",
+      },
+      {
+        id: "kartra-affiliate-referrals",
+        featureSlug: "affiliate-referrals",
+        sourceIds: ["source-kartra-home"],
+        criteria: ["Marketing suite"],
+        rationale: "Connects affiliate-management comparisons to referral evidence, commission review, and payout prep.",
+      },
+      {
+        id: "kartra-webinars-and-resources",
+        featureSlug: "webinars-and-resources",
+        sourceIds: ["source-kartra-home"],
+        criteria: ["Marketing suite"],
+        rationale: "Routes video, webinar, and resource-led launches to reusable education funnel paths.",
+      },
+    ],
     evidence: [
       "Official navigation highlights funnels and campaigns, email marketing, checkouts, affiliate management, lead management, video marketing, webinars, and memberships.",
       "The homepage groups the journey into creating pages/video/memberships and marketing with lead captures, campaigns, funnels, email or SMS, and checkouts.",
@@ -683,6 +939,36 @@ export const competitors: Competitor[] = [
       "Bumpgrade turns those revenue surfaces into connected commerce records instead of isolated dashboard actions.",
     sourceId: "source-thrivecart-features",
     sourceUrl: "https://thrivecart.com/features/",
+    relatedFeatures: [
+      {
+        id: "thrivecart-order-bump",
+        featureSlug: "order-bump",
+        sourceIds: ["source-thrivecart-features"],
+        criteria: ["Revenue optimization"],
+        rationale: "Maps checkout, order bumps, upsells, downsells, subscriptions, and post-purchase paths to Bumpgrade's offer stack.",
+      },
+      {
+        id: "thrivecart-digital-products",
+        featureSlug: "digital-products",
+        sourceIds: ["source-thrivecart-features"],
+        criteria: ["Learning delivery"],
+        rationale: "Connects LMS, fulfillment, courses, memberships, downloads, and subscriptions to product access records.",
+      },
+      {
+        id: "thrivecart-affiliate-referrals",
+        featureSlug: "affiliate-referrals",
+        sourceIds: ["source-thrivecart-features"],
+        criteria: ["Revenue optimization"],
+        rationale: "Routes affiliate comparisons to referral links, commission review, partner reports, and payout prep.",
+      },
+      {
+        id: "thrivecart-ad-tracking",
+        featureSlug: "ad-tracking",
+        sourceIds: ["source-thrivecart-features"],
+        criteria: ["Revenue optimization"],
+        rationale: "Points revenue-intelligence buyers toward aggregate source, funnel, and conversion reporting.",
+      },
+    ],
     evidence: [
       "Official features page lists checkout, payment options, multiple order bumps, one-click upsells and downsells, subscriptions, affiliates, fulfillment, LMS, revenue dashboards, funnel analytics, and integrations.",
       "The page frames ThriveCart as a revenue growth engine for boosting sales, converting customers, automating tasks, tracking performance, and selling courses.",

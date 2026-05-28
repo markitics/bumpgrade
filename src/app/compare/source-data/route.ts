@@ -5,12 +5,32 @@ import {
   comparisonPrinciples,
   comparisonRetrievedAt,
   comparisonSeoTargets,
+  type Competitor,
   competitorSources,
   competitors,
 } from "@/lib/comparison-data";
 import { importerPlatforms } from "@/lib/importers";
+import { getMarketingFeature } from "@/lib/marketing-features";
 
 export const dynamic = "force-static";
+
+function competitorSourceData(competitor: Competitor) {
+  return {
+    ...competitor,
+    relatedFeatures: competitor.relatedFeatures.map((relatedFeature) => {
+      const feature = getMarketingFeature(relatedFeature.featureSlug);
+
+      return {
+        ...relatedFeature,
+        featureIds: feature?.featureIds ?? [],
+        featureTitle: feature?.title ?? null,
+        featureStatus: feature?.status ?? "missing",
+        featureRoute: feature ? `/features/${feature.slug}` : null,
+        proofRoutes: feature?.proofRoutes ?? [],
+      };
+    }),
+  };
+}
 
 export function GET() {
   return NextResponse.json({
@@ -24,7 +44,7 @@ export function GET() {
     sources: competitorSources,
     hubRows: comparisonHubRows,
     principles: comparisonPrinciples,
-    competitors,
+    competitors: competitors.map(competitorSourceData),
     importers: importerPlatforms.map((platform) => ({
       id: platform.id,
       competitorId: platform.competitorId,
