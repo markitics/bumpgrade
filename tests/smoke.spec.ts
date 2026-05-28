@@ -33610,6 +33610,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(desktopNav.getByRole("link", { name: "Users", exact: true })).toBeVisible();
     await expect(desktopNav.getByRole("link", { name: "Developers and agents", exact: true })).toBeVisible();
     await expect(desktopNav.getByRole("link", { name: "Resources", exact: true })).toBeVisible();
+    await expect(desktopNav.getByRole("link", { name: "Brand", exact: true })).toBeVisible();
     await expect(desktopNav.getByRole("link", { name: "Pricing", exact: true })).toBeVisible();
     await expect(header.getByRole("link", { name: "Log in / sign up", exact: true })).toBeVisible();
   });
@@ -33633,6 +33634,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(panel.getByRole("link", { name: "Users", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Developers and agents", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Resources", exact: true })).toBeVisible();
+    await expect(panel.getByRole("link", { name: "Brand", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Pricing", exact: true })).toBeVisible();
     await expect(panel.getByRole("link", { name: "Log in / sign up", exact: true })).toBeVisible();
 

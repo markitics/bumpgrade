@@ -12,6 +12,7 @@ import {
   ListChecks,
   LogIn,
   Mail,
+  Palette,
   PanelsTopLeft,
   Route,
   ShoppingCart,
@@ -71,6 +72,13 @@ export const topNavItems: NavItem[] = [
     href: "/resources",
     description: "Comparison pages, migration guides, launch playbooks, and product notes.",
     icon: FileText,
+    status: "live",
+  },
+  {
+    label: "Brand",
+    href: "/brand",
+    description: "Logo assets, colors, typography, voice, and UI guidance for partners, press, and agents.",
+    icon: Palette,
     status: "live",
   },
   {
