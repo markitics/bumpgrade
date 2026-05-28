@@ -3038,7 +3038,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     edgeCases: [
       "Free Build supports browser-scoped playground recovery and signed-in private workspace creation before paid go-live.",
       "Enterprise is a contact path, not self-serve checkout.",
-      "/pricing-v2 is an alternate usage-based draft and is not the default pricing model.",
+      "/pricing-v2 is a non-indexed usage-based draft canonicalized back to /pricing, not the default buyer pricing model.",
       "Successful Checkout Sessions are verified server-side before a publisher plan entitlement is activated.",
       "Bumpgrade connects domains customers already own; it does not sell, register, renew, transfer, or price domains today.",
     ],
@@ -3051,6 +3051,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
       "Issue #234 refreshes pricing user-journey proof with the latest PR #233 CI and issue #226 screenshot links.",
       "Issue #316 adds live self-serve Bumpgrade plan checkout, success verification, and seeded product/price records.",
       "Issue #466 adds the Free Build policy source data and paid go-live gate evidence.",
+      "Issue #551 keeps /pricing canonical and keeps /pricing-v2 out of sitemap discovery.",
     ],
     proof: createJourneyProof("journey-prospect-reviews-launch-pricing", "feature-resources-use-cases-pricing"),
     sortOrder: 43,

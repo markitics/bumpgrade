@@ -4,6 +4,7 @@ import { ArrowRight, BadgeCheck, CheckCircle2, CreditCard, Globe2, ShieldCheck, 
 
 import {
   billingCheckoutRoute,
+  canonicalPricingRoute,
   formatUsd,
   freeBuildModeContract,
   planIncludesFeature,
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Bumpgrade pricing for publishers who want self-serve funnels, checkout, email, products, analytics, and AI-assisted launch growth.",
   alternates: {
-    canonical: `${site.url}/pricing`,
+    canonical: `${site.url}${canonicalPricingRoute}`,
   },
 };
 

@@ -197,10 +197,12 @@ are still not high-risk billing, fulfillment, or publishing mobile write clients
 notifications, physical-device proof, or installable app distribution.
 
 Current content boundary: `/content/source-data` is the public-safe mirror for
-audience segments, resource records, pricing principles, and planned pricing
-tracks. Experiment, Grow, Enterprise, and White glove setup are current public
-pricing records; future limits, trials, and usage-meter rates still require
-fresh source evidence before agents cite them as current.
+audience segments, resource records, pricing principles, planned pricing
+tracks, and the pricing route policy. Experiment, Grow, Enterprise, and White
+glove setup are current public pricing records. `/pricing` is the canonical
+buyer pricing URL; `/pricing-v2` is a non-indexed usage-pricing draft
+canonicalized back to `/pricing`. Future limits, trials, and usage-meter rates
+still require fresh source evidence before agents cite them as current.
 
 Current anonymous playground boundary: `/playground/source-data` is the
 public-safe contract for logged-out launch drafts that persist in one browser.

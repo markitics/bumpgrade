@@ -2,15 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, BarChart3, CreditCard, Mail, Sparkles } from "lucide-react";
 
-import { formatUsd, whiteGloveSetupAddon } from "@/lib/pricing-plans";
+import { canonicalPricingRoute, formatUsd, usagePricingDraftRoute, whiteGloveSetupAddon } from "@/lib/pricing-plans";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Usage-based pricing",
+  title: "Usage-based pricing draft",
   description:
-    "A usage-based Bumpgrade pricing option for publishers who want the platform to scale with launch volume, audience size, and payment throughput.",
+    "A non-indexed usage-based Bumpgrade pricing draft for publishers who want the platform to scale with launch volume, audience size, and payment throughput.",
   alternates: {
-    canonical: `${site.url}/pricing-v2`,
+    canonical: `${site.url}${canonicalPricingRoute}`,
+  },
+  robots: {
+    index: false,
+    follow: true,
   },
 };
 
@@ -73,7 +77,7 @@ const exampleBills = [
 
 export default function PricingV2Page() {
   return (
-    <main className="pricing-page">
+    <main className="pricing-page" data-route-policy={usagePricingDraftRoute}>
       <section className="pricing-hero">
         <div>
           <p className="eyebrow">Usage pricing</p>
