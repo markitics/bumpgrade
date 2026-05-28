@@ -266,8 +266,8 @@ export default async function AudienceUseCasePage({ params }: AudienceUseCasePag
             <Sparkles aria-hidden="true" />
             <h3>Safety boundary</h3>
             <p>{publicBoundaryText(segment.agentBoundary)}</p>
-            <Link href="/admin/user-journeys/source-data" className="text-link compact-link">
-              Journey proof
+            <Link href="/agent-docs/source-data" className="text-link compact-link">
+              Agent records
             </Link>
           </article>
         </div>

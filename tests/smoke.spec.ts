@@ -1089,10 +1089,8 @@ test.describe("Bumpgrade scaffold", () => {
       await expect(page.getByRole("link", { name: segment.primaryCta.label })).toBeVisible();
       await expect(page.getByRole("link", { name: "Audience record" })).toHaveAttribute("href", "/content/source-data");
       await expect(page.getByRole("link", { name: "Feature catalog" })).toHaveAttribute("href", "/features/source-data");
-      await expect(page.getByRole("link", { name: "Journey proof" })).toHaveAttribute(
-        "href",
-        "/admin/user-journeys/source-data",
-      );
+      await expect(page.getByRole("link", { name: "Agent records" })).toHaveAttribute("href", "/agent-docs/source-data");
+      await expect(page.locator('a[href^="/admin/"]')).toHaveCount(0);
 
       for (const relatedRoute of segment.relatedRoutes) {
         await expect(page.getByRole("heading", { name: relatedRoute.label })).toBeVisible();
