@@ -268,6 +268,25 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
         </div>
       </section>
 
+      {competitor.faqs?.length ? (
+        <section className="content-band alternate">
+          <div className="compare-section-heading">
+            <div>
+              <p className="eyebrow">FAQ</p>
+              <h2>Questions about choosing Bumpgrade instead of {competitor.name}</h2>
+            </div>
+          </div>
+          <div className="compare-faq-list" aria-label={`${competitor.name} comparison frequently asked questions`}>
+            {competitor.faqs.map((faq) => (
+              <article key={faq.question} className="compare-faq-item">
+                <h3>{faq.question}</h3>
+                <p>{faq.answer}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="content-band dark-band">
         <div className="compare-section-heading">
           <div>

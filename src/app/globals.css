@@ -1026,6 +1026,33 @@ h3 {
   line-height: 1.65;
 }
 
+.compare-faq-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.compare-faq-item {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.compare-faq-item h3 {
+  margin: 0;
+  color: var(--green);
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.compare-faq-item p {
+  max-width: 860px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .deep-dive-table {
   margin-top: 28px;
 }

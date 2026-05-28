@@ -969,6 +969,29 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(page.getByRole("heading", { name: /ClickFunnels alternative and competitors map/i })).toBeVisible();
     await expect(page.locator(".keyword-list li").filter({ hasText: /^ClickFunnels competitors$/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: /How Bumpgrade maps the ClickFunnels competitors category/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Questions about choosing Bumpgrade instead of ClickFunnels/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Is Bumpgrade a ClickFunnels alternative today?" })).toBeVisible();
+    await expect(page.getByText("Bumpgrade is launching as a connected publisher growth system")).toBeVisible();
+    const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').evaluateAll((scripts) =>
+      scripts.map((script) => JSON.parse(script.textContent ?? "{}")),
+    );
+    expect(jsonLdBlocks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          "@type": "FAQPage",
+          mainEntity: expect.arrayContaining([
+            expect.objectContaining({
+              "@type": "Question",
+              name: "Is Bumpgrade a ClickFunnels alternative today?",
+              acceptedAnswer: expect.objectContaining({
+                "@type": "Answer",
+                text: expect.stringContaining("connected publisher growth system"),
+              }),
+            }),
+          ]),
+        }),
+      ]),
+    );
 
     const response = await request.get("/compare/source-data");
     expect(response.ok()).toBeTruthy();
