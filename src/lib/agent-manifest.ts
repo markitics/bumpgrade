@@ -507,8 +507,21 @@ export const agentReadContracts: AgentReadContract[] = [
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/content-surfaces.ts",
-    stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId", "freeBuildModeId"],
-    safeForAgents: ["Read use-case records", "Read resource hub records", "Read pricing caveats"],
+    stableIds: [
+      "audienceSegmentId",
+      "audienceSegmentSlug",
+      "audienceSegmentRoute",
+      "resourceItemId",
+      "pricingPrincipleId",
+      "pricingTrackId",
+      "freeBuildModeId",
+    ],
+    safeForAgents: [
+      "Read use-case records",
+      "Resolve dedicated use-case routes",
+      "Read resource hub records",
+      "Read pricing caveats",
+    ],
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
   },
   {

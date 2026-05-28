@@ -1,16 +1,41 @@
 import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
 import { importerHubRoute, importerIssue, importerSourceDataRoute } from "@/lib/importers";
+import { site } from "@/lib/site";
 
 export type ContentSurfaceStatus = "live" | "planned";
 
+export type AudienceSegmentRelatedRoute = {
+  label: string;
+  route: string;
+  kind: "feature" | "comparison" | "importer" | "resource" | "pricing" | "agent";
+  status: ContentSurfaceStatus;
+  summary: string;
+};
+
+export type AudienceSegmentCta = {
+  label: string;
+  route: string;
+};
+
 export type AudienceSegment = {
   id: string;
+  slug: string;
   title: string;
   route: string;
   status: ContentSurfaceStatus;
+  seoTitle: string;
+  seoDescription: string;
+  headline: string;
   summary: string;
+  bestFor: string;
+  outcome: string;
+  primaryCta: AudienceSegmentCta;
+  secondaryCta: AudienceSegmentCta;
   primaryJobs: string[];
   linkedFeatureIds: string[];
+  relatedRoutes: AudienceSegmentRelatedRoute[];
+  evidenceRoutes: string[];
+  journeyIds: string[];
   issueNumbers: number[];
   agentBoundary: string;
 };
@@ -60,76 +85,381 @@ export type LaunchSignupPolicy = {
   evidenceRoutes: string[];
 };
 
-export const contentSurfacesUpdatedAt = "2026-05-25";
+export const contentSurfacesUpdatedAt = "2026-05-28";
 
 export const audienceSegments: AudienceSegment[] = [
   {
     id: "audience-creators",
+    slug: "creators",
     title: "Creators with a paid offer",
-    route: "/users#creators",
+    route: "/users/creators",
     status: "live",
+    seoTitle: "Bumpgrade for Creators With a Paid Offer",
+    seoDescription:
+      "Use Bumpgrade to turn a creator offer into a focused landing page, buyer path, checkout, product delivery, and follow-up system.",
+    headline: "Launch a paid creator offer without stitching the buyer path together.",
     summary: "Publishers packaging knowledge, templates, communities, or services into repeatable offers.",
+    bestFor: "Templates, communities, paid downloads, services, and expertise packaged into a clear offer.",
+    outcome: "Turn a scattered idea into a focused page, offer, checkout path, and follow-up plan.",
+    primaryCta: { label: "Build the first page", route: "/features/simple-landing-page" },
+    secondaryCta: { label: "Compare platforms", route: "/compare/clickfunnels-alternative" },
     primaryJobs: ["Outline a funnel", "Capture leads", "Sell the first offer", "Measure conversion"],
     linkedFeatureIds: ["feature-funnel-builder", "feature-checkout-offers", "feature-products-access"],
-    issueNumbers: [14, 15, 16, 20],
+    relatedRoutes: [
+      {
+        label: "Simple landing pages",
+        route: "/features/simple-landing-page",
+        kind: "feature",
+        status: "live",
+        summary: "Turn the offer promise into a page people can understand and act on.",
+      },
+      {
+        label: "Sales funnels",
+        route: "/features/sales-funnels",
+        kind: "feature",
+        status: "live",
+        summary: "Connect the opt-in, offer, checkout handoff, and follow-up path.",
+      },
+      {
+        label: "Digital products",
+        route: "/features/digital-products",
+        kind: "feature",
+        status: "live",
+        summary: "Keep paid downloads, courses, memberships, and access tied to the purchase.",
+      },
+      {
+        label: "ClickFunnels comparison",
+        route: "/compare/clickfunnels-alternative",
+        kind: "comparison",
+        status: "live",
+        summary: "Compare the launch path against the funnel-builder category creators already know.",
+      },
+    ],
+    evidenceRoutes: [
+      "/content/source-data",
+      "/features/source-data",
+      "/funnels/source-data",
+      "/offers/source-data",
+      "/products/source-data",
+      "/compare/source-data",
+    ],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-publisher-previews-seeded-funnel",
+      "journey-publisher-previews-product-access",
+    ],
+    issueNumbers: [14, 15, 16, 20, 536],
     agentBoundary: "Agents may draft funnel or offer copy, but publishing and billing changes require confirmed-write rules.",
   },
   {
     id: "audience-coaches",
+    slug: "coaches",
     title: "Coaches and consultants",
-    route: "/users#coaches",
+    route: "/users/coaches",
     status: "live",
+    seoTitle: "Bumpgrade for Coaches and Consultants",
+    seoDescription:
+      "Use Bumpgrade to qualify coaching demand, sell sessions or cohorts, collect leads, and keep follow-up connected to the buyer journey.",
+    headline: "Sell coaching packages with a calmer path from interest to follow-up.",
     summary: "Solo experts and small teams selling calls, cohorts, audits, workshops, or retainers.",
+    bestFor: "Coaches, consultants, and solo experts selling audits, workshops, cohorts, or retainers.",
+    outcome: "Qualify demand, sell the first package, and keep the follow-up organized around real buyers.",
+    primaryCta: { label: "Shape the offer", route: "/features/order-bump" },
+    secondaryCta: { label: "Open teaching funnels", route: "/features/webinars-and-resources" },
     primaryJobs: ["Qualify demand", "Sell session packages", "Track customer follow-up", "Protect client context"],
     linkedFeatureIds: ["feature-checkout-offers", "feature-email-automation-crm", "feature-better-auth"],
-    issueNumbers: [9, 15, 17, 20],
+    relatedRoutes: [
+      {
+        label: "Checkout and order bumps",
+        route: "/features/order-bump",
+        kind: "feature",
+        status: "live",
+        summary: "Model paid sessions, workshops, add-ons, and the next offer after purchase.",
+      },
+      {
+        label: "Webinars and resources",
+        route: "/features/webinars-and-resources",
+        kind: "feature",
+        status: "live",
+        summary: "Use teaching moments, resources, and events as part of the sales path.",
+      },
+      {
+        label: "Audience CRM",
+        route: "/features/audience-crm",
+        kind: "feature",
+        status: "live",
+        summary: "Keep consent, segments, suppression, and follow-up context close to the launch.",
+      },
+      {
+        label: "Kajabi comparison",
+        route: "/compare/kajabi-alternative",
+        kind: "comparison",
+        status: "live",
+        summary: "Compare Bumpgrade with a knowledge-commerce platform often used by coaches.",
+      },
+    ],
+    evidenceRoutes: ["/content/source-data", "/features/source-data", "/offers/source-data", "/audience/source-data", "/compare/source-data"],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-publisher-previews-checkout-offer-stack",
+      "journey-publisher-previews-audience-automation",
+    ],
+    issueNumbers: [9, 15, 17, 20, 536],
     agentBoundary: "Agents must not expose private customer data or send follow-up email without confirmation and audience scope.",
   },
   {
     id: "audience-newsletter-publishers",
+    slug: "newsletter-publishers",
     title: "Newsletter writers and small publishers",
-    route: "/users#newsletter-publishers",
+    route: "/users/newsletter-publishers",
     status: "live",
+    seoTitle: "Bumpgrade for Newsletter Publishers",
+    seoDescription:
+      "Use Bumpgrade to grow a newsletter audience, segment subscribers, launch paid products, and keep AI-readable context grounded in public-safe records.",
+    headline: "Turn newsletter attention into a launch path you can keep improving.",
     summary: "Audience owners who need list growth, launch workflows, paid products, and lightweight CRM state.",
+    bestFor: "Audience owners who want to grow a list and turn attention into paid products.",
+    outcome: "Capture subscribers, segment interest, and prepare a launch sequence without stitching together extra tools.",
+    primaryCta: { label: "Grow the list", route: "/features/email-campaigns" },
+    secondaryCta: { label: "Import audience context", route: "/imports/kit" },
     primaryJobs: ["Grow the list", "Segment subscribers", "Launch paid products", "Reuse evidence in public copy"],
     linkedFeatureIds: ["feature-email-automation-crm", "feature-products-access", "feature-agent-ready-contracts"],
-    issueNumbers: [12, 16, 17, 20],
+    relatedRoutes: [
+      {
+        label: "Email campaigns",
+        route: "/features/email-campaigns",
+        kind: "feature",
+        status: "live",
+        summary: "Capture waitlist leads, segment subscribers, and prepare safer campaign work.",
+      },
+      {
+        label: "Audience CRM",
+        route: "/features/audience-crm",
+        kind: "feature",
+        status: "live",
+        summary: "Review consent, suppression, tags, and subscriber context before sending.",
+      },
+      {
+        label: "Digital products",
+        route: "/features/digital-products",
+        kind: "feature",
+        status: "live",
+        summary: "Connect paid newsletter products, downloads, and memberships to access checks.",
+      },
+      {
+        label: "Kit importer",
+        route: "/imports/kit",
+        kind: "importer",
+        status: "live",
+        summary: "Map existing audience, form, and follow-up context into a private Bumpgrade workspace.",
+      },
+    ],
+    evidenceRoutes: [
+      "/content/source-data",
+      "/features/source-data",
+      "/audience/source-data",
+      "/products/source-data",
+      "/imports/source-data",
+      "/agent-docs/source-data",
+    ],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-visitor-joins-indie-launch-waitlist",
+      "journey-publisher-previews-audience-automation",
+      "journey-agent-reads-bumpgrade-manifest",
+    ],
+    issueNumbers: [12, 16, 17, 20, 536],
     agentBoundary: "Subscriber and segment writes require consent-safe confirmation; public claims need cited source evidence.",
   },
   {
     id: "audience-course-sellers",
+    slug: "course-sellers",
     title: "Course and membership sellers",
-    route: "/users#course-sellers",
+    route: "/users/course-sellers",
     status: "live",
+    seoTitle: "Bumpgrade for Course and Membership Sellers",
+    seoDescription:
+      "Use Bumpgrade to package courses, memberships, checkout paths, subscriptions, protected access, and customer lookup flows in one launch system.",
+    headline: "Sell courses and memberships with access tied to the purchase.",
     summary: "Knowledge businesses that need product access, subscriptions, checkout, and fulfillment state.",
+    bestFor: "Course creators, membership sellers, and productized knowledge businesses.",
+    outcome: "Sell access, deliver protected files or lessons, and keep customer access tied to the purchase.",
+    primaryCta: { label: "Open product access", route: "/features/digital-products" },
+    secondaryCta: { label: "Compare Kajabi", route: "/compare/kajabi-alternative" },
     primaryJobs: ["Model products", "Sell subscriptions", "Grant access", "Handle upgrades or cancellations"],
     linkedFeatureIds: ["feature-products-access", "feature-stripe-commerce", "feature-checkout-offers"],
-    issueNumbers: [11, 15, 16, 20],
+    relatedRoutes: [
+      {
+        label: "Digital products",
+        route: "/features/digital-products",
+        kind: "feature",
+        status: "live",
+        summary: "Model courses, memberships, bundles, files, access rules, and customer lookup.",
+      },
+      {
+        label: "Checkout and order bumps",
+        route: "/features/order-bump",
+        kind: "feature",
+        status: "live",
+        summary: "Connect paid offers, bumps, and post-purchase choices to the product path.",
+      },
+      {
+        label: "Sales funnels",
+        route: "/features/sales-funnels",
+        kind: "feature",
+        status: "live",
+        summary: "Build the opt-in, sales, checkout, and delivery handoff around the same offer.",
+      },
+      {
+        label: "Kajabi importer",
+        route: "/imports/kajabi",
+        kind: "importer",
+        status: "live",
+        summary: "Map current course, membership, offer, and audience material before moving buyers.",
+      },
+    ],
+    evidenceRoutes: ["/content/source-data", "/features/source-data", "/products/source-data", "/offers/source-data", "/imports/source-data"],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-publisher-previews-product-access",
+      "journey-publisher-verifies-sandbox-entitlement-grant",
+    ],
+    issueNumbers: [11, 15, 16, 20, 536],
     agentBoundary: "Access and billing state must stay behind authenticated contracts with audit evidence.",
   },
   {
     id: "audience-agencies",
+    slug: "agencies",
     title: "Agencies and launch operators",
-    route: "/users#agencies",
+    route: "/users/agencies",
     status: "live",
+    seoTitle: "Bumpgrade for Agencies and Launch Operators",
+    seoDescription:
+      "Use Bumpgrade to run repeatable client launches with funnels, analytics, affiliate tracking, importer paths, and approval-friendly evidence.",
+    headline: "Run repeatable launches without burying client context in separate tools.",
     summary: "Operators managing multiple offers, launches, analytics, and approvals for clients.",
+    bestFor: "Operators managing repeated launches, client offers, partner campaigns, and reporting.",
+    outcome: "Reuse launch structures, review performance, and coordinate approvals across offers.",
+    primaryCta: { label: "Review analytics", route: "/features/ad-tracking" },
+    secondaryCta: { label: "Open import center", route: importerHubRoute },
     primaryJobs: ["Clone launch systems", "Review performance", "Coordinate approvals", "Avoid client data leakage"],
     linkedFeatureIds: ["feature-analytics-testing", "feature-affiliates-referrals", "feature-admin-state"],
-    issueNumbers: [8, 18, 19, 20],
+    relatedRoutes: [
+      {
+        label: "Ad tracking and analytics",
+        route: "/features/ad-tracking",
+        kind: "feature",
+        status: "live",
+        summary: "Read aggregate source, variant, conversion, and launch performance signals.",
+      },
+      {
+        label: "Affiliate and referrals",
+        route: "/features/affiliate-referrals",
+        kind: "feature",
+        status: "live",
+        summary: "Track partner growth, commission review, payout preparation, and fraud checks deliberately.",
+      },
+      {
+        label: "Competitor importers",
+        route: "/features/competitor-importers",
+        kind: "feature",
+        status: "live",
+        summary: "Bring existing client launch material into a private Bumpgrade workspace for review.",
+      },
+      {
+        label: "Comparison hub",
+        route: "/compare",
+        kind: "comparison",
+        status: "live",
+        summary: "Explain stack choices across the platforms clients already know.",
+      },
+    ],
+    evidenceRoutes: [
+      "/content/source-data",
+      "/features/source-data",
+      "/analytics/source-data",
+      "/affiliates/source-data",
+      "/imports/source-data",
+      "/compare/source-data",
+    ],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-publisher-previews-analytics-experiments",
+      "journey-publisher-previews-affiliate-referrals",
+      "journey-prospect-imports-from-clickfunnels",
+    ],
+    issueNumbers: [8, 18, 19, 20, 536],
     agentBoundary: "Multi-client data and client-speech actions require explicit tenant boundaries and approval logs.",
   },
   {
     id: "audience-indie-hackers",
+    slug: "indie-hackers",
     title: "Indie hackers and tiny teams",
-    route: "/users#indie-hackers",
+    route: "/users/indie-hackers",
     status: "live",
+    seoTitle: "Bumpgrade for Indie Hackers and Tiny Teams",
+    seoDescription:
+      "Use Bumpgrade to ship a minimum funnel, take payments when ready, automate follow-up, and keep enough context for AI helpers to assist.",
+    headline: "Ship a minimum launch system that AI helpers can understand.",
     summary: "Builders who want one owned growth system instead of stitching together many single-purpose tools.",
+    bestFor: "Tiny teams and builders who want one owned growth system around a minimum viable offer.",
+    outcome: "Ship a useful funnel, take payment when ready, and keep enough context for AI helpers to assist.",
+    primaryCta: { label: "Ask the AI coach", route: "/features/ai-business-coach" },
+    secondaryCta: { label: "Start building", route: "/pricing" },
     primaryJobs: ["Ship a minimum funnel", "Take payments", "Automate the follow-up", "Let agents read the state"],
     linkedFeatureIds: ["feature-cloudflare-foundation", "feature-agent-ready-contracts", "feature-codex-email"],
-    issueNumbers: [4, 10, 12, 20],
+    relatedRoutes: [
+      {
+        label: "AI business coach",
+        route: "/features/ai-business-coach",
+        kind: "feature",
+        status: "live",
+        summary: "Turn launch state into practical planning, copy, and next-step recommendations.",
+      },
+      {
+        label: "Simple landing pages",
+        route: "/features/simple-landing-page",
+        kind: "feature",
+        status: "live",
+        summary: "Give the first offer a page and path instead of another private note.",
+      },
+      {
+        label: "Developers and agents",
+        route: "/developers-and-agents",
+        kind: "agent",
+        status: "live",
+        summary: "Inspect the public docs, manifest, and safe read boundaries for AI-assisted work.",
+      },
+      {
+        label: "Pricing",
+        route: "/pricing",
+        kind: "pricing",
+        status: "live",
+        summary: "Start from Free Build, Experiment, Grow, or Enterprise depending on the launch stage.",
+      },
+    ],
+    evidenceRoutes: ["/content/source-data", "/features/source-data", "/agent-docs/source-data", "/pricing/source-data"],
+    journeyIds: [
+      "journey-prospect-evaluates-content-surfaces",
+      "journey-agent-reads-bumpgrade-manifest",
+      "journey-prospect-understands-free-build",
+      "journey-publisher-previews-seeded-funnel",
+    ],
+    issueNumbers: [4, 10, 12, 20, 536],
     agentBoundary: "Agents should use source-data routes and manifests instead of scraping hidden admin UI.",
   },
 ];
+
+export const audienceSegmentRoutes = audienceSegments.map((segment) => segment.route);
+
+export function getAudienceSegment(slug: string) {
+  return audienceSegments.find((segment) => segment.slug === slug) ?? null;
+}
+
+export function audienceSegmentUrl(slugOrSegment: string | AudienceSegment) {
+  const route = typeof slugOrSegment === "string" ? `/users/${slugOrSegment}` : slugOrSegment.route;
+  return `${site.url}${route}`;
+}
 
 export const resourceHubItems: ResourceHubItem[] = [
   {
@@ -354,6 +684,7 @@ export const contentSourceData = {
   issue: 20,
   routes: [
     "/users",
+    ...audienceSegmentRoutes,
     "/developers-and-agents",
     "/resources",
     importerHubRoute,

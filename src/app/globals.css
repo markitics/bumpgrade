@@ -4237,6 +4237,24 @@ h3 {
   padding-left: 18px;
 }
 
+.audience-use-case-page .content-band:not(.dark-band) .linked-record-grid article {
+  background: var(--panel);
+  border-color: var(--line);
+}
+
+.audience-use-case-page .content-band:not(.dark-band) .linked-record-grid h3 {
+  color: var(--ink);
+}
+
+.audience-use-case-page .content-band:not(.dark-band) .linked-record-grid p,
+.audience-use-case-page .content-band:not(.dark-band) .linked-record-grid li {
+  color: var(--muted);
+}
+
+.audience-use-case-page .content-band:not(.dark-band) .linked-record-grid a {
+  color: var(--green);
+}
+
 .pricing-note {
   align-self: center;
   padding: 22px;

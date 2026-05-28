@@ -560,10 +560,11 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
   "journey-prospect-evaluates-content-surfaces": {
     status: "passed",
     lastTestedAt: journeyProofRefreshAt,
-    environment: "GitHub Actions CI, merged PR #243, deployed screenshots, and production route smoke.",
-    method: "Users/resources/pricing route smoke, content source-data inspection, public visible-text scan, and screenshot review.",
+    environment: "GitHub Actions CI, merged PR #243, issue #536 branch validation, deployed screenshots, and production route smoke.",
+    method:
+      "Users index, dedicated use-case route smoke, resources/pricing route smoke, content source-data inspection, public visible-text scan, and screenshot review.",
     summary:
-      "The content surfaces now present Bumpgrade by user outcomes and launch jobs, with pricing and resource routes avoiding internal build language.",
+      "The content surfaces now present Bumpgrade by user outcomes and launch jobs, with dedicated audience pages plus pricing and resource routes avoiding internal build language.",
     ciLinks: [
       { label: "PR #243 CI run", url: issue242CiRunUrl, kind: "ci" },
       { label: "Main CI after PR #243", url: "https://github.com/markitics/bumpgrade/actions/runs/26175761582", kind: "ci" },
@@ -576,11 +577,14 @@ const journeyProofById: Record<string, AdminUserJourneyProof> = {
     ],
     validationLinks: [
       { label: "Users", url: "https://bumpgrade.com/users", kind: "route" },
+      { label: "Creator use case", url: "https://bumpgrade.com/users/creators", kind: "route" },
+      { label: "Newsletter use case", url: "https://bumpgrade.com/users/newsletter-publishers", kind: "route" },
       { label: "Resources", url: "https://bumpgrade.com/resources", kind: "route" },
       { label: "Pricing", url: "https://bumpgrade.com/pricing", kind: "route" },
       { label: "Content source data", url: "https://bumpgrade.com/content/source-data", kind: "source-data" },
       { label: "PR #243", url: issue242PrUrl, kind: "pr" },
       { label: "Issue #242", url: "https://github.com/markitics/bumpgrade/issues/242", kind: "issue" },
+      { label: "Issue #536", url: "https://github.com/markitics/bumpgrade/issues/536", kind: "issue" },
     ],
     notes: [
       "Issue #316 moves pricing from launch conversation copy to self-serve Experiment and Grow subscriptions plus the White glove setup option.",
@@ -1142,6 +1146,47 @@ const fallbackRoadmapItems: AdminRoadmapRecord[] = roadmapItems.map((item, index
 }));
 
 const fallbackWorkLogEntries: AdminWorkLogEntry[] = [
+  {
+    id: "work-log-2026-05-28-audience-use-case-pages",
+    title: "Added dedicated audience use-case pages",
+    agentName: "Codex",
+    agentKind: "codex",
+    sessionName: "issue-536-use-case-pages",
+    promptFromMark:
+      "Mark asked for dedicated SEO use-case pages for audience segments already represented in the app and docs, with source-data, agent-readable links, tests, screenshots, and a draft PR for issue #536.",
+    githubIssues: [{ number: 536, url: "https://github.com/markitics/bumpgrade/issues/536" }],
+    closedPrs: [],
+    featuresUpdated: [
+      "https://bumpgrade.com/users",
+      "https://bumpgrade.com/users/creators",
+      "https://bumpgrade.com/users/coaches",
+      "https://bumpgrade.com/users/newsletter-publishers",
+      "https://bumpgrade.com/users/course-sellers",
+      "https://bumpgrade.com/users/agencies",
+      "https://bumpgrade.com/users/indie-hackers",
+      "https://bumpgrade.com/content/source-data",
+    ],
+    roadmapUpdated: [],
+    userJourneysUpdated: ["journey-prospect-evaluates-content-surfaces"],
+    documentationUpdated: ["docs/features/content-surfaces.md", "public/llms.txt"],
+    validation: [
+      "Typecheck",
+      "Lint",
+      "Cloudflare build",
+      "Focused Playwright smoke coverage for use-case pages, source data, sitemap, and public-copy guard",
+      "Desktop and mobile screenshot capture for the newsletter publisher use-case page",
+    ],
+    flagsAttention:
+      "This branch adds crawlable public use-case pages and read-only source-data links only. It does not change global footer links, competitor page internals, billing, imports, or owner-write behavior.",
+    firstPromptAt: "2026-05-28T18:00:00.000Z",
+    completedAt: "2026-05-28T18:17:30.000Z",
+    relevantUrls: [
+      "https://github.com/markitics/bumpgrade/issues/536",
+      "https://bumpgrade.com/pr-screenshots/issue-536-use-case-newsletter-desktop.png",
+      "https://bumpgrade.com/pr-screenshots/issue-536-use-case-newsletter-mobile.png",
+    ],
+    prCommentUrl: null,
+  },
   {
     id: "work-log-2026-05-26-importer-roadmap-closeout",
     title: "Closed the importer roadmap parent as shipped",
@@ -2926,11 +2971,17 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     title: "Prospect evaluates Bumpgrade content surfaces",
     featureId: "feature-resources-use-cases-pricing",
     featureStatus: "live",
-    issueNumbers: [20],
+    issueNumbers: [20, 536],
     primaryUser: "Creator, coach, publisher, agency, or agent evaluating Bumpgrade",
     userGoal: "Understand who Bumpgrade is for, what resources exist, and what pricing can safely claim before live billing ships.",
     sourceEvidence: [
       "https://bumpgrade.com/users",
+      "https://bumpgrade.com/users/creators",
+      "https://bumpgrade.com/users/coaches",
+      "https://bumpgrade.com/users/newsletter-publishers",
+      "https://bumpgrade.com/users/course-sellers",
+      "https://bumpgrade.com/users/agencies",
+      "https://bumpgrade.com/users/indie-hackers",
       "https://bumpgrade.com/developers-and-agents",
       "https://bumpgrade.com/resources",
       "https://bumpgrade.com/pricing",
@@ -2939,6 +2990,7 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     ],
     happyPath: [
       "Open /users to find the relevant audience segment and linked feature IDs.",
+      "Open the segment page under /users/[slug] to see the focused buyer path, related features, imports, comparisons, evidence routes, and journey IDs.",
       "Open /resources to find live comparison, commerce, and agent contract resources.",
       "Open /pricing to read current Experiment, Grow, Enterprise, and White glove setup options.",
       "Fetch /content/source-data to cite stable IDs, issue numbers, evidence routes, and agent boundaries.",
@@ -2951,8 +3003,9 @@ const fallbackUserJourneys: AdminUserJourney[] = [
     agentAccess:
       "Agents can read /content/source-data for audience, resource, and pricing records. Public copy changes still need source evidence, issue links, or shipped-product proof.",
     validation: [
-      "Playwright covers /users, /resources, /pricing, /content/source-data, sitemap discovery, and agent manifest read-contract discovery.",
+      "Playwright covers /users, every generated /users/[slug] route, /resources, /pricing, /content/source-data, sitemap discovery, and agent manifest read-contract discovery.",
       "Issue #20 updates public route metadata and source-data contracts.",
+      "Issue #536 adds dedicated audience segment metadata, route generation, source-data fields, and sitemap coverage.",
     ],
     proof: createJourneyProof("journey-prospect-evaluates-content-surfaces", "feature-resources-use-cases-pricing"),
     sortOrder: 44,

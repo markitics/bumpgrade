@@ -4,6 +4,7 @@ import { affiliatePartnerPortalRoute, affiliatePrograms } from "@/lib/affiliate-
 import { analyticsDashboards } from "@/lib/analytics-experiments";
 import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
+import { audienceSegmentRoutes } from "@/lib/content-surfaces";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
 import { seededFunnels } from "@/lib/funnels";
 import { importerRoutes } from "@/lib/importers";
@@ -49,7 +50,7 @@ const sourceDataRoutes = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-05-22T00:00:00.000Z");
+  const lastModified = new Date("2026-05-28T00:00:00.000Z");
   const funnelRoutes = seededFunnels.map((funnel) => funnel.previewRoute);
   const offerRoutes = checkoutOfferStacks.map((stack) => stack.previewRoute);
   const productRoutes = productAccessCatalogs.map((catalog) => catalog.previewRoute);
@@ -63,6 +64,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     "",
     ...scaffoldRoutes,
+    ...audienceSegmentRoutes,
     ...sourceDataRoutes,
     ...marketingFeatureRoutes,
     ...comparisonRoutes,
