@@ -197,7 +197,13 @@ import {
   audienceSequenceTestSendStatus,
 } from "../src/lib/audience-sequence-test-sends";
 import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
-import { audienceSegments, contentSourceData, plannedPricingTracks, resourceHubItems } from "../src/lib/content-surfaces";
+import {
+  audienceSegmentUrl,
+  audienceSegments,
+  contentSourceData,
+  plannedPricingTracks,
+  resourceHubItems,
+} from "../src/lib/content-surfaces";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
@@ -507,6 +513,7 @@ const routes = [
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
+  ...audienceSegments.map((segment) => ({ path: segment.route, heading: segment.headline })),
   { path: "/developers-and-agents", heading: "Give your coding agent" },
   { path: "/resources", heading: "Guides, comparisons, migrations" },
   { path: "/imports", heading: "Bring your current launch stack" },
@@ -551,6 +558,10 @@ const compareRoutes = competitors.map((competitor) => ({
   path: `/compare/${competitor.slug}`,
   heading: competitor.headline,
 }));
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 function publicCopyTextValues(value: unknown, path = ""): string[] {
   if (typeof value === "string") {
@@ -822,6 +833,7 @@ test.describe("Bumpgrade scaffold", () => {
       "/compare",
       ...competitors.map((competitor) => `/compare/${competitor.slug}`),
       "/users",
+      ...audienceSegments.map((segment) => segment.route),
       "/resources",
       "/imports",
       ...importerPlatforms.map((platform) => platform.route),
@@ -1065,6 +1077,44 @@ test.describe("Bumpgrade scaffold", () => {
     );
   });
 
+  test("dedicated use-case pages expose SEO metadata and agent-readable links", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "SEO metadata is checked once on desktop.");
+
+    for (const segment of audienceSegments) {
+      await page.goto(segment.route);
+      await expect(page).toHaveTitle(new RegExp(escapeRegExp(segment.seoTitle), "i"));
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", segment.seoDescription);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", audienceSegmentUrl(segment));
+      await expect(page.getByRole("heading", { name: segment.headline })).toBeVisible();
+      await expect(page.getByRole("link", { name: segment.primaryCta.label })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Audience record" })).toHaveAttribute("href", "/content/source-data");
+      await expect(page.getByRole("link", { name: "Feature catalog" })).toHaveAttribute("href", "/features/source-data");
+      await expect(page.getByRole("link", { name: "Journey proof" })).toHaveAttribute(
+        "href",
+        "/admin/user-journeys/source-data",
+      );
+
+      for (const relatedRoute of segment.relatedRoutes) {
+        await expect(page.getByRole("heading", { name: relatedRoute.label })).toBeVisible();
+      }
+
+      const jsonLdBlocks = await page.locator('script[type="application/ld+json"]').evaluateAll((scripts) =>
+        scripts.map((script) => JSON.parse(script.textContent ?? "{}")),
+      );
+      expect(jsonLdBlocks).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            "@type": "WebPage",
+            url: audienceSegmentUrl(segment),
+            audience: expect.objectContaining({
+              audienceType: segment.title,
+            }),
+          }),
+        ]),
+      );
+    }
+  });
+
   test("sitemap and robots keep comparison routes crawlable", async ({ request }) => {
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.ok()).toBeTruthy();
@@ -1112,6 +1162,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/android/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/admin/funnels");
     expect(sitemapXml).toContain("https://bumpgrade.com/admin/products");
+    for (const segment of audienceSegments) {
+      expect(sitemapXml).toContain(audienceSegmentUrl(segment));
+    }
 
     const robots = await request.get("/robots.txt");
     expect(robots.ok()).toBeTruthy();
@@ -1919,6 +1972,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.routes).toEqual(
       expect.arrayContaining([
         "/users",
+        ...audienceSegments.map((segment) => segment.route),
         "/resources",
         "/imports",
         "/brand",
@@ -1935,7 +1989,16 @@ test.describe("Bumpgrade scaffold", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "audience-newsletter-publishers",
+          slug: "newsletter-publishers",
+          route: "/users/newsletter-publishers",
+          seoTitle: "Bumpgrade for Newsletter Publishers",
           linkedFeatureIds: expect.arrayContaining(["feature-email-automation-crm", "feature-agent-ready-contracts"]),
+          relatedRoutes: expect.arrayContaining([
+            expect.objectContaining({ label: "Kit importer", route: "/imports/kit", kind: "importer" }),
+          ]),
+          evidenceRoutes: expect.arrayContaining(["/content/source-data", "/features/source-data", "/agent-docs/source-data"]),
+          journeyIds: expect.arrayContaining(["journey-visitor-joins-indie-launch-waitlist"]),
+          issueNumbers: expect.arrayContaining([536]),
         }),
       ]),
     );
