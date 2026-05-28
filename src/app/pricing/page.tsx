@@ -255,12 +255,19 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
                 <strong>{feature.label}</strong>
                 <em>{feature.summary}</em>
               </span>
-              {pricingPlans.map((plan) => (
-                <span role="cell" key={plan.slug} className={planIncludesFeature(plan.slug, feature) ? "included" : "limited"}>
-                  {planIncludesFeature(plan.slug, feature) ? <CheckCircle2 aria-hidden="true" /> : null}
-                  {feature.availability[plan.slug]}
-                </span>
-              ))}
+              {pricingPlans.map((plan) => {
+                const included = planIncludesFeature(plan.slug, feature);
+
+                return (
+                  <span role="cell" key={plan.slug} className={included ? "included" : "limited"}>
+                    <strong className="pricing-feature-mobile-plan-label">{plan.name}</strong>
+                    <span className="pricing-feature-availability">
+                      {included ? <CheckCircle2 aria-hidden="true" /> : null}
+                      {feature.availability[plan.slug]}
+                    </span>
+                  </span>
+                );
+              })}
             </div>
           ))}
         </div>
