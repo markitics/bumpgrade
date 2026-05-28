@@ -93,11 +93,12 @@ export function routeOgImageResponse(options: RouteOgImageOptions) {
         <div
           style={{
             position: "absolute",
-            right: "54px",
+            right: "392px",
             top: "54px",
             display: "flex",
             alignItems: "center",
             gap: "12px",
+            zIndex: 2,
           }}
         >
           <div
