@@ -47,6 +47,13 @@ export const topNavItems: NavItem[] = [
     status: "live",
   },
   {
+    label: "Funnels",
+    href: "/funnels",
+    description: "Public funnel examples, source data, templates, checkout handoffs, and launch boundaries.",
+    icon: PanelsTopLeft,
+    status: "live",
+  },
+  {
     label: "Playground",
     href: "/playground",
     description: "Save a private launch draft before signup, then attach it to Free Build when ready.",
@@ -189,6 +196,7 @@ export const featurePillars = [
 
 export const scaffoldRoutes = [
   "/features",
+  "/funnels",
   "/compare",
   "/roadmap",
   "/users",

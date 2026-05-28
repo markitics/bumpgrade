@@ -503,6 +503,7 @@ const routes = [
   { path: "/features/order-bump", heading: "Offer the right bump" },
   { path: "/features/ai-business-coach", heading: "Ask an AI launch advisor" },
   { path: "/features/simple-landing-page", heading: "Give a launch idea a public page" },
+  { path: "/funnels", heading: "Plan the page path" },
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
   { path: "/users", heading: "Use cases for indiepreneurs" },
@@ -1055,6 +1056,7 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/funnels");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/funnels/indie-launch-sandbox");
     expect(sitemapXml).toContain("https://bumpgrade.com/offers/source-data");
