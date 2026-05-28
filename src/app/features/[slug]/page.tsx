@@ -33,7 +33,14 @@ export async function generateMetadata({ params }: FeaturePageProps): Promise<Me
       title: `${feature.title} | Bumpgrade`,
       description: feature.summary,
       url: marketingFeatureUrl(feature.slug),
-      images: [{ url: feature.imageUrl }],
+      images: [
+        {
+          url: `/features/${feature.slug}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: `${feature.title} social image`,
+        },
+      ],
     },
   };
 }
