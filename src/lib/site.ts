@@ -206,7 +206,6 @@ export const scaffoldRoutes = [
   "/playground",
   "/brand",
   "/pricing",
-  "/pricing-v2",
   "/pricing/success",
   "/account/setup",
   "/products/entitlements",

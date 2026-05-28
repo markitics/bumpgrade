@@ -493,10 +493,13 @@ import {
   anonymousPlaygroundSourceDataRoute,
 } from "../src/lib/anonymous-playground";
 import {
+  canonicalPricingRoute,
   freeBuildModeContract,
+  pricingRoutePolicy,
   pricingSourceData,
   pricingSourceDataRoute,
   selfServePricingContract,
+  usagePricingDraftRoute,
   whiteGloveSetupAddon,
 } from "../src/lib/pricing-plans";
 import { publisherFreeBuildWorkspaceConfirmationText, publisherTenantSourceData } from "../src/lib/publisher-tenants";
@@ -521,8 +524,8 @@ const routes = [
   ...importerPlatforms.map((platform) => ({ path: platform.route, heading: platform.headline })),
   { path: "/playground", heading: "Try Bumpgrade before you sign up" },
   { path: "/brand", heading: "Bumpgrade should feel like a calm control room" },
-  { path: "/pricing", heading: "Start building your publisher launch system today" },
-  { path: "/pricing-v2", heading: "Usage-based pricing that grows with the launch" },
+  { path: canonicalPricingRoute, heading: "Start building your publisher launch system today" },
+  { path: usagePricingDraftRoute, heading: "Usage-based pricing that grows with the launch" },
   { path: "/pricing/success", heading: "Finish verifying your checkout" },
   { path: "/account/setup", heading: "Create the private workspace" },
   { path: "/funnels/indie-launch-sandbox", heading: "Indie launch funnel" },
@@ -787,6 +790,39 @@ test.describe("Bumpgrade scaffold", () => {
     });
   }
 
+  test("pricing canonical metadata keeps the usage draft out of indexed discovery", async ({ page, request }, testInfo) => {
+    await page.goto("/");
+    if (testInfo.project.name === "mobile") {
+      await page.getByLabel("Open navigation").click();
+      const panel = page.locator(".mobile-nav-panel");
+      await expect(panel.getByRole("link", { name: "Pricing", exact: true })).toHaveAttribute("href", canonicalPricingRoute);
+      await expect(panel.locator(`a[href="${usagePricingDraftRoute}"]`)).toHaveCount(0);
+    } else {
+      const navigation = page.getByRole("navigation", { name: "Main navigation" });
+      await expect(navigation.getByRole("link", { name: "Pricing", exact: true })).toHaveAttribute("href", canonicalPricingRoute);
+      await expect(navigation.locator(`a[href="${usagePricingDraftRoute}"]`)).toHaveCount(0);
+    }
+
+    await page.goto(canonicalPricingRoute);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://bumpgrade.com/pricing");
+
+    await page.goto(usagePricingDraftRoute);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://bumpgrade.com/pricing");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /follow/);
+
+    const response = await request.get(pricingSourceDataRoute);
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    expect(payload.routePolicy).toEqual(pricingRoutePolicy);
+
+    const sitemap = await request.get("/sitemap.xml");
+    expect(sitemap.ok()).toBeTruthy();
+    const sitemapXml = await sitemap.text();
+    expect(sitemapXml).toContain("https://bumpgrade.com/pricing");
+    expect(sitemapXml).not.toContain("https://bumpgrade.com/pricing-v2");
+  });
+
   test("homepage feature highlights use customer-facing availability labels", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /AI business coach/i })).toBeVisible();
@@ -840,8 +876,8 @@ test.describe("Bumpgrade scaffold", () => {
       ...importerPlatforms.map((platform) => platform.route),
       "/playground",
       "/brand",
-      "/pricing",
-      "/pricing-v2",
+      canonicalPricingRoute,
+      usagePricingDraftRoute,
       "/account/setup",
       "/login",
       "/funnels/indie-launch-sandbox",
@@ -927,10 +963,10 @@ test.describe("Bumpgrade scaffold", () => {
       "/features/source-data",
       "/roadmap",
       "/roadmap/source-data",
-      "/pricing",
-      "/pricing-v2",
+      canonicalPricingRoute,
+      usagePricingDraftRoute,
       "/content/source-data",
-      "/pricing/source-data",
+      pricingSourceDataRoute,
       importerSourceDataRoute,
       anonymousPlaygroundSourceDataRoute,
       "/agent-docs/source-data",
@@ -968,7 +1004,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect(trustDetailMatch, `${path} leaked public trust detail "${trustDetailMatch?.[0] ?? ""}"`).toBeNull();
     }
 
-    for (const path of ["/llms.txt", "/pricing", "/pricing-v2", "/features/source-data", "/roadmap/source-data"]) {
+    for (const path of ["/llms.txt", canonicalPricingRoute, usagePricingDraftRoute, "/features/source-data", "/roadmap/source-data"]) {
       const response = await request.get(path);
       const body = await response.text();
       expect(response.ok(), body).toBeTruthy();
@@ -1232,6 +1268,8 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/pricing");
+    expect(sitemapXml).not.toContain("https://bumpgrade.com/pricing-v2");
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand");
     expect(sitemapXml).toContain("https://bumpgrade.com/brand/source-data");
@@ -2094,11 +2132,11 @@ test.describe("Bumpgrade scaffold", () => {
         "/resources",
         "/imports",
         "/brand",
-        "/pricing",
+        canonicalPricingRoute,
         pricingSourceDataRoute,
         "/playground",
         anonymousPlaygroundSourceDataRoute,
-        "/pricing-v2",
+        usagePricingDraftRoute,
         importerSourceDataRoute,
         "/content/source-data",
       ]),
@@ -2161,7 +2199,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         id: "self-serve-pricing-and-account-setup",
         status: "live",
-        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316, 466, 473]),
+        issueNumbers: expect.arrayContaining([222, 223, 225, 226, 316, 466, 473, 551]),
         freeBuildMode: expect.objectContaining({ id: freeBuildModeContract.id }),
         defaultSubdomain: expect.stringContaining("go-live entitlement"),
         customDomain: expect.stringContaining("domain they already own"),
@@ -2172,17 +2210,19 @@ test.describe("Bumpgrade scaffold", () => {
           expect.stringContaining("White glove setup is an optional one-time $1,000 add-on"),
         ]),
         evidenceRoutes: expect.arrayContaining([
-          "/pricing",
+          canonicalPricingRoute,
           "/playground",
           anonymousPlaygroundSourceDataRoute,
           pricingSourceDataRoute,
-          "/pricing-v2",
+          usagePricingDraftRoute,
           "/api/billing/checkout",
           "/account/setup",
           "/account/source-data",
         ]),
+        routePolicy: pricingRoutePolicy,
       }),
     );
+    expect(payload.pricingRoutePolicy).toEqual(pricingRoutePolicy);
     expect(payload.caveat).toContain("does not turn planned product features");
   });
 
@@ -2194,9 +2234,10 @@ test.describe("Bumpgrade scaffold", () => {
       expect.objectContaining({
         id: pricingSourceData.id,
         updatedAt: pricingSourceData.updatedAt,
-        issueNumbers: expect.arrayContaining([316, 466, 473]),
+        issueNumbers: expect.arrayContaining([316, 466, 473, 551]),
         routes: expect.arrayContaining([
-          "/pricing",
+          canonicalPricingRoute,
+          usagePricingDraftRoute,
           pricingSourceDataRoute,
           "/playground",
           anonymousPlaygroundSourceDataRoute,
@@ -2259,6 +2300,7 @@ test.describe("Bumpgrade scaffold", () => {
           anonymousRecoveryTokenHashIncluded: false,
           customerDataIncluded: false,
         }),
+        routePolicy: pricingRoutePolicy,
       }),
     );
   });

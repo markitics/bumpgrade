@@ -7,8 +7,9 @@ Issue #330 moved internal build notes out of public marketing pages.
 - `/pricing` now describes the buyer path, Stripe checkout, setup add-on, plan
   access, and workspace setup without showing checkout contract IDs or route
   names.
-- `/pricing-v2` now reads as an alternate usage-pricing option, not an internal
-  draft for Mark to decide on.
+- `/pricing-v2` remains an alternate usage-pricing option, but it is
+  non-indexed, canonicalized to `/pricing`, and excluded from sitemap
+  discovery.
 - `/brand` now presents logo assets, palette, voice, and usage guidance for
   customers and partners. The machine-readable brand contract remains available
   at `/brand/source-data`.

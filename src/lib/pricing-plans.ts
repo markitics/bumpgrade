@@ -51,13 +51,35 @@ export type FreeBuildGoLiveGate = {
   requires: string[];
 };
 
-export const selfServePricingUpdatedAt = "2026-05-25";
+export const selfServePricingUpdatedAt = "2026-05-28";
 export const billingCheckoutRoute = "/api/billing/checkout";
 export const billingCheckoutSuccessRoute = "/pricing/success";
 export const pricingSourceIssue = 316;
 export const freeBuildModeIssue = 466;
 export const signedInFreeBuildWorkspaceIssue = 473;
+export const pricingCanonicalRouteIssue = 551;
+export const canonicalPricingRoute = "/pricing";
+export const usagePricingDraftRoute = "/pricing-v2";
 export const pricingSourceDataRoute = "/pricing/source-data";
+
+export const pricingRoutePolicy = {
+  canonicalBuyerRoute: canonicalPricingRoute,
+  canonicalReason:
+    "The main navigation, footer, checkout form, pricing source-data, and Stripe success path use /pricing as the buyer-facing self-serve pricing URL.",
+  indexedRoutes: [canonicalPricingRoute, pricingSourceDataRoute],
+  alternates: [
+    {
+      route: usagePricingDraftRoute,
+      purpose: "Alternate usage-based pricing draft for packaging discussions, not the default buyer checkout path.",
+      canonicalRoute: canonicalPricingRoute,
+      robots: "noindex,follow",
+      sitemapIncluded: false,
+      topNavIncluded: false,
+      billingBehavior:
+        "No billing or checkout behavior originates from this route; it links back to the canonical /pricing plans or the contact email path.",
+    },
+  ],
+} as const;
 
 export const whiteGloveSetupAddon = {
   slug: "white-glove-setup",
@@ -327,9 +349,10 @@ export const freeBuildModeContract = {
 export const pricingSourceData = {
   id: "bumpgrade-pricing-policy-source-data",
   updatedAt: selfServePricingUpdatedAt,
-  issueNumbers: [pricingSourceIssue, freeBuildModeIssue, signedInFreeBuildWorkspaceIssue],
+  issueNumbers: [pricingSourceIssue, freeBuildModeIssue, signedInFreeBuildWorkspaceIssue, pricingCanonicalRouteIssue],
   routes: [
-    "/pricing",
+    canonicalPricingRoute,
+    usagePricingDraftRoute,
     pricingSourceDataRoute,
     anonymousPlaygroundRoute,
     anonymousPlaygroundSourceDataRoute,
@@ -351,6 +374,7 @@ export const pricingSourceData = {
     })),
     setupAddon: whiteGloveSetupAddon,
   },
+  routePolicy: pricingRoutePolicy,
   freeBuildMode: freeBuildModeContract,
   paidGoLiveGates,
   redaction: {

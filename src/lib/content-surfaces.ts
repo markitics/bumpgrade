@@ -1,4 +1,10 @@
-import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-plans";
+import {
+  canonicalPricingRoute,
+  freeBuildModeContract,
+  pricingRoutePolicy,
+  pricingSourceDataRoute,
+  usagePricingDraftRoute,
+} from "@/lib/pricing-plans";
 import { importerHubRoute, importerIssue, importerSourceDataRoute } from "@/lib/importers";
 import { site } from "@/lib/site";
 
@@ -83,6 +89,7 @@ export type LaunchSignupPolicy = {
   payments: string[];
   customerCheckout: string;
   evidenceRoutes: string[];
+  routePolicy: typeof pricingRoutePolicy;
 };
 
 export const contentSurfacesUpdatedAt = "2026-05-28";
@@ -561,21 +568,21 @@ export const pricingPrinciples: PricingPrinciple[] = [
     status: "live",
     summary:
       "Issue #466 defines the logged-out playground, free private-building path, and paid go-live gates; issue #473 adds signed-in Free Build workspace creation.",
-    evidenceRoutes: ["/pricing", "/playground", "/playground/source-data", pricingSourceDataRoute, "/account/source-data", "/content/source-data"],
+    evidenceRoutes: [canonicalPricingRoute, "/playground", "/playground/source-data", pricingSourceDataRoute, "/account/source-data", "/content/source-data"],
   },
   {
     id: "pricing-self-serve",
     title: "Self-serve subscription checkout",
     status: "live",
     summary: "Experiment and Grow use Stripe Checkout so publishers can start today without a sales conversation.",
-    evidenceRoutes: ["/pricing", "/api/billing/checkout", "/commerce/source-data"],
+    evidenceRoutes: [canonicalPricingRoute, "/api/billing/checkout", "/commerce/source-data"],
   },
   {
     id: "pricing-flexible-entitlements",
     title: "Flexible plan entitlements",
     status: "live",
     summary: "Plan capability boundaries live in a data framework so features can move between plans later.",
-    evidenceRoutes: ["/pricing", "/content/source-data"],
+    evidenceRoutes: [canonicalPricingRoute, "/content/source-data"],
   },
   {
     id: "pricing-agent-safe",
@@ -645,7 +652,7 @@ export const plannedPricingTracks: PlannedPricingTrack[] = [
 export const launchSignupPolicy: LaunchSignupPolicy = {
   id: "self-serve-pricing-and-account-setup",
   status: "live",
-  issueNumbers: [217, 222, 223, 225, 226, 316, 466, 473],
+  issueNumbers: [217, 222, 223, 225, 226, 316, 466, 473, 551],
   summary:
     "Bumpgrade offers signed-in Free Build workspace creation, self-serve Experiment and Grow subscriptions through Stripe Checkout, and an Enterprise contact path.",
   freeBuildMode: freeBuildModeContract,
@@ -665,17 +672,18 @@ export const launchSignupPolicy: LaunchSignupPolicy = {
   customerCheckout:
     "Customer-facing checkout for a publisher's own offer remains offer-specific; Bumpgrade subscription checkout is the self-serve account plan path.",
   evidenceRoutes: [
-    "/pricing",
+    canonicalPricingRoute,
     "/playground",
     "/playground/source-data",
     pricingSourceDataRoute,
-    "/pricing-v2",
+    usagePricingDraftRoute,
     "/api/billing/checkout",
     "/account/setup",
     "/account/source-data",
     "/commerce/source-data",
     "/admin/user-journeys/source-data",
   ],
+  routePolicy: pricingRoutePolicy,
 };
 
 export const contentSourceData = {
@@ -689,11 +697,11 @@ export const contentSourceData = {
     "/resources",
     importerHubRoute,
     "/brand",
-    "/pricing",
+    canonicalPricingRoute,
     pricingSourceDataRoute,
     "/playground",
     "/playground/source-data",
-    "/pricing-v2",
+    usagePricingDraftRoute,
     "/account/setup",
     importerSourceDataRoute,
     "/content/source-data",
@@ -701,6 +709,7 @@ export const contentSourceData = {
   audienceSegments,
   resourceHubItems,
   pricingPrinciples,
+  pricingRoutePolicy,
   plannedPricingTracks,
   launchSignupPolicy,
   caveat:

@@ -21,7 +21,8 @@ Issue #316 adds the first self-serve Bumpgrade account-plan checkout path:
 - `/pricing/success` verifies the returned Stripe Checkout Session server-side
   before creating an active `publisher_plan_entitlements` row by buyer email.
 - `/pricing-v2` is a public alternate usage-based pricing draft, not the default
-  packaging decision.
+  packaging decision. Issue #551 keeps it accessible but non-indexed,
+  canonicalized back to `/pricing`, and excluded from sitemap discovery.
 
 The deployed Worker has live Stripe secret material available, but the live
 webhook signing secret was not listed in Cloudflare secret inventory during this

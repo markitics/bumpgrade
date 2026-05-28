@@ -13,16 +13,19 @@ surfaces instead of placeholders:
 - `/resources`: comparison, migration, launch, product, blog-index, and agent
   resources with evidence routes.
 - `/pricing`: self-serve Experiment and Grow plans, Enterprise contact path,
-  optional White glove setup, and current billing boundaries.
+  optional White glove setup, current billing boundaries, and the canonical
+  buyer pricing URL.
 - `/pricing-v2`: an alternate usage-based pricing draft for future packaging
-  decisions.
+  decisions. It remains accessible, but issue #551 makes it non-indexed,
+  canonicalizes it back to `/pricing`, and excludes it from sitemap discovery.
 - `/content/source-data`: public-safe JSON mirror for audiences, dedicated
   use-case routes, resources, pricing principles, and planned pricing tracks.
 
 Issue #316 makes Experiment and Grow self-serve account-plan checkout records.
-Issue #317 adds the usage-based draft as an alternate, not the default. Future
-limits, trials, usage-meter rates, and package changes still need source-data
-updates before agents cite them as current.
+Issue #317 adds the usage-based draft as an alternate, not the default. Issue
+#551 keeps `/pricing` as the canonical buyer URL. Future limits, trials,
+usage-meter rates, and package changes still need source-data updates before
+agents cite them as current.
 
 Agents may read `/content/source-data` and cite its stable IDs. They still need
 source URLs, issue links, shipped-product evidence, or work-log evidence before
