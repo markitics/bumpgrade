@@ -6,48 +6,12 @@ import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
 import { audienceSegmentRoutes } from "@/lib/content-surfaces";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
+import { isOwnerGatedAdminUiRoute, publicDiscoverySourceDataRoutes } from "@/lib/discovery-policy";
 import { seededFunnels } from "@/lib/funnels";
 import { importerRoutes } from "@/lib/importers";
 import { marketingFeatures } from "@/lib/marketing-features";
 import { productAccessCatalogs } from "@/lib/product-access";
 import { scaffoldRoutes, site } from "@/lib/site";
-
-const sourceDataRoutes = [
-  "/features/source-data",
-  "/roadmap/source-data",
-  "/admin/source-data",
-  "/admin/roadmap/source-data",
-  "/admin/work-log/source-data",
-  "/admin/user-journeys/source-data",
-  "/admin/for-mark/source-data",
-  "/compare/source-data",
-  "/imports/source-data",
-  "/playground/source-data",
-  "/commerce/source-data",
-  "/content/source-data",
-  "/pricing/source-data",
-  "/brand/source-data",
-  "/account/source-data",
-  "/api/billing/checkout",
-  "/api/account/publisher/subdomain",
-  "/api/account/publisher/custom-domain",
-  "/affiliates/source-data",
-  "/audience/source-data",
-  "/analytics/source-data",
-  "/funnels/source-data",
-  "/offers/source-data",
-  "/products/source-data",
-  "/api/products/entitlements",
-  "/api/products/download-tokens",
-  "/api/products/protected-content",
-  "/agent-docs/source-data",
-  "/mobile-admin/source-data",
-  "/mobile-admin/dashboard/source-data",
-  "/mobile-admin/ios/source-data",
-  "/mobile-admin/android/source-data",
-  "/api/commerce/checkout",
-  "/api/commerce/post-purchase-decisions",
-];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date("2026-05-28T00:00:00.000Z");
@@ -61,11 +25,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     program.partners.map((partner) => affiliatePartnerPortalRoute(program.slug, partner.portalSlug)),
   );
   const marketingFeatureRoutes = marketingFeatures.map((feature) => `/features/${feature.slug}`);
-  return [
+  const routes = [
     "",
-    ...scaffoldRoutes,
+    ...scaffoldRoutes.filter((path) => !isOwnerGatedAdminUiRoute(path)),
     ...audienceSegmentRoutes,
-    ...sourceDataRoutes,
+    ...publicDiscoverySourceDataRoutes,
     ...marketingFeatureRoutes,
     ...comparisonRoutes,
     ...importerRoutes,
@@ -76,10 +40,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...analyticsRoutes,
     ...affiliateRoutes,
     ...affiliatePartnerRoutes,
-  ].map((path) => ({
-      url: `${site.url}${path}`,
-      lastModified,
-      changeFrequency: path === "" ? "weekly" : "daily",
-      priority: path === "" ? 1 : path.startsWith("/admin") ? 0.2 : 0.7,
-    }));
+  ];
+
+  return Array.from(new Set(routes)).map((path) => ({
+    url: `${site.url}${path}`,
+    lastModified,
+    changeFrequency: path === "" ? "weekly" : "daily",
+    priority: path === "" ? 1 : path.startsWith("/admin") ? 0.2 : 0.7,
+  }));
 }

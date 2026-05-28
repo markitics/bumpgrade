@@ -204,6 +204,7 @@ import {
   plannedPricingTracks,
   resourceHubItems,
 } from "../src/lib/content-surfaces";
+import { publicSafeAdminSourceDataRoutes } from "../src/lib/discovery-policy";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
@@ -1260,8 +1261,22 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/dashboard/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/android/source-data");
-    expect(sitemapXml).toContain("https://bumpgrade.com/admin/funnels");
-    expect(sitemapXml).toContain("https://bumpgrade.com/admin/products");
+    for (const route of publicSafeAdminSourceDataRoutes) {
+      expect(sitemapXml).toContain(`https://bumpgrade.com${route}`);
+    }
+    for (const route of [
+      "/admin/director",
+      "/admin/roadmap",
+      "/admin/work-log",
+      "/admin/user-journeys",
+      "/admin/funnels",
+      "/admin/funnels/funnel-draft-indie-launch-working-copy/preview",
+      "/admin/products",
+      "/admin/analytics",
+      "/admin/for-mark",
+    ]) {
+      expect(sitemapXml).not.toContain(`<loc>https://bumpgrade.com${route}</loc>`);
+    }
     for (const segment of audienceSegments) {
       expect(sitemapXml).toContain(audienceSegmentUrl(segment));
     }
@@ -1270,6 +1285,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(robots.ok()).toBeTruthy();
     const robotsTxt = await robots.text();
     expect(robotsTxt).toContain("Allow: /");
+    for (const route of publicSafeAdminSourceDataRoutes) {
+      expect(robotsTxt).toContain(`Allow: ${route}`);
+    }
     expect(robotsTxt).toContain("Disallow: /admin/");
     expect(robotsTxt).toContain("Sitemap: https://bumpgrade.com/sitemap.xml");
   });
