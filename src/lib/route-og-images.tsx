@@ -98,7 +98,6 @@ export function routeOgImageResponse(options: RouteOgImageOptions) {
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            zIndex: 2,
           }}
         >
           <div
