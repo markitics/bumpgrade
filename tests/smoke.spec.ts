@@ -196,7 +196,7 @@ import {
   audienceSequenceTestSendIssue,
   audienceSequenceTestSendStatus,
 } from "../src/lib/audience-sequence-test-sends";
-import { comparisonSeoTargets, competitors } from "../src/lib/comparison-data";
+import { comparisonSeoTargets, competitorSources, competitors } from "../src/lib/comparison-data";
 import {
   audienceSegmentUrl,
   audienceSegments,
@@ -1551,6 +1551,97 @@ test.describe("Bumpgrade scaffold", () => {
         expect(relatedFeature.proofRoutes.length).toBeGreaterThan(0);
         expect(relatedFeature.sourceIds.length).toBeGreaterThan(0);
         expect(relatedFeature.criteria.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("competitor comparison rows expose stable feature-match contracts in source data", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Feature-match row contracts are checked once on desktop.");
+
+    const sourceIds = new Set(competitorSources.map((source) => source.id));
+    const featureIds = new Set(featureCatalog.map((feature) => feature.id));
+    const marketingFeatureBySlug = new Map(marketingFeatures.map((feature) => [feature.slug, feature]));
+    const roadmapItemIds = new Set(roadmapItems.map((item) => item.id));
+    const allRowIds = new Set<string>();
+
+    const response = await request.get("/compare/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = (await response.json()) as {
+      competitors: Array<{
+        id: string;
+        rows: Array<{
+          id: string;
+          featureMatch: {
+            relatedFeatureId: string;
+            featureSlug: string;
+            sourceIds: string[];
+            useCaseIds: string[];
+            featureIds: string[];
+            featureRoute: string | null;
+            proofRoutes: string[];
+            roadmapItemIds: string[];
+            relatedFeatureStatus: string;
+          };
+        }>;
+      }>;
+    };
+
+    for (const competitor of competitors) {
+      const sourceDataCompetitor = payload.competitors.find((item) => item.id === competitor.id);
+      expect(sourceDataCompetitor, `${competitor.id} should appear in /compare/source-data`).toBeTruthy();
+      expect(sourceDataCompetitor?.rows).toHaveLength(competitor.rows.length);
+
+      for (const row of competitor.rows) {
+        expect(row.id, `${competitor.id} ${row.area} row id`).toMatch(/^row-[a-z0-9-]+$/);
+        expect(allRowIds.has(row.id), `${row.id} should be unique`).toBe(false);
+        allRowIds.add(row.id);
+
+        const relatedFeature = competitor.relatedFeatures.find((feature) => feature.id === row.featureMatch.relatedFeatureId);
+        expect(relatedFeature, `${row.id} should link to a related feature record`).toBeTruthy();
+        expect(relatedFeature?.featureSlug).toBe(row.featureMatch.featureSlug);
+
+        const marketingFeature = marketingFeatureBySlug.get(row.featureMatch.featureSlug);
+        expect(marketingFeature, `${row.id} should link to a marketing feature`).toBeTruthy();
+
+        expect(row.featureMatch.sourceIds.length, `${row.id} should cite source IDs`).toBeGreaterThan(0);
+        for (const sourceId of row.featureMatch.sourceIds) {
+          expect(sourceIds.has(sourceId), `${row.id} has unknown source ${sourceId}`).toBe(true);
+        }
+
+        expect(row.featureMatch.useCaseIds.length, `${row.id} should expose use-case IDs`).toBeGreaterThan(0);
+        for (const useCaseId of row.featureMatch.useCaseIds) {
+          expect(useCaseId, `${row.id} use-case id`).toMatch(/^use-case-[a-z0-9-]+$/);
+        }
+
+        const sourceDataRow = sourceDataCompetitor?.rows.find((item) => item.id === row.id);
+        expect(sourceDataRow).toEqual(
+          expect.objectContaining({
+            id: row.id,
+            featureMatch: expect.objectContaining({
+              relatedFeatureId: row.featureMatch.relatedFeatureId,
+              featureSlug: row.featureMatch.featureSlug,
+              sourceIds: row.featureMatch.sourceIds,
+              useCaseIds: row.featureMatch.useCaseIds,
+              featureRoute: `/features/${row.featureMatch.featureSlug}`,
+              relatedFeatureStatus: "linked",
+            }),
+          }),
+        );
+
+        expect(sourceDataRow?.featureMatch.featureIds.length, `${row.id} should expose Bumpgrade feature IDs`).toBeGreaterThan(0);
+        for (const featureId of sourceDataRow?.featureMatch.featureIds ?? []) {
+          expect(featureIds.has(featureId), `${row.id} has unknown feature ${featureId}`).toBe(true);
+        }
+
+        expect(sourceDataRow?.featureMatch.proofRoutes.length, `${row.id} should expose public proof routes`).toBeGreaterThan(0);
+        for (const proofRoute of sourceDataRow?.featureMatch.proofRoutes ?? []) {
+          expect(proofRoute, `${row.id} should not expose owner-only proof routes`).not.toMatch(/^\/(?:admin|api)(?:\/|$)/);
+        }
+
+        expect(sourceDataRow?.featureMatch.roadmapItemIds.length, `${row.id} should expose roadmap item IDs`).toBeGreaterThan(0);
+        for (const roadmapItemId of sourceDataRow?.featureMatch.roadmapItemIds ?? []) {
+          expect(roadmapItemIds.has(roadmapItemId), `${row.id} has unknown roadmap item ${roadmapItemId}`).toBe(true);
+        }
       }
     }
   });
