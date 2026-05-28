@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, FileSearch, ShieldCheck } from "lu
 
 import { comparisonRetrievedAt, competitors, getCompetitorBySlug, getSourcesByIds } from "@/lib/comparison-data";
 import { getImporterForCompetitor } from "@/lib/importers";
+import { getMarketingFeature } from "@/lib/marketing-features";
 import { site } from "@/lib/site";
 
 type CompareAlternativePageProps = {
@@ -15,6 +16,22 @@ type CompareAlternativePageProps = {
 
 export function generateStaticParams() {
   return competitors.map((competitor) => ({ slug: competitor.slug }));
+}
+
+function statusLabel(status: string) {
+  if (status === "live") return "Live";
+  if (status === "launch-preview") return "Available now";
+  return "Coming soon";
+}
+
+function statusClass(status: string) {
+  if (status === "live") return "live";
+  if (status === "launch-preview") return "active";
+  return "pending";
+}
+
+function proofRouteForFeature(proofRoutes: string[]) {
+  return proofRoutes.find((route) => route.includes("/source-data") || route.startsWith("/agent-docs")) ?? proofRoutes[0] ?? "/features/source-data";
 }
 
 export async function generateMetadata({ params }: CompareAlternativePageProps): Promise<Metadata> {
@@ -54,6 +71,10 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
 
   const sources = getSourcesByIds(competitor.sourceIds ?? [competitor.sourceId]);
   const importer = getImporterForCompetitor(competitor.id);
+  const relatedFeatures = competitor.relatedFeatures.flatMap((relatedFeature) => {
+    const feature = getMarketingFeature(relatedFeature.featureSlug);
+    return feature ? [{ ...relatedFeature, feature }] : [];
+  });
   const pageUrl = `${site.url}/compare/${competitor.slug}`;
   const pageJsonLd = {
     "@context": "https://schema.org",
@@ -212,6 +233,54 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
                 </strong>
               </Link>
             ))}
+          </div>
+        </section>
+      ) : null}
+
+      {relatedFeatures.length ? (
+        <section className="content-band">
+          <div className="compare-section-heading">
+            <div>
+              <p className="eyebrow">Related Bumpgrade features</p>
+              <h2>Follow the feature paths behind this comparison.</h2>
+            </div>
+            <Link href="/features/source-data" className="text-link compact-link">
+              Feature evidence
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="related-feature-grid">
+            {relatedFeatures.map((relatedFeature) => {
+              const proofRoute = proofRouteForFeature(relatedFeature.feature.proofRoutes);
+
+              return (
+                <article key={relatedFeature.id} className="related-feature-card">
+                  <div className="related-feature-meta">
+                    <span>{relatedFeature.feature.category}</span>
+                    <span className={`status-badge ${statusClass(relatedFeature.feature.status)}`}>
+                      {statusLabel(relatedFeature.feature.status)}
+                    </span>
+                  </div>
+                  <h3>{relatedFeature.feature.title}</h3>
+                  <p>{relatedFeature.rationale}</p>
+                  <ul className="keyword-list related-feature-criteria" aria-label={`${relatedFeature.feature.title} comparison criteria`}>
+                    {relatedFeature.criteria.map((criterion) => (
+                      <li key={criterion}>{criterion}</li>
+                    ))}
+                  </ul>
+                  <div className="related-feature-actions">
+                    <Link href={`/features/${relatedFeature.feature.slug}`} className="text-link">
+                      Open {relatedFeature.feature.shortTitle}
+                      <ArrowRight aria-hidden="true" />
+                    </Link>
+                    <Link href={proofRoute} className="text-link">
+                      Proof route
+                      <ArrowRight aria-hidden="true" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
       ) : null}

@@ -1113,6 +1113,108 @@ test.describe("Bumpgrade scaffold", () => {
     }
   });
 
+  test("comparison pages expose source-backed related feature links", async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Related feature matrix is checked once on desktop.");
+
+    const expectedComparisons = [
+      {
+        slug: "clickfunnels-alternative",
+        featureSlugs: ["sales-funnels", "order-bump", "email-campaigns", "digital-products", "ai-business-coach"],
+        featureTitles: [
+          "Sales funnels",
+          "Checkout and order bumps",
+          "Email campaigns",
+          "Digital products and memberships",
+          "AI business coach",
+        ],
+      },
+      {
+        slug: "kit-alternative",
+        featureSlugs: ["email-campaigns", "audience-crm", "sales-funnels", "competitor-importers"],
+        featureTitles: ["Email campaigns", "Audience CRM", "Sales funnels", "Competitor importers"],
+      },
+      {
+        slug: "samcart-alternative",
+        featureSlugs: ["order-bump", "sales-funnels", "digital-products", "ad-tracking"],
+        featureTitles: [
+          "Checkout and order bumps",
+          "Sales funnels",
+          "Digital products and memberships",
+          "Ad tracking and conversion analytics",
+        ],
+      },
+      {
+        slug: "kajabi-alternative",
+        featureSlugs: ["digital-products", "sales-funnels", "email-campaigns", "webinars-and-resources"],
+        featureTitles: [
+          "Digital products and memberships",
+          "Sales funnels",
+          "Email campaigns",
+          "Webinars and resource funnels",
+        ],
+      },
+      {
+        slug: "shopify-alternative",
+        featureSlugs: ["order-bump", "digital-products", "sales-funnels", "ai-business-coach"],
+        featureTitles: [
+          "Checkout and order bumps",
+          "Digital products and memberships",
+          "Sales funnels",
+          "AI business coach",
+        ],
+      },
+      {
+        slug: "thrivecart-alternative",
+        featureSlugs: ["order-bump", "digital-products", "affiliate-referrals", "ad-tracking"],
+        featureTitles: [
+          "Checkout and order bumps",
+          "Digital products and memberships",
+          "Affiliate and referral tracking",
+          "Ad tracking and conversion analytics",
+        ],
+      },
+    ];
+
+    for (const comparison of expectedComparisons) {
+      await page.goto(`/compare/${comparison.slug}`);
+      await expect(page.getByRole("heading", { name: "Follow the feature paths behind this comparison." })).toBeVisible();
+      await expect(page.getByRole("link", { name: /Feature evidence/i })).toBeVisible();
+
+      for (const featureTitle of comparison.featureTitles) {
+        await expect(page.locator(".related-feature-card").filter({ hasText: featureTitle })).toBeVisible();
+      }
+    }
+
+    const response = await request.get("/compare/source-data");
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+
+    for (const comparison of expectedComparisons) {
+      const competitor = payload.competitors.find((item: { slug: string }) => item.slug === comparison.slug);
+      expect(competitor).toBeTruthy();
+
+      for (const featureSlug of comparison.featureSlugs) {
+        const relatedFeature = competitor.relatedFeatures.find(
+          (item: { featureSlug: string }) => item.featureSlug === featureSlug,
+        );
+        expect(relatedFeature).toEqual(
+          expect.objectContaining({
+            featureSlug,
+            featureRoute: `/features/${featureSlug}`,
+            featureIds: expect.any(Array),
+            proofRoutes: expect.any(Array),
+            sourceIds: expect.any(Array),
+            criteria: expect.any(Array),
+          }),
+        );
+        expect(relatedFeature.featureIds.length).toBeGreaterThan(0);
+        expect(relatedFeature.proofRoutes.length).toBeGreaterThan(0);
+        expect(relatedFeature.sourceIds.length).toBeGreaterThan(0);
+        expect(relatedFeature.criteria.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
   test("sitemap and robots keep comparison routes crawlable", async ({ request }) => {
     const sitemap = await request.get("/sitemap.xml");
     expect(sitemap.ok()).toBeTruthy();
