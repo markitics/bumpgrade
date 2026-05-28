@@ -14,6 +14,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Users and use cases: https://bumpgrade.com/users
 - Dedicated use-case pages: https://bumpgrade.com/users/creators, https://bumpgrade.com/users/coaches, https://bumpgrade.com/users/newsletter-publishers, https://bumpgrade.com/users/course-sellers, https://bumpgrade.com/users/agencies, https://bumpgrade.com/users/indie-hackers
 - Resources: https://bumpgrade.com/resources
+- Product notes and launch guidance: https://bumpgrade.com/resources/product-notes
 - Brand kit: https://bumpgrade.com/brand
 - Brand source data: https://bumpgrade.com/brand/source-data
 - Pricing direction: https://bumpgrade.com/pricing

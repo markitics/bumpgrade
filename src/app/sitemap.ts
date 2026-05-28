@@ -4,7 +4,7 @@ import { affiliatePartnerPortalRoute, affiliatePrograms } from "@/lib/affiliate-
 import { analyticsDashboards } from "@/lib/analytics-experiments";
 import { audienceAutomationWorkspaces } from "@/lib/audience-automation";
 import { comparisonRoutes } from "@/lib/comparison-data";
-import { audienceSegmentRoutes } from "@/lib/content-surfaces";
+import { audienceSegmentRoutes, resourceHubRoutes } from "@/lib/content-surfaces";
 import { checkoutOfferStacks } from "@/lib/checkout-offers";
 import { isOwnerGatedAdminUiRoute, publicDiscoverySourceDataRoutes } from "@/lib/discovery-policy";
 import { seededFunnels } from "@/lib/funnels";
@@ -30,6 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...scaffoldRoutes.filter((path) => !isOwnerGatedAdminUiRoute(path)),
     ...audienceSegmentRoutes,
     ...publicDiscoverySourceDataRoutes,
+    ...resourceHubRoutes,
     ...marketingFeatureRoutes,
     ...comparisonRoutes,
     ...importerRoutes,
