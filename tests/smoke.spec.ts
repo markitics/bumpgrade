@@ -509,10 +509,7 @@ import { checkoutConfirmationText, sandboxCheckoutOffer } from "../src/lib/sandb
 const routes = [
   { path: "/", heading: "Launch offers with funnels" },
   { path: "/features", heading: "Everything a publisher needs" },
-  { path: "/features/email-campaigns", heading: "Capture subscribers and prepare campaigns" },
-  { path: "/features/order-bump", heading: "Offer the right bump" },
-  { path: "/features/ai-business-coach", heading: "Ask an AI launch advisor" },
-  { path: "/features/simple-landing-page", heading: "Give a launch idea a public page" },
+  ...marketingFeatures.map((feature) => ({ path: `/features/${feature.slug}`, heading: feature.hero })),
   { path: "/funnels", heading: "Plan the page path" },
   { path: "/compare", heading: "Compare ClickFunnels competitors and indiepreneur platforms" },
   { path: "/roadmap", heading: "Public roadmap from feature evidence" },
@@ -565,6 +562,25 @@ const compareRoutes = competitors.map((competitor) => ({
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function sitemapUrl(path: string) {
+  return `https://bumpgrade.com${path}`;
+}
+
+function expectSitemapRoute(sitemapXml: string, path: string) {
+  expect(sitemapXml, `sitemap should include ${path}`).toContain(sitemapUrl(path));
+}
+
+function sorted(values: string[]) {
+  return [...values].sort();
+}
+
+async function getJsonPayload(request: APIRequestContext, path: string): Promise<unknown> {
+  const response = await request.get(path);
+  const body = await response.text();
+  expect(response.ok(), body).toBeTruthy();
+  return JSON.parse(body);
 }
 
 function publicCopyTextValues(value: unknown, path = ""): string[] {
@@ -786,7 +802,7 @@ test.describe("Bumpgrade scaffold", () => {
   for (const route of [...routes, ...compareRoutes]) {
     test(`renders ${route.path}`, async ({ page }) => {
       await page.goto(route.path);
-      await expect(page.getByRole("heading", { name: new RegExp(route.heading, "i") })).toBeVisible();
+      await expect(page.getByRole("heading", { name: new RegExp(escapeRegExp(route.heading), "i") })).toBeVisible();
     });
   }
 
@@ -821,6 +837,25 @@ test.describe("Bumpgrade scaffold", () => {
     const sitemapXml = await sitemap.text();
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing");
     expect(sitemapXml).not.toContain("https://bumpgrade.com/pricing-v2");
+  });
+
+  test("generated feature and importer pages expose canonical SEO metadata", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Generated metadata inventory is checked once on desktop.");
+
+    for (const feature of marketingFeatures) {
+      const route = `/features/${feature.slug}`;
+      await page.goto(route);
+      await expect(page).toHaveTitle(new RegExp(escapeRegExp(feature.title), "i"));
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", feature.summary);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", sitemapUrl(route));
+    }
+
+    for (const platform of importerPlatforms) {
+      await page.goto(platform.route);
+      await expect(page).toHaveTitle(new RegExp(`Import From ${escapeRegExp(platform.platformName)}`, "i"));
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", platform.summary);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", sitemapUrl(platform.route));
+    }
   });
 
   test("homepage feature highlights use customer-facing availability labels", async ({ page }) => {
@@ -1252,6 +1287,169 @@ test.describe("Bumpgrade scaffold", () => {
           }),
         ]),
       );
+    }
+  });
+
+  test("generated route inventory covers marketing SEO and source data", async ({ request }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Route inventory is checked once on desktop.");
+
+    type FeatureSourcePayload = {
+      marketingFeatures: Array<{
+        slug: string;
+        featureIds: string[];
+        issueIds: number[];
+        proofRoutes: string[];
+      }>;
+    };
+    type ComparisonSourcePayload = {
+      competitors: Array<{
+        id: string;
+        slug: string;
+        sourceId: string;
+        sourceIds?: string[];
+        seoKeywords?: string[];
+        rows: unknown[];
+      }>;
+      importers: Array<{
+        id: string;
+        competitorId: string;
+        route: string;
+        sourceIds: string[];
+      }>;
+      seoTargets: Array<{
+        route: string;
+        primaryKeyword: string;
+        evidenceSourceIds: string[];
+      }>;
+    };
+    type ImporterSourcePayload = {
+      platforms: Array<{
+        id: string;
+        competitorId: string;
+        route: string;
+        compareRoute: string;
+        sourceIds: string[];
+        sourceChecklist: unknown[];
+        exportMatchTemplates?: unknown[];
+      }>;
+    };
+    type ContentSourcePayload = {
+      routes: string[];
+      audienceSegments: Array<{
+        id: string;
+        route: string;
+        seoTitle: string;
+        linkedFeatureIds: string[];
+        evidenceRoutes: string[];
+        relatedRoutes: unknown[];
+      }>;
+    };
+
+    const sitemapResponse = await request.get("/sitemap.xml");
+    expect(sitemapResponse.ok()).toBeTruthy();
+    const sitemapXml = await sitemapResponse.text();
+    const featureSource = (await getJsonPayload(request, "/features/source-data")) as FeatureSourcePayload;
+    const comparisonSource = (await getJsonPayload(request, "/compare/source-data")) as ComparisonSourcePayload;
+    const importerSource = (await getJsonPayload(request, importerSourceDataRoute)) as ImporterSourcePayload;
+    const contentSource = (await getJsonPayload(request, "/content/source-data")) as ContentSourcePayload;
+
+    expect(sorted(featureSource.marketingFeatures.map((feature) => feature.slug))).toEqual(
+      sorted(marketingFeatures.map((feature) => feature.slug)),
+    );
+    for (const feature of marketingFeatures) {
+      const route = `/features/${feature.slug}`;
+      const sourceRecord = featureSource.marketingFeatures.find((item) => item.slug === feature.slug);
+
+      expectSitemapRoute(sitemapXml, route);
+      expect(sourceRecord).toEqual(
+        expect.objectContaining({
+          slug: feature.slug,
+          featureIds: expect.arrayContaining(feature.featureIds),
+          proofRoutes: expect.arrayContaining(feature.proofRoutes),
+        }),
+      );
+      expect(sourceRecord?.featureIds.length, `${feature.slug} should cite at least one feature id`).toBeGreaterThan(0);
+      expect(sourceRecord?.issueIds.length, `${feature.slug} should cite at least one issue`).toBeGreaterThan(0);
+      expect(sourceRecord?.proofRoutes.length, `${feature.slug} should cite proof routes`).toBeGreaterThan(0);
+    }
+
+    expect(sorted(comparisonSource.competitors.map((competitor) => competitor.slug))).toEqual(
+      sorted(competitors.map((competitor) => competitor.slug)),
+    );
+    expect(sorted(comparisonSource.seoTargets.map((target) => target.route))).toEqual(
+      expect.arrayContaining(sorted(competitors.map((competitor) => `/compare/${competitor.slug}`))),
+    );
+    for (const competitor of competitors) {
+      const route = `/compare/${competitor.slug}`;
+      const sourceRecord = comparisonSource.competitors.find((item) => item.id === competitor.id);
+      const seoTargets = comparisonSource.seoTargets.filter((target) => target.route === route);
+
+      expectSitemapRoute(sitemapXml, route);
+      expect(sourceRecord).toEqual(
+        expect.objectContaining({
+          id: competitor.id,
+          slug: competitor.slug,
+          rows: expect.any(Array),
+        }),
+      );
+      expect(sourceRecord?.sourceIds ?? [sourceRecord?.sourceId], `${competitor.slug} should cite its source id`).toEqual(
+        expect.arrayContaining([competitor.sourceId]),
+      );
+      expect(sourceRecord?.rows.length, `${competitor.slug} should expose comparison rows`).toBeGreaterThan(0);
+      expect(seoTargets.length, `${competitor.slug} should have generated SEO target coverage`).toBeGreaterThan(0);
+      expect(
+        seoTargets.some((target) => target.evidenceSourceIds.includes(competitor.sourceId)),
+        `${competitor.slug} SEO targets should cite its source id`,
+      ).toBe(true);
+    }
+
+    expect(sorted(importerSource.platforms.map((platform) => platform.id))).toEqual(
+      sorted(importerPlatforms.map((platform) => platform.id)),
+    );
+    for (const platform of importerPlatforms) {
+      const sourceRecord = importerSource.platforms.find((item) => item.id === platform.id);
+      const comparisonImporter = comparisonSource.importers.find((item) => item.id === platform.id);
+
+      expectSitemapRoute(sitemapXml, platform.route);
+      expect(sourceRecord).toEqual(
+        expect.objectContaining({
+          id: platform.id,
+          competitorId: platform.competitorId,
+          route: platform.route,
+          compareRoute: platform.compareRoute,
+          sourceIds: expect.arrayContaining(platform.sourceIds),
+          sourceChecklist: expect.any(Array),
+        }),
+      );
+      expect(sourceRecord?.sourceChecklist.length, `${platform.slug} should expose source checklist items`).toBeGreaterThan(0);
+      expect(comparisonImporter).toEqual(
+        expect.objectContaining({
+          id: platform.id,
+          competitorId: platform.competitorId,
+          route: platform.route,
+          sourceIds: expect.arrayContaining(platform.sourceIds),
+        }),
+      );
+    }
+
+    expect(sorted(contentSource.audienceSegments.map((segment) => segment.route))).toEqual(
+      sorted(audienceSegments.map((segment) => segment.route)),
+    );
+    for (const segment of audienceSegments) {
+      const sourceRecord = contentSource.audienceSegments.find((item) => item.id === segment.id);
+
+      expectSitemapRoute(sitemapXml, segment.route);
+      expect(contentSource.routes).toContain(segment.route);
+      expect(sourceRecord).toEqual(
+        expect.objectContaining({
+          id: segment.id,
+          route: segment.route,
+          seoTitle: segment.seoTitle,
+          linkedFeatureIds: expect.arrayContaining(segment.linkedFeatureIds),
+          evidenceRoutes: expect.arrayContaining(["/content/source-data", "/features/source-data"]),
+        }),
+      );
+      expect(sourceRecord?.relatedRoutes.length, `${segment.slug} should expose related routes`).toBeGreaterThan(0);
     }
   });
 
