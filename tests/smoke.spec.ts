@@ -196,7 +196,13 @@ import {
   audienceSequenceTestSendIssue,
   audienceSequenceTestSendStatus,
 } from "../src/lib/audience-sequence-test-sends";
-import { comparisonSeoTargets, competitorSources, competitors } from "../src/lib/comparison-data";
+import {
+  comparisonHubRows,
+  comparisonSeoTargets,
+  competitorSources,
+  competitors,
+  nonCanonicalComparisonExamples,
+} from "../src/lib/comparison-data";
 import {
   audienceSegmentUrl,
   audienceSegments,
@@ -1066,6 +1072,11 @@ test.describe("Bumpgrade scaffold", () => {
     for (const competitor of competitors) {
       await expect(page.getByRole("link", { name: new RegExp(`${competitor.name} alternative`, "i") })).toBeVisible();
     }
+    for (const example of nonCanonicalComparisonExamples) {
+      await expect(page.getByRole("heading", { name: example.name })).toBeVisible();
+      await expect(page.getByText(example.boundary)).toBeVisible();
+      await expect(page.getByRole("link", { name: new RegExp(`${example.name} alternative`, "i") })).toHaveCount(0);
+    }
   });
 
   test("comparison SEO metadata and source data target ClickFunnels queries", async ({ page, request }, testInfo) => {
@@ -1147,6 +1158,28 @@ test.describe("Bumpgrade scaffold", () => {
         }),
       ]),
     );
+    expect(sorted(payload.canonicalCompetitorIds)).toEqual(sorted(competitors.map((competitor) => competitor.id)));
+    expect(sorted(payload.canonicalCompetitorSlugs)).toEqual(sorted(competitors.map((competitor) => competitor.slug)));
+    expect(payload.nonCanonicalExamples).toEqual(nonCanonicalComparisonExamples);
+
+    const canonicalNames = payload.competitors.map((competitor: { name: string }) => competitor.name);
+    const seoRoutes = payload.seoTargets.map((target: { route: string }) => target.route);
+    const importerCompetitorIds = payload.importers.map((importer: { competitorId: string }) => importer.competitorId);
+    for (const example of nonCanonicalComparisonExamples) {
+      expect(canonicalNames, `${example.name} should not be a canonical competitor`).not.toContain(example.name);
+      expect(seoRoutes, `${example.name} should not have a canonical SEO route`).not.toContain(
+        `/compare/${example.slug}-alternative`,
+      );
+      expect(importerCompetitorIds, `${example.name} should not have importer linkage`).not.toContain(
+        `competitor-${example.slug}`,
+      );
+      for (const area of example.mentionedInAreas) {
+        const hubRow = comparisonHubRows.find((row) => row.area === area);
+        expect(hubRow?.incumbent, `${example.name} should be explicitly marked non-canonical in ${area}`).toContain(
+          "not a canonical feature-match target yet",
+        );
+      }
+    }
   });
 
   test("non-ClickFunnels comparison pages expose source-backed SEO depth", async ({ page, request }, testInfo) => {
@@ -1661,6 +1694,9 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/features/ai-business-coach");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/clickfunnels-alternative");
     expect(sitemapXml).toContain("https://bumpgrade.com/compare/source-data");
+    for (const example of nonCanonicalComparisonExamples) {
+      expect(sitemapXml).not.toContain(`https://bumpgrade.com/compare/${example.slug}-alternative`);
+    }
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing");
     expect(sitemapXml).not.toContain("https://bumpgrade.com/pricing-v2");

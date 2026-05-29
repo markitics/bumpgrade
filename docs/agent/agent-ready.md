@@ -120,7 +120,9 @@ Current comparison boundary: `/compare/source-data` is the public-safe
 competitor research contract. It exposes competitor IDs, source IDs and URLs,
 SEO target IDs, importer platform IDs, and feature-match rows with stable row
 IDs, Bumpgrade feature IDs, public proof routes, roadmap item IDs, and use-case
-IDs. It must not expose private admin notes, owner-only routes, raw private
+IDs. It also exposes adjacent non-canonical examples such as Leadpages and
+Teachable so agents do not treat those names as source-backed feature-match
+targets. It must not expose private admin notes, owner-only routes, raw private
 import records, provider data, or customer data.
 
 Current mobile-admin boundary: `/mobile-admin/source-data` is the shared

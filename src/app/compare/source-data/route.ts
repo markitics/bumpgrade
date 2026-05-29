@@ -9,6 +9,7 @@ import {
   type CompetitorComparisonRow,
   competitorSources,
   competitors,
+  nonCanonicalComparisonExamples,
 } from "@/lib/comparison-data";
 import { importerPlatforms } from "@/lib/importers";
 import { getMarketingFeature } from "@/lib/marketing-features";
@@ -80,6 +81,9 @@ export function GET() {
     sources: competitorSources,
     hubRows: comparisonHubRows,
     principles: comparisonPrinciples,
+    canonicalCompetitorIds: competitors.map((competitor) => competitor.id),
+    canonicalCompetitorSlugs: competitors.map((competitor) => competitor.slug),
+    nonCanonicalExamples: nonCanonicalComparisonExamples,
     competitors: competitors.map(competitorSourceData),
     importers: importerPlatforms.map((platform) => ({
       id: platform.id,
