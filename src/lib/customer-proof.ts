@@ -95,7 +95,7 @@ export const customerProofEmptyState = {
   eyebrow: "Customer proof policy",
   headline: "Customer names, logos, quotes, and metrics stay unpublished until approved.",
   body:
-    "Bumpgrade public pages currently cite product source data, comparison records, route proof, and issue evidence. Approved customer proof will appear only after a source-backed record includes public consent and owner approval.",
+    "Bumpgrade public pages currently cite published product evidence, comparison records, route proof, and issue evidence. Approved customer proof will appear only after a verified record includes public consent and owner approval.",
   linkLabel: "View proof records",
   linkHref: customerProofSourceDataRoute,
 } as const;
