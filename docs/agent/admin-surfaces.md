@@ -44,7 +44,9 @@ for executive summaries, then link to `/admin/work-log` when the audit trail is
 needed.
 
 Each workstream should also expose a stable `brief` object in
-`/admin/director/source-data`. The brief is the CMO/CISO/product-lead level
+`/agent-docs/director-status-source-data`. The legacy
+`/admin/director/source-data` route exposes the same payload for compatibility.
+The brief is the CMO/CISO/product-lead level
 summary: due item, in-flight item, next pending item, latest 7-day change, and
 watchlist item. The browser should show those signals while the workstream row is
 collapsed, then reveal issue/PR/source evidence when expanded.
@@ -83,12 +85,14 @@ fall back to public-safe code fixtures during local development or before a
 fresh database has migrations applied.
 
 Issue #9 added Better Auth as the human admin gate. Browser-rendered admin pages
-require an allowlisted owner session. Public-safe `/admin/*/source-data` routes
-remain readable by agents and must not contain private notes, secrets, raw
-provider identifiers, or private user data.
-The sitemap and `robots.txt` mirror this boundary: public-safe admin source-data
-routes are crawlable, while owner-gated admin UI pages stay disallowed and are
-not listed in the sitemap.
+require an allowlisted owner session. Public-safe `/agent-docs/*-source-data`
+aliases are the preferred agent and crawler discovery routes for admin-derived
+project state. Legacy `/admin/*/source-data` routes remain direct JSON endpoints
+for compatibility and must not contain private notes, secrets, raw provider
+identifiers, or private user data.
+The sitemap and `robots.txt` mirror this boundary: public-safe `/agent-docs`
+source-data aliases are crawlable, while owner-gated admin UI pages stay
+disallowed and are not listed in the sitemap.
 
 Recommended status values:
 
@@ -114,8 +118,8 @@ Purpose: durable diary of how agents used their time.
 The browser view supports time-window filtering with `/admin/work-log`,
 `/admin/work-log?window=past-1-day`, and
 `/admin/work-log?window=past-7-days`. Use the filtered browser view when Mark
-asks what changed recently; use `/admin/work-log/source-data` for agent-side
-audit reads.
+asks what changed recently; use `/agent-docs/project-work-log-source-data` for
+agent-side audit reads.
 
 Append public-safe work-log rows with:
 
@@ -319,6 +323,15 @@ before merging.
 ## Source Data
 
 Agents can read the current public-safe admin records from:
+
+- `/agent-docs/director-status-source-data`
+- `/agent-docs/project-source-data`
+- `/agent-docs/project-roadmap-source-data`
+- `/agent-docs/project-work-log-source-data`
+- `/agent-docs/user-journey-source-data`
+- `/agent-docs/owner-attention-source-data`
+
+Legacy compatibility routes remain direct JSON endpoints:
 
 - `/admin/director/source-data`
 - `/admin/source-data`

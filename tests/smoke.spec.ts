@@ -210,7 +210,11 @@ import {
   plannedPricingTracks,
   resourceHubItems,
 } from "../src/lib/content-surfaces";
-import { publicSafeAdminSourceDataRoutes } from "../src/lib/discovery-policy";
+import {
+  publicAdminSourceDataAliases,
+  publicAdminSourceDataAliasRoutes,
+  publicSafeAdminSourceDataRoutes,
+} from "../src/lib/discovery-policy";
 import { describeBetterAuthSessionBoundary } from "../src/lib/auth";
 import { commerceTables } from "../src/lib/commerce";
 import { checkoutOfferSourceData, checkoutOfferStack } from "../src/lib/checkout-offers";
@@ -1016,15 +1020,12 @@ test.describe("Bumpgrade scaffold", () => {
       "/agent-docs/bumpgrade-admin-surfaces",
       "/agent-docs/bumpgrade-agent-surface",
       "/agent-docs/bumpgrade-mobile-admin",
+      ...publicAdminSourceDataAliasRoutes,
       "/mobile-admin/source-data",
       "/mobile-admin/ios/source-data",
       "/mobile-admin/android/source-data",
       "/mobile-admin/dashboard/source-data",
-      "/admin/source-data",
-      "/admin/director/source-data",
-      "/admin/work-log/source-data",
-      "/admin/user-journeys/source-data",
-      "/admin/for-mark/source-data",
+      ...publicSafeAdminSourceDataRoutes,
     ];
 
     for (const path of publicSourceDataRoutes) {
@@ -1056,6 +1057,44 @@ test.describe("Bumpgrade scaffold", () => {
         /Codex project email|shipped notices|trusted replies|future Codex|notes for Mark/i,
       );
     }
+  });
+
+  test("public admin source-data aliases stay discoverable and legacy-compatible", async ({ request }) => {
+    for (const alias of publicAdminSourceDataAliases) {
+      const aliasResponse = await request.get(alias.route);
+      const legacyResponse = await request.get(alias.sourceRoute);
+      expect(aliasResponse.ok(), `${alias.route} should resolve`).toBeTruthy();
+      expect(legacyResponse.ok(), `${alias.sourceRoute} should remain compatible`).toBeTruthy();
+
+      const aliasPayload = await aliasResponse.json();
+      const legacyPayload = await legacyResponse.json();
+      expect(aliasPayload.id).toBe(legacyPayload.id);
+      expect(Object.keys(aliasPayload).sort()).toEqual(Object.keys(legacyPayload).sort());
+    }
+
+    const manifestResponse = await request.get("/agent-docs/source-data");
+    expect(manifestResponse.ok()).toBeTruthy();
+    const manifest = await manifestResponse.json();
+    expect(manifest.publicAdminSourceDataAliases).toEqual(publicAdminSourceDataAliases);
+    expect(manifest.readContracts).toEqual(
+      expect.arrayContaining(
+        publicAdminSourceDataAliases.map((alias) =>
+          expect.objectContaining({
+            route: alias.route,
+            auth: "public",
+            legacyRoutes: [alias.sourceRoute],
+          }),
+        ),
+      ),
+    );
+
+    const llms = await request.get("/llms.txt");
+    expect(llms.ok()).toBeTruthy();
+    const llmsText = await llms.text();
+    for (const alias of publicAdminSourceDataAliases) {
+      expect(llmsText).toContain(`https://bumpgrade.com${alias.route}`);
+    }
+    expect(llmsText).toContain("Legacy admin source-data routes under https://bumpgrade.com/admin/*/source-data remain direct");
   });
 
   test("public analytics attribution labels hide internal campaign markers", () => {
@@ -1732,8 +1771,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/dashboard/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/ios/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/mobile-admin/android/source-data");
-    for (const route of publicSafeAdminSourceDataRoutes) {
+    for (const route of publicAdminSourceDataAliasRoutes) {
       expect(sitemapXml).toContain(`https://bumpgrade.com${route}`);
+    }
+    for (const route of publicSafeAdminSourceDataRoutes) {
+      expect(sitemapXml).not.toContain(`<loc>https://bumpgrade.com${route}</loc>`);
     }
     for (const route of [
       "/admin/director",
@@ -1756,8 +1798,11 @@ test.describe("Bumpgrade scaffold", () => {
     expect(robots.ok()).toBeTruthy();
     const robotsTxt = await robots.text();
     expect(robotsTxt).toContain("Allow: /");
-    for (const route of publicSafeAdminSourceDataRoutes) {
+    for (const route of publicAdminSourceDataAliasRoutes) {
       expect(robotsTxt).toContain(`Allow: ${route}`);
+    }
+    for (const route of publicSafeAdminSourceDataRoutes) {
+      expect(robotsTxt).not.toContain(`Allow: ${route}`);
     }
     expect(robotsTxt).toContain("Disallow: /admin/");
     expect(robotsTxt).toContain("Sitemap: https://bumpgrade.com/sitemap.xml");
@@ -23769,11 +23814,41 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.readContracts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: "read-feature-catalog", route: "/features/source-data", auth: "public" }),
-        expect.objectContaining({ id: "read-admin-source", route: "/admin/source-data", auth: "public" }),
+        expect.objectContaining({
+          id: "read-admin-source",
+          route: "/agent-docs/project-source-data",
+          auth: "public",
+          legacyRoutes: ["/admin/source-data"],
+        }),
+        expect.objectContaining({
+          id: "read-project-roadmap-source",
+          route: "/agent-docs/project-roadmap-source-data",
+          auth: "public",
+          legacyRoutes: ["/admin/roadmap/source-data"],
+        }),
+        expect.objectContaining({
+          id: "read-project-work-log-source",
+          route: "/agent-docs/project-work-log-source-data",
+          auth: "public",
+          legacyRoutes: ["/admin/work-log/source-data"],
+        }),
+        expect.objectContaining({
+          id: "read-user-journey-source",
+          route: "/agent-docs/user-journey-source-data",
+          auth: "public",
+          legacyRoutes: ["/admin/user-journeys/source-data"],
+        }),
+        expect.objectContaining({
+          id: "read-owner-attention-source",
+          route: "/agent-docs/owner-attention-source-data",
+          auth: "public",
+          legacyRoutes: ["/admin/for-mark/source-data"],
+        }),
         expect.objectContaining({
           id: "read-director-status",
-          route: "/admin/director/source-data",
+          route: "/agent-docs/director-status-source-data",
           auth: "public",
+          legacyRoutes: ["/admin/director/source-data"],
           stableIds: expect.arrayContaining(["directorBriefingControlId"]),
           safeForAgents: expect.arrayContaining([expect.stringContaining("briefing controls")]),
         }),

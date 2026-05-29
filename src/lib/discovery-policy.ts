@@ -7,10 +7,51 @@ export const publicSafeAdminSourceDataRoutes = [
   "/admin/for-mark/source-data",
 ] as const;
 
+export const publicAdminSourceDataAliases = [
+  {
+    id: "director-status-source-data",
+    title: "Director status source data",
+    route: "/agent-docs/director-status-source-data",
+    sourceRoute: "/admin/director/source-data",
+  },
+  {
+    id: "project-source-data",
+    title: "Project source data",
+    route: "/agent-docs/project-source-data",
+    sourceRoute: "/admin/source-data",
+  },
+  {
+    id: "project-roadmap-source-data",
+    title: "Project roadmap source data",
+    route: "/agent-docs/project-roadmap-source-data",
+    sourceRoute: "/admin/roadmap/source-data",
+  },
+  {
+    id: "project-work-log-source-data",
+    title: "Project work-log source data",
+    route: "/agent-docs/project-work-log-source-data",
+    sourceRoute: "/admin/work-log/source-data",
+  },
+  {
+    id: "user-journey-source-data",
+    title: "User journey source data",
+    route: "/agent-docs/user-journey-source-data",
+    sourceRoute: "/admin/user-journeys/source-data",
+  },
+  {
+    id: "owner-attention-source-data",
+    title: "Owner attention source data",
+    route: "/agent-docs/owner-attention-source-data",
+    sourceRoute: "/admin/for-mark/source-data",
+  },
+] as const;
+
+export const publicAdminSourceDataAliasRoutes = publicAdminSourceDataAliases.map((alias) => alias.route);
+
 export const publicDiscoverySourceDataRoutes = [
   "/features/source-data",
   "/roadmap/source-data",
-  ...publicSafeAdminSourceDataRoutes,
+  ...publicAdminSourceDataAliasRoutes,
   "/compare/source-data",
   "/imports/source-data",
   "/playground/source-data",
