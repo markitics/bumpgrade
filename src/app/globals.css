@@ -2950,6 +2950,7 @@ h3 {
 
 .roadmap-card-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -5635,7 +5636,7 @@ h3 {
 
 .journey-proof-stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -5667,6 +5668,16 @@ h3 {
   line-height: 1.08;
 }
 
+.journey-proof-stat-card small,
+.journey-proof-source-cell small,
+.journey-proof-source-detail {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .journey-proof-matrix-band {
   padding-top: 28px;
 }
@@ -5680,7 +5691,7 @@ h3 {
 
 .journey-proof-matrix {
   width: 100%;
-  min-width: 1120px;
+  min-width: 1280px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -5718,6 +5729,17 @@ h3 {
 
 .journey-proof-matrix-links .journey-proof-links {
   margin-top: 0;
+}
+
+.journey-proof-source-cell {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.journey-proof-source-detail {
+  display: block;
+  margin-top: 3px;
 }
 
 .journey-screenshot-strip {

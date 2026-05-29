@@ -22325,6 +22325,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-prospect-explores-launch-marketing",
           featureId: "feature-public-feature-catalog",
           issueNumbers: expect.arrayContaining([217, 226, 234]),
+          proofSource: expect.objectContaining({
+            kind: "journey",
+            inherited: false,
+            sourceJourneyId: "journey-prospect-explores-launch-marketing",
+          }),
           proof: expect.objectContaining({
             status: "passed",
             lastTestedAt: expect.any(String),
@@ -22341,6 +22346,11 @@ test.describe("Bumpgrade scaffold", () => {
           id: "journey-prospect-reviews-launch-pricing",
           featureId: "feature-resources-use-cases-pricing",
           issueNumbers: expect.arrayContaining([217, 226, 234]),
+          proofSource: expect.objectContaining({
+            kind: "journey",
+            inherited: false,
+            sourceJourneyId: "journey-prospect-reviews-launch-pricing",
+          }),
           proof: expect.objectContaining({
             status: "passed",
             ciLinks: expect.arrayContaining([
@@ -23193,6 +23203,10 @@ test.describe("Bumpgrade scaffold", () => {
         screenshotLinks: expect.any(Number),
         ciLinks: expect.any(Number),
         latestTestedAt: expect.any(String),
+        journeySpecificProofs: expect.any(Number),
+        featureInheritedProofs: expect.any(Number),
+        defaultProofs: expect.any(Number),
+        inheritedProofs: expect.any(Number),
       }),
     );
     expect(payload.proofSummary.totalJourneys).toBe(payload.journeys.length);
@@ -23200,6 +23214,15 @@ test.describe("Bumpgrade scaffold", () => {
     expect(payload.proofSummary.partialJourneys).toBe(0);
     expect(payload.proofSummary.blockedJourneys).toBe(0);
     expect(payload.proofSummary.notRunJourneys).toBe(0);
+    expect(payload.proofSummary.defaultProofs).toBe(0);
+    expect(payload.proofSummary.journeySpecificProofs).toBeGreaterThan(0);
+    expect(payload.proofSummary.featureInheritedProofs).toBeGreaterThan(0);
+    expect(payload.proofSummary.inheritedProofs).toBe(
+      payload.proofSummary.featureInheritedProofs + payload.proofSummary.defaultProofs,
+    );
+    expect(payload.proofSummary.journeySpecificProofs + payload.proofSummary.inheritedProofs).toBe(
+      payload.proofSummary.totalJourneys,
+    );
     expect(payload.proofSummary.screenshotLinks).toBeGreaterThan(0);
     expect(payload.proofSummary.ciLinks).toBeGreaterThan(0);
     for (const journey of payload.journeys) {
@@ -23209,9 +23232,32 @@ test.describe("Bumpgrade scaffold", () => {
           lastTestedAt: expect.any(String),
         }),
       );
-      expect(journey.proof.notes, journey.id).not.toEqual(
-        expect.arrayContaining([expect.stringContaining("Default proof is attached")]),
+      expect(journey.proofSource, journey.id).toEqual(
+        expect.objectContaining({
+          kind: expect.stringMatching(/^(journey|feature|default)$/),
+          inherited: expect.any(Boolean),
+          label: expect.any(String),
+        }),
       );
+      expect(journey.proofSource.kind, journey.id).not.toBe("default");
+      if (journey.proofSource.kind === "journey") {
+        expect(journey.proofSource).toEqual(
+          expect.objectContaining({
+            inherited: false,
+            sourceJourneyId: journey.id,
+            sourceFeatureId: null,
+          }),
+        );
+      }
+      if (journey.proofSource.kind === "feature") {
+        expect(journey.proofSource).toEqual(
+          expect.objectContaining({
+            inherited: true,
+            sourceJourneyId: null,
+            sourceFeatureId: journey.featureId,
+          }),
+        );
+      }
     }
     expect(payload.journeys).toEqual(
       expect.arrayContaining([
@@ -23226,6 +23272,12 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "journey-compare-bumpgrade-to-clickfunnels",
+          proofSource: expect.objectContaining({
+            kind: "journey",
+            inherited: false,
+            sourceJourneyId: "journey-compare-bumpgrade-to-clickfunnels",
+            sourceFeatureId: null,
+          }),
           proof: expect.objectContaining({
             status: "passed",
             ciLinks: expect.arrayContaining([
@@ -23238,6 +23290,12 @@ test.describe("Bumpgrade scaffold", () => {
         }),
         expect.objectContaining({
           id: "journey-prospect-imports-from-clickfunnels",
+          proofSource: expect.objectContaining({
+            kind: "journey",
+            inherited: false,
+            sourceJourneyId: "journey-prospect-imports-from-clickfunnels",
+            sourceFeatureId: null,
+          }),
           proof: expect.objectContaining({
             status: "passed",
             screenshotLinks: expect.arrayContaining([
@@ -23284,6 +23342,24 @@ test.describe("Bumpgrade scaffold", () => {
         expect.objectContaining({
           id: "journey-publisher-previews-product-access",
           featureStatus: "live",
+        }),
+        expect.objectContaining({
+          id: "journey-read-public-roadmap-source-data",
+          proofSource: expect.objectContaining({
+            kind: "feature",
+            inherited: true,
+            sourceJourneyId: null,
+            sourceFeatureId: "feature-public-roadmap",
+          }),
+        }),
+        expect.objectContaining({
+          id: "journey-publisher-previews-seeded-funnel",
+          proofSource: expect.objectContaining({
+            kind: "feature",
+            inherited: true,
+            sourceJourneyId: null,
+            sourceFeatureId: "feature-funnel-builder",
+          }),
         }),
         expect.objectContaining({
           id: "journey-publisher-verifies-sandbox-entitlement-grant",
@@ -26789,6 +26865,9 @@ test.describe("Bumpgrade scaffold", () => {
     await page.goto("/admin/user-journeys");
     await expect(page.getByRole("heading", { name: /Launch proof for the paths people will actually try/i })).toBeVisible();
     await expect(page.getByText("Evidence matrix")).toBeVisible();
+    await expect(page.getByText("Proof source", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Inherited proof", { exact: true })).toBeVisible();
+    await expect(page.getByText("Journey-specific", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Latest proof", { exact: true })).toBeVisible();
     await expect(page.locator(".journey-screenshot-thumb").first()).toBeVisible();
     await expect(page.locator(".journey-proof-matrix").getByRole("link", { name: /CI workflow/i }).first()).toBeVisible();
