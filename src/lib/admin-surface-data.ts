@@ -65,9 +65,33 @@ export type AdminUserJourney = {
   agentAccess: string;
   validation: string[];
   proof?: AdminUserJourneyProof;
+  proofSource?: AdminUserJourneyProofSource;
   sortOrder: number;
   updatedAt: string | null;
 };
+
+export type AdminUserJourneyProofSource =
+  | {
+      kind: "journey";
+      inherited: false;
+      sourceJourneyId: string;
+      sourceFeatureId: null;
+      label: "Journey-specific proof";
+    }
+  | {
+      kind: "feature";
+      inherited: true;
+      sourceJourneyId: null;
+      sourceFeatureId: string;
+      label: "Inherited feature proof";
+    }
+  | {
+      kind: "default";
+      inherited: true;
+      sourceJourneyId: null;
+      sourceFeatureId: null;
+      label: "Default fallback proof";
+    };
 
 export type AdminUserJourneyProof = {
   status: "passed" | "partial" | "blocked" | "not_run";
@@ -90,6 +114,10 @@ export type AdminUserJourneyProofSummary = {
   screenshotLinks: number;
   ciLinks: number;
   latestTestedAt: string | null;
+  journeySpecificProofs: number;
+  featureInheritedProofs: number;
+  defaultProofs: number;
+  inheritedProofs: number;
 };
 
 export type MarkAttentionItem = {
@@ -125,8 +153,13 @@ export type AdminSurfaceData = {
   loadError: string | null;
   roadmapItems: AdminRoadmapRecord[];
   workLogEntries: AdminWorkLogEntry[];
-  userJourneys: AdminUserJourney[];
+  userJourneys: ResolvedAdminUserJourney[];
   attentionItems: MarkAttentionItem[];
+};
+
+export type ResolvedAdminUserJourney = AdminUserJourney & {
+  proof: AdminUserJourneyProof;
+  proofSource: AdminUserJourneyProofSource;
 };
 
 export type PublicAdminWorkLogEntry = Omit<AdminWorkLogEntry, "promptFromMark"> & {
@@ -153,7 +186,7 @@ export function toPublicAdminSurfaceData(data: AdminSurfaceData): PublicAdminSur
   };
 }
 
-export function summarizeUserJourneyProof(userJourneys: AdminUserJourney[]): AdminUserJourneyProofSummary {
+export function summarizeUserJourneyProof(userJourneys: ResolvedAdminUserJourney[]): AdminUserJourneyProofSummary {
   let latestTimestamp = 0;
 
   const summary = userJourneys.reduce<AdminUserJourneyProofSummary>(
@@ -167,6 +200,10 @@ export function summarizeUserJourneyProof(userJourneys: AdminUserJourney[]): Adm
 
       acc.screenshotLinks += journey.proof?.screenshotLinks.length ?? 0;
       acc.ciLinks += journey.proof?.ciLinks.length ?? 0;
+      if (journey.proofSource?.kind === "journey") acc.journeySpecificProofs += 1;
+      if (journey.proofSource?.kind === "feature") acc.featureInheritedProofs += 1;
+      if (journey.proofSource?.kind === "default") acc.defaultProofs += 1;
+      if (journey.proofSource?.inherited) acc.inheritedProofs += 1;
 
       if (journey.proof?.lastTestedAt) {
         const timestamp = Date.parse(journey.proof.lastTestedAt);
@@ -184,6 +221,10 @@ export function summarizeUserJourneyProof(userJourneys: AdminUserJourney[]): Adm
       screenshotLinks: 0,
       ciLinks: 0,
       latestTestedAt: null,
+      journeySpecificProofs: 0,
+      featureInheritedProofs: 0,
+      defaultProofs: 0,
+      inheritedProofs: 0,
     },
   );
 
@@ -1119,8 +1160,49 @@ const journeyProofByFeatureId: Record<string, AdminUserJourneyProof> = {
   },
 };
 
+function resolveJourneyProof(journeyId: string, featureId: string): Pick<ResolvedAdminUserJourney, "proof" | "proofSource"> {
+  const journeyProof = journeyProofById[journeyId];
+  if (journeyProof) {
+    return {
+      proof: journeyProof,
+      proofSource: {
+        kind: "journey",
+        inherited: false,
+        sourceJourneyId: journeyId,
+        sourceFeatureId: null,
+        label: "Journey-specific proof",
+      },
+    };
+  }
+
+  const featureProof = journeyProofByFeatureId[featureId];
+  if (featureProof) {
+    return {
+      proof: featureProof,
+      proofSource: {
+        kind: "feature",
+        inherited: true,
+        sourceJourneyId: null,
+        sourceFeatureId: featureId,
+        label: "Inherited feature proof",
+      },
+    };
+  }
+
+  return {
+    proof: defaultJourneyProof,
+    proofSource: {
+      kind: "default",
+      inherited: true,
+      sourceJourneyId: null,
+      sourceFeatureId: null,
+      label: "Default fallback proof",
+    },
+  };
+}
+
 function createJourneyProof(journeyId: string, featureId: string): AdminUserJourneyProof {
-  return journeyProofById[journeyId] ?? journeyProofByFeatureId[featureId] ?? defaultJourneyProof;
+  return resolveJourneyProof(journeyId, featureId).proof;
 }
 
 function mapRoadmapStatus(status: string): AdminRoadmapStatus {
@@ -5003,16 +5085,18 @@ function journeyFromRow(row: D1JourneyRow): AdminUserJourney {
     edgeCases: ownerSafeRequestTexts(parseJson<string[]>(row.edge_cases_json, [])),
     agentAccess: ownerSafeRequestText(row.agent_access),
     validation: ownerSafeRequestTexts(parseJson<string[]>(row.validation_json, [])),
-    proof: createJourneyProof(row.id, row.feature_id),
     sortOrder: row.sort_order,
     updatedAt: isoFromSeconds(row.updated_at),
   };
 }
 
-function journeyWithProof(journey: AdminUserJourney): AdminUserJourney {
+function journeyWithProof(journey: AdminUserJourney): ResolvedAdminUserJourney {
+  const resolvedProof = resolveJourneyProof(journey.id, journey.featureId);
+
   return {
     ...journey,
-    proof: journey.proof ?? createJourneyProof(journey.id, journey.featureId),
+    proof: journey.proof ?? resolvedProof.proof,
+    proofSource: journey.proofSource ?? resolvedProof.proofSource,
   };
 }
 

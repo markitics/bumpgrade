@@ -5,7 +5,12 @@ import { ArrowRight, BadgeCheck, Clock3, Database, ExternalLink, GitBranch, Imag
 
 import { AdminLocked } from "@/components/admin-auth-gate";
 import { getCurrentAdminState } from "@/lib/admin-auth";
-import { getAdminSurfaceData, summarizeUserJourneyProof, type AdminLink } from "@/lib/admin-surface-data";
+import {
+  getAdminSurfaceData,
+  summarizeUserJourneyProof,
+  type AdminLink,
+  type AdminUserJourneyProofSource,
+} from "@/lib/admin-surface-data";
 
 export const metadata: Metadata = {
   title: "Admin user journeys",
@@ -35,6 +40,24 @@ function featureStatusClass(status: string) {
   if (status === "live") return "shipped";
   if (status === "launch-preview") return "active";
   return "planned";
+}
+
+function proofSourceLabel(source: AdminUserJourneyProofSource | undefined) {
+  if (source?.kind === "journey") return "Journey-specific";
+  if (source?.kind === "feature") return "Inherited from feature";
+  return "Default fallback";
+}
+
+function proofSourceDetail(source: AdminUserJourneyProofSource | undefined) {
+  if (source?.kind === "journey") return source.sourceJourneyId;
+  if (source?.kind === "feature") return source.sourceFeatureId;
+  return "No journey or feature proof bundle matched";
+}
+
+function proofSourceBadgeClass(source: AdminUserJourneyProofSource | undefined) {
+  if (source?.kind === "journey") return "live";
+  if (source?.kind === "feature") return "pending";
+  return "blocked";
 }
 
 function screenshotSrc(url: string) {
@@ -124,7 +147,7 @@ export default async function UserJourneysPage() {
           <strong>{data.userJourneys.length} journeys</strong>
           <span>
             {proofSummary.testedJourneys} tested, {proofSummary.partialJourneys} partial. Latest proof{" "}
-            {formatDateTime(proofSummary.latestTestedAt)}.
+            {formatDateTime(proofSummary.latestTestedAt)}. {proofSummary.inheritedProofs} inherited.
           </span>
         </aside>
       </section>
@@ -151,6 +174,12 @@ export default async function UserJourneysPage() {
             <span>CI links</span>
             <strong>{proofSummary.ciLinks}</strong>
           </div>
+          <div className="journey-proof-stat-card">
+            <GitBranch aria-hidden="true" />
+            <span>Inherited proof</span>
+            <strong>{proofSummary.inheritedProofs}</strong>
+            <small>{proofSummary.defaultProofs} default fallback</small>
+          </div>
         </div>
       </section>
 
@@ -167,6 +196,7 @@ export default async function UserJourneysPage() {
               <tr>
                 <th>Journey</th>
                 <th>Status</th>
+                <th>Proof source</th>
                 <th>Last tested</th>
                 <th>Screenshots</th>
                 <th>CI and validation</th>
@@ -185,6 +215,14 @@ export default async function UserJourneysPage() {
                       <span className={`status-badge ${proof?.status === "passed" ? "live" : "pending"}`}>
                         {proofStatusLabel(proof?.status)}
                       </span>
+                    </td>
+                    <td>
+                      <div className="journey-proof-source-cell">
+                        <span className={`status-badge ${proofSourceBadgeClass(journey.proofSource)}`}>
+                          {proofSourceLabel(journey.proofSource)}
+                        </span>
+                        <small>{proofSourceDetail(journey.proofSource)}</small>
+                      </div>
                     </td>
                     <td>{formatDateTime(proof?.lastTestedAt)}</td>
                     <td>
@@ -223,6 +261,9 @@ export default async function UserJourneysPage() {
                   <span className={`status-badge ${proof?.status === "passed" ? "live" : "pending"}`}>
                     {proofStatusLabel(proof?.status)}
                   </span>
+                  <span className={`status-badge ${proofSourceBadgeClass(journey.proofSource)}`}>
+                    {proofSourceLabel(journey.proofSource)}
+                  </span>
                 </div>
                 <h3>{journey.title}</h3>
                 <p>{journey.userGoal}</p>
@@ -250,6 +291,13 @@ export default async function UserJourneysPage() {
                     <span>
                       <Clock3 aria-hidden="true" />
                       {formatDateTime(proof?.lastTestedAt)}
+                    </span>
+                  </div>
+                  <div>
+                    <strong>Proof source</strong>
+                    <span>
+                      {proofSourceLabel(journey.proofSource)}
+                      <small className="journey-proof-source-detail">{proofSourceDetail(journey.proofSource)}</small>
                     </span>
                   </div>
                 </div>
