@@ -4474,6 +4474,115 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.customer-proof-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.5fr);
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.customer-proof-copy,
+.customer-proof-policy,
+.customer-proof-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.customer-proof-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 230px;
+  padding: 20px;
+}
+
+.customer-proof-copy svg,
+.customer-proof-card .text-link svg {
+  width: 28px;
+  height: 28px;
+  color: var(--green);
+}
+
+.customer-proof-copy h3,
+.customer-proof-card h3 {
+  margin: 0;
+}
+
+.customer-proof-copy p:not(.eyebrow),
+.customer-proof-policy p,
+.customer-proof-card p,
+.customer-proof-card blockquote {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.customer-proof-policy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 230px;
+  padding: 20px;
+}
+
+.customer-proof-policy span,
+.customer-proof-card-top span:last-child {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.customer-proof-policy strong {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.customer-proof-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 240px;
+  padding: 20px;
+}
+
+.customer-proof-card blockquote {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--green);
+}
+
+.customer-proof-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customer-proof-attribution {
+  font-weight: 800;
+}
+
+.dark-band .customer-proof-copy,
+.dark-band .customer-proof-policy,
+.dark-band .customer-proof-card {
+  border-color: rgba(248, 244, 235, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dark-band .customer-proof-copy h3,
+.dark-band .customer-proof-policy strong,
+.dark-band .customer-proof-card h3 {
+  color: #f8f4eb;
+}
+
+.dark-band .customer-proof-copy p:not(.eyebrow),
+.dark-band .customer-proof-policy p,
+.dark-band .customer-proof-card p,
+.dark-band .customer-proof-card blockquote {
+  color: #d9ded4;
+}
+
 .agent-setup-panel {
   display: grid;
   gap: 16px;
@@ -5979,6 +6088,7 @@ h3 {
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
+  .customer-proof-panel,
   .agent-resource-grid,
   .account-setup-grid,
   .importer-form-grid,
@@ -6189,6 +6299,7 @@ h3 {
   .feature-story-grid,
   .linked-record-grid,
   .launch-proof-grid,
+  .customer-proof-panel,
   .agent-resource-grid,
   .account-setup-grid,
   .importer-form-grid,

@@ -882,6 +882,7 @@ test.describe("Bumpgrade scaffold", () => {
     await expect(footer.getByRole("link", { name: "Agent manifest" })).toHaveAttribute("href", "/agent-docs/source-data");
     await expect(footer.getByRole("link", { name: "llms.txt" })).toHaveAttribute("href", "/llms.txt");
     await expect(footer.getByRole("link", { name: "Availability map" })).toHaveAttribute("href", "/roadmap");
+    await expect(footer.getByRole("link", { name: "Trust records" })).toHaveAttribute("href", "/trust/source-data");
     await expect(footer.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "mailto:hello@bumpgrade.com");
     await expect(footer.getByText("Owner approval")).toBeVisible();
     await expect(footer.getByText("Legal docs are not public yet.")).toBeVisible();
@@ -1007,6 +1008,7 @@ test.describe("Bumpgrade scaffold", () => {
       canonicalPricingRoute,
       usagePricingDraftRoute,
       "/content/source-data",
+      "/trust/source-data",
       pricingSourceDataRoute,
       importerSourceDataRoute,
       anonymousPlaygroundSourceDataRoute,
@@ -1698,6 +1700,7 @@ test.describe("Bumpgrade scaffold", () => {
       expect(sitemapXml).not.toContain(`https://bumpgrade.com/compare/${example.slug}-alternative`);
     }
     expect(sitemapXml).toContain("https://bumpgrade.com/content/source-data");
+    expect(sitemapXml).toContain("https://bumpgrade.com/trust/source-data");
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing");
     expect(sitemapXml).not.toContain("https://bumpgrade.com/pricing-v2");
     expect(sitemapXml).toContain("https://bumpgrade.com/pricing/source-data");

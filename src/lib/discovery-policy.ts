@@ -16,6 +16,7 @@ export const publicDiscoverySourceDataRoutes = [
   "/playground/source-data",
   "/commerce/source-data",
   "/content/source-data",
+  "/trust/source-data",
   "/pricing/source-data",
   "/brand/source-data",
   "/account/source-data",

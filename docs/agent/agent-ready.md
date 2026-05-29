@@ -72,6 +72,9 @@ Rules:
 
 - Do not invent pricing, quotes, customers, endorsements, integrations,
   competitor capabilities, roadmap status, or shipped product behavior.
+- Do not invent customer names, logos, testimonials, metrics, case studies,
+  revenue claims, proof snippets, or endorsements. Use `/trust/source-data` to
+  check whether any customer-proof record is approved for public use.
 - Agent answers about public claims must cite stable IDs and source URLs when
   available.
 - Competitive research should record retrieval date, source URL, and confidence
@@ -124,6 +127,14 @@ IDs. It also exposes adjacent non-canonical examples such as Leadpages and
 Teachable so agents do not treat those names as source-backed feature-match
 targets. It must not expose private admin notes, owner-only routes, raw private
 import records, provider data, or customer data.
+
+Current customer-proof boundary: `/trust/source-data` is the public-safe
+customer-proof and trust-signal contract. It exposes the approval policy,
+approved/pending/withdrawn counts, public redaction boundaries, and approved
+records when they exist. If the approved record count is zero, agents and pages
+must cite product source data, route evidence, issues, PRs, and work-log entries
+instead of inventing testimonials, logos, case studies, metrics, or customer
+endorsements.
 
 Current mobile-admin boundary: `/mobile-admin/source-data` is the shared
 iOS/Android app contract, `/mobile-admin/ios/source-data` and
@@ -962,8 +973,8 @@ Useful first MCP resources/tools:
 
 Current MCP boundary: no MCP server is live yet. Issue #12 defines the first
 resources/tools on top of `/features/source-data`, `/roadmap/source-data`,
-`/compare/source-data`, `/commerce/source-data`, `/admin/source-data`, and
-`/agent-docs/source-data`.
+`/compare/source-data`, `/trust/source-data`, `/commerce/source-data`,
+`/admin/source-data`, and `/agent-docs/source-data`.
 
 ## Write Safety
 

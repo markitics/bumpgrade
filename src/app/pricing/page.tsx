@@ -13,6 +13,7 @@ import {
   whiteGloveSetupAddon,
   type PricingPlan,
 } from "@/lib/pricing-plans";
+import { CustomerProofPanel } from "@/components/customer-proof-panel";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -284,6 +285,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             products, analytics, and AI launch context.
           </p>
         </div>
+        <CustomerProofPanel placement="pricing" />
       </section>
     </main>
   );

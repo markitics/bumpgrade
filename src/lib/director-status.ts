@@ -1,3 +1,4 @@
+import { ownerSafeRequestText } from "@/lib/admin-surface-data";
 import type {
   AdminLink,
   AdminRoadmapRecord,
@@ -403,7 +404,7 @@ function workLogInitiative(entry: AdminWorkLogEntry): DirectorInitiative {
     id: entry.id,
     title: entry.title,
     status: "shipped_change",
-    summary: entry.promptFromMark,
+    summary: ownerSafeRequestText(entry.promptFromMark),
     updatedAt: entry.completedAt,
     evidence: [
       ...(primaryIssue ? [{ ...primaryIssue, source: "issue" as const, kind: primaryIssue.kind ?? "issue" }] : []),
