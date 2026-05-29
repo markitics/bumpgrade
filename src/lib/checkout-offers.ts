@@ -1,5 +1,9 @@
 import { checkoutConfirmationText, checkoutRoutes, sandboxCheckoutOffer } from "@/lib/sandbox-checkout";
 import {
+  beforeAfterVisualSafetyNotes,
+  type BeforeAfterMarketingVisual,
+} from "@/lib/before-after-visuals";
+import {
   loadPostPurchaseDecisionSummary,
   postPurchaseDecisionApiRoute,
   postPurchaseDecisionContract,
@@ -177,6 +181,46 @@ export const checkoutOfferStack: CheckoutOfferStack = {
 
 export const checkoutOfferStacks = [checkoutOfferStack];
 
+export function offerStackBeforeAfterVisual(stack: CheckoutOfferStack): BeforeAfterMarketingVisual {
+  const firstBump = stack.orderBumps[0];
+  const firstFollowUp = stack.postPurchasePath.offers[0];
+  const fallbackFollowUp = stack.postPurchasePath.offers[1];
+
+  return {
+    id: `${stack.slug}-before-after-safe-offer-path`,
+    issue: 554,
+    title: `${stack.title} source notes become a protected checkout path`,
+    summary:
+      "A public-safe before-after visual for the offer page showing offer notes and fulfillment cues becoming a protected checkout sequence.",
+    before: {
+      eyebrow: "Before",
+      title: "Offer notes and buyer path",
+      description:
+        "The source side shows representative launch inputs only, keeping customer, billing, and fulfillment records out of public marketing copy.",
+      artifacts: ["Primary promise", "Bump idea", "Follow-up offer", "Access notes"],
+      visualRows: ["Promise", "Price cue", "Buyer question", "Delivery cue"],
+    },
+    after: {
+      eyebrow: "After",
+      title: "Protected Bumpgrade offer path",
+      description:
+        "Bumpgrade separates the primary checkout, bump decision, follow-up offer, and fulfillment review before money or access changes.",
+      artifacts: [
+        `${stack.primaryOffer.title} checkout path`,
+        firstBump ? `${firstBump.title} decision` : "Bump decision",
+        firstFollowUp ? `${firstFollowUp.title} follow-up` : "Follow-up offer",
+        fallbackFollowUp ? `${fallbackFollowUp.title} fallback` : "Access review",
+      ],
+      visualRows: ["Offer", "Bump", "Follow-up"],
+      image: {
+        src: "/marketing/checkout-offer-card.png",
+        alt: "Bumpgrade checkout offer workspace with primary offer, order bump, and follow-up steps.",
+      },
+    },
+    safetyNotes: beforeAfterVisualSafetyNotes,
+  };
+}
+
 export function getCheckoutOfferStackBySlug(slug: string) {
   return checkoutOfferStacks.find((stack) => stack.slug === slug) ?? null;
 }
@@ -229,6 +273,7 @@ export const checkoutOfferSourceData = {
   },
   postPurchaseDecisions: postPurchaseDecisionContract,
   writeBoundary: checkoutOfferStack.writeBoundary,
+  beforeAfterVisual: offerStackBeforeAfterVisual(checkoutOfferStack),
   stacks: checkoutOfferStacks,
   caveat:
     "This contract proves offer-stack read semantics, a confirmed sandbox checkout start for the seeded primary offer plus constrained order bump, optional referral-click attribution evidence, review-only commission ledger evidence, owner-gated review/reversal actions, non-billing post-purchase upsell/downsell decision evidence, and aggregate owner-created product delivery-gate links for the seeded offer/funnel path. It does not enable live billing, one-click upsell charging, fulfillment, price mutation, payable commission writes, payout mutation, partner notifications, tax records, or direct confirmed-write agent APIs.",

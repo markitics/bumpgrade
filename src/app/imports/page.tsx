@@ -2,8 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, FileUp, SearchCheck, ShieldCheck } from "lucide-react";
 
+import { BeforeAfterVisualPanel } from "@/components/before-after-marketing-visual";
 import { MarketingProductVisual } from "@/components/marketing-product-visual";
-import { commonImporterSafetyGates, featuredImporter, importerPlatforms } from "@/lib/importers";
+import {
+  commonImporterSafetyGates,
+  featuredImporter,
+  importerHubBeforeAfterVisual,
+  importerPlatforms,
+} from "@/lib/importers";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -44,6 +50,20 @@ export default function ImportsPage() {
           </div>
         </div>
         <MarketingProductVisual />
+      </section>
+
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Before and after</p>
+            <h2>See how old-platform material becomes a private launch review path.</h2>
+          </div>
+          <p>
+            The public example uses representative labels only, so publishers can understand the flow without exposing
+            customer rows, pasted source copy, credentials, or payment details.
+          </p>
+        </div>
+        <BeforeAfterVisualPanel visual={importerHubBeforeAfterVisual} />
       </section>
 
       <section className="content-band alternate">

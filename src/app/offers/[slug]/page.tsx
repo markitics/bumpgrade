@@ -3,8 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, BadgeDollarSign, ShieldCheck, ShoppingCart, TimerReset } from "lucide-react";
 
+import { BeforeAfterVisualPanel } from "@/components/before-after-marketing-visual";
 import { CheckoutStartPanel } from "@/components/checkout-start-panel";
-import { checkoutOfferStacks, getCheckoutOfferStackBySlug, type CheckoutOffer } from "@/lib/checkout-offers";
+import {
+  checkoutOfferStacks,
+  getCheckoutOfferStackBySlug,
+  offerStackBeforeAfterVisual,
+  type CheckoutOffer,
+} from "@/lib/checkout-offers";
 import { site } from "@/lib/site";
 
 type OfferPreviewPageProps = {
@@ -84,6 +90,7 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
   }
 
   const sequence = [stack.primaryOffer, ...stack.orderBumps, ...stack.postPurchasePath.offers];
+  const beforeAfterVisual = offerStackBeforeAfterVisual(stack);
   const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -139,6 +146,20 @@ export default async function OfferPreviewPage({ params }: OfferPreviewPageProps
           agentClientId: "offer-ui",
         }}
       />
+
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Before and after</p>
+            <h2>See how offer notes become a protected checkout path.</h2>
+          </div>
+          <p>
+            The visual keeps buyer, billing, and fulfillment details out of public view while showing how the offer
+            sequence is reviewed before launch.
+          </p>
+        </div>
+        <BeforeAfterVisualPanel visual={beforeAfterVisual} />
+      </section>
 
       <section className="content-band alternate">
         <div className="feature-section-heading">
