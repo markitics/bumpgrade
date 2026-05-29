@@ -17,6 +17,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Product notes and launch guidance: https://bumpgrade.com/resources/product-notes
 - Brand kit: https://bumpgrade.com/brand
 - Brand source data: https://bumpgrade.com/brand/source-data
+- Customer proof and trust-signal source data: https://bumpgrade.com/trust/source-data
 - Pricing direction: https://bumpgrade.com/pricing
 - Pricing policy source data: https://bumpgrade.com/pricing/source-data
 - Content surface source data: https://bumpgrade.com/content/source-data
@@ -153,6 +154,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   agent docs over browser automation.
 - Agents must not invent pricing, customer, competitor, integration, roadmap,
   shipped-feature, or quote facts.
+- Agents must not invent customer names, logos, testimonials, metrics,
+  endorsements, case studies, revenue claims, or proof snippets. Use
+  https://bumpgrade.com/trust/source-data for the current customer-proof
+  approval state.
 - Source-grounded answers should cite stable source ids, source URLs, issue/PR
   evidence, and work-log entries when available.
 - `/agent-docs/source-data` is the current public-safe agent manifest. It lists

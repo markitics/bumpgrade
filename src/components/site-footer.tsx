@@ -48,6 +48,7 @@ const footerSections: FooterSection[] = [
     title: "Trust",
     links: [
       { label: "Availability map", href: "/roadmap" },
+      { label: "Trust records", href: "/trust/source-data" },
       { label: "Pricing policy", href: "/pricing/source-data" },
       { label: "Contact", href: `mailto:${site.contactEmail}` },
       { label: "GitHub repo", href: site.repo },

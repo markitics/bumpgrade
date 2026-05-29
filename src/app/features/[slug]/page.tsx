@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Link2, Sparkles } from "lucide-react";
 
+import { CustomerProofPanel } from "@/components/customer-proof-panel";
 import { getMarketingFeature, marketingFeatures, marketingFeatureUrl } from "@/lib/marketing-features";
 import { site } from "@/lib/site";
 
@@ -213,6 +214,7 @@ export default async function MarketingFeaturePage({ params }: FeaturePageProps)
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>
+        <CustomerProofPanel placement="feature-detail" linkedFeatureIds={feature.featureIds} />
         <div className="linked-record-grid">
           <article>
             <Link2 aria-hidden="true" />

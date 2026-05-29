@@ -703,6 +703,7 @@ export const contentSourceData = {
       ...resourceHubRoutes,
       importerHubRoute,
       "/brand",
+      "/trust/source-data",
       canonicalPricingRoute,
       pricingSourceDataRoute,
       "/playground",
@@ -720,5 +721,5 @@ export const contentSourceData = {
   plannedPricingTracks,
   launchSignupPolicy,
   caveat:
-    "This source data describes public content surfaces. It does not turn planned product features, publisher-offer billing, or confirmed-write agent tools into shipped capabilities.",
+    "This source data describes public content surfaces. It does not turn planned product features, publisher-offer billing, customer proof, or confirmed-write agent tools into shipped capabilities.",
 };

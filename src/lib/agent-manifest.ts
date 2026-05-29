@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { customerProofPolicy, customerProofSourceDataRoute } from "@/lib/customer-proof";
 import {
   agentFunnelDraftWriteApiRoute,
   agentFunnelDraftWriteIssue,
@@ -523,6 +524,22 @@ export const agentReadContracts: AgentReadContract[] = [
       "Read pricing caveats",
     ],
     writeBoundary: "Content changes must cite source-data routes, issues, or shipped evidence before public claims change.",
+  },
+  {
+    id: "read-customer-proof",
+    title: "Customer proof and trust signals",
+    route: customerProofSourceDataRoute,
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "src/lib/customer-proof.ts",
+    stableIds: ["customerProofRecordId", "customerProofPolicyId", "customerProofSourceId"],
+    safeForAgents: [
+      "Read the current customer-proof approval policy",
+      "Confirm whether public testimonials, logos, metrics, or case studies are approved",
+      "Avoid inventing customer proof when approved records are absent",
+    ],
+    writeBoundary:
+      "Customer proof records require source evidence, owner approval, public consent, and a PR or issue before public rendering.",
   },
   {
     id: "read-publisher-account-setup",
@@ -2948,6 +2965,15 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
     stableIds: ["audienceSegmentId", "resourceItemId", "pricingPrincipleId", "pricingTrackId"],
     volatileClaims:
       "Experiment, Grow, Enterprise, and White glove setup are the current public pricing records; future limits, trials, and usage-meter rates still need current source evidence before being cited.",
+  },
+  {
+    id: "evidence-customer-proof",
+    route: customerProofSourceDataRoute,
+    resolves:
+      "Customer-proof approval policy, approved record counts, public redaction boundary, and the current absence or presence of approved testimonials, logos, metrics, case studies, and endorsements.",
+    stableIds: [customerProofPolicy.id, "customerProofRecordId", "customerProofSourceId"],
+    volatileClaims:
+      "Agents must not invent customer names, logos, testimonials, revenue, conversion metrics, endorsements, or case studies. Only approved customer-proof records in this route may be cited as customer proof.",
   },
   {
     id: "evidence-publisher-account-setup",

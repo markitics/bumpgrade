@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, ExternalLink, FileSearch, ShieldCheck } from "lucide-react";
 
+import { CustomerProofPanel } from "@/components/customer-proof-panel";
 import { comparisonRetrievedAt, competitors, getCompetitorBySlug, getSourcesByIds } from "@/lib/comparison-data";
 import { getImporterForCompetitor } from "@/lib/importers";
 import { getMarketingFeature } from "@/lib/marketing-features";
@@ -284,6 +285,20 @@ export default async function CompareAlternativePage({ params }: CompareAlternat
           </div>
         </section>
       ) : null}
+
+      <section className="content-band">
+        <div className="compare-section-heading">
+          <div>
+            <p className="eyebrow">Customer proof</p>
+            <h2>Only source-backed proof appears on this comparison.</h2>
+          </div>
+          <Link href="/trust/source-data" className="text-link compact-link">
+            Trust records
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </div>
+        <CustomerProofPanel placement="compare-detail" linkedCompetitorId={competitor.id} />
+      </section>
 
       <section className="content-band alternate">
         <div className="compare-section-heading">

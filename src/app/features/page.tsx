@@ -9,6 +9,7 @@ import {
   MarketingHero,
   SplitHeading,
 } from "@/components/marketing-primitives";
+import { CustomerProofPanel } from "@/components/customer-proof-panel";
 import {
   featuredMarketingFeatureSlugs,
   getMarketingFeature,
@@ -140,6 +141,7 @@ export default function FeaturesPage() {
             <BadgeCheck aria-hidden="true" />
           </Link>
         </SplitHeading>
+        <CustomerProofPanel placement="features" />
         <div className="feature-proof-grid">
           <div>
             <HeartHandshake aria-hidden="true" />
