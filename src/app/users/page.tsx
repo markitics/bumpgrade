@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Compass, Sparkles, Users } from "lucide-react";
 
+import {
+  ContentBand,
+  MarketingCard,
+  MarketingHero,
+  SplitHeading,
+} from "@/components/marketing-primitives";
 import { audienceSegments } from "@/lib/content-surfaces";
+import { marketingDesignTokens } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,54 +22,73 @@ export const metadata: Metadata = {
   },
 };
 
+const featuredAudienceSegments = audienceSegments.slice(0, 3);
+
 export default function UsersPage() {
   return (
     <main className="route-page">
-      <section className="route-hero">
-        <div>
-          <p className="eyebrow">Users and use cases</p>
-          <h1>Use cases for indiepreneurs who sell from an owned audience.</h1>
-          <p className="lede">
-            Bumpgrade helps creators, coaches, newsletter writers, course sellers, agencies, small publishers, and
-            indie hackers turn attention into a clear offer, a simple buyer path, and a follow-up system they can keep
-            improving.
-          </p>
-          <div className="hero-actions">
-            <Link href="/features" className="primary-action">
+      <MarketingHero
+        className="route-hero"
+        eyebrow="Users and use cases"
+        title="Use cases for indiepreneurs who sell from an owned audience."
+        lede="Bumpgrade helps creators, coaches, newsletter writers, course sellers, agencies, small publishers, and indie hackers turn attention into a clear offer, a simple buyer path, and a follow-up system they can keep improving."
+        actions={
+          <>
+            <Link href="/features" className={marketingDesignTokens.actionClasses.primary}>
               Explore features
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/pricing" className="secondary-action">
+            <Link href="/pricing" className={marketingDesignTokens.actionClasses.secondary}>
               See launch pricing
               <Sparkles aria-hidden="true" />
             </Link>
-          </div>
-        </div>
-        <aside className="route-status-panel" aria-label="User surface status">
-          <Users aria-hidden="true" />
-          <p>Find your path</p>
-          <strong>{audienceSegments.length} launch paths</strong>
-          <span>Pick the closest match, then start with the smallest offer that proves demand.</span>
-        </aside>
-      </section>
+          </>
+        }
+        visual={
+          <aside className="marketing-path-panel audience-path-panel" aria-label="User surface status">
+            <figure className="marketing-path-media">
+              <Image
+                src="/marketing/audience-email-card.png"
+                alt="Bumpgrade audience email workspace with opt-in, consent, segment, and nurture steps."
+                width={1200}
+                height={650}
+                priority
+                unoptimized
+              />
+            </figure>
+            <div className="marketing-path-summary">
+              <Users aria-hidden="true" />
+              <p>Find your path</p>
+              <strong>{audienceSegments.length} launch paths</strong>
+              <span>Pick the closest match, then start with the smallest offer that proves demand.</span>
+            </div>
+            <ol className="marketing-path-list">
+              {featuredAudienceSegments.map((segment, index) => (
+                <li key={segment.id}>
+                  <span>{`0${index + 1}`}</span>
+                  <div>
+                    <strong>{segment.title}</strong>
+                    <Link href={segment.route}>Open use case</Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        }
+      />
 
-      <section className="content-band alternate">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Segments</p>
-            <h2>Who Bumpgrade helps</h2>
-          </div>
-        </div>
-        <div className="feature-grid">
+      <ContentBand tone="alternate">
+        <SplitHeading eyebrow="Segments" title="Who Bumpgrade helps" className="feature-section-heading" />
+        <div className="feature-grid audience-segment-grid">
           {audienceSegments.map((segment) => (
-            <article key={segment.id} id={segment.slug} className="feature-card content-surface-card">
+            <MarketingCard key={segment.id} id={segment.slug} className="feature-card content-surface-card audience-segment-card">
               <div className="feature-card-top">
                 <span className="status-badge live">Use case</span>
                 <Link href={segment.route}>View page</Link>
               </div>
               <h3>{segment.title}</h3>
               <p>{segment.summary}</p>
-              <ul>
+              <ul className="audience-job-list">
                 {segment.primaryJobs.map((job) => (
                   <li key={job}>{job}</li>
                 ))}
@@ -74,40 +101,52 @@ export default function UsersPage() {
                 <strong>Outcome</strong>
                 <span>{segment.outcome}</span>
               </div>
-            </article>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </ContentBand>
 
-      <section className="content-band dark-band">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Launch path</p>
-            <h2>Start with the buyer journey, then add the system around it.</h2>
-          </div>
-          <Link href="/features" className="text-link compact-link">
+      <ContentBand tone="dark">
+        <SplitHeading
+          eyebrow="Launch path"
+          title="Start with the buyer journey, then add the system around it."
+          className="feature-section-heading"
+        >
+          <Link
+            href="/features"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
             See the stack
             <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
-        <div className="feature-proof-grid">
-          <div>
+        </SplitHeading>
+        <ol className="audience-launch-rail">
+          <li>
+            <span>01</span>
             <Compass aria-hidden="true" />
-            <h3>Pick one launch path</h3>
-            <p>Choose the use case that matches the next offer you want to validate.</p>
-          </div>
-          <div>
+            <div>
+              <h3>Pick one launch path</h3>
+              <p>Choose the use case that matches the next offer you want to validate.</p>
+            </div>
+          </li>
+          <li>
+            <span>02</span>
             <Sparkles aria-hidden="true" />
-            <h3>Shape the first offer</h3>
-            <p>Use the page, checkout, product, email, and analytics pieces that matter for that offer.</p>
-          </div>
-          <div>
+            <div>
+              <h3>Shape the first offer</h3>
+              <p>Use the page, checkout, product, email, and analytics pieces that matter for that offer.</p>
+            </div>
+          </li>
+          <li>
+            <span>03</span>
             <BadgeCheck aria-hidden="true" />
-            <h3>Invite real buyers</h3>
-            <p>Launch with enough structure to learn quickly and improve the next version.</p>
-          </div>
-        </div>
-      </section>
+            <div>
+              <h3>Invite real buyers</h3>
+              <p>Launch with enough structure to learn quickly and improve the next version.</p>
+            </div>
+          </li>
+        </ol>
+      </ContentBand>
     </main>
   );
 }

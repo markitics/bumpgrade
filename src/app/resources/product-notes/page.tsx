@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpen, FileSearch, Sparkles } from "lucide-react";
 
+import {
+  ContentBand,
+  MarketingCard,
+  MarketingHero,
+  SplitHeading,
+} from "@/components/marketing-primitives";
 import { resourceHubItems } from "@/lib/content-surfaces";
+import { marketingDesignTokens } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
 
 const resource = resourceHubItems.find((item) => item.id === "resource-product-notes-blog-index");
@@ -44,69 +52,111 @@ const currentNotes = [
   },
 ];
 
+const publicationSteps = [
+  {
+    label: "01",
+    title: "Find the public record",
+    href: "/content/source-data",
+  },
+  {
+    label: "02",
+    title: "Open the product context",
+    href: "/features",
+  },
+  {
+    label: "03",
+    title: "Refresh platform facts",
+    href: "/compare",
+  },
+];
+
 export default function ProductNotesResourcePage() {
   return (
     <main className="route-page">
-      <section className="route-hero">
-        <div>
-          <p className="eyebrow">Product notes</p>
-          <h1>Launch guidance and product notes grounded in public Bumpgrade records.</h1>
-          <p className="lede">
-            Use this index when you need the current public notes behind Bumpgrade resources. It points to the guides,
-            contracts, and feature pages that already have public evidence instead of treating future articles as live
-            content.
-          </p>
-          <div className="hero-actions">
-            <Link href="/resources" className="primary-action">
+      <MarketingHero
+        className="route-hero"
+        eyebrow="Product notes"
+        title="Launch guidance and product notes grounded in public Bumpgrade records."
+        lede="Use this index when you need the current public notes behind Bumpgrade resources. It points to the guides, contracts, and feature pages that already have public evidence instead of treating future articles as live content."
+        actions={
+          <>
+            <Link href="/resources" className={marketingDesignTokens.actionClasses.primary}>
               Back to resources
               <ArrowRight aria-hidden="true" />
             </Link>
-            <Link href="/agent-docs" className="secondary-action">
+            <Link href="/agent-docs" className={marketingDesignTokens.actionClasses.secondary}>
               Read agent docs
               <Sparkles aria-hidden="true" />
             </Link>
-          </div>
-        </div>
-        <aside className="route-status-panel" aria-label="Product notes status">
-          <BookOpen aria-hidden="true" />
-          <p>{resource?.title ?? "Product notes"}</p>
-          <strong>Live index</strong>
-          <span>{resource?.agentBoundary ?? "Resource claims need evidence before publication."}</span>
-        </aside>
-      </section>
+          </>
+        }
+        visual={
+          <aside className="marketing-path-panel product-notes-path-panel" aria-label="Product notes status">
+            <figure className="marketing-path-media">
+              <Image
+                src="/marketing/ai-launch-advisor-card.png"
+                alt="Bumpgrade AI launch advisor card with grounded next-step recommendations."
+                width={1200}
+                height={650}
+                priority
+                unoptimized
+              />
+            </figure>
+            <div className="marketing-path-summary">
+              <BookOpen aria-hidden="true" />
+              <p>{resource?.title ?? "Product notes"}</p>
+              <strong>Live index</strong>
+              <span>{resource?.agentBoundary ?? "Resource claims need evidence before publication."}</span>
+            </div>
+            <ol className="marketing-path-list">
+              {publicationSteps.map((step) => (
+                <li key={step.href}>
+                  <span>{step.label}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <Link href={step.href}>Open path</Link>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        }
+      />
 
-      <section className="content-band alternate">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Current notes</p>
-            <h2>Follow the route that matches the question you are answering.</h2>
-          </div>
-        </div>
+      <ContentBand tone="alternate">
+        <SplitHeading
+          eyebrow="Current notes"
+          title="Follow the route that matches the question you are answering."
+          className="feature-section-heading"
+        />
         <div className="feature-grid">
           {currentNotes.map((note) => (
-            <article key={note.href} className="feature-card content-surface-card">
+            <MarketingCard key={note.href} className="feature-card content-surface-card">
               <div className="feature-card-top">
                 <span className="status-badge live">Available now</span>
                 <Link href={note.href}>Open note</Link>
               </div>
               <h3>{note.title}</h3>
               <p>{note.body}</p>
-            </article>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </ContentBand>
 
-      <section className="content-band dark-band">
-        <div className="feature-section-heading">
-          <div>
-            <p className="eyebrow">Publication rule</p>
-            <h2>Do not turn an idea into a factual claim without evidence.</h2>
-          </div>
-          <Link href="/content/source-data" className="text-link compact-link">
+      <ContentBand tone="dark">
+        <SplitHeading
+          eyebrow="Publication rule"
+          title="Do not turn an idea into a factual claim without evidence."
+          className="feature-section-heading"
+        >
+          <Link
+            href="/content/source-data"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
             Inspect evidence
             <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
+        </SplitHeading>
         <div className="feature-proof-grid">
           <div>
             <FileSearch aria-hidden="true" />
@@ -124,7 +174,7 @@ export default function ProductNotesResourcePage() {
             <p>Third-party pricing, packaging, and platform capability details need fresh source checks before publication.</p>
           </div>
         </div>
-      </section>
+      </ContentBand>
     </main>
   );
 }
