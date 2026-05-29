@@ -4229,6 +4229,282 @@ h3 {
   text-transform: uppercase;
 }
 
+.before-after-visual {
+  display: grid;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.before-after-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.before-after-pane {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+  min-height: 560px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.before-after-pane.before {
+  background: #f8faf7;
+}
+
+.before-after-pane.after {
+  background: #ffffff;
+}
+
+.before-after-pane-heading {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.before-after-pane-heading svg {
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.before-after-pane-heading p {
+  margin: 0;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.before-after-pane-heading h3 {
+  margin-top: 5px;
+}
+
+.before-after-description {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.before-after-artifacts,
+.before-after-review-rail {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.before-after-artifacts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.before-after-artifacts li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 9px 10px;
+  border: 1px solid rgba(23, 65, 49, 0.16);
+  border-radius: 8px;
+  background: #f7faf8;
+  color: #26332b;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.before-after-artifacts li > span {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--blue);
+  border-radius: 6px;
+}
+
+.before-after-artifacts.checkpoints li {
+  grid-template-columns: 18px minmax(0, 1fr);
+  border-color: rgba(138, 100, 36, 0.22);
+  background: #fbf8f0;
+}
+
+.before-after-artifacts.checkpoints svg {
+  width: 18px;
+  height: 18px;
+  color: var(--gold);
+}
+
+.before-after-document {
+  overflow: hidden;
+  min-height: 220px;
+  border: 1px solid rgba(31, 83, 107, 0.22);
+  border-radius: 8px;
+  background: #edf3f4;
+}
+
+.before-after-document-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(31, 83, 107, 0.18);
+  background: #dceaf0;
+}
+
+.before-after-document-toolbar span {
+  width: 58px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(31, 83, 107, 0.28);
+}
+
+.before-after-document-toolbar strong {
+  color: var(--blue);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.before-after-document-row {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.48fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 42px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(31, 83, 107, 0.12);
+}
+
+.before-after-document-toolbar + .before-after-document-row {
+  border-top: 0;
+}
+
+.before-after-document-row span {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.before-after-document-row i {
+  display: block;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--green), var(--rose));
+  opacity: 0.74;
+}
+
+.before-after-document-row i.medium {
+  width: 76%;
+}
+
+.before-after-document-row i.short {
+  width: 58%;
+}
+
+.before-after-preview-image {
+  overflow: hidden;
+  border: 1px solid rgba(18, 23, 19, 0.14);
+  border-radius: 8px;
+  background: #eef6f1;
+}
+
+.before-after-preview-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.55;
+  object-fit: contain;
+  object-position: center;
+}
+
+.before-after-review-rail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  counter-reset: before-after-step;
+}
+
+.before-after-review-rail li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 1px solid rgba(23, 65, 49, 0.16);
+  border-radius: 8px;
+  background: #edf6ef;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.before-after-review-rail li::before {
+  counter-increment: before-after-step;
+  content: counter(before-after-step);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fbf8f0;
+  font-size: 12px;
+}
+
+.before-after-connector {
+  align-self: center;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 10px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.before-after-connector svg {
+  width: 42px;
+  height: 42px;
+  padding: 10px;
+  border: 1px solid rgba(23, 65, 49, 0.18);
+  border-radius: 999px;
+  background: var(--green-soft);
+}
+
+.before-after-safety {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.before-after-safety span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(124, 62, 70, 0.18);
+  border-radius: 8px;
+  background: #fbf3f2;
+  color: var(--rose);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .launch-hero-media img,
 .feature-detail-media img,
 .launch-feature-card img,
@@ -6122,6 +6398,18 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .before-after-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .before-after-connector {
+    min-height: 74px;
+  }
+
+  .before-after-connector svg {
+    transform: rotate(90deg);
+  }
+
   .auth-panel {
     grid-template-columns: 1fr;
   }
@@ -6455,6 +6743,19 @@ h3 {
 
   .product-visual-rail figure {
     min-height: 170px;
+  }
+
+  .before-after-pane {
+    min-height: 0;
+  }
+
+  .before-after-artifacts,
+  .before-after-review-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .before-after-safety span {
+    width: 100%;
   }
 
   .checkout-line-item,

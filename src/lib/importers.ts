@@ -1,3 +1,7 @@
+import {
+  beforeAfterVisualSafetyNotes,
+  type BeforeAfterMarketingVisual,
+} from "@/lib/before-after-visuals";
 import { competitors, type Competitor } from "@/lib/comparison-data";
 
 export type ImporterStatus = "launch-preview" | "private-draft-live" | "queued";
@@ -81,7 +85,7 @@ export type ImporterPlatform = {
   agentContract: string;
 };
 
-export const importerUpdatedAt = "2026-05-26";
+export const importerUpdatedAt = "2026-05-29";
 export const importerIssue = 467;
 export const importerSourceDataRoute = "/imports/source-data";
 export const importerHubRoute = "/imports";
@@ -1461,9 +1465,78 @@ export function privateDraftImportCapabilityForPlatform(platform: ImporterPlatfo
 
 export const importerDraftImportCapabilities = importerPlatforms.map(privateDraftImportCapabilityForPlatform);
 
+const importerAfterImage = {
+  src: "/marketing/launch-funnel-card.png",
+  alt: "Bumpgrade launch funnel workspace with opt-in, offer, checkout, and delivery steps.",
+};
+
+export const importerHubBeforeAfterVisual: BeforeAfterMarketingVisual = {
+  id: "importer-hub-before-after-redacted-review-map",
+  issue: 554,
+  title: "Importer source material becomes a private Bumpgrade review map",
+  summary:
+    "A public-safe before-after visual for the importer center showing source URLs, export structure, and launch notes becoming a private plan and review path.",
+  before: {
+    eyebrow: "Before",
+    title: "Source URL, export, and notes",
+    description:
+      "The public marketing view shows only representative input types, not pasted copy, export contents, customer rows, or file names.",
+    artifacts: ["Public page URL", "Export structure", "Offer notes", "Follow-up outline"],
+    visualRows: ["URL signal", "Header groups", "Offer shape", "Launch intent"],
+  },
+  after: {
+    eyebrow: "After",
+    title: "Bumpgrade private review path",
+    description:
+      "Bumpgrade turns safe signals into a private launch map, structured review records, and go-live gates before anything buyer-facing changes.",
+    artifacts: ["Private launch map", "Structured review records", "Checkout and audience gates", "Go-live approval path"],
+    visualRows: ["Map", "Review", "Approve"],
+    image: importerAfterImage,
+  },
+  safetyNotes: beforeAfterVisualSafetyNotes,
+};
+
+export function importerPlatformBeforeAfterVisual(platform: ImporterPlatform): BeforeAfterMarketingVisual {
+  const sourceArtifacts = platform.sourceChecklist.slice(0, 3).map((item) => item.label);
+  const fallbackArtifacts = platform.inputs.slice(0, 3).map((input) => input.label);
+  const firstArea = platform.importableAreas[0]?.label ?? "Launch path";
+  const secondArea = platform.importableAreas[1]?.label ?? "Offer path";
+
+  return {
+    id: `${platform.slug}-before-after-redacted-review-map`,
+    issue: 554,
+    title: `${platform.platformName} source material becomes a private Bumpgrade review map`,
+    summary: `A public-safe before-after visual for the ${platform.platformName} importer page.`,
+    before: {
+      eyebrow: "Before",
+      title: `${platform.platformName} source bundle`,
+      description:
+        "The page shows source categories Bumpgrade can review while keeping raw platform exports, pasted copy, credentials, and private customer values out of the public UI.",
+      artifacts: sourceArtifacts.length > 0 ? sourceArtifacts : fallbackArtifacts,
+      visualRows: ["Source signal", "Safe header labels", "Review notes", "Missing context"],
+    },
+    after: {
+      eyebrow: "After",
+      title: "Private Bumpgrade review map",
+      description:
+        "Bumpgrade organizes the safe signals into private plan sections, redaction checks, and go-live gates that stay private until the owner approves launch work.",
+      artifacts: [
+        `${firstArea} plan section`,
+        `${secondArea} review checkpoint`,
+        "Safe export analysis",
+        "No buyer-facing go-live effects",
+      ],
+      visualRows: ["Map", "Review", "Approve"],
+      image: importerAfterImage,
+    },
+    safetyNotes: beforeAfterVisualSafetyNotes,
+  };
+}
+
 export function importerPlatformSourceData(platform: ImporterPlatform): Omit<ImporterPlatform, "sourceChecklist"> & {
   sourceChecklist: ImportSourceChecklistSourceDataItem[];
   exportMatchTemplates: ImporterExportMatchTemplate[];
+  beforeAfterVisual: BeforeAfterMarketingVisual;
 } {
   return {
     ...platform,
@@ -1472,6 +1545,7 @@ export function importerPlatformSourceData(platform: ImporterPlatform): Omit<Imp
       preflightSignals: sourceChecklistPreflightSignals(item),
     })),
     exportMatchTemplates: importerExportMatchTemplates(platform),
+    beforeAfterVisual: importerPlatformBeforeAfterVisual(platform),
   };
 }
 
@@ -1565,5 +1639,6 @@ export const importerSourceData = {
       "Public importer source-data includes platform, source IDs, input kinds, saved private plan parts, safety gates, parser fields, and limitations only. Raw exports, raw rows, raw file text, export file names, customer rows, private subscriber emails, payment credentials, API keys, and session cookies stay out of public source-data and preview responses.",
     liveWriteActions: importerDraftImportCapabilities,
   },
+  beforeAfterVisual: importerHubBeforeAfterVisual,
   platforms: importerPlatforms.map(importerPlatformSourceData),
 };

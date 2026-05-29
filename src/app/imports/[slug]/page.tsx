@@ -3,9 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BadgeCheck, FileUp, ShieldCheck } from "lucide-react";
 
+import { BeforeAfterVisualPanel } from "@/components/before-after-marketing-visual";
 import { ImporterDraftForm } from "@/components/importer-draft-form";
 import {
   getImporterBySlug,
+  importerPlatformBeforeAfterVisual,
   importerDraftImportApiRoute,
   importerDraftImportConfirmationText,
   importerDraftPreviewApiRoute,
@@ -68,6 +70,7 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
 
   const importDraftId = firstSearchValue(search.importDraft);
   const importRevision = firstSearchValue(search.importRevision);
+  const beforeAfterVisual = importerPlatformBeforeAfterVisual(platform);
   const rollbackConfirmationText = importerDraftRollbackConfirmationText(platform.platformName);
   const jsonLd = {
     "@context": "https://schema.org",
@@ -109,6 +112,20 @@ export default async function ImporterPage({ params, searchParams }: ImporterPag
           <strong>{platform.platformName}</strong>
           <span>Import the useful context into a private workspace, then approve the launch when the pieces are ready.</span>
         </aside>
+      </section>
+
+      <section className="content-band alternate">
+        <div className="split-heading">
+          <div>
+            <p className="eyebrow">Before and after</p>
+            <h2>See the private review path before starting the {platform.platformName} import.</h2>
+          </div>
+          <p>
+            The example keeps the source side generic and shows the Bumpgrade plan side as review checkpoints, not a
+            live transfer.
+          </p>
+        </div>
+        <BeforeAfterVisualPanel visual={beforeAfterVisual} />
       </section>
 
       <section className="content-band alternate" id="start">
