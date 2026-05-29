@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { publicAdminSourceDataAliases } from "@/lib/discovery-policy";
 import { customerProofPolicy, customerProofSourceDataRoute } from "@/lib/customer-proof";
 import {
   agentFunnelDraftWriteApiRoute,
@@ -194,7 +195,7 @@ import { freeBuildModeContract, pricingSourceDataRoute } from "@/lib/pricing-pla
 import { anonymousPlaygroundSourceDataRoute } from "@/lib/anonymous-playground";
 import { importerIssue, importerSourceDataRoute } from "@/lib/importers";
 
-export const agentManifestUpdatedAt = "2026-05-25";
+export const agentManifestUpdatedAt = "2026-05-29";
 
 export type AgentReadContract = {
   id: string;
@@ -206,6 +207,7 @@ export type AgentReadContract = {
   stableIds: string[];
   safeForAgents: string[];
   writeBoundary: string;
+  legacyRoutes?: string[];
 };
 
 export type AgentMcpPlan = {
@@ -232,6 +234,7 @@ export type AgentSourceEvidenceRoute = {
   resolves: string;
   stableIds: string[];
   volatileClaims: string;
+  legacyRoutes?: string[];
 };
 
 export type StarterBaselineEvidence = {
@@ -279,7 +282,7 @@ export const agentDocs: AgentDoc[] = [
     route: "/agent-docs/bumpgrade-admin-surfaces",
     purpose: "Which admin pages require owner auth and which source-data routes are public-safe for agents.",
     status: "live",
-    evidence: ["/admin/source-data", "docs/agent/admin-surfaces.md"],
+    evidence: ["/agent-docs/project-source-data", "docs/agent/admin-surfaces.md"],
   },
   {
     id: "doc-mcp-roadmap",
@@ -454,18 +457,67 @@ export const agentReadContracts: AgentReadContract[] = [
   {
     id: "read-admin-source",
     title: "Admin source-data bundle",
-    route: "/admin/source-data",
+    route: "/agent-docs/project-source-data",
     kind: "json",
     auth: "public",
     sourceOfTruth: "D1 admin tables with fixture fallback in src/lib/admin-surface-data.ts",
     stableIds: ["workLogEntryId", "userJourneyId", "markAttentionId", "roadmapItemId"],
     safeForAgents: ["Read public-safe work-log entries", "Read user journeys", "Read owner attention summaries"],
     writeBoundary: "Human admin pages require Better Auth; agent writes need approved scripts or future confirmed APIs.",
+    legacyRoutes: ["/admin/source-data"],
+  },
+  {
+    id: "read-project-roadmap-source",
+    title: "Project roadmap source data",
+    route: "/agent-docs/project-roadmap-source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "D1 admin roadmap rows with fixture fallback in src/lib/admin-surface-data.ts",
+    stableIds: ["roadmapItemId", "featureId", "issue"],
+    safeForAgents: ["Read owner-maintained roadmap records", "Inspect status counts", "Cite issue and PR evidence when present"],
+    writeBoundary: "Roadmap changes still require GitHub issue/PR work, admin scripts, or future confirmed-write APIs.",
+    legacyRoutes: ["/admin/roadmap/source-data"],
+  },
+  {
+    id: "read-project-work-log-source",
+    title: "Project work-log source data",
+    route: "/agent-docs/project-work-log-source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "D1 admin work-log rows with fixture fallback in src/lib/admin-surface-data.ts",
+    stableIds: ["workLogEntryId", "roadmapItemId", "featureId"],
+    safeForAgents: ["Read public-safe work-log entries", "Cite shipped PRs and validation evidence", "Find recently changed product surfaces"],
+    writeBoundary: "Work-log changes still require approved scripts or future confirmed-write APIs.",
+    legacyRoutes: ["/admin/work-log/source-data"],
+  },
+  {
+    id: "read-user-journey-source",
+    title: "User journey source data",
+    route: "/agent-docs/user-journey-source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "D1 admin user-journey rows with fixture fallback in src/lib/admin-surface-data.ts",
+    stableIds: ["userJourneyId", "featureId", "roadmapItemId"],
+    safeForAgents: ["Read named user journeys", "Inspect owner/user goals", "Cite edge cases and evidence links"],
+    writeBoundary: "User-journey changes still require approved scripts or future confirmed-write APIs.",
+    legacyRoutes: ["/admin/user-journeys/source-data"],
+  },
+  {
+    id: "read-owner-attention-source",
+    title: "Owner attention source data",
+    route: "/agent-docs/owner-attention-source-data",
+    kind: "json",
+    auth: "public",
+    sourceOfTruth: "D1 owner-attention rows with fixture fallback in src/lib/admin-surface-data.ts",
+    stableIds: ["markAttentionId", "roadmapItemId", "featureId"],
+    safeForAgents: ["Read public-safe owner-attention summaries", "Separate blockers from FYI follow-ups", "Cite related issues and PRs"],
+    writeBoundary: "Owner-attention changes still require approved scripts, email follow-up, or future confirmed-write APIs.",
+    legacyRoutes: ["/admin/for-mark/source-data"],
   },
   {
     id: "read-director-status",
     title: "Director status dashboard",
-    route: "/admin/director/source-data",
+    route: "/agent-docs/director-status-source-data",
     kind: "json",
     auth: "public",
     sourceOfTruth: "src/lib/director-status.ts over D1 admin records from src/lib/admin-surface-data.ts",
@@ -489,6 +541,7 @@ export const agentReadContracts: AgentReadContract[] = [
     ],
     writeBoundary:
       "This route is a read-only summary. Status changes still require updating roadmap, work-log, owner-attention, issue, PR, or future confirmed-write records.",
+    legacyRoutes: ["/admin/director/source-data"],
   },
   {
     id: "read-agent-manifest",
@@ -2909,10 +2962,51 @@ export const agentSourceEvidenceRoutes: AgentSourceEvidenceRoute[] = [
   },
   {
     id: "evidence-admin",
-    route: "/admin/source-data",
+    route: "/agent-docs/project-source-data",
     resolves: "Public-safe admin roadmap, work-log, user-journey, and owner-attention records.",
     stableIds: ["workLogEntryId", "userJourneyId", "markAttentionId", "roadmapItemId"],
     volatileClaims: "Private notes and owner-only decisions stay behind Better Auth or approved scripts.",
+    legacyRoutes: ["/admin/source-data"],
+  },
+  {
+    id: "evidence-director-status",
+    route: "/agent-docs/director-status-source-data",
+    resolves: "Director workstream rollups, briefing controls, executive queue lanes, and recent-change digests.",
+    stableIds: ["directorWorkstreamId", "directorWindowId", "directorQueueLaneId", "directorBriefingControlId"],
+    volatileClaims: "Director rollups are summaries of public-safe admin records; raw private rows stay behind owner auth.",
+    legacyRoutes: ["/admin/director/source-data"],
+  },
+  {
+    id: "evidence-admin-roadmap",
+    route: "/agent-docs/project-roadmap-source-data",
+    resolves: "Owner-maintained roadmap records, status counts, issue links, PR links, and evidence links.",
+    stableIds: ["roadmapItemId", "featureId", "issue"],
+    volatileClaims: "Roadmap status changes should come from merged issue work or explicit admin updates.",
+    legacyRoutes: ["/admin/roadmap/source-data"],
+  },
+  {
+    id: "evidence-admin-work-log",
+    route: "/agent-docs/project-work-log-source-data",
+    resolves: "Public-safe work-log entries for substantive agent work, shipped features, validations, and surface updates.",
+    stableIds: ["workLogEntryId", "roadmapItemId", "featureId"],
+    volatileClaims: "Work-log entries are audit evidence, not proof that a feature is live without issue, PR, and deploy context.",
+    legacyRoutes: ["/admin/work-log/source-data"],
+  },
+  {
+    id: "evidence-user-journeys",
+    route: "/agent-docs/user-journey-source-data",
+    resolves: "Named user journeys, owner/user goals, expected paths, edge cases, and evidence links.",
+    stableIds: ["userJourneyId", "featureId", "roadmapItemId"],
+    volatileClaims: "Journeys describe intended product paths and should be checked against live route evidence before public claims.",
+    legacyRoutes: ["/admin/user-journeys/source-data"],
+  },
+  {
+    id: "evidence-owner-attention",
+    route: "/agent-docs/owner-attention-source-data",
+    resolves: "Public-safe owner-attention summaries, blocker flags, due timing, and related issue or PR links.",
+    stableIds: ["markAttentionId", "roadmapItemId", "featureId"],
+    volatileClaims: "Owner-attention summaries are coordination state and must not expose raw private notes or inbox bodies.",
+    legacyRoutes: ["/admin/for-mark/source-data"],
   },
   {
     id: "evidence-commerce",
@@ -3257,7 +3351,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     id: "mcp-resource-claims",
     resourceOrTool: "tool resolve_public_claim",
     status: "planned",
-    backedBy: "/compare/source-data, /features/source-data, /roadmap/source-data, /admin/work-log/source-data",
+    backedBy: "/compare/source-data, /features/source-data, /roadmap/source-data, /agent-docs/project-work-log-source-data",
     purpose: "Resolve a public claim to source IDs, URLs, issues, PRs, and work-log evidence.",
     safetyBoundary: "Must return caveats when evidence is stale, missing, planned-only, or private.",
   },
@@ -3921,7 +4015,7 @@ export const agentMcpPlan: AgentMcpPlan[] = [
     id: "mcp-tool-propose-update",
     resourceOrTool: "tool propose_admin_update",
     status: "planned",
-    backedBy: "/admin/source-data and future confirmed-write APIs",
+    backedBy: "/agent-docs/project-source-data and future confirmed-write APIs",
     purpose: "Create proposed feature, roadmap, journey, or work-log updates for owner review.",
     safetyBoundary: "Requires actor identity, confirmation text, idempotency key, stale-state check, and audit correlation before writing.",
   },
@@ -3982,6 +4076,7 @@ export const agentManifest = {
   docs: agentDocs,
   readContracts: agentReadContracts,
   sourceEvidenceRoutes: agentSourceEvidenceRoutes,
+  publicAdminSourceDataAliases,
   mcpPlan: agentMcpPlan,
   writeSafetyRules: agentWriteSafetyRules,
   starterBaselineEvidence,

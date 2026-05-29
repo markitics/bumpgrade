@@ -110,9 +110,11 @@ Current auth boundary: human admin pages use Better Auth owner sessions.
 Agent-readable source-data routes stay public-safe and unauthenticated until a
 confirmed-write or delegated-agent auth model exists.
 Discovery policy follows that same split: `robots.txt` disallows owner-gated
-human admin pages while explicitly allowing public-safe `/admin/*/source-data`
-routes, and the sitemap lists those source-data routes instead of private admin
-UI pages.
+human admin pages while explicitly advertising public-safe
+`/agent-docs/*-source-data` aliases, and the sitemap lists those source-data
+aliases instead of private admin UI pages. Legacy `/admin/*/source-data` routes
+remain direct public-safe JSON endpoints for compatibility but are not the
+crawl-preferred URLs.
 
 Current manifest boundary: `/agent-docs/source-data` is the public-safe agent
 manifest. It lists agent-doc pages, stable read contracts, source-evidence
@@ -974,7 +976,7 @@ Useful first MCP resources/tools:
 Current MCP boundary: no MCP server is live yet. Issue #12 defines the first
 resources/tools on top of `/features/source-data`, `/roadmap/source-data`,
 `/compare/source-data`, `/trust/source-data`, `/commerce/source-data`,
-`/admin/source-data`, and `/agent-docs/source-data`.
+`/agent-docs/project-source-data`, and `/agent-docs/source-data`.
 
 ## Write Safety
 

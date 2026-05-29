@@ -98,7 +98,7 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - Sandbox checkout API: https://bumpgrade.com/api/commerce/checkout
 - Stripe webhook endpoint: https://bumpgrade.com/api/stripe/webhook
 - Mobile admin source data: https://bumpgrade.com/mobile-admin/source-data
-- Mobile admin dashboard source data: https://bumpgrade.com/mobile-admin/dashboard/source-data (includes a redacted Director workstream digest sourced from /admin/director/source-data)
+- Mobile admin dashboard source data: https://bumpgrade.com/mobile-admin/dashboard/source-data (includes a redacted Director workstream digest also available from /agent-docs/director-status-source-data)
 - Owner-gated mobile private-row API: https://bumpgrade.com/api/mobile-admin/private-rows
 - Owner-gated mobile private-row action API: https://bumpgrade.com/api/mobile-admin/private-rows/actions
 - Owner-gated mobile Director review API: https://bumpgrade.com/api/mobile-admin/director-reviews
@@ -124,15 +124,16 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - ThriveCart alternative: https://bumpgrade.com/compare/thrivecart-alternative
 - Admin roadmap: https://bumpgrade.com/admin/roadmap (human page requires Better Auth owner session)
 - Director dashboard: https://bumpgrade.com/admin/director (human page requires Better Auth owner session)
-- Director dashboard source data: https://bumpgrade.com/admin/director/source-data (includes briefing controls for past 1 day, past 7 days, executive queue, and workstream map plus workstream brief signals for due, doing, next, changed 7d, and watchlist)
-- Admin source data: https://bumpgrade.com/admin/source-data
-- Admin roadmap source data: https://bumpgrade.com/admin/roadmap/source-data
 - Admin work log: https://bumpgrade.com/admin/work-log (human page requires Better Auth owner session)
-- Admin work-log source data: https://bumpgrade.com/admin/work-log/source-data
 - Admin user journeys: https://bumpgrade.com/admin/user-journeys (human page requires Better Auth owner session)
-- Admin user-journey source data: https://bumpgrade.com/admin/user-journeys/source-data
 - Owner attention: https://bumpgrade.com/admin/for-mark (human page requires Better Auth owner session)
-- Owner attention source data: https://bumpgrade.com/admin/for-mark/source-data
+- Preferred Director status source data: https://bumpgrade.com/agent-docs/director-status-source-data (includes briefing controls for past 1 day, past 7 days, executive queue, and workstream map plus workstream brief signals for due, doing, next, changed 7d, and watchlist)
+- Preferred project source data: https://bumpgrade.com/agent-docs/project-source-data
+- Preferred project roadmap source data: https://bumpgrade.com/agent-docs/project-roadmap-source-data
+- Preferred project work-log source data: https://bumpgrade.com/agent-docs/project-work-log-source-data
+- Preferred user-journey source data: https://bumpgrade.com/agent-docs/user-journey-source-data
+- Preferred owner-attention source data: https://bumpgrade.com/agent-docs/owner-attention-source-data
+- Legacy admin source-data routes under https://bumpgrade.com/admin/*/source-data remain direct public-safe JSON endpoints for compatibility, but agents and crawlers should prefer the /agent-docs aliases above.
 - Project operations notifications: tracked by issue #10. Public docs
   intentionally omit private sender lists, private storage names, raw mail
   handling, and low-level authentication details.
@@ -147,6 +148,12 @@ GitHub repo: https://github.com/markitics/bumpgrade
 - https://bumpgrade.com/agent-docs/bumpgrade-admin-surfaces
 - https://bumpgrade.com/agent-docs/bumpgrade-mcp
 - https://bumpgrade.com/agent-docs/bumpgrade-mobile-admin
+- https://bumpgrade.com/agent-docs/director-status-source-data
+- https://bumpgrade.com/agent-docs/project-source-data
+- https://bumpgrade.com/agent-docs/project-roadmap-source-data
+- https://bumpgrade.com/agent-docs/project-work-log-source-data
+- https://bumpgrade.com/agent-docs/user-journey-source-data
+- https://bumpgrade.com/agent-docs/owner-attention-source-data
 
 ## Current Agent Contract
 
@@ -162,9 +169,11 @@ GitHub repo: https://github.com/markitics/bumpgrade
   evidence, and work-log entries when available.
 - `/agent-docs/source-data` is the current public-safe agent manifest. It lists
   docs, read contracts, evidence routes, MCP plans, and write-safety boundaries.
-- `robots.txt` intentionally disallows owner-gated admin UI pages while allowing
-  the public-safe `/admin/*/source-data` routes listed here. Agents should use
-  those source-data routes instead of scraping private admin pages.
+- `robots.txt` intentionally disallows owner-gated admin UI pages while
+  advertising public-safe `/agent-docs/*-source-data` aliases. Agents should use
+  those aliases instead of scraping private admin pages. Legacy
+  `/admin/*/source-data` routes remain direct public-safe compatibility
+  endpoints but are not the crawl-preferred URLs.
 - Comparison pages are source-linked snapshots. Refresh source URLs before using
   dated pricing, packaging, or feature-availability claims in a user-facing
   answer.
@@ -573,8 +582,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   or creator-speech writes require explicit confirmation, idempotency, stale-state
   checks, audit correlation, and redaction.
 - Human admin pages are protected by Better Auth owner sessions. Public-safe
-  `/admin/*/source-data` routes remain readable for agents and must not contain
-  private notes, secrets, raw provider ids, or private user data.
+  `/agent-docs/*-source-data` aliases are the preferred agent discovery routes
+  for project admin state. Legacy `/admin/*/source-data` routes remain readable
+  for compatibility and must not contain private notes, secrets, raw provider
+  ids, or private user data.
 - Internal project-notification email is an owner-operations workflow, not a
   publisher/customer email feature. Public agent responses should treat it as
   outside Bumpgrade product behavior and avoid private runtime, sender, inbox,

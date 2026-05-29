@@ -3,25 +3,17 @@ import Link from "next/link";
 import { Database, KeyRound, LayoutDashboard, LockKeyhole, Route } from "lucide-react";
 
 import { agentReadContracts } from "@/lib/agent-manifest";
+import { publicAdminSourceDataAliases } from "@/lib/discovery-policy";
 import { adminNavItems, site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Bumpgrade admin surfaces for agents",
   description:
-    "Owner-gated Bumpgrade admin pages, public-safe admin source-data routes, and the boundaries agents must follow.",
+    "Owner-gated Bumpgrade admin pages, public-safe source-data aliases, and the boundaries agents must follow.",
   alternates: {
     canonical: `${site.url}/agent-docs/bumpgrade-admin-surfaces`,
   },
 };
-
-const adminSourceRoutes = [
-  "/admin/director/source-data",
-  "/admin/source-data",
-  "/admin/roadmap/source-data",
-  "/admin/work-log/source-data",
-  "/admin/user-journeys/source-data",
-  "/admin/for-mark/source-data",
-];
 
 export default function AdminSurfacesAgentDocPage() {
   const adminContract = agentReadContracts.find((contract) => contract.id === "read-admin-source");
@@ -34,14 +26,14 @@ export default function AdminSurfacesAgentDocPage() {
           <h1>Admin pages are owner-gated; admin source data is public-safe.</h1>
           <p className="lede">
             Agents should read the director dashboard, admin roadmap, work-log, journey, owner-attention, draft-funnel, and product-entitlement
-            capability state from source-data contracts. Browser-rendered admin pages require Better Auth owner sessions
-            and are not a shortcut around permissions. The director contract includes due-now, in-flight,
+            capability state from non-admin source-data aliases. Browser-rendered admin pages require Better Auth
+            owner sessions and are not a shortcut around permissions. The director contract includes due-now, in-flight,
             pending-next, and watchlist queue lanes plus recent-change digests with workstream provenance for
             executive summaries, along with stable briefing controls for past-day, past-week, queue, and
             workstream-map reads.
           </p>
-          <Link href="/admin/source-data" className="text-link">
-            Admin source data
+          <Link href="/agent-docs/project-source-data" className="text-link">
+            Project source data
             <Database aria-hidden="true" />
           </Link>
         </div>
@@ -49,7 +41,7 @@ export default function AdminSurfacesAgentDocPage() {
           <LayoutDashboard aria-hidden="true" />
           <p>Status</p>
           <strong>Auth boundary live</strong>
-          <span>Better Auth protects human admin pages while source-data routes expose public-safe coordination state.</span>
+          <span>Better Auth protects human admin pages while agent-docs aliases expose public-safe coordination state.</span>
         </div>
       </section>
 
@@ -87,7 +79,7 @@ export default function AdminSurfacesAgentDocPage() {
         <div className="feature-section-heading">
           <div>
             <p className="eyebrow">Agent reads</p>
-            <h2>Public-safe source-data routes</h2>
+            <h2>Preferred source-data aliases</h2>
           </div>
           <Link href="/agent-docs/source-data" className="text-link compact-link">
             Agent manifest
@@ -95,14 +87,18 @@ export default function AdminSurfacesAgentDocPage() {
           </Link>
         </div>
         <div className="feature-grid">
-          {adminSourceRoutes.map((route) => (
-            <article key={route} className="feature-card">
+          {publicAdminSourceDataAliases.map((alias) => (
+            <article key={alias.route} className="feature-card">
               <div className="feature-card-top">
                 <span className="status-badge live">JSON</span>
-                <Link href={route}>Read</Link>
+                <Link href={alias.route}>Read</Link>
               </div>
-              <h3>{route}</h3>
-              <p>Public-safe admin state for agents and future MCP resources.</p>
+              <h3>{alias.title}</h3>
+              <p>{alias.route}</p>
+              <div className="feature-detail">
+                <strong>Legacy route</strong>
+                <span>{alias.sourceRoute}</span>
+              </div>
               <div className="feature-detail">
                 <strong>Must not include</strong>
                 <span>Secrets, private inbox bodies, raw provider IDs, raw mail content, or private customer data.</span>
