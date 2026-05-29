@@ -184,7 +184,7 @@ export default function ComparePage() {
             href="/compare/source-data"
             className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
           >
-            Inspect source data
+            View comparison records
             <ArrowRight aria-hidden="true" />
           </Link>
         </SplitHeading>
