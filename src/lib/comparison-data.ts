@@ -15,6 +15,17 @@ export type ComparisonRow = {
   bumpgradePlan: string;
 };
 
+export type NonCanonicalComparisonExample = {
+  id: string;
+  name: string;
+  slug: string;
+  status: "non-canonical-example";
+  adjacentCategory: string;
+  mentionedInAreas: string[];
+  boundary: string;
+  promotionCriteria: string[];
+};
+
 export type CompetitorFeatureMatch = {
   relatedFeatureId: string;
   featureSlug: string;
@@ -338,7 +349,8 @@ export const comparisonSeoTargets: ComparisonSeoTarget[] = [
 export const comparisonHubRows: ComparisonRow[] = [
   {
     area: "Funnels and landing pages",
-    incumbent: "ClickFunnels, Systeme.io, Kartra, and Leadpages emphasize page and funnel creation.",
+    incumbent:
+      "ClickFunnels, Systeme.io, and Kartra anchor the current funnel and page comparison set. Leadpages is an adjacent landing-page example, not a canonical feature-match target yet.",
     bumpgradePlan: "Bumpgrade connects landing pages and funnel steps to checkout, products, email follow-up, and audience workflows.",
   },
   {
@@ -353,13 +365,49 @@ export const comparisonHubRows: ComparisonRow[] = [
   },
   {
     area: "Products, courses, and memberships",
-    incumbent: "Kajabi, Podia, Teachable, ClickFunnels, Systeme.io, and ThriveCart all speak to digital products or learning delivery.",
+    incumbent:
+      "Kajabi, Podia, ClickFunnels, Systeme.io, and ThriveCart anchor current product, course, and membership comparison coverage. Teachable is an adjacent learning-platform example, not a canonical feature-match target yet.",
     bumpgradePlan: "Bumpgrade keeps products, access, fulfillment, and subscriptions attached to the buyer record.",
   },
   {
     area: "AI assistance",
     incumbent: "Most comparison targets optimize for human dashboards first; some expose developer APIs or newer agent hooks.",
     bumpgradePlan: "Bumpgrade keeps launch context readable enough for AI helpers to summarize, suggest, and prepare changes.",
+  },
+];
+
+export const nonCanonicalComparisonExamples: NonCanonicalComparisonExample[] = [
+  {
+    id: "noncanonical-leadpages",
+    name: "Leadpages",
+    slug: "leadpages",
+    status: "non-canonical-example",
+    adjacentCategory: "Landing-page builder",
+    mentionedInAreas: ["Funnels and landing pages"],
+    boundary:
+      "Leadpages is tracked only as an adjacent landing-page example. It is not part of the first-wave competitor records, SEO targets, importer records, sitemap routes, or feature-match rows.",
+    promotionCriteria: [
+      "Add official source records with retrieved dates.",
+      "Create a canonical competitor record and comparison route.",
+      "Add source-backed SEO metadata, sitemap coverage, and feature-match rows.",
+      "Create importer planning only if product strategy calls for a Leadpages migration path.",
+    ],
+  },
+  {
+    id: "noncanonical-teachable",
+    name: "Teachable",
+    slug: "teachable",
+    status: "non-canonical-example",
+    adjacentCategory: "Learning-platform and course builder",
+    mentionedInAreas: ["Products, courses, and memberships"],
+    boundary:
+      "Teachable is tracked only as an adjacent learning-platform example. It is not part of the first-wave competitor records, SEO targets, importer records, sitemap routes, or feature-match rows.",
+    promotionCriteria: [
+      "Add official source records with retrieved dates.",
+      "Create a canonical competitor record and comparison route.",
+      "Add source-backed SEO metadata, sitemap coverage, and feature-match rows.",
+      "Create importer planning only if product strategy calls for a Teachable migration path.",
+    ],
   },
 ];
 

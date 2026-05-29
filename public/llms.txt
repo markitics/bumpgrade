@@ -167,6 +167,10 @@ GitHub repo: https://github.com/markitics/bumpgrade
   alternative", "ClickFunnels competitors", and adjacent indiepreneur platform
   comparison intent. Treat those as routing/search-intent metadata, not proof
   that planned Bumpgrade parity features have shipped.
+- `/compare/source-data` also labels adjacent non-canonical examples. Leadpages
+  and Teachable are not first-wave competitor records, comparison routes,
+  importer records, sitemap routes, or feature-match targets unless future
+  source-backed records promote them.
 - `/content/source-data` exposes audience, dedicated use-case route, resource,
   and pricing-direction records for public content surfaces. Pricing tracks include the published
   Bumpgrade account-plan names and amounts, but they are not proof of

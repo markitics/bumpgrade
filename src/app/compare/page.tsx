@@ -15,6 +15,7 @@ import {
   comparisonRetrievedAt,
   comparisonSeoTargets,
   competitors,
+  nonCanonicalComparisonExamples,
 } from "@/lib/comparison-data";
 import { marketingDesignTokens } from "@/lib/marketing-design-tokens";
 import { site } from "@/lib/site";
@@ -171,6 +172,38 @@ export default function ComparePage() {
             },
           ]}
         />
+      </ContentBand>
+
+      <ContentBand tone="alternate">
+        <SplitHeading
+          eyebrow="Comparison boundary"
+          title="Some adjacent platforms are examples, not first-wave comparison targets."
+          className="compare-section-heading"
+        >
+          <Link
+            href="/compare/source-data"
+            className={`${marketingDesignTokens.actionClasses.text} ${marketingDesignTokens.actionClasses.compact}`}
+          >
+            View comparison records
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </SplitHeading>
+        <div className="feature-grid">
+          {nonCanonicalComparisonExamples.map((example) => (
+            <MarketingCard key={example.id} className="feature-card compact-content-card">
+              <div className="feature-card-top">
+                <span className="status-badge pending">Not canonical</span>
+                <span>{example.adjacentCategory}</span>
+              </div>
+              <h3>{example.name}</h3>
+              <p>{example.boundary}</p>
+              <div className="feature-detail">
+                <strong>Would need</strong>
+                <span>{example.promotionCriteria[0]}</span>
+              </div>
+            </MarketingCard>
+          ))}
+        </div>
       </ContentBand>
 
       <ContentBand tone="dark">
